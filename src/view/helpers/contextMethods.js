@@ -2,6 +2,42 @@ import resolveReference from '../resolvers/resolveReference';
 import { defineProperties } from '../../utils/object';
 import gatherRefs from './gatherRefs';
 import { warnOnceIfDebug } from '../../utils/log';
+import { set as sharedSet } from '../../shared/set';
+import { isNumeric, isObject } from '../../utils/is';
+import makeArrayMethod from '../../Ractive/prototype/shared/makeArrayMethod';
+import { animate as protoAnimate } from '../../Ractive/prototype/animate';
+import { merge as protoMerge } from '../../Ractive/prototype/merge';
+import { update as protoUpdate } from '../../Ractive/prototype/update';
+import runloop from '../../global/runloop';
+
+const modelPush = makeArrayMethod( 'push' ).model;
+const modelPop = makeArrayMethod( 'pop' ).model;
+const modelShift = makeArrayMethod( 'shift' ).model;
+const modelUnshift = makeArrayMethod( 'unshift' ).model;
+const modelSort = makeArrayMethod( 'sort' ).model;
+const modelSplice = makeArrayMethod( 'splice' ).model;
+const modelReverse = makeArrayMethod( 'reverse' ).model;
+
+// TODO: at some point perhaps this could support relative * keypaths?
+function build ( el, keypath, value ) {
+	const sets = [];
+
+	// set multiple keypaths in one go
+	if ( isObject( keypath ) ) {
+		for ( const k in keypath ) {
+			if ( keypath.hasOwnProperty( k ) ) {
+				sets.push( [ findModel( el, k ).model, keypath[k] ] );
+			}
+		}
+
+	}
+	// set a single keypath
+	else {
+		sets.push( [ findModel( el, keypath ).model, value ] );
+	}
+
+	return sets;
+}
 
 // get relative keypaths and values
 function get ( keypath ) {
@@ -13,103 +49,140 @@ function get ( keypath ) {
 }
 
 function resolve ( path, ractive ) {
-	const frag = this._element.parentFragment;
+	const { model, instance } = findModel( this, path );
+	return model ? model.getKeypath( ractive || instance ) : path;
+}
+
+function findModel ( el, path ) {
+	const frag = el._element.parentFragment;
 
 	if ( typeof path !== 'string' ) {
-		return frag.findContext().getKeypath( path === undefined ? frag.ractive : path );
+		return { model: frag.findContext(), instance: path };
 	}
 
-	const model = resolveReference( frag, path );
-
-	return model ? model.getKeypath( ractive === undefined ? frag.ractive : ractive ) : path;
+	return { model: resolveReference( frag, path ), instance: frag.ractive };
 }
 
 // the usual mutation suspects
 function add ( keypath, value ) {
-	return this.ractive.add( this.resolve( keypath ), value );
+	if ( value === undefined ) value = 1;
+	if ( !isNumeric( value ) ) throw new Error( 'Bad arguments' );
+	return sharedSet( this.ractive, build( this, keypath, value ).map( pair => {
+		const [ model, val ] = pair, value = model.get();
+		if ( !isNumeric( val ) || !isNumeric( value ) ) throw new Error( 'Cannot add non-numeric value' );
+		return [ model, value + val ];
+	}) );
 }
 
 function animate ( keypath, value, options ) {
-	return this.ractive.animate( this.resolve( keypath ), value, options );
+	const model = findModel( this, keypath ).model;
+	return protoAnimate( this.ractive, model, value, options );
 }
 
 function link ( source, dest ) {
-	return this.ractive.link( this.resolve( source ), this.resolve( dest ) );
+	const there = findModel( this, source ).model, here = findModel( this, dest ).model;
+	const promise = runloop.start( this.ractive, true );
+	here.link( there, source );
+	runloop.end();
+	return promise;
 }
 
-function merge ( keypath, array ) {
-	return this.ractive.merge( this.resolve( keypath ), array );
+function merge ( keypath, array, options ) {
+	return protoMerge( this.ractive, findModel( this, keypath ).model, array, options );
 }
 
 function pop ( keypath ) {
-	return this.ractive.pop( this.resolve( keypath ) );
+	return modelPop( findModel( this, keypath ).model, [] );
 }
 
 function push ( keypath, ...values ) {
-	values.unshift( this.resolve( keypath ) );
-	return this.ractive.push.apply( this.ractive, values );
+	return modelPush( findModel( this, keypath ).model, values );
+}
+
+function reverse ( keypath ) {
+	return modelReverse( findModel( this, keypath ).model, [] );
 }
 
 function set ( keypath, value ) {
-	return this.ractive.set( this.resolve( keypath ), value );
+	return sharedSet( this.ractive, build( this, keypath, value ) );
 }
 
 function shift ( keypath ) {
-	return this.ractive.shift( this.resolve( keypath ) );
+	return modelShift( findModel( this, keypath ).model, [] );
 }
 
 function splice ( keypath, index, drop, ...add ) {
-	add.unshift( this.resolve( keypath ), index, drop );
-	return this.ractive.splice.apply( this.ractive, add );
+	add.unshift( index, drop );
+	return modelSplice( findModel( this, keypath ).model, add );
+}
+
+function sort ( keypath ) {
+	return modelSort( findModel( this, keypath ).model, [] );
 }
 
 function subtract ( keypath, value ) {
-	return this.ractive.subtract( this.resolve( keypath ), value );
+	if ( value === undefined ) value = 1;
+	if ( !isNumeric( value ) ) throw new Error( 'Bad arguments' );
+	return sharedSet( this.ractive, build( this, keypath, value ).map( pair => {
+		const [ model, val ] = pair, value = model.get();
+		if ( !isNumeric( val ) || !isNumeric( value ) ) throw new Error( 'Cannot add non-numeric value' );
+		return [ model, value - val ];
+	}) );
 }
 
 function toggle ( keypath ) {
-	return this.ractive.toggle( this.resolve( keypath ) );
+	const { model } = findModel( this, keypath );
+	return sharedSet( this.ractive, [ [ model, !model.get() ] ] );
 }
 
 function unlink ( dest ) {
-	return this.ractive.unlink( dest );
+	const here = findModel( this, dest ).model;
+	const promise = runloop.start( this.ractive, true );
+	if ( here.owner && here.owner._link ) here.owner.unlink();
+	runloop.end();
+	return promise;
 }
 
 function unshift ( keypath, ...add ) {
-	add.unshift( this.resolve( keypath ) );
-	return this.ractive.unshift.apply( this.ractive, add );
+	return modelUnshift( findModel( this, keypath ).model, add );
 }
 
 function update ( keypath ) {
-	return this.ractive.update( this.resolve( keypath ) );
+	return protoUpdate( this.ractive, findModel( this, keypath ).model );
 }
 
 function updateModel ( keypath, cascade ) {
-	return this.ractive.updateModel( this.resolve( keypath ), cascade );
+	const { model } = findModel( this, keypath );
+	const promise = runloop.start( this.ractive, true );
+	model.updateFromBindings( cascade );
+	runloop.end();
+	return promise;
 }
 
 // two-way binding related helpers
 function isBound () {
-	const el = this._element;
-
-	if ( el.binding ) return true;
-	else return false;
+	const { model } = getBindingModel( this );
+	return !!model;
 }
 
 function getBindingPath ( ractive ) {
-	const el = this._element;
-
-	if ( el.binding && el.binding.model ) return el.binding.model.getKeypath( ractive || el.parentFragment.ractive );
+	const { model, instance } = getBindingModel( this );
+	if ( model ) return model.getKeypath( ractive || instance );
 }
 
 function getBinding () {
-	const el = this._element;
+	const { model } = getBindingModel( this );
+	if ( model ) return model.get( true );
+}
 
-	if ( el.binding && el.binding.model ) return el.binding.model.get( true );
+function getBindingModel ( ctx ) {
+	const el = ctx._element;
+	return { model: el.binding && el.binding.model, instance: el.parentFragment.ractive };
 }
 
 function setBinding ( value ) {
-	return this.ractive.set( this.getBindingPath(), value );
+	const { model } = getBindingModel( this );
+	return sharedSet( this.ractive, [ [ model, value ] ] );
 }
 
 // deprecated getters
@@ -151,8 +224,10 @@ export function addHelpers ( obj, element ) {
 		merge: { value: merge },
 		pop: { value: pop },
 		push: { value: push },
+		reverse: { value: reverse },
 		set: { value: set },
 		shift: { value: shift },
+		sort: { value: sort },
 		splice: { value: splice },
 		subtract: { value: subtract },
 		toggle: { value: toggle },

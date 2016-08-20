@@ -6,17 +6,23 @@ import getNewIndices from '../../../shared/getNewIndices';
 const arrayProto = Array.prototype;
 
 export default function ( methodName ) {
-	return function ( keypath, ...args ) {
-		const model = this.viewmodel.joinAll( splitKeypath( keypath ) );
-		let array = model.get();
+	function path ( keypath, ...args ) {
+		return model( this.viewmodel.joinAll( splitKeypath( keypath ) ), args );
+	}
+
+	function model ( mdl, args ) {
+		let array = mdl.get();
 
 		if ( !isArray( array ) ) {
 			if ( array === undefined ) {
 				array = [];
 				const result = arrayProto[ methodName ].apply( array, args );
-				return this.set( keypath, array ).then( () => result );
+				const promise = runloop.start( this, true ).then( () => result );
+				mdl.set( array );
+				runloop.end();
+				return promise;
 			} else {
-				throw new Error( `shuffle array method ${methodName} called on non-array at ${model.getKeypath()}` );
+				throw new Error( `shuffle array method ${methodName} called on non-array at ${mdl.getKeypath()}` );
 			}
 		}
 
@@ -27,13 +33,15 @@ export default function ( methodName ) {
 		promise.result = result;
 
 		if ( newIndices ) {
-			model.shuffle( newIndices );
+			mdl.shuffle( newIndices );
 		} else {
-			model.set( result );
+			mdl.set( result );
 		}
 
 		runloop.end();
 
 		return promise;
-	};
+	}
+
+	return { path, model };
 }

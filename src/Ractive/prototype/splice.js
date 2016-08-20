@@ -1,2 +1,2 @@
 import makeArrayMethod from './shared/makeArrayMethod';
-export default makeArrayMethod( 'splice' );
+export default makeArrayMethod( 'splice' ).path;

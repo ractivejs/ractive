@@ -1,2 +1,2 @@
 import makeArrayMethod from './shared/makeArrayMethod';
-export default makeArrayMethod( 'sort' );
+export default makeArrayMethod( 'sort' ).path;

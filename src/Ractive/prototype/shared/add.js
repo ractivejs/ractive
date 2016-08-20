@@ -1,5 +1,5 @@
 import { isNumeric } from '../../../utils/is';
-import { splitKeypath } from '../../../shared/keypaths';
+import { build, set } from '../../../shared/set';
 
 const errorMessage = 'Cannot add to a non-numeric value';
 
@@ -8,27 +8,11 @@ export default function add ( ractive, keypath, d ) {
 		throw new Error( 'Bad arguments' );
 	}
 
-	let changes;
+	const sets = build( ractive, keypath, d );
 
-	if ( /\*/.test( keypath ) ) {
-		changes = {};
-
-		ractive.viewmodel.findMatches( splitKeypath( keypath ) ).forEach( model => {
-			const value = model.get();
-
-			if ( !isNumeric( value ) ) throw new Error( errorMessage );
-
-			changes[ model.getKeypath() ] = value + d;
-		});
-
-		return ractive.set( changes );
-	}
-
-	const value = ractive.get( keypath );
-
-	if ( !isNumeric( value ) ) {
-		throw new Error( errorMessage );
-	}
-
-	return ractive.set( keypath, +value + d );
+	return set( ractive, sets.map( pair => {
+		const [ model, add ] = pair, value = model.get();
+		if ( !isNumeric( add ) || !isNumeric( value ) ) throw new Error( errorMessage );
+		return [ model, value + add ];
+	}));
 }

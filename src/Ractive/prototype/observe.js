@@ -251,7 +251,7 @@ class PatternObserver {
 	}
 
 	rebinding ( next, prev ) {
-		debugger
+		// TODO: move basemodel if it matches
 	}
 
 	shuffle ( newIndices ) {
