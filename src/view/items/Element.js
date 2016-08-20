@@ -42,6 +42,7 @@ export default class Element extends Item {
 		this.attributeByName = {};
 
 		this.attributes = [];
+		const leftovers = [];
 		( this.template.m || [] ).forEach( template => {
 			switch ( template.t ) {
 				case ATTRIBUTE:
@@ -57,14 +58,16 @@ export default class Element extends Item {
 					break;
 
 				default:
-					this.attributes.push( new ConditionalAttribute({
-						owner: this,
-						parentFragment: this.parentFragment,
-						template
-					}) );
+					leftovers.push( template );
 					break;
 			}
 		});
+
+		this.attributes.push( new ConditionalAttribute({
+			owner: this,
+			parentFragment: this.parentFragment,
+			template: leftovers
+		}) );
 
 		let i = this.attributes.length;
 		while ( i-- ) {

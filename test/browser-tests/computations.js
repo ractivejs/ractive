@@ -869,4 +869,20 @@ export default function() {
 		ractive.set( 'foo', false );
 		t.equal( count, 2 );
 	});
+
+	test( 'expressions in conditional branches should not be re-evaluated', t => {
+		let count = 0;
+		new Ractive({
+			el: fixture,
+			template: '{{#if comp()}}foo{{else}}bar{{/if}}',
+			data: {
+				comp () {
+					count++;
+					return true;
+				}
+			}
+		});
+
+		t.equal( count, 1 );
+	});
 }
