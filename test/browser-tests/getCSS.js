@@ -32,7 +32,7 @@ export default function() {
 					reject();
 				};
 
-				script.src = '../ractive-legacy.js';
+				script.src = '../ractive.js';
 			};
 
 			document.body.appendChild(frame);

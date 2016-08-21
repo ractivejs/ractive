@@ -13,10 +13,9 @@ var version = require( './package.json' ).version;
 var hash = process.env.COMMIT_HASH || 'unknown';
 var versionExt = ~version.indexOf( '-edge' ) ? '-' + hash : '';
 
-var bubleLegacyOptions = { target: { ie: 9 }, transforms: { modules: false } };
-
+var bubleOptions = { target: { ie: 9 }, transforms: { modules: false } }
 var src = gobble( 'src' );
-var es5 = src.transform( 'buble', bubleLegacyOptions );
+var es5 = src.transform( 'buble', bubleOptions );
 var lib;
 var test;
 
@@ -70,19 +69,15 @@ var banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
 
 if ( gobble.env() === 'production' ) {
 	lib = gobble([
-		buildLib( 'ractive-legacy.js' ),
-		buildLib( 'ractive.js', /legacy\.js/ ),
-		buildLib( 'ractive.runtime.js', /legacy\.js|_parse\.js/ ),
-		buildLib( 'ractive-legacy.runtime.js', /_parse\.js/ ),
-		buildESLib( 'ractive-legacy.mjs' ),
-		buildESLib( 'ractive.mjs', /legacy\.js/ ),
-		buildESLib( 'ractive.runtime.mjs', /legacy\.js|_parse\.js/ ),
-		buildESLib( 'ractive-legacy.runtime.mjs', /_parse\.js/ )
+		buildLib( 'ractive.js'),
+		buildLib( 'ractive.runtime.js', /_parse\.js/ ),
+		buildESLib( 'ractive.mjs' ),
+		buildESLib( 'ractive.runtime.mjs', /_parse\.js/ )
 	]).transform( noConflict );
 } else {
 	lib = gobble([
-		buildLib( 'ractive-legacy.js' ),
-		buildESLib( 'ractive-legacy.mjs' ),
+		buildLib( 'ractive.js' ),
+		buildESLib( 'ractive.mjs' ),
 		sandbox
 	]);
 }
@@ -128,7 +123,7 @@ test = (function () {
 		es5,
 		gobble([ browserTests, gobble( 'test/__support/js' )
 			.moveTo( 'browser-tests' ) ])
-			.transform( 'buble', bubleLegacyOptions )
+			.transform( 'buble', bubleOptions )
 	]).transform( 'rollup', {
 		plugins: [ adjustAndSkip() ],
 		format: 'umd',
@@ -157,7 +152,7 @@ test = (function () {
 					var promises = files.map( function ( file ) {
 						return rollup.rollup({
 							entry: inputDir + '/' + file,
-							plugins: [ rollupBuble( bubleLegacyOptions ) ],
+							plugins: [ rollupBuble(bubleOptions) ],
 							globals: globals,
 							onwarn: noop
 						}).then( function ( bundle ) {

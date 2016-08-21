@@ -29,12 +29,6 @@
       "build/ractive.runtime.mjs",
       "build/ractive.min.js",
       "build/ractive.runtime.min.js",
-      "build/ractive-legacy.js",
-      "build/ractive-legacy.mjs",
-      "build/ractive-legacy.runtime.js",
-      "build/ractive-legacy.runtime.mjs",
-      "build/ractive-legacy.min.js",
-      "build/ractive-legacy.runtime.min.js",
       "README.md"
     ]
   },
