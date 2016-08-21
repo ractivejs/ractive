@@ -157,7 +157,7 @@ class Observer {
 		if ( next === this.model ) return false;
 
 		if ( this.model ) this.model.unregister( this );
-		if ( next ) runloop.scheduleTask( () => this.resolved( next ) );
+		if ( next ) next.addShuffleTask( () => this.resolved( next ) );
 	}
 
 	resolved ( model ) {

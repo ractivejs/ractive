@@ -1,4 +1,4 @@
-import ModelBase from './ModelBase';
+import ModelBase, { fireShuffleTasks } from './ModelBase';
 import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
 import { handleChange, marked, teardown } from '../shared/methodCallers';
@@ -158,8 +158,10 @@ ModelBase.prototype.link = function link ( model, keypath ) {
 	lnk.keypath = keypath;
 	if ( this._link ) this._link.relinking( model );
 	this.rebinding( lnk, this );
+	fireShuffleTasks();
 	if ( !this._link ) this.parent.clearUnresolveds();
 	this._link = lnk;
+	lnk.marked();
 	return lnk;
 };
 
