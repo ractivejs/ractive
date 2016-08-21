@@ -1,11 +1,10 @@
 import { test } from 'qunit';
-import legacy from '../../legacy';
 import { initModule } from '../test-config';
 
 export default function() {
 	initModule( 'render/css.js' );
 
-	const getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
+	const getComputedStyle = window.getComputedStyle;
 
 	// normalise colours
 	const hexCodes = {

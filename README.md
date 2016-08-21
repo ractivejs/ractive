@@ -55,7 +55,7 @@ npm start
 
 Navigate to [localhost:4567](http://localhost:4567). You'll see:
 
-- `ractive-legacy.js` - A build of Ractive that includes legacy browser support.
+- `ractive.js` - A build of Ractive.
 
 - `sandbox` - Contains some template files to help with debugging.
 
@@ -83,8 +83,7 @@ npm run build
 
 ## Browser support
 
-Tested successfully in IE9+ and all modern browsers. For legacy browser support, use [the builds with suffix `legacy` in the filename](http://cdn.ractivejs.org/latest/ractive-legacy.js). These builds include polyfills and other essential features required by Ractive. If your experience differs [please let us know](https://github.com/ractivejs/ractive/issues/new)!
-
+Tested successfully in all modern browsers. If your experience differs [please let us know](https://github.com/ractivejs/ractive/issues/new)!
 
 ## Published versions
 

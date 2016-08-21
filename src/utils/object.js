@@ -1,4 +1,3 @@
-import '../legacy';
 import { doc } from '../config/environment';
 import { createElement } from './dom';
 
