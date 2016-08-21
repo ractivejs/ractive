@@ -16,6 +16,21 @@ export default function() {
 		t.equal( info.get( '../bat' ), 'yep' );
 	});
 
+	test( 'node info relative data get with expression', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#with foo()}}{{#bar}}<span>hello</span>{{/}}{{/with}}`,
+			data: {
+				wat: { bar: { baz: true }, bat: 'yep' },
+				foo () { return this.get( 'wat' ); }
+			}
+		});
+
+		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+
+		t.equal( info.get( '../bat' ), 'yep' );
+	});
+
 	test( 'node info alias data get' , t => {
 		const r = new Ractive({
 			el: fixture,
@@ -247,6 +262,34 @@ export default function() {
 		info.pop( '../' );
 
 		t.equal( r.findAll( 'span' ).length, 0 );
+	});
+
+	test( 'node info sort', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#each items}}<span>{{.}}</span>{{/each}}`,
+			data: { items: [ 1, 0, 2 ] }
+		});
+
+		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+
+		info.sort( '../' );
+
+		t.htmlEqual( fixture.innerHTML, '<span>0</span><span>1</span><span>2</span>' );
+	});
+
+	test( 'node info sreverse', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#each items}}<span>{{.}}</span>{{/each}}`,
+			data: { items: [ 1, 0, 2 ] }
+		});
+
+		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+
+		info.reverse( '../' );
+
+		t.htmlEqual( fixture.innerHTML, '<span>2</span><span>0</span><span>1</span>' );
 	});
 
 	test( 'node info shift', t => {
