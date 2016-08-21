@@ -250,10 +250,6 @@ class PatternObserver {
 		this.changed.push( key );
 	}
 
-	rebinding ( next, prev ) {
-		// TODO: move basemodel if it matches
-	}
-
 	shuffle ( newIndices ) {
 		if ( !isArray( this.baseModel.value ) ) return;
 

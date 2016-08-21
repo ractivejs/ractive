@@ -496,4 +496,141 @@ export default function() {
 		r.unshift( 'list', i );
 		t.equal( count, 4 );
 	});
+
+	test( 'shuffling around nested lists', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#each outer}}{{#each inner}}{{.foo}}{{../0.foo}}{{~/outer.0.inner.0.foo}}{{/each}}{{.inner.0.foo}}{{/each}}',
+			data: {
+				outer: [
+					{ inner: [ { foo: 1 }, { foo: 2 } ] },
+					{ inner: [ { foo: 3 }, { foo: 4 } ] }
+				]
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '11121113314313' );
+		r.unshift( 'outer', { inner: [ { foo: 5 } ] } );
+		t.htmlEqual( fixture.innerHTML, '555511521513354353' );
+		r.unshift( 'outer.0.inner', { foo: 9 } );
+		t.htmlEqual( fixture.innerHTML, '999559911921913394393' );
+	});
+
+	test( 'observers shuffle correctly', t => {
+		let val;
+		const r = new Ractive({
+			el: fixture,
+			onconfig () {
+				this.observe( 'list.0.bar', v => val = v );
+			},
+			data: {
+				list: [ { bar: 1 } ]
+			}
+		});
+
+		t.equal( val, 1 );
+		r.unshift( 'list', { bar: 3 } );
+		t.equal( val, 3 );
+		r.set( 'list.0.bar', 4 );
+		t.equal( val, 4 );
+	});
+
+	test( 'pattern observers shuffle correctly', t => {
+		let val;
+		const r = new Ractive({
+			el: fixture,
+			onconfig () {
+				this.observe( 'list.0.*', v => val = v );
+			},
+			data: {
+				list: [ { bar: 1 } ]
+			}
+		});
+
+		t.equal( val, 1 );
+		r.unshift( 'list', { bar: 3 } );
+		t.equal( val, 3 );
+		r.set( 'list.0.bar', 4 );
+		t.equal( val, 4 );
+	});
+
+	test( 'mapped observers shuffle correctly', t => {
+		let rel, stat, relKey, statKey;
+		const cmp = Ractive.extend({
+			onconfig () {
+				this.observe( 'foo.bar', ( v, o, k ) => {
+					rel = v;
+					relKey = k;
+				});
+				this.observe( 'bar.bar', ( v, o, k ) => {
+					stat = v;
+					statKey = k;
+				});
+			}
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#each list}}<cmp foo="{{.}}" bar="{{~/list.0}}" />{{/each}}',
+			data: {
+				list: [ { bar: 1 } ]
+			},
+			components: { cmp }
+		});
+
+		t.equal( rel, 1 );
+		t.equal( relKey, 'foo.bar' );
+		t.equal( stat, 1 );
+		t.equal( statKey, 'bar.bar' );
+		r.unshift( 'list', { bar: 3 } );
+		t.equal( rel, 3 );
+		t.equal( relKey, 'foo.bar' );
+		t.equal( stat, 3 );
+		t.equal( statKey, 'bar.bar' );
+		r.set( 'list.0.bar', 4 );
+		t.equal( rel, 4 );
+		t.equal( stat, 4 );
+	});
+
+	test( 'mapped pattern observers shuffle correctly', t => {
+		let rel, stat, relKey, statKey, relPart, statPart;
+		const cmp = Ractive.extend({
+			onconfig () {
+				this.observe( 'foo.*', ( v, o, k, p ) => {
+					rel = v;
+					relKey = k;
+					relPart = p;
+				});
+				this.observe( 'bar.*', ( v, o, k, p ) => {
+					stat = v;
+					statKey = k;
+					statPart = p;
+				});
+			}
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#each list}}<cmp foo="{{.}}" bar="{{~/list.0}}" />{{/each}}',
+			data: {
+				list: [ { bar: 1 } ]
+			},
+			components: { cmp }
+		});
+
+		t.equal( rel, 1 );
+		t.equal( stat, 1 );
+		t.equal( relKey, 'foo.bar' );
+		t.equal( relPart, 'bar' );
+		t.equal( statKey, 'bar.bar' );
+		t.equal( statPart, 'bar' );
+		r.unshift( 'list', { bar: 3 } );
+		t.equal( rel, 3 );
+		t.equal( stat, 3 );
+		t.equal( relKey, 'foo.bar' );
+		t.equal( relPart, 'bar' );
+		t.equal( statKey, 'bar.bar' );
+		t.equal( statPart, 'bar' );
+		r.set( 'list.0.bar', 4 );
+		t.equal( rel, 4 );
+		t.equal( stat, 4 );
+	});
 }

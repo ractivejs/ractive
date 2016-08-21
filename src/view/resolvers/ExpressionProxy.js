@@ -6,6 +6,7 @@ import resolveReference from './resolveReference';
 import { removeFromArray } from '../../utils/array';
 import { capture, startCapturing, stopCapturing } from '../../global/capture';
 import { warnIfDebug } from '../../utils/log';
+import { rebindMatch } from '../../shared/rebind';
 
 function createResolver ( proxy, ref, index ) {
 	const resolver = proxy.fragment.resolve( ref, model => {
@@ -132,10 +133,16 @@ export default class ExpressionProxy extends Model {
 	}
 
 	rebinding ( next, previous ) {
-		if ( previous ) {
-			previous.unregister( this );
-			const idx = this.models.indexOf( previous );
-			if ( ~idx ) this.models.splice( idx, 1, next );
+		const idx = this.models.indexOf( previous );
+
+		if ( ~idx ) {
+			next = rebindMatch( this.template.r[idx], next, previous );
+			if ( next !== previous ) {
+				previous.unregister( this );
+				this.models.splice( idx, 1, next );
+				// TODO: set up a resolver if there is no next?
+				if ( next ) next.addShuffleTask( () => next.register( this ) );
+			}
 		}
 		this.bubble();
 	}

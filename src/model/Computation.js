@@ -137,7 +137,8 @@ export default class Computation extends Model {
 	}
 
 	rebinding ( next, previous ) {
-		// TODO: model swap
+		// computations will grab all of their deps again automagically
+		if ( next !== previous ) this.handleChange();
 	}
 
 	set ( value ) {

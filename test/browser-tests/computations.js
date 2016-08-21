@@ -885,4 +885,61 @@ export default function() {
 
 		t.equal( count, 1 );
 	});
+
+	test( 'expressions should shuffle correctly', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#each list}}{{.foo + 1}}{{~/list.0.foo + 1}}{{/each}}`,
+			data: {
+				list: [ { foo: 1 }, { foo: 2 } ]
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '2232' );
+		r.unshift( 'list', { foo: 3 } );
+		t.htmlEqual( fixture.innerHTML, '442434' );
+		r.splice( 'list', 1, 1 );
+		t.htmlEqual( fixture.innerHTML, '4434' );
+	});
+
+	test( 'expressions with mappings shuffle correctly', t => {
+		const cmp = Ractive.extend({
+			template: '{{foo.foo + 1}}{{bar.foo + 1}}'
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#each list}}<cmp foo="{{.}}" bar="{{~/list.0}}" />{{/each}}`,
+			data: {
+				list: [ { foo: 1 }, { foo: 2 } ]
+			},
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '2232' );
+		r.unshift( 'list', { foo: 3 } );
+		t.htmlEqual( fixture.innerHTML, '442434' );
+		r.splice( 'list', 1, 1 );
+		t.htmlEqual( fixture.innerHTML, '4434' );
+	});
+
+	test( 'computations update correctly during a shuffle', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: '{{foo.foo}}{{foo.foo + 1}}',
+			computed: {
+				foo () {
+					return this.get( 'list.0' );
+				}
+			},
+			data: {
+				list: [ { foo: 1 }, { foo: 2 } ]
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '12' );
+		r.unshift( 'list', { foo: 3 } );
+		t.htmlEqual( fixture.innerHTML, '34' );
+		r.shift( 'list' );
+		t.htmlEqual( fixture.innerHTML, '12' );
+	});
 }
