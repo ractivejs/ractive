@@ -105,13 +105,13 @@ export default class RootModel extends Model {
 	}
 
 	has ( key ) {
-		// TODO: this childbykey thing should not be necessary
-		if ( key in this.computations || key in this.childByKey ) return true;
-
 		let value = this.value;
 
 		key = unescapeKey( key );
 		if ( hasProp.call( value, key ) ) return true;
+
+		// mappings/links
+		if ( key in this.computations || this.childByKey[key] && this.childByKey[key]._link ) return true;
 
 		// We climb up the constructor chain to find if one of them contains the key
 		let constructor = value.constructor;

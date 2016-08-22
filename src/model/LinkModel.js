@@ -24,9 +24,9 @@ export default class LinkModel extends ModelBase {
 		this.target.animate( from, to, options, interpolator );
 	}
 
-	get ( shouldCapture ) {
+	get ( shouldCapture, opts ) {
 		if ( shouldCapture ) capture( this );
-		return this.target.get( false );
+		return this.target.get( false, opts );
 	}
 
 	getKeypath ( ractive ) {
@@ -159,8 +159,10 @@ ModelBase.prototype.link = function link ( model, keypath ) {
 	if ( this._link ) this._link.relinking( model );
 	this.rebinding( lnk, this );
 	fireShuffleTasks();
-	if ( !this._link ) this.parent.clearUnresolveds();
+
+	const unresolved = !this._link;
 	this._link = lnk;
+	if ( unresolved ) this.parent.clearUnresolveds();
 	lnk.marked();
 	return lnk;
 };

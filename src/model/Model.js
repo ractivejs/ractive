@@ -157,10 +157,11 @@ export default class Model extends ModelBase {
 		return branch;
 	}
 
-	get ( shouldCapture ) {
-		if ( this._link ) return this._link.get( shouldCapture );
+	get ( shouldCapture, opts ) {
+		if ( this._link ) return this._link.get( shouldCapture, opts );
 		if ( shouldCapture ) capture( this );
 		// if capturing, this value needs to be unwrapped because it's for external use
+		if ( opts && opts.virtual ) return this.getVirtual( false );
 		return shouldCapture && this.wrapper ? this.wrapper.value : this.value;
 	}
 
