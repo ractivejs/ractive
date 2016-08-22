@@ -6,7 +6,6 @@ import findElement from '../shared/findElement';
 import parseJSON from '../../../utils/parseJSON';
 import resolve from '../../resolvers/resolve';
 import { isArray } from '../../../utils/is';
-//import runloop from '../../../global/runloop';
 
 export default class Mapping extends Item {
 	constructor ( options ) {

@@ -92,6 +92,20 @@ export default function() {
 		t.equal( r.get( 'items.0.foo' ), 'ha' );
 	});
 
+	test( 'node info relative set with map' , t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#each items}}<span />{{/each}}`,
+			data: { items: [ { foo: 'yep', bar: 'nope' } ] }
+		});
+
+		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+
+		info.set({ '.foo': 'ha', '.bar': 'yep' });
+		t.equal( r.get( 'items.0.foo' ), 'ha' );
+		t.equal( r.get( 'items.0.bar' ), 'yep' );
+	});
+
 	test( 'node info alias set' , t => {
 		const r = new Ractive({
 			el: fixture,
@@ -120,6 +134,20 @@ export default function() {
 		t.equal( r.get( 'foo.bat' ), 84 );
 	});
 
+	test( 'node info add with map', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#with foo}}{{#bar}}<span>hello</span>{{/}}{{/with}}`,
+			data: { foo: { bar: { baz: true }, bat: 41, bop: 1 } }
+		});
+
+		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+
+		info.add({ '../bat': 1, '../bop': 1 });
+		t.equal( r.get( 'foo.bat' ), 42 );
+		t.equal( r.get( 'foo.bop' ), 2 );
+	});
+
 	test( 'node info subtract' , t => {
 		const r = new Ractive({
 			el: fixture,
@@ -133,6 +161,20 @@ export default function() {
 		t.equal( r.get( 'foo.bat' ), 40 );
 		info.subtract( '../bat', 42 );
 		t.equal( r.get( 'foo.bat' ), -2 );
+	});
+
+	test( 'node info subtract with map', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#with foo}}{{#bar}}<span>hello</span>{{/}}{{/with}}`,
+			data: { foo: { bar: { baz: true }, bat: 41, bop: 1 } }
+		});
+
+		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+
+		info.subtract({ '../bat': 1, '../bop': 2 });
+		t.equal( r.get( 'foo.bat' ), 40 );
+		t.equal( r.get( 'foo.bop' ), -1 );
 	});
 
 	test( 'node info animate', t => {

@@ -18,8 +18,6 @@ function createResolver ( proxy, ref, index ) {
 	proxy.resolvers.push( resolver );
 }
 
-// TODO: making this not a computation introduces a corner-case with if/else, but leaving it as a computation introduces other corner cases
-
 export default class ExpressionProxy extends Model {
 	constructor ( fragment, template ) {
 		super( fragment.ractive.viewmodel, null );
@@ -73,9 +71,6 @@ export default class ExpressionProxy extends Model {
 	getKeypath () {
 		if ( !this.template ) return '@undefined';
 		if ( !this.keypath ) {
-			// TODO the @ prevents computed props from shadowing keypaths, but the real
-			// question is why it's a computed prop in the first place... (hint, it's
-			// to do with {{else}} blocks)
 			this.keypath = '@' + this.template.s.replace( /_(\d+)/g, ( match, i ) => {
 				if ( i >= this.models.length ) return match;
 
