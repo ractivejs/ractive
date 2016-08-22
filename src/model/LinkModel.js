@@ -11,7 +11,7 @@ export default class LinkModel extends ModelBase {
 		this.owner = owner;
 		this.target = target;
 		this.key = key === undefined ? owner.key : key;
-		if ( owner.isLink ) this.keypath = `${owner.keypath}.${this.key}`;
+		if ( owner.isLink ) this.sourcePath = `${owner.sourcePath}.${this.key}`;
 
 		target.registerLink( this );
 
@@ -77,7 +77,7 @@ export default class LinkModel extends ModelBase {
 	}
 
 	relinking ( target, root = true ) {
-		if ( root && this.keypath ) target = rebindMatch( this.keypath, target, this.target );
+		if ( root && this.sourcePath ) target = rebindMatch( this.sourcePath, target, this.target );
 		if ( !target || this.target === target ) return;
 
 		this.target.unregisterLink( this );
@@ -155,7 +155,7 @@ export default class LinkModel extends ModelBase {
 
 ModelBase.prototype.link = function link ( model, keypath ) {
 	const lnk = this._link || new LinkModel( this.parent, this, model, this.key );
-	lnk.keypath = keypath;
+	lnk.sourcePath = keypath;
 	if ( this._link ) this._link.relinking( model );
 	this.rebinding( lnk, this );
 	fireShuffleTasks();

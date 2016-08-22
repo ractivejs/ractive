@@ -103,7 +103,11 @@ export default class ModelBase {
 	getKeypath ( ractive ) {
 		if ( ractive !== this.ractive && this._link ) return this._link.target.getKeypath( ractive );
 
-		return this.parent.isRoot ? this.key : `${this.parent.getKeypath( ractive )}.${escapeKey( this.key )}`;
+		if ( !this.keypath ) {
+			this.keypath = this.parent.isRoot ? this.key : `${this.parent.getKeypath( ractive )}.${escapeKey( this.key )}`;
+		}
+
+		return this.keypath;
 	}
 
 	getValueChildren ( value ) {
