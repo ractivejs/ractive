@@ -24,7 +24,10 @@ export default class Partial extends Mustache {
 			super.bind();
 			if ( this.model && ( templateObj = this.model.get() ) && typeof templateObj === 'object' && ( typeof templateObj.template === 'string' || isArray( templateObj.t ) ) ) {
 				if ( templateObj.template ) {
+					this.source = templateObj.template;
 					templateObj = parsePartial( this.template.r, templateObj.template, this.ractive );
+				} else {
+					this.source = templateObj.t;
 				}
 				this.setTemplate( this.template.r, templateObj.t );
 			} else if ( ( !this.model || typeof this.model.get() !== 'string' ) && this.refName ) {
@@ -145,11 +148,16 @@ export default class Partial extends Mustache {
 					this.setTemplate( template );
 					this.fragment.resetTemplate( this.partialTemplate );
 				} else if ( template && typeof template === 'object' && ( typeof template.template === 'string' || isArray( template.t ) ) ) {
-					if ( template.template ) {
-						template = parsePartial( this.name, template.template, this.ractive );
+					if ( template.t !== this.source && template.template !== this.source ) {
+						if ( template.template ) {
+							this.source = template.template;
+							template = parsePartial( this.name, template.template, this.ractive );
+						} else {
+							this.source = template.t;
+						}
+						this.setTemplate( this.name, template.t );
+						this.fragment.resetTemplate( this.partialTemplate );
 					}
-					this.setTemplate( this.name, template.t );
-					this.fragment.resetTemplate( this.partialTemplate );
 				}
 			}
 
