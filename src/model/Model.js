@@ -273,7 +273,7 @@ export default class Model extends ModelBase {
 			if ( i in this.childByKey ) this.childByKey[ i ].rebinding( !~idx ? undefined : this.joinKey( idx ), this.childByKey[ i ] );
 
 			if ( !~idx && this.keyModels[ i ] ) {
-				this.keyModels[i].rebinding( undefined, this.keyModels[i]);
+				this.keyModels[i].rebinding( undefined, this.keyModels[i] );
 			} else if ( ~idx && this.keyModels[ i ] ) {
 				if ( !this.keyModels[ idx ] ) this.childByKey[ idx ].getKeyModel( idx );
 				this.keyModels[i].rebinding( this.keyModels[ idx ], this.keyModels[i] );

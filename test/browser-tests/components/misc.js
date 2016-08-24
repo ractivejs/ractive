@@ -120,7 +120,7 @@ export default function() {
 	test( 'Component removed from DOM on tear-down with teardown override that calls _super', t => {
 		const Widget = Ractive.extend({
 			template: 'foo',
-			teardown () {
+			onteardown () {
 				this._super();
 			}
 		});

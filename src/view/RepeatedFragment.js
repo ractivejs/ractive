@@ -40,7 +40,8 @@ export default class RepeatedFragment {
 		if ( this.isArray = isArray( value ) ) {
 			// we can't use map, because of sparse arrays
 			this.iterations = [];
-			for ( let i = 0; i < value.length; i += 1 ) {
+			let max = value.length;
+			for ( let i = 0; i < max; i += 1 ) {
 				this.iterations[i] = this.createIteration( i, i );
 			}
 		}

@@ -68,9 +68,12 @@ export default class Fragment {
 	}
 
 	createItems () {
-		this.items = this.template.map( ( template, index ) => {
-			return createItem({ parentFragment: this, template, index });
-		});
+		// this is a hot code path
+		let max = this.template.length;
+		this.items = [];
+		for ( let i = 0; i < max; i++ ) {
+			this.items[i] = createItem({ parentFragment: this, template: this.template[i], index: i });
+		}
 	}
 
 	destroyed () {

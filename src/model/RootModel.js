@@ -5,6 +5,7 @@ import { handleChange, mark } from '../shared/methodCallers';
 import RactiveModel from './specials/RactiveModel';
 import GlobalModel from './specials/GlobalModel';
 import { splitKeypath, unescapeKey } from '../shared/keypaths';
+import { warnIfDebug } from '../utils/log';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
@@ -25,6 +26,9 @@ export default class RootModel extends Model {
 
 		this.computationContext = options.ractive;
 		this.computations = {};
+
+		// TODO this is only for deprecation of using expression keypaths
+		this.expressions = {};
 	}
 
 	applyChanges () {
@@ -110,8 +114,10 @@ export default class RootModel extends Model {
 		key = unescapeKey( key );
 		if ( hasProp.call( value, key ) ) return true;
 
-		// mappings/links
+		// mappings/links and computations
 		if ( key in this.computations || this.childByKey[key] && this.childByKey[key]._link ) return true;
+		// TODO remove this after deprecation is done
+		if ( key in this.expressions ) return true;
 
 		// We climb up the constructor chain to find if one of them contains the key
 		let constructor = value.constructor;
@@ -126,6 +132,11 @@ export default class RootModel extends Model {
 	joinKey ( key, opts ) {
 		if ( key === '@global' ) return GlobalModel;
 		if ( key === '@this' ) return this.getRactiveModel();
+
+		if ( this.expressions.hasOwnProperty( key ) ) {
+			warnIfDebug( `Accessing expression keypaths (${ key.substr(1) }) from the instance is deprecated. You can used a getNodeInfo or event object to access keypaths with expression context.` );
+			return this.expressions[ key ];
+		}
 
 		return this.computations.hasOwnProperty( key ) ? this.computations[ key ] :
 		       super.joinKey( key, opts );
@@ -163,10 +174,6 @@ export default class RootModel extends Model {
 
 	retrieve () {
 		return this.value;
-	}
-
-	teardown () {
-		super.teardown();
 	}
 
 	update () {
