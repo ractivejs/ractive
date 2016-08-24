@@ -53,6 +53,11 @@ export default class RadioNameBinding extends Binding {
 		}
 	}
 
+	lastVal ( setting, value ) {
+		if ( setting ) this.group.lastValue = value;
+		else return this.group.lastValue;
+	}
+
 	render () {
 		super.render();
 

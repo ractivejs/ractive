@@ -399,6 +399,36 @@ export default function() {
 		t.equal( ractive.get( 'items[1].checked' ), true );
 	});
 
+	test( "Radio name inputs don't get stuck after one pass on each value (#2638)", t => {
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#items}}<input type="radio" name="{{~/color}}" value="{{.}}" />{{/items}}',
+			data: {
+				items: [
+					"red", "blue"
+				],
+				color: "red"
+			}
+		});
+
+		const inputs = r.findAll( 'input' );
+		t.equal( inputs[0].checked, true );
+		t.equal( r.get( 'color' ), 'red' );
+
+		inputs[1].checked = true;
+		fire( inputs[1], 'change' );
+		t.equal( r.get( 'color' ), 'blue' );
+		inputs[0].checked = true;
+		fire( inputs[0], 'change' );
+		t.equal( r.get( 'color' ), 'red' );
+		inputs[1].checked = true;
+		fire( inputs[1], 'change' );
+		t.equal( r.get( 'color' ), 'blue' );
+		inputs[0].checked = true;
+		fire( inputs[0], 'change' );
+		t.equal( r.get( 'color' ), 'red' );
+	});
+
 	test( 'Radio name inputs respond to model changes (regression, see #783)', t => {
 		const ractive = new Ractive({
 			el: fixture,
