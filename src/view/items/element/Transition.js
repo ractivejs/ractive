@@ -16,6 +16,7 @@ import { unbind } from '../../../shared/methodCallers';
 import resolveReference from '../../resolvers/resolveReference';
 import getFunction from '../../../shared/getFunction';
 import Fragment from '../../Fragment';
+import { rebindMatch } from '../../../shared/rebind';
 
 const getComputedStyle = win && ( win.getComputedStyle || legacy.getComputedStyle );
 const resolved = Promise.resolve();
@@ -189,10 +190,11 @@ export default class Transition {
 					resolver = this.parentFragment.resolve( ref, model => {
 						this.models[i] = model;
 						removeFromArray( this.resolvers, resolver );
+						model.register( this );
 					});
 
 					this.resolvers.push( resolver );
-				}
+				} else model.register( this );
 
 				return model;
 			});
@@ -246,6 +248,18 @@ export default class Transition {
 		}
 
 		return extend( {}, defaults, params );
+	}
+
+	rebinding ( next, previous ) {
+		const idx = this.models.indexOf( previous );
+		if ( !~idx ) return;
+
+		next = rebindMatch( this.template.f.a.r[ idx ], next, previous );
+		if ( next === previous ) return;
+
+		previous.unregister( this );
+		this.models.splice( idx, 1, next );
+		if ( next ) next.addShuffleRegister( this, 'mark' );
 	}
 
 	registerCompleteHandler ( fn ) {

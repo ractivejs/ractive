@@ -633,4 +633,59 @@ export default function() {
 		t.equal( rel, 4 );
 		t.equal( stat, 4 );
 	});
+
+	test( 'decorators shuffle correctly', t => {
+		let inits = 0, upds = 0, tears = 0;
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#each list}}<span as-foo="." />{{/each}}',
+			data: { list: [ 1, 2, 3 ] },
+			decorators: {
+				foo ( node, num ) {
+					inits++;
+					node.innerHTML = num;
+
+					return {
+						update ( num ) {
+							upds++;
+							node.innerHTML = num;
+						},
+						teardown () { tears++; }
+					};
+				}
+			}
+		});
+
+		t.equal( inits, 3 );
+		t.htmlEqual( fixture.innerHTML, '<span>1</span><span>2</span><span>3</span>' );
+		r.shift( 'list' );
+		t.ok( tears === 1 && inits === 3 && upds === 0 );
+		t.htmlEqual( fixture.innerHTML, '<span>2</span><span>3</span>' );
+		r.set( 'list.0', 7 );
+		t.ok( tears === 1 && inits === 3 && upds === 1 );
+		t.htmlEqual( fixture.innerHTML, '<span>7</span><span>3</span>' );
+	});
+
+	test( 'transitions shuffle correctly', t => {
+		const map = { 1: 0, 2: 0, undefined: 0 };
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#each list}}{{#if .show}}<span foo-out=".num" />{{/if}}{{/each}}',
+			data: { list: [ { num: 1, show: true }, { num: 2, show: true } ] },
+			transitions: {
+				foo ( trans, num ) {
+					map[num]++;
+					trans.complete();
+				}
+			}
+		});
+
+		r.shift( 'list' );
+		t.ok( map[undefined] === 1 && map[1] === 0 && map[2] === 0 );
+		r.toggle( 'list.0.show' );
+		t.ok( map[undefined] === 1 && map[1] === 0 && map[2] === 1 );
+		r.toggle( 'list.0.show' );
+		r.shift( 'list' );
+		t.ok( map[undefined] === 2 && map[1] === 0 && map[2] === 1 );
+	});
 }

@@ -9,6 +9,7 @@ import runloop from '../../../global/runloop';
 import { removeFromArray } from '../../../utils/array';
 import getFunction from '../../../shared/getFunction';
 import resolveReference from '../../resolvers/resolveReference';
+import { rebindMatch } from '../../../shared/rebind';
 
 const missingDecorator = {
 	update: noop,
@@ -97,8 +98,18 @@ export default class Decorator {
 
 	handleChange () { this.bubble(); }
 
-	rebinding () {
-		// TODO
+	rebinding ( next, previous, safe ) {
+		const idx = this.models.indexOf( previous );
+		if ( !~idx ) return;
+
+		next = rebindMatch( this.template.f.a.r[ idx ], next, previous );
+		if ( next === previous ) return;
+
+		previous.unregister( this );
+		this.models.splice( idx, 1, next );
+		if ( next ) next.addShuffleRegister( this, 'mark' );
+
+		if ( !safe ) this.bubble();
 	}
 
 	render () {
