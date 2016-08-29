@@ -22,10 +22,10 @@ export default class KeyModel {
 
 	rebinding ( next, previous ) {
 		let i = this.deps.length;
-		while ( i-- ) this.deps[i].rebinding( next, previous );
+		while ( i-- ) this.deps[i].rebinding( next, previous, false );
 
 		i = this.links.length;
-		while ( i-- ) this.links[i].rebinding( next, previous );
+		while ( i-- ) this.links[i].rebinding( next, previous, false );
 	}
 
 	register ( dependant ) {

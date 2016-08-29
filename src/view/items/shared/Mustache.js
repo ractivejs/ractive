@@ -45,17 +45,17 @@ export default class Mustache extends Item {
 		this.bubble();
 	}
 
-	rebinding ( next, previous ) {
+	rebinding ( next, previous, safe ) {
 		next = rebindMatch( this.template, next, previous );
 		if ( this.static ) return false;
 		if ( next === this.model ) return false;
 
 		if ( this.model ) {
 			this.model.unregister( this );
-			this.model = null;
 		}
-		this.newModel = next;
-		this.handleChange();
+		if ( next ) next.addShuffleRegister( this, 'mark' );
+		this.model = next;
+		if ( !safe ) this.handleChange();
 		return true;
 	}
 
@@ -64,14 +64,6 @@ export default class Mustache extends Item {
 			this.model && this.model.unregister( this );
 			this.model = undefined;
 			this.resolver && this.resolver.unbind();
-		}
-	}
-
-	update () {
-		if ( this.newModel ) {
-			this.model = this.newModel;
-			this.model.register( this );
-			this.newModel = undefined;
 		}
 	}
 }

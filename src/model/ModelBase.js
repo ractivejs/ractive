@@ -8,7 +8,8 @@ import runloop from '../global/runloop';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
-let shuffleTasks = [];
+let shuffleTasks = { early: [], mark: [] };
+let registerQueue = { early: [], mark: [] };
 
 export default class ModelBase {
 	constructor ( parent ) {
@@ -41,7 +42,8 @@ export default class ModelBase {
 		this.unresolvedByKey[ key ].push( resolver );
 	}
 
-	addShuffleTask ( task ) { shuffleTasks.push( task ); }
+	addShuffleTask ( task, stage = 'early' ) { shuffleTasks[stage].push( task ); }
+	addShuffleRegister ( item, stage = 'early' ) { registerQueue[stage].push({ model: this, item }); }
 
 	clearUnresolveds ( specificKey ) {
 		let i = this.unresolved.length;
@@ -198,24 +200,24 @@ export default class ModelBase {
 		}
 	}
 
-	rebinding ( next, previous ) {
+	rebinding ( next, previous, safe ) {
 		// tell the deps to move to the new target
 		let i = this.deps.length;
 		while ( i-- ) {
-			if ( this.deps[i].rebinding ) this.deps[i].rebinding( next, previous );
+			if ( this.deps[i].rebinding ) this.deps[i].rebinding( next, previous, safe );
 		}
 
 		i = this.links.length;
 		while ( i-- ) {
 			const link = this.links[i];
 			// only relink the root of the link tree
-			if ( link.owner._link ) link.relinking( next );
+			if ( link.owner._link ) link.relinking( next, true, safe );
 		}
 
 		i = this.children.length;
 		while ( i-- ) {
 			const child = this.children[i];
-			child.rebinding( next ? next.joinKey( child.key ) : undefined, child );
+			child.rebinding( next ? next.joinKey( child.key ) : undefined, child, safe );
 		}
 
 		i = this.unresolved.length;
@@ -227,11 +229,11 @@ export default class ModelBase {
 			}
 		}
 
-		if ( this.keypathModel ) this.keypathModel.rebinding( next, previous );
+		if ( this.keypathModel ) this.keypathModel.rebinding( next, previous, false );
 
 		i = this.bindings.length;
 		while ( i-- ) {
-			this.bindings[i].rebinding( next, previous );
+			this.bindings[i].rebinding( next, previous, safe );
 		}
 	}
 
@@ -338,12 +340,24 @@ export function findBoundValue( list ) {
 	}
 }
 
-export function fireShuffleTasks () {
-	const tasks = shuffleTasks;
-	shuffleTasks = [];
-	let i = tasks.length;
-	while ( i-- ) tasks[i]();
+export function fireShuffleTasks ( stage ) {
+	if ( !stage ) {
+		fireShuffleTasks( 'early' );
+		fireShuffleTasks( 'mark' );
+	} else {
+		const tasks = shuffleTasks[stage];
+		shuffleTasks[stage] = [];
+		let i = tasks.length;
+		while ( i-- ) tasks[i]();
+
+		const register = registerQueue[stage];
+		registerQueue[stage] = [];
+		i = register.length;
+		while ( i-- ) register[i].model.register( register[i].item );
+	}
 }
 
 KeyModel.prototype.addShuffleTask = ModelBase.prototype.addShuffleTask;
+KeyModel.prototype.addShuffleRegister = ModelBase.prototype.addShuffleRegister;
 KeypathModel.prototype.addShuffleTask = ModelBase.prototype.addShuffleTask;
+KeypathModel.prototype.addShuffleRegister = ModelBase.prototype.addShuffleRegister;

@@ -90,8 +90,8 @@ export default class Section extends Mustache {
 		return !!value && !isEmpty( value );
 	}
 
-	rebinding ( next, previous ) {
-		if ( super.rebinding( next, previous ) ) {
+	rebinding ( next, previous, safe ) {
+		if ( super.rebinding( next, previous, safe ) ) {
 			if ( this.fragment && this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS ) {
 				this.fragment.rebinding( next, previous );
 			}
@@ -126,7 +126,6 @@ export default class Section extends Mustache {
 	update () {
 		if ( !this.dirty ) return;
 
-		super.update();
 		if ( this.fragment && this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS ) {
 			this.fragment.context = this.model;
 		}

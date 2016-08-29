@@ -270,20 +270,20 @@ export default class Model extends ModelBase {
 			}
 
 			// rebind the children on i to idx
-			if ( i in this.childByKey ) this.childByKey[ i ].rebinding( !~idx ? undefined : this.joinKey( idx ), this.childByKey[ i ] );
+			if ( i in this.childByKey ) this.childByKey[ i ].rebinding( !~idx ? undefined : this.joinKey( idx ), this.childByKey[ i ], true );
 
 			if ( !~idx && this.keyModels[ i ] ) {
-				this.keyModels[i].rebinding( undefined, this.keyModels[i] );
+				this.keyModels[i].rebinding( undefined, this.keyModels[i], false );
 			} else if ( ~idx && this.keyModels[ i ] ) {
 				if ( !this.keyModels[ idx ] ) this.childByKey[ idx ].getKeyModel( idx );
-				this.keyModels[i].rebinding( this.keyModels[ idx ], this.keyModels[i] );
+				this.keyModels[i].rebinding( this.keyModels[ idx ], this.keyModels[i], false );
 			}
 		}
 
 		const upstream = this.length !== this.value.length;
 
 		this.links.forEach( l => l.shuffle( newIndices ) );
-		fireShuffleTasks();
+		fireShuffleTasks( 'early' );
 
 		i = this.deps.length;
 		while ( i-- ) {
@@ -291,11 +291,7 @@ export default class Model extends ModelBase {
 		}
 
 		this.mark();
-
-		i = this.deps.length;
-		while ( i-- ) {
-			if ( !this.deps[i].shuffle ) this.deps[i].handleChange();
-		}
+		fireShuffleTasks( 'mark' );
 
 		if ( upstream ) this.notifyUpstream();
 		this.shuffling = false;

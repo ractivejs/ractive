@@ -82,7 +82,6 @@ export default class Triple extends Mustache {
 	update () {
 		if ( this.rendered && this.dirty ) {
 			this.dirty = false;
-			super.update();
 
 			this.unrender();
 			const docFrag = createDocumentFragment();

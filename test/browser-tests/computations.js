@@ -767,10 +767,10 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'nope yep' );
 		t.equal( count, 2 );
 		r.splice( 'foo', 0, 1 );
-		t.equal( count, 3 );
+		t.equal( count, 2 );
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 		r.set( 'foo', [] );
-		t.equal( count, 3 );
+		t.equal( count, 2 );
 	});
 
 	test( 'computations with a reference expression should update with the full reference too', t => {

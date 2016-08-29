@@ -76,7 +76,7 @@ export default class LinkModel extends ModelBase {
 		this.children.forEach( c => c.relinked() );
 	}
 
-	relinking ( target, root = true ) {
+	relinking ( target, root, safe ) {
 		if ( root && this.sourcePath ) target = rebindMatch( this.sourcePath, target, this.target );
 		if ( !target || this.target === target ) return;
 
@@ -85,12 +85,12 @@ export default class LinkModel extends ModelBase {
 
 		this.target = target;
 		this.children.forEach( c => {
-			c.relinking( target.joinKey( c.key ), false );
+			c.relinking( target.joinKey( c.key ), false, safe );
 		});
 
 		if ( root ) this.addShuffleTask( () => {
 			this.relinked();
-			this.notifyUpstream();
+			if ( !safe ) this.notifyUpstream();
 		});
 	}
 
@@ -112,13 +112,13 @@ export default class LinkModel extends ModelBase {
 			}
 
 			// rebind the children on i to idx
-			if ( i in this.childByKey ) this.childByKey[ i ].rebinding( !~idx ? undefined : this.joinKey( idx ), this.childByKey[ i ] );
+			if ( i in this.childByKey ) this.childByKey[ i ].rebinding( !~idx ? undefined : this.joinKey( idx ), this.childByKey[ i ], true );
 
 			if ( !~idx && this.keyModels[ i ] ) {
-				this.keyModels[i].rebinding( undefined, this.keyModels[i] );
+				this.keyModels[i].rebinding( undefined, this.keyModels[i], false );
 			} else if ( ~idx && this.keyModels[ i ] ) {
 				if ( !this.keyModels[ idx ] ) this.childByKey[ idx ].getKeyModel( idx );
-				this.keyModels[i].rebinding( this.keyModels[ idx ], this.keyModels[i] );
+				this.keyModels[i].rebinding( this.keyModels[ idx ], this.keyModels[i], false );
 			}
 		}
 
@@ -132,11 +132,6 @@ export default class LinkModel extends ModelBase {
 		}
 
 		this.marked();
-
-		i = this.deps.length;
-		while ( i-- ) {
-			if ( !this.deps[i].shuffle ) this.deps[i].handleChange();
-		}
 
 		if ( upstream ) this.notifyUpstream();
 
@@ -157,8 +152,8 @@ export default class LinkModel extends ModelBase {
 ModelBase.prototype.link = function link ( model, keypath ) {
 	const lnk = this._link || new LinkModel( this.parent, this, model, this.key );
 	lnk.sourcePath = keypath;
-	if ( this._link ) this._link.relinking( model );
-	this.rebinding( lnk, this );
+	if ( this._link ) this._link.relinking( model, true, false );
+	this.rebinding( lnk, this, false );
 	fireShuffleTasks();
 
 	const unresolved = !this._link;
@@ -173,6 +168,7 @@ ModelBase.prototype.unlink = function unlink () {
 		const ln = this._link;
 		this._link = undefined;
 		ln.rebinding( this, this._link );
+		fireShuffleTasks();
 		ln.teardown();
 	}
 };

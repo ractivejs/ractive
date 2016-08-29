@@ -56,12 +56,12 @@ export default class KeypathModel {
 		const keys = Object.keys( this.children );
 		let i = keys.length;
 		while ( i-- ) {
-			this.children[ keys[i] ].rebinding( next, previous );
+			this.children[ keys[i] ].rebinding( next, previous, false );
 		}
 
 		i = this.deps.length;
 		while ( i-- ) {
-			this.deps[i].rebinding( model, this );
+			this.deps[i].rebinding( model, this, false );
 		}
 	}
 

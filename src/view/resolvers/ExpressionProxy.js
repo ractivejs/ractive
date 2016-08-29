@@ -46,14 +46,15 @@ export default class ExpressionProxy extends Model {
 		this.bubble();
 	}
 
-	bubble () {
+	bubble ( actuallyChanged = true ) {
 		// refresh the keypath
 		if ( this.registered ) delete this.root.expressions[ this.keypath ];
 		this.keypath = undefined;
 
-		this.dirty = true;
-
-		this.handleChange();
+		if ( actuallyChanged ) {
+			this.dirty = true;
+			this.handleChange();
+		}
 	}
 
 	get ( shouldCapture ) {
@@ -130,7 +131,7 @@ export default class ExpressionProxy extends Model {
 		this.handleChange();
 	}
 
-	rebinding ( next, previous ) {
+	rebinding ( next, previous, safe ) {
 		const idx = this.models.indexOf( previous );
 
 		if ( ~idx ) {
@@ -139,10 +140,10 @@ export default class ExpressionProxy extends Model {
 				previous.unregister( this );
 				this.models.splice( idx, 1, next );
 				// TODO: set up a resolver if there is no next?
-				if ( next ) next.addShuffleTask( () => next.register( this ) );
+				if ( next ) next.addShuffleRegister( this, 'mark' );
 			}
 		}
-		this.bubble();
+		this.bubble( !safe );
 	}
 
 	retrieve () {

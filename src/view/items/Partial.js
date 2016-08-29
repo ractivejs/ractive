@@ -129,7 +129,6 @@ export default class Partial extends Mustache {
 
 		if ( this.dirty ) {
 			this.dirty = false;
-			super.update();
 
 			if ( !this.named ) {
 				if ( this.model ) {
