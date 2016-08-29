@@ -1,12 +1,10 @@
-/* global document, navigator */
+/* global document */
 
 import { test } from 'qunit';
 import { initModule, hasUsableConsole, onWarn } from './test-config';
 
 export default function() {
 	initModule( 'partials.js' );
-
-	const phantom = /phantom/i.test( navigator.userAgent );
 
 	const partialsFn = {
 		foo () {
@@ -959,5 +957,43 @@ export default function() {
 		});
 
 		t.htmlEqual( fixture.childNodes[0].innerHTML, 'outer inner' );
+	});
+
+	test( 'pre-parsed dynamic inline partial from computation doesn\'t try to reset on init if a binding causes an update (#2641)', t => {
+		const cmp = Ractive.extend({ template: '<input type="checkbox" checked="{{flag}}" />' });
+		const r = new Ractive({
+			el: fixture,
+			template: '{{>fn()}}',
+			data: {
+				fn () {
+					return this.get('tpl');
+				},
+				tpl: Ractive.parse('hullo <cmp/>')
+			},
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'hullo <input type="checkbox" />' );
+		r.set( 'tpl', Ractive.parse('yup <cmp/>'));
+		t.htmlEqual( fixture.innerHTML, 'yup <input type="checkbox" />' );
+	});
+
+	test( 'unparsed dynamic inline partial from computation doesn\'t try to reset on init if a binding causes an update (#2641)', t => {
+		const cmp = Ractive.extend({ template: '<input type="checkbox" checked="{{flag}}" />' });
+		const r = new Ractive({
+			el: fixture,
+			template: '{{>fn()}}',
+			data: {
+				fn () {
+					return this.get('tpl');
+				},
+				tpl: { template: 'hullo <cmp/>' }
+			},
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'hullo <input type="checkbox" />' );
+		r.set( 'tpl', { template: 'yup <cmp/>' });
+		t.htmlEqual( fixture.innerHTML, 'yup <input type="checkbox" />' );
 	});
 }
