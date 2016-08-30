@@ -292,7 +292,7 @@ export default class Transition {
 			}
 
 			this.onComplete.forEach( fn => fn() );
-			if ( !noReset && this.eventName === 'intro' ) {
+			if ( !noReset && this.isIntro ) {
 				resetStyle( node, originalStyle);
 			}
 

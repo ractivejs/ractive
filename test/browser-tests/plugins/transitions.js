@@ -717,8 +717,36 @@ export default function() {
 		setTimeout( next, 50 );
 
 		setTimeout( () => {
-			t.htmlEqual( fixture.innerHTML, '<div style="opacity: 1;">foo 4</div>' );
+			t.htmlEqual( fixture.innerHTML, '<div>foo 4</div>' );
 			done();
 		}, 400);
+	});
+
+	test( `intro transitions don't leave styles hanging around`, t => {
+		const done = t.async();
+
+		function go ( trans ) {
+			const height = trans.getStyle( 'height' );
+			if ( trans.isIntro ) {
+				trans.setStyle( 'height', 0 );
+				trans.animateStyle( 'height', height, { duration: 100 } ).then( () => trans.complete() );
+			} else {
+				trans.setStyle( 'height', height );
+				trans.animateStyle( 'height', 0, { duration: 100 } ).then( () => trans.complete() );
+			}
+		}
+
+		const r = new Ractive({
+			template: '<style>div { height: 300px }</style><div go-in-out />',
+			transitions: { go }
+		});
+
+		r.render( fixture ).then( () => {
+			t.equal( r.find( 'div' ).style.height, '' );
+			t.ok( !( 'style' in r.find( 'div' ).attributes ) );
+			r.unrender().then( () => {
+				done();
+			});
+		});
 	});
 }
