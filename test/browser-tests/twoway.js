@@ -1270,4 +1270,27 @@ export default function() {
 		t.equal( fixture.querySelectorAll( 'span' ).length, 1 );
 		t.equal( fixture.querySelectorAll( 'div' ).length, 3 );
 	});
+
+	test( 'bindings stay up to date when updated from the model (#2643)', t => {
+		t.expect( 5 );
+
+		const r = new Ractive({
+			el: fixture,
+			template: '<input type="checkbox" checked="{{foo.bar}}" />',
+			data: { foo: { bar: false } }
+		});
+		const input = r.find( 'input' );
+
+		fire( input, 'click' );
+		t.ok( input.checked, 'input checked by click' );
+		t.ok( r.get( 'foo.bar' ), 'model is true from click' );
+
+		r.get( 'foo' ).bar = false;
+		r.update();
+		t.ok( !input.checked, 'input unchecked by update' );
+
+		r.observe( 'foo', v => t.ok( v, 'new value true observed from click' ), { init: false } );
+		fire( input, 'click' );
+		t.ok( input.checked, 'input checked by click' );
+	});
 }

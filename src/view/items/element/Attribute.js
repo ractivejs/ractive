@@ -170,6 +170,9 @@ export default class Attribute extends Item {
 			this.dirty = false;
 			if ( this.fragment ) this.fragment.update();
 			if ( this.rendered ) this.updateDelegate();
+			if ( this.isTwoway && !this.locked ) {
+				this.interpolator.twowayBinding.lastVal( true, this.interpolator.model.get() );
+			}
 		}
 	}
 }
