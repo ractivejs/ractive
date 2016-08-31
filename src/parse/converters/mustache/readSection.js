@@ -1,11 +1,10 @@
-import { ALIAS, SECTION, SECTION_IF, SECTION_UNLESS, PREFIX_OPERATOR, INFIX_OPERATOR, BRACKETED } from '../../../config/types';
+import { ALIAS, SECTION, SECTION_IF, SECTION_UNLESS } from '../../../config/types';
 import { READERS } from '../../_parse';
 import readClosing from './section/readClosing';
 import readElse from './section/readElse';
 import readElseIf from './section/readElseIf';
 import handlebarsBlockCodes from './handlebarsBlockCodes';
 import readExpression from '../readExpression';
-import flattenExpression from '../../utils/flattenExpression';
 import refineExpression from '../../utils/refineExpression';
 import { readAlias, readAliases } from './readAliases';
 
@@ -106,12 +105,14 @@ export default function readSection ( parser, tag ) {
 				unlessBlock = [];
 			}
 
-			unlessBlock.push({
+			const mustache = {
 				t: SECTION,
 				n: SECTION_IF,
-				x: flattenExpression( child.x ),
 				f: children = []
-			});
+			};
+			refineExpression( child.x, mustache );
+
+			unlessBlock.push( mustache );
 		}
 
 		else if ( !aliasOnly && ( child = readElse( parser, tag ) ) ) {
