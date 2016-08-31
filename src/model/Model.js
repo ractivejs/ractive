@@ -50,6 +50,7 @@ export default class Model {
 
 			if ( parent.value ) {
 				this.value = parent.value[ this.key ];
+				if ( isArray( this.value ) ) this.length = this.value.length;
 				this.adapt();
 			}
 		}
@@ -381,8 +382,12 @@ export default class Model {
 	}
 
 	merge ( array, comparator ) {
-		const oldArray = comparator ? this.value.map( comparator ) : this.value;
-		const newArray = comparator ? array.map( comparator ) : array;
+		let oldArray = this.value, newArray = array;
+		if ( oldArray === newArray ) oldArray = recreateArray( this );
+		if ( comparator ) {
+			oldArray = oldArray.map( comparator );
+			newArray = newArray.map( comparator );
+		}
 
 		const oldLength = oldArray.length;
 
@@ -414,7 +419,6 @@ export default class Model {
 		});
 
 		this.parent.value[ this.key ] = array;
-		this._merged = true;
 		this.shuffle( newIndices );
 	}
 
@@ -580,4 +584,14 @@ export function findBoundValue( list ) {
 			}
 		}
 	}
+}
+
+function recreateArray( model ) {
+	const array = [];
+
+	for ( let i = 0; i < model.length; i++ ) {
+		array[ i ] = model.childByKey[i].value;
+	}
+
+	return array;
 }
