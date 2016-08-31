@@ -9,8 +9,6 @@ import Ticker from '../shared/Ticker';
 import getPrefixer from './helpers/getPrefixer';
 import { unescapeKey } from '../shared/keypaths';
 
-let originatingModel = null;
-
 export default class Model extends ModelBase {
 	constructor ( parent, key ) {
 		super( parent );
@@ -134,21 +132,17 @@ export default class Model extends ModelBase {
 		this.parent.clearUnresolveds();
 		this.clearUnresolveds();
 
-		// notify dependants
-		const previousOriginatingModel = originatingModel; // for the array.length special case
-		originatingModel = this;
+		// keep track of array length
+		if ( isArray( value ) ) this.length = value.length;
 
+		// notify dependants
 		this.links.forEach( handleChange );
 		this.children.forEach( mark );
 		this.deps.forEach( handleChange );
 
 		this.notifyUpstream();
 
-		originatingModel = previousOriginatingModel;
-
-		// keep track of array length
-		if ( isArray( value ) ) this.length = value.length;
-		else if ( this.key === 'length' && isArray( this.parent.value ) ) this.parent.length = this.parent.value.length;
+		if ( this.key === 'length' && isArray( this.parent.value ) ) this.parent.length = this.parent.value.length;
 	}
 
 	createBranch ( key ) {
@@ -313,7 +307,7 @@ function recreateArray( model ) {
 	const array = [];
 
 	for ( let i = 0; i < model.length; i++ ) {
-		array[ i ] = model.childByKey[i].value;
+		array[ i ] = (model.childByKey[i] || {}).value;
 	}
 
 	return array;
