@@ -1,13 +1,12 @@
 import Model from '../../model/Model';
 import ComputationChild from '../../model/ComputationChild';
-import { handleChange, unbind } from '../../shared/methodCallers';
+import { handleChange, marked, unbind } from '../../shared/methodCallers';
 import getFunction from '../../shared/getFunction';
 import resolveReference from './resolveReference';
 import { removeFromArray } from '../../utils/array';
-
-function getValue ( model ) {
-	return model ? model.get( true, true ) : undefined;
-}
+import { capture, startCapturing, stopCapturing } from '../../global/capture';
+import { warnIfDebug } from '../../utils/log';
+import { rebindMatch } from '../../shared/rebind';
 
 function createResolver ( proxy, ref, index ) {
 	const resolver = proxy.fragment.resolve( ref, model => {
@@ -27,9 +26,9 @@ export default class ExpressionProxy extends Model {
 		this.template = template;
 
 		this.isReadonly = true;
+		this.dirty = true;
 
 		this.fn = getFunction( template.s, template.r.length );
-		this.computation = null;
 
 		this.resolvers = [];
 		this.models = this.template.r.map( ( ref, index ) => {
@@ -42,55 +41,74 @@ export default class ExpressionProxy extends Model {
 			return model;
 		});
 
+		this.shuffle = undefined;
+
 		this.bubble();
 	}
 
-	bubble () {
-		const ractive = this.fragment.ractive;
+	bubble ( actuallyChanged = true ) {
+		// refresh the keypath
+		if ( this.registered ) delete this.root.expressions[ this.keypath ];
+		this.keypath = undefined;
 
-		// TODO the @ prevents computed props from shadowing keypaths, but the real
-		// question is why it's a computed prop in the first place... (hint, it's
-		// to do with {{else}} blocks)
-		const key = '@' + this.template.s.replace( /_(\d+)/g, ( match, i ) => {
-			if ( i >= this.models.length ) return match;
-
-			const model = this.models[i];
-			return model ? model.getKeypath() : '@undefined';
-		});
-
-		// TODO can/should we reuse computations?
-		const signature = {
-			getter: () => {
-				const values = this.models.map( getValue );
-				return this.fn.apply( ractive, values );
-			},
-			getterString: key
-		};
-
-		const computation = ractive.viewmodel.compute( key, signature );
-
-		this.value = computation.get(); // TODO should not need this, eventually
-
-		if ( this.computation ) {
-			this.computation.unregister( this );
-			// notify children...
+		if ( actuallyChanged ) {
+			this.dirty = true;
+			this.handleChange();
 		}
-
-		this.computation = computation;
-		computation.register( this );
-
-		this.handleChange();
 	}
 
 	get ( shouldCapture ) {
-		return this.computation.get( shouldCapture );
+		if ( shouldCapture ) capture( this );
+
+		if ( this.dirty ) {
+			this.dirty = false;
+			this.value = this.getValue();
+			this.adapt();
+		}
+
+		return shouldCapture && this.wrapper ? this.wrapper.value : this.value;
 	}
 
 	getKeypath () {
-		return this.computation ? this.computation.getKeypath() : '@undefined';
+		if ( !this.template ) return '@undefined';
+		if ( !this.keypath ) {
+			this.keypath = '@' + this.template.s.replace( /_(\d+)/g, ( match, i ) => {
+				if ( i >= this.models.length ) return match;
+
+				const model = this.models[i];
+				return model ? model.getKeypath() : '@undefined';
+			});
+
+			this.root.expressions[ this.keypath ] = this;
+			this.registered = true;
+		}
+
+		return this.keypath;
+	}
+
+	getValue () {
+		startCapturing();
+		let result;
+
+		try {
+			const params = this.models.map( m => m ? m.get( true ) : undefined );
+			result = this.fn.apply( this.fragment.ractive, params );
+		} catch ( err ) {
+			warnIfDebug( `Failed to compute ${this.getKeypath()}: ${err.message || err}` );
+		}
+
+		const dependencies = stopCapturing();
+		if ( this.dependencies ) this.dependencies.forEach( d => d.unregister( this ) );
+		this.dependencies = dependencies;
+		this.dependencies.forEach( d => d.register( this ) );
+
+		return result;
 	}
 
 	handleChange () {
+		this.dirty = true;
+
+		this.links.forEach( marked );
 		this.deps.forEach( handleChange );
 		this.children.forEach( handleChange );
 
@@ -113,6 +131,21 @@ export default class ExpressionProxy extends Model {
 		this.handleChange();
 	}
 
+	rebinding ( next, previous, safe ) {
+		const idx = this.models.indexOf( previous );
+
+		if ( ~idx ) {
+			next = rebindMatch( this.template.r[idx], next, previous );
+			if ( next !== previous ) {
+				previous.unregister( this );
+				this.models.splice( idx, 1, next );
+				// TODO: set up a resolver if there is no next?
+				if ( next ) next.addShuffleRegister( this, 'mark' );
+			}
+		}
+		this.bubble( !safe );
+	}
+
 	retrieve () {
 		return this.get();
 	}
@@ -120,10 +153,7 @@ export default class ExpressionProxy extends Model {
 	teardown () {
 		this.unbind();
 		this.fragment = undefined;
-		if ( this.computation ) {
-			this.computation.teardown();
-		}
-		this.computation = undefined;
+		if ( this.dependencies ) this.dependencies.forEach( d => d.unregister( this ) );
 		super.teardown();
 	}
 

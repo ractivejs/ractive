@@ -1217,4 +1217,24 @@ export default function() {
 
 		t.equal( r.get( 'observerCalledTimes' ), 1 );
 	});
+
+	test( 'observers on conditional mappings fire correctly (#2636)', t => {
+		let val;
+
+		const cmp = Ractive.extend({
+			oninit () {
+				this.observe( 'bar', v => val = v );
+			}
+		});
+
+		const r = new Ractive({
+			el: fixture,
+			template: '<cmp {{#if baz}}bar="{{baz}}"{{/if}} />',
+			data: { baz: '' },
+			components: { cmp }
+		});
+
+		r.set( 'baz', 'hello' );
+		t.equal( val, 'hello' );
+	});
 }

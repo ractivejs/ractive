@@ -16,9 +16,8 @@ function getComparator ( option ) {
 	throw new Error( 'If supplied, options.compare must be a string, function, or `true`' ); // TODO link to docs
 }
 
-export default function Ractive$merge ( keypath, array, options ) {
-	const model = this.viewmodel.joinAll( splitKeypath( keypath ) );
-	const promise = runloop.start( this, true );
+export function merge ( ractive, model, array, options ) {
+	const promise = runloop.start( ractive, true );
 	const value = model.get();
 
 	if ( !isArray( value ) || !isArray( array ) ) {
@@ -30,4 +29,8 @@ export default function Ractive$merge ( keypath, array, options ) {
 
 	runloop.end();
 	return promise;
+}
+
+export default function thisRactive$merge ( keypath, array, options ) {
+	return merge( this, this.viewmodel.joinAll( splitKeypath( keypath ) ), array, options );
 }

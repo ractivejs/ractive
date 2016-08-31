@@ -10,6 +10,9 @@ mutatorMethods.forEach( methodName => {
 	const method = function ( ...args ) {
 		const newIndices = getNewIndices( this.length, methodName, args );
 
+		// lock any magic array wrappers, so that things don't get fudged
+		this._ractive.wrappers.forEach( r => { if ( r.magic ) r.magic.locked = true; } );
+
 		// apply the underlying method
 		const result = Array.prototype[ methodName ].apply( this, arguments );
 
@@ -25,6 +28,10 @@ mutatorMethods.forEach( methodName => {
 		runloop.end();
 
 		this._ractive.setting = false;
+
+		// unlock the magic arrays... magic... bah
+		this._ractive.wrappers.forEach( r => { if ( r.magic ) r.magic.locked = false; } );
+
 		return result;
 	};
 

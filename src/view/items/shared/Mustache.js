@@ -1,5 +1,6 @@
 import Item from './Item';
 import resolve from '../../resolvers/resolve';
+import { rebindMatch } from '../../../shared/rebind';
 
 export default class Mustache extends Item {
 	constructor ( options ) {
@@ -44,20 +45,18 @@ export default class Mustache extends Item {
 		this.bubble();
 	}
 
-	rebind () {
-		if ( this.static ) return;
+	rebinding ( next, previous, safe ) {
+		next = rebindMatch( this.template, next, previous );
+		if ( this.static ) return false;
+		if ( next === this.model ) return false;
 
-		const model = resolve( this.parentFragment, this.template );
-
-		if ( model === this.model ) return;
-
-		if ( this.model ) this.model.unregister( this );
-
-		this.model = model;
-
-		if ( model ) model.register( this );
-
-		this.handleChange();
+		if ( this.model ) {
+			this.model.unregister( this );
+		}
+		if ( next ) next.addShuffleRegister( this, 'mark' );
+		this.model = next;
+		if ( !safe ) this.handleChange();
+		return true;
 	}
 
 	unbind () {

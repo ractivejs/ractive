@@ -1210,7 +1210,7 @@ export default function() {
 
 		const r = new Ractive({
 			el: fixture,
-			template: `{{#with { foo: 'bar' }}}<textarea>{{.foo}}</textarea><button on-click="set(@keypath + '.foo', 'baz')">click me</button>{{/with}}`
+			template: `{{#with { foo: 'bar' }}}<textarea>{{.foo}}</textarea><button on-click="event.set('.foo', 'baz')">click me</button>{{/with}}`
 		});
 
 		t.equal( r.find( 'textarea' ).value, 'bar' );

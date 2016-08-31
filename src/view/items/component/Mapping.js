@@ -6,7 +6,6 @@ import findElement from '../shared/findElement';
 import parseJSON from '../../../utils/parseJSON';
 import resolve from '../../resolvers/resolve';
 import { isArray } from '../../../utils/is';
-import runloop from '../../../global/runloop';
 
 export default class Mapping extends Item {
 	constructor ( options ) {
@@ -49,17 +48,6 @@ export default class Mapping extends Item {
 		}
 	}
 
-	rebind () {
-		if ( this.fragment ) this.fragment.rebind();
-
-		if ( this.boundFragment ) this.boundFragment.unbind();
-
-		// handle remapping
-		if ( isArray( this.template.f ) ) {
-			createMapping( this );
-		}
-	}
-
 	render () {}
 
 	unbind () {
@@ -67,16 +55,7 @@ export default class Mapping extends Item {
 		if ( this.boundFragment ) this.boundFragment.unbind();
 
 		if ( this.element.bound ) {
-			const viewmodel = this.element.instance.viewmodel;
-			if ( viewmodel.unmap( this.name ) ) {
-				if ( !this.element.rebinding ) {
-					this.element.rebinding = true;
-					runloop.scheduleTask( () => {
-						this.element.rebind();
-						this.element.rebinding = false;
-					});
-				}
-			}
+			if ( this.link.target === this.model ) this.link.owner.unlink();
 		}
 	}
 
@@ -92,7 +71,7 @@ export default class Mapping extends Item {
 	}
 }
 
-function createMapping ( item, check ) {
+function createMapping ( item ) {
 	const template = item.template.f;
 	const viewmodel = item.element.instance.viewmodel;
 	const childData = viewmodel.value;
@@ -106,20 +85,7 @@ function createMapping ( item, check ) {
 			item.model = item.parentFragment.findContext().joinKey( item.name );
 		}
 
-
-		if ( check ) {
-			// map the model and check for remap
-			const remapped = viewmodel.map( item.name, item.model );
-			if ( remapped !== item.model && item.element.bound && !item.element.rebinding ) {
-				item.element.rebinding = true;
-				runloop.scheduleTask( () => {
-					item.element.rebind();
-					item.element.rebinding = false;
-				});
-			}
-		} else {
-			viewmodel.map( item.name, item.model );
-		}
+		item.link = viewmodel.createLink( item.name, item.model, template[0].r );
 
 		if ( item.model.get() === undefined && item.name in childData ) {
 			item.model.set( childData[ item.name ] );

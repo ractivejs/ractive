@@ -5,7 +5,8 @@ export default function() {
 	initModule( 'plugins/adaptors/arrays.js' );
 
 	const List = Ractive.extend({
-		template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>'
+		template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>',
+		modifyArrays: true
 	});
 
 	test( 'array.push()', t => {
@@ -77,7 +78,8 @@ export default function() {
 			data: {
 				items,
 				limit: 3
-			}
+			},
+			modifyArrays: true
 		});
 
 		t.htmlEqual( fixture.innerHTML, '<p>0 / 3</p>' );
@@ -104,7 +106,8 @@ export default function() {
 			el: fixture,
 			template: '{{#people}}<Widget person="{{this}}"/>{{/people}}',
 			data: { people },
-			components: { Widget }
+			components: { Widget },
+			modifyArrays: true
 		});
 
 		t.htmlEqual( fixture.innerHTML, '<p>alice</p><p>bob</p><p>charles</p>');
@@ -131,7 +134,8 @@ export default function() {
 			el: fixture,
 			template: '{{#people}}<Widget person="{{this}}"/>{{/people}}{{#people}}<Widget person="{{this}}"/>{{/people}}',
 			data: { people },
-			components: { Widget }
+			components: { Widget },
+			modifyArrays: true
 		});
 
 		t.htmlEqual( fixture.innerHTML, '<p>alice</p><p>bob</p><p>charles</p><p>alice</p><p>bob</p><p>charles</p>');
@@ -161,7 +165,8 @@ export default function() {
 				],
 				columns: [ 'foo', 'bar', 'baz' ],
 				selectedColumn: 'foo'
-			}
+			},
+			modifyArrays: true
 		});
 
 		t.htmlEqual( fixture.innerHTML, '<p>foo0a</p><p>bar0b</p><p>baz0c</p><strong>a</strong><p>foo1d</p><p>bar1e</p><p>baz1f</p><strong>d</strong><p>foo2g</p><p>bar2h</p><p>baz2i</p><strong>g</strong>' );
@@ -183,7 +188,8 @@ export default function() {
 			template: '<select>{{#options}}<option>{{this}}</option>{{/options}}</select>',
 			data: {
 				options: [ 'a', 'b', 'c' ]
-			}
+			},
+			modifyArrays: true
 		});
 
 		ractive.get( 'options' ).push( 'd' );

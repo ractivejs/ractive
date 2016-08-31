@@ -84,10 +84,11 @@ export default class EventDirective {
 					resolver = this.parentFragment.resolve( ref, model => {
 						this.models[i] = model;
 						removeFromArray( this.resolvers, resolver );
+						model.register( this );
 					});
 
 					this.resolvers.push( resolver );
-				}
+				} else model.register( this );
 
 				return model;
 			});
@@ -193,9 +194,17 @@ export default class EventDirective {
 		}
 	}
 
-	rebind () {
-		this.unbind();
-		this.bind();
+	handleChange () {}
+
+	rebinding ( next, previous ) {
+		if ( !this.models ) return;
+		const idx = this.models.indexOf( previous );
+
+		if ( ~idx ) {
+			this.models.splice( idx, 1, next );
+			previous.unregister( this );
+			if ( next ) next.addShuffleTask( () => next.register( this ) );
+		}
 	}
 
 	render () {
@@ -212,6 +221,9 @@ export default class EventDirective {
 			if ( this.resolvers ) this.resolvers.forEach( unbind );
 			this.resolvers = [];
 
+			if ( this.models ) this.models.forEach( m => {
+				if ( m.unregister ) m.unregister( this );
+			});
 			this.models = null;
 		}
 

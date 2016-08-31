@@ -231,7 +231,7 @@ export default function() {
 
 		test( "Magic adapters shouldn't tear themselves down while resetting (#1342)", t => {
 			let list = 'abcde'.split('');
-			new MagicRactive({
+			const r = new MagicRactive({
 				el: fixture,
 				template: '{{#list}}{{.}}{{/}}',
 				data: { list: list },
@@ -241,10 +241,10 @@ export default function() {
 			t.htmlEqual( fixture.innerHTML, 'abcde' );
 			// if the wrapper causes itself to be recreated, this is where it happens
 			// during reset
-			list.pop();
+			r.pop( 'list' );
 			t.htmlEqual( fixture.innerHTML, 'abcd' );
 			// since the wrapper now has two magic adapters, two fragments get popped
-			list.pop();
+			r.pop( 'list' );
 			t.htmlEqual( fixture.innerHTML, 'abc' );
 		});
 
@@ -281,7 +281,8 @@ export default function() {
 				el: fixture,
 				template: `{{#items}}{{.num}}{{#.items}}-{{.num}}{{/}}{{/}}`,
 				data: { items },
-				magic: true
+				magic: true,
+				modifyArrays: true
 			});
 
 			t.htmlEqual( fixture.innerHTML, '1234' );

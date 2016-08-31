@@ -98,12 +98,6 @@ export default class Partial extends Mustache {
 		this.bubble();
 	}
 
-	rebind () {
-		super.unbind();
-		super.bind();
-		this.fragment.rebind();
-	}
-
 	render ( target, occupants ) {
 		this.fragment.render( target, occupants );
 	}

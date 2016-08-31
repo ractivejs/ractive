@@ -548,14 +548,14 @@ export default function() {
 				{ name: 'three' }
 			];
 
-			new Ractive({
+			const r = new Ractive({
 				el: fixture,
 				template: '{{#items}}{{name}}{{/items}}',
 				magic: true,
 				data: { items }
 			});
 
-			items.push({ name: 'four' });
+			r.push( 'items', { name: 'four' } );
 			t.htmlEqual( fixture.innerHTML, 'onetwothreefour' );
 		});
 
@@ -1773,10 +1773,10 @@ export default function() {
 
 			t.equal( fixture.innerHTML, '123' );
 
-			array.push({ foo: 6 });
+			ractive.push( 'array', { foo: 6 } );
 			t.equal( fixture.innerHTML, '123' );
 
-			array.unshift({ foo: 0 });
+			ractive.unshift( 'array', { foo: 0 } );
 			t.equal( fixture.innerHTML, '012' );
 
 			ractive.set( 'array', [] );
@@ -1784,7 +1784,6 @@ export default function() {
 			t.equal( fixture.innerHTML, '' );
 
 			ractive.set( 'array', array );
-			t.ok( array._ractive );
 			t.equal( fixture.innerHTML, '012' );
 		});
 
@@ -1810,15 +1809,15 @@ export default function() {
 			const ractive = new Ractive({
 				el: fixture,
 				template: '{{#array}}<p>{{#( foo.slice( 0, 3 ) )}}{{.}}{{/()}}</p>{{/array}}',
-				data: { array: array }
+				data: { array }
 			});
 
 			t.htmlEqual( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p>' );
 
-			array.push({ foo: [ 6, 7, 8, 9, 10 ] });
+			ractive.push( 'array', { foo: [ 6, 7, 8, 9, 10 ] } );
 			t.htmlEqual( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
 
-			array.unshift({ foo: [ 0, 1, 2, 3, 4 ] });
+			ractive.unshift( 'array', { foo: [ 0, 1, 2, 3, 4 ] } );
 			t.htmlEqual( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
 
 			ractive.set( 'array', [] );
@@ -1826,7 +1825,6 @@ export default function() {
 			t.htmlEqual( fixture.innerHTML, '' );
 
 			ractive.set( 'array', array );
-			t.ok( array._ractive );
 			t.htmlEqual( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
 		});
 	}

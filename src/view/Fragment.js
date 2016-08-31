@@ -2,7 +2,7 @@ import { ELEMENT, YIELDER } from '../config/types';
 import runloop from '../global/runloop';
 import createItem from './items/createItem';
 import ReferenceResolver from './resolvers/ReferenceResolver';
-import { bind, rebind, toEscapedString, toString, unbind, unrender, update } from '../shared/methodCallers';
+import { bind, toEscapedString, toString, unbind, unrender, update } from '../shared/methodCallers';
 import processItems from './helpers/processItems';
 import parseJSON from '../utils/parseJSON';
 import { createDocumentFragment } from '../utils/dom';
@@ -68,9 +68,12 @@ export default class Fragment {
 	}
 
 	createItems () {
-		this.items = this.template.map( ( template, index ) => {
-			return createItem({ parentFragment: this, template, index });
-		});
+		// this is a hot code path
+		let max = this.template.length;
+		this.items = [];
+		for ( let i = 0; i < max; i++ ) {
+			this.items[i] = createItem({ parentFragment: this, template: this.template[i], index: i });
+		}
 	}
 
 	destroyed () {
@@ -233,10 +236,8 @@ export default class Fragment {
 		return this.argsList;
 	}
 
-	rebind ( context ) {
-		this.context = context;
-
-		this.items.forEach( rebind );
+	rebinding ( next ) {
+		this.context = next;
 	}
 
 	render ( target, occupants ) {
@@ -287,6 +288,10 @@ export default class Fragment {
 		this.resolvers.push( resolver );
 
 		return resolver; // so we can e.g. force resolution
+	}
+
+	shuffled () {
+		this.items.forEach( i => i.shuffled() );
 	}
 
 	toHtml () {

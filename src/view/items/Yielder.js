@@ -77,10 +77,6 @@ export default class Yielder extends Item {
 		return this.fragment.firstNode( skipParent );
 	}
 
-	rebind () {
-		this.fragment.rebind();
-	}
-
 	render ( target, occupants ) {
 		return this.fragment.render( target, occupants );
 	}

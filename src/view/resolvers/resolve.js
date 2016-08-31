@@ -11,7 +11,7 @@ export default function resolve ( fragment, template ) {
 		return new ExpressionProxy( fragment, template.x );
 	}
 
-	else {
+	else if ( template.rx ) {
 		return new ReferenceExpressionProxy( fragment, template.rx );
 	}
 }

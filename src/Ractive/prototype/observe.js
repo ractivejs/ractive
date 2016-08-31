@@ -3,6 +3,7 @@ import { isArray, isEqual, isObject } from '../../utils/is';
 import { splitKeypath, escapeKey } from '../../shared/keypaths';
 import { removeFromArray } from '../../utils/array';
 import resolveReference from '../../view/resolvers/resolveReference';
+import { rebindMatch } from '../../shared/rebind';
 import ReferenceResolver from '../../view/resolvers/ReferenceResolver';
 
 export default function observe ( keypath, callback, options ) {
@@ -148,6 +149,15 @@ class Observer {
 
 			if ( this.once ) runloop.scheduleTask( () => this.cancel() );
 		}
+	}
+
+	rebinding ( next, previous ) {
+		next = rebindMatch( this.keypath, next, previous );
+		// TODO: set up a resolver if next is undefined?
+		if ( next === this.model ) return false;
+
+		if ( this.model ) this.model.unregister( this );
+		if ( next ) next.addShuffleTask( () => this.resolved( next ) );
 	}
 
 	resolved ( model ) {

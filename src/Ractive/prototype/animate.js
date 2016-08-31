@@ -30,6 +30,30 @@ function getOptions ( options, instance ) {
 	};
 }
 
+export function animate ( ractive, model, to, options ) {
+	options = getOptions( options, ractive );
+	const from = model.get();
+
+	// don't bother animating values that stay the same
+	if ( isEqual( from, to ) ) {
+		options.complete( options.to );
+		return noAnimation; // TODO should this have .then and .catch methods?
+	}
+
+	const interpolator = interpolate( from, to, ractive, options.interpolator );
+
+	// if we can't interpolate the value, set it immediately
+	if ( !interpolator ) {
+		runloop.start();
+		model.set( to );
+		runloop.end();
+
+		return noAnimation;
+	}
+
+	return model.animate( from, to, options, interpolator );
+}
+
 export default function Ractive$animate ( keypath, to, options ) {
 	if ( typeof keypath === 'object' ) {
 		const keys = Object.keys( keypath );
@@ -42,27 +66,6 @@ ${keys.map( key => `ractive.animate('${key}', ${keypath[ key ]}, {...});` ).join
 ` );
 	}
 
-	options = getOptions( options, this );
 
-	const model = this.viewmodel.joinAll( splitKeypath( keypath ) );
-	const from = model.get();
-
-	// don't bother animating values that stay the same
-	if ( isEqual( from, to ) ) {
-		options.complete( options.to );
-		return noAnimation; // TODO should this have .then and .catch methods?
-	}
-
-	const interpolator = interpolate( from, to, this, options.interpolator );
-
-	// if we can't interpolate the value, set it immediately
-	if ( !interpolator ) {
-		runloop.start();
-		model.set( to );
-		runloop.end();
-
-		return noAnimation;
-	}
-
-	return model.animate( from, to, options, interpolator );
+	return animate( this, this.viewmodel.joinAll( splitKeypath( keypath ) ), to, options );
 }

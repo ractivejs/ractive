@@ -1,22 +1,10 @@
 import { badArguments } from '../../config/errors';
-import { splitKeypath } from '../../shared/keypaths';
+import { gather, set } from '../../shared/set';
 
 export default function Ractive$toggle ( keypath ) {
 	if ( typeof keypath !== 'string' ) {
 		throw new TypeError( badArguments );
 	}
 
-	let changes;
-
-	if ( /\*/.test( keypath ) ) {
-		changes = {};
-
-		this.viewmodel.findMatches( splitKeypath( keypath ) ).forEach( model => {
-			changes[ model.getKeypath() ] = !model.get();
-		});
-
-		return this.set( changes );
-	}
-
-	return this.set( keypath, !this.get( keypath ) );
+	return set( this, gather( this, keypath ).map( m => [ m, !m.get() ] ) );
 }

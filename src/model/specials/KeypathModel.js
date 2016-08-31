@@ -1,22 +1,29 @@
 import { removeFromArray } from '../../utils/array';
-import { handleChange, teardown } from '../../shared/methodCallers';
+import { handleChange } from '../../shared/methodCallers';
+import { capture } from '../../global/capture';
 
 export default class KeypathModel {
 	constructor ( parent, ractive ) {
 		this.parent = parent;
 		this.ractive = ractive;
 		this.value = ractive ? parent.getKeypath( ractive ) : parent.getKeypath();
-		this.dependants = [];
-		this.children = [];
+		this.deps = [];
+		this.children = {};
+		this.isReadonly = this.isKeypath = true;
 	}
 
-	addChild( model ) {
-		this.children.push( model );
-		model.owner = this;
-	}
-
-	get () {
+	get ( shouldCapture ) {
+		if ( shouldCapture ) capture( this );
 		return this.value;
+	}
+
+	getChild ( ractive ) {
+		if ( !( ractive._guid in this.children ) ) {
+			const model = new KeypathModel( this.parent, ractive );
+			this.children[ ractive._guid ] = model;
+			model.owner = this;
+		}
+		return this.children[ ractive._guid ];
 	}
 
 	getKeypath () {
@@ -24,28 +31,60 @@ export default class KeypathModel {
 	}
 
 	handleChange () {
-		this.value = this.ractive ? this.parent.getKeypath( this.ractive ) : this.parent.getKeypath();
-		if ( this.ractive && this.owner ) {
-			this.ractive.viewmodel.keypathModels[ this.owner.value ] = this;
+		const keys = Object.keys( this.children );
+		let i = keys.length;
+		while ( i-- ) {
+			this.children[ keys[i] ].handleChange();
 		}
-		this.children.forEach( handleChange );
-		this.dependants.forEach( handleChange );
+
+		this.deps.forEach( handleChange );
 	}
 
-	register ( dependant ) {
-		this.dependants.push( dependant );
+	rebindChildren ( next ) {
+		const keys = Object.keys( this.children );
+		let i = keys.length;
+		while ( i-- ) {
+			const child = this.children[keys[i]];
+			child.value = next.getKeypath( child.ractive );
+			child.handleChange();
+		}
+	}
+
+	rebinding ( next, previous ) {
+		const model = next ? next.getKeypathModel( this.ractive ) : undefined;
+
+		const keys = Object.keys( this.children );
+		let i = keys.length;
+		while ( i-- ) {
+			this.children[ keys[i] ].rebinding( next, previous, false );
+		}
+
+		i = this.deps.length;
+		while ( i-- ) {
+			this.deps[i].rebinding( model, this, false );
+		}
+	}
+
+	register ( dep ) {
+		this.deps.push( dep );
 	}
 
 	removeChild( model ) {
-		removeFromArray( this.children, model );
+		if ( model.ractive ) delete this.children[ model.ractive._guid ];
 	}
 
 	teardown () {
 		if ( this.owner ) this.owner.removeChild( this );
-		this.children.forEach( teardown );
+
+		const keys = Object.keys( this.children );
+		let i = keys.length;
+		while ( i-- ) {
+			this.children[ keys[i] ].teardown();
+		}
 	}
 
-	unregister ( dependant ) {
-		removeFromArray( this.dependants, dependant );
+	unregister ( dep ) {
+		removeFromArray( this.deps, dep );
+		if ( !this.deps.length ) this.teardown();
 	}
 }

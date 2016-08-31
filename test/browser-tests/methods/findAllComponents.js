@@ -57,7 +57,7 @@ export default function() {
 		t.equal( widgets[1].get( 'content' ), 'b' );
 		t.equal( widgets[2].get( 'content' ), 'c' );
 
-		ractive.get( 'widgets' ).push( 'd' );
+		ractive.push( 'widgets', 'd' );
 		t.equal( widgets.length, 4 );
 		t.ok( widgets[3] instanceof Widget );
 		t.equal( widgets[3].get( 'content' ), 'd' );

@@ -120,7 +120,7 @@ export default function() {
 	test( 'Component removed from DOM on tear-down with teardown override that calls _super', t => {
 		const Widget = Ractive.extend({
 			template: 'foo',
-			teardown () {
+			onteardown () {
 				this._super();
 			}
 		});
@@ -671,7 +671,7 @@ export default function() {
 
 		let list = [];
 
-		new Ractive({
+		const r = new Ractive({
 			el: fixture,
 			template: `
 				{{#each list}}
@@ -692,7 +692,7 @@ export default function() {
 		];
 
 		for ( let i = 0; i < list2.length; i++ ) {
-			list.push( list2[i] );
+			r.push( 'list', list2[i] );
 		}
 
 		t.htmlEqual( fixture.innerHTML, '11233' );
