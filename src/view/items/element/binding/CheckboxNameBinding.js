@@ -78,6 +78,8 @@ export default class CheckboxNameBinding extends Binding {
 		} else if ( !this.isChecked && arrayContains( this.group.value, value ) ) {
 			removeFromArray( this.group.value, value );
 		}
+		// make sure super knows there's a change
+		this.lastValue = null;
 		super.handleChange();
 	}
 
