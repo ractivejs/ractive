@@ -6,6 +6,11 @@ import { detachNode } from '../../utils/dom';
 import { inAttributes } from './element/ConditionalAttribute';
 
 export default class Interpolator extends Mustache {
+	bubble () {
+		if ( this.owner ) this.owner.bubble();
+		super.bubble();
+	}
+
 	detach () {
 		return detachNode( this.node );
 	}

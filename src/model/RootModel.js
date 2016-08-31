@@ -1,11 +1,11 @@
 import { capture } from '../global/capture';
-import { extend } from '../utils/object';
 import Computation from './Computation';
 import Model from './Model';
 import { handleChange, mark } from '../shared/methodCallers';
 import RactiveModel from './specials/RactiveModel';
 import GlobalModel from './specials/GlobalModel';
-import { unescapeKey } from '../shared/keypaths';
+import { splitKeypath, unescapeKey } from '../shared/keypaths';
+import { warnIfDebug } from '../utils/log';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
@@ -24,10 +24,11 @@ export default class RootModel extends Model {
 		this.adaptors = options.adapt;
 		this.adapt();
 
-		this.mappings = {};
-
 		this.computationContext = options.ractive;
 		this.computations = {};
+
+		// TODO this is only for deprecation of using expression keypaths
+		this.expressions = {};
 	}
 
 	applyChanges () {
@@ -44,31 +45,37 @@ export default class RootModel extends Model {
 		return computation;
 	}
 
-	extendChildren ( fn ) {
-		const mappings = this.mappings;
-		Object.keys( mappings ).forEach( key => {
-			fn( key, mappings[ key ] );
-		});
+	createLink ( keypath, target, targetPath ) {
+		const keys = splitKeypath( keypath );
 
-		const computations = this.computations;
-		Object.keys( computations ).forEach( key => {
-			const computation = computations[ key ];
-			// exclude template expressions
-			if ( !computation.isExpression ) {
-				fn( key, computation );
-			}
-		});
+		let model = this;
+		while ( keys.length ) {
+			const key = keys.shift();
+			model = this.childByKey[ key ] || this.joinKey( key );
+		}
+
+		return model.link( target, targetPath );
 	}
 
-	get ( shouldCapture ) {
+	get ( shouldCapture, options ) {
 		if ( shouldCapture ) capture( this );
-		let result = extend( {}, this.value );
 
-		this.extendChildren( ( key, model ) => {
-			result[ key ] = model.value;
-		});
+		if ( !options || options.virtual !== false ) {
+			const result = this.getVirtual();
+			const keys = Object.keys( this.computations );
+			let i = keys.length;
+			while ( i-- ) {
+				const computation = this.computations[ keys[i] ];
+				// exclude template expressions
+				if ( !computation.isExpression ) {
+					result[ keys[i] ] = computation.get();
+				}
+			}
 
-		return result;
+			return result;
+		} else {
+			return this.value;
+		}
 	}
 
 	getKeypath () {
@@ -82,9 +89,17 @@ export default class RootModel extends Model {
 	getValueChildren () {
 		const children = super.getValueChildren( this.value );
 
-		this.extendChildren( ( key, model ) => {
-			children.push( model );
+		this.children.forEach( child => {
+			if ( child._link ) {
+				const idx = children.indexOf( child );
+				if ( ~idx ) children.splice( idx, 1, child._link );
+				else children.push( child._link );
+			}
 		});
+
+		for ( let k in this.computations ) {
+			children.push( this.computations[k] );
+		}
 
 		return children;
 	}
@@ -94,12 +109,15 @@ export default class RootModel extends Model {
 	}
 
 	has ( key ) {
-		if ( ( key in this.mappings ) || ( key in this.computations ) ) return true;
-
 		let value = this.value;
 
 		key = unescapeKey( key );
 		if ( hasProp.call( value, key ) ) return true;
+
+		// mappings/links and computations
+		if ( key in this.computations || this.childByKey[key] && this.childByKey[key]._link ) return true;
+		// TODO remove this after deprecation is done
+		if ( key in this.expressions ) return true;
 
 		// We climb up the constructor chain to find if one of them contains the key
 		let constructor = value.constructor;
@@ -111,36 +129,25 @@ export default class RootModel extends Model {
 		return false;
 	}
 
-	joinKey ( key ) {
+	joinKey ( key, opts ) {
 		if ( key === '@global' ) return GlobalModel;
 		if ( key === '@this' ) return this.getRactiveModel();
 
-		return this.mappings.hasOwnProperty( key ) ? this.mappings[ key ] :
-		       this.computations.hasOwnProperty( key ) ? this.computations[ key ] :
-		       super.joinKey( key );
+		if ( this.expressions.hasOwnProperty( key ) ) {
+			warnIfDebug( `Accessing expression keypaths (${ key.substr(1) }) from the instance is deprecated. You can used a getNodeInfo or event object to access keypaths with expression context.` );
+			return this.expressions[ key ];
+		}
+
+		return this.computations.hasOwnProperty( key ) ? this.computations[ key ] :
+		       super.joinKey( key, opts );
 	}
 
 	map ( localKey, origin ) {
-		let remapped = this.mappings[ localKey ];
-		if ( remapped !== origin ) {
-			if ( remapped ) remapped.unregister( this );
-
-			this.mappings[ localKey ] = origin;
-			origin.register( this );
-		}
-		return remapped;
+		const local = this.joinKey( localKey );
+		local.link( origin );
 	}
 
-	mark () {
-		Object.keys( this.mappings ).forEach( k => this.mappings[k].mark() );
-		super.mark();
-	}
-
-	resetMappings () {
-		for ( let k in this.mappings ) {
-			this.mappings[k].unregister( this );
-		}
-		this.mappings = {};
+	rebinding () {
 	}
 
 	set ( value ) {
@@ -169,38 +176,7 @@ export default class RootModel extends Model {
 		return this.value;
 	}
 
-	teardown () {
-		const keys = Object.keys( this.mappings );
-		let i = keys.length;
-		while ( i-- ){
-			if ( this.mappings[ keys[i] ] ) this.mappings[ keys[i] ].unregister( this );
-		}
-
-		super.teardown();
-	}
-
 	update () {
 		// noop
-	}
-
-	unmap ( localKey ) {
-		const model = this.mappings[ localKey ];
-		if ( model ) {
-			model.unregister( this );
-			delete this.mappings[ localKey ];
-		}
-		return model;
-	}
-
-	updateFromBindings ( cascade ) {
-		super.updateFromBindings( cascade );
-
-		if ( cascade ) {
-			// TODO computations as well?
-			Object.keys( this.mappings ).forEach( key => {
-				const model = this.mappings[ key ];
-				model.updateFromBindings( cascade );
-			});
-		}
 	}
 }

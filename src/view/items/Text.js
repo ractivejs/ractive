@@ -23,10 +23,6 @@ export default class Text extends Item {
 		return this.node;
 	}
 
-	rebind () {
-		// noop
-	}
-
 	render ( target, occupants ) {
 		if ( inAttributes() ) return;
 		this.rendered = true;

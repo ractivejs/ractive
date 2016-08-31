@@ -18,11 +18,12 @@ export default function processItems ( items, values, guid, counter = 0 ) {
 		}
 
 		const placeholderId = `${guid}-${counter++}`;
+		const model = item.model || item.newModel;
 
-		values[ placeholderId ] = item.model ?
-			item.model.wrapper ?
-				item.model.wrapper.value :
-				item.model.get() :
+		values[ placeholderId ] = model ?
+			model.wrapper ?
+				model.wrapper.value :
+				model.get() :
 			undefined;
 
 		return '${' + placeholderId + '}';

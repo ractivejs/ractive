@@ -18,12 +18,12 @@ export default function resolveAmbiguousReference ( fragment, ref ) {
 		if ( fragment.isIteration ) {
 			if ( key === fragment.parent.keyRef ) {
 				if ( keys.length > 1 ) badReference( key );
-				return fragment.context.getKeyModel();
+				return fragment.context.getKeyModel( fragment.key );
 			}
 
 			if ( key === fragment.parent.indexRef ) {
 				if ( keys.length > 1 ) badReference( key );
-				return fragment.context.getIndexModel( fragment.index );
+				return fragment.context.getKeyModel( fragment.index );
 			}
 		}
 
@@ -43,7 +43,7 @@ export default function resolveAmbiguousReference ( fragment, ref ) {
 
 			if ( fragment.context.has( key ) ) {
 				if ( crossedComponentBoundary ) {
-					localViewmodel.map( key, fragment.context.joinKey( key ) );
+					return localViewmodel.createLink( key, fragment.context.joinKey( keys.shift() ), key ).joinAll( keys );
 				}
 
 				return fragment.context.joinAll( keys );

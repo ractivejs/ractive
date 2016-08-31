@@ -19,7 +19,7 @@ try {
 
 export default magicAdaptor;
 
-function createOrWrapDescriptor ( originalDescriptor, ractive, keypath ) {
+function createOrWrapDescriptor ( originalDescriptor, ractive, keypath, wrapper ) {
 	if ( originalDescriptor.set && originalDescriptor.set.__magic ) {
 		originalDescriptor.set.__magic.dependants.push({ ractive, keypath });
 		return originalDescriptor;
@@ -42,6 +42,7 @@ function createOrWrapDescriptor ( originalDescriptor, ractive, keypath ) {
 				originalDescriptor.set.call( this, value );
 			}
 
+			if ( wrapper.locked ) return;
 			setting = true;
 			dependants.forEach( ({ ractive, keypath }) => {
 				ractive.set( keypath, value );
@@ -85,7 +86,7 @@ class MagicWrapper {
 
 			const childKeypath = keypath ? `${keypath}.${escapeKey( key )}` : escapeKey( key );
 
-			const descriptor = createOrWrapDescriptor( originalDescriptor, ractive, childKeypath );
+			const descriptor = createOrWrapDescriptor( originalDescriptor, ractive, childKeypath, this );
 
 
 

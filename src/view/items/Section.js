@@ -24,17 +24,23 @@ export default class Section extends Mustache {
 
 		this.sectionType = options.template.n || null;
 		this.templateSectionType = this.sectionType;
+		this.subordinate = options.template.l === 1;
 		this.fragment = null;
 	}
 
 	bind () {
 		super.bind();
 
+		if ( this.subordinate ) {
+			this.sibling = this.parentFragment.items[ this.parentFragment.items.indexOf( this ) - 1 ];
+			this.sibling.nextSibling = this;
+		}
+
 		// if we managed to bind, we need to create children
 		if ( this.model ) {
 			this.dirty = true;
 			this.update();
-		} else if (this.sectionType && this.sectionType === SECTION_UNLESS) {
+		} else if ( this.sectionType && this.sectionType === SECTION_UNLESS && ( !this.sibling || !this.sibling.isTruthy() ) ) {
 			this.fragment = new Fragment({
 				owner: this,
 				template: this.template.f
@@ -78,11 +84,17 @@ export default class Section extends Mustache {
 		return this.fragment && this.fragment.firstNode( skipParent );
 	}
 
-	rebind () {
-		super.rebind();
+	isTruthy () {
+		if ( this.subordinate && this.sibling.isTruthy() ) return true;
+		const value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();
+		return !!value && !isEmpty( value );
+	}
 
-		if ( this.fragment ) {
-			this.fragment.rebind( this.sectionType === SECTION_IF || this.sectionType === SECTION_UNLESS ? null : this.model );
+	rebinding ( next, previous, safe ) {
+		if ( super.rebinding( next, previous, safe ) ) {
+			if ( this.fragment && this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS ) {
+				this.fragment.rebinding( next, previous );
+			}
 		}
 	}
 
@@ -113,11 +125,17 @@ export default class Section extends Mustache {
 
 	update () {
 		if ( !this.dirty ) return;
+
+		if ( this.fragment && this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS ) {
+			this.fragment.context = this.model;
+		}
+
 		if ( !this.model && this.sectionType !== SECTION_UNLESS ) return;
 
 		this.dirty = false;
 
 		const value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();
+		const siblingFalsey = !this.subordinate || !this.sibling.isTruthy();
 		const lastType = this.sectionType;
 
 		// watch for switching section types
@@ -177,7 +195,7 @@ export default class Section extends Mustache {
 		}
 
 		else {
-			const fragmentShouldExist = this.sectionType === SECTION_UNLESS ? isEmpty( value ) : !!value && !isEmpty( value );
+			const fragmentShouldExist = siblingFalsey && ( this.sectionType === SECTION_UNLESS ? isEmpty( value ) : !!value && !isEmpty( value ) );
 
 			if ( this.fragment ) {
 				if ( fragmentShouldExist ) {
@@ -215,6 +233,11 @@ export default class Section extends Mustache {
 			}
 
 			this.fragment = newFragment;
+		}
+
+		if ( this.nextSibling ) {
+			this.nextSibling.dirty = true;
+			this.nextSibling.update();
 		}
 	}
 }

@@ -91,12 +91,13 @@ export default class Binding {
 		else return this.lastValue;
 	}
 
-	rebind () {
-		// TODO what does this work with CheckboxNameBinding et al?
-		this.unbind();
-		this.model = this.attribute.interpolator.model;
-		this.bind();
-	}
+	rebinding ( next, previous ) {
+		if ( this.model && this.model === previous ) previous.unregisterTwowayBinding( this );
+		if ( next ) {
+			this.model = next;
+			runloop.scheduleTask( () => next.registerTwowayBinding( this ) );
+		}
+   	}
 
 	render () {
 		this.node = this.element.node;

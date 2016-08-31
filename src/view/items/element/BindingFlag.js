@@ -46,11 +46,6 @@ export default class BindingFlag extends Item {
 		else return true;
 	}
 
-	rebind () {
-		this.unbind();
-		this.bind();
-	}
-
 	render () {
 		set( this, this.getValue(), true );
 	}

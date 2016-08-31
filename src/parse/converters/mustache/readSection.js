@@ -103,17 +103,15 @@ export default function readSection ( parser, tag ) {
 			}
 
 			if ( !unlessBlock ) {
-				unlessBlock = createUnlessBlock( expression );
+				unlessBlock = [];
 			}
 
-			unlessBlock.f.push({
+			unlessBlock.push({
 				t: SECTION,
 				n: SECTION_IF,
-				x: flattenExpression( combine( conditions.concat( child.x ) ) ),
+				x: flattenExpression( child.x ),
 				f: children = []
 			});
-
-			conditions.push( invert( child.x ) );
 		}
 
 		else if ( !aliasOnly && ( child = readElse( parser, tag ) ) ) {
@@ -129,16 +127,14 @@ export default function readSection ( parser, tag ) {
 
 			// use an unless block if there's no elseif
 			if ( !unlessBlock ) {
-				unlessBlock = createUnlessBlock( expression );
-				children = unlessBlock.f;
-			} else {
-				unlessBlock.f.push({
-					t: SECTION,
-					n: SECTION_IF,
-					x: flattenExpression( combine( conditions ) ),
-					f: children = []
-				});
+				unlessBlock = [];
 			}
+
+			unlessBlock.push({
+				t: SECTION,
+				n: SECTION_UNLESS,
+				f: children = []
+			});
 		}
 
 		else {
@@ -169,50 +165,4 @@ export default function readSection ( parser, tag ) {
 	}
 
 	return section;
-}
-
-function createUnlessBlock ( expression ) {
-	let unlessBlock = {
-		t: SECTION,
-		n: SECTION_UNLESS,
-		f: []
-	};
-
-	refineExpression( expression, unlessBlock );
-	return unlessBlock;
-}
-
-function invert ( expression ) {
-	if ( expression.t === PREFIX_OPERATOR && expression.s === '!' ) {
-		return expression.o;
-	}
-
-	return {
-		t: PREFIX_OPERATOR,
-		s: '!',
-		o: parensIfNecessary( expression )
-	};
-}
-
-function combine ( expressions ) {
-	if ( expressions.length === 1 ) {
-		return expressions[0];
-	}
-
-	return {
-		t: INFIX_OPERATOR,
-		s: '&&',
-		o: [
-			parensIfNecessary( expressions[0] ),
-			parensIfNecessary( combine( expressions.slice( 1 ) ) )
-		]
-	};
-}
-
-function parensIfNecessary ( expression ) {
-	// TODO only wrap if necessary
-	return {
-		t: BRACKETED,
-		x: expression
-	};
 }

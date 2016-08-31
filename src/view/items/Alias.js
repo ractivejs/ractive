@@ -2,6 +2,7 @@ import { createDocumentFragment } from '../../utils/dom';
 import Fragment from '../Fragment';
 import Item from './shared/Item';
 import resolve from '../resolvers/resolve';
+import runloop from '../../global/runloop';
 
 function resolveAliases( section ) {
 	if ( section.template.z ) {
@@ -62,9 +63,13 @@ export default class Alias extends Item {
 		return this.fragment && this.fragment.firstNode( skipParent );
 	}
 
-	rebind () {
-		resolveAliases( this );
-		if ( this.fragment ) this.fragment.rebind();
+	rebinding () {
+		if ( this.locked ) return;
+		this.locked = true;
+		runloop.scheduleTask( () => {
+			this.locked = false;
+			resolveAliases( this );
+		});
 	}
 
 	render ( target ) {

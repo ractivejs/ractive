@@ -4,6 +4,7 @@ import { createElement } from '../../../utils/dom';
 import { toArray } from '../../../utils/array';
 import Fragment from '../../Fragment';
 import Item from '../shared/Item';
+import noop from '../../../utils/noop';
 
 const div = doc ? createElement( 'div' ) : null;
 
@@ -26,8 +27,10 @@ export default class ConditionalAttribute extends Item {
 		this.fragment = new Fragment({
 			ractive: this.ractive,
 			owner: this,
-			template: [ this.template ]
+			template: this.template
 		});
+		// this fragment can't participate in node-y things
+		this.fragment.findNextNode = noop;
 
 		this.dirty = false;
 	}
@@ -43,10 +46,6 @@ export default class ConditionalAttribute extends Item {
 		}
 	}
 
-	rebind () {
-		this.fragment.rebind();
-	}
-
 	render () {
 		this.node = this.owner.node;
 		if ( this.node ) {
@@ -54,7 +53,7 @@ export default class ConditionalAttribute extends Item {
 		}
 
 		attributes = true;
-		this.fragment.render();
+		if ( !this.rendered ) this.fragment.render();
 		attributes = false;
 
 		this.rendered = true;
@@ -72,6 +71,7 @@ export default class ConditionalAttribute extends Item {
 
 	unrender () {
 		this.rendered = false;
+		this.fragment.unrender();
 	}
 
 	update () {

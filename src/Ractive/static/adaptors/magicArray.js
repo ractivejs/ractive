@@ -9,6 +9,7 @@ class MagicArrayWrapper {
 
 		this.magicWrapper = magicAdaptor.wrap( ractive, array, keypath );
 		this.arrayWrapper = arrayAdaptor.wrap( ractive, array, keypath );
+		this.arrayWrapper.magic = this.magicWrapper;
 
 		// ugh, this really is a terrible hack
 		Object.defineProperty( this, '__model', {

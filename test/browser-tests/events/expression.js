@@ -1,6 +1,6 @@
 import { test } from 'qunit';
 import { fire } from 'simulant';
-import { initModule } from '../test-config';
+import { initModule, onWarn } from '../test-config';
 
 export default function() {
 	initModule('event/expression.js');
@@ -110,5 +110,20 @@ export default function() {
 
 		t.equal( r.get( 'foo' ), 42 );
 		t.equal( r.get( 'bar' ), true );
+	});
+
+	test( 'accessing expression keypaths from a non-context method works and warns about deprecation', t => {
+		const bar = { notEmptyIPromise: true };
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#with foo()}}<button on-click="@this.set(@keypath + '.foo', 'yep')">click</button>{{/with}}`,
+			data: {
+				foo () { return bar; }
+			}
+		});
+
+		onWarn( msg => t.ok( /deprecated/.test( msg ) ) );
+		fire( r.find( 'button' ), 'click' );
+		t.equal( bar.foo, 'yep' );
 	});
 }

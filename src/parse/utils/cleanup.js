@@ -87,9 +87,11 @@ export default function cleanup ( items, stripComments, preserveWhitespace, remo
 
 		// Split if-else blocks into two (an if, and an unless)
 		if ( item.l ) {
-			cleanup( item.l.f, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
+			cleanup( item.l, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
 
-			items.splice( i + 1, 0, item.l );
+			item.l.forEach( s => s.l = 1 );
+			item.l.unshift( i + 1, 0 );
+			items.splice.apply( items, item.l );
 			delete item.l; // TODO would be nice if there was a way around this
 		}
 
