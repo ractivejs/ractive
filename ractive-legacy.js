@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Tue Aug 30 2016 21:47:03 GMT+0000 (UTC) - commit 49d7a1a8102dde4d3c07d5f47bf7c40218bab88c
+	Wed Aug 31 2016 17:49:08 GMT+0000 (UTC) - commit a4503a5169bfeb7cb58676b76f05955041474474
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -911,13 +911,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.0-edge-49d7a1a8102dde4d3c07d5f47bf7c40218bab88c %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.0-edge-a4503a5169bfeb7cb58676b76f05955041474474 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.0-edge-49d7a1a8102dde4d3c07d5f47bf7c40218bab88c in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.0-edge-a4503a5169bfeb7cb58676b76f05955041474474 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		var hasGroup = !!console.groupCollapsed;
@@ -1161,84 +1161,6 @@
   		};
   	}
   };
-
-  var refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
-  var splitPattern = /([^\\](?:\\\\)*)\./;
-  var escapeKeyPattern = /\\|\./g;
-  var unescapeKeyPattern = /((?:\\)+)\1|\\(\.)/g;
-
-  function escapeKey ( key ) {
-  	if ( typeof key === 'string' ) {
-  		return key.replace( escapeKeyPattern, '\\$&' );
-  	}
-
-  	return key;
-  }
-
-  function normalise ( ref ) {
-  	return ref ? ref.replace( refPattern, '.$1' ) : '';
-  }
-
-  function splitKeypathI ( keypath ) {
-  	var result = [],
-  		match;
-
-  	keypath = normalise( keypath );
-
-  	while ( match = splitPattern.exec( keypath ) ) {
-  		var index = match.index + match[1].length;
-  		result.push( keypath.substr( 0, index ) );
-  		keypath = keypath.substr( index + 1 );
-  	}
-
-  	result.push(keypath);
-
-  	return result;
-  }
-
-  function unescapeKey ( key ) {
-  	if ( typeof key === 'string' ) {
-  		return key.replace( unescapeKeyPattern, '$1$2' );
-  	}
-
-  	return key;
-  }
-
-  var errorMessage = 'Cannot add to a non-numeric value';
-
-  function add ( ractive, keypath, d ) {
-  	if ( typeof keypath !== 'string' || !isNumeric( d ) ) {
-  		throw new Error( 'Bad arguments' );
-  	}
-
-  	var changes;
-
-  	if ( /\*/.test( keypath ) ) {
-  		changes = {};
-
-  		ractive.viewmodel.findMatches( splitKeypathI( keypath ) ).forEach( function ( model ) {
-  			var value = model.get();
-
-  			if ( !isNumeric( value ) ) throw new Error( errorMessage );
-
-  			changes[ model.getKeypath() ] = value + d;
-  		});
-
-  		return ractive.set( changes );
-  	}
-
-  	var value = ractive.get( keypath );
-
-  	if ( !isNumeric( value ) ) {
-  		throw new Error( errorMessage );
-  	}
-
-  	return ractive.set( keypath, +value + d );
-  }
-
-  function Ractive$add ( keypath, d ) {
-  	return add( this, keypath, ( d === undefined ? 1 : +d ) );
-  }
 
   // TODO: deprecate in future release
   var deprecations = {
@@ -1867,6 +1789,125 @@
   	if ( batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length || batch.ractives.length ) return flushChanges();
   }
 
+  var refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
+  var splitPattern = /([^\\](?:\\\\)*)\./;
+  var escapeKeyPattern = /\\|\./g;
+  var unescapeKeyPattern = /((?:\\)+)\1|\\(\.)/g;
+
+  function escapeKey ( key ) {
+  	if ( typeof key === 'string' ) {
+  		return key.replace( escapeKeyPattern, '\\$&' );
+  	}
+
+  	return key;
+  }
+
+  function normalise ( ref ) {
+  	return ref ? ref.replace( refPattern, '.$1' ) : '';
+  }
+
+  function splitKeypathI ( keypath ) {
+  	var result = [],
+  		match;
+
+  	keypath = normalise( keypath );
+
+  	while ( match = splitPattern.exec( keypath ) ) {
+  		var index = match.index + match[1].length;
+  		result.push( keypath.substr( 0, index ) );
+  		keypath = keypath.substr( index + 1 );
+  	}
+
+  	result.push(keypath);
+
+  	return result;
+  }
+
+  function unescapeKey ( key ) {
+  	if ( typeof key === 'string' ) {
+  		return key.replace( unescapeKeyPattern, '$1$2' );
+  	}
+
+  	return key;
+  }
+
+  function bind ( fn, context ) {
+  	if ( !/this/.test( fn.toString() ) ) return fn;
+
+  	var bound = fn.bind( context );
+  	for ( var prop in fn ) bound[ prop ] = fn[ prop ];
+
+  	return bound;
+  }
+
+  function set ( ractive, pairs ) {
+  	var promise = runloop.start( ractive, true );
+
+  	var i = pairs.length;
+  	while ( i-- ) {
+  		var ref = pairs[i], model = ref[0], value = ref[1];
+  		if ( typeof value === 'function' ) value = bind( value, ractive );
+  		model.set( value );
+  	}
+
+  	runloop.end();
+
+  	return promise;
+  }
+
+  var star = /\*/;
+  function gather ( ractive, keypath, base ) {
+  	if ( base === void 0 ) base = ractive.viewmodel;
+
+  	if ( star.test( keypath ) ) {
+  		return base.findMatches( splitKeypathI( keypath ) );
+  	} else {
+  		return [ base.joinAll( splitKeypathI( keypath ) ) ];
+  	}
+  }
+
+  function build ( ractive, keypath, value ) {
+  	var sets = [];
+
+  	// set multiple keypaths in one go
+  	if ( isObject( keypath ) ) {
+  		var loop = function ( k ) {
+  			if ( keypath.hasOwnProperty( k ) ) {
+  				sets.push.apply( sets, gather( ractive, k ).map( function ( m ) { return [ m, keypath[k] ]; } ) );
+  			}
+  		};
+
+  		for ( var k in keypath ) loop( k );
+
+  	}
+  	// set a single keypath
+  	else {
+  		sets.push.apply( sets, gather( ractive, keypath ).map( function ( m ) { return [ m, value ]; } ) );
+  	}
+
+  	return sets;
+  }
+
+  var errorMessage = 'Cannot add to a non-numeric value';
+
+  function add ( ractive, keypath, d ) {
+  	if ( typeof keypath !== 'string' || !isNumeric( d ) ) {
+  		throw new Error( 'Bad arguments' );
+  	}
+
+  	var sets = build( ractive, keypath, d );
+
+  	return set( ractive, sets.map( function ( pair ) {
+  		var model = pair[0], add = pair[1], value = model.get();
+  		if ( !isNumeric( add ) || !isNumeric( value ) ) throw new Error( errorMessage );
+  		return [ model, value + add ];
+  	}));
+  }
+
+  function Ractive$add ( keypath, d ) {
+  	return add( this, keypath, ( d === undefined ? 1 : +d ) );
+  }
+
   var noAnimation = Promise$1.resolve();
   defineProperty( noAnimation, 'stop', { value: noop });
 
@@ -1890,16 +1931,8 @@
   	};
   }
 
-  function Ractive$animate ( keypath, to, options ) {
-  	if ( typeof keypath === 'object' ) {
-  		var keys = Object.keys( keypath );
-
-  		throw new Error( ("ractive.animate(...) no longer supports objects. Instead of ractive.animate({\n  " + (keys.map( function ( key ) { return ("'" + key + "': " + (keypath[ key ])); } ).join( '\n  ' )) + "\n}, {...}), do\n\n" + (keys.map( function ( key ) { return ("ractive.animate('" + key + "', " + (keypath[ key ]) + ", {...});"); } ).join( '\n' )) + "\n") );
-  	}
-
-  	options = getOptions( options, this );
-
-  	var model = this.viewmodel.joinAll( splitKeypathI( keypath ) );
+  function protoAnimate ( ractive, model, to, options ) {
+  	options = getOptions( options, ractive );
   	var from = model.get();
 
   	// don't bother animating values that stay the same
@@ -1908,7 +1941,7 @@
   		return noAnimation; // TODO should this have .then and .catch methods?
   	}
 
-  	var interpolator = interpolate( from, to, this, options.interpolator );
+  	var interpolator = interpolate( from, to, ractive, options.interpolator );
 
   	// if we can't interpolate the value, set it immediately
   	if ( !interpolator ) {
@@ -1920,6 +1953,17 @@
   	}
 
   	return model.animate( from, to, options, interpolator );
+  }
+
+  function Ractive$animate ( keypath, to, options ) {
+  	if ( typeof keypath === 'object' ) {
+  		var keys = Object.keys( keypath );
+
+  		throw new Error( ("ractive.animate(...) no longer supports objects. Instead of ractive.animate({\n  " + (keys.map( function ( key ) { return ("'" + key + "': " + (keypath[ key ])); } ).join( '\n  ' )) + "\n}, {...}), do\n\n" + (keys.map( function ( key ) { return ("ractive.animate('" + key + "', " + (keypath[ key ]) + ", {...});"); } ).join( '\n' )) + "\n") );
+  	}
+
+
+  	return protoAnimate( this, this.viewmodel.joinAll( splitKeypathI( keypath ) ), to, options );
   }
 
   var detachHook = new Hook( 'detach' );
@@ -2381,12 +2425,12 @@
   		if ( fragment.isIteration ) {
   			if ( key === fragment.parent.keyRef ) {
   				if ( keys.length > 1 ) badReference( key );
-  				return fragment.context.getKeyModel();
+  				return fragment.context.getKeyModel( fragment.key );
   			}
 
   			if ( key === fragment.parent.indexRef ) {
   				if ( keys.length > 1 ) badReference( key );
-  				return fragment.context.getIndexModel( fragment.index );
+  				return fragment.context.getKeyModel( fragment.index );
   			}
   		}
 
@@ -2406,7 +2450,7 @@
 
   			if ( fragment.context.has( key ) ) {
   				if ( crossedComponentBoundary ) {
-  					localViewmodel.map( key, fragment.context.joinKey( key ) );
+  					return localViewmodel.createLink( key, fragment.context.joinKey( keys.shift() ), key ).joinAll( keys );
   				}
 
   				return fragment.context.joinAll( keys );
@@ -2446,12 +2490,55 @@
   	}
   }
 
-  function bind               ( x ) { x.bind(); }
+  var KeyModel = function KeyModel ( key, parent ) {
+  	this.value = key;
+  	this.isReadonly = this.isKey = true;
+  	this.deps = [];
+  	this.links = [];
+  	this.parent = parent;
+  };
+
+  KeyModel.prototype.get = function get ( shouldCapture ) {
+  	if ( shouldCapture ) capture( this );
+  	return unescapeKey( this.value );
+  };
+
+  KeyModel.prototype.getKeypath = function getKeypath () {
+  	return unescapeKey( this.value );
+  };
+
+  KeyModel.prototype.rebinding = function rebinding ( next, previous ) {
+  	var this$1 = this;
+
+  		var i = this.deps.length;
+  	while ( i-- ) this$1.deps[i].rebinding( next, previous, false );
+
+  	i = this.links.length;
+  	while ( i-- ) this$1.links[i].rebinding( next, previous, false );
+  };
+
+  KeyModel.prototype.register = function register ( dependant ) {
+  	this.deps.push( dependant );
+  };
+
+  KeyModel.prototype.registerLink = function registerLink ( link ) {
+  	addToArray( this.links, link );
+  };
+
+  KeyModel.prototype.unregister = function unregister ( dependant ) {
+  	removeFromArray( this.deps, dependant );
+  };
+
+  KeyModel.prototype.unregisterLink = function unregisterLink ( link ) {
+  	removeFromArray( this.links, link );
+  };
+
+  function bind$1               ( x ) { x.bind(); }
   function cancel             ( x ) { x.cancel(); }
   function handleChange       ( x ) { x.handleChange(); }
   function mark               ( x ) { x.mark(); }
+  function marked             ( x ) { x.marked(); }
   function render             ( x ) { x.render(); }
-  function rebind             ( x ) { x.rebind(); }
   function teardown           ( x ) { x.teardown(); }
   function unbind             ( x ) { x.unbind(); }
   function unrender           ( x ) { x.unrender(); }
@@ -2459,6 +2546,684 @@
   function update             ( x ) { x.update(); }
   function toString$1           ( x ) { return x.toString(); }
   function toEscapedString    ( x ) { return x.toString( true ); }
+
+  var KeypathModel = function KeypathModel ( parent, ractive ) {
+  	this.parent = parent;
+  	this.ractive = ractive;
+  	this.value = ractive ? parent.getKeypath( ractive ) : parent.getKeypath();
+  	this.deps = [];
+  	this.children = {};
+  	this.isReadonly = this.isKeypath = true;
+  };
+
+  KeypathModel.prototype.get = function get ( shouldCapture ) {
+  	if ( shouldCapture ) capture( this );
+  	return this.value;
+  };
+
+  KeypathModel.prototype.getChild = function getChild ( ractive ) {
+  	if ( !( ractive._guid in this.children ) ) {
+  		var model = new KeypathModel( this.parent, ractive );
+  		this.children[ ractive._guid ] = model;
+  		model.owner = this;
+  	}
+  	return this.children[ ractive._guid ];
+  };
+
+  KeypathModel.prototype.getKeypath = function getKeypath () {
+  	return this.value;
+  };
+
+  KeypathModel.prototype.handleChange = function handleChange$1 () {
+  	var this$1 = this;
+
+  		var keys = Object.keys( this.children );
+  	var i = keys.length;
+  	while ( i-- ) {
+  		this$1.children[ keys[i] ].handleChange();
+  	}
+
+  	this.deps.forEach( handleChange );
+  };
+
+  KeypathModel.prototype.rebindChildren = function rebindChildren ( next ) {
+  	var this$1 = this;
+
+  		var keys = Object.keys( this.children );
+  	var i = keys.length;
+  	while ( i-- ) {
+  		var child = this$1.children[keys[i]];
+  		child.value = next.getKeypath( child.ractive );
+  		child.handleChange();
+  	}
+  };
+
+  KeypathModel.prototype.rebinding = function rebinding ( next, previous ) {
+  	var this$1 = this;
+
+  		var model = next ? next.getKeypathModel( this.ractive ) : undefined;
+
+  	var keys = Object.keys( this.children );
+  	var i = keys.length;
+  	while ( i-- ) {
+  		this$1.children[ keys[i] ].rebinding( next, previous, false );
+  	}
+
+  	i = this.deps.length;
+  	while ( i-- ) {
+  		this$1.deps[i].rebinding( model, this$1, false );
+  	}
+  };
+
+  KeypathModel.prototype.register = function register ( dep ) {
+  	this.deps.push( dep );
+  };
+
+  KeypathModel.prototype.removeChild = function removeChild( model ) {
+  	if ( model.ractive ) delete this.children[ model.ractive._guid ];
+  };
+
+  KeypathModel.prototype.teardown = function teardown () {
+  	var this$1 = this;
+
+  		if ( this.owner ) this.owner.removeChild( this );
+
+  	var keys = Object.keys( this.children );
+  	var i = keys.length;
+  	while ( i-- ) {
+  		this$1.children[ keys[i] ].teardown();
+  	}
+  };
+
+  KeypathModel.prototype.unregister = function unregister ( dep ) {
+  	removeFromArray( this.deps, dep );
+  	if ( !this.deps.length ) this.teardown();
+  };
+
+  var hasProp = Object.prototype.hasOwnProperty;
+
+  var shuffleTasks = { early: [], mark: [] };
+  var registerQueue = { early: [], mark: [] };
+
+  var ModelBase = function ModelBase ( parent ) {
+  	this.deps = [];
+
+  	this.children = [];
+  	this.childByKey = {};
+  	this.links = [];
+
+  	this.keyModels = {};
+
+  	this.unresolved = [];
+  	this.unresolvedByKey = {};
+
+  	this.bindings = [];
+  	this.patternObservers = [];
+
+  	if ( parent ) {
+  		this.parent = parent;
+  		this.root = parent.root;
+  	}
+  };
+
+  ModelBase.prototype.addUnresolved = function addUnresolved ( key, resolver ) {
+  	if ( !this.unresolvedByKey[ key ] ) {
+  		this.unresolved.push( key );
+  		this.unresolvedByKey[ key ] = [];
+  	}
+
+  	this.unresolvedByKey[ key ].push( resolver );
+  };
+
+  ModelBase.prototype.addShuffleTask = function addShuffleTask ( task, stage ) { if ( stage === void 0 ) stage = 'early';
+
+  	shuffleTasks[stage].push( task ); };
+  ModelBase.prototype.addShuffleRegister = function addShuffleRegister ( item, stage ) { if ( stage === void 0 ) stage = 'early';
+
+  	registerQueue[stage].push({ model: this, item: item }); };
+
+  ModelBase.prototype.clearUnresolveds = function clearUnresolveds ( specificKey ) {
+  	var this$1 = this;
+
+  		var i = this.unresolved.length;
+
+  	while ( i-- ) {
+  		var key = this$1.unresolved[i];
+
+  		if ( specificKey && key !== specificKey ) continue;
+
+  		var resolvers = this$1.unresolvedByKey[ key ];
+  		var hasKey = this$1.has( key );
+
+  		var j = resolvers.length;
+  		while ( j-- ) {
+  			if ( hasKey ) resolvers[j].attemptResolution();
+  			if ( resolvers[j].resolved ) resolvers.splice( j, 1 );
+  		}
+
+  		if ( !resolvers.length ) {
+  			this$1.unresolved.splice( i, 1 );
+  			this$1.unresolvedByKey[ key ] = null;
+  		}
+  	}
+  };
+
+  ModelBase.prototype.findMatches = function findMatches ( keys ) {
+  	var len = keys.length;
+
+  	var existingMatches = [ this ];
+  	var matches;
+  	var i;
+
+  	var loop = function (  ) {
+  		var key = keys[i];
+
+  		if ( key === '*' ) {
+  			matches = [];
+  			existingMatches.forEach( function ( model ) {
+  				matches.push.apply( matches, model.getValueChildren( model.get() ) );
+  			});
+  		} else {
+  			matches = existingMatches.map( function ( model ) { return model.joinKey( key ); } );
+  		}
+
+  		existingMatches = matches;
+  	};
+
+  		for ( i = 0; i < len; i += 1 ) loop(  );
+
+  	return matches;
+  };
+
+  ModelBase.prototype.getKeyModel = function getKeyModel ( key, skip ) {
+  	if ( key !== undefined && !skip ) return this.parent.getKeyModel( key, true );
+
+  	if ( !( key in this.keyModels ) ) this.keyModels[ key ] = new KeyModel( escapeKey( key ), this );
+
+  	return this.keyModels[ key ];
+  };
+
+  ModelBase.prototype.getKeypath = function getKeypath ( ractive ) {
+  	if ( ractive !== this.ractive && this._link ) return this._link.target.getKeypath( ractive );
+
+  	if ( !this.keypath ) {
+  		this.keypath = this.parent.isRoot ? this.key : ("" + (this.parent.getKeypath( ractive )) + "." + (escapeKey( this.key )));
+  	}
+
+  	return this.keypath;
+  };
+
+  ModelBase.prototype.getValueChildren = function getValueChildren ( value ) {
+  	var this$1 = this;
+
+  		var children;
+  	if ( isArray( value ) ) {
+  		children = [];
+  		if ( 'length' in this && this.length !== value.length ) {
+  			children.push( this.joinKey( 'length' ) );
+  		}
+  		value.forEach( function ( m, i ) {
+  			children.push( this$1.joinKey( i ) );
+  		});
+  	}
+
+  	else if ( isObject( value ) || typeof value === 'function' ) {
+  		children = Object.keys( value ).map( function ( key ) { return this$1.joinKey( key ); } );
+  	}
+
+  	else if ( value != null ) {
+  		return [];
+  	}
+
+  	return children;
+  };
+
+  ModelBase.prototype.getVirtual = function getVirtual ( shouldCapture ) {
+  	var this$1 = this;
+
+  		var value = this.get( shouldCapture, { virtual: false } );
+  	if ( isObject( value ) ) {
+  		var result = isArray( value ) ? [] : {};
+
+  		var keys = Object.keys( value );
+  		var i = keys.length;
+  		while ( i-- ) {
+  			var child = this$1.childByKey[ keys[i] ];
+  			if ( !child ) result[ keys[i] ] = value[ keys[i] ];
+  			else if ( child._link ) result[ keys[i] ] = child._link.getVirtual();
+  			else result[ keys[i] ] = child.getVirtual();
+  		}
+
+  		i = this.children.length;
+  		while ( i-- ) {
+  			var child$1 = this$1.children[i];
+  			if ( !( child$1.key in result ) && child$1._link ) {
+  				result[ child$1.key ] = child$1._link.getVirtual();
+  			}
+  		}
+
+  		return result;
+  	} else return value;
+  };
+
+  ModelBase.prototype.has = function has ( key ) {
+  	if ( this._link ) return this._link.has( key );
+
+  	var value = this.get();
+  	if ( !value ) return false;
+
+  	key = unescapeKey( key );
+  	if ( hasProp.call( value, key ) ) return true;
+
+  	// We climb up the constructor chain to find if one of them contains the key
+  	var constructor = value.constructor;
+  	while ( constructor !== Function && constructor !== Array && constructor !== Object ) {
+  		if ( hasProp.call( constructor.prototype, key ) ) return true;
+  		constructor = constructor.constructor;
+  	}
+
+  	return false;
+  };
+
+  ModelBase.prototype.joinAll = function joinAll ( keys, opts ) {
+  	var model = this;
+  	for ( var i = 0; i < keys.length; i += 1 ) {
+  		if ( opts && opts.lastLink === false && i + 1 === keys.length && model.childByKey[keys[i]] && model.childByKey[keys[i]]._link ) return model.childByKey[keys[i]];
+  		model = model.joinKey( keys[i], opts );
+  	}
+
+  	return model;
+  };
+
+  ModelBase.prototype.notifyUpstream = function notifyUpstream () {
+  	var parent = this.parent, prev = this;
+  	while ( parent ) {
+  		if ( parent.patternObservers.length ) parent.patternObservers.forEach( function ( o ) { return o.notify( prev.key ); } );
+  		parent.deps.forEach( handleChange );
+  		prev = parent;
+  		parent = parent.parent;
+  	}
+  };
+
+  ModelBase.prototype.rebinding = function rebinding ( next, previous, safe ) {
+  	// tell the deps to move to the new target
+  	var this$1 = this;
+
+  		var i = this.deps.length;
+  	while ( i-- ) {
+  		if ( this$1.deps[i].rebinding ) this$1.deps[i].rebinding( next, previous, safe );
+  	}
+
+  	i = this.links.length;
+  	while ( i-- ) {
+  		var link = this$1.links[i];
+  		// only relink the root of the link tree
+  		if ( link.owner._link ) link.relinking( next, true, safe );
+  	}
+
+  	i = this.children.length;
+  	while ( i-- ) {
+  		var child = this$1.children[i];
+  		child.rebinding( next ? next.joinKey( child.key ) : undefined, child, safe );
+  	}
+
+  	i = this.unresolved.length;
+  	while ( i-- ) {
+  		var unresolved = this$1.unresolvedByKey[ this$1.unresolved[i] ];
+  		var c = unresolved.length;
+  		while ( c-- ) {
+  			unresolved[c].rebinding( next, previous );
+  		}
+  	}
+
+  	if ( this.keypathModel ) this.keypathModel.rebinding( next, previous, false );
+
+  	i = this.bindings.length;
+  	while ( i-- ) {
+  		this$1.bindings[i].rebinding( next, previous, safe );
+  	}
+  };
+
+  ModelBase.prototype.register = function register ( dep ) {
+  	this.deps.push( dep );
+  };
+
+  ModelBase.prototype.registerChange = function registerChange ( key, value ) {
+  	if ( !this.isRoot ) {
+  		this.root.registerChange( key, value );
+  	} else {
+  		this.changes[ key ] = value;
+  		runloop.addInstance( this.root.ractive );
+  	}
+  };
+
+  ModelBase.prototype.registerLink = function registerLink ( link ) {
+  	addToArray( this.links, link );
+  };
+
+  ModelBase.prototype.registerPatternObserver = function registerPatternObserver ( observer ) {
+  	this.patternObservers.push( observer );
+  	this.register( observer );
+  };
+
+  ModelBase.prototype.registerTwowayBinding = function registerTwowayBinding ( binding ) {
+  	this.bindings.push( binding );
+  };
+
+  ModelBase.prototype.removeUnresolved = function removeUnresolved ( key, resolver ) {
+  	var resolvers = this.unresolvedByKey[ key ];
+
+  	if ( resolvers ) {
+  		removeFromArray( resolvers, resolver );
+  	}
+  };
+
+  ModelBase.prototype.shuffled = function shuffled () {
+  	var this$1 = this;
+
+  		var i = this.children.length;
+  	while ( i-- ) {
+  		this$1.children[i].shuffled();
+  	}
+  	if ( this.wrapper ) {
+  		this.wrapper.teardown();
+  		this.wrapper = null;
+  		this.rewrap = true;
+  	}
+  };
+
+  ModelBase.prototype.unregister = function unregister ( dependant ) {
+  	removeFromArray( this.deps, dependant );
+  };
+
+  ModelBase.prototype.unregisterLink = function unregisterLink ( link ) {
+  	removeFromArray( this.links, link );
+  };
+
+  ModelBase.prototype.unregisterPatternObserver = function unregisterPatternObserver ( observer ) {
+  	removeFromArray( this.patternObservers, observer );
+  	this.unregister( observer );
+  };
+
+  ModelBase.prototype.unregisterTwowayBinding = function unregisterTwowayBinding ( binding ) {
+  	removeFromArray( this.bindings, binding );
+  };
+
+  ModelBase.prototype.updateFromBindings = function updateFromBindings$1 ( cascade ) {
+  	var this$1 = this;
+
+  		var i = this.bindings.length;
+  	while ( i-- ) {
+  		var value = this$1.bindings[i].getValue();
+  		if ( value !== this$1.value ) this$1.set( value );
+  	}
+
+  	// check for one-way bindings if there are no two-ways
+  	if ( !this.bindings.length ) {
+  		var oneway = findBoundValue( this.deps );
+  		if ( oneway && oneway.value !== this.value ) this.set( oneway.value );
+  	}
+
+  	if ( cascade ) {
+  		this.children.forEach( updateFromBindings );
+  		this.links.forEach( updateFromBindings );
+  		if ( this._link ) this._link.updateFromBindings( cascade );
+  	}
+  };
+
+  function updateFromBindings ( model ) {
+  	model.updateFromBindings( true );
+  }
+
+  function findBoundValue( list ) {
+  	var i = list.length;
+  	while ( i-- ) {
+  		if ( list[i].bound ) {
+  			var owner = list[i].owner;
+  			if ( owner ) {
+  				var value = owner.name === 'checked' ?
+  					owner.node.checked :
+  					owner.node.value;
+  				return { value: value };
+  			}
+  		}
+  	}
+  }
+
+  function fireShuffleTasks ( stage ) {
+  	if ( !stage ) {
+  		fireShuffleTasks( 'early' );
+  		fireShuffleTasks( 'mark' );
+  	} else {
+  		var tasks = shuffleTasks[stage];
+  		shuffleTasks[stage] = [];
+  		var i = tasks.length;
+  		while ( i-- ) tasks[i]();
+
+  		var register = registerQueue[stage];
+  		registerQueue[stage] = [];
+  		i = register.length;
+  		while ( i-- ) register[i].model.register( register[i].item );
+  	}
+  }
+
+  KeyModel.prototype.addShuffleTask = ModelBase.prototype.addShuffleTask;
+  KeyModel.prototype.addShuffleRegister = ModelBase.prototype.addShuffleRegister;
+  KeypathModel.prototype.addShuffleTask = ModelBase.prototype.addShuffleTask;
+  KeypathModel.prototype.addShuffleRegister = ModelBase.prototype.addShuffleRegister;
+
+  // this is the dry method of checking to see if a rebind applies to
+  // a particular keypath because in some cases, a dep may be bound
+  // directly to a particular keypath e.g. foo.bars.0.baz and need
+  // to avoid getting kicked to foo.bars.1.baz if foo.bars is unshifted
+  function rebindMatch ( template, next, previous ) {
+  	var keypath = template.r || template;
+
+  	// no valid keypath, go with next
+  	if ( !keypath || typeof keypath !== 'string' ) return next;
+
+  	// completely contextual ref, go with next
+  	if ( keypath === '.' || keypath[0] === '@' || (next || previous).isKey || (next || previous).isKeypath ) return next;
+
+  	var parts = keypath.split( '/' );
+  	var keys = splitKeypathI( parts[ parts.length - 1 ] );
+
+  	// check the keypath against the model keypath to see if it matches
+  	var model = next || previous;
+  	var i = keys.length;
+  	var match = true, shuffling = false;
+
+  	while ( model && i-- ) {
+  		if ( model.shuffling ) shuffling = true;
+  		// non-strict comparison to account for indices in keypaths
+  		if ( keys[i] != model.key ) match = false;
+  		model = model.parent;
+  	}
+
+  	// next is undefined, but keypath is shuffling and previous matches
+  	if ( !next && match && shuffling ) return previous;
+  	// next is defined, but doesn't match the keypath
+  	else if ( next && !match && shuffling ) return previous;
+  	else return next;
+  }
+
+  var LinkModel = (function (ModelBase) {
+  	function LinkModel ( parent, owner, target, key ) {
+  		ModelBase.call( this, parent );
+
+  		this.owner = owner;
+  		this.target = target;
+  		this.key = key === undefined ? owner.key : key;
+  		if ( owner.isLink ) this.sourcePath = "" + (owner.sourcePath) + "." + (this.key);
+
+  		target.registerLink( this );
+
+  		this.isReadonly = parent.isReadonly;
+
+  		this.isLink = true;
+  	}
+
+  	LinkModel.prototype = Object.create( ModelBase && ModelBase.prototype );
+  	LinkModel.prototype.constructor = LinkModel;
+
+  	LinkModel.prototype.animate = function animate ( from, to, options, interpolator ) {
+  		this.target.animate( from, to, options, interpolator );
+  	};
+
+  	LinkModel.prototype.get = function get ( shouldCapture, opts ) {
+  		if ( shouldCapture ) capture( this );
+  		return this.target.get( false, opts );
+  	};
+
+  	LinkModel.prototype.getKeypath = function getKeypath ( ractive ) {
+  		if ( ractive && ractive !== this.root.ractive ) return this.target.getKeypath( ractive );
+
+  		return ModelBase.prototype.getKeypath.call( this, ractive );
+  	};
+
+  	LinkModel.prototype.getKeypathModel = function getKeypathModel ( ractive ) {
+  		if ( !this.keypathModel ) this.keypathModel = new KeypathModel( this );
+  		if ( ractive && ractive !== this.root.ractive ) return this.keypathModel.getChild( ractive );
+  		return this.keypathModel;
+  	};
+
+  	LinkModel.prototype.handleChange = function handleChange$1 () {
+  		this.deps.forEach( handleChange );
+  		this.links.forEach( handleChange );
+  		this.notifyUpstream();
+  	};
+
+  	LinkModel.prototype.joinKey = function joinKey ( key ) {
+  		// TODO: handle nested links
+  		if ( key === undefined || key === '' ) return this;
+
+  		if ( !this.childByKey.hasOwnProperty( key ) ) {
+  			var child = new LinkModel( this, this, this.target.joinKey( key ), key );
+  			this.children.push( child );
+  			this.childByKey[ key ] = child;
+  		}
+
+  		return this.childByKey[ key ];
+  	};
+
+  	LinkModel.prototype.mark = function mark () {
+  		this.target.mark();
+  	};
+
+  	LinkModel.prototype.marked = function marked$1 () {
+  		this.links.forEach( marked );
+
+  		this.deps.forEach( handleChange );
+  		this.clearUnresolveds();
+  	};
+
+  	LinkModel.prototype.relinked = function relinked () {
+  		this.target.registerLink( this );
+  		this.children.forEach( function ( c ) { return c.relinked(); } );
+  	};
+
+  	LinkModel.prototype.relinking = function relinking ( target, root, safe ) {
+  		var this$1 = this;
+
+  		if ( root && this.sourcePath ) target = rebindMatch( this.sourcePath, target, this.target );
+  		if ( !target || this.target === target ) return;
+
+  		this.target.unregisterLink( this );
+  		if ( this.keypathModel ) this.keypathModel.rebindChildren( target );
+
+  		this.target = target;
+  		this.children.forEach( function ( c ) {
+  			c.relinking( target.joinKey( c.key ), false, safe );
+  		});
+
+  		if ( root ) this.addShuffleTask( function () {
+  			this$1.relinked();
+  			if ( !safe ) this$1.notifyUpstream();
+  		});
+  	};
+
+  	LinkModel.prototype.set = function set ( value ) {
+  		this.target.set( value );
+  	};
+
+  	LinkModel.prototype.shuffle = function shuffle ( newIndices ) {
+  		var this$1 = this;
+
+  		if ( this.shuffling ) return;
+  		this.shuffling = true;
+  		if ( !this.target.shuffling ) this.target.shuffle( newIndices );
+
+  		var i = newIndices.length;
+  		while ( i-- ) {
+  			var idx = newIndices[ i ];
+  			// nothing is actually changing, so move in the index and roll on
+  			if ( i === idx ) {
+  				continue;
+  			}
+
+  			// rebind the children on i to idx
+  			if ( i in this$1.childByKey ) this$1.childByKey[ i ].rebinding( !~idx ? undefined : this$1.joinKey( idx ), this$1.childByKey[ i ], true );
+
+  			if ( !~idx && this$1.keyModels[ i ] ) {
+  				this$1.keyModels[i].rebinding( undefined, this$1.keyModels[i], false );
+  			} else if ( ~idx && this$1.keyModels[ i ] ) {
+  				if ( !this$1.keyModels[ idx ] ) this$1.childByKey[ idx ].getKeyModel( idx );
+  				this$1.keyModels[i].rebinding( this$1.keyModels[ idx ], this$1.keyModels[i], false );
+  			}
+  		}
+
+  		var upstream = this.source().length !== this.source().value.length;
+
+  		this.links.forEach( function ( l ) { return l.shuffle( newIndices ); } );
+
+  		i = this.deps.length;
+  		while ( i-- ) {
+  			if ( this$1.deps[i].shuffle ) this$1.deps[i].shuffle( newIndices );
+  		}
+
+  		this.marked();
+
+  		if ( upstream ) this.notifyUpstream();
+
+  		this.shuffling = false;
+  	};
+
+  	LinkModel.prototype.source = function source () {
+  		if ( this.target.source ) return this.target.source();
+  		else return this.target;
+  	};
+
+  	LinkModel.prototype.teardown = function teardown$1 () {
+  		if ( this._link ) this._link.teardown();
+  		this.children.forEach( teardown );
+  	};
+
+  	return LinkModel;
+  }(ModelBase));
+
+  ModelBase.prototype.link = function link ( model, keypath ) {
+  	var lnk = this._link || new LinkModel( this.parent, this, model, this.key );
+  	lnk.sourcePath = keypath;
+  	if ( this._link ) this._link.relinking( model, true, false );
+  	this.rebinding( lnk, this, false );
+  	fireShuffleTasks();
+
+  	var unresolved = !this._link;
+  	this._link = lnk;
+  	if ( unresolved ) this.parent.clearUnresolveds();
+  	lnk.marked();
+  	return lnk;
+  };
+
+  ModelBase.prototype.unlink = function unlink () {
+  	if ( this._link ) {
+  		var ln = this._link;
+  		this._link = undefined;
+  		ln.rebinding( this, this._link );
+  		fireShuffleTasks();
+  		ln.teardown();
+  	}
+  };
 
   var requestAnimationFrame;
 
@@ -2620,665 +3385,312 @@
   	return prefixers[ rootKeypath ];
   }
 
-  var KeyModel = function KeyModel ( key, parent ) {
-  	this.value = key;
-  	this.isReadonly = true;
-  	this.dependants = [];
-  	this.parent = parent;
-  };
-
-  KeyModel.prototype.get = function get () {
-  	return unescapeKey( this.value );
-  };
-
-  KeyModel.prototype.getKeypath = function getKeypath () {
-  	return unescapeKey( this.value );
-  };
-
-  KeyModel.prototype.rebind = function rebind ( key ) {
-  	this.value = key;
-  	this.dependants.forEach( handleChange );
-  };
-
-  KeyModel.prototype.register = function register ( dependant ) {
-  	this.dependants.push( dependant );
-  };
-
-  KeyModel.prototype.unregister = function unregister ( dependant ) {
-  	removeFromArray( this.dependants, dependant );
-  };
-
-  var KeypathModel = function KeypathModel ( parent, ractive ) {
-  	this.parent = parent;
-  	this.ractive = ractive;
-  	this.value = ractive ? parent.getKeypath( ractive ) : parent.getKeypath();
-  	this.dependants = [];
-  	this.children = [];
-  };
-
-  KeypathModel.prototype.addChild = function addChild( model ) {
-  	this.children.push( model );
-  	model.owner = this;
-  };
-
-  KeypathModel.prototype.get = function get () {
-  	return this.value;
-  };
-
-  KeypathModel.prototype.getKeypath = function getKeypath () {
-  	return this.value;
-  };
-
-  KeypathModel.prototype.handleChange = function handleChange$1 () {
-  	this.value = this.ractive ? this.parent.getKeypath( this.ractive ) : this.parent.getKeypath();
-  	if ( this.ractive && this.owner ) {
-  		this.ractive.viewmodel.keypathModels[ this.owner.value ] = this;
-  	}
-  	this.children.forEach( handleChange );
-  	this.dependants.forEach( handleChange );
-  };
-
-  KeypathModel.prototype.register = function register ( dependant ) {
-  	this.dependants.push( dependant );
-  };
-
-  KeypathModel.prototype.removeChild = function removeChild( model ) {
-  	removeFromArray( this.children, model );
-  };
-
-  KeypathModel.prototype.teardown = function teardown$1 () {
-  	if ( this.owner ) this.owner.removeChild( this );
-  	this.children.forEach( teardown );
-  };
-
-  KeypathModel.prototype.unregister = function unregister ( dependant ) {
-  	removeFromArray( this.dependants, dependant );
-  };
-
-  var hasProp = Object.prototype.hasOwnProperty;
-
-  function updateFromBindings ( model ) {
-  	model.updateFromBindings( true );
-  }
-
-  function updateKeypathDependants ( model ) {
-  	model.updateKeypathDependants();
-  }
-
   var originatingModel = null;
 
-  var Model = function Model ( parent, key ) {
-  	this.deps = [];
+  var Model = (function (ModelBase) {
+  	function Model ( parent, key ) {
+  		ModelBase.call( this, parent );
 
-  	this.children = [];
-  	this.childByKey = {};
+  		this.value = undefined;
 
-  	this.indexModels = [];
+  		this.ticker = null;
 
-  	this.unresolved = [];
-  	this.unresolvedByKey = {};
+  		if ( parent ) {
+  			this.key = unescapeKey( key );
+  			this.isReadonly = parent.isReadonly;
 
-  	this.bindings = [];
-  	this.patternObservers = [];
-
-  	this.value = undefined;
-
-  	this.ticker = null;
-
-  	if ( parent ) {
-  		this.parent = parent;
-  		this.root = parent.root;
-  		this.key = unescapeKey( key );
-  		this.isReadonly = parent.isReadonly;
-
-  		if ( parent.value ) {
-  			this.value = parent.value[ this.key ];
-  			this.adapt();
+  			if ( parent.value ) {
+  				this.value = parent.value[ this.key ];
+  				this.adapt();
+  			}
   		}
   	}
-  };
 
-  Model.prototype.adapt = function adapt () {
-  	var this$1 = this;
+  	Model.prototype = Object.create( ModelBase && ModelBase.prototype );
+  	Model.prototype.constructor = Model;
+
+  	Model.prototype.adapt = function adapt () {
+  		var this$1 = this;
 
   		var adaptors = this.root.adaptors;
-  	var len = adaptors.length;
+  		var len = adaptors.length;
 
-  	this.rewrap = false;
+  		this.rewrap = false;
 
-  	// Exit early if no adaptors
-  	if ( len === 0 ) return;
+  		// Exit early if no adaptors
+  		if ( len === 0 ) return;
 
-  	var value = this.value;
+  		var value = this.value;
 
-  	// TODO remove this legacy nonsense
-  	var ractive = this.root.ractive;
-  	var keypath = this.getKeypath();
+  		// TODO remove this legacy nonsense
+  		var ractive = this.root.ractive;
+  		var keypath = this.getKeypath();
 
-  	// tear previous adaptor down if present
-  	if ( this.wrapper ) {
-  		var shouldTeardown = !this.wrapper.reset || this.wrapper.reset( value ) === false;
+  		// tear previous adaptor down if present
+  		if ( this.wrapper ) {
+  			var shouldTeardown = !this.wrapper.reset || this.wrapper.reset( value ) === false;
 
-  		if ( shouldTeardown ) {
-  			this.wrapper.teardown();
-  			this.wrapper = null;
+  			if ( shouldTeardown ) {
+  				this.wrapper.teardown();
+  				this.wrapper = null;
 
-  			// don't branch for undefined values
-  			if ( this.value !== undefined ) {
-  				var parentValue = this.parent.value || this.parent.createBranch( this.key );
-  				if ( parentValue[ this.key ] !== this.value ) parentValue[ this.key ] = value;
+  				// don't branch for undefined values
+  				if ( this.value !== undefined ) {
+  					var parentValue = this.parent.value || this.parent.createBranch( this.key );
+  					if ( parentValue[ this.key ] !== this.value ) parentValue[ this.key ] = value;
+  				}
+  			} else {
+  				this.value = this.wrapper.get();
+  				return;
   			}
-  		} else {
-  			this.value = this.wrapper.get();
-  			return;
-  		}
-  	}
-
-  	var i;
-
-  	for ( i = 0; i < len; i += 1 ) {
-  		var adaptor = adaptors[i];
-  		if ( adaptor.filter( value, keypath, ractive ) ) {
-  			this$1.wrapper = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
-  			this$1.wrapper.value = this$1.value;
-  			this$1.wrapper.__model = this$1; // massive temporary hack to enable array adaptor
-
-  			this$1.value = this$1.wrapper.get();
-
-  			break;
-  		}
-  	}
-  };
-
-  Model.prototype.addUnresolved = function addUnresolved ( key, resolver ) {
-  	if ( !this.unresolvedByKey[ key ] ) {
-  		this.unresolved.push( key );
-  		this.unresolvedByKey[ key ] = [];
-  	}
-
-  	this.unresolvedByKey[ key ].push( resolver );
-  };
-
-  Model.prototype.animate = function animate ( from, to, options, interpolator ) {
-  	var this$1 = this;
-
-  		if ( this.ticker ) this.ticker.stop();
-
-  	var fulfilPromise;
-  	var promise = new Promise$1( function ( fulfil ) { return fulfilPromise = fulfil; } );
-
-  	this.ticker = new Ticker({
-  		duration: options.duration,
-  		easing: options.easing,
-  		step: function ( t ) {
-  			var value = interpolator( t );
-  			this$1.applyValue( value );
-  			if ( options.step ) options.step( t, value );
-  		},
-  		complete: function () {
-  			this$1.applyValue( to );
-  			if ( options.complete ) options.complete( to );
-
-  			this$1.ticker = null;
-  			fulfilPromise();
-  		}
-  	});
-
-  	promise.stop = this.ticker.stop;
-  	return promise;
-  };
-
-  Model.prototype.applyValue = function applyValue ( value ) {
-  	if ( isEqual( value, this.value ) ) return;
-
-  	// TODO deprecate this nonsense
-  	this.registerChange( this.getKeypath(), value );
-
-  	if ( this.parent.wrapper && this.parent.wrapper.set ) {
-  		this.parent.wrapper.set( this.key, value );
-  		this.parent.value = this.parent.wrapper.get();
-
-  		this.value = this.parent.value[ this.key ];
-  		this.adapt();
-  	} else if ( this.wrapper ) {
-  		this.value = value;
-  		this.adapt();
-  	} else {
-  		var parentValue = this.parent.value || this.parent.createBranch( this.key );
-  		parentValue[ this.key ] = value;
-
-  		this.value = value;
-  		this.adapt();
-  	}
-
-  	this.parent.clearUnresolveds();
-  	this.clearUnresolveds();
-
-  	// notify dependants
-  	var previousOriginatingModel = originatingModel; // for the array.length special case
-  	originatingModel = this;
-
-  	this.children.forEach( mark );
-  	this.deps.forEach( handleChange );
-
-  	this.notifyUpstream();
-
-  	originatingModel = previousOriginatingModel;
-
-  	// keep track of array length
-  	if ( isArray( value ) ) this.length = value.length;
-  };
-
-  Model.prototype.clearUnresolveds = function clearUnresolveds ( specificKey ) {
-  	var this$1 = this;
-
-  		var i = this.unresolved.length;
-
-  	while ( i-- ) {
-  		var key = this$1.unresolved[i];
-
-  		if ( specificKey && key !== specificKey ) continue;
-
-  		var resolvers = this$1.unresolvedByKey[ key ];
-  		var hasKey = this$1.has( key );
-
-  		var j = resolvers.length;
-  		while ( j-- ) {
-  			if ( hasKey ) resolvers[j].attemptResolution();
-  			if ( resolvers[j].resolved ) resolvers.splice( j, 1 );
   		}
 
-  		if ( !resolvers.length ) {
-  			this$1.unresolved.splice( i, 1 );
-  			this$1.unresolvedByKey[ key ] = null;
-  		}
-  	}
-  };
+  		var i;
 
-  Model.prototype.createBranch = function createBranch ( key ) {
-  	var branch = isNumeric( key ) ? [] : {};
-  	this.set( branch );
+  		for ( i = 0; i < len; i += 1 ) {
+  			var adaptor = adaptors[i];
+  			if ( adaptor.filter( value, keypath, ractive ) ) {
+  				this$1.wrapper = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
+  				this$1.wrapper.value = this$1.value;
+  				this$1.wrapper.__model = this$1; // massive temporary hack to enable array adaptor
 
-  	return branch;
-  };
+  				this$1.value = this$1.wrapper.get();
 
-  Model.prototype.findMatches = function findMatches ( keys ) {
-  	var len = keys.length;
-
-  	var existingMatches = [ this ];
-  	var matches;
-  	var i;
-
-  	var loop = function (  ) {
-  		var key = keys[i];
-
-  		if ( key === '*' ) {
-  			matches = [];
-  			existingMatches.forEach( function ( model ) {
-  				matches.push.apply( matches, model.getValueChildren( model.get() ) );
-  			});
-  		} else {
-  			matches = existingMatches.map( function ( model ) { return model.joinKey( key ); } );
-  		}
-
-  		existingMatches = matches;
-  	};
-
-  		for ( i = 0; i < len; i += 1 ) loop(  );
-
-  	return matches;
-  };
-
-  Model.prototype.get = function get ( shouldCapture ) {
-  	if ( shouldCapture ) capture( this );
-  	// if capturing, this value needs to be unwrapped because it's for external use
-  	return shouldCapture && this.wrapper ? this.wrapper.value : this.value;
-  };
-
-  Model.prototype.getIndexModel = function getIndexModel ( fragmentIndex ) {
-  	var indexModels = this.parent.indexModels;
-
-  	// non-numeric keys are a special of a numeric index in a object iteration
-  	if ( typeof this.key === 'string' && fragmentIndex !== undefined ) {
-  		return new KeyModel( fragmentIndex, this );
-  	} else if ( !indexModels[ this.key ] ) {
-  		indexModels[ this.key ] = new KeyModel( this.key, this );
-  	}
-
-  	return indexModels[ this.key ];
-  };
-
-  Model.prototype.getKeyModel = function getKeyModel () {
-  	// TODO... different to IndexModel because key can never change
-  	return new KeyModel( escapeKey( this.key ), this );
-  };
-
-  Model.prototype.getKeypathModel = function getKeypathModel ( ractive ) {
-  	var keypath = this.getKeypath(), model = this.keypathModel || ( this.keypathModel = new KeypathModel( this ) );
-
-  	if ( ractive && ractive.component ) {
-  		var mapped = this.getKeypath( ractive );
-  		if ( mapped !== keypath ) {
-  			var map = ractive.viewmodel.keypathModels || ( ractive.viewmodel.keypathModels = {} );
-  			var child = map[ keypath ] || ( map[ keypath ] = new KeypathModel( this, ractive ) );
-  			model.addChild( child );
-  			return child;
-  		}
-  	}
-
-  	return model;
-  };
-
-  Model.prototype.getKeypath = function getKeypath ( ractive ) {
-  	if ( ! this.keypath ) this.keypath = this.parent.isRoot ? escapeKey( this.key ) : this.parent.getKeypath() + '.' + escapeKey( this.key );
-
-  	var root = this.keypath;
-
-  	if ( ractive && ractive.component ) {
-  		var map = ractive.viewmodel.mappings;
-  		for ( var k in map ) {
-  			if ( root.indexOf( map[ k ].getKeypath() ) >= 0 ) {
-  				root = root.replace( map[ k ].getKeypath(), k );
   				break;
   			}
   		}
-  	}
+  	};
 
-  	return root;
-  };
+  	Model.prototype.animate = function animate ( from, to, options, interpolator ) {
+  		var this$1 = this;
 
-  Model.prototype.getValueChildren = function getValueChildren ( value ) {
-  	var this$1 = this;
+  		if ( this.ticker ) this.ticker.stop();
 
-  		var children;
-  	if ( isArray( value ) ) {
-  		children = [];
-  		// special case - array.length. This is a horrible kludge, but
-  		// it'll do for now. Alternatives welcome
-  		if ( originatingModel && originatingModel.parent === this && originatingModel.key === 'length' ) {
-  			children.push( originatingModel );
-  		}
-  		value.forEach( function ( m, i ) {
-  			children.push( this$1.joinKey( i ) );
+  		var fulfilPromise;
+  		var promise = new Promise$1( function ( fulfil ) { return fulfilPromise = fulfil; } );
+
+  		this.ticker = new Ticker({
+  			duration: options.duration,
+  			easing: options.easing,
+  			step: function ( t ) {
+  				var value = interpolator( t );
+  				this$1.applyValue( value );
+  				if ( options.step ) options.step( t, value );
+  			},
+  			complete: function () {
+  				this$1.applyValue( to );
+  				if ( options.complete ) options.complete( to );
+
+  				this$1.ticker = null;
+  				fulfilPromise();
+  			}
   		});
 
-  	}
+  		promise.stop = this.ticker.stop;
+  		return promise;
+  	};
 
-  	else if ( isObject( value ) || typeof value === 'function' ) {
-  		children = Object.keys( value ).map( function ( key ) { return this$1.joinKey( key ); } );
-  	}
+  	Model.prototype.applyValue = function applyValue ( value ) {
+  		if ( isEqual( value, this.value ) ) return;
 
-  	else if ( value != null ) {
-  		return [];
-  	}
+  		// TODO deprecate this nonsense
+  		this.registerChange( this.getKeypath(), value );
 
-  	return children;
-  };
+  		if ( this.parent.wrapper && this.parent.wrapper.set ) {
+  			this.parent.wrapper.set( this.key, value );
+  			this.parent.value = this.parent.wrapper.get();
 
-  Model.prototype.has = function has ( key ) {
-  	var value = this.get();
-  	if ( !value ) return false;
+  			this.value = this.parent.value[ this.key ];
+  			this.adapt();
+  		} else if ( this.wrapper ) {
+  			this.value = value;
+  			this.adapt();
+  		} else {
+  			var parentValue = this.parent.value || this.parent.createBranch( this.key );
+  			parentValue[ this.key ] = value;
 
-  	key = unescapeKey( key );
-  	if ( hasProp.call( value, key ) ) return true;
+  			this.value = value;
+  			this.adapt();
+  		}
 
-  	// We climb up the constructor chain to find if one of them contains the key
-  	var constructor = value.constructor;
-  	while ( constructor !== Function && constructor !== Array && constructor !== Object ) {
-  		if ( hasProp.call( constructor.prototype, key ) ) return true;
-  		constructor = constructor.constructor;
-  	}
-
-  	return false;
-  };
-
-  Model.prototype.joinKey = function joinKey ( key ) {
-  	if ( key === undefined || key === '' ) return this;
-
-  	if ( !this.childByKey.hasOwnProperty( key ) ) {
-  		var child = new Model( this, key );
-  		this.children.push( child );
-  		this.childByKey[ key ] = child;
-  	}
-
-  	return this.childByKey[ key ];
-  };
-
-  Model.prototype.joinAll = function joinAll ( keys ) {
-  	var model = this;
-  	for ( var i = 0; i < keys.length; i += 1 ) {
-  		model = model.joinKey( keys[i] );
-  	}
-
-  	return model;
-  };
-
-  Model.prototype.mark = function mark$1 () {
-  	var value = this.retrieve();
-
-  	if ( !isEqual( value, this.value ) ) {
-  		var old = this.value;
-  		this.value = value;
-
-  		// make sure the wrapper stays in sync
-  		if ( old !== value || this.rewrap ) this.adapt();
-
-  		// keep track of array lengths
-  		if ( isArray( value ) ) this.length = value.length;
-
-  		this.children.forEach( mark );
-
-  		this.deps.forEach( handleChange );
+  		this.parent.clearUnresolveds();
   		this.clearUnresolveds();
-  	}
-  };
 
-  Model.prototype.merge = function merge ( array, comparator ) {
-  	var oldArray = comparator ? this.value.map( comparator ) : this.value;
-  	var newArray = comparator ? array.map( comparator ) : array;
+  		// notify dependants
+  		var previousOriginatingModel = originatingModel; // for the array.length special case
+  		originatingModel = this;
 
-  	var oldLength = oldArray.length;
+  		this.links.forEach( handleChange );
+  		this.children.forEach( mark );
+  		this.deps.forEach( handleChange );
 
-  	var usedIndices = {};
-  	var firstUnusedIndex = 0;
-
-  	var newIndices = oldArray.map( function ( item ) {
-  		var index;
-  		var start = firstUnusedIndex;
-
-  		do {
-  			index = newArray.indexOf( item, start );
-
-  			if ( index === -1 ) {
-  				return -1;
-  			}
-
-  			start = index + 1;
-  		} while ( ( usedIndices[ index ] === true ) && start < oldLength );
-
-  		// keep track of the first unused index, so we don't search
-  		// the whole of newArray for each item in oldArray unnecessarily
-  		if ( index === firstUnusedIndex ) {
-  			firstUnusedIndex += 1;
-  		}
-  		// allow next instance of next "equal" to be found item
-  		usedIndices[ index ] = true;
-  		return index;
-  	});
-
-  	this.parent.value[ this.key ] = array;
-  	this._merged = true;
-  	this.shuffle( newIndices );
-  };
-
-  Model.prototype.notifyUpstream = function notifyUpstream () {
-  	var parent = this.parent, prev = this;
-  	while ( parent ) {
-  		if ( parent.patternObservers.length ) parent.patternObservers.forEach( function ( o ) { return o.notify( prev.key ); } );
-  		parent.deps.forEach( handleChange );
-  		prev = parent;
-  		parent = parent.parent;
-  	}
-  };
-
-  Model.prototype.register = function register ( dep ) {
-  	this.deps.push( dep );
-  };
-
-  Model.prototype.registerChange = function registerChange ( key, value ) {
-  	if ( !this.isRoot ) {
-  		this.root.registerChange( key, value );
-  	} else {
-  		this.changes[ key ] = value;
-  		runloop.addInstance( this.root.ractive );
-  	}
-  };
-
-  Model.prototype.registerPatternObserver = function registerPatternObserver ( observer ) {
-  	this.patternObservers.push( observer );
-  	this.register( observer );
-  };
-
-  Model.prototype.registerTwowayBinding = function registerTwowayBinding ( binding ) {
-  	this.bindings.push( binding );
-  };
-
-  Model.prototype.removeUnresolved = function removeUnresolved ( key, resolver ) {
-  	var resolvers = this.unresolvedByKey[ key ];
-
-  	if ( resolvers ) {
-  		removeFromArray( resolvers, resolver );
-  	}
-  };
-
-  Model.prototype.retrieve = function retrieve () {
-  	return this.parent.value ? this.parent.value[ this.key ] : undefined;
-  };
-
-  Model.prototype.set = function set ( value ) {
-  	if ( this.ticker ) this.ticker.stop();
-  	this.applyValue( value );
-  };
-
-  Model.prototype.shuffle = function shuffle ( newIndices ) {
-  	var this$1 = this;
-
-  		var indexModels = [];
-
-  	newIndices.forEach( function ( newIndex, oldIndex ) {
-  		if ( newIndex !== oldIndex && this$1.childByKey[oldIndex] ) this$1.childByKey[oldIndex].shuffled();
-
-  		if ( !~newIndex ) return;
-
-  		var model = this$1.indexModels[ oldIndex ];
-
-  		if ( !model ) return;
-
-  		indexModels[ newIndex ] = model;
-
-  		if ( newIndex !== oldIndex ) {
-  			model.rebind( newIndex );
-  		}
-  	});
-
-  	this.indexModels = indexModels;
-
-  	// shuffles need to happen before marks...
-  	this.deps.forEach( function ( dep ) {
-  		if ( dep.shuffle ) dep.shuffle( newIndices );
-  	});
-
-  	var upstream = this.length !== this.value.length;
-  	this.updateKeypathDependants();
-  	this.mark();
-
-  	// ...but handleChange must happen after (TODO document why)
-  	this.deps.forEach( function ( dep ) {
-  		if ( !dep.shuffle ) dep.handleChange();
-  	});
-
-  	// if the length has changed, notify upstream
-  	if ( upstream ) {
   		this.notifyUpstream();
-  	}
-  };
 
-  Model.prototype.shuffled = function shuffled () {
-  	var this$1 = this;
+  		originatingModel = previousOriginatingModel;
 
-  		var i = this.children.length;
-  	while ( i-- ) {
-  		this$1.children[i].shuffled();
-  	}
-  	if ( this.wrapper ) {
-  		this.wrapper.teardown();
-  		this.wrapper = null;
-  		this.rewrap = true;
-  	}
-  };
+  		// keep track of array length
+  		if ( isArray( value ) ) this.length = value.length;
+  		else if ( this.key === 'length' && isArray( this.parent.value ) ) this.parent.length = this.parent.value.length;
+  	};
 
-  Model.prototype.teardown = function teardown$1 () {
-  	this.children.forEach( teardown );
-  	if ( this.wrapper ) this.wrapper.teardown();
-  	if ( this.keypathModels ) {
-  		for ( var k in this.keypathModels ) {
-  			this.keypathModels[ k ].teardown();
+  	Model.prototype.createBranch = function createBranch ( key ) {
+  		var branch = isNumeric( key ) ? [] : {};
+  		this.set( branch );
+
+  		return branch;
+  	};
+
+  	Model.prototype.get = function get ( shouldCapture, opts ) {
+  		if ( this._link ) return this._link.get( shouldCapture, opts );
+  		if ( shouldCapture ) capture( this );
+  		// if capturing, this value needs to be unwrapped because it's for external use
+  		if ( opts && opts.virtual ) return this.getVirtual( false );
+  		return shouldCapture && this.wrapper ? this.wrapper.value : this.value;
+  	};
+
+  	Model.prototype.getKeypathModel = function getKeypathModel ( ractive ) {
+  		if ( !this.keypathModel ) this.keypathModel = new KeypathModel( this );
+  		return this.keypathModel;
+  	};
+
+  	Model.prototype.joinKey = function joinKey ( key, opts ) {
+  		if ( this._link ) {
+  			if ( opts && !opts.lastLink === false && ( key === undefined || key === '' ) ) return this;
+  			return this._link.joinKey( key );
   		}
-  	}
-  };
 
-  Model.prototype.unregister = function unregister ( dependant ) {
-  	removeFromArray( this.deps, dependant );
-  };
+  		if ( key === undefined || key === '' ) return this;
 
-  Model.prototype.unregisterPatternObserver = function unregisterPatternObserver ( observer ) {
-  	removeFromArray( this.patternObservers, observer );
-  	this.unregister( observer );
-  };
 
-  Model.prototype.unregisterTwowayBinding = function unregisterTwowayBinding ( binding ) {
-  	removeFromArray( this.bindings, binding );
-  };
+  		if ( !this.childByKey.hasOwnProperty( key ) ) {
+  			var child = new Model( this, key );
+  			this.children.push( child );
+  			this.childByKey[ key ] = child;
+  		}
 
-  Model.prototype.updateFromBindings = function updateFromBindings$1 ( cascade ) {
-  	var this$1 = this;
+  		if ( this.childByKey[ key ]._link ) return this.childByKey[ key ]._link;
+  		return this.childByKey[ key ];
+  	};
 
-  		var i = this.bindings.length;
-  	while ( i-- ) {
-  		var value = this$1.bindings[i].getValue();
-  		if ( value !== this$1.value ) this$1.set( value );
-  	}
+  	Model.prototype.mark = function mark$1 () {
+  		if ( this._link ) return this._link.mark();
 
-  	// check for one-way bindings if there are no two-ways
-  	if ( !this.bindings.length ) {
-  		var oneway = findBoundValue( this.deps );
-  		if ( oneway && oneway.value !== this.value ) this.set( oneway.value );
-  	}
+  		var value = this.retrieve();
 
-  	if ( cascade ) {
-  		this.children.forEach( updateFromBindings );
-  	}
-  };
+  		if ( !isEqual( value, this.value ) ) {
+  			var old = this.value;
+  			this.value = value;
 
-  Model.prototype.updateKeypathDependants = function updateKeypathDependants$1 () {
-  	this.children.forEach( updateKeypathDependants );
-  	if ( this.keypathModel ) this.keypathModel.handleChange();
-  };
+  			// make sure the wrapper stays in sync
+  			if ( old !== value || this.rewrap ) this.adapt();
 
-  function findBoundValue( list ) {
-  	var i = list.length;
-  	while ( i-- ) {
-  		if ( list[i].bound ) {
-  			var owner = list[i].owner;
-  			if ( owner ) {
-  				var value = owner.name === 'checked' ?
-  					owner.node.checked :
-  					owner.node.value;
-  				return { value: value };
+  			// keep track of array lengths
+  			if ( isArray( value ) ) this.length = value.length;
+
+  			this.children.forEach( mark );
+  			this.links.forEach( marked );
+
+  			this.deps.forEach( handleChange );
+  			this.clearUnresolveds();
+  		}
+  	};
+
+  	Model.prototype.merge = function merge ( array, comparator ) {
+  		var oldArray = comparator ? this.value.map( comparator ) : this.value;
+  		var newArray = comparator ? array.map( comparator ) : array;
+
+  		var oldLength = oldArray.length;
+
+  		var usedIndices = {};
+  		var firstUnusedIndex = 0;
+
+  		var newIndices = oldArray.map( function ( item ) {
+  			var index;
+  			var start = firstUnusedIndex;
+
+  			do {
+  				index = newArray.indexOf( item, start );
+
+  				if ( index === -1 ) {
+  					return -1;
+  				}
+
+  				start = index + 1;
+  			} while ( ( usedIndices[ index ] === true ) && start < oldLength );
+
+  			// keep track of the first unused index, so we don't search
+  			// the whole of newArray for each item in oldArray unnecessarily
+  			if ( index === firstUnusedIndex ) {
+  				firstUnusedIndex += 1;
+  			}
+  			// allow next instance of next "equal" to be found item
+  			usedIndices[ index ] = true;
+  			return index;
+  		});
+
+  		this.parent.value[ this.key ] = array;
+  		this._merged = true;
+  		this.shuffle( newIndices );
+  	};
+
+  	Model.prototype.retrieve = function retrieve () {
+  		return this.parent.value ? this.parent.value[ this.key ] : undefined;
+  	};
+
+  	Model.prototype.set = function set ( value ) {
+  		if ( this.ticker ) this.ticker.stop();
+  		this.applyValue( value );
+  	};
+
+  	Model.prototype.shuffle = function shuffle ( newIndices ) {
+  		var this$1 = this;
+
+  		this.shuffling = true;
+  		var i = newIndices.length;
+  		while ( i-- ) {
+  			var idx = newIndices[ i ];
+  			// nothing is actually changing, so move in the index and roll on
+  			if ( i === idx ) {
+  				continue;
+  			}
+
+  			// rebind the children on i to idx
+  			if ( i in this$1.childByKey ) this$1.childByKey[ i ].rebinding( !~idx ? undefined : this$1.joinKey( idx ), this$1.childByKey[ i ], true );
+
+  			if ( !~idx && this$1.keyModels[ i ] ) {
+  				this$1.keyModels[i].rebinding( undefined, this$1.keyModels[i], false );
+  			} else if ( ~idx && this$1.keyModels[ i ] ) {
+  				if ( !this$1.keyModels[ idx ] ) this$1.childByKey[ idx ].getKeyModel( idx );
+  				this$1.keyModels[i].rebinding( this$1.keyModels[ idx ], this$1.keyModels[i], false );
   			}
   		}
-  	}
-  }
+
+  		var upstream = this.length !== this.value.length;
+
+  		this.links.forEach( function ( l ) { return l.shuffle( newIndices ); } );
+  		fireShuffleTasks( 'early' );
+
+  		i = this.deps.length;
+  		while ( i-- ) {
+  			if ( this$1.deps[i].shuffle ) this$1.deps[i].shuffle( newIndices );
+  		}
+
+  		this.mark();
+  		fireShuffleTasks( 'mark' );
+
+  		if ( upstream ) this.notifyUpstream();
+  		this.shuffling = false;
+  	};
+
+  	Model.prototype.teardown = function teardown$1 () {
+  		if ( this._link ) this._link.teardown();
+  		this.children.forEach( teardown );
+  		if ( this.wrapper ) this.wrapper.teardown();
+  		if ( this.keypathModel ) this.keypathModel.teardown();
+  	};
+
+  	return Model;
+  }(ModelBase));
 
   var GlobalModel = (function (Model) {
   	function GlobalModel ( ) {
@@ -3316,9 +3728,9 @@
   		var match = keypathExpr.exec( ref );
   		if ( match && match[1] ) {
   			var model = resolveReference( fragment, match[1] );
-  			if ( model ) return model.getKeypathModel( fragment.ractive );
+  			if ( model ) return model.getKeypathModel();
   		}
-  		return context.getKeypathModel( fragment.ractive );
+  		return context.getKeypathModel();
   	}
   	if ( ref.indexOf( '@rootpath' ) === 0 ) {
   		// check to see if this is an empty component root
@@ -3329,17 +3741,16 @@
   		var match$1 = keypathExpr.exec( ref );
   		if ( match$1 && match$1[1] ) {
   			var model$1 = resolveReference( fragment, match$1[1] );
-  			if ( model$1 ) return model$1.getKeypathModel();
+  			if ( model$1 ) return model$1.getKeypathModel( fragment.ractive.root );
   		}
-  		return context.getKeypathModel();
+  		return context.getKeypathModel( fragment.ractive.root );
   	}
-  	if ( ref === '@index' ) {
+  	if ( ref === '@index' || ref === '@key' ) {
   		var repeater = fragment.findRepeatingFragment();
   		// make sure the found fragment is actually an iteration
   		if ( !repeater.isIteration ) return;
-  		return repeater.context.getIndexModel( repeater.index );
+  		return repeater.context.getKeyModel( repeater[ ref[1] === 'i' ? 'index' : 'key' ] );
   	}
-  	if ( ref === '@key' ) return fragment.findRepeatingFragment().context.getKeyModel();
   	if ( ref === '@this' ) {
   		return fragment.ractive.viewmodel.getRactiveModel();
   	}
@@ -3370,8 +3781,8 @@
   	return resolveAmbiguousReference( fragment, ref );
   }
 
-  function Ractive$get ( keypath ) {
-  	if ( !keypath ) return this.viewmodel.get( true );
+  function Ractive$get ( keypath, opts ) {
+  	if ( typeof keypath !== 'string' ) return this.viewmodel.get( true, keypath );
 
   	var keys = splitKeypathI( keypath );
   	var key = keys[0];
@@ -3391,7 +3802,7 @@
   	}
 
   	model = this.viewmodel.joinAll( keys );
-  	return model.get( true );
+  	return model.get( true, opts );
   }
 
   function gatherRefs( fragment ) {
@@ -3416,6 +3827,260 @@
   	return { key: key, index: index };
   }
 
+  // This function takes an array, the name of a mutator method, and the
+  // arguments to call that mutator method with, and returns an array that
+  // maps the old indices to their new indices.
+
+  // So if you had something like this...
+  //
+  //     array = [ 'a', 'b', 'c', 'd' ];
+  //     array.push( 'e' );
+  //
+  // ...you'd get `[ 0, 1, 2, 3 ]` - in other words, none of the old indices
+  // have changed. If you then did this...
+  //
+  //     array.unshift( 'z' );
+  //
+  // ...the indices would be `[ 1, 2, 3, 4, 5 ]` - every item has been moved
+  // one higher to make room for the 'z'. If you removed an item, the new index
+  // would be -1...
+  //
+  //     array.splice( 2, 2 );
+  //
+  // ...this would result in [ 0, 1, -1, -1, 2, 3 ].
+  //
+  // This information is used to enable fast, non-destructive shuffling of list
+  // sections when you do e.g. `ractive.splice( 'items', 2, 2 );
+
+  function getNewIndices ( length, methodName, args ) {
+  	var spliceArguments, newIndices = [], removeStart, removeEnd, balance, i;
+
+  	spliceArguments = getSpliceEquivalent( length, methodName, args );
+
+  	if ( !spliceArguments ) {
+  		return null; // TODO support reverse and sort?
+  	}
+
+  	balance = ( spliceArguments.length - 2 ) - spliceArguments[1];
+
+  	removeStart = Math.min( length, spliceArguments[0] );
+  	removeEnd = removeStart + spliceArguments[1];
+  	newIndices.startIndex = removeStart;
+
+  	for ( i = 0; i < removeStart; i += 1 ) {
+  		newIndices.push( i );
+  	}
+
+  	for ( ; i < removeEnd; i += 1 ) {
+  		newIndices.push( -1 );
+  	}
+
+  	for ( ; i < length; i += 1 ) {
+  		newIndices.push( i + balance );
+  	}
+
+  	// there is a net shift for the rest of the array starting with index + balance
+  	if ( balance !== 0 ) {
+  		newIndices.touchedFrom = spliceArguments[0];
+  	} else {
+  		newIndices.touchedFrom = length;
+  	}
+
+  	return newIndices;
+  }
+
+
+  // The pop, push, shift an unshift methods can all be represented
+  // as an equivalent splice
+  function getSpliceEquivalent ( length, methodName, args ) {
+  	switch ( methodName ) {
+  		case 'splice':
+  			if ( args[0] !== undefined && args[0] < 0 ) {
+  				args[0] = length + Math.max( args[0], -length );
+  			}
+
+  			if ( args[0] === undefined ) args[0] = 0;
+
+  			while ( args.length < 2 ) {
+  				args.push( length - args[0] );
+  			}
+
+  			if ( typeof args[1] !== 'number' ) {
+  				args[1] = length - args[0];
+  			}
+
+  			// ensure we only remove elements that exist
+  			args[1] = Math.min( args[1], length - args[0] );
+
+  			return args;
+
+  		case 'sort':
+  		case 'reverse':
+  			return null;
+
+  		case 'pop':
+  			if ( length ) {
+  				return [ length - 1, 1 ];
+  			}
+  			return [ 0, 0 ];
+
+  		case 'push':
+  			return [ length, 0 ].concat( args );
+
+  		case 'shift':
+  			return [ 0, length ? 1 : 0 ];
+
+  		case 'unshift':
+  			return [ 0, 0 ].concat( args );
+  	}
+  }
+
+  var arrayProto = Array.prototype;
+
+  function makeArrayMethod ( methodName ) {
+  	function path ( keypath ) {
+  		var args = [], len = arguments.length - 1;
+  		while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+
+  		return model( this.viewmodel.joinAll( splitKeypathI( keypath ) ), args );
+  	}
+
+  	function model ( mdl, args ) {
+  		var array = mdl.get();
+
+  		if ( !isArray( array ) ) {
+  			if ( array === undefined ) {
+  				array = [];
+  				var result$1 = arrayProto[ methodName ].apply( array, args );
+  				var promise$1 = runloop.start( this, true ).then( function () { return result$1; } );
+  				mdl.set( array );
+  				runloop.end();
+  				return promise$1;
+  			} else {
+  				throw new Error( ("shuffle array method " + methodName + " called on non-array at " + (mdl.getKeypath())) );
+  			}
+  		}
+
+  		var newIndices = getNewIndices( array.length, methodName, args );
+  		var result = arrayProto[ methodName ].apply( array, args );
+
+  		var promise = runloop.start( this, true ).then( function () { return result; } );
+  		promise.result = result;
+
+  		if ( newIndices ) {
+  			mdl.shuffle( newIndices );
+  		} else {
+  			mdl.set( result );
+  		}
+
+  		runloop.end();
+
+  		return promise;
+  	}
+
+  	return { path: path, model: model };
+  }
+
+  var comparators = {};
+
+  function getComparator ( option ) {
+  	if ( !option ) return null; // use existing arrays
+  	if ( option === true ) return JSON.stringify;
+  	if ( typeof option === 'function' ) return option;
+
+  	if ( typeof option === 'string' ) {
+  		return comparators[ option ] || ( comparators[ option ] = function ( thing ) { return thing[ option ]; } );
+  	}
+
+  	throw new Error( 'If supplied, options.compare must be a string, function, or `true`' ); // TODO link to docs
+  }
+
+  function merge$1 ( ractive, model, array, options ) {
+  	var promise = runloop.start( ractive, true );
+  	var value = model.get();
+
+  	if ( array === value ) {
+  		throw new Error( 'You cannot merge an array with itself' ); // TODO link to docs
+  	} else if ( !isArray( value ) || !isArray( array ) ) {
+  		throw new Error( 'You cannot merge an array with a non-array' );
+  	}
+
+  	var comparator = getComparator( options && options.compare );
+  	model.merge( array, comparator );
+
+  	runloop.end();
+  	return promise;
+  }
+
+  function thisRactive$merge ( keypath, array, options ) {
+  	return merge$1( this, this.viewmodel.joinAll( splitKeypathI( keypath ) ), array, options );
+  }
+
+  var updateHook = new Hook( 'update' );
+
+  function update$2 ( ractive, model ) {
+  	if ( model.parent && model.parent.wrapper ) return update$2( ractive, model.parent );
+
+  	var promise = runloop.start( ractive, true );
+
+  	model.mark();
+  	model.registerChange( model.getKeypath(), model.get() );
+
+  	if ( !model.isRoot ) {
+  		// there may be unresolved refs that are now resolvable up the context tree
+  		var parent = model.parent, key = model.key;
+  		while ( parent && !parent.isRoot ) {
+  			if ( parent.clearUnresolveds ) parent.clearUnresolveds( key );
+  			key = parent.key;
+  			parent = parent.parent;
+  		}
+  	}
+
+  	// notify upstream of changes
+  	model.notifyUpstream();
+
+  	runloop.end();
+
+  	updateHook.fire( ractive, model );
+
+  	return promise;
+  }
+
+  function Ractive$update ( keypath ) {
+  	if ( keypath ) keypath = splitKeypathI( keypath );
+
+  	return update$2( this, keypath ? this.viewmodel.joinAll( keypath ) : this.viewmodel );
+  }
+
+  var modelPush = makeArrayMethod( 'push' ).model;
+  var modelPop = makeArrayMethod( 'pop' ).model;
+  var modelShift = makeArrayMethod( 'shift' ).model;
+  var modelUnshift = makeArrayMethod( 'unshift' ).model;
+  var modelSort = makeArrayMethod( 'sort' ).model;
+  var modelSplice = makeArrayMethod( 'splice' ).model;
+  var modelReverse = makeArrayMethod( 'reverse' ).model;
+
+  // TODO: at some point perhaps this could support relative * keypaths?
+  function build$1 ( el, keypath, value ) {
+  	var sets = [];
+
+  	// set multiple keypaths in one go
+  	if ( isObject( keypath ) ) {
+  		for ( var k in keypath ) {
+  			if ( keypath.hasOwnProperty( k ) ) {
+  				sets.push( [ findModel( el, k ).model, keypath[k] ] );
+  			}
+  		}
+
+  	}
+  	// set a single keypath
+  	else {
+  		sets.push( [ findModel( el, keypath ).model, value ] );
+  	}
+
+  	return sets;
+  }
+
   // get relative keypaths and values
   function get ( keypath ) {
   	if ( !keypath ) return this._element.parentFragment.findContext().get( true );
@@ -3426,112 +4091,149 @@
   }
 
   function resolve$1 ( path, ractive ) {
-  	var frag = this._element.parentFragment;
+  	var ref = findModel( this, path ), model = ref.model, instance = ref.instance;
+  	return model ? model.getKeypath( ractive || instance ) : path;
+  }
+
+  function findModel ( el, path ) {
+  	var frag = el._element.parentFragment;
 
   	if ( typeof path !== 'string' ) {
-  		return frag.findContext().getKeypath( path === undefined ? frag.ractive : path );
+  		return { model: frag.findContext(), instance: path };
   	}
 
-  	var model = resolveReference( frag, path );
-
-  	return model ? model.getKeypath( ractive === undefined ? frag.ractive : ractive ) : path;
+  	return { model: resolveReference( frag, path ), instance: frag.ractive };
   }
 
   // the usual mutation suspects
   function add$1 ( keypath, value ) {
-  	return this.ractive.add( this.resolve( keypath ), value );
+  	if ( value === undefined ) value = 1;
+  	if ( !isNumeric( value ) ) throw new Error( 'Bad arguments' );
+  	return set( this.ractive, build$1( this, keypath, value ).map( function ( pair ) {
+  		var model = pair[0], val = pair[1], value = model.get();
+  		if ( !isNumeric( val ) || !isNumeric( value ) ) throw new Error( 'Cannot add non-numeric value' );
+  		return [ model, value + val ];
+  	}) );
   }
 
   function animate ( keypath, value, options ) {
-  	return this.ractive.animate( this.resolve( keypath ), value, options );
+  	var model = findModel( this, keypath ).model;
+  	return protoAnimate( this.ractive, model, value, options );
   }
 
   function link ( source, dest ) {
-  	return this.ractive.link( this.resolve( source ), this.resolve( dest ) );
+  	var there = findModel( this, source ).model, here = findModel( this, dest ).model;
+  	var promise = runloop.start( this.ractive, true );
+  	here.link( there, source );
+  	runloop.end();
+  	return promise;
   }
 
-  function merge ( keypath, array ) {
-  	return this.ractive.merge( this.resolve( keypath ), array );
+  function merge ( keypath, array, options ) {
+  	return merge$1( this.ractive, findModel( this, keypath ).model, array, options );
   }
 
   function pop ( keypath ) {
-  	return this.ractive.pop( this.resolve( keypath ) );
+  	return modelPop( findModel( this, keypath ).model, [] );
   }
 
   function push ( keypath ) {
   	var values = [], len = arguments.length - 1;
   	while ( len-- > 0 ) values[ len ] = arguments[ len + 1 ];
 
-  	values.unshift( this.resolve( keypath ) );
-  	return this.ractive.push.apply( this.ractive, values );
+  	return modelPush( findModel( this, keypath ).model, values );
   }
 
-  function set ( keypath, value ) {
-  	return this.ractive.set( this.resolve( keypath ), value );
+  function reverse ( keypath ) {
+  	return modelReverse( findModel( this, keypath ).model, [] );
+  }
+
+  function set$1 ( keypath, value ) {
+  	return set( this.ractive, build$1( this, keypath, value ) );
   }
 
   function shift ( keypath ) {
-  	return this.ractive.shift( this.resolve( keypath ) );
+  	return modelShift( findModel( this, keypath ).model, [] );
   }
 
   function splice ( keypath, index, drop ) {
   	var add = [], len = arguments.length - 3;
   	while ( len-- > 0 ) add[ len ] = arguments[ len + 3 ];
 
-  	add.unshift( this.resolve( keypath ), index, drop );
-  	return this.ractive.splice.apply( this.ractive, add );
+  	add.unshift( index, drop );
+  	return modelSplice( findModel( this, keypath ).model, add );
+  }
+
+  function sort ( keypath ) {
+  	return modelSort( findModel( this, keypath ).model, [] );
   }
 
   function subtract ( keypath, value ) {
-  	return this.ractive.subtract( this.resolve( keypath ), value );
+  	if ( value === undefined ) value = 1;
+  	if ( !isNumeric( value ) ) throw new Error( 'Bad arguments' );
+  	return set( this.ractive, build$1( this, keypath, value ).map( function ( pair ) {
+  		var model = pair[0], val = pair[1], value = model.get();
+  		if ( !isNumeric( val ) || !isNumeric( value ) ) throw new Error( 'Cannot add non-numeric value' );
+  		return [ model, value - val ];
+  	}) );
   }
 
   function toggle ( keypath ) {
-  	return this.ractive.toggle( this.resolve( keypath ) );
+  	var ref = findModel( this, keypath ), model = ref.model;
+  	return set( this.ractive, [ [ model, !model.get() ] ] );
   }
 
   function unlink ( dest ) {
-  	return this.ractive.unlink( dest );
+  	var here = findModel( this, dest ).model;
+  	var promise = runloop.start( this.ractive, true );
+  	if ( here.owner && here.owner._link ) here.owner.unlink();
+  	runloop.end();
+  	return promise;
   }
 
   function unshift ( keypath ) {
   	var add = [], len = arguments.length - 1;
   	while ( len-- > 0 ) add[ len ] = arguments[ len + 1 ];
 
-  	add.unshift( this.resolve( keypath ) );
-  	return this.ractive.unshift.apply( this.ractive, add );
+  	return modelUnshift( findModel( this, keypath ).model, add );
   }
 
   function update$1 ( keypath ) {
-  	return this.ractive.update( this.resolve( keypath ) );
+  	return update$2( this.ractive, findModel( this, keypath ).model );
   }
 
   function updateModel ( keypath, cascade ) {
-  	return this.ractive.updateModel( this.resolve( keypath ), cascade );
+  	var ref = findModel( this, keypath ), model = ref.model;
+  	var promise = runloop.start( this.ractive, true );
+  	model.updateFromBindings( cascade );
+  	runloop.end();
+  	return promise;
   }
 
   // two-way binding related helpers
   function isBound () {
-  	var el = this._element;
-
-  	if ( el.binding ) return true;
-  	else return false;
+  	var ref = getBindingModel( this ), model = ref.model;
+  	return !!model;
   }
 
   function getBindingPath ( ractive ) {
-  	var el = this._element;
-
-  	if ( el.binding && el.binding.model ) return el.binding.model.getKeypath( ractive || el.parentFragment.ractive );
+  	var ref = getBindingModel( this ), model = ref.model, instance = ref.instance;
+  	if ( model ) return model.getKeypath( ractive || instance );
   }
 
   function getBinding () {
-  	var el = this._element;
+  	var ref = getBindingModel( this ), model = ref.model;
+  	if ( model ) return model.get( true );
+  }
 
-  	if ( el.binding && el.binding.model ) return el.binding.model.get( true );
+  function getBindingModel ( ctx ) {
+  	var el = ctx._element;
+  	return { model: el.binding && el.binding.model, instance: el.parentFragment.ractive };
   }
 
   function setBinding ( value ) {
-  	return this.ractive.set( this.getBindingPath(), value );
+  	var ref = getBindingModel( this ), model = ref.model;
+  	return set( this.ractive, [ [ model, value ] ] );
   }
 
   // deprecated getters
@@ -3573,8 +4275,10 @@
   		merge: { value: merge },
   		pop: { value: pop },
   		push: { value: push },
-  		set: { value: set },
+  		reverse: { value: reverse },
+  		set: { value: set$1 },
   		shift: { value: shift },
+  		sort: { value: sort },
   		splice: { value: splice },
   		subtract: { value: subtract },
   		toggle: { value: toggle },
@@ -3658,106 +4362,19 @@
   	}
 
   	var promise = runloop.start();
-
   	var model;
-  	var ln = this._links[ here ];
-
-  	if ( ln ) {
-  		if ( ln.source.model.str !== there || ln.dest.model.str !== here ) {
-  			ln.unlink();
-  			delete this._links[ here ];
-  			this.viewmodel.joinAll( splitKeypathI( here ) ).set( ln.initialValue );
-  		} else { // already linked, so nothing to do
-  			runloop.end();
-  			return promise;
-  		}
-  	}
 
   	// may need to allow a mapping to resolve implicitly
   	var sourcePath = splitKeypathI( there );
   	if ( !this.viewmodel.has( sourcePath[0] ) && this.component ) {
   		model = resolveReference( this.component.parentFragment, sourcePath[0] );
-
-  		if ( model ) {
-  			this.viewmodel.map( sourcePath[0], model );
-  		}
+  		model = model.joinAll( sourcePath.slice( 1 ) );
   	}
 
-  	ln = new Link( this.viewmodel.joinAll( sourcePath ), this.viewmodel.joinAll( splitKeypathI( here ) ), this );
-  	this._links[ here ] = ln;
-  	ln.source.handleChange();
+  	this.viewmodel.joinAll( splitKeypathI( here ) ).link( model || this.viewmodel.joinAll( sourcePath ), there );
 
   	runloop.end();
 
-  	return promise;
-  }
-
-  var Link = function Link ( source, dest, ractive ) {
-  	this.source = new LinkSide( source, this );
-  	this.dest = new LinkSide( dest, this );
-  	this.ractive = ractive;
-  	this.locked = false;
-  	this.initialValue = dest.get();
-  };
-
-  Link.prototype.sync = function sync ( side ) {
-  	if ( !this.locked ) {
-  		this.locked = true;
-
-  		if ( side === this.dest ) {
-  			this.source.model.set( this.dest.model.get() );
-  		} else {
-  			this.dest.model.set( this.source.model.get() );
-  		}
-
-  		this.locked = false;
-  	}
-  };
-
-  Link.prototype.unlink = function unlink () {
-  	this.source.model.unregister( this.source );
-  	this.dest.model.unregister( this.dest );
-  };
-
-  var LinkSide = function LinkSide ( model, owner ) {
-  	this.model = model;
-  	this.owner = owner;
-  	model.register( this );
-  };
-
-  LinkSide.prototype.handleChange = function handleChange () {
-  	this.owner.sync( this );
-  };
-
-  var comparators = {};
-
-  function getComparator ( option ) {
-  	if ( !option ) return null; // use existing arrays
-  	if ( option === true ) return JSON.stringify;
-  	if ( typeof option === 'function' ) return option;
-
-  	if ( typeof option === 'string' ) {
-  		return comparators[ option ] || ( comparators[ option ] = function ( thing ) { return thing[ option ]; } );
-  	}
-
-  	throw new Error( 'If supplied, options.compare must be a string, function, or `true`' ); // TODO link to docs
-  }
-
-  function Ractive$merge ( keypath, array, options ) {
-  	var model = this.viewmodel.joinAll( splitKeypathI( keypath ) );
-  	var promise = runloop.start( this, true );
-  	var value = model.get();
-
-  	if ( array === value ) {
-  		throw new Error( 'You cannot merge an array with itself' ); // TODO link to docs
-  	} else if ( !isArray( value ) || !isArray( array ) ) {
-  		throw new Error( 'You cannot merge an array with a non-array' );
-  	}
-
-  	var comparator = getComparator( options && options.compare );
-  	model.merge( array, comparator );
-
-  	runloop.end();
   	return promise;
   }
 
@@ -3771,6 +4388,8 @@
   	this.keys = splitKeypathI( reference );
   	this.resolved = false;
 
+  	this.contexts = [];
+
   	// TODO the consumer should take care of addUnresolved
   	// we attach to all the contexts between here and the root
   	// - whenever their values change, they can quickly
@@ -3778,6 +4397,7 @@
   	while ( fragment ) {
   		if ( fragment.context ) {
   			fragment.context.addUnresolved( this$1.keys[0], this$1 );
+  			this$1.contexts.push( fragment.context );
   		}
 
   		fragment = fragment.componentParent || fragment.parent;
@@ -3803,6 +4423,13 @@
   	this.resolved = true;
   };
 
+  ReferenceResolver.prototype.rebinding = function rebinding ( next, previous ) {
+  	var this$1 = this;
+
+  		if ( previous ) previous.removeUnresolved( this.keys[0], this );
+  	if ( next ) runloop.scheduleTask( function () { return next.addUnresolved( this$1.keys[0], this$1 ); } );
+  };
+
   ReferenceResolver.prototype.unbind = function unbind () {
   	var this$1 = this;
 
@@ -3810,14 +4437,7 @@
 
   	if ( this.resolved ) return;
 
-  	var fragment = this.fragment;
-  	while ( fragment ) {
-  		if ( fragment.context ) {
-  			fragment.context.removeUnresolved( this$1.keys[0], this$1 );
-  		}
-
-  		fragment = fragment.componentParent || fragment.parent;
-  	}
+  	this.contexts.forEach( function ( c ) { return c.removeUnresolved( this$1.keys[0], this$1 ); } );
   };
 
   function observe ( keypath, callback, options ) {
@@ -3968,6 +4588,17 @@
 
   		if ( this.once ) runloop.scheduleTask( function () { return this$1.cancel(); } );
   	}
+  };
+
+  Observer.prototype.rebinding = function rebinding ( next, previous ) {
+  	var this$1 = this;
+
+  		next = rebindMatch( this.keypath, next, previous );
+  	// TODO: set up a resolver if next is undefined?
+  	if ( next === this.model ) return false;
+
+  	if ( this.model ) this.model.unregister( this );
+  	if ( next ) next.addShuffleTask( function () { return this$1.resolved( next ); } );
   };
 
   Observer.prototype.resolved = function resolved ( model ) {
@@ -4321,155 +4952,9 @@
   	return listener;
   }
 
-  // This function takes an array, the name of a mutator method, and the
-  // arguments to call that mutator method with, and returns an array that
-  // maps the old indices to their new indices.
+  var pop$1 = makeArrayMethod( 'pop' ).path;
 
-  // So if you had something like this...
-  //
-  //     array = [ 'a', 'b', 'c', 'd' ];
-  //     array.push( 'e' );
-  //
-  // ...you'd get `[ 0, 1, 2, 3 ]` - in other words, none of the old indices
-  // have changed. If you then did this...
-  //
-  //     array.unshift( 'z' );
-  //
-  // ...the indices would be `[ 1, 2, 3, 4, 5 ]` - every item has been moved
-  // one higher to make room for the 'z'. If you removed an item, the new index
-  // would be -1...
-  //
-  //     array.splice( 2, 2 );
-  //
-  // ...this would result in [ 0, 1, -1, -1, 2, 3 ].
-  //
-  // This information is used to enable fast, non-destructive shuffling of list
-  // sections when you do e.g. `ractive.splice( 'items', 2, 2 );
-
-  function getNewIndices ( length, methodName, args ) {
-  	var spliceArguments, newIndices = [], removeStart, removeEnd, balance, i;
-
-  	spliceArguments = getSpliceEquivalent( length, methodName, args );
-
-  	if ( !spliceArguments ) {
-  		return null; // TODO support reverse and sort?
-  	}
-
-  	balance = ( spliceArguments.length - 2 ) - spliceArguments[1];
-
-  	removeStart = Math.min( length, spliceArguments[0] );
-  	removeEnd = removeStart + spliceArguments[1];
-  	newIndices.startIndex = removeStart;
-
-  	for ( i = 0; i < removeStart; i += 1 ) {
-  		newIndices.push( i );
-  	}
-
-  	for ( ; i < removeEnd; i += 1 ) {
-  		newIndices.push( -1 );
-  	}
-
-  	for ( ; i < length; i += 1 ) {
-  		newIndices.push( i + balance );
-  	}
-
-  	// there is a net shift for the rest of the array starting with index + balance
-  	if ( balance !== 0 ) {
-  		newIndices.touchedFrom = spliceArguments[0];
-  	} else {
-  		newIndices.touchedFrom = length;
-  	}
-
-  	return newIndices;
-  }
-
-
-  // The pop, push, shift an unshift methods can all be represented
-  // as an equivalent splice
-  function getSpliceEquivalent ( length, methodName, args ) {
-  	switch ( methodName ) {
-  		case 'splice':
-  			if ( args[0] !== undefined && args[0] < 0 ) {
-  				args[0] = length + Math.max( args[0], -length );
-  			}
-
-  			if ( args[0] === undefined ) args[0] = 0;
-
-  			while ( args.length < 2 ) {
-  				args.push( length - args[0] );
-  			}
-
-  			if ( typeof args[1] !== 'number' ) {
-  				args[1] = length - args[0];
-  			}
-
-  			// ensure we only remove elements that exist
-  			args[1] = Math.min( args[1], length - args[0] );
-
-  			return args;
-
-  		case 'sort':
-  		case 'reverse':
-  			return null;
-
-  		case 'pop':
-  			if ( length ) {
-  				return [ length - 1, 1 ];
-  			}
-  			return [ 0, 0 ];
-
-  		case 'push':
-  			return [ length, 0 ].concat( args );
-
-  		case 'shift':
-  			return [ 0, length ? 1 : 0 ];
-
-  		case 'unshift':
-  			return [ 0, 0 ].concat( args );
-  	}
-  }
-
-  var arrayProto = Array.prototype;
-
-  function makeArrayMethod ( methodName ) {
-  	return function ( keypath ) {
-  		var args = [], len = arguments.length - 1;
-  		while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
-
-  		var model = this.viewmodel.joinAll( splitKeypathI( keypath ) );
-  		var array = model.get();
-
-  		if ( !isArray( array ) ) {
-  			if ( array === undefined ) {
-  				array = [];
-  				var result$1 = arrayProto[ methodName ].apply( array, args );
-  				return this.set( keypath, array ).then( function () { return result$1; } );
-  			} else {
-  				throw new Error( ("shuffle array method " + methodName + " called on non-array at " + (model.getKeypath())) );
-  			}
-  		}
-
-  		var newIndices = getNewIndices( array.length, methodName, args );
-  		var result = arrayProto[ methodName ].apply( array, args );
-
-  		var promise = runloop.start( this, true ).then( function () { return result; } );
-  		promise.result = result;
-
-  		if ( newIndices ) {
-  			model.shuffle( newIndices );
-  		} else {
-  			model.set( result );
-  		}
-
-  		runloop.end();
-
-  		return promise;
-  	};
-  }
-
-  var pop$1 = makeArrayMethod( 'pop' );
-
-  var push$1 = makeArrayMethod( 'push' );
+  var push$1 = makeArrayMethod( 'push' ).path;
 
   var PREFIX = '/* Ractive.js component styles */';
 
@@ -4722,15 +5207,6 @@
 
   };
 
-  function bind$1 ( fn, context ) {
-  	if ( !/this/.test( fn.toString() ) ) return fn;
-
-  	var bound = fn.bind( context );
-  	for ( var prop in fn ) bound[ prop ] = fn[ prop ];
-
-  	return bound;
-  }
-
   function validate ( data ) {
   	// Warn if userOptions.data is a non-POJO
   	if ( data && data.constructor !== Object ) {
@@ -4776,7 +5252,7 @@
   		// unless it's a non-POJO (in which case alarm bells should ring)
   		if ( result && result.constructor === Object ) {
   			for ( var prop in result ) {
-  				if ( typeof result[ prop ] === 'function' ) result[ prop ] = bind$1( result[ prop ], ractive );
+  				if ( typeof result[ prop ] === 'function' ) result[ prop ] = bind( result[ prop ], ractive );
   			}
   		}
 
@@ -7225,17 +7701,15 @@
   			}
 
   			if ( !unlessBlock ) {
-  				unlessBlock = createUnlessBlock( expression );
+  				unlessBlock = [];
   			}
 
-  			unlessBlock.f.push({
+  			unlessBlock.push({
   				t: SECTION,
   				n: SECTION_IF,
-  				x: flattenExpression( combine$2( conditions.concat( child.x ) ) ),
+  				x: flattenExpression( child.x ),
   				f: children = []
   			});
-
-  			conditions.push( invert( child.x ) );
   		}
 
   		else if ( !aliasOnly && ( child = readElse( parser, tag ) ) ) {
@@ -7251,16 +7725,14 @@
 
   			// use an unless block if there's no elseif
   			if ( !unlessBlock ) {
-  				unlessBlock = createUnlessBlock( expression );
-  				children = unlessBlock.f;
-  			} else {
-  				unlessBlock.f.push({
-  					t: SECTION,
-  					n: SECTION_IF,
-  					x: flattenExpression( combine$2( conditions ) ),
-  					f: children = []
-  				});
+  				unlessBlock = [];
   			}
+
+  			unlessBlock.push({
+  				t: SECTION,
+  				n: SECTION_UNLESS,
+  				f: children = []
+  			});
   		}
 
   		else {
@@ -7291,52 +7763,6 @@
   	}
 
   	return section;
-  }
-
-  function createUnlessBlock ( expression ) {
-  	var unlessBlock = {
-  		t: SECTION,
-  		n: SECTION_UNLESS,
-  		f: []
-  	};
-
-  	refineExpression( expression, unlessBlock );
-  	return unlessBlock;
-  }
-
-  function invert ( expression ) {
-  	if ( expression.t === PREFIX_OPERATOR && expression.s === '!' ) {
-  		return expression.o;
-  	}
-
-  	return {
-  		t: PREFIX_OPERATOR,
-  		s: '!',
-  		o: parensIfNecessary( expression )
-  	};
-  }
-
-  function combine$2 ( expressions ) {
-  	if ( expressions.length === 1 ) {
-  		return expressions[0];
-  	}
-
-  	return {
-  		t: INFIX_OPERATOR,
-  		s: '&&',
-  		o: [
-  			parensIfNecessary( expressions[0] ),
-  			parensIfNecessary( combine$2( expressions.slice( 1 ) ) )
-  		]
-  	};
-  }
-
-  function parensIfNecessary ( expression ) {
-  	// TODO only wrap if necessary
-  	return {
-  		t: BRACKETED,
-  		x: expression
-  	};
   }
 
   var OPEN_COMMENT = '<!--';
@@ -7546,9 +7972,11 @@
 
   		// Split if-else blocks into two (an if, and an unless)
   		if ( item.l ) {
-  			cleanup( item.l.f, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
+  			cleanup( item.l, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
 
-  			items.splice( i + 1, 0, item.l );
+  			item.l.forEach( function ( s ) { return s.l = 1; } );
+  			item.l.unshift( i + 1, 0 );
+  			items.splice.apply( items, item.l );
   			delete item.l; // TODO would be nice if there was a way around this
   		}
 
@@ -8775,6 +9203,10 @@
   	return this.parentFragment.findNextNode( this );
   };
 
+  Item.prototype.shuffled = function shuffled () {
+  	if ( this.fragment ) this.fragment.shuffled();
+  };
+
   Item.prototype.valueOf = function valueOf () {
   	return this.toString();
   };
@@ -8817,10 +9249,6 @@
   	return ComputationChild;
   }(Model));
 
-  function getValue ( model ) {
-  	return model ? model.get( true, true ) : undefined;
-  }
-
   function createResolver ( proxy, ref, index ) {
   	var resolver = proxy.fragment.resolve( ref, function ( model ) {
   		removeFromArray( proxy.resolvers, resolver );
@@ -8841,9 +9269,9 @@
   		this.template = template;
 
   		this.isReadonly = true;
+  		this.dirty = true;
 
   		this.fn = getFunction( template.s, template.r.length );
-  		this.computation = null;
 
   		this.resolvers = [];
   		this.models = this.template.r.map( function ( ref, index ) {
@@ -8856,60 +9284,83 @@
   			return model;
   		});
 
+  		this.shuffle = undefined;
+
   		this.bubble();
   	}
 
   	ExpressionProxy.prototype = Object.create( Model && Model.prototype );
   	ExpressionProxy.prototype.constructor = ExpressionProxy;
 
-  	ExpressionProxy.prototype.bubble = function bubble () {
-  		var this$1 = this;
+  	ExpressionProxy.prototype.bubble = function bubble ( actuallyChanged ) {
+  		// refresh the keypath
+  		if ( actuallyChanged === void 0 ) actuallyChanged = true;
 
-  		var ractive = this.fragment.ractive;
+  		if ( this.registered ) delete this.root.expressions[ this.keypath ];
+  		this.keypath = undefined;
 
-  		// TODO the @ prevents computed props from shadowing keypaths, but the real
-  		// question is why it's a computed prop in the first place... (hint, it's
-  		// to do with {{else}} blocks)
-  		var key = '@' + this.template.s.replace( /_(\d+)/g, function ( match, i ) {
-  			if ( i >= this$1.models.length ) return match;
-
-  			var model = this$1.models[i];
-  			return model ? model.getKeypath() : '@undefined';
-  		});
-
-  		// TODO can/should we reuse computations?
-  		var signature = {
-  			getter: function () {
-  				var values = this$1.models.map( getValue );
-  				return this$1.fn.apply( ractive, values );
-  			},
-  			getterString: key
-  		};
-
-  		var computation = ractive.viewmodel.compute( key, signature );
-
-  		this.value = computation.get(); // TODO should not need this, eventually
-
-  		if ( this.computation ) {
-  			this.computation.unregister( this );
-  			// notify children...
+  		if ( actuallyChanged ) {
+  			this.dirty = true;
+  			this.handleChange();
   		}
-
-  		this.computation = computation;
-  		computation.register( this );
-
-  		this.handleChange();
   	};
 
   	ExpressionProxy.prototype.get = function get ( shouldCapture ) {
-  		return this.computation.get( shouldCapture );
+  		if ( shouldCapture ) capture( this );
+
+  		if ( this.dirty ) {
+  			this.dirty = false;
+  			this.value = this.getValue();
+  			this.adapt();
+  		}
+
+  		return shouldCapture && this.wrapper ? this.wrapper.value : this.value;
   	};
 
   	ExpressionProxy.prototype.getKeypath = function getKeypath () {
-  		return this.computation ? this.computation.getKeypath() : '@undefined';
+  		var this$1 = this;
+
+  		if ( !this.template ) return '@undefined';
+  		if ( !this.keypath ) {
+  			this.keypath = '@' + this.template.s.replace( /_(\d+)/g, function ( match, i ) {
+  				if ( i >= this$1.models.length ) return match;
+
+  				var model = this$1.models[i];
+  				return model ? model.getKeypath() : '@undefined';
+  			});
+
+  			this.root.expressions[ this.keypath ] = this;
+  			this.registered = true;
+  		}
+
+  		return this.keypath;
+  	};
+
+  	ExpressionProxy.prototype.getValue = function getValue () {
+  		var this$1 = this;
+
+  		startCapturing();
+  		var result;
+
+  		try {
+  			var params = this.models.map( function ( m ) { return m ? m.get( true ) : undefined; } );
+  			result = this.fn.apply( this.fragment.ractive, params );
+  		} catch ( err ) {
+  			warnIfDebug( ("Failed to compute " + (this.getKeypath()) + ": " + (err.message || err)) );
+  		}
+
+  		var dependencies = stopCapturing();
+  		if ( this.dependencies ) this.dependencies.forEach( function ( d ) { return d.unregister( this$1 ); } );
+  		this.dependencies = dependencies;
+  		this.dependencies.forEach( function ( d ) { return d.register( this$1 ); } );
+
+  		return result;
   	};
 
   	ExpressionProxy.prototype.handleChange = function handleChange$1 () {
+  		this.dirty = true;
+
+  		this.links.forEach( marked );
   		this.deps.forEach( handleChange );
   		this.children.forEach( handleChange );
 
@@ -8932,17 +9383,31 @@
   		this.handleChange();
   	};
 
+  	ExpressionProxy.prototype.rebinding = function rebinding ( next, previous, safe ) {
+  		var idx = this.models.indexOf( previous );
+
+  		if ( ~idx ) {
+  			next = rebindMatch( this.template.r[idx], next, previous );
+  			if ( next !== previous ) {
+  				previous.unregister( this );
+  				this.models.splice( idx, 1, next );
+  				// TODO: set up a resolver if there is no next?
+  				if ( next ) next.addShuffleRegister( this, 'mark' );
+  			}
+  		}
+  		this.bubble( !safe );
+  	};
+
   	ExpressionProxy.prototype.retrieve = function retrieve () {
   		return this.get();
   	};
 
   	ExpressionProxy.prototype.teardown = function teardown () {
+  		var this$1 = this;
+
   		this.unbind();
   		this.fragment = undefined;
-  		if ( this.computation ) {
-  			this.computation.teardown();
-  		}
-  		this.computation = undefined;
+  		if ( this.dependencies ) this.dependencies.forEach( function ( d ) { return d.unregister( this$1 ); } );
   		Model.prototype.teardown.call(this);
   	};
 
@@ -9010,6 +9475,7 @@
   		Model.call( this, null, null );
   		this.dirty = true;
   		this.root = fragment.ractive.viewmodel;
+  		this.template = template;
 
   		this.resolvers = [];
 
@@ -9027,8 +9493,33 @@
   			this.resolvers.push( baseResolver );
   		}
 
-  		var intermediary = {
-  			handleChange: function () { return this$1.handleChange(); }
+  		var intermediary = this.intermediary = {
+  			handleChange: function () { return this$1.handleChange(); },
+  			rebinding: function ( next, previous ) {
+  				if ( previous === this$1.base ) {
+  					next = rebindMatch( template, next, previous );
+  					if ( next !== this$1.base ) {
+  						this$1.base.unregister( intermediary );
+  						this$1.base = next;
+  						// TODO: if there is no next, set up a resolver?
+  					}
+  				} else {
+  					var idx = this$1.members.indexOf( previous );
+  					if ( ~idx ) {
+  						// only direct references will rebind... expressions handle themselves
+  						next = rebindMatch( template.m[idx].n, next, previous );
+  						if ( next !== this$1.members[idx] ) {
+  							this$1.members.splice( idx, 1, next );
+  							// TODO: if there is no next, set up a resolver?
+  						}
+  					}
+  				}
+
+  				if ( next !== previous ) previous.unregister( intermediary );
+  				if ( next ) next.addShuffleTask( function () { return next.register( intermediary ); } );
+
+  				this$1.bubble();
+  			}
   		};
 
   		this.members = template.m.map( function ( template, i ) {
@@ -9073,36 +9564,7 @@
   	ReferenceExpressionProxy.prototype.constructor = ReferenceExpressionProxy;
 
   	ReferenceExpressionProxy.prototype.bubble = function bubble () {
-  		var this$1 = this;
-
   		if ( !this.base ) return;
-
-  		// if some members are not resolved, abort
-  		var i = this.members.length;
-  		while ( i-- ) {
-  			if ( !this$1.members[i] ) return;
-  		}
-
-  		this.isUnresolved = false;
-
-  		var keys = this.members.map( function ( model ) { return escapeKey( String( model.get() ) ); } );
-  		var model = this.base.joinAll( keys );
-
-  		if ( model === this.model ) return;
-
-  		if ( this.model ) {
-  			this.model.unregister( this );
-  			this.model.unregisterTwowayBinding( this );
-  		}
-
-  		this.model = model;
-  		this.parent = model.parent;
-
-  		model.register( this );
-  		model.registerTwowayBinding( this );
-
-  		if ( this.keypathModel ) this.keypathModel.handleChange();
-
   		if ( !this.dirty ) this.handleChange();
   	};
 
@@ -9113,8 +9575,35 @@
   	};
 
   	ReferenceExpressionProxy.prototype.get = function get ( shouldCapture ) {
+  		var this$1 = this;
+
   		if ( this.dirty ) {
   			this.bubble();
+
+  			var i = this.members.length, resolved = true;
+  			while ( resolved && i-- ) {
+  				if ( !this$1.members[i] ) resolved = false;
+  			}
+
+  			if ( this.base && resolved ) {
+  				var keys = this.members.map( function ( m ) { return escapeKey( String( m.get() ) ); } );
+  				var model = this.base.joinAll( keys );
+
+  				if ( model !== this.model ) {
+  					if ( this.model ) {
+  						this.model.unregister( this );
+  						this.model.unregisterTwowayBinding( this );
+  					}
+
+  					this.model = model;
+  					this.parent = model.parent;
+  					this.model.register( this );
+  					this.model.registerTwowayBinding( this );
+
+  					if ( this.keypathModel ) this.keypathModel.handleChange();
+  				}
+  			}
+
   			this.value = this.model ? this.model.get( shouldCapture ) : undefined;
   			this.dirty = false;
   			this.mark();
@@ -9169,6 +9658,7 @@
   			this.deps.forEach( handleChange );
   		}
 
+  		this.links.forEach( marked );
   		this.children.forEach( mark );
   		this.clearUnresolveds();
   	};
@@ -9176,6 +9666,8 @@
   	ReferenceExpressionProxy.prototype.retrieve = function retrieve () {
   		return this.value;
   	};
+
+  	ReferenceExpressionProxy.prototype.rebinding = function rebinding () { }; // NOOP
 
   	ReferenceExpressionProxy.prototype.set = function set ( value ) {
   		if ( !this.model ) throw new Error( 'Unresolved reference expression. This should not happen!' );
@@ -9202,7 +9694,7 @@
   		return new ExpressionProxy( fragment, template.x );
   	}
 
-  	else {
+  	else if ( template.rx ) {
   		return new ReferenceExpressionProxy( fragment, template.rx );
   	}
   }
@@ -9269,9 +9761,15 @@
   		return this.fragment && this.fragment.firstNode( skipParent );
   	};
 
-  	Alias.prototype.rebind = function rebind () {
-  		resolveAliases( this );
-  		if ( this.fragment ) this.fragment.rebind();
+  	Alias.prototype.rebinding = function rebinding () {
+  		var this$1 = this;
+
+  		if ( this.locked ) return;
+  		this.locked = true;
+  		runloop.scheduleTask( function () {
+  			this$1.locked = false;
+  			resolveAliases( this$1 );
+  		});
   	};
 
   	Alias.prototype.render = function render ( target ) {
@@ -9727,7 +10225,7 @@
 
   		this.owner = options.owner || options.parentFragment.owner || options.element || findElement( options.parentFragment );
   		this.element = options.element || (this.owner.attributeByName ? this.owner : findElement( options.parentFragment ) );
-  		this.parentFragment = this.element.parentFragment; // shared
+  		this.parentFragment = options.parentFragment; // shared
   		this.ractive = this.parentFragment.ractive;
 
   		this.rendered = false;
@@ -9767,6 +10265,7 @@
 
   	Attribute.prototype.bubble = function bubble () {
   		if ( !this.dirty ) {
+  			this.parentFragment.bubble();
   			this.element.bubble();
   			this.dirty = true;
   		}
@@ -9786,10 +10285,6 @@
   	// or can we assume that this.fragment exists?
   	Attribute.prototype.getValue = function getValue () {
   		return this.fragment ? this.fragment.valueOf() : booleanAttributes.test( this.name ) ? true : this.value;
-  	};
-
-  	Attribute.prototype.rebind = function rebind () {
-  		if ( this.fragment ) this.fragment.rebind();
   	};
 
   	Attribute.prototype.render = function render () {
@@ -9908,7 +10403,7 @@
 
   	BindingFlag.prototype.bind = function bind () {
   		if ( this.fragment ) this.fragment.bind();
-  		set$1( this, this.getValue(), true );
+  		set$2( this, this.getValue(), true );
   	};
 
   	BindingFlag.prototype.bubble = function bubble () {
@@ -9925,13 +10420,8 @@
   		else return true;
   	};
 
-  	BindingFlag.prototype.rebind = function rebind () {
-  		this.unbind();
-  		this.bind();
-  	};
-
   	BindingFlag.prototype.render = function render () {
-  		set$1( this, this.getValue(), true );
+  		set$2( this, this.getValue(), true );
   	};
 
   	BindingFlag.prototype.toString = function toString () { return ''; };
@@ -9949,14 +10439,14 @@
   	BindingFlag.prototype.update = function update () {
   		if ( this.dirty ) {
   			if ( this.fragment ) this.fragment.update();
-  			set$1( this, this.getValue(), true );
+  			set$2( this, this.getValue(), true );
   		}
   	};
 
   	return BindingFlag;
   }(Item));
 
-  function set$1 ( flag, value, update ) {
+  function set$2 ( flag, value, update ) {
   	if ( value === 0 ) {
   		flag.value = true;
   	} else if ( value === 'true' ) {
@@ -9997,8 +10487,10 @@
   		this.fragment = new Fragment({
   			ractive: this.ractive,
   			owner: this,
-  			template: [ this.template ]
+  			template: this.template
   		});
+  		// this fragment can't participate in node-y things
+  		this.fragment.findNextNode = noop;
 
   		this.dirty = false;
   	}
@@ -10017,10 +10509,6 @@
   		}
   	};
 
-  	ConditionalAttribute.prototype.rebind = function rebind () {
-  		this.fragment.rebind();
-  	};
-
   	ConditionalAttribute.prototype.render = function render () {
   		this.node = this.owner.node;
   		if ( this.node ) {
@@ -10028,7 +10516,7 @@
   		}
 
   		attributes = true;
-  		this.fragment.render();
+  		if ( !this.rendered ) this.fragment.render();
   		attributes = false;
 
   		this.rendered = true;
@@ -10046,6 +10534,7 @@
 
   	ConditionalAttribute.prototype.unrender = function unrender () {
   		this.rendered = false;
+  		this.fragment.unrender();
   	};
 
   	ConditionalAttribute.prototype.update = function update () {
@@ -10126,6 +10615,9 @@
 
   		var newIndices = getNewIndices( this.length, methodName, args );
 
+  		// lock any magic array wrappers, so that things don't get fudged
+  		this._ractive.wrappers.forEach( function ( r ) { if ( r.magic ) r.magic.locked = true; } );
+
   		// apply the underlying method
   		var result = Array.prototype[ methodName ].apply( this, arguments );
 
@@ -10141,6 +10633,10 @@
   		runloop.end();
 
   		this._ractive.setting = false;
+
+  		// unlock the magic arrays... magic... bah
+  		this._ractive.wrappers.forEach( function ( r ) { if ( r.magic ) r.magic.locked = false; } );
+
   		return result;
   	};
 
@@ -10298,7 +10794,7 @@
 
   var magicAdaptor$1 = magicAdaptor;
 
-  function createOrWrapDescriptor ( originalDescriptor, ractive, keypath ) {
+  function createOrWrapDescriptor ( originalDescriptor, ractive, keypath, wrapper ) {
   	if ( originalDescriptor.set && originalDescriptor.set.__magic ) {
   		originalDescriptor.set.__magic.dependants.push({ ractive: ractive, keypath: keypath });
   		return originalDescriptor;
@@ -10321,6 +10817,7 @@
   				originalDescriptor.set.call( this, value );
   			}
 
+  			if ( wrapper.locked ) return;
   			setting = true;
   			dependants.forEach( function (ref) {
   				var ractive = ref.ractive;
@@ -10368,7 +10865,7 @@
 
   		var childKeypath = keypath ? ("" + keypath + "." + (escapeKey( key ))) : escapeKey( key );
 
-  		var descriptor = createOrWrapDescriptor( originalDescriptor, ractive, childKeypath );
+  		var descriptor = createOrWrapDescriptor( originalDescriptor, ractive, childKeypath, this$1 );
 
 
 
@@ -10410,6 +10907,7 @@
 
   	this.magicWrapper = magicAdaptor$1.wrap( ractive, array, keypath );
   	this.arrayWrapper = arrayAdaptor.wrap( ractive, array, keypath );
+  	this.arrayWrapper.magic = this.magicWrapper;
 
   	// ugh, this really is a terrible hack
   	Object.defineProperty( this, '__model', {
@@ -10555,6 +11053,7 @@
   	Computation.prototype.handleChange = function handleChange$1 () {
   		this.dirty = true;
 
+  		this.links.forEach( marked );
   		this.deps.forEach( handleChange );
   		this.children.forEach( handleChange );
   		this.clearUnresolveds(); // TODO same question as on Model - necessary for primitives?
@@ -10574,6 +11073,11 @@
 
   	Computation.prototype.mark = function mark () {
   		this.handleChange();
+  	};
+
+  	Computation.prototype.rebinding = function rebinding ( next, previous ) {
+  		// computations will grab all of their deps again automagically
+  		if ( next !== previous ) this.handleChange();
   	};
 
   	Computation.prototype.set = function set ( value ) {
@@ -10662,10 +11166,11 @@
   		this.adaptors = options.adapt;
   		this.adapt();
 
-  		this.mappings = {};
-
   		this.computationContext = options.ractive;
   		this.computations = {};
+
+  		// TODO this is only for deprecation of using expression keypaths
+  		this.expressions = {};
   	}
 
   	RootModel.prototype = Object.create( Model && Model.prototype );
@@ -10685,31 +11190,41 @@
   		return computation;
   	};
 
-  	RootModel.prototype.extendChildren = function extendChildren ( fn ) {
-  		var mappings = this.mappings;
-  		Object.keys( mappings ).forEach( function ( key ) {
-  			fn( key, mappings[ key ] );
-  		});
+  	RootModel.prototype.createLink = function createLink ( keypath, target, targetPath ) {
+  		var this$1 = this;
 
-  		var computations = this.computations;
-  		Object.keys( computations ).forEach( function ( key ) {
-  			var computation = computations[ key ];
-  			// exclude template expressions
-  			if ( !computation.isExpression ) {
-  				fn( key, computation );
-  			}
-  		});
+  		var keys = splitKeypathI( keypath );
+
+  		var model = this;
+  		while ( keys.length ) {
+  			var key = keys.shift();
+  			model = this$1.childByKey[ key ] || this$1.joinKey( key );
+  		}
+
+  		return model.link( target, targetPath );
   	};
 
-  	RootModel.prototype.get = function get ( shouldCapture ) {
+  	RootModel.prototype.get = function get ( shouldCapture, options ) {
+  		var this$1 = this;
+
   		if ( shouldCapture ) capture( this );
-  		var result = extendObj( {}, this.value );
 
-  		this.extendChildren( function ( key, model ) {
-  			result[ key ] = model.value;
-  		});
+  		if ( !options || options.virtual !== false ) {
+  			var result = this.getVirtual();
+  			var keys = Object.keys( this.computations );
+  			var i = keys.length;
+  			while ( i-- ) {
+  				var computation = this$1.computations[ keys[i] ];
+  				// exclude template expressions
+  				if ( !computation.isExpression ) {
+  					result[ keys[i] ] = computation.get();
+  				}
+  			}
 
-  		return result;
+  			return result;
+  		} else {
+  			return this.value;
+  		}
   	};
 
   	RootModel.prototype.getKeypath = function getKeypath () {
@@ -10723,9 +11238,17 @@
   	RootModel.prototype.getValueChildren = function getValueChildren () {
   		var children = Model.prototype.getValueChildren.call( this, this.value );
 
-  		this.extendChildren( function ( key, model ) {
-  			children.push( model );
+  		this.children.forEach( function ( child ) {
+  			if ( child._link ) {
+  				var idx = children.indexOf( child );
+  				if ( ~idx ) children.splice( idx, 1, child._link );
+  				else children.push( child._link );
+  			}
   		});
+
+  		for ( var k in this.computations ) {
+  			children.push( this.computations[k] );
+  		}
 
   		return children;
   	};
@@ -10735,12 +11258,15 @@
   	};
 
   	RootModel.prototype.has = function has ( key ) {
-  		if ( ( key in this.mappings ) || ( key in this.computations ) ) return true;
-
   		var value = this.value;
 
   		key = unescapeKey( key );
   		if ( hasProp$1.call( value, key ) ) return true;
+
+  		// mappings/links and computations
+  		if ( key in this.computations || this.childByKey[key] && this.childByKey[key]._link ) return true;
+  		// TODO remove this after deprecation is done
+  		if ( key in this.expressions ) return true;
 
   		// We climb up the constructor chain to find if one of them contains the key
   		var constructor = value.constructor;
@@ -10752,38 +11278,25 @@
   		return false;
   	};
 
-  	RootModel.prototype.joinKey = function joinKey ( key ) {
+  	RootModel.prototype.joinKey = function joinKey ( key, opts ) {
   		if ( key === '@global' ) return GlobalModel$1;
   		if ( key === '@this' ) return this.getRactiveModel();
 
-  		return this.mappings.hasOwnProperty( key ) ? this.mappings[ key ] :
-  		       this.computations.hasOwnProperty( key ) ? this.computations[ key ] :
-  		       Model.prototype.joinKey.call( this, key );
+  		if ( this.expressions.hasOwnProperty( key ) ) {
+  			warnIfDebug( ("Accessing expression keypaths (" + (key.substr(1)) + ") from the instance is deprecated. You can used a getNodeInfo or event object to access keypaths with expression context.") );
+  			return this.expressions[ key ];
+  		}
+
+  		return this.computations.hasOwnProperty( key ) ? this.computations[ key ] :
+  		       Model.prototype.joinKey.call( this, key, opts );
   	};
 
   	RootModel.prototype.map = function map ( localKey, origin ) {
-  		var remapped = this.mappings[ localKey ];
-  		if ( remapped !== origin ) {
-  			if ( remapped ) remapped.unregister( this );
-
-  			this.mappings[ localKey ] = origin;
-  			origin.register( this );
-  		}
-  		return remapped;
+  		var local = this.joinKey( localKey );
+  		local.link( origin );
   	};
 
-  	RootModel.prototype.mark = function mark$1 () {
-  		var this$1 = this;
-
-  		Object.keys( this.mappings ).forEach( function ( k ) { return this$1.mappings[k].mark(); } );
-  		Model.prototype.mark.call(this);
-  	};
-
-  	RootModel.prototype.resetMappings = function resetMappings () {
-  		for ( var k in this.mappings ) {
-  			this.mappings[k].unregister( this );
-  		}
-  		this.mappings = {};
+  	RootModel.prototype.rebinding = function rebinding () {
   	};
 
   	RootModel.prototype.set = function set ( value ) {
@@ -10812,43 +11325,8 @@
   		return this.value;
   	};
 
-  	RootModel.prototype.teardown = function teardown () {
-  		var this$1 = this;
-
-  		var keys = Object.keys( this.mappings );
-  		var i = keys.length;
-  		while ( i-- ){
-  			if ( this$1.mappings[ keys[i] ] ) this$1.mappings[ keys[i] ].unregister( this$1 );
-  		}
-
-  		Model.prototype.teardown.call(this);
-  	};
-
   	RootModel.prototype.update = function update () {
   		// noop
-  	};
-
-  	RootModel.prototype.unmap = function unmap ( localKey ) {
-  		var model = this.mappings[ localKey ];
-  		if ( model ) {
-  			model.unregister( this );
-  			delete this.mappings[ localKey ];
-  		}
-  		return model;
-  	};
-
-  	RootModel.prototype.updateFromBindings = function updateFromBindings ( cascade ) {
-  		var this$1 = this;
-
-  		Model.prototype.updateFromBindings.call( this, cascade );
-
-  		if ( cascade ) {
-  			// TODO computations as well?
-  			Object.keys( this.mappings ).forEach( function ( key ) {
-  				var model = this$1.mappings[ key ];
-  				model.updateFromBindings( cascade );
-  			});
-  		}
   	};
 
   	return RootModel;
@@ -10864,7 +11342,7 @@
   	var setterString;
 
   	if ( typeof signature === 'function' ) {
-  		getter = bind$1( signature, ractive );
+  		getter = bind( signature, ractive );
   		getterString = signature.toString();
   		getterUseStack = true;
   	}
@@ -10879,7 +11357,7 @@
   			getter = createFunctionFromString( signature.get, ractive );
   			getterString = signature.get;
   		} else if ( typeof signature.get === 'function' ) {
-  			getter = bind$1( signature.get, ractive );
+  			getter = bind( signature.get, ractive );
   			getterString = signature.get.toString();
   			getterUseStack = true;
   		} else {
@@ -10887,7 +11365,7 @@
   		}
 
   		if ( typeof signature.set === 'function' ) {
-  			setter = bind$1( signature.set, ractive );
+  			setter = bind( signature.set, ractive );
   			setterString = signature.set.toString();
   		}
   	}
@@ -10950,7 +11428,7 @@
   	}
   }
 
-  function combine$3 ( a, b ) {
+  function combine$2 ( a, b ) {
   	var c = a.slice();
   	var i = b.length;
 
@@ -10967,7 +11445,7 @@
   	protoAdapt = protoAdapt.map( lookup );
   	var adapt = ensureArray( options.adapt ).map( lookup );
 
-  	adapt = combine$3( protoAdapt, adapt );
+  	adapt = combine$2( protoAdapt, adapt );
 
   	var magic = 'magic' in options ? options.magic : ractive.magic;
   	var modifyArrays = 'modifyArrays' in options ? options.modifyArrays : ractive.modifyArrays;
@@ -11029,9 +11507,6 @@
 
   	// observers
   	ractive._observers = [];
-
-  	// links
-  	ractive._links = {};
 
   	if(!ractive.component){
   		ractive.root = ractive;
@@ -11304,10 +11779,11 @@
   				resolver = this$1.parentFragment.resolve( ref, function ( model ) {
   					this$1.models[i] = model;
   					removeFromArray( this$1.resolvers, resolver );
+  					model.register( this$1 );
   				});
 
   				this$1.resolvers.push( resolver );
-  			}
+  			} else model.register( this$1 );
 
   			return model;
   		});
@@ -11415,9 +11891,19 @@
   	}
   };
 
-  EventDirective.prototype.rebind = function rebind () {
-  	this.unbind();
-  	this.bind();
+  EventDirective.prototype.handleChange = function handleChange () {};
+
+  EventDirective.prototype.rebinding = function rebinding ( next, previous ) {
+  	var this$1 = this;
+
+  		if ( !this.models ) return;
+  	var idx = this.models.indexOf( previous );
+
+  	if ( ~idx ) {
+  		this.models.splice( idx, 1, next );
+  		previous.unregister( this );
+  		if ( next ) next.addShuffleTask( function () { return next.register( this$1 ); } );
+  	}
   };
 
   EventDirective.prototype.render = function render () {
@@ -11430,12 +11916,17 @@
   EventDirective.prototype.toString = function toString() { return ''; };
 
   EventDirective.prototype.unbind = function unbind$1 () {
-  	var template = this.template.f;
+  	var this$1 = this;
+
+  		var template = this.template.f;
 
   	if ( template.m ) {
   		if ( this.resolvers ) this.resolvers.forEach( unbind );
   		this.resolvers = [];
 
+  		if ( this.models ) this.models.forEach( function ( m ) {
+  			if ( m.unregister ) m.unregister( this$1 );
+  		});
   		this.models = null;
   	}
 
@@ -11553,6 +12044,7 @@
   		this.attributeByName = {};
 
   		this.attributes = [];
+  		var leftovers = [];
   		( this.template.m || [] ).forEach( function ( template ) {
   			switch ( template.t ) {
   				case ATTRIBUTE:
@@ -11570,14 +12062,16 @@
   					break;
 
   				default:
-  					this$1.attributes.push( new ConditionalAttribute({
-  						owner: this$1,
-  						parentFragment: this$1.parentFragment,
-  						template: template
-  					}) );
+  					leftovers.push( template );
   					break;
   			}
   		});
+
+  		this.attributes.push( new ConditionalAttribute({
+  			owner: this,
+  			parentFragment: this.parentFragment,
+  			template: leftovers
+  		}) );
 
   		this.eventHandlers = [];
   		if ( this.template.v ) this.setupEvents();
@@ -11586,8 +12080,8 @@
   	Component.prototype = Object.create( Item && Item.prototype );
   	Component.prototype.constructor = Component;
 
-  	Component.prototype.bind = function bind$1 () {
-  		this.attributes.forEach( bind );
+  	Component.prototype.bind = function bind$1$$ () {
+  		this.attributes.forEach( bind$1 );
 
   		initialise( this.instance, {
   			partials: this._partials
@@ -11595,7 +12089,7 @@
   			cssIds: this.parentFragment.cssIds
   		});
 
-  		this.eventHandlers.forEach( bind );
+  		this.eventHandlers.forEach( bind$1 );
 
   		this.bound = true;
   	};
@@ -11658,18 +12152,6 @@
   		return this.instance.fragment.firstNode( skipParent );
   	};
 
-  	Component.prototype.rebind = function rebind$1 () {
-  		// implicit mappings can cause issues during shuffles, so remap everythiing as necessary
-  		// TODO: it's probably better not to throw ALL of the mappings away on rebind
-  		this.instance.viewmodel.resetMappings();
-
-  		this.attributes.forEach( rebind );
-
-  		this.liveQueries.forEach( makeDirty );
-
-  		this.instance.fragment.rebind( this.instance.viewmodel );
-  	};
-
   	Component.prototype.render = function render$1$$ ( target, occupants ) {
   		render$1( this.instance, target, null, occupants );
 
@@ -11697,6 +12179,11 @@
   		});
   	};
 
+  	Component.prototype.shuffled = function shuffled () {
+  		this.liveQueries.forEach( makeDirty );
+  		Item.prototype.shuffled.call(this);
+  	};
+
   	Component.prototype.toString = function toString () {
   		return this.instance.toHTML();
   	};
@@ -11716,8 +12203,6 @@
   		if ( instance.fragment.rendered && instance.el.__ractive_instances__ ) {
   			removeFromArray( instance.el.__ractive_instances__, instance );
   		}
-
-  		Object.keys( instance._links ).forEach( function ( k ) { return instance._links[k].unlink(); } );
 
   		teardownHook.fire( instance );
   	};
@@ -11833,14 +12318,18 @@
 
   Decorator.prototype.handleChange = function handleChange () { this.bubble(); };
 
-  Decorator.prototype.rebind = function rebind () {
-  	if ( this.dynamicName ) this.nameFragment.rebind();
-  	if ( this.dynamicArgs ) this.argsFragment.rebind();
-  	if ( this.argsFn ) {
-  		this.unbind();
-  		this.bind();
-  		if ( this.rendered ) this.update();
-  	}
+  Decorator.prototype.rebinding = function rebinding ( next, previous, safe ) {
+  	var idx = this.models.indexOf( previous );
+  	if ( !~idx ) return;
+
+  	next = rebindMatch( this.template.f.a.r[ idx ], next, previous );
+  	if ( next === previous ) return;
+
+  	previous.unregister( this );
+  	this.models.splice( idx, 1, next );
+  	if ( next ) next.addShuffleRegister( this, 'mark' );
+
+  	if ( !safe ) this.bubble();
   };
 
   Decorator.prototype.render = function render () {
@@ -12097,12 +12586,15 @@
   	else return this.lastValue;
   };
 
-  Binding.prototype.rebind = function rebind () {
-  	// TODO what does this work with CheckboxNameBinding et al?
-  	this.unbind();
-  	this.model = this.attribute.interpolator.model;
-  	this.bind();
-  };
+  Binding.prototype.rebinding = function rebinding ( next, previous ) {
+  	var this$1 = this;
+
+  		if ( this.model && this.model === previous ) previous.unregisterTwowayBinding( this );
+  	if ( next ) {
+  		this.model = next;
+  		runloop.scheduleTask( function () { return next.registerTwowayBinding( this$1 ); } );
+  	}
+     };
 
   Binding.prototype.render = function render () {
   	this.node = this.element.node;
@@ -12209,7 +12701,7 @@
 
   var push$2 = [].push;
 
-  function getValue$1() {
+  function getValue() {
   	var all = this.bindings.filter(function ( b ) { return b.node && b.node.checked; }).map(function ( b ) { return b.element.getAttribute( 'value' ); });
   	var res = [];
   	all.forEach(function ( v ) { if ( !arrayContains( res, v ) ) res.push( v ); });
@@ -12225,7 +12717,7 @@
   		// Each input has a reference to an array containing it and its
   		// group, as two-way binding depends on being able to ascertain
   		// the status of all inputs within the group
-  		this.group = getBindingGroup( 'checkboxes', this.model, getValue$1 );
+  		this.group = getBindingGroup( 'checkboxes', this.model, getValue );
   		this.group.add( this );
 
   		if ( this.noInitialValue ) {
@@ -12660,7 +13152,7 @@
   	return RadioBinding;
   }(Binding));
 
-  function getValue$2() {
+  function getValue$1() {
   	var checked = this.bindings.filter( function ( b ) { return b.node.checked; } );
   	if ( checked.length > 0 ) {
   		return checked[0].element.getAttribute( 'value' );
@@ -12671,7 +13163,7 @@
   	function RadioNameBinding ( element ) {
   		Binding.call( this, element, 'name' );
 
-  		this.group = getBindingGroup( 'radioname', this.model, getValue$2 );
+  		this.group = getBindingGroup( 'radioname', this.model, getValue$1 );
   		this.group.add( this );
 
   		if ( element.checked ) {
@@ -12959,6 +13451,7 @@
   		this.attributeByName = {};
 
   		this.attributes = [];
+  		var leftovers = [];
   		( this.template.m || [] ).forEach( function ( template ) {
   			switch ( template.t ) {
   				case ATTRIBUTE:
@@ -12974,14 +13467,16 @@
   					break;
 
   				default:
-  					this$1.attributes.push( new ConditionalAttribute({
-  						owner: this$1,
-  						parentFragment: this$1.parentFragment,
-  						template: template
-  					}) );
+  					leftovers.push( template );
   					break;
   			}
   		});
+
+  		this.attributes.push( new ConditionalAttribute({
+  			owner: this,
+  			parentFragment: this.parentFragment,
+  			template: leftovers
+  		}) );
 
   		var i = this.attributes.length;
   		while ( i-- ) {
@@ -13010,9 +13505,9 @@
   	Element.prototype = Object.create( Item && Item.prototype );
   	Element.prototype.constructor = Element;
 
-  	Element.prototype.bind = function bind$1 () {
+  	Element.prototype.bind = function bind$1$$ () {
   		this.attributes.binding = true;
-  		this.attributes.forEach( bind );
+  		this.attributes.forEach( bind$1 );
   		this.attributes.binding = false;
 
   		if ( this.fragment ) this.fragment.bind();
@@ -13093,15 +13588,6 @@
   	Element.prototype.getAttribute = function getAttribute ( name ) {
   		var attribute = this.attributeByName[ name ];
   		return attribute ? attribute.getValue() : undefined;
-  	};
-
-  	Element.prototype.rebind = function rebind$1 () {
-  		this.attributes.forEach( rebind );
-
-  		if ( this.fragment ) this.fragment.rebind();
-  		if ( this.binding ) this.binding.rebind();
-
-  		this.liveQueries.forEach( makeDirty$1 );
   	};
 
   	Element.prototype.recreateTwowayBinding = function recreateTwowayBinding () {
@@ -13195,6 +13681,11 @@
   		}
 
   		this.rendered = true;
+  	};
+
+  	Element.prototype.shuffled = function shuffled () {
+  		this.liveQueries.forEach( makeDirty$1 );
+  		Item.prototype.shuffled.call(this);
   	};
 
   	Element.prototype.toString = function toString () {
@@ -13437,20 +13928,18 @@
   		this.bubble();
   	};
 
-  	Mustache.prototype.rebind = function rebind () {
-  		if ( this['static'] ) return;
+  	Mustache.prototype.rebinding = function rebinding ( next, previous, safe ) {
+  		next = rebindMatch( this.template, next, previous );
+  		if ( this['static'] ) return false;
+  		if ( next === this.model ) return false;
 
-  		var model = resolve$2( this.parentFragment, this.template );
-
-  		if ( model === this.model ) return;
-
-  		if ( this.model ) this.model.unregister( this );
-
-  		this.model = model;
-
-  		if ( model ) model.register( this );
-
-  		this.handleChange();
+  		if ( this.model ) {
+  			this.model.unregister( this );
+  		}
+  		if ( next ) next.addShuffleRegister( this, 'mark' );
+  		this.model = next;
+  		if ( !safe ) this.handleChange();
+  		return true;
   	};
 
   	Mustache.prototype.unbind = function unbind () {
@@ -13471,6 +13960,11 @@
 
   	Interpolator.prototype = Object.create( Mustache && Mustache.prototype );
   	Interpolator.prototype.constructor = Interpolator;
+
+  	Interpolator.prototype.bubble = function bubble () {
+  		if ( this.owner ) this.owner.bubble();
+  		Mustache.prototype.bubble.call(this);
+  	};
 
   	Interpolator.prototype.detach = function detach () {
   		return detachNode( this.node );
@@ -13599,36 +14093,14 @@
   		}
   	};
 
-  	Mapping.prototype.rebind = function rebind () {
-  		if ( this.fragment ) this.fragment.rebind();
-
-  		if ( this.boundFragment ) this.boundFragment.unbind();
-
-  		// handle remapping
-  		if ( isArray( this.template.f ) ) {
-  			createMapping( this );
-  		}
-  	};
-
   	Mapping.prototype.render = function render () {};
 
   	Mapping.prototype.unbind = function unbind () {
-  		var this$1 = this;
-
   		if ( this.fragment ) this.fragment.unbind();
   		if ( this.boundFragment ) this.boundFragment.unbind();
 
   		if ( this.element.bound ) {
-  			var viewmodel = this.element.instance.viewmodel;
-  			if ( viewmodel.unmap( this.name ) ) {
-  				if ( !this.element.rebinding ) {
-  					this.element.rebinding = true;
-  					runloop.scheduleTask( function () {
-  						this$1.element.rebind();
-  						this$1.element.rebinding = false;
-  					});
-  				}
-  			}
+  			if ( this.link.target === this.model ) this.link.owner.unlink();
   		}
   	};
 
@@ -13646,7 +14118,7 @@
   	return Mapping;
   }(Item));
 
-  function createMapping ( item, check ) {
+  function createMapping ( item ) {
   	var template = item.template.f;
   	var viewmodel = item.element.instance.viewmodel;
   	var childData = viewmodel.value;
@@ -13660,20 +14132,7 @@
   			item.model = item.parentFragment.findContext().joinKey( item.name );
   		}
 
-
-  		if ( check ) {
-  			// map the model and check for remap
-  			var remapped = viewmodel.map( item.name, item.model );
-  			if ( remapped !== item.model && item.element.bound && !item.element.rebinding ) {
-  				item.element.rebinding = true;
-  				runloop.scheduleTask( function () {
-  					item.element.rebind();
-  					item.element.rebinding = false;
-  				});
-  			}
-  		} else {
-  			viewmodel.map( item.name, item.model );
-  		}
+  		item.link = viewmodel.createLink( item.name, item.model, template[0].r );
 
   		if ( item.model.get() === undefined && item.name in childData ) {
   			item.model.set( childData[ item.name ] );
@@ -13993,12 +14452,6 @@
   		this.bubble();
   	};
 
-  	Partial.prototype.rebind = function rebind () {
-  		Mustache.prototype.unbind.call(this);
-  		Mustache.prototype.bind.call(this);
-  		this.fragment.rebind();
-  	};
-
   	Partial.prototype.render = function render ( target, occupants ) {
   		this.fragment.render( target, occupants );
   	};
@@ -14113,7 +14566,8 @@
   	if ( this.isArray = isArray( value ) ) {
   		// we can't use map, because of sparse arrays
   		this.iterations = [];
-  		for ( var i = 0; i < value.length; i += 1 ) {
+  		var max = value.length;
+  		for ( var i = 0; i < max; i += 1 ) {
   			this$1.iterations[i] = this$1.createIteration( i, i );
   		}
   	}
@@ -14236,18 +14690,16 @@
   	return this.iterations[0] ? this.iterations[0].firstNode( skipParent ) : null;
   };
 
-  RepeatedFragment.prototype.rebind = function rebind ( context ) {
+  RepeatedFragment.prototype.rebinding = function rebinding ( next ) {
   	var this$1 = this;
 
-  		this.context = context;
-
+  		this.context = next;
   	this.iterations.forEach( function ( fragment ) {
-  		var model = context.joinKey( fragment.key || fragment.index );
+  		var model = next ? next.joinKey( fragment.key || fragment.index ) : undefined;
   		if ( this$1.owner.template.z ) {
   			fragment.aliases = {};
   			fragment.aliases[ this$1.owner.template.z[0].n ] = model;
   		}
-  		fragment.rebind( model );
   	});
   };
 
@@ -14284,6 +14736,10 @@
   	this.iterations = iterations;
 
   	this.bubble();
+  };
+
+  RepeatedFragment.prototype.shuffled = function shuffled () {
+  	this.iterations.forEach( function ( i ) { return i.shuffled(); } );
   };
 
   RepeatedFragment.prototype.toString = function toString$1$$ ( escape ) {
@@ -14449,13 +14905,13 @@
   		if ( newIndex === -1 ) {
   			removed[ oldIndex ] = fragment;
   		} else if ( fragment.index !== newIndex ) {
-  			fragment.index = newIndex;
   			var model = this$1.context.joinKey( newIndex );
+  			fragment.index = newIndex;
+  			fragment.context = model;
   			if ( this$1.owner.template.z ) {
   				fragment.aliases = {};
   				fragment.aliases[ this$1.owner.template.z[0].n ] = model;
   			}
-  			fragment.rebind( model );
   		}
   	});
 
@@ -14507,6 +14963,8 @@
   	this.iterations.forEach( update );
 
   	this.pendingNewIndices = null;
+
+  	this.shuffled();
   };
 
   function isEmpty ( value ) {
@@ -14528,6 +14986,7 @@
 
   		this.sectionType = options.template.n || null;
   		this.templateSectionType = this.sectionType;
+  		this.subordinate = options.template.l === 1;
   		this.fragment = null;
   	}
 
@@ -14537,11 +14996,16 @@
   	Section.prototype.bind = function bind () {
   		Mustache.prototype.bind.call(this);
 
+  		if ( this.subordinate ) {
+  			this.sibling = this.parentFragment.items[ this.parentFragment.items.indexOf( this ) - 1 ];
+  			this.sibling.nextSibling = this;
+  		}
+
   		// if we managed to bind, we need to create children
   		if ( this.model ) {
   			this.dirty = true;
   			this.update();
-  		} else if (this.sectionType && this.sectionType === SECTION_UNLESS) {
+  		} else if ( this.sectionType && this.sectionType === SECTION_UNLESS && ( !this.sibling || !this.sibling.isTruthy() ) ) {
   			this.fragment = new Fragment({
   				owner: this,
   				template: this.template.f
@@ -14585,11 +15049,17 @@
   		return this.fragment && this.fragment.firstNode( skipParent );
   	};
 
-  	Section.prototype.rebind = function rebind () {
-  		Mustache.prototype.rebind.call(this);
+  	Section.prototype.isTruthy = function isTruthy () {
+  		if ( this.subordinate && this.sibling.isTruthy() ) return true;
+  		var value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();
+  		return !!value && !isEmpty( value );
+  	};
 
-  		if ( this.fragment ) {
-  			this.fragment.rebind( this.sectionType === SECTION_IF || this.sectionType === SECTION_UNLESS ? null : this.model );
+  	Section.prototype.rebinding = function rebinding ( next, previous, safe ) {
+  		if ( Mustache.prototype.rebinding.call( this, next, previous, safe ) ) {
+  			if ( this.fragment && this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS ) {
+  				this.fragment.rebinding( next, previous );
+  			}
   		}
   	};
 
@@ -14620,11 +15090,17 @@
 
   	Section.prototype.update = function update () {
   		if ( !this.dirty ) return;
+
+  		if ( this.fragment && this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS ) {
+  			this.fragment.context = this.model;
+  		}
+
   		if ( !this.model && this.sectionType !== SECTION_UNLESS ) return;
 
   		this.dirty = false;
 
   		var value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();
+  		var siblingFalsey = !this.subordinate || !this.sibling.isTruthy();
   		var lastType = this.sectionType;
 
   		// watch for switching section types
@@ -14684,7 +15160,7 @@
   		}
 
   		else {
-  			var fragmentShouldExist = this.sectionType === SECTION_UNLESS ? isEmpty( value ) : !!value && !isEmpty( value );
+  			var fragmentShouldExist = siblingFalsey && ( this.sectionType === SECTION_UNLESS ? isEmpty( value ) : !!value && !isEmpty( value ) );
 
   			if ( this.fragment ) {
   				if ( fragmentShouldExist ) {
@@ -14722,6 +15198,11 @@
   			}
 
   			this.fragment = newFragment;
+  		}
+
+  		if ( this.nextSibling ) {
+  			this.nextSibling.dirty = true;
+  			this.nextSibling.update();
   		}
   	};
 
@@ -14892,10 +15373,6 @@
 
   	Text.prototype.firstNode = function firstNode () {
   		return this.node;
-  	};
-
-  	Text.prototype.rebind = function rebind () {
-  		// noop
   	};
 
   	Text.prototype.render = function render ( target, occupants ) {
@@ -15465,10 +15942,11 @@
   				resolver = this$1.parentFragment.resolve( ref, function ( model ) {
   					this$1.models[i] = model;
   					removeFromArray( this$1.resolvers, resolver );
+  					model.register( this$1 );
   				});
 
   				this$1.resolvers.push( resolver );
-  			}
+  			} else model.register( this$1 );
 
   			return model;
   		});
@@ -15524,9 +16002,16 @@
   	return extendObj( {}, defaults, params );
   };
 
-  Transition.prototype.rebind = function rebind () {
-  	this.unbind();
-  	this.bind();
+  Transition.prototype.rebinding = function rebinding ( next, previous ) {
+  	var idx = this.models.indexOf( previous );
+  	if ( !~idx ) return;
+
+  	next = rebindMatch( this.template.f.a.r[ idx ], next, previous );
+  	if ( next === previous ) return;
+
+  	previous.unregister( this );
+  	this.models.splice( idx, 1, next );
+  	if ( next ) next.addShuffleRegister( this, 'mark' );
   };
 
   Transition.prototype.registerCompleteHandler = function registerCompleteHandler ( fn ) {
@@ -15881,10 +16366,6 @@
   		return this.fragment.firstNode( skipParent );
   	};
 
-  	Yielder.prototype.rebind = function rebind () {
-  		this.fragment.rebind();
-  	};
-
   	Yielder.prototype.render = function render ( target, occupants ) {
   		return this.fragment.render( target, occupants );
   	};
@@ -16035,11 +16516,12 @@
   		}
 
   		var placeholderId = "" + guid + "-" + (counter++);
+  		var model = item.model || item.newModel;
 
-  		values[ placeholderId ] = item.model ?
-  			item.model.wrapper ?
-  				item.model.wrapper.value :
-  				item.model.get() :
+  		values[ placeholderId ] = model ?
+  			model.wrapper ?
+  				model.wrapper.value :
+  				model.get() :
   			undefined;
 
   		return '${' + placeholderId + '}';
@@ -16074,9 +16556,9 @@
   	this.createItems();
   };
 
-  Fragment.prototype.bind = function bind$1 ( context ) {
+  Fragment.prototype.bind = function bind$1$$ ( context ) {
   	this.context = context;
-  	this.items.forEach( bind );
+  	this.items.forEach( bind$1 );
   	this.bound = true;
 
   	// in rare cases, a forced resolution (or similar) will cause the
@@ -16106,11 +16588,14 @@
   };
 
   Fragment.prototype.createItems = function createItems () {
+  	// this is a hot code path
   	var this$1 = this;
 
-  		this.items = this.template.map( function ( template, index ) {
-  		return createItem({ parentFragment: this$1, template: template, index: index });
-  	});
+  		var max = this.template.length;
+  	this.items = [];
+  	for ( var i = 0; i < max; i++ ) {
+  		this$1.items[i] = createItem({ parentFragment: this$1, template: this$1.template[i], index: i });
+  	}
   };
 
   Fragment.prototype.destroyed = function destroyed () {
@@ -16285,10 +16770,8 @@
   	return this.argsList;
   };
 
-  Fragment.prototype.rebind = function rebind$1 ( context ) {
-  	this.context = context;
-
-  	this.items.forEach( rebind );
+  Fragment.prototype.rebinding = function rebinding ( next ) {
+  	this.context = next;
   };
 
   Fragment.prototype.render = function render ( target, occupants ) {
@@ -16339,6 +16822,10 @@
   	this.resolvers.push( resolver );
 
   	return resolver; // so we can e.g. force resolution
+  };
+
+  Fragment.prototype.shuffled = function shuffled () {
+  	this.items.forEach( function ( i ) { return i.shuffled(); } );
   };
 
   Fragment.prototype.toHtml = function toHtml () {
@@ -16430,50 +16917,19 @@
   	this.transitionsEnabled = transitionsEnabled;
   }
 
-  var reverse = makeArrayMethod( 'reverse' );
+  var reverse$1 = makeArrayMethod( 'reverse' ).path;
 
   function Ractive$set ( keypath, value ) {
-  	var promise = runloop.start( this, true );
+  	var ractive = this;
 
-  	// Set multiple keypaths in one go
-  	if ( isObject( keypath ) ) {
-  		var map = keypath;
-
-  		for ( var k in map ) {
-  			if ( map.hasOwnProperty( k) ) {
-  				set$2( this, k, map[k] );
-  			}
-  		}
-  	}
-  	// Set a single keypath
-  	else {
-  		set$2( this, keypath, value );
-  	}
-
-  	runloop.end();
-
-  	return promise;
+  	return set( ractive, build( ractive, keypath, value ) );
   }
 
+  var shift$1 = makeArrayMethod( 'shift' ).path;
 
-  function set$2 ( ractive, keypath, value ) {
-  	if ( typeof value === 'function' ) value = bind$1( value, ractive );
+  var sort$1 = makeArrayMethod( 'sort' ).path;
 
-  	if ( /\*/.test( keypath ) ) {
-  		ractive.viewmodel.findMatches( splitKeypathI( keypath ) ).forEach( function ( model ) {
-  			model.set( value );
-  		});
-  	} else {
-  		var model = ractive.viewmodel.joinAll( splitKeypathI( keypath ) );
-  		model.set( value );
-  	}
-  }
-
-  var shift$1 = makeArrayMethod( 'shift' );
-
-  var sort = makeArrayMethod( 'sort' );
-
-  var splice$1 = makeArrayMethod( 'splice' );
+  var splice$1 = makeArrayMethod( 'splice' ).path;
 
   function Ractive$subtract ( keypath, d ) {
   	return add( this, keypath, ( d === undefined ? -1 : -d ) );
@@ -16485,8 +16941,6 @@
   // and generally cleaning up after itself
 
   function Ractive$teardown () {
-  	var this$1 = this;
-
   	if ( this.torndown ) {
   		warnIfDebug( 'ractive.teardown() was called on a Ractive instance that was already torn down' );
   		return Promise$1.resolve();
@@ -16505,8 +16959,6 @@
   	this.shouldDestroy = true;
   	var promise = ( this.fragment.rendered ? this.unrender() : Promise$1.resolve() );
 
-  	Object.keys( this._links ).forEach( function ( k ) { return this$1._links[k].unlink(); } );
-
   	teardownHook$1.fire( this );
 
   	return promise;
@@ -16517,19 +16969,7 @@
   		throw new TypeError( badArguments );
   	}
 
-  	var changes;
-
-  	if ( /\*/.test( keypath ) ) {
-  		changes = {};
-
-  		this.viewmodel.findMatches( splitKeypathI( keypath ) ).forEach( function ( model ) {
-  			changes[ model.getKeypath() ] = !model.get();
-  		});
-
-  		return this.set( changes );
-  	}
-
-  	return this.set( keypath, !this.get( keypath ) );
+  	return set( this, gather( this, keypath ).map( function ( m ) { return [ m, !m.get() ]; } ) );
   }
 
   function Ractive$toCSS() {
@@ -16580,15 +17020,10 @@
   }
 
   function unlink$1( here ) {
-  	var ln = this._links[ here ];
-
-  	if ( ln ) {
-  		ln.unlink();
-  		delete this._links[ here ];
-  		return this.set( here, ln.intialValue );
-  	} else {
-  		return Promise$1.resolve( true );
-  	}
+  	var promise = runloop.start();
+  	this.viewmodel.joinAll( splitKeypathI( here ), { lastLink: false } ).unlink();
+  	runloop.end();
+  	return promise;
   }
 
   var unrenderHook$1 = new Hook( 'unrender' );
@@ -16614,42 +17049,7 @@
   	return promise;
   }
 
-  var unshift$1 = makeArrayMethod( 'unshift' );
-
-  var updateHook = new Hook( 'update' );
-
-  function Ractive$update ( keypath ) {
-  	if ( keypath ) keypath = splitKeypathI( keypath );
-
-  	var model = keypath ?
-  		this.viewmodel.joinAll( keypath ) :
-  		this.viewmodel;
-
-  	if ( model.parent && model.parent.wrapper ) return this.update( model.parent.getKeypath( this ) );
-
-  	var promise = runloop.start( this, true );
-
-  	model.mark();
-  	model.registerChange( model.getKeypath(), model.get() );
-
-  	if ( keypath ) {
-  		// there may be unresolved refs that are now resolvable up the context tree
-  		var parent = model.parent;
-  		while ( keypath.length && parent ) {
-  			if ( parent.clearUnresolveds ) parent.clearUnresolveds( keypath.pop() );
-  			parent = parent.parent;
-  		}
-  	}
-
-  	// notify upstream of changes
-  	model.notifyUpstream();
-
-  	runloop.end();
-
-  	updateHook.fire( this, model );
-
-  	return promise;
-  }
+  var unshift$1 = makeArrayMethod( 'unshift' ).path;
 
   function Ractive$updateModel ( keypath, cascade ) {
   	var promise = runloop.start( this, true );
@@ -16680,7 +17080,7 @@
   	getNodeInfo: getNodeInfo,
   	insert: Ractive$insert,
   	link: link$1,
-  	merge: Ractive$merge,
+  	merge: thisRactive$merge,
   	observe: observe,
   	observeList: observeList,
   	observeOnce: observeOnce,
@@ -16695,10 +17095,10 @@
   	reset: Ractive$reset,
   	resetPartial: resetPartial,
   	resetTemplate: Ractive$resetTemplate,
-  	reverse: reverse,
+  	reverse: reverse$1,
   	set: Ractive$set,
   	shift: shift$1,
-  	sort: sort,
+  	sort: sort$1,
   	splice: splice$1,
   	subtract: Ractive$subtract,
   	teardown: Ractive$teardown,
@@ -16943,7 +17343,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.0-edge-49d7a1a8102dde4d3c07d5f47bf7c40218bab88c' },
+  	VERSION:        { value: '0.8.0-edge-a4503a5169bfeb7cb58676b76f05955041474474' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
