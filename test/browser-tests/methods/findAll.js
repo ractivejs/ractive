@@ -39,7 +39,7 @@ export default function() {
 		const lis = ractive.findAll( 'li', { live: true });
 		t.equal( lis.length, 3 );
 
-		ractive.get( 'items' ).push( 'd' );
+		ractive.push( 'items', 'd' );
 		t.equal( lis.length, 4 );
 	});
 

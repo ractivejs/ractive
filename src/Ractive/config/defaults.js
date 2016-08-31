@@ -21,7 +21,7 @@ export default {
 	data:                   {},
 	computed:               {},
 	magic:                  false,
-	modifyArrays:           true,
+	modifyArrays:           false,
 	adapt:                  [],
 	isolated:               false,
 	twoway:                 true,

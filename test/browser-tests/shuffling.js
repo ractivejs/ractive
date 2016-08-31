@@ -466,7 +466,7 @@ export default function() {
 		});
 
 		t.equal( r.findAll( 'div' ).length, 3 );
-		const i = r.get( 'list' ).pop();
+		const i = r.pop( 'list' ).result;
 		r.unshift( 'list', i );
 		t.equal( r.findAll( 'div' ).length, 3 );
 	});
@@ -491,7 +491,7 @@ export default function() {
 		});
 
 		t.equal( count, 3 );
-		const i = r.get( 'list' ).pop();
+		const i = r.pop( 'list' ).result;
 		t.equal( count, 3 );
 		r.unshift( 'list', i );
 		t.equal( count, 4 );
