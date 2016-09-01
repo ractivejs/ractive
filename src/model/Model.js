@@ -9,8 +9,6 @@ import Ticker from '../shared/Ticker';
 import getPrefixer from './helpers/getPrefixer';
 import { unescapeKey } from '../shared/keypaths';
 
-let originatingModel = null;
-
 export default class Model extends ModelBase {
 	constructor ( parent, key ) {
 		super( parent );
@@ -25,6 +23,7 @@ export default class Model extends ModelBase {
 
 			if ( parent.value ) {
 				this.value = parent.value[ this.key ];
+				if ( isArray( this.value ) ) this.length = this.value.length;
 				this.adapt();
 			}
 		}
@@ -133,21 +132,17 @@ export default class Model extends ModelBase {
 		this.parent.clearUnresolveds();
 		this.clearUnresolveds();
 
-		// notify dependants
-		const previousOriginatingModel = originatingModel; // for the array.length special case
-		originatingModel = this;
+		// keep track of array length
+		if ( isArray( value ) ) this.length = value.length;
 
+		// notify dependants
 		this.links.forEach( handleChange );
 		this.children.forEach( mark );
 		this.deps.forEach( handleChange );
 
 		this.notifyUpstream();
 
-		originatingModel = previousOriginatingModel;
-
-		// keep track of array length
-		if ( isArray( value ) ) this.length = value.length;
-		else if ( this.key === 'length' && isArray( this.parent.value ) ) this.parent.length = this.parent.value.length;
+		if ( this.key === 'length' && isArray( this.parent.value ) ) this.parent.length = this.parent.value.length;
 	}
 
 	createBranch ( key ) {
@@ -213,8 +208,12 @@ export default class Model extends ModelBase {
 	}
 
 	merge ( array, comparator ) {
-		const oldArray = comparator ? this.value.map( comparator ) : this.value;
-		const newArray = comparator ? array.map( comparator ) : array;
+		let oldArray = this.value, newArray = array;
+		if ( oldArray === newArray ) oldArray = recreateArray( this );
+		if ( comparator ) {
+			oldArray = oldArray.map( comparator );
+			newArray = newArray.map( comparator );
+		}
 
 		const oldLength = oldArray.length;
 
@@ -246,7 +245,6 @@ export default class Model extends ModelBase {
 		});
 
 		this.parent.value[ this.key ] = array;
-		this._merged = true;
 		this.shuffle( newIndices );
 	}
 
@@ -303,4 +301,14 @@ export default class Model extends ModelBase {
 		if ( this.wrapper ) this.wrapper.teardown();
 		if ( this.keypathModel ) this.keypathModel.teardown();
 	}
+}
+
+function recreateArray( model ) {
+	const array = [];
+
+	for ( let i = 0; i < model.length; i++ ) {
+		array[ i ] = (model.childByKey[i] || {}).value;
+	}
+
+	return array;
 }

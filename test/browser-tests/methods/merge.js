@@ -343,4 +343,51 @@ export default function() {
 		// is its parent
 		return !node.parentNode || node.parentNode instanceof HTMLDocument;
 	}
+
+	test( 'arrays merge safely with themselves', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{list.0.key}}{{#each list}}<span>{{.key}}</span>{{/each}}`,
+			data: {
+				list: [ { key: 'a' }, { key: 'b' } ]
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'a<span>a</span><span>b</span>' );
+		const [ spanA, spanB ] = r.findAll( 'span' );
+		spanA.myId = 'a';
+		spanB.myId = 'b';
+
+		const list = r.get( 'list' );
+		list.unshift({ key: 'c' });
+		let tmp = list[1];
+		list[1] = list[2];
+		list[2] = tmp;
+		r.merge( 'list', list );
+		t.htmlEqual( fixture.innerHTML, 'c<span>c</span><span>b</span><span>a</span>' );
+
+		const [ postC, postB, postA ] = r.findAll( 'span' );
+		t.equal( postA.myId, 'a' );
+		t.equal( postB.myId, 'b' );
+	});
+
+	test( 'arrays merge safely with themselves even if they are not rendered', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: '{{list.0.key}}',
+			data: {
+				list: [ { key: 'a' }, { key: 'b' } ]
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'a' );
+
+		const list = r.get( 'list' );
+		list.unshift({ key: 'c' });
+		let tmp = list[1];
+		list[1] = list[2];
+		list[2] = tmp;
+		r.merge( 'list', list );
+		t.htmlEqual( fixture.innerHTML, 'c' );
+	});
 }

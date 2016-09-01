@@ -146,4 +146,18 @@ export default function() {
 		r.splice( 'arr', undefined, 2, 6, 5 );
 		t.htmlEqual( fixture.innerHTML, '654' );
 	});
+
+	test( 'splicing arrays that have been updated out of band doesn\'t create duplicates', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#each list}}{{.name}}{{/each}}`,
+			data: {
+				list: [ { name: 'a' }, { name: 'b' }, { name: 'c' } ]
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'abc' );
+		r.unshift( 'list', r.get( 'list' ).pop() );
+		t.htmlEqual( fixture.innerHTML, 'cab' );
+	});
 }
