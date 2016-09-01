@@ -425,9 +425,9 @@ export default function() {
 			const done = t.async();
 			t.expect( 3 );
 
-			function trans() {
+			function trans( tr ) {
 				t.ok( true, 'transition actually ran' );
-				return new Promise( ok => setTimeout( ok, 400 ) );
+				setTimeout( () => tr.complete(), 400 );
 			}
 			const r = new Ractive({
 				el: fixture,
