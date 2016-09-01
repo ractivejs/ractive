@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Sep 01 2016 16:39:09 GMT+0000 (UTC) - commit 1c3d20fd84b50ca8dcdb49a1f8824ea0aa1e175f
+	Thu Sep 01 2016 18:46:30 GMT+0000 (UTC) - commit fbaba751cc3b07d2d452766f33eebb99190dc267
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -911,13 +911,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.0-edge-1c3d20fd84b50ca8dcdb49a1f8824ea0aa1e175f %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.0-edge-fbaba751cc3b07d2d452766f33eebb99190dc267 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.0-edge-1c3d20fd84b50ca8dcdb49a1f8824ea0aa1e175f in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.0-edge-fbaba751cc3b07d2d452766f33eebb99190dc267 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		var hasGroup = !!console.groupCollapsed;
@@ -3385,8 +3385,6 @@
   	return prefixers[ rootKeypath ];
   }
 
-  var originatingModel = null;
-
   var Model = (function (ModelBase) {
   	function Model ( parent, key ) {
   		ModelBase.call( this, parent );
@@ -3401,6 +3399,7 @@
 
   			if ( parent.value ) {
   				this.value = parent.value[ this.key ];
+  				if ( isArray( this.value ) ) this.length = this.value.length;
   				this.adapt();
   			}
   		}
@@ -3516,21 +3515,17 @@
   		this.parent.clearUnresolveds();
   		this.clearUnresolveds();
 
-  		// notify dependants
-  		var previousOriginatingModel = originatingModel; // for the array.length special case
-  		originatingModel = this;
+  		// keep track of array length
+  		if ( isArray( value ) ) this.length = value.length;
 
+  		// notify dependants
   		this.links.forEach( handleChange );
   		this.children.forEach( mark );
   		this.deps.forEach( handleChange );
 
   		this.notifyUpstream();
 
-  		originatingModel = previousOriginatingModel;
-
-  		// keep track of array length
-  		if ( isArray( value ) ) this.length = value.length;
-  		else if ( this.key === 'length' && isArray( this.parent.value ) ) this.parent.length = this.parent.value.length;
+  		if ( this.key === 'length' && isArray( this.parent.value ) ) this.parent.length = this.parent.value.length;
   	};
 
   	Model.prototype.createBranch = function createBranch ( key ) {
@@ -3596,8 +3591,12 @@
   	};
 
   	Model.prototype.merge = function merge ( array, comparator ) {
-  		var oldArray = comparator ? this.value.map( comparator ) : this.value;
-  		var newArray = comparator ? array.map( comparator ) : array;
+  		var oldArray = this.value, newArray = array;
+  		if ( oldArray === newArray ) oldArray = recreateArray( this );
+  		if ( comparator ) {
+  			oldArray = oldArray.map( comparator );
+  			newArray = newArray.map( comparator );
+  		}
 
   		var oldLength = oldArray.length;
 
@@ -3629,7 +3628,6 @@
   		});
 
   		this.parent.value[ this.key ] = array;
-  		this._merged = true;
   		this.shuffle( newIndices );
   	};
 
@@ -3691,6 +3689,16 @@
 
   	return Model;
   }(ModelBase));
+
+  function recreateArray( model ) {
+  	var array = [];
+
+  	for ( var i = 0; i < model.length; i++ ) {
+  		array[ i ] = (model.childByKey[i] || {}).value;
+  	}
+
+  	return array;
+  }
 
   var GlobalModel = (function (Model) {
   	function GlobalModel ( ) {
@@ -3999,9 +4007,7 @@
   	var promise = runloop.start( ractive, true );
   	var value = model.get();
 
-  	if ( array === value ) {
-  		throw new Error( 'You cannot merge an array with itself' ); // TODO link to docs
-  	} else if ( !isArray( value ) || !isArray( array ) ) {
+  	if ( !isArray( value ) || !isArray( array ) ) {
   		throw new Error( 'You cannot merge an array with a non-array' );
   	}
 
@@ -12251,6 +12257,7 @@
 
   	newIndices.forEach( function ( newIndex, oldIndex ) {
   		var fragment = this$1.previousIterations[ oldIndex ];
+  		this$1.previousIterations[ oldIndex ] = null;
 
   		if ( newIndex === -1 ) {
   			removed[ oldIndex ] = fragment;
@@ -12263,6 +12270,11 @@
   				fragment.aliases[ this$1.owner.template.z[0].n ] = model;
   			}
   		}
+  	});
+
+  	// if the array was spliced outside of ractive, sometimes there are leftover fragments not in the newIndices
+  	this.previousIterations.forEach( function ( frag, i ) {
+  		if ( frag ) removed[ i ] = frag;
   	});
 
   	// create new/move existing iterations
@@ -14693,7 +14705,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.0-edge-1c3d20fd84b50ca8dcdb49a1f8824ea0aa1e175f' },
+  	VERSION:        { value: '0.8.0-edge-fbaba751cc3b07d2d452766f33eebb99190dc267' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
