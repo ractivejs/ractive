@@ -357,6 +357,7 @@ export default class RepeatedFragment {
 
 		newIndices.forEach( ( newIndex, oldIndex ) => {
 			const fragment = this.previousIterations[ oldIndex ];
+			this.previousIterations[ oldIndex ] = null;
 
 			if ( newIndex === -1 ) {
 				removed[ oldIndex ] = fragment;
@@ -369,6 +370,11 @@ export default class RepeatedFragment {
 					fragment.aliases[ this.owner.template.z[0].n ] = model;
 				}
 			}
+		});
+
+		// if the array was spliced outside of ractive, sometimes there are leftover fragments not in the newIndices
+		this.previousIterations.forEach( ( frag, i ) => {
+			if ( frag ) removed[ i ] = frag;
 		});
 
 		// create new/move existing iterations
