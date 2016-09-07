@@ -80,7 +80,7 @@ npm run build
 
 ## Browser support
 
-Tested successfully in IE8+ and all modern browsers. For legacy browser support, use [the builds with suffix `legacy` in the filename](http://cdn.ractivejs.org/latest/ractive-legacy.js). These builds include polyfills and other essential features required by Ractive. If your experience differs [please let us know](https://github.com/ractivejs/ractive/issues/new)!
+Tested successfully in IE9+ and all modern browsers. For legacy browser support, use [the builds with suffix `legacy` in the filename](http://cdn.ractivejs.org/latest/ractive-legacy.js). These builds include polyfills and other essential features required by Ractive. If your experience differs [please let us know](https://github.com/ractivejs/ractive/issues/new)!
 
 
 ## License
