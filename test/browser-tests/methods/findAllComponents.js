@@ -96,4 +96,161 @@ export default function() {
 		ractive.set( 'shown', false );
 		t.equal( widgets.length, 0 );
 	});
+
+	test( 'findAllComponents searches non-targeted attached children, when asked, last', t => {
+		fixture.innerHTML = '<div></div><div></div>';
+		const r1 = new Ractive({
+			el: fixture.children[0],
+			template: '<cmp />',
+			components: {
+				cmp: Ractive.extend({})
+			}
+		});
+		const r2 = new Ractive({
+			el: fixture.children[1]
+		});
+
+		r1.attachChild( r2 );
+
+		const all = r1.findAllComponents( { remote: true } );
+
+		t.equal( all.length, 2 );
+		t.ok( all[1] === r2 );
+	});
+
+	test( 'findAllComponents searches targeted attached children in order', t => {
+		const r1 = new Ractive({
+			el: fixture,
+			template: '{{>>anchor}}<cmp/>',
+			components: {
+				cmp: Ractive.extend({})
+			}
+		});
+		const r2 = new Ractive({});
+
+		r1.attachChild( r2, { target: 'anchor' } );
+
+		const all = r1.findAllComponents();
+
+		t.equal( all.length, 2 );
+		t.ok( all[0] === r2 );
+	});
+
+	test( 'live findAllComponents searches with attached children stay up to date', t => {
+		fixture.innerHTML = '<div></div><div></div>';
+		const r1 = new Ractive({
+			el: fixture.children[0],
+			template: '{{>>anchor}}<cmp/>',
+			components: {
+				cmp: Ractive.extend({})
+			}
+		});
+		const r2 = new Ractive({});
+		const r3 = new Ractive({
+			el: fixture.children[1],
+		});
+
+		r1.attachChild( r2, { target: 'anchor' } );
+		r1.attachChild( r3 );
+
+		const all = r1.findAllComponents( { live: true } );
+
+		t.equal( all.length, 2 );
+		t.ok( all[0] === r2 );
+
+		r1.detachChild( r3 );
+		t.equal( all.length, 2 );
+		t.ok( all[0] === r2 );
+
+		r1.detachChild( r2 );
+		t.equal( all.length, 1 );
+
+		r1.attachChild( r3 );
+		t.equal( all.length, 1 );
+
+		r1.attachChild( r2, { target: 'anchor' } );
+		t.equal( all.length, 2 );
+		t.ok( all[0] === r2 );
+	});
+
+	test( 'live findAllComponents searches with attached children and remotes stay up to date', t => {
+		fixture.innerHTML = '<div></div><div></div>';
+		const r1 = new Ractive({
+			el: fixture.children[0],
+			template: '{{>>anchor}}<cmp/>',
+			components: {
+				cmp: Ractive.extend({})
+			}
+		});
+		const r2 = new Ractive({});
+		const r3 = new Ractive({
+			el: fixture.children[1],
+		});
+
+		r1.attachChild( r2, { target: 'anchor' } );
+		r1.attachChild( r3 );
+
+		const all = r1.findAllComponents( { live: true, remote: true } );
+
+		t.equal( all.length, 3 );
+		t.ok( all[0] === r2 );
+		t.ok( all[2] === r3 );
+
+		r1.detachChild( r3 );
+		t.equal( all.length, 2 );
+		t.ok( all[0] === r2 );
+
+		r1.detachChild( r2 );
+		t.equal( all.length, 1 );
+
+		r1.attachChild( r3 );
+		t.equal( all.length, 2 );
+		t.ok( all[1] === r3 );
+
+		r1.attachChild( r2, { target: 'anchor' } );
+		t.equal( all.length, 3 );
+		t.ok( all[0] === r2 );
+		t.ok( all[2] === r3 );
+	});
+
+	test( 'live queries update with deeply nested attached components correctly', t => {
+		fixture.innerHTML = '<div></div><div></div>';
+		const cmp = Ractive.extend({
+			template: '<div class="cmp" />'
+		});
+		const r1 = new Ractive({
+			el: fixture.children[0],
+			template: '{{>>anchor}}<div id="r1" />'
+		});
+		const r2 = new Ractive({
+			template: '<div id="r2" /><cmp />',
+			components: { cmp }
+		});
+		const r3 = new Ractive({
+			el: fixture.children[1],
+			template: '<div id="r3" /><cmp />',
+			components: { cmp }
+		});
+
+		r1.attachChild( r2, { target: 'anchor' } );
+		r1.attachChild( r3 );
+
+		let q1 = r1.findAllComponents( { live: true } );
+		let q2 = r1.findAllComponents( { live: true, remote: true } );
+
+		t.equal( q1.length, 2 );
+		t.equal( q2.length, 4 );
+
+		r1.detachChild( r2 );
+		r1.detachChild( r3 );
+
+		t.equal( q1.length, 0 );
+		t.equal( q2.length, 0 );
+
+		r1.attachChild( r2, { target: 'anchor' } );
+		r1.attachChild( r3 );
+
+		t.equal( q1.length, 2 );
+		t.equal( q2.length, 4 );
+	});
 }

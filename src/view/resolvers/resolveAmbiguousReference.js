@@ -50,9 +50,9 @@ export default function resolveAmbiguousReference ( fragment, ref ) {
 			}
 		}
 
-		if ( fragment.componentParent && !fragment.ractive.isolated ) {
+		if ( ( fragment.componentParent || ( !fragment.parent && fragment.ractive.component ) ) && !fragment.ractive.isolated ) {
 			// ascend through component boundary
-			fragment = fragment.componentParent;
+			fragment = fragment.componentParent || fragment.ractive.component.parentFragment;
 			crossedComponentBoundary = true;
 		} else {
 			fragment = fragment.parent;

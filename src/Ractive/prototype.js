@@ -1,6 +1,8 @@
 import add from './prototype/add';
 import animate from './prototype/animate';
+import attachChild from './prototype/attachChild';
 import detach from './prototype/detach';
+import detachChild from './prototype/detachChild';
 import find from './prototype/find';
 import findAll from './prototype/findAll';
 import findAllComponents from './prototype/findAllComponents';
@@ -46,7 +48,9 @@ import updateModel from './prototype/updateModel';
 export default {
 	add,
 	animate,
+	attachChild,
 	detach,
+	detachChild,
 	find,
 	findAll,
 	findAllComponents,

@@ -57,4 +57,50 @@ export default function() {
 		t.ok( find, 'component not found' );
 		t.equal( findAll.length, 1);
 	});
+
+	test( 'findComponent finds non-targeted attached children last when asked', t => {
+		const cmp = Ractive.extend({});
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#if show}}<cmp />{{/if}}`,
+			data: { show: true },
+			components: { cmp }
+		});
+
+		const r2 = new cmp();
+		r.attachChild( r2, { name: 'cmp' } );
+
+		let res = r.findComponent( { remote: true } );
+		t.ok( res && res !== r2 );
+
+		res = r.findComponent( 'cmp', { remote: true } );
+		t.ok( res && res !== r2 );
+
+		r.set( 'show', false );
+		res = r.findComponent( { remote: true } );
+		t.ok( res && res === r2 );
+
+		res = r.findComponent( 'cmp', { remote: true } );
+		t.ok( res && res === r2 );
+	});
+
+	test( 'findComponent finds targeted attached children in template order', t => {
+		const cmp = Ractive.extend({});
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#if show}}{{>>foo}}{{/if}}<cmp />`,
+			data: { show: false },
+			components: { cmp }
+		});
+
+		const r2 = new cmp();
+		r.attachChild( r2, { target: 'foo', name: 'cmp' } );
+
+		let res = r.findComponent( 'cmp' );
+		t.ok( res && res !== r2 );
+
+		r.set( 'show', true );
+		res = r.findComponent( 'cmp' );
+		t.ok( res && res === r2 );
+	});
 }

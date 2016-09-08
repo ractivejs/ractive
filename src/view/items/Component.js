@@ -15,17 +15,6 @@ import EventDirective from './shared/EventDirective';
 import RactiveEvent from './component/RactiveEvent';
 import updateLiveQueries from './component/updateLiveQueries';
 
-function removeFromLiveComponentQueries ( component ) {
-	let instance = component.ractive;
-
-	while ( instance ) {
-		const query = instance._liveComponentQueries[ `_${component.name}` ];
-		if ( query ) query.remove( component );
-
-		instance = instance.parent;
-	}
-}
-
 function makeDirty ( query ) {
 	query.makeDirty();
 }
@@ -143,19 +132,19 @@ export default class Component extends Item {
 		return this.instance.fragment.detach();
 	}
 
-	find ( selector ) {
-		return this.instance.fragment.find( selector );
+	find ( selector, options ) {
+		return this.instance.fragment.find( selector, options );
 	}
 
 	findAll ( selector, query ) {
 		this.instance.fragment.findAll( selector, query );
 	}
 
-	findComponent ( name ) {
+	findComponent ( name, options ) {
 		if ( !name || this.name === name ) return this.instance;
 
 		if ( this.instance.fragment ) {
-			return this.instance.fragment.findComponent( name );
+			return this.instance.fragment.findComponent( name, options );
 		}
 	}
 
@@ -168,11 +157,16 @@ export default class Component extends Item {
 			}
 		}
 
-		this.instance.fragment.findAllComponents( name, query );
+		this.instance.findAllComponents( name, { _query: query } );
 	}
 
 	firstNode ( skipParent ) {
 		return this.instance.fragment.firstNode( skipParent );
+	}
+
+	removeFromQuery ( query ) {
+		query.remove( this.instance );
+		removeFromArray( this.liveQueries, query );
 	}
 
 	render ( target, occupants ) {
@@ -218,8 +212,6 @@ export default class Component extends Item {
 		instance.fragment.unbind();
 		instance._observers.forEach( cancel );
 
-		removeFromLiveComponentQueries( this );
-
 		if ( instance.fragment.rendered && instance.el.__ractive_instances__ ) {
 			removeFromArray( instance.el.__ractive_instances__, instance );
 		}
@@ -235,6 +227,7 @@ export default class Component extends Item {
 		this.attributes.forEach( unrender );
 		this.eventHandlers.forEach( unrender );
 		this.liveQueries.forEach( query => query.remove( this.instance ) );
+		this.liveQueries = [];
 	}
 
 	update () {

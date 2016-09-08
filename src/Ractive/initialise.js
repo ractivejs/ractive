@@ -24,26 +24,8 @@ export default function initialise ( ractive, userOptions, options ) {
 	configHook.fire( ractive );
 	initHook.begin( ractive );
 
-	let fragment;
-
-	// Render virtual DOM
-	if ( ractive.template ) {
-		let cssIds;
-
-		if ( options.cssIds || ractive.cssId ) {
-			cssIds = options.cssIds ? options.cssIds.slice() : [];
-
-			if ( ractive.cssId ) {
-				cssIds.push( ractive.cssId );
-			}
-		}
-
-		ractive.fragment = fragment = new Fragment({
-			owner: ractive,
-			template: ractive.template,
-			cssIds
-		}).bind( ractive.viewmodel );
-	}
+	let fragment = ractive.fragment = createFragment( ractive, options );
+	if ( fragment ) fragment.bind( ractive.viewmodel );
 
 	initHook.end( ractive );
 
@@ -63,5 +45,25 @@ export default function initialise ( ractive, userOptions, options ) {
 				});
 			}
 		}
+	}
+}
+
+export function createFragment ( ractive, options = {} ) {
+	if ( ractive.template ) {
+		let cssIds;
+
+		if ( options.cssIds || ractive.cssId ) {
+			cssIds = options.cssIds ? options.cssIds.slice() : [];
+
+			if ( ractive.cssId ) {
+				cssIds.push( ractive.cssId );
+			}
+		}
+
+		return new Fragment({
+			owner: ractive,
+			template: ractive.template,
+			cssIds
+		});
 	}
 }

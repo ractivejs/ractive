@@ -3,6 +3,7 @@ import Parser from './Parser';
 import readMustache from './converters/readMustache';
 import readTriple from './converters/mustache/readTriple';
 import readUnescaped from './converters/mustache/readUnescaped';
+import readAnchor from './converters/mustache/readAnchor';
 import readPartial from './converters/mustache/readPartial';
 import readMustacheComment from './converters/mustache/readMustacheComment';
 import readInterpolator from './converters/mustache/readInterpolator';
