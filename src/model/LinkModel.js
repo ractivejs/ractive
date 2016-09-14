@@ -24,6 +24,10 @@ export default class LinkModel extends ModelBase {
 		this.target.animate( from, to, options, interpolator );
 	}
 
+	applyValue ( value ) {
+		this.target.applyValue( value );
+	}
+
 	get ( shouldCapture, opts ) {
 		if ( shouldCapture ) capture( this );
 		return this.target.get( false, opts );

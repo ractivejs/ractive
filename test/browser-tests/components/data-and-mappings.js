@@ -1281,4 +1281,37 @@ export default function() {
 		r.set( 'test', 'foo' );
 		t.htmlEqual( fixture.innerHTML, 'foo' );
 	});
+
+	test( 'complex mapped reference expressions update correctly', t => {
+		const cmp = Ractive.extend({
+			template: '<input value="{{foo[wat][yep + \'z\']}}" />',
+			data: {
+				wat: 'bar',
+				yep: 'ba'
+			}
+		});
+		const cmp2 = Ractive.extend({
+			template: '<cmp foo="{{foo[geez][complic + \'ated\']}}" />',
+			data: {
+				geez: 'a',
+				complic: 'complic'
+			},
+			components: { cmp }
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '<cmp foo="{{bop[bat + \'a\'][bip]}}" />',
+			data: {
+				bop: { a: { b: { a: { complicated: { bar: { baz: 'hello' } } } } } },
+				bat: '',
+				bip: 'b'
+			},
+			components: { cmp: cmp2 }
+		});
+
+		const info = r.getNodeInfo( 'input' );
+		t.equal( info.getBinding(), 'hello' );
+		info.setBinding( 'yep' );
+		t.equal( info.getBinding(), 'yep' );
+	});
 }
