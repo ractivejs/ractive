@@ -158,6 +158,7 @@ export default class RepeatedFragment {
 		this.context = next;
 		this.iterations.forEach( fragment => {
 			const model = next ? next.joinKey( fragment.key || fragment.index ) : undefined;
+			fragment.context = model;
 			if ( this.owner.template.z ) {
 				fragment.aliases = {};
 				fragment.aliases[ this.owner.template.z[0].n ] = model;

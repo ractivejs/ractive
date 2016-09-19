@@ -1,5 +1,6 @@
 import { test } from 'qunit';
 import { initModule } from '../test-config';
+import { fire } from 'simulant';
 
 export default function() {
 	initModule( 'methods/unshift.js' );
@@ -109,5 +110,27 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'oneAtwoBC' );
 		ractive.unshift( 'items', { title: 'three' } );
 		t.htmlEqual( fixture.innerHTML, 'threeoneAtwoBC' );
+	});
+
+	test( 'nested contexts in iterative sections update correctly (#2660)', t => {
+		t.expect( 1 );
+
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#each outer}}{{#each .inner}}<button on-click="@this.check(event)">check</button>{{/each}}{{/each}}',
+			data: {
+				outer: [
+					{ inner: [ {} ] }
+				]
+			},
+			check ( ev ) {
+				t.equal( ev.resolve(), 'outer.1.inner.0' );
+			}
+		});
+
+		r.unshift( 'outer', { inner: [ {} ] } );
+		const btn = r.findAll( 'button' )[1];
+
+		fire( btn, 'click' );
 	});
 }
