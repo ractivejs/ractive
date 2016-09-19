@@ -103,43 +103,42 @@ export default class LinkModel extends ModelBase {
 	}
 
 	shuffle ( newIndices ) {
-		if ( this.shuffling ) return;
-		this.shuffling = true;
-		if ( !this.target.shuffling ) this.target.shuffle( newIndices );
+		// let the real model handle firing off shuffles
+		if ( !this.target.shuffling ) {
+			this.target.shuffle( newIndices );
+		} else {
+			let i = newIndices.length;
+			while ( i-- ) {
+				const idx = newIndices[ i ];
+				// nothing is actually changing, so move in the index and roll on
+				if ( i === idx ) {
+					continue;
+				}
 
-		let i = newIndices.length;
-		while ( i-- ) {
-			const idx = newIndices[ i ];
-			// nothing is actually changing, so move in the index and roll on
-			if ( i === idx ) {
-				continue;
+				// rebind the children on i to idx
+				if ( i in this.childByKey ) this.childByKey[ i ].rebinding( !~idx ? undefined : this.joinKey( idx ), this.childByKey[ i ], true );
+
+				if ( !~idx && this.keyModels[ i ] ) {
+					this.keyModels[i].rebinding( undefined, this.keyModels[i], false );
+				} else if ( ~idx && this.keyModels[ i ] ) {
+					if ( !this.keyModels[ idx ] ) this.childByKey[ idx ].getKeyModel( idx );
+					this.keyModels[i].rebinding( this.keyModels[ idx ], this.keyModels[i], false );
+				}
 			}
 
-			// rebind the children on i to idx
-			if ( i in this.childByKey ) this.childByKey[ i ].rebinding( !~idx ? undefined : this.joinKey( idx ), this.childByKey[ i ], true );
+			const upstream = this.source().length !== this.source().value.length;
 
-			if ( !~idx && this.keyModels[ i ] ) {
-				this.keyModels[i].rebinding( undefined, this.keyModels[i], false );
-			} else if ( ~idx && this.keyModels[ i ] ) {
-				if ( !this.keyModels[ idx ] ) this.childByKey[ idx ].getKeyModel( idx );
-				this.keyModels[i].rebinding( this.keyModels[ idx ], this.keyModels[i], false );
+			this.links.forEach( l => l.shuffle( newIndices ) );
+
+			i = this.deps.length;
+			while ( i-- ) {
+				if ( this.deps[i].shuffle ) this.deps[i].shuffle( newIndices );
 			}
+
+			this.marked();
+
+			if ( upstream ) this.notifyUpstream();
 		}
-
-		const upstream = this.source().length !== this.source().value.length;
-
-		this.links.forEach( l => l.shuffle( newIndices ) );
-
-		i = this.deps.length;
-		while ( i-- ) {
-			if ( this.deps[i].shuffle ) this.deps[i].shuffle( newIndices );
-		}
-
-		this.marked();
-
-		if ( upstream ) this.notifyUpstream();
-
-		this.shuffling = false;
 	}
 
 	source () {

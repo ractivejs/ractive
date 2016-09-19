@@ -160,4 +160,29 @@ export default function() {
 		r.unshift( 'list', r.get( 'list' ).pop() );
 		t.htmlEqual( fixture.innerHTML, 'cab' );
 	});
+
+	test( 'splicing a mapped array properly shuffles the mapped model (#2659)', t => {
+		const cmp = Ractive.extend({
+			template: '{{#each list}}<p>{{.name}} {{.sel ? "[x]" : "[ ]"}}</p>{{/each}}',
+			onrender () {
+			}
+		});
+		const r = Ractive({
+			el: fixture,
+			template: '<cmp list="{{items}}" />',
+			components: { cmp },
+			data: {
+				items: [ { name: 'a' }, { name: 'b' }, { name: 'c' } ]
+			}
+		});
+
+		const c = r.findComponent();
+
+		t.htmlEqual( fixture.innerHTML, '<p>a [ ]</p><p>b [ ]</p><p>c [ ]</p>' );
+		c.push( 'list', { name: 'd' }, { name: 'e' } );
+		c.splice( 'list', 0, 1 );
+		c.toggle( 'list.0.sel' );
+		c.set( 'list.0.name', 'z' );
+		t.htmlEqual( fixture.innerHTML, '<p>z [x]</p><p>c [ ]</p><p>d [ ]</p><p>e [ ]</p>' );
+	});
 }
