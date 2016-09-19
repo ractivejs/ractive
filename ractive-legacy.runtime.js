@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Sep 14 2016 14:34:20 GMT+0000 (UTC) - commit 2ec648aaf5296bb88c21812e947e0e42fcc456e3
+	Mon Sep 19 2016 19:57:17 GMT+0000 (UTC) - commit a3390b83446e64abaecdf1282b382cbdc96495e0
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -911,13 +911,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.0-edge-2ec648aaf5296bb88c21812e947e0e42fcc456e3 %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.0-edge-a3390b83446e64abaecdf1282b382cbdc96495e0 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.0-edge-2ec648aaf5296bb88c21812e947e0e42fcc456e3 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.0-edge-a3390b83446e64abaecdf1282b382cbdc96495e0 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		var hasGroup = !!console.groupCollapsed;
@@ -3151,45 +3151,44 @@
   	};
 
   	LinkModel.prototype.shuffle = function shuffle ( newIndices ) {
+  		// let the real model handle firing off shuffles
   		var this$1 = this;
 
-  		if ( this.shuffling ) return;
-  		this.shuffling = true;
-  		if ( !this.target.shuffling ) this.target.shuffle( newIndices );
+  		if ( !this.target.shuffling ) {
+  			this.target.shuffle( newIndices );
+  		} else {
+  			var i = newIndices.length;
+  			while ( i-- ) {
+  				var idx = newIndices[ i ];
+  				// nothing is actually changing, so move in the index and roll on
+  				if ( i === idx ) {
+  					continue;
+  				}
 
-  		var i = newIndices.length;
-  		while ( i-- ) {
-  			var idx = newIndices[ i ];
-  			// nothing is actually changing, so move in the index and roll on
-  			if ( i === idx ) {
-  				continue;
+  				// rebind the children on i to idx
+  				if ( i in this$1.childByKey ) this$1.childByKey[ i ].rebinding( !~idx ? undefined : this$1.joinKey( idx ), this$1.childByKey[ i ], true );
+
+  				if ( !~idx && this$1.keyModels[ i ] ) {
+  					this$1.keyModels[i].rebinding( undefined, this$1.keyModels[i], false );
+  				} else if ( ~idx && this$1.keyModels[ i ] ) {
+  					if ( !this$1.keyModels[ idx ] ) this$1.childByKey[ idx ].getKeyModel( idx );
+  					this$1.keyModels[i].rebinding( this$1.keyModels[ idx ], this$1.keyModels[i], false );
+  				}
   			}
 
-  			// rebind the children on i to idx
-  			if ( i in this$1.childByKey ) this$1.childByKey[ i ].rebinding( !~idx ? undefined : this$1.joinKey( idx ), this$1.childByKey[ i ], true );
+  			var upstream = this.source().length !== this.source().value.length;
 
-  			if ( !~idx && this$1.keyModels[ i ] ) {
-  				this$1.keyModels[i].rebinding( undefined, this$1.keyModels[i], false );
-  			} else if ( ~idx && this$1.keyModels[ i ] ) {
-  				if ( !this$1.keyModels[ idx ] ) this$1.childByKey[ idx ].getKeyModel( idx );
-  				this$1.keyModels[i].rebinding( this$1.keyModels[ idx ], this$1.keyModels[i], false );
+  			this.links.forEach( function ( l ) { return l.shuffle( newIndices ); } );
+
+  			i = this.deps.length;
+  			while ( i-- ) {
+  				if ( this$1.deps[i].shuffle ) this$1.deps[i].shuffle( newIndices );
   			}
+
+  			this.marked();
+
+  			if ( upstream ) this.notifyUpstream();
   		}
-
-  		var upstream = this.source().length !== this.source().value.length;
-
-  		this.links.forEach( function ( l ) { return l.shuffle( newIndices ); } );
-
-  		i = this.deps.length;
-  		while ( i-- ) {
-  			if ( this$1.deps[i].shuffle ) this$1.deps[i].shuffle( newIndices );
-  		}
-
-  		this.marked();
-
-  		if ( upstream ) this.notifyUpstream();
-
-  		this.shuffling = false;
   	};
 
   	LinkModel.prototype.source = function source () {
@@ -14709,7 +14708,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.0-edge-2ec648aaf5296bb88c21812e947e0e42fcc456e3' },
+  	VERSION:        { value: '0.8.0-edge-a3390b83446e64abaecdf1282b382cbdc96495e0' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
