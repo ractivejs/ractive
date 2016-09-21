@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Sep 19 2016 20:56:35 GMT+0000 (UTC) - commit 7d61ca46cd19f3aff9d020897018fc25c0e0a13b
+	Wed Sep 21 2016 18:30:26 GMT+0000 (UTC) - commit 2ebfc29dea8e9ea1e69ce7e64fcf6e6cebe77dc3
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -911,13 +911,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.0-edge-7d61ca46cd19f3aff9d020897018fc25c0e0a13b %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.0-edge-2ebfc29dea8e9ea1e69ce7e64fcf6e6cebe77dc3 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.0-edge-7d61ca46cd19f3aff9d020897018fc25c0e0a13b in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.0-edge-2ebfc29dea8e9ea1e69ce7e64fcf6e6cebe77dc3 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		var hasGroup = !!console.groupCollapsed;
@@ -3075,7 +3075,14 @@
   	};
 
   	LinkModel.prototype.get = function get ( shouldCapture, opts ) {
-  		if ( shouldCapture ) capture( this );
+  		if ( shouldCapture ) {
+  			capture( this );
+
+  			// may need to tell the target to unwrap
+  			opts = opts || {};
+  			opts.unwrap = true;
+  		}
+
   		return this.target.get( false, opts );
   	};
 
@@ -3543,7 +3550,7 @@
   		if ( shouldCapture ) capture( this );
   		// if capturing, this value needs to be unwrapped because it's for external use
   		if ( opts && opts.virtual ) return this.getVirtual( false );
-  		return shouldCapture && this.wrapper ? this.wrapper.value : this.value;
+  		return ( shouldCapture || ( opts && opts.unwrap ) ) && this.wrapper ? this.wrapper.value : this.value;
   	};
 
   	Model.prototype.getKeypathModel = function getKeypathModel ( ractive ) {
@@ -4442,7 +4449,7 @@
   ReferenceResolver.prototype.unbind = function unbind () {
   	var this$1 = this;
 
-  		removeFromArray( this.fragment.unresolved, this );
+  		if ( this.fragment ) removeFromArray( this.fragment.unresolved, this );
 
   	if ( this.resolved ) return;
 
@@ -17363,7 +17370,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.0-edge-7d61ca46cd19f3aff9d020897018fc25c0e0a13b' },
+  	VERSION:        { value: '0.8.0-edge-2ebfc29dea8e9ea1e69ce7e64fcf6e6cebe77dc3' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
