@@ -157,7 +157,7 @@ export default class Model extends ModelBase {
 		if ( shouldCapture ) capture( this );
 		// if capturing, this value needs to be unwrapped because it's for external use
 		if ( opts && opts.virtual ) return this.getVirtual( false );
-		return shouldCapture && this.wrapper ? this.wrapper.value : this.value;
+		return ( shouldCapture || ( opts && opts.unwrap ) ) && this.wrapper ? this.wrapper.value : this.value;
 	}
 
 	getKeypathModel ( ractive ) {

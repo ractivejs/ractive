@@ -589,4 +589,44 @@ export default function() {
 		r.set( 'foo', [] );
 		t.equal( r.get( 'foo.0.bar.0' ), undefined );
 	});
+
+	test( 'adapted values that are mapped should be unwrapped on the mapped side (#2513 part 2)', t => {
+		class Foo {
+			constructor () {
+				this.content = 'sup';
+			}
+
+			bar () { return 'hey'; }
+		}
+
+		const fooAdaptor = {
+			filter ( object ) {
+				return object instanceof Foo;
+			},
+			wrap ( ractive, foo ) {
+				const wrapper = {
+					get () {
+						return foo.content;
+					},
+					teardown () {
+						delete foo._wrapper;
+					}
+				};
+				foo._wrapper = wrapper;
+				return wrapper;
+			}
+		};
+
+		const cmp = Ractive.extend({});
+		const r = new Ractive({
+			el: fixture,
+			template: '<cmp it="{{foo}}" />',
+			data: { foo: new Foo() },
+			adapt: [ fooAdaptor ],
+			components: { cmp }
+		});
+
+		const c = r.findComponent();
+		t.ok( c.get( 'it' ) instanceof Foo, 'value is unwrapped' );
+	});
 }

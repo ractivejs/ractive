@@ -29,7 +29,14 @@ export default class LinkModel extends ModelBase {
 	}
 
 	get ( shouldCapture, opts ) {
-		if ( shouldCapture ) capture( this );
+		if ( shouldCapture ) {
+			capture( this );
+
+			// may need to tell the target to unwrap
+			opts = opts || {};
+			opts.unwrap = true;
+		}
+
 		return this.target.get( false, opts );
 	}
 
