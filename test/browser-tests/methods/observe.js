@@ -1237,4 +1237,20 @@ export default function() {
 		r.set( 'baz', 'hello' );
 		t.equal( val, 'hello' );
 	});
+
+	test( `observers on ambiguous paths should not cause errors if they don't resolve before teardown (#2619)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			onconfig () {
+				this.observe( 'foo', () => {}, { init: false } );
+			}
+		});
+
+		try {
+			r.teardown();
+			t.equal( fixture.innerHTML, '' );
+		} catch (e) {
+			t.ok( false, e.message );
+		}
+	});
 }

@@ -53,7 +53,7 @@ export default class ReferenceResolver {
 	}
 
 	unbind () {
-		removeFromArray( this.fragment.unresolved, this );
+		if ( this.fragment ) removeFromArray( this.fragment.unresolved, this );
 
 		if ( this.resolved ) return;
 
