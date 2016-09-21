@@ -33,7 +33,14 @@ export default function Ractive$resetTemplate ( template ) {
 
 	const docFrag = createDocumentFragment();
 	this.fragment.bind( this.viewmodel ).render( docFrag );
-	this.el.insertBefore( docFrag, this.anchor );
+
+	// if this is a component, its el may not be valid, so find a
+	// target based on the component container
+	if ( component ) {
+		this.fragment.findParentNode().insertBefore( docFrag, component.findNextNode() );
+	} else {
+		this.el.insertBefore( docFrag, this.anchor );
+	}
 
 	this.transitionsEnabled = transitionsEnabled;
 }

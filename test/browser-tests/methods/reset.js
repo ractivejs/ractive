@@ -310,4 +310,27 @@ export default function() {
 
 		t.equal( widget.get( 'foo' ), 'bar' );
 	});
+
+	test( 'resetting the template of a component (#2658)', t => {
+		const cmp = Ractive.extend({
+			template: 'hello'
+		});
+
+		const r = new Ractive({
+			el: fixture,
+			template: '<cmp />',
+			components: { cmp },
+			partials: {
+				cmp: '<cmp />'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'hello' );
+		r.findComponent( 'cmp' ).resetTemplate( 'yep' );
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+		r.resetTemplate( '{{>cmp}}' );
+		t.htmlEqual( fixture.innerHTML, 'hello' );
+		r.findComponent( 'cmp' ).resetTemplate( 'yep' );
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
 }
