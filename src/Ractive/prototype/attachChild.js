@@ -62,6 +62,7 @@ export default function attachChild ( child, options = {} ) {
 	}
 
 	if ( meta.anchor ) meta.anchor.addChild( meta );
+	else if ( !child.isolated ) child.viewmodel.attached( this.fragment );
 
 	runloop.end();
 

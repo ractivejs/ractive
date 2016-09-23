@@ -109,4 +109,21 @@ export default function() {
 		t.ok( !r.get( 'baz' ) );
 		t.ok(r.viewmodel.joinAll(['bip', 'bop']).deps.length === 0);
 	});
+
+	test( 'deeply nested links can be retrieved', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: '{{ bat.bop.bip }}',
+			data: {
+				foo: { bar: { baz: 'yep' } }
+			}
+		});
+
+		r.link( 'foo.bar.baz', 'bat.bop.bip' );
+		t.equal( r.get( 'bat.bop.bip' ), 'yep' );
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+		r.unlink( 'bat.bop.bip' );
+		t.equal( r.get( 'bat.bop.bip' ), undefined );
+		t.htmlEqual( fixture.innerHTML, '' );
+	});
 }

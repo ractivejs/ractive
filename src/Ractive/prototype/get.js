@@ -16,7 +16,7 @@ export default function Ractive$get ( keypath, opts ) {
 			model = resolveReference( this.component.parentFragment, key );
 
 			if ( model ) {
-				this.viewmodel.map( key, model );
+				this.viewmodel.map( key, model, { implicit: true } );
 			}
 		}
 	}

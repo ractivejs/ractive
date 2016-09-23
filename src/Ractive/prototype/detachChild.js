@@ -21,6 +21,7 @@ export default function detachChild ( child ) {
 	const promise = runloop.start( child, true );
 
 	if ( meta.anchor ) meta.anchor.removeChild( meta );
+	if ( !child.isolated ) child.viewmodel.detached();
 
 	runloop.end();
 

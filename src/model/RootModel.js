@@ -6,6 +6,7 @@ import RactiveModel from './specials/RactiveModel';
 import GlobalModel from './specials/GlobalModel';
 import { splitKeypath, unescapeKey } from '../shared/keypaths';
 import { warnIfDebug } from '../utils/log';
+import resolveReference from '../view/resolvers/resolveReference';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
@@ -35,6 +36,10 @@ export default class RootModel extends Model {
 		return this._changeHash;
 	}
 
+	attached ( fragment ) {
+		attachImplicits( this, fragment );
+	}
+
 	compute ( key, signature ) {
 		const computation = new Computation( this, signature, key );
 		this.computations[ key ] = computation;
@@ -42,7 +47,7 @@ export default class RootModel extends Model {
 		return computation;
 	}
 
-	createLink ( keypath, target, targetPath ) {
+	createLink ( keypath, target, targetPath, options ) {
 		const keys = splitKeypath( keypath );
 
 		let model = this;
@@ -51,7 +56,11 @@ export default class RootModel extends Model {
 			model = this.childByKey[ key ] || this.joinKey( key );
 		}
 
-		return model.link( target, targetPath );
+		return model.link( target, targetPath, options );
+	}
+
+	detached () {
+		detachImplicits( this );
 	}
 
 	get ( shouldCapture, options ) {
@@ -128,9 +137,10 @@ export default class RootModel extends Model {
 		       super.joinKey( key, opts );
 	}
 
-	map ( localKey, origin ) {
+	// TODO: this should go away
+	map ( localKey, origin, options ) {
 		const local = this.joinKey( localKey );
-		local.link( origin );
+		local.link( origin, localKey, options );
 	}
 
 	rebinding () {
@@ -164,5 +174,42 @@ export default class RootModel extends Model {
 
 	update () {
 		// noop
+	}
+}
+
+function attachImplicits ( model, fragment ) {
+	if ( model._link && model._link.implicit && model._link.isDetached() ) {
+		model.attach( fragment );
+	}
+
+	// look for unresolveds
+	let i = model.unresolved.length;
+	while ( i-- ) {
+		const mdl = resolveReference( fragment, model.unresolved[i] );
+		if ( mdl ) {
+			model.joinKey( mdl.key ).link( mdl, mdl.key, { implicit: true } );
+		}
+	}
+
+	// look for virtual children to relink and cascade
+	for ( const k in model.childByKey ) {
+		if ( k in model.value ) {
+			attachImplicits( model.childByKey[k], fragment );
+		} else {
+			const mdl = resolveReference( fragment, k );
+			if ( mdl ) {
+				model.childByKey[k].link( mdl, k, { implicit: true } );
+			}
+		}
+	}
+}
+
+function detachImplicits ( model ) {
+	if ( model._link && model._link.implicit ) {
+		model.unlink();
+	}
+
+	for ( const k in model.childByKey ) {
+		detachImplicits( model.childByKey[k] );
 	}
 }

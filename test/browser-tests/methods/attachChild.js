@@ -4,8 +4,7 @@ import { initModule } from '../test-config';
 export default function() {
 	initModule( 'methods/attachChild.js' );
 
-	// TODO: fix this
-	/*test( 'child instances can be attached to parents to inherit data implicitly', t => {
+	test( 'child instances can be attached to parents to inherit data implicitly', t => {
 		const r1 = new Ractive({
 			data: {
 				foo: 'bar'
@@ -18,7 +17,11 @@ export default function() {
 		t.equal( r2.toHTML(), '' );
 		r1.attachChild( r2 );
 		t.equal( r2.toHTML(), 'bar' );
-	});*/
+		r1.detachChild( r2 );
+		t.equal( r2.toHTML(), '' );
+		r1.attachChild( r2 );
+		t.equal( r2.toHTML(), 'bar' );
+	});
 
 	test( 'child instances can be attached to an anchor', t => {
 		const r1 = new Ractive({

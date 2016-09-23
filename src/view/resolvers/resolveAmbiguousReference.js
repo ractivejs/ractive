@@ -43,7 +43,7 @@ export default function resolveAmbiguousReference ( fragment, ref ) {
 
 			if ( fragment.context.has( key ) ) {
 				if ( crossedComponentBoundary ) {
-					return localViewmodel.createLink( key, fragment.context.joinKey( keys.shift() ), key ).joinAll( keys );
+					return localViewmodel.createLink( key, fragment.context.joinKey( keys.shift() ), key, { implicit: true } ).joinAll( keys );
 				}
 
 				return fragment.context.joinAll( keys );

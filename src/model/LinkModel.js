@@ -3,6 +3,24 @@ import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
 import { handleChange, marked, notifiedUpstream, teardown } from '../shared/methodCallers';
 import { rebindMatch } from '../shared/rebind';
+import resolveReference from '../view/resolvers/resolveReference';
+import noop from '../utils/noop';
+
+// temporary placeholder target for detached implicit links
+const missing = {
+	key: '@missing',
+	animate: noop,
+	applyValue: noop,
+	get: noop,
+	getKeypath () { return this.key; },
+	joinAll () { return this; },
+	joinKey () { return this; },
+	mark: noop,
+	shufle: noop,
+	set: noop,
+	unregisterLink: noop
+};
+missing.parent = missing;
 
 export default class LinkModel extends ModelBase {
 	constructor ( parent, owner, target, key ) {
@@ -26,6 +44,19 @@ export default class LinkModel extends ModelBase {
 
 	applyValue ( value ) {
 		this.target.applyValue( value );
+	}
+
+	attach ( fragment ) {
+		const model = resolveReference( fragment, this.key );
+		if ( model ) {
+			this.relinking( model, true, false );
+		} else { // if there is no link available, move everything here to real models
+			this.owner.unlink();
+		}
+	}
+
+	detach () {
+		this.relinking( missing, true, false );
 	}
 
 	get ( shouldCapture, opts ) {
@@ -57,6 +88,8 @@ export default class LinkModel extends ModelBase {
 		this.links.forEach( handleChange );
 		this.notifyUpstream();
 	}
+
+	isDetached () { return this.virtual && this.target === missing; }
 
 	joinKey ( key ) {
 		// TODO: handle nested links
@@ -172,8 +205,9 @@ export default class LinkModel extends ModelBase {
 	}
 }
 
-ModelBase.prototype.link = function link ( model, keypath ) {
+ModelBase.prototype.link = function link ( model, keypath, options ) {
 	const lnk = this._link || new LinkModel( this.parent, this, model, this.key );
+	lnk.implicit = options && options.implicit;
 	lnk.sourcePath = keypath;
 	if ( this._link ) this._link.relinking( model, true, false );
 	this.rebinding( lnk, this, false );

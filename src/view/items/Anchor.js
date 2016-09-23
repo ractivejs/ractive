@@ -19,6 +19,7 @@ export default class Anchor extends Item {
 
 	addChild ( meta ) {
 		addToArray( this.items, meta );
+		if ( !meta.instance.isolated ) meta.instance.viewmodel.attached( this.parentFragment );
 
 		meta.parentFragment = this.parentFragment;
 
