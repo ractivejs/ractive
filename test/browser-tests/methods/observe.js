@@ -1253,4 +1253,28 @@ export default function() {
 			t.ok( false, e.message );
 		}
 	});
+
+	test( `observers that modify their observed keypath should fire again when set to the pre-observed value (#2668)`, t => {
+		let count = 0;
+
+		const r = new Ractive({
+			el: fixture,
+			template: '{{foo}}',
+			data: { foo: 'hello' }
+		});
+
+		r.observe( 'foo', function(v, o, k) {
+			count++;
+			this.set( k, v + '1' );
+		}, { init: false });
+
+		t.htmlEqual( fixture.innerHTML, 'hello' );
+		r.set( 'foo', 'hello' );
+		t.htmlEqual( fixture.innerHTML, 'hello' );
+		r.set( 'foo', 'yep' );
+		t.htmlEqual( fixture.innerHTML, 'yep1' );
+		r.set( 'foo', 'yep' );
+		t.htmlEqual( fixture.innerHTML, 'yep1' );
+		t.equal( count, 2 );
+	});
 }

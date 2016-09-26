@@ -130,7 +130,7 @@ class Observer {
 	dispatch () {
 		if ( !this.cancelled ) {
 			this.callback.call( this.context, this.newValue, this.oldValue, this.keypath );
-			this.oldValue = this.newValue;
+			this.oldValue = this.model ? this.model.get() : this.newValue;
 			this.dirty = false;
 		}
 	}
