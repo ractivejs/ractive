@@ -807,6 +807,11 @@ const parseTests = [
                 ^----`
 	},
 	{
+		name: 'spacing in partial sections',
+		template: '{{ # partial     foo  }}yep{{  / partial }}{{>foo}}',
+		parsed: {v:4,t:[{r:'foo',t:8}],p:{foo:['yep']}}
+	},
+	{
 		name: 'text-only mode',
 		template: `no <elements or="attributes" /> or &amp; entities {{just}} text, [[refs]], and {{#if foo}}sections{{/if}}`,
 		options: {
