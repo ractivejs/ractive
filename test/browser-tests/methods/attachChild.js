@@ -256,6 +256,29 @@ export default function() {
 			done();
 		}, 60 );
 	});
+
+	test( `anchors can supply mappings`, t => {
+		const r1 = new Ractive({
+			template: '{{foo}}'
+		});
+
+		const r2 = new Ractive({
+			el: fixture,
+			template: '{{>>foo foo="{{bar}}"}}',
+			data: {
+				bar: 'yep',
+				baz: 'still yep'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '' );
+		r2.attachChild( r1, { target: 'foo' } );
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+		r2.resetTemplate( '{{>>foo foo="{{baz}}"}}' );
+		t.htmlEqual( fixture.innerHTML, 'still yep' );
+		r2.detachChild( r1 );
+		t.htmlEqual( fixture.innerHTML, '' );
+	});
 }
 
 

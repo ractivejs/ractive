@@ -168,7 +168,7 @@ export default class Model extends ModelBase {
 
 	joinKey ( key, opts ) {
 		if ( this._link ) {
-			if ( opts && !opts.lastLink === false && ( key === undefined || key === '' ) ) return this;
+			if ( opts && opts.lastLink !== false && ( key === undefined || key === '' ) ) return this;
 			return this._link.joinKey( key );
 		}
 
@@ -181,7 +181,7 @@ export default class Model extends ModelBase {
 			this.childByKey[ key ] = child;
 		}
 
-		if ( this.childByKey[ key ]._link ) return this.childByKey[ key ]._link;
+		if ( this.childByKey[ key ]._link && ( !opts || opts.lastLink !== false ) ) return this.childByKey[ key ]._link;
 		return this.childByKey[ key ];
 	}
 

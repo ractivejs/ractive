@@ -9,7 +9,7 @@ export default function readInterpolator ( parser, tag ) {
 
 	// TODO would be good for perf if we could do away with the try-catch
 	try {
-		expression = readExpressionOrReference( parser, [ tag.close ]);
+		expression = readExpressionOrReference( parser, [ tag.close ] );
 	} catch ( e ) {
 		err = e;
 	}

@@ -195,7 +195,7 @@ function attachImplicits ( model, fragment ) {
 	for ( const k in model.childByKey ) {
 		if ( k in model.value ) {
 			attachImplicits( model.childByKey[k], fragment );
-		} else {
+		} else if ( !model.childByKey[k]._link || model.childByKey[k]._link.isDetached() ) {
 			const mdl = resolveReference( fragment, k );
 			if ( mdl ) {
 				model.childByKey[k].link( mdl, k, { implicit: true } );
