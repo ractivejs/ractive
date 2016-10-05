@@ -1,7 +1,7 @@
 import ModelBase, { fireShuffleTasks } from './ModelBase';
 import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
-import { handleChange, marked, teardown } from '../shared/methodCallers';
+import { handleChange, marked, notifiedUpstream, teardown } from '../shared/methodCallers';
 import { rebindMatch } from '../shared/rebind';
 
 export default class LinkModel extends ModelBase {
@@ -80,6 +80,11 @@ export default class LinkModel extends ModelBase {
 
 		this.deps.forEach( handleChange );
 		this.clearUnresolveds();
+	}
+
+	notifiedUpstream () {
+		this.links.forEach( notifiedUpstream );
+		this.deps.forEach( handleChange );
 	}
 
 	relinked () {
