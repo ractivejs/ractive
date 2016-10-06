@@ -1,4 +1,3 @@
-import rAF from '../utils/requestAnimationFrame';
 import getTime from '../utils/getTime';
 import runloop from '../global/runloop';
 
@@ -27,7 +26,7 @@ function tick () {
 	runloop.end();
 
 	if ( tickers.length ) {
-		rAF( tick );
+		requestAnimationFrame( tick );
 	} else {
 		running = false;
 	}
@@ -46,7 +45,7 @@ export default class Ticker {
 		this.running = true;
 
 		tickers.push( this );
-		if ( !running ) rAF( tick );
+		if ( !running ) requestAnimationFrame( tick );
 	}
 
 	tick ( now ) {
