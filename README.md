@@ -85,6 +85,14 @@ npm run build
 
 Tested successfully in all modern browsers. If your experience differs [please let us know](https://github.com/ractivejs/ractive/issues/new)!
 
+Ractive will require the following APIs:
+
+- ES5
+- requestAnimationFrame
+- Promise
+
+Should your target environment lack the mentioned APIs, please shim/polyfill accordingly.
+
 ## Published versions
 
 All builds are published to the default npm registry and can thus be accessed from the lovely unpkg CDN:
@@ -96,7 +104,6 @@ All builds are published to the default npm registry and can thus be accessed fr
 - You can also pull specific builds for specific versions e.g. https://unpkg.com/ractive@0.7.3/ractive.min.js
 - The latest pre-release build in a series is tagged e.g. `v0.8-dev` or `v0.9-dev`, starting with `v0.8`. This dev tag will point to the latest released version in a series if there is no dev build e.g. immediately after a release.
 - `dev` builds are periodically published to npm with a pre-release version like `0.8.1-build-1`, and the latest dev build is tagged `edge`.
-
 
 ## License
 
