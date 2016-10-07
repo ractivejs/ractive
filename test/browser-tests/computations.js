@@ -942,4 +942,20 @@ export default function() {
 		r.shift( 'list' );
 		t.htmlEqual( fixture.innerHTML, '12' );
 	});
+
+	test( `expression proxies shouldn't cause deps to re-order while handling changes from a mapping (#2678)`, t => {
+		const cmp = Ractive.extend({
+			template: '{{yield}}'
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: `<cmp foo="{{#if .foo === 'yep'}}{{foo}}{{/if}}">{{.foo}}</cmp>-{{.foo}}`,
+			data: { foo: 'foo' },
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'foo-foo' );
+		r.set( 'foo', 'yep' );
+		t.htmlEqual( fixture.innerHTML, 'yep-yep' );
+	});
 }

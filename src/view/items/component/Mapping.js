@@ -6,6 +6,7 @@ import findElement from '../shared/findElement';
 import parseJSON from '../../../utils/parseJSON';
 import resolve from '../../resolvers/resolve';
 import { isArray } from '../../../utils/is';
+import runloop from '../../../global/runloop';
 
 export default class Mapping extends Item {
 	constructor ( options ) {
@@ -104,8 +105,11 @@ function createMapping ( item ) {
 		// item is a *bit* of a hack
 		item.boundFragment.bubble = () => {
 			Fragment.prototype.bubble.call( item.boundFragment );
-			item.boundFragment.update();
-			item.model.set( item.boundFragment.valueOf() );
+			// defer this to avoid mucking around model deps if there happens to be an expression involved
+			runloop.scheduleTask(() => {
+				item.boundFragment.update();
+				item.model.set( item.boundFragment.valueOf() );
+			});
 		};
 	}
 }
