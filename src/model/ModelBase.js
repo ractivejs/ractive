@@ -1,7 +1,7 @@
 import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
 import { escapeKey, unescapeKey } from '../shared/keypaths';
-import { handleChange } from '../shared/methodCallers';
+import { handleChange, notifiedUpstream } from '../shared/methodCallers';
 import { addToArray, removeFromArray } from '../utils/array';
 import { isArray, isObject } from '../utils/is';
 import runloop from '../global/runloop';
@@ -194,6 +194,7 @@ export default class ModelBase {
 		let parent = this.parent, prev = this;
 		while ( parent ) {
 			if ( parent.patternObservers.length ) parent.patternObservers.forEach( o => o.notify( prev.key ) );
+			parent.links.forEach( notifiedUpstream );
 			parent.deps.forEach( handleChange );
 			prev = parent;
 			parent = parent.parent;

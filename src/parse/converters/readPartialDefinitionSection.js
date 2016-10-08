@@ -2,7 +2,7 @@ import { INLINE_PARTIAL } from '../../config/types';
 import { READERS } from '../_parse';
 import readClosing from './mustache/section/readClosing';
 
-var partialDefinitionSectionPattern = /^#\s*partial\s+/;
+var partialDefinitionSectionPattern = /^\s*#\s*partial\s+/;
 
 export default function readPartialDefinitionSection ( parser ) {
 	var start, name, content, child, closed;
@@ -26,6 +26,7 @@ export default function readPartialDefinitionSection ( parser ) {
 		parser.error( 'expected legal partial name' );
 	}
 
+	parser.allowWhitespace();
 	if ( !parser.matchString( delimiters[1] ) ) {
 		parser.error( `Expected closing delimiter '${delimiters[1]}'` );
 	}

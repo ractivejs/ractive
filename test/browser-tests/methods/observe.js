@@ -1277,4 +1277,87 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yep1' );
 		t.equal( count, 2 );
 	});
+
+	test( `observers fire properly on upstream links (#2675)`, t => {
+		let count = 0;
+		const cmp = Ractive.extend({
+			template: '{{ JSON.stringify(obj) }}',
+			onrender () {
+				this.observe( 'obj', () => count++, { init: false } );
+			}
+		});
+
+		const r = new Ractive({
+			el: fixture,
+			template: '{{ JSON.stringify(src) }}<cmp obj="{{src}}" />',
+			data: {
+				src: { str: 'yep' }
+			},
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '{"str":"yep"}{"str":"yep"}' );
+		r.set( 'src.str', 'still yep' );
+		t.equal( count, 1 );
+		t.htmlEqual( fixture.innerHTML, '{"str":"still yep"}{"str":"still yep"}' );
+	});
+
+	test( `pattern observers fire properly on upstream links (#2675)`, t => {
+		let val, path, key;
+		const cmp = Ractive.extend({
+			template: '{{ JSON.stringify(obj) }}',
+			onrender () {
+				this.observe( 'obj.*', ( v, o, k, p ) => {
+					val = v;
+					path = k;
+					key = p;
+				}, { init: false } );
+			}
+		});
+
+		const r = new Ractive({
+			el: fixture,
+			template: '{{ JSON.stringify(src) }}<cmp obj="{{src}}" />',
+			data: {
+				src: { str: 'yep' }
+			},
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '{"str":"yep"}{"str":"yep"}' );
+		r.set( 'src.str', 'still yep' );
+		t.equal( val, 'still yep' );
+		t.equal( path, 'obj.str' );
+		t.equal( key, 'str' );
+		t.htmlEqual( fixture.innerHTML, '{"str":"still yep"}{"str":"still yep"}' );
+	});
+
+	test( `observers fire properly on upstream linked links (#2675)`, t => {
+		let count = 0;
+		const cmp2 = Ractive.extend({
+			template: '{{ JSON.stringify(obj) }}',
+			onrender () {
+				this.observe( 'obj', () => count++, { init: false } );
+			}
+		});
+
+		const cmp1 = Ractive.extend({
+			template: '<cmp2 obj="{{middle}}" />',
+			components: { cmp2 }
+		});
+
+		const r = new Ractive({
+			el: fixture,
+			template: '{{ JSON.stringify(src) }}<cmp1 middle="{{src}}" />',
+			data: {
+				src: { str: 'yep' }
+			},
+			components: { cmp1 }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '{"str":"yep"}{"str":"yep"}' );
+		r.set( 'src.str', 'still yep' );
+		t.equal( count, 1 );
+		t.htmlEqual( fixture.innerHTML, '{"str":"still yep"}{"str":"still yep"}' );
+	});
 }
