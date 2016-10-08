@@ -77,9 +77,10 @@ if [ ! -d build ]; then
 fi
 
 echo "> copying library to build folder..."
-mkdir -p build
+mkdir -p build/typings
 cp tmp/*.js build
 cp tmp/*.map build
+cp typings/* build/typings
 
 echo "> copying *.json files to build folder..."
 for FILE in scripts/templates/*.json; do
