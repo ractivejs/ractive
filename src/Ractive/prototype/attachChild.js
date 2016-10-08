@@ -3,6 +3,7 @@ import runloop from '../../global/runloop';
 import updateLiveQueries from '../../view/items/element/updateLiveQueries';
 import updateLiveComponentQueries from '../../view/items/component/updateLiveQueries';
 import { removeFromArray } from '../../utils/array';
+import { unrenderChild, updateAnchors } from '../../shared/anchors';
 
 const attachHook = new Hook( 'attachchild' );
 
@@ -20,23 +21,23 @@ export default function attachChild ( child, options = {} ) {
 		liveQueries: [],
 		target: options.target || false,
 		bubble,
+		findNextNode,
 		removeFromQuery
 	};
-
-	// child should be rendered to an anchor
-	if ( options.target ) {
-		let i = anchors.length;
-		while ( i-- ) {
-			if ( anchors[i].name === options.target ) {
-				meta.anchor = anchors[i];
-				break;
-			}
-		}
-	}
+	meta.nameOption = options.name;
 
 	// child is managing itself
-	else {
+	if ( !meta.target ) {
 		meta.parentFragment = this.fragment;
+		meta.external = true;
+	} else {
+		let list;
+		if ( !( list = children.byName[ meta.target ] ) ) {
+			list = [];
+			this.set( `@this.children.byName.${meta.target}`, list );
+		}
+		const idx = options.prepend ? 0 : options.insertAt || list.length;
+		list.splice( idx, 0, meta );
 	}
 
 	child.parent = this;
@@ -48,21 +49,17 @@ export default function attachChild ( child, options = {} ) {
 	const promise = runloop.start( child, true );
 
 	if ( meta.target ) {
-		if ( child.fragment.rendered ) {
-			meta.shouldDestroy = true;
-			child.unrender();
-		}
-		child.el = null;
+		unrenderChild( meta );
+		this.merge( `@this.children.byName.${meta.target}`, children.byName[ meta.target ] );
+		updateAnchors( this, meta.target );
 	} else {
+		if ( !child.isolated ) child.viewmodel.attached( this.fragment );
 		if ( child.fragment.rendered ) {
 			child.findAll( '*' ).forEach( el => updateLiveQueries( el._ractive.proxy ) );
 			child.findAllComponents().forEach( cmp => updateLiveComponentQueries( cmp.component ) );
 			updateLiveComponentQueries( meta );
 		}
 	}
-
-	if ( meta.anchor ) meta.anchor.addChild( meta );
-	else if ( !child.isolated ) child.viewmodel.attached( this.fragment );
 
 	runloop.end();
 
@@ -77,3 +74,6 @@ function removeFromQuery ( query ) {
 	removeFromArray( this.liveQueries, query );
 }
 
+function findNextNode () {
+	if ( this.anchor ) return this.anchor.findNextNode();
+}

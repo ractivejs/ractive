@@ -103,4 +103,27 @@ export default function() {
 		res = r.findComponent( 'cmp' );
 		t.ok( res && res === r2 );
 	});
+
+	test( 'findComponent finds anchored components by anchor name when the instance has no name', t => {
+		const cmp = new Ractive();
+		const r = new Ractive({
+			el: fixture,
+			template: '{{>>foo}}'
+		});
+
+		r.attachChild( cmp, { target: 'foo' } );
+		t.ok( r.findComponent( 'foo' ) === cmp, 'same instance' );
+	});
+
+	test( 'findComponent finds anchored components by given name when the instance has one', t => {
+		const cmp = new Ractive();
+		const r = new Ractive({
+			el: fixture,
+			template: '{{>>foo}}'
+		});
+
+		r.attachChild( cmp, { target: 'foo', name: 'bar' } );
+		t.ok( r.findComponent( 'bar' ) === cmp, 'same instance' );
+		t.ok( r.findComponent( 'foo' ) === undefined, 'no instance' );
+	});
 }

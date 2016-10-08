@@ -103,7 +103,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="r1">r1</div><div id="r2"></div>' );
 	});
 
-	test( 'single tenant anchors render the latest available child', t => {
+	test( 'anchors render the attached chile with an index corresponding to their position in the template', t => {
 		const r1 = new Ractive({
 			template: '{{>>foo}}',
 			el: fixture
@@ -119,16 +119,16 @@ export default function() {
 		r1.attachChild( r2, { target: 'foo' } );
 		t.equal( fixture.innerHTML, 'hello' );
 		r1.attachChild( r3, { target: 'foo' } );
-		t.equal( fixture.innerHTML, 'world' );
+		t.equal( fixture.innerHTML, 'hello' );
 		r1.detachChild( r3 );
 		t.equal( fixture.innerHTML, 'hello' );
 		r1.detachChild( r2 );
 		t.equal( fixture.innerHTML, '' );
 	});
 
-	test( 'multitenant anchors render instances as they attach', t => {
+	test( 'same-named anchors distribute multiple attached children in template order by attached index', t => {
 		const r1 = new Ractive({
-			template: '{{>>foo multi}}',
+			template: '{{#each @this.children.byName.foo}}{{>>foo}}{{/each}}',
 			el: fixture
 		});
 		const r2 = new Ractive({
@@ -278,6 +278,102 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'still yep' );
 		r2.detachChild( r1 );
 		t.htmlEqual( fixture.innerHTML, '' );
+	});
+
+	test( `children default to attach append`, t => {
+		const r1 = new Ractive({
+			template: 'r1'
+		});
+		const r2 = new Ractive({
+			template: 'r2'
+		});
+		const r3 = new Ractive({
+			template: 'r3'
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '{{>>foo}}{{>>foo}}{{>>foo}}'
+		});
+
+		r.attachChild( r1, { target: 'foo' } );
+		r.attachChild( r2, { target: 'foo' } );
+		r.attachChild( r3, { target: 'foo', append: true } );
+		t.htmlEqual( fixture.innerHTML, 'r1r2r3' );
+	});
+
+	test( `children can be attached prepend`, t => {
+		const r1 = new Ractive({
+			template: 'r1'
+		});
+		const r2 = new Ractive({
+			template: 'r2'
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '{{>>foo}}{{>>foo}}{{>>foo}}'
+		});
+
+		r.attachChild( r1, { target: 'foo' } );
+		r.attachChild( r2, { target: 'foo', prepend: true } );
+		t.htmlEqual( fixture.innerHTML, 'r2r1' );
+	});
+
+	test( `children can be inserted at a specific index`, t => {
+		const r1 = new Ractive({
+			template: 'r1'
+		});
+		const r2 = new Ractive({
+			template: 'r2'
+		});
+		const r3 = new Ractive({
+			template: 'r3'
+		});
+		const r4 = new Ractive({
+			template: 'r4'
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '{{>>foo}}{{>>foo}}{{>>foo}}{{>>foo}}'
+		});
+
+		r.attachChild( r1, { target: 'foo' } );
+		r.attachChild( r2, { target: 'foo' } );
+		r.attachChild( r3, { target: 'foo', insertAt: 1 } );
+		r.attachChild( r4, { target: 'foo', insertAt: 1 } );
+		t.htmlEqual( fixture.innerHTML, 'r1r4r3r2' );
+	});
+
+	test( `attached children can have their templates reset`, t => {
+		fixture.innerHTML = '<div id="r1-spot"></div><div id="r2-spot"></div>';
+		const r1 = new Ractive({
+			el: fixture.querySelector( '#r1-spot' ),
+			template: 'r1'
+		});
+		const r2 = new Ractive({
+			el: fixture.querySelector( '#r2-spot' ),
+			template: 'r2'
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div id="r1-spot">r1</div><div id="r2-spot">r2</div>' );
+		r2.attachChild( r1 );
+		r1.resetTemplate( 'hey1' );
+		r2.resetTemplate( 'hey2' );
+		t.htmlEqual( fixture.innerHTML, '<div id="r1-spot">hey1</div><div id="r2-spot">hey2</div>' );
+	});
+
+	test( `attached anchored children can have their templates reset`, t => {
+		const r1 = new Ractive({
+			template: 'r1'
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '{{>>foo}}'
+		});
+
+		r.attachChild( r1, { target: 'foo' } );
+		t.htmlEqual( fixture.innerHTML, 'r1' );
+		r1.resetTemplate( 'hey1' );
+		t.htmlEqual( fixture.innerHTML, 'hey1' );
 	});
 }
 

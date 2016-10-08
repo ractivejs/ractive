@@ -141,7 +141,8 @@ function initialiseProperties ( ractive ) {
 
 	// external children
 	ractive._children = [];
-	ractive._anchors = [];
+	ractive._children.byName = {};
+	ractive.children = ractive._children;
 
 	if(!ractive.component){
 		ractive.root = ractive;

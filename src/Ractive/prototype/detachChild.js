@@ -1,5 +1,6 @@
 import Hook from '../../events/Hook';
 import runloop from '../../global/runloop';
+import { updateAnchors } from '../../shared/anchors';
 
 const detachHook = new Hook( 'detachchild' );
 
@@ -26,12 +27,17 @@ export default function detachChild ( child ) {
 	runloop.end();
 
 	children.splice( index, 1 );
+	if ( meta.target ) {
+		const list = children.byName[ meta.target ];
+		list.splice( list.indexOf( meta ), 1 );
+		updateAnchors( this, meta.target );
+	}
 	child.parent = null;
 	child.component = null;
 
 	detachHook.fire( child );
 
-	if ( !meta.anchor && child.fragment.rendered ) {
+	if ( !meta.target && child.fragment.rendered ) {
 		// keep live queries up to date
 		child.findAll( '*' ).forEach( el => {
 			el._ractive.proxy.liveQueries.forEach( q => {

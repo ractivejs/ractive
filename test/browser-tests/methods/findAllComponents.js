@@ -253,4 +253,32 @@ export default function() {
 		t.equal( q1.length, 2 );
 		t.equal( q2.length, 4 );
 	});
+
+	test( 'findAllComponents finds anchored components by anchor name when there is no instance name', t => {
+		const cmp1 = new Ractive(), cmp2 = new Ractive();
+		const r = new Ractive({
+			el: fixture,
+			template: '{{>>foo}}{{>>bar}}'
+		});
+
+		r.attachChild( cmp2, { target: 'foo' } );
+		r.attachChild( cmp1, { target: 'bar' } );
+		t.ok( r.findAllComponents( 'foo' )[0] === cmp2, 'same instance' );
+		t.ok( r.findAllComponents( 'bar' )[0] === cmp1, 'same instance' );
+	});
+
+	test( 'findAllComponents finds anchored components by instance name when available', t => {
+		const cmp1 = new Ractive(), cmp2 = new Ractive();
+		const r = new Ractive({
+			el: fixture,
+			template: '{{>>foo}}{{>>bar}}'
+		});
+
+		r.attachChild( cmp2, { target: 'foo', name: 'baz' } );
+		r.attachChild( cmp1, { target: 'bar', name: 'bat' } );
+		t.ok( r.findAllComponents( 'foo' )[0] === undefined, 'no instance' );
+		t.ok( r.findAllComponents( 'bar' )[0] === undefined, 'no instance' );
+		t.ok( r.findAllComponents( 'baz' )[0] === cmp2, 'same instance' );
+		t.ok( r.findAllComponents( 'bat' )[0] === cmp1, 'same instance' );
+	});
 }

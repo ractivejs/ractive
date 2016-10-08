@@ -4,26 +4,33 @@ import { addToArray, removeFromArray } from '../../utils/array';
 import render from '../../Ractive/render';
 import updateLiveQueries from './component/updateLiveQueries';
 import resolve from '../resolvers/resolve';
+import runloop from '../../global/runloop';
+import { updateAnchors } from '../../shared/anchors';
+
+var checking = [];
+export function checkAnchors () {
+	const list = checking;
+	checking = [];
+
+	list.forEach( updateAnchors );
+}
 
 export default class Anchor extends Item {
 	constructor ( options ) {
 		super( options );
 
 		this.name = options.template.n;
-		this.multi = options.template.m;
 		this.mappings = options.template.a;
 
 		this.ractive = this.parentFragment.ractive;
-
-		this.items = [];
-		this.activeItems = [];
 	}
 
 	addChild ( meta ) {
-		addToArray( this.items, meta );
+		if ( this.item ) this.removeChild( this.item );
 		meta.anchor = this;
 
 		meta.parentFragment = this.parentFragment;
+		meta.name = meta.nameOption || this.name;
 
 		// set up anchor mappings
 		const root = meta.instance.viewmodel;
@@ -40,140 +47,83 @@ export default class Anchor extends Item {
 
 		if ( !meta.instance.isolated ) meta.instance.viewmodel.attached( this.parentFragment );
 
-		// render/unrender as necessary
+		// render as necessary
 		if ( this.rendered ) {
-			if ( this.multi || !this.activeItems.length ) {
-				renderItem( this, meta );
-			} else if ( !this.multi ) {
-				unrenderItem( this, this.activeItems[0] );
-				renderItem( this, meta );
-			}
+			renderItem( this, meta );
 		}
 	}
 
-	bind () {
-		addToArray( this.ractive._anchors, this );
-	}
+	bind () {}
 
 	detach () {
 		const docFrag = createDocumentFragment();
-		this.activeItems.forEach( i => docFrag.appendChild( i.instance.fragment.detach() ) );
+		if ( this.item ) docFrag.appendChild( this.item.instance.fragment.detach() );
 		return docFrag;
 	}
 
 	find ( selector, options ) {
-		const items = this.activeItems;
-
-		for ( let i = 0; i < items.length; i++ ) {
-			const found = items[i].instance.find( selector, options );
-			if ( found ) return found;
-		}
+		if ( this.item ) return this.item.instance.find( selector, options );
 	}
 
 	findAll ( selector, query ) {
-		const items = this.activeItems;
-
-		for ( let i = 0; i < items.length; i++ ) {
-			items[i].instance.findAll( selector, { _query: query } );
-		}
-
-		return query;
+		if ( this.item ) return this.item.instance.findAll( selector, { _query: query } );
 	}
 
-	findComponent ( name, options ) {
-		const items = options.remote ? this.items : this.activeItems;
-
-		if ( !name && items.length ) return items[0].instance;
-
-		for ( let i = 0; i < items.length; i++ ) {
-			if ( items[i].name === name ) return items[i].instance;
-			const found = items[i].instance.findComponent( name, options );
-			if ( found ) return found;
-		}
+	findComponent ( name ) {
+		if ( !name || ( this.item && this.item.name === name ) ) return this.item.instance;
 	}
 
 	findAllComponents ( name, query ) {
-		const items = query.remote ? this.items : this.activeItems;
-
-		items.forEach( i => {
-			if ( query.test( i ) ) {
-				query.add( i.instance );
-				if ( query.live ) i.liveQueries.push( query );
+		if ( this.item ) {
+			if ( query.test( this.item ) ) {
+				query.add( this.item.instance );
+				if ( query.live ) this.item.liveQueries.push( query );
 			}
-
-			i.instance.findAllComponents( name, { _query: query } );
-		});
+			this.item.instance.findAllComponents( name, { _query: query } );
+		}
 	}
 
 	firstNode () {
-		for ( let i = 0; i < this.activeItems.length; i++ ) {
-			const node = this.activeItems[i].instance.fragment.firstNode();
-			if ( node ) return node;
-		}
-	}
-
-	rebind () {
-		this.items.forEach( i => i.instance.fragment.rebind() );
+		if ( this.item ) this.item.instance.fragment.firstNode();
 	}
 
 	removeChild ( meta ) {
-		removeFromArray( this.items, meta );
-
-		// unrender/render as necessary
-		if ( ~this.activeItems.indexOf( meta ) ) unrenderItem( this, meta );
-
-		removeMappings( meta );
-
-		if ( !this.multi && this.items.length ) {
-			renderItem( this, this.items[ this.items.length - 1 ] );
+		// unrender as necessary
+		if ( this.item === meta ) {
+		   unrenderItem( this, meta );
+			removeMappings( meta );
 		}
+
 	}
 
 	render ( target ) {
 		this.target = target;
 
-		// collect children that should live here
-		const items = this.ractive._children;
-		items.forEach( i => {
-			if ( i.target === this.name ) {
-				this.addChild( i );
-			}
-		});
-
 		this.rendered = true;
-		if ( this.multi ) {
-			this.items.forEach( i => renderItem( this, i ) );
-		} else if ( this.items.length ) {
-			renderItem( this, this.items[ this.items.length - 1 ] );
+		if ( !checking.length ) {
+			checking.push( this.ractive );
+			runloop.scheduleTask( checkAnchors, true );
 		}
 	}
 
-	unbind () {
-		removeFromArray( this.ractive._anchors, this );
-	}
+	unbind () {}
 
 	update () {
 		this.dirty = false;
-		this.items.forEach( i => i.instance.fragment.update() );
+		if ( this.item ) this.item.instance.fragment.update();
 	}
 
 	unrender ( shouldDestroy ) {
 		this.shouldDestroy = shouldDestroy;
 
-		this.activeItems.forEach( i => unrenderItem( this, i ) );
+		if ( this.item ) unrenderItem( this, this.item );
 
 		this.rendered = false;
 		this.target = null;
-
-		this.items.forEach( i => {
-			if ( i.anchor === this ) {
-				i.anchor = null;
-				removeMappings( i );
-			}
-		});
-		this.items = [];
 	}
 }
+
+Anchor.prototype.isAnchor = true;
 
 function renderItem ( anchor, meta ) {
 	if ( !anchor.rendered ) return;
@@ -181,11 +131,12 @@ function renderItem ( anchor, meta ) {
 	meta.shouldDestroy = false;
 	meta.parentFragment = anchor.parentFragment;
 
-	anchor.activeItems.push( meta );
+	anchor.item = meta;
 	const nextNode = anchor.parentFragment.findNextNode( anchor );
 
 	if ( meta.instance.fragment.rendered ) meta.instance.unrender();
-	render( meta.instance, anchor.target, anchor.target.contains( nextNode ) ? nextNode : null );
+	const target = anchor.parentFragment.findParentNode();
+	render( meta.instance, target, target.contains( nextNode ) ? nextNode : null );
 
 	if ( meta.lastBound !== anchor ) {
 		meta.lastBound = anchor;
@@ -197,11 +148,13 @@ function renderItem ( anchor, meta ) {
 function unrenderItem ( anchor, meta ) {
 	if ( !anchor.rendered ) return;
 
-	removeFromArray( anchor.activeItems, meta );
 	meta.shouldDestroy = true;
 	meta.instance.unrender();
 	meta.instance.el = meta.instance.anchor = null;
 	meta.parentFragment = null;
+	meta.anchor = null;
+	removeMappings( meta );
+	anchor.item = null;
 
 	meta.liveQueries.forEach( q => q.remove( meta.instance ) );
 	meta.liveQueries = [];

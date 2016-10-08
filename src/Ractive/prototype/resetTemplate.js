@@ -39,7 +39,7 @@ export default function Ractive$resetTemplate ( template ) {
 
 	// if this is a component, its el may not be valid, so find a
 	// target based on the component container
-	if ( component ) {
+	if ( component && !component.external ) {
 		this.fragment.findParentNode().insertBefore( docFrag, component.findNextNode() );
 	} else {
 		this.el.insertBefore( docFrag, this.anchor );

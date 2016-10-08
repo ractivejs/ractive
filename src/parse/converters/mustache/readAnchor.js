@@ -11,14 +11,12 @@ export default function readAnchor ( parser, tag ) {
 
 	parser.allowWhitespace();
 
-	let multi = false, mapping, attrs;
+	let mapping, attrs;
 	const name = parser.matchPattern( namePattern );
 
 	if ( !name ) parser.error( `Expected a valid anchor name.` );
 
 	parser.allowWhitespace();
-
-	if ( parser.matchString( 'multi' ) ) multi = true;
 
 	parser.inTag = true;
 
@@ -45,8 +43,7 @@ export default function readAnchor ( parser, tag ) {
 
 	const result = {
 		t: ANCHOR,
-		n: name,
-		m: multi
+		n: name
 	};
 	if ( attrs ) result.a = attrs;
 	return result;
