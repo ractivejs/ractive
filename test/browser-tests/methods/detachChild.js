@@ -36,4 +36,20 @@ export default function() {
 			r.detachChild( other );
 		}, /not attached/ );
 	});
+
+	test( `detaching an anchored child updates children.byName`, t => {
+		const r1 = new Ractive();
+		const r = new Ractive({
+			el: fixture,
+			template: ''
+		});
+
+		var val;
+		r.observe( '@this.children.byName.foo.length', v => val = v );
+		t.ok( val === undefined, 'starts undefined' );
+		r.attachChild( r1, { target: 'foo' } );
+		t.equal( val, 1 );
+		r.detachChild( r1 );
+		t.equal( val, 0 );
+	});
 }

@@ -19,6 +19,7 @@ function getComparator ( option ) {
 export function merge ( ractive, model, array, options ) {
 	const promise = runloop.start( ractive, true );
 	const value = model.get();
+	if ( array === undefined ) array = value;
 
 	if ( !isArray( value ) || !isArray( array ) ) {
 		throw new Error( 'You cannot merge an array with a non-array' );

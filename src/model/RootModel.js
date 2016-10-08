@@ -114,6 +114,7 @@ export default class RootModel extends Model {
 		let value = this.value;
 
 		key = unescapeKey( key );
+		if ( key === '@this' || key === '@global' ) return true;
 		if ( hasProp.call( value, key ) ) return true;
 
 		// mappings/links and computations

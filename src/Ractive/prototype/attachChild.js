@@ -50,7 +50,7 @@ export default function attachChild ( child, options = {} ) {
 
 	if ( meta.target ) {
 		unrenderChild( meta );
-		this.merge( `@this.children.byName.${meta.target}`, children.byName[ meta.target ] );
+		this.merge( `@this.children.byName.${meta.target}` );
 		updateAnchors( this, meta.target );
 	} else {
 		if ( !child.isolated ) child.viewmodel.attached( this.fragment );

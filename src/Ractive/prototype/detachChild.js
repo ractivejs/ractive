@@ -30,6 +30,7 @@ export default function detachChild ( child ) {
 	if ( meta.target ) {
 		const list = children.byName[ meta.target ];
 		list.splice( list.indexOf( meta ), 1 );
+		this.merge( `@this.children.byName.${meta.target}` );
 		updateAnchors( this, meta.target );
 	}
 	child.parent = null;
