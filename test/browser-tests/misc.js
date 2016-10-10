@@ -782,7 +782,7 @@ export default function() {
 	test( 'A Promise will be rejected if its callback throws (#759)', t => {
 		const done = t.async();
 
-		const p = new Ractive.Promise( () => {
+		const p = new Promise( () => {
 			throw 'ruh-roh';
 		});
 
@@ -795,7 +795,7 @@ export default function() {
 	test( 'A Promise will be chained and rejected if its callback throws ', t => {
 		const done = t.async();
 
-		const p = Ractive.Promise.resolve();
+		const p = Promise.resolve();
 
 		p.then( () => {
 			throw 'ruh-roh';
@@ -1466,7 +1466,7 @@ export default function() {
 		const done = t.async();
 
 		// this test is redundant in browsers that support Promise natively
-		Ractive.Promise.all([ Ractive.Promise.resolve( 1 ), 2 ]).then( values => {
+		Promise.all([ Promise.resolve( 1 ), 2 ]).then( values => {
 			t.deepEqual( values, [ 1, 2 ]);
 			done();
 		});

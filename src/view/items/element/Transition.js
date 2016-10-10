@@ -10,7 +10,6 @@ import { findInViewHierarchy } from '../../../shared/registry';
 import { visible } from '../../../config/visibility';
 import createTransitions from './transitions/createTransitions';
 import resetStyle from './transitions/resetStyle';
-import Promise from '../../../utils/Promise';
 import { rebindMatch } from '../../../shared/rebind';
 import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
 
