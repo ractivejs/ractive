@@ -6,7 +6,7 @@ export default function() {
 
 	function createIsolatedEnv () {
 
-		return new Ractive.Promise((resolve, reject) => {
+		return new Promise((resolve, reject) => {
 
 			const frame = document.createElement('iframe');
 
@@ -90,7 +90,7 @@ export default function() {
 			const done5 = t.async();
 
 			// Simulate two separate Ractive environments using iframes
-			Ractive.Promise.all([ createIsolatedEnv(), createIsolatedEnv() ]).then(envs => {
+			Promise.all([ createIsolatedEnv(), createIsolatedEnv() ]).then(envs => {
 
 				const ComponentA = createComponentDefinition(envs[ 0 ].Ractive);
 				const ComponentB = createComponentDefinition(envs[ 1 ].Ractive);

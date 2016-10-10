@@ -4,7 +4,6 @@ import interpolators from './Ractive/static/interpolators';
 import { magic, svg, win } from './config/environment';
 import { defineProperties, extend as extendObj } from './utils/object';
 import proto from './Ractive/prototype';
-import Promise from './utils/Promise';
 import extend from './extend/_extend';
 import parse from './parse/_parse';
 import getNodeInfo from './Ractive/static/getNodeInfo';
@@ -57,9 +56,6 @@ defineProperties( Ractive, {
 	splitKeypath:   { value: splitKeypath },
 	unescapeKey:    { value: unescapeKey },
 	getCSS:         { value: getCSS },
-
-	// namespaced constructors
-	Promise:        { value: Promise },
 
 	// support
 	enhance:        { writable: true, value: false },

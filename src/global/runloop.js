@@ -1,6 +1,5 @@
 import Hook from '../events/Hook';
 import { addToArray, removeFromArray } from '../utils/array';
-import Promise from '../utils/Promise';
 import TransitionManager from './TransitionManager';
 
 const changeHook = new Hook( 'change' );

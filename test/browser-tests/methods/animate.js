@@ -97,7 +97,7 @@ export default function() {
 			step: () => barSteps += 1
 		});
 
-		Ractive.Promise.all([ p1, p2 ]).then( () => {
+		Promise.all([ p1, p2 ]).then( () => {
 			// slightly non-deterministic, so we fuzz it –
 			// important thing is that computation doesn't
 			// update for all changes to both foo and bar
