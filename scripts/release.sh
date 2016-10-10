@@ -18,11 +18,11 @@ git clone https://github.com/ractivejs/cdn.ractivejs.org cdn
 
 # add new release folder
 mkdir cdn/${VERSION}
-cp build/* cdn/${VERSION}
+cp -r build/* cdn/${VERSION}
 
 # replace latest/ folder
 rm -f cdn/latest/*
-cp build/* cdn/latest
+cp -r build/* cdn/latest
 
 ( cd cdn
 	git add -A
@@ -50,7 +50,7 @@ rm -rf build-branch
 git clone https://github.com/ractivejs/ractive -b build build-branch
 
 rm build-branch/*
-cp build/* build-branch
+cp -r build/* build-branch
 
 ( cd build-branch
 	git add -A

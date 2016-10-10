@@ -1,5 +1,9 @@
 # changelog
 
+# 0.8.0
+
+* Changelog coming soon...
+
 # 0.7.3
 
 * Fixed reading templates from `<script>` tags in IE8 (#1908)
