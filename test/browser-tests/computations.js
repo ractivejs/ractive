@@ -958,4 +958,19 @@ export default function() {
 		r.set( 'foo', 'yep' );
 		t.htmlEqual( fixture.innerHTML, 'yep-yep' );
 	});
+
+	test( `expression proxies shouldn't cause deps to re-order while handling any changes (#2680)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#foo(bat)}}{{#if . === 'nope'}}never{{/if}}{{#if ~/bat === 'yep'}}yep{{else}}hey{{/if}}{{/}}`,
+			data: {
+				foo ( str ) { return { str }; },
+				bat: 'yep'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+		r.set( 'bat', 'hey' );
+		t.htmlEqual( fixture.innerHTML, 'hey' );
+	});
 }

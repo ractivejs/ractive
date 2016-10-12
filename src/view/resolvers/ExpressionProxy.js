@@ -40,6 +40,7 @@ export default class ExpressionProxy extends Model {
 
 			return model;
 		});
+		this.dependencies = [];
 
 		this.shuffle = undefined;
 
@@ -98,9 +99,16 @@ export default class ExpressionProxy extends Model {
 		}
 
 		const dependencies = stopCapturing();
-		if ( this.dependencies ) this.dependencies.forEach( d => d.unregister( this ) );
-		this.dependencies = dependencies;
-		this.dependencies.forEach( d => d.register( this ) );
+		// remove missing deps
+		this.dependencies.filter( d => !~dependencies.indexOf( d ) ).forEach( d => {
+			d.unregister( this );
+			removeFromArray( this.dependencies, d );
+		});
+		// register new deps
+		dependencies.filter( d => !~this.dependencies.indexOf( d ) ).forEach( d => {
+			d.register( this );
+			this.dependencies.push( d );
+		});
 
 		return result;
 	}
