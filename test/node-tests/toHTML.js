@@ -41,6 +41,16 @@ describe( 'ractive.toHTML()', function () {
 			});
 		});
 	});
+
+	it( 'doctype declarations handle updates (#2679)', function() {
+		// the select triggers an update during bind
+		var template = Ractive.parse('<!DOCTYPE html><html><select value="{{foo}}"><option value="bar">bar</option></select></html>');
+		var r = new Ractive({
+			template: template
+		});
+
+		r.teardown();
+	});
 });
 
 function deepClone ( source ) {
