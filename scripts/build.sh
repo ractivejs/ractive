@@ -12,6 +12,9 @@ set -e
 export MOD='node_modules/.bin'
 
 echo "> linting..."
+# eslint src/
+# eslint test/browser-tests
+# eslint test/node-tests
 
 # build library plus tests
 echo "> emptying tmp dir..."
