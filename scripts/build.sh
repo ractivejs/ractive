@@ -12,7 +12,6 @@ set -e
 export MOD='node_modules/.bin'
 
 echo "> linting..."
-#$MOD/jshint src
 
 # build library plus tests
 echo "> emptying tmp dir..."

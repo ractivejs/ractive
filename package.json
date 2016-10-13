@@ -84,7 +84,6 @@
     "gobble-cli": "^0.6.0",
     "gobble-replace": "^0.3.1",
     "gobble-rollup": "^0.25.0",
-    "jshint": "^2.9.1",
     "junk": "^1.0.1",
     "karma": "~0.13",
     "karma-coverage": "~0.5",
