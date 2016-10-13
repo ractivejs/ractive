@@ -1,27 +1,27 @@
 {
 	"extends": "eslint:recommended",
 	"env": {
-		"es6": true,
-		"browser": true
+		"es6": true
 	},
-	"ecmaFeatures": {
-		"modules": true
+	"parserOptions": {
+		"ecmaVersion": 6,
+		"sourceType": "module"
 	},
 	"rules": {
-		"indent": [ 2, "tab", { "SwitchCase": 1 }],
-		"quotes": [ 2, "single" ],
-		"linebreak-style": [ 2, "unix" ],
-		"semi": [ 2, "always" ],
-		"no-mixed-spaces-and-tabs": [ 2, "smart-tabs" ],
-		"object-shorthand":  [2, "always" ],
-		"no-const-assign": 2,
-		"no-class-assign": 2,
-		"no-this-before-super": 2,
-		"no-var": 2,
-		"quote-props": [ 2, "as-needed" ],
-		"one-var": [ 2, "never" ],
-		"prefer-arrow-callback": 2,
-		"arrow-spacing": 2,
-		"no-cond-assign": 0
+		"indent": [ "error", "tab", { "SwitchCase": 1 }],
+		"quotes": [ "error", "single" ],
+		"linebreak-style": [ "error", "unix" ],
+		"semi": [ "error", "always" ],
+		"no-mixed-spaces-and-tabs": [ "error", "smart-tabs" ],
+		"object-shorthand":  [ "error", "always" ],
+		"no-const-assign": "error",
+		"no-class-assign": "error",
+		"no-this-before-super": "error",
+		"no-var": "error",
+		"quote-props": [ "error", "as-needed" ],
+		"one-var": [ "error", "never" ],
+		"prefer-arrow-callback": "error",
+		"arrow-spacing": "error",
+		"no-cond-assign": "off"
 	}
 }
