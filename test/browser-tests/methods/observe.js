@@ -1377,4 +1377,20 @@ export default function() {
 
 		t.equal( count, 1 );
 	});
+
+	test( 'observe ignores additional empty paths (#2690)', t => {
+		let count1 = 0, count2 = 0;
+		const r = new Ractive({
+			el: fixture
+		});
+
+		r.observe( 'a ', () => count1++, { init: false } );
+		r.observe({
+			'a ': () => count2++
+		}, { init: false });
+
+		r.set( 'a', 1 );
+		t.equal( count1, 1 );
+		t.equal( count2, 1 )
+	});
 }

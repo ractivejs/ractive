@@ -17,7 +17,10 @@ export default function observe ( keypath, callback, options ) {
 		Object.keys( map ).forEach( keypath => {
 			const callback = map[ keypath ];
 
-			keypath.split( ' ' ).forEach( keypath => {
+			let keypaths = keypath.split( ' ' );
+			if ( keypaths.length > 1 ) keypaths = keypaths.filter( k => k );
+
+			keypaths.forEach( keypath => {
 				observers.push( createObserver( this, keypath, callback, options ) );
 			});
 		});
@@ -33,6 +36,8 @@ export default function observe ( keypath, callback, options ) {
 		} else {
 			keypaths = keypath.split( ' ' );
 		}
+
+		if ( keypaths.length > 1 ) keypaths = keypaths.filter( k => k );
 
 		keypaths.forEach( keypath => {
 			observers.push( createObserver( this, keypath, callback, options || {} ) );
