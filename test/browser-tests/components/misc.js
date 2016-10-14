@@ -76,12 +76,12 @@ export default function() {
 			}
 		});
 
-		t.equal( Ractive.getNodeInfo( ractive.find( 'p' ) ).keypath, '' );
+		t.equal( Ractive.getNodeInfo( ractive.find( 'p' ) ).resolve(), '' );
 
 		ractive.set( 'visible', false );
 		ractive.set( 'visible', true );
 
-		t.equal( Ractive.getNodeInfo( ractive.find( 'p' ) ).keypath, '' );
+		t.equal( Ractive.getNodeInfo( ractive.find( 'p' ) ).resolve(), '' );
 	});
 
 	test( 'Nested components fire the oninit() event correctly (#511)', t => {
@@ -988,10 +988,10 @@ export default function() {
 
 		const outer = Ractive.getNodeInfo ( r.find( 'outer' ) ), inner = Ractive.getNodeInfo( r.find( 'inner' ) );
 
-		t.equal( outer.keypath, 'baz' );
-		t.equal( outer.rootpath, 'baz' );
-		t.equal( inner.keypath, 'foo.bar' );
-		t.equal( inner.rootpath, 'baz.bat.bar' );
+		t.equal( outer.resolve(), 'baz' );
+		t.equal( outer.resolve( '.', r ), 'baz' );
+		t.equal( inner.resolve(), 'foo.bar' );
+		t.equal( inner.resolve( '.', r ), 'baz.bat.bar' );
 	});
 
 	test( 'component @rootpaths should skip root contexts (#2026)', t => {

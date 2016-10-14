@@ -137,7 +137,7 @@ export default function() {
 				Button: Ractive.extend({
 					template: '<button on-click="@this.onClick(event)"></button>',
 					onClick ( event ) {
-						t.deepEqual( event.context, { buttonName: 'foo' } );
+						t.deepEqual( event.get(), { buttonName: 'foo' } );
 					}
 				})
 			}

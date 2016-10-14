@@ -123,7 +123,7 @@ export default function() {
 		listener.cancel();
 
 		r.on( 'foo', ev => {
-			t.equal( ev.keypath, 'items.1' );
+			t.equal( ev.resolve(), 'items.1' );
 		});
 
 		fire( r.find( '#div1' ), 'click' );
@@ -152,7 +152,7 @@ export default function() {
 					t.equal( path, 'items.0' );
 				} else {
 					t.equal( path, 'items.1' );
-					t.equal( this.event.keypath, 'items.1' );
+					t.equal( this.event.resolve(), 'items.1' );
 				}
 			}
 		});

@@ -50,8 +50,8 @@ export default function() {
 		fire( node, 'click' );
 	});
 
-	test( 'Standard events have correct properties: node, original, keypath, context, index, name', t => {
-		t.expect( 6 );
+	test( 'Standard events have correct properties: node, original, name', t => {
+		t.expect( 3 );
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -62,9 +62,6 @@ export default function() {
 			t.equal( event.node, ractive.nodes.test );
 			t.equal( event.name, 'someEvent' );
 			t.ok( event.original );
-			t.equal( event.keypath, '' );
-			t.deepEqual( event.context, {} );
-			t.ok( typeof event.index === 'object' && Object.keys( event.index ).length === 0 );
 		});
 
 		fire( ractive.nodes.test, 'click' );
@@ -133,7 +130,7 @@ export default function() {
 		t.ok( preventedDefault && stoppedPropagation );
 	});
 
-	test( 'event.keypath is set to the innermost context', t => {
+	test( 'event keypath is set to the innermost context', t => {
 		t.expect( 2 );
 
 		const ractive = new Ractive({
@@ -145,14 +142,14 @@ export default function() {
 		});
 
 		ractive.on( 'someEvent', function ( event ) {
-			t.equal( event.keypath, 'foo' );
-			t.equal( event.context.bar, 'test' );
+			t.equal( event.resolve(), 'foo' );
+			t.equal( event.get( '.bar' ), 'test' );
 		});
 
 		fire( ractive.nodes.test, 'click' );
 	});
 
-	test( 'event.keypath is set to the mapped keypath in a component', t => {
+	test( 'event keypath is set to the mapped keypath in a component', t => {
 		t.expect( 4 );
 
 		const cmp = Ractive.extend({
@@ -171,19 +168,19 @@ export default function() {
 		});
 
 		ractive.on( 'cmp.someEvent', function ( event ) {
-			t.equal( event.keypath, 'baz' );
-			t.equal( event.context.bar, 'test' );
+			t.equal( event.resolve(), 'baz' );
+			t.equal( event.get( '.bar' ), 'test' );
 		});
 		ractive.on( 'cmp2.someEvent', function ( event ) {
-			t.equal( event.keypath, 'oof' );
-			t.equal( event.context.bar, 'test' );
+			t.equal( event.resolve(), 'oof' );
+			t.equal( event.get( '.bar' ), 'test' );
 		});
 
 		fire( ractive.find( '#test' ), 'click' );
 		fire( ractive.find( '#test2' ), 'click' );
 	});
 
-	test( 'event.rootpath is set to the non-mapped keypath in a component', t => {
+	test( 'event rootpath is set to the non-mapped keypath in a component', t => {
 		t.expect( 4 );
 
 		const cmp = Ractive.extend({
@@ -202,19 +199,19 @@ export default function() {
 		});
 
 		ractive.on( 'cmp.someEvent', function ( event ) {
-			t.equal( event.rootpath, 'foo' );
-			t.equal( event.context.bar, 'test' );
+			t.equal( event.resolve( this ), 'foo' );
+			t.equal( event.get( '.bar' ), 'test' );
 		});
 		ractive.on( 'cmp2.someEvent', function ( event ) {
-			t.equal( event.rootpath, 'foo' );
-			t.equal( event.context.bar, 'test' );
+			t.equal( event.resolve( this ), 'foo' );
+			t.equal( event.get( '.bar' ), 'test' );
 		});
 
 		fire( ractive.find( '#test' ), 'click' );
 		fire( ractive.find( '#test2' ), 'click' );
 	});
 
-	test( 'event.index stores current indices against their references', t => {
+	test( 'events can correctly retrieve index refs', t => {
 		t.expect( 4 );
 
 		const ractive = new Ractive({
@@ -227,15 +224,15 @@ export default function() {
 
 		ractive.on( 'someEvent', function ( event ) {
 			t.equal( event.node.innerHTML, '2: c' );
-			t.equal( event.keypath, 'array.2' );
-			t.equal( event.context, 'c' );
-			t.equal( event.index.i, 2 );
+			t.equal( event.resolve(), 'array.2' );
+			t.equal( event.get(), 'c' );
+			t.equal( event.get( 'i' ), 2 );
 		});
 
 		fire( ractive.nodes.item_2, 'click' );
 	});
 
-	test( 'event.index reports nested indices correctly', t => {
+	test( 'events can correctly retrieve nested index refs', t => {
 		t.expect( 4 );
 
 		const ractive = new Ractive({
@@ -251,9 +248,9 @@ export default function() {
 		t.equal( ractive.nodes.test_001.innerHTML, '001' );
 
 		ractive.on( 'someEvent', function ( event ) {
-			t.equal( event.index.x, 0 );
-			t.equal( event.index.y, 0 );
-			t.equal( event.index.z, 1 );
+			t.equal( event.get( 'x' ), 0 );
+			t.equal( event.get( 'y' ), 0 );
+			t.equal( event.get( 'z' ), 1 );
 		});
 
 		fire( ractive.nodes.test_001, 'click' );

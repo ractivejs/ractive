@@ -185,32 +185,6 @@ function setBinding ( value ) {
 	return sharedSet( this.ractive, [ [ model, value ] ] );
 }
 
-// deprecated getters
-function keypath () {
-	warnOnceIfDebug( `Object property keypath is deprecated, please use resolve() instead.` );
-	return this.resolve();
-}
-
-function rootpath () {
-	warnOnceIfDebug( `Object property rootpath is deprecated, please use resolve( ractive.root ) instead.` );
-	return this.resolve( this.ractive.root );
-}
-
-function context () {
-	warnOnceIfDebug( `Object property context is deprecated, please use get() instead.` );
-	return this.get();
-}
-
-function index () {
-	warnOnceIfDebug( `Object property index is deprecated, you can use get( "indexName" ) instead.` );
-	return gatherRefs( this._element.parentFragment ).index;
-}
-
-function key () {
-	warnOnceIfDebug( `Object property key is deprecated, you can use get( "keyName" ) instead.` );
-	return gatherRefs( this._element.parentFragment ).key;
-}
-
 export function addHelpers ( obj, element ) {
 	defineProperties( obj, {
 		_element: { value: element },
@@ -240,12 +214,6 @@ export function addHelpers ( obj, element ) {
 		getBindingPath: { value: getBindingPath },
 		getBinding: { value: getBinding },
 		setBinding: { value: setBinding },
-
-		keypath: { get: keypath },
-		rootpath: { get: rootpath },
-		context: { get: context },
-		index: { get: index },
-		key: { get: key }
 	});
 
 	return obj;

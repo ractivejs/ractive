@@ -40,7 +40,7 @@ export default function() {
 		{
 			type: 'proxy events',
 			callback: component => fire( component.nodes.test, 'click' ),
-			verify: event => event.context
+			verify: event => event.get()
 		},
 
 		{
