@@ -1360,4 +1360,21 @@ export default function() {
 		t.equal( count, 1 );
 		t.htmlEqual( fixture.innerHTML, '{"str":"still yep"}{"str":"still yep"}' );
 	});
+
+	test( `pattern observers only fire once for matching keypaths (#2682)`, t => {
+		let count = 0;
+		const r = new Ractive({
+			el: fixture
+		});
+
+		r.observe( 'a.*.c.*', () => {
+			count++;
+			r.set( 'a.b.really.d', 1 );
+		});
+
+		r.set( 'a.b.c.d', 1 );
+		r.set( 'a.b.nope.d', 1 );
+
+		t.equal( count, 1 );
+	});
 }
