@@ -26,7 +26,7 @@ export default function() {
 		let shimmied;
 
 		const Subclass = Ractive.extend({
-			template: '<div intro="wiggle">{{>foo}}{{>bar}}{{>baz}}</div><div intro="shimmy">{{foo}}{{bar}}{{baz}}</div>',
+			template: '<div wiggle-in>{{>foo}}{{>bar}}{{>baz}}</div><div shimmy-in>{{foo}}{{bar}}{{baz}}</div>',
 			data: { foo: 1 },
 			partials: { foo: 'fooPartial' },
 			transitions: { wiggle () { wiggled = true; } }
@@ -445,7 +445,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<button on-click=\'test:{{ ["just a string"] }}\'>test 1</button><button on-click=\'test:{{ {bar: 3} }}\'>test 2</button>'
+			template: '<button on-click=\'@this.fire("test", event, ["just a string"])\'>test 1</button><button on-click=\'@this.fire("test", event, { bar: 3 })\'>test 2</button>'
 		});
 
 		ractive.on( 'test', function ( event, arg ) {
@@ -754,7 +754,7 @@ export default function() {
 	test( 'Regression test for #695 (unrendering non-rendered items)', t => {
 		const ractive = new Ractive({
 			el: fixture,
-			template: '{{# { items: nested.items } }}{{#insert}}{{#items}}<div decorator="foo"></div>{{/items}}{{/insert}}{{/}}',
+			template: '{{# { items: nested.items } }}{{#insert}}{{#items}}<div as-foo></div>{{/items}}{{/insert}}{{/}}',
 			decorators: {
 				foo () {
 					return { teardown () {} };

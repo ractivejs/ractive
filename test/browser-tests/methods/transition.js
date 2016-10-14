@@ -42,7 +42,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: `<div on-click='transition("fade")'></div>`,
+			template: `<div on-click='@this.transition("fade")'></div>`,
 			transitions: { fade }
 		});
 

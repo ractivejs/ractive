@@ -869,7 +869,7 @@ export default function() {
 		let outros = {};
 
 		const Widget = Ractive.extend({
-			template: '{{#each items}}<p intro-outro="log">{{this}}</p>{{/each}}',
+			template: '{{#each items}}<p log-in-out>{{this}}</p>{{/each}}',
 			transitions: {
 				log ( t ) {
 					const x = t.node.innerHTML;

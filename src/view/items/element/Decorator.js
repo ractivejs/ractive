@@ -2,14 +2,12 @@ import { findInViewHierarchy } from '../../../shared/registry';
 import findElement from '../shared/findElement';
 import { warnOnce } from '../../../utils/log';
 import { missingPlugin } from '../../../config/errors';
-import { unbind } from '../../../shared/methodCallers';
 import Fragment from '../../Fragment';
 import noop from '../../../utils/noop';
 import runloop from '../../../global/runloop';
 import { removeFromArray } from '../../../utils/array';
-import getFunction from '../../../shared/getFunction';
-import resolveReference from '../../resolvers/resolveReference';
 import { rebindMatch } from '../../../shared/rebind';
+import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
 
 const missingDecorator = {
 	update: noop,
@@ -24,30 +22,8 @@ export default class Decorator {
 		this.ractive = this.owner.ractive;
 		let template = this.template = options.template;
 
-		this.dynamicName = typeof template.f.n === 'object';
-		this.dynamicArgs = !!template.f.d;
-
-		if ( this.dynamicName ) {
-			this.nameFragment = new Fragment({
-				owner: this,
-				template: template.f.n
-			});
-		} else {
-			this.name = template.f.n || template.f;
-		}
-
-		if ( this.dynamicArgs ) {
-			this.argsFragment = new Fragment({
-				owner: this,
-				template: template.f.d
-			});
-		} else {
-			if ( template.f.a && template.f.a.s ) {
-				this.args = [];
-			} else {
-				this.args = template.f.a || [];
-			}
-		}
+		this.name = template.n;
+		this.args = [];
 
 		this.node = null;
 		this.intermediary = null;
@@ -56,33 +32,7 @@ export default class Decorator {
 	}
 
 	bind () {
-		if ( this.dynamicName ) {
-			this.nameFragment.bind();
-			this.name = this.nameFragment.toString();
-		}
-
-		if ( this.dynamicArgs ) this.argsFragment.bind();
-
-		// TODO: dry this up once deprecation is done
-		if ( this.template.f.a && this.template.f.a.s ) {
-			this.resolvers = [];
-			this.models = this.template.f.a.r.map( ( ref, i ) => {
-				let resolver;
-				const model = resolveReference( this.parentFragment, ref );
-				if ( !model ) {
-					resolver = this.parentFragment.resolve( ref, model => {
-						this.models[i] = model;
-						removeFromArray( this.resolvers, resolver );
-						model.register( this );
-					});
-
-					this.resolvers.push( resolver );
-				} else model.register( this );
-
-				return model;
-			});
-			this.argsFn = getFunction( this.template.f.a.s, this.template.f.a.r.length );
-		}
+		setupArgsFn( this, this.template, this.parentFragment );
 	}
 
 	bubble () {
@@ -102,7 +52,7 @@ export default class Decorator {
 		const idx = this.models.indexOf( previous );
 		if ( !~idx ) return;
 
-		next = rebindMatch( this.template.f.a.r[ idx ], next, previous );
+		next = rebindMatch( this.template.f.r[ idx ], next, previous );
 		if ( next === previous ) return;
 
 		previous.unregister( this );
@@ -125,15 +75,13 @@ export default class Decorator {
 			this.node = this.element.node;
 
 			let args;
-			if ( this.argsFn ) {
+			if ( this.fn ) {
 				args = this.models.map( model => {
 					if ( !model ) return undefined;
 
 					return model.get();
 				});
-				args = this.argsFn.apply( this.ractive, args );
-			} else {
-				args = this.dynamicArgs ? this.argsFragment.getArgsList() : this.args;
+				args = this.fn.apply( this.ractive, args );
 			}
 
 			this.intermediary = fn.apply( this.ractive, [ this.node ].concat( args ) );
@@ -148,12 +96,7 @@ export default class Decorator {
 	toString () { return ''; }
 
 	unbind () {
-		if ( this.dynamicName ) this.nameFragment.unbind();
-		if ( this.dynamicArgs ) this.argsFragment.unbind();
-		if ( this.resolvers ) this.resolvers.forEach( unbind );
-		if ( this.models ) this.models.forEach( m => {
-			if ( m ) m.unregister( this );
-		});
+		teardownArgsFn( this, this.template );
 	}
 
 	unrender ( shouldDestroy ) {
@@ -166,49 +109,24 @@ export default class Decorator {
 
 		this.dirty = false;
 
-		let nameChanged = false;
-
-		if ( this.dynamicName && this.nameFragment.dirty ) {
-			const name = this.nameFragment.toString();
-			nameChanged = name !== this.name;
-			this.name = name;
-		}
-
 		if ( this.intermediary ) {
-			if ( nameChanged || !this.intermediary.update ) {
+			if ( !this.intermediary.update ) {
 				this.unrender();
 				this.render();
 			}
 			else {
-				if ( this.dynamicArgs ) {
-					if ( this.argsFragment.dirty ) {
-						const args = this.argsFragment.getArgsList();
-						this.intermediary.update.apply( this.ractive, args );
-					}
-				}
-				else if ( this.argsFn ) {
+				if ( this.fn ) {
 					const args = this.models.map( model => {
 						if ( !model ) return undefined;
 
 						return model.get();
 					});
-					this.intermediary.update.apply( this.ractive, this.argsFn.apply( this.ractive, args ) );
+					this.intermediary.update.apply( this.ractive, this.fn.apply( this.ractive, args ) );
 				}
 				else {
 					this.intermediary.update.apply( this.ractive, this.args );
 				}
 			}
-		}
-
-		// need to run these for unrender/render cases
-		// so can't just be in conditional if above
-
-		if ( this.dynamicName && this.nameFragment.dirty ) {
-			this.nameFragment.update();
-		}
-
-		if ( this.dynamicArgs && this.argsFragment.dirty ) {
-			this.argsFragment.update();
 		}
 	}
 }

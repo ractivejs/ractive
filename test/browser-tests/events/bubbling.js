@@ -71,7 +71,7 @@ export default function() {
 		test( `arguments bubble (${type})`, t => {
 			t.expect( 3 );
 
-			Component.prototype.template = '<span id="test" on-click="someEvent:foo">click me</span>';
+			Component.prototype.template = '<span id="test" on-click="@this.fire("someEvent", event, "foo")">click me</span>';
 
 			const ractive = new Subclass({ el: fixture });
 			const middle = ractive.findComponent( 'Middle' );

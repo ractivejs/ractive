@@ -37,7 +37,7 @@ export default function() {
 			template: `
 			<ul>
 			{{#items}}
-			<li intro='test'>{{this}}</li>
+			<li test-in>{{this}}</li>
 			{{/items}}
 			</ul>`,
 			data: { items },

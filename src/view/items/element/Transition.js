@@ -13,10 +13,9 @@ import createTransitions from './transitions/createTransitions';
 import resetStyle from './transitions/resetStyle';
 import Promise from '../../../utils/Promise';
 import { unbind } from '../../../shared/methodCallers';
-import resolveReference from '../../resolvers/resolveReference';
-import getFunction from '../../../shared/getFunction';
 import Fragment from '../../Fragment';
 import { rebindMatch } from '../../../shared/rebind';
+import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
 
 const getComputedStyle = win && ( win.getComputedStyle || legacy.getComputedStyle );
 const resolved = Promise.resolve();
@@ -125,48 +124,10 @@ export default class Transition {
 
 		const ractive = this.owner.ractive;
 
-		if ( options.name ) {
-			this.name = options.name;
-		} else {
-			let name = options.template.f;
-			if ( typeof name.n === 'string' ) name = name.n;
-
-			if ( typeof name !== 'string' ) {
-				const fragment = new Fragment({
-					owner: this.owner,
-					template: name.n
-				}).bind(); // TODO need a way to capture values without bind()
-
-				name = fragment.toString();
-				fragment.unbind();
-
-				if ( name === '' ) {
-					// empty string okay, just no transition
-					return;
-				}
-			}
-
-			this.name = name;
-		}
+		this.name = options.name || options.template.n;
 
 		if ( options.params ) {
 			this.params = options.params;
-		} else {
-			if ( options.template.f.a && !options.template.f.a.s ) {
-				this.params = options.template.f.a;
-			}
-
-			else if ( options.template.f.d ) {
-				// TODO is there a way to interpret dynamic arguments without all the
-				// 'dependency thrashing'?
-				const fragment = new Fragment({
-					owner: this.owner,
-					template: options.template.f.d
-				}).bind();
-
-				this.params = fragment.getArgsList();
-				fragment.unbind();
-			}
 		}
 
 		if ( typeof this.name === 'function' ) {
@@ -180,26 +141,7 @@ export default class Transition {
 			warnOnceIfDebug( missingPlugin( this.name, 'transition' ), { ractive });
 		}
 
-		// TODO: dry up after deprecation is done
-		if ( options.template && this.template.f.a && this.template.f.a.s ) {
-			this.resolvers = [];
-			this.models = this.template.f.a.r.map( ( ref, i ) => {
-				let resolver;
-				const model = resolveReference( this.parentFragment, ref );
-				if ( !model ) {
-					resolver = this.parentFragment.resolve( ref, model => {
-						this.models[i] = model;
-						removeFromArray( this.resolvers, resolver );
-						model.register( this );
-					});
-
-					this.resolvers.push( resolver );
-				} else model.register( this );
-
-				return model;
-			});
-			this.argsFn = getFunction( this.template.f.a.s, this.template.f.a.r.length );
-		}
+		setupArgsFn( this, options.template, this.parentFragment );
 	}
 
 	destroyed () {}
@@ -254,7 +196,7 @@ export default class Transition {
 		const idx = this.models.indexOf( previous );
 		if ( !~idx ) return;
 
-		next = rebindMatch( this.template.f.a.r[ idx ], next, previous );
+		next = rebindMatch( this.template.f.r[ idx ], next, previous );
 		if ( next === previous ) return;
 
 		previous.unregister( this );
@@ -307,6 +249,8 @@ export default class Transition {
 
 			this._manager.remove( this );
 
+			if ( this.shouldUnbind ) teardownArgsFn( this, this.options.template );
+
 			completed = true;
 		};
 
@@ -317,13 +261,13 @@ export default class Transition {
 		}
 
 		// get expression args if supplied
-		if ( this.argsFn ) {
+		if ( this.fn ) {
 			const values = this.models.map( model => {
 				if ( !model ) return undefined;
 
 				return model.get();
 			});
-			args = this.argsFn.apply( this.ractive, values );
+			args = this.fn.apply( this.ractive, values );
 		}
 
 		const promise = this._fn.apply( this.ractive, [ this ].concat( args ) );
@@ -333,7 +277,7 @@ export default class Transition {
 	toString () { return ''; }
 
 	unbind () {
-		if ( this.resolvers ) this.resolvers.forEach( unbind );
+		this.shouldUnbind = true;
 	}
 
 	unregisterCompleteHandler ( fn ) {

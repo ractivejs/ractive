@@ -52,7 +52,7 @@ export default function() {
 	test( 'event references in method call handler should not create a null resolver (#1438)', t => {
 		const ractive = new Ractive({
 			el: fixture,
-			template: `{{#foo}}<button on-click="test(event.keypath + '.foo')">Click</button>{{/}}`,
+			template: `{{#foo}}<button on-click="@this.test(event.keypath + '.foo')">Click</button>{{/}}`,
 			test () {}
 		});
 
@@ -70,7 +70,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '{{#items:i}}<span id="test{{i}}" on-click="{{eventName}}:{{eventName}}"/>{{/}}',
+			template: '{{#items:i}}<span id="test{{i}}" on-click="@this.fire(eventName, event, eventName)"/>{{/}}',
 			data: {
 				items: [
 					{ eventName: 'foo' },
@@ -114,7 +114,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<button on-click="onClick(eventName)">{{eventName}}</button>',
+			template: '<button on-click="@this.onClick(eventName)">{{eventName}}</button>',
 			data: { eventName: 'foo' },
 			onClick ( eventName ) {
 				t.equal( eventName, 'foo' );
@@ -135,7 +135,7 @@ export default function() {
 			data: { foo: 'foo' },
 			components: {
 				Button: Ractive.extend({
-					template: '<button on-click="onClick(event)"></button>',
+					template: '<button on-click="@this.onClick(event)"></button>',
 					onClick ( event ) {
 						t.deepEqual( event.context, { buttonName: 'foo' } );
 					}
@@ -152,7 +152,7 @@ export default function() {
 		let ractive = new Ractive({
 			el: fixture,
 			template: `
-				<button on-click='set("foo",bar())'>click me</button>
+				<button on-click='@this.set("foo",bar())'>click me</button>
 				<p>foo: {{foo}}</p>
 			`,
 			data: {
@@ -226,43 +226,13 @@ export default function() {
 			}, 30 );
 		});
 
-		test( '{{else}} blocks work in event names (#1598)', t => {
-			const ractive = new Ractive({
-				el: fixture,
-				template: '<button on-click="{{#if foo}}event1{{else}}event2{{/if}}"></button>',
-				data: {
-					foo: true
-				}
-			});
-
-			let event1Fired;
-			let event2Fired;
-
-			ractive.on({
-				event1: () => event1Fired = true,
-				event2: () => event2Fired = true
-			});
-
-			const button = ractive.find( 'button' );
-
-			fire( button, 'click' );
-			t.ok( event1Fired );
-			t.ok( !event2Fired );
-
-			event1Fired = false;
-			ractive.set( 'foo', false );
-			fire( button, 'click' );
-			t.ok( !event1Fired );
-			t.ok( event2Fired );
-		});
-
 		test( 'invalid content in method call event directive should have a reasonable error message', t => {
 			t.throws(() => {
 				new Ractive({
 					el: fixture,
 					template: '<button on-click="alert(foo);">Click Me</button>'
 				});
-			}, /invalid input/i );
+			}, /expected/i );
 		});
 	} catch ( err ) {
 		// do nothing

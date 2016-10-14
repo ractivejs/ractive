@@ -106,7 +106,7 @@ export default function() {
 
 		const r = new Ractive({
 			el: fixture,
-			template: '{{#each items}}<div id="div{{@index}}" on-click="foo:{{.bar}}" />{{/each}}',
+			template: '{{#each items}}<div id="div{{@index}}" on-click="@this.fire("foo", event, .bar)" />{{/each}}',
 			data: {
 				items: [ { bar: 'baz' } ]
 			}
@@ -142,7 +142,7 @@ export default function() {
 
 		const r = new Ractive({
 			el: fixture,
-			template: '{{#each items}}<div id="div{{@index}}" on-click="foo(@keypath, .bar)" />{{/each}}',
+			template: '{{#each items}}<div id="div{{@index}}" on-click="@this.foo(@keypath, .bar)" />{{/each}}',
 			data: {
 				items: [ { bar: 'baz' } ]
 			},
@@ -183,7 +183,7 @@ export default function() {
 
 		const r = new Ractive({
 			el: fixture,
-			template: '{{#each items}}<button on-click="foo()">clickme</button>{{/each}}',
+			template: '{{#each items}}<button on-click="@this.foo()">clickme</button>{{/each}}',
 			data: { items: [ 1 ] }
 		});
 

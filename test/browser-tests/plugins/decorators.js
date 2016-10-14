@@ -9,7 +9,7 @@ export default function() {
 	test( 'Basic decorator', t => {
 		new Ractive({
 			el: fixture,
-			template: '<div decorator="foo">this text will be overwritten</div>',
+			template: '<div as-foo>this text will be overwritten</div>',
 			decorators: {
 				foo ( node ) {
 					const contents = node.innerHTML;
@@ -37,7 +37,7 @@ export default function() {
 
 			new Ractive({
 				el: fixture,
-				template: '<div decorator="foo">missing</div>',
+				template: '<div as-foo>missing</div>',
 			});
 		});
 	}
@@ -45,7 +45,7 @@ export default function() {
 	test( 'Decorator with a static argument', t => {
 		new Ractive({
 			el: fixture,
-			template: '<div decorator="foo:bar">this text will be overwritten</div>',
+			template: '<div as-foo=""bar"">this text will be overwritten</div>',
 			decorators: {
 				foo ( node, newContents ) {
 					const contents = node.innerHTML;
@@ -66,7 +66,7 @@ export default function() {
 	test( 'Decorator with a dynamic argument', t => {
 		new Ractive({
 			el: fixture,
-			template: '<div decorator="foo:{{foo}}">this text will be overwritten</div>',
+			template: '<div as-foo="foo">this text will be overwritten</div>',
 			data: {
 				foo: 'baz'
 			},
@@ -90,7 +90,7 @@ export default function() {
 	test( 'Decorator with a dynamic argument that changes, without update() method', t => {
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<div decorator="foo:{{foo}}">this text will be overwritten</div>',
+			template: '<div as-foo="foo">this text will be overwritten</div>',
 			data: {
 				foo: 'baz'
 			},
@@ -118,7 +118,7 @@ export default function() {
 	test( 'Decorator with a dynamic argument that changes, with update() method', t => {
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<div decorator="foo:{{foo}}">this text will be overwritten</div>',
+			template: '<div as-foo="foo">this text will be overwritten</div>',
 			data: {
 				foo: 'baz'
 			},
@@ -157,7 +157,7 @@ export default function() {
 
 			new Ractive({
 				el: fixture,
-				template: '{{#item}}{{foo.bar}}{{name}}<span decorator="decorateme:{{foo}}"></span>{{/item}}',
+				template: '{{#item}}{{foo.bar}}{{name}}<span as-decorateme="foo"></span>{{/item}}',
 				magic: true,
 				data,
 				decorators: {
@@ -177,7 +177,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '{{#foo}}<p decorator="bar">foo</p>{{/foo}}',
+			template: '{{#foo}}<p as-bar>foo</p>{{/foo}}',
 			data: { foo: true },
 			decorators: {
 				bar () {
@@ -193,7 +193,7 @@ export default function() {
 	test( 'Unnecessary whitespace is trimmed (#810)', t => {
 		new Ractive({
 			el: fixture,
-			template: '<pre decorator="show: blue is the moon   "/><pre decorator="show:\' blue is the moon   \'"/>',
+			template: '<pre as-show=""blue is the moon""/><pre as-show="" blue is the moon   ""/>',
 			decorators: {
 				show ( node, arg ) {
 					node.innerHTML = `|${arg}|`;
@@ -210,7 +210,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '{{#each letters :i}}<p decorator="check:{{i}}"></p>{{/each}}',
+			template: '{{#each letters :i}}<p as-check="i"></p>{{/each}}',
 			data: {
 				letters: [ 'a', 'b' ]
 			},
@@ -236,7 +236,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '{{#each letters :i}}<p decorator="whatever"></p>{{/each}}',
+			template: '{{#each letters :i}}<p as-whatever></p>{{/each}}',
 			data: {
 				letters: [ 'a', 'b' ]
 			},
@@ -258,7 +258,7 @@ export default function() {
 	test( 'Teardown before init should work', t => {
 		const ractive = new Ractive({
 			el: fixture,
-			template: '{{# count > 0}}<span decorator="whatever">foo</span>{{/0}}',
+			template: '{{# count > 0}}<span as-whatever>foo</span>{{/0}}',
 			data: {
 				count: 0
 			},
@@ -279,38 +279,6 @@ export default function() {
 	});
 
 
-	test( 'Dynamic and empty dynamic decorator and empty', t => {
-		onWarn( msg => t.ok( /Missing "" decorator plugin/.test( msg ) ) );
-
-		const ractive = new Ractive({
-			el: fixture,
-			debug: true,
-			template: '{{#if x}}<div decorator="{{foo}}">not this</div>{{/if}}',
-			data: {
-				foo: '',
-				x: true
-			},
-			decorators: {
-				test ( node ) {
-					node.innerHTML = 'pass';
-					return { teardown () {} };
-				},
-				test2 ( node ) {
-					node.innerHTML = 'pass2';
-					return { teardown () {} };
-				}
-			}
-		});
-
-		t.htmlEqual( fixture.innerHTML, '<div>not this</div>' );
-		ractive.set( 'x', false );
-		ractive.set( 'foo', 'test' );
-		ractive.set( 'x', true );
-		t.htmlEqual( fixture.innerHTML, '<div>pass</div>' );
-		ractive.set( 'foo', 'test2' );
-		t.htmlEqual( fixture.innerHTML, '<div>pass2</div>' );
-	});
-
 	test( 'Decorator teardown should happen after outros have completed (#1481)', t => {
 		const done = t.async();
 
@@ -320,7 +288,7 @@ export default function() {
 			el: fixture,
 			template: `
 				{{#if foo}}
-					<div outro='wait' decorator='red'>red</div>
+					<div wait-out as-red>red</div>
 				{{/if}}`,
 			data: {
 				foo: true
@@ -368,7 +336,7 @@ export default function() {
 		new Ractive({
 			el: fixture,
 			decorators: { dec },
-			template: '<div decorator="dec:{{foo}}" />',
+			template: '<div as-dec="foo" />',
 			data: {
 				foo: 1
 			},
@@ -381,7 +349,7 @@ export default function() {
 	test( 'basic conditional decorator', t => {
 		const r = new Ractive({
 			el: fixture,
-			template: '<div {{#if foo}}decorator="foo"{{/if}}>bar</div>',
+			template: '<div {{#if foo}}as-foo{{/if}}>bar</div>',
 			data: { foo: true },
 			decorators: {
 				foo ( node ) {
@@ -407,7 +375,7 @@ export default function() {
 	test( 'conditional decorator with else', t => {
 		const r = new Ractive({
 			el: fixture,
-			template: '<div {{#if foo}}decorator="foo"{{else}}decorator="baz"{{/if}}>bar</div>',
+			template: '<div {{#if foo}}as-foo{{else}}as-baz{{/if}}>bar</div>',
 			data: { foo: true },
 			decorators: {
 				foo ( node ) {

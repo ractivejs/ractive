@@ -3,7 +3,6 @@ import { removeFromArray } from '../../../utils/array';
 import fireEvent from '../../../events/fireEvent';
 import Fragment from '../../Fragment';
 import getFunction from '../../../shared/getFunction';
-import { unbind } from '../../../shared/methodCallers';
 import resolveReference from '../../resolvers/resolveReference';
 import { splitKeypath } from '../../../shared/keypaths';
 import findElement from './findElement';
@@ -12,6 +11,7 @@ import { DOMEvent, CustomEvent } from '../element/ElementEvents';
 import RactiveEvent from '../component/RactiveEvent';
 import runloop from '../../../global/runloop';
 import { addHelpers } from '../../helpers/contextMethods';
+import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
 
 const specialPattern = /^(event|arguments)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
@@ -39,26 +39,14 @@ export default class EventDirective {
 			});
 		}
 
-		this.context = null;
-
 		// method calls
 		this.resolvers = null;
 		this.models = null;
-
-		// handler directive
-		this.action = null;
-		this.args = null;
 	}
 
 	bind () {
-		this.context = this.parentFragment.findContext();
-
-		const template = this.template.f;
-
-		if ( template.x ) {
-			this.fn = getFunction( template.x.s, template.x.r.length );
-			this.resolvers = [];
-			this.models = template.x.r.map( ( ref, i ) => {
+		setupArgsFn( this, this.template, this.parentFragment, {
+			specialRef ( ref, i ) {
 				const specialMatch = specialPattern.exec( ref );
 				if ( specialMatch ) {
 					// on-click="foo(event.node)"
@@ -76,47 +64,9 @@ export default class EventDirective {
 						keys: [ dollarMatch[1] - 1 ].concat( dollarMatch[2] ? splitKeypath( dollarMatch[2].substr( 1 ) ) : [] )
 					};
 				}
-
-				let resolver;
-
-				const model = resolveReference( this.parentFragment, ref );
-				if ( !model ) {
-					resolver = this.parentFragment.resolve( ref, model => {
-						this.models[i] = model;
-						removeFromArray( this.resolvers, resolver );
-						model.register( this );
-					});
-
-					this.resolvers.push( resolver );
-				} else model.register( this );
-
-				return model;
-			});
-		}
-
-		else {
-			// TODO deprecate this style of directive
-			this.action = typeof template === 'string' ? // on-click='foo'
-				template :
-				typeof template.n === 'string' ? // on-click='{{dynamic}}'
-					template.n :
-					new Fragment({
-						owner: this,
-						template: template.n
-					});
-
-			this.args = template.a ? // static arguments
-				( typeof template.a === 'string' ? [ template.a ] : template.a ) :
-				template.d ? // dynamic arguments
-					new Fragment({
-						owner: this,
-						template: template.d
-					}) :
-					[]; // no arguments
-		}
-
-		if ( this.action && typeof this.action !== 'string' ) this.action.bind();
-		if ( this.args && template.d ) this.args.bind();
+			}
+		});
+		if ( !this.fn ) this.action = this.template.f;
 	}
 
 	bubble () {
@@ -180,14 +130,11 @@ export default class EventDirective {
 		}
 
 		else {
-			const action = this.action.toString();
-			let args = this.template.f.d ? this.args.getArgsList() : this.args;
-
+			let args = [];
 			if ( passedArgs.length ) args = args.concat( passedArgs );
+			if ( event ) event.name = this.action;
 
-			if ( event ) event.name = action;
-
-			fireEvent( this.ractive, action, {
+			fireEvent( this.ractive, this.action, {
 				event,
 				args
 			});
@@ -215,23 +162,7 @@ export default class EventDirective {
 	toString() { return ''; }
 
 	unbind () {
-		const template = this.template.f;
-
-		if ( template.m ) {
-			if ( this.resolvers ) this.resolvers.forEach( unbind );
-			this.resolvers = [];
-
-			if ( this.models ) this.models.forEach( m => {
-				if ( m.unregister ) m.unregister( this );
-			});
-			this.models = null;
-		}
-
-		else {
-			// TODO this is brittle and non-explicit, fix it
-			if ( this.action && this.action.unbind ) this.action.unbind();
-			if ( this.args && this.args.unbind ) this.args.unbind();
-		}
+		teardownArgsFn( this, this.template );
 	}
 
 	unrender () {
@@ -239,12 +170,6 @@ export default class EventDirective {
 	}
 
 	update () {
-		if ( this.method || !this.dirty ) return; // nothing to do
-
-		this.dirty = false;
-
-		// ugh legacy
-		if ( this.action && this.action.update ) this.action.update();
-		if ( this.args && this.args.update ) this.args.update();
+		// noop
 	}
 }

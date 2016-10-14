@@ -200,7 +200,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '{{#items}}{{#test}}{{# .entries > 1 }}<p intro="rendered" outro="unrendered">foo</p>{{/ .entries }}{{/test}}{{/items}}',
+			template: '{{#items}}{{#test}}{{# .entries > 1 }}<p rendered-in unrendered-out>foo</p>{{/ .entries }}{{/test}}{{/items}}',
 			data: {
 				items: [
 					{ test: [{ entries: 2 }] },

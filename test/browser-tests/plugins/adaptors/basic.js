@@ -136,7 +136,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '{{#with model}}<button on-click="select:{{this}}">{{foo}}</button>{{/with}}',
+			template: '{{#with model}}<button on-click="@this.fire("select", event, this)">{{foo}}</button>{{/with}}',
 			data: {
 				model: new Model({ foo: 'bar' })
 			},

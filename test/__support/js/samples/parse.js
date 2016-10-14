@@ -263,28 +263,23 @@ const parseTests = [
 	},
 	{
 		name: 'Intro and outro with no parameters',
-		template: `<div intro="fade" outro="fade"></div>`,
-		parsed: {v:4,t:[{t:7,e:'div',m:[{v:'t1',f:'fade',t:72},{v:'t2',f:'fade',t:72}]}]}
+		template: `<div fade-in fade-out></div>`,
+		parsed: {v:4,t:[{t:7,e:'div',m:[{v:'t1',n:'fade',t:72},{v:'t2',n:'fade',t:72}]}]}
 	},
 	{
 		name: 'Intro and outro with simple parameters',
-		template: `<div intro="fade:400" outro="fade:fast"></div>`,
-		parsed: {v:4,t:[{t:7,e:'div',m:[{v:'t1',f:{a:[400],n:'fade'},t:72},{v:'t2',f:{a:['fast'],n:'fade'},t:72}]}]}
+		template: `<div fade-in="400" fade-out=""fast""></div>`,
+		parsed: {v:4,t:[{t:7,e:'div',m:[{v:'t1',f:{s:'[400]',r:[]},n:'fade',t:72},{v:'t2',f:{s:'["fast"]',r:[]},n:'fade',t:72}]}]}
 	},
 	{
 		name: 'Intro and outro with JSON parameters',
-		template: `<div intro='fade:{delay:50}' outro='fade:{duration:500}'></div>`,
-		parsed: {v:4,t:[{t:7,e:'div',m:[{v:'t1',f:{a:[{delay:50}],n:'fade'},t:72},{v:'t2',f:{a:[{duration:500}],n:'fade'},t:72}]}]}
-	},
-	{
-		name: 'Intro and outro with JSON-like parameters',
-		template: `<div intro='fade:{delay:50}' outro='fade:{duration:500}'></div>`,
-		parsed: {v:4,t:[{t:7,e:'div',m:[{v:'t1',f:{a:[{delay:50}],n:'fade'},t:72},{v:'t2',f:{a:[{duration:500}],n:'fade'},t:72}]}]}
+		template: `<div fade-in='{delay:50}' fade-out={duration:500}></div>`,
+		parsed: {v:4,t:[{t:7,e:'div',m:[{v:'t1',f:{s:'[{delay:50}]',r:[]},n:'fade',t:72},{v:'t2',f:{s:'[{duration:500}]',r:[]},n:'fade',t:72}]}]}
 	},
 	{
 		name: 'Intro and outro with dynamic parameters',
-		template: `<div intro='fade:{delay:{{i*50}}}' outro='fade:{delay:{{i*50}}}'></div>`,
-		parsed: {v:4,t:[{t:7,e:'div',m:[{v:'t1',f:{d:['{delay:',{t:2,x:{r:['i'],s:'_0*50'}},'}'],n:'fade'},t:72},{v:'t2',f:{d:['{delay:',{t:2,x:{r:['i'],s:'_0*50'}},'}'],n:'fade'},t:72}]}]}
+		template: `<div fade-in={delay:i*50} fade-out="{delay:i*50}"></div>`,
+		parsed: {v:4,t:[{t:7,e:'div',m:[{v:'t1',f:{s:'[{delay:_0*50}]',r:['i']},n:'fade',t:72},{v:'t2',f:{s:'[{delay:_0*50}]',r:['i']},n:'fade',t:72}]}]}
 	},
 	{
 		name: 'Doctype declarations are handled',
@@ -309,18 +304,18 @@ const parseTests = [
 	},
 	{
 		name: 'Basic decorator',
-		template: `<div decorator="foo">{{bar}}</div>`,
-		parsed: {v:4,t:[{t:7,e:'div',m:[{f:'foo',t:71}],f:[{t:2,r:'bar'}]}]}
+		template: `<div as-foo>{{bar}}</div>`,
+		parsed: {v:4,t:[{t:7,e:'div',m:[{n:'foo',t:71}],f:[{t:2,r:'bar'}]}]}
 	},
 	{
 		name: 'Decorator with arguments',
-		template: `<div decorator="foo:1,2,3">{{bar}}</div>`,
-		parsed: {v:4,t:[{t:7,e:'div',m:[{f:{n:'foo',a:[1,2,3]},t:71}],f:[{t:2,r:'bar'}]}]}
+		template: `<div as-foo="1,2,3">{{bar}}</div>`,
+		parsed: {v:4,t:[{t:7,e:'div',m:[{f:{s:'[1,2,3]',r:[]},n:'foo',t:71}],f:[{t:2,r:'bar'}]}]}
 	},
 	{
 		name: 'Decorator with dynamic arguments',
-		template: `<div decorator="foo:{{baz}}">{{bar}}</div>`,
-		parsed: {v:4,t:[{t:7,e:'div',m:[{f:{n:'foo',d:[{t:2,r:'baz'}]},t:71}],f:[{t:2,r:'bar'}]}]}
+		template: `<div as-foo="baz">{{bar}}</div>`,
+		parsed: {v:4,t:[{t:7,e:'div',m:[{f:{s:'[_0]',r:['baz']},n:'foo',t:71}],f:[{t:2,r:'bar'}]}]}
 	},
 	{
 		name: 'Script tag with tags e.g. <p> buried inside',
@@ -759,7 +754,7 @@ const parseTests = [
 	{
 		name: 'Attribute/directive without =',
 		template: `<button on-click-"select">fire</button>`,
-		error: `Expected \`=\`, \`/\`, \`>\` or whitespace at line 1 character 18:
+		error: `Missing required directive arguments at line 1 character 18:
 <button on-click-"select">fire</button>
                  ^----`
 	},
@@ -847,19 +842,18 @@ const parseTests = [
 	},
 	{
 		name: 'csp: true',
-		template: '{{x + 1}}<a {{#if x + 2}}data-id={{x + 3}}{{/if}} intro="slide:{{x + 4}}" on-click="proxy:{{x + 5}}" on-focus="method(x + 5)">{{foo.bar[x + 6].baz}}</a>',
+		template: '{{x + 1}}<a {{#if x + 2}}data-id={{x + 3}}{{/if}} slide-in="x+4" on-click="proxy" on-focus="method(x + 5)">{{foo.bar[x + 6].baz}}</a>',
 		options: { csp: true },
 		parsed: {
-			v:4,t:[{t:2,x:{r:['x'],s:'_0+1'}},{t:7,e:'a',m:[{t:4,f:[{n:'data-id',f:[{t:2,x:{r:['x'],s:'_0+3'}}],t:13}],n:50,x:{r:['x'],s:'_0+2'}},{v:'t1',f:{n:'slide',d:[{t:2,x:{r:['x'],s:'_0+4'}}]},t:72},{n:'click',f:{n:'proxy',d:[{t:2,x:{r:['x'],s:'_0+5'}}]},t:70},{n:'focus',f:{x:{r:['@this','x'],s:'[_0.method(_1+5)]'}},t:70}],f:[{t:2,rx:{r:'foo.bar',m:[{r:['x'],s:'_0+6'},'baz']}}]}],
+			v:4,t:[{t:2,x:{r:['x'],s:'_0+1'}},{t:7,e:'a',m:[{t:4,f:[{n:'data-id',f:[{t:2,x:{r:['x'],s:'_0+3'}}],t:13}],n:50,x:{r:['x'],s:'_0+2'}},{v:'t1',n:'slide',f:{s:'[_0+4]',r:['x']},t:72},{n:'click',f:'proxy',t:70},{n:'focus',f:{r:['method','x'],s:'[_0(_1+5)]'},t:70}],f:[{t:2,rx:{r:'foo.bar',m:[{r:['x'],s:'_0+6'},'baz']}}]}],
 			// these are intentially made strings for testing purposes
 			// actual template has javascript function objects
 			e:{
 				'_0+1':'function (_0){return(_0+1);}',
 				'_0+3':'function (_0){return(_0+3);}',
 				'_0+2':'function (_0){return(_0+2);}',
-				'_0+4':'function (_0){return(_0+4);}',
-				'_0+5':'function (_0){return(_0+5);}',
-				'[_0.method(_1+5)]':'function (_0,_1){return([_0.method(_1+5)]);}',
+				'[_0+4]':'function (_0){return([_0+4]);}',
+				'[_0(_1+5)]':'function (_0,_1){return([_0(_1+5)]);}',
 				'_0+6':'function (_0){return(_0+6);}'
 			}
 		},

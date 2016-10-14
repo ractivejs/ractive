@@ -44,7 +44,7 @@ export default function() {
 			el: fixture,
 			template: `
 				{{#if show}}
-					<div intro="test">content...</div>
+					<div test-in>content...</div>
 				{{/if show}}`,
 			transitions: {
 				test ( transition ) {
@@ -74,7 +74,7 @@ export default function() {
 		let p;
 
 		const Widget = Ractive.extend({
-			template: '<p outro="test">foo</p>',
+			template: '<p test-out>foo</p>',
 			beforeComplete () {
 				shouldHaveCompleted = true;
 				t.ok( fixture.contains( p ), '<p> element has already been removed from the DOM' );
@@ -108,7 +108,7 @@ export default function() {
 
 		new Ractive({
 			el: fixture,
-			template: '<div intro="test"></div>',
+			template: '<div test-in></div>',
 			noIntro: true,
 			beforeComplete(){
 				transitioned = true;
@@ -128,7 +128,7 @@ export default function() {
 		let transitioned;
 
 		const ractive = new Ractive({
-			template: '<div intro="test"></div>',
+			template: '<div test-in></div>',
 			noIntro: true,
 			beforeComplete () {
 				transitioned = true;
@@ -142,33 +142,6 @@ export default function() {
 		ractive.render( fixture );
 	});
 
-	test( 'Empty transitions on refs okay', t => {
-		t.expect( 1 );
-
-		const done = t.async();
-
-		const ractive = new Ractive({
-			el: fixture,
-			debug: true,
-			template: '{{#if x}}<div intro="{{foo}}"></div>{{/if}}',
-			transitions: {
-				test ( transition ) {
-					t.ok( true );
-					transition.complete();
-					done();
-				}
-			},
-			data: {
-				x: true,
-				foo: ''
-			}
-		});
-
-		ractive.set( 'x', false );
-		ractive.set( 'foo', 'test' );
-		ractive.set( 'x', true );
-	});
-
 	test( 'ractive.transitionsEnabled false prevents all transitions', t => {
 		t.expect( 1 );
 
@@ -177,7 +150,7 @@ export default function() {
 		let transitioned;
 
 		const Component = Ractive.extend({
-			template: '{{#foo}}<div intro-outro="test"></div>{{/foo}}',
+			template: '{{#foo}}<div test-in-out></div>{{/foo}}',
 			onconstruct ( options ) {
 				this._super( options );
 				this.transitionsEnabled = false;
@@ -211,7 +184,7 @@ export default function() {
 
 			new Ractive({
 				el: fixture,
-				template: '<div intro="foo"></div>',
+				template: '<div foo-in></div>',
 				oncomplete () {
 					done();
 				}
@@ -227,7 +200,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<div intro="changeLineHeight"></div>',
+			template: '<div changeLineHeight-in></div>',
 			oncomplete () {
 				t.equal( div.style.lineHeight, '' );
 				done();
@@ -255,7 +228,7 @@ export default function() {
 	test( 'Nodes are detached synchronously if there are no outro transitions (#856)', t => {
 		const ractive = new Ractive({
 			el: fixture,
-			template: '{{#if foo}}<div intro="test">intro</div>{{else}}<div class="target">no outro</div>{{/if}}'
+			template: '{{#if foo}}<div test-in>intro</div>{{else}}<div class="target">no outro</div>{{/if}}'
 		});
 
 		const target = ractive.find( '.target' );
@@ -270,7 +243,7 @@ export default function() {
 
 		new Ractive({
 			el: fixture,
-			template: '<div intro="test: { duration: {{ foo ? 1000 : 0 }} }"></div>',
+			template: '<div test-in="{ duration: foo ? 1000 : 0 }"></div>',
 			transitions: {
 				test ( transition, params ) {
 					t.deepEqual( params, { duration: 0 });
@@ -290,7 +263,7 @@ export default function() {
 
 		new Ractive({
 			el: fixture,
-			template: '{{#each list}}<p intro="foo:{}"></p>{{/each}}',
+			template: '{{#each list}}<p foo-in="{}"></p>{{/each}}',
 			transitions: {
 				foo ( t, params ) {
 					params = t.processParams( params, {
@@ -314,7 +287,7 @@ export default function() {
 	test( 'processParams extends correctly if no default provided (#2446)', t => {
 		new Ractive({
 			el: fixture,
-			template: '<p intro="foo:{duration: 1000}"></p>',
+			template: '<p foo-in="{ duration: 1000 }"></p>',
 			transitions: {
 				foo ( transition, params ) {
 					params = transition.processParams( params );
@@ -334,7 +307,7 @@ export default function() {
 
 		ractive = new Ractive({
 			el: fixture,
-			template: '{{#showBox}}<div intro="wait:2000" outro="wait:1"></div>{{/showBox}}',
+			template: '{{#showBox}}<div wait-in="2000" wait-out="1"></div>{{/showBox}}',
 			transitions: {
 				wait: function ( t, ms ) {
 					setTimeout( t.complete, ms );
@@ -360,7 +333,7 @@ export default function() {
 	test( 'processParams extends correctly if no default provided (#2446)', t => {
 		new Ractive({
 			el: fixture,
-			template: '<p intro="foo:{duration: 1000}"></p>',
+			template: '<p foo-in="{ duration: 1000 }"></p>',
 			transitions: {
 				foo ( transition, params ) {
 					params = transition.processParams( params );
@@ -382,7 +355,7 @@ export default function() {
 			template: `
 				{{#if foo.length || bar.length}}
 					{{#if foo === bar}}
-						<span intro-outro='x'></span>
+						<span x-in-out></span>
 					{{/if}}
 				{{/if}}`,
 			transitions: {
@@ -431,7 +404,7 @@ export default function() {
 			}
 			const r = new Ractive({
 				el: fixture,
-				template: `{{#if foo}}<span outro="trans" id="span1" /><span id="span2" />{{/if}}`,
+				template: `{{#if foo}}<span trans-out id="span1" /><span id="span2" />{{/if}}`,
 				data: { foo: true },
 				transitions: { trans }
 			});
@@ -447,7 +420,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: `{{#if visible}}<div intro='test'></div>{{/if}}`,
+			template: `{{#if visible}}<div test-in></div>{{/if}}`,
 			data: { visible: false },
 			transitions: {
 				test ( transition ) {
@@ -464,7 +437,7 @@ export default function() {
 		let count = 0;
 		const r = new Ractive({
 			el: fixture,
-			template: `{{#if foo}}<div {{#if bar}}intro="go"{{/if}}></div>{{/if}}`,
+			template: `{{#if foo}}<div {{#if bar}}go-in{{/if}}></div>{{/if}}`,
 			data: { foo: true, bar: true },
 			transitions: {
 				go ( t ) {
@@ -487,7 +460,7 @@ export default function() {
 		let count = 0;
 		const r = new Ractive({
 			el: fixture,
-			template: `{{#if foo}}<div {{#if bar}}outro="go"{{/if}}></div>{{/if}}`,
+			template: `{{#if foo}}<div {{#if bar}}go-out{{/if}}></div>{{/if}}`,
 			data: { foo: true, bar: true },
 			transitions: {
 				go ( t ) {
@@ -513,7 +486,7 @@ export default function() {
 		let count = 0;
 		const r = new Ractive({
 			el: fixture,
-			template: `{{#if foo}}<div {{#if bar}}intro-outro="go"{{/if}}></div>{{/if}}`,
+			template: `{{#if foo}}<div {{#if bar}}go-in-out{{/if}}></div>{{/if}}`,
 			data: { foo: true, bar: true },
 			transitions: {
 				go ( t ) {
@@ -617,27 +590,6 @@ export default function() {
 		});
 
 		t.equal( count, 1 );
-	});
-
-	test( 'old-style transition args bind correctly in an iterative section', t => {
-		t.expect( 1 );
-		const done = t.async();
-
-		const r = new Ractive({
-			el: fixture,
-			template: '{{#each foo:i}}<div intro-outro="go:{ delay: {{ delay * 10 + i }} }" />{{/each}}',
-			data: {
-				delay: 10
-			},
-			transitions: {
-				go ( trans, opts ) {
-					t.equal( opts.delay, 100 );
-					trans.complete();
-				}
-			}
-		});
-
-		r.push( 'foo', true ).then( done, done );
 	});
 
 	test( `transitions have a timeout safety net (#2463)`, t => {

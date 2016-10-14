@@ -556,12 +556,12 @@ export default function() {
 		let inDom = {};
 
 		const Widget = Ractive.extend({
-			template: '<div decorator="check:widget">{{yield}}</div>'
+			template: '<div as-check=""widget"">{{yield}}</div>'
 		});
 
 		new Ractive({
 			el: fixture,
-			template: '<div decorator="check:div"><Widget><p decorator="check:p"></p></div>',
+			template: '<div as-check=""div""><Widget><p as-check=""p""></p></div>',
 			components: { Widget },
 			decorators: {
 				check ( node, id ) {

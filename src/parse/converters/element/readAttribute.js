@@ -2,27 +2,26 @@ import { ATTRIBUTE, DECORATOR, BINDING_FLAG, TRANSITION, EVENT } from '../../../
 import getLowestIndex from '../utils/getLowestIndex';
 import readMustache from '../readMustache';
 import { decodeCharacterReferences } from '../../../utils/html';
-import processDirective from './processDirective';
+import readExpressionList from '../expressions/shared/readExpressionList';
+import flattenExpression from '../../utils/flattenExpression';
 import { warnOnceIfDebug } from '../../../utils/log';
 
-var attributeNamePattern = /^[^\s"'>\/=]+/,
+const attributeNamePattern = /^[^\s"'>\/=]+/,
 	onPattern = /^on/,
-	proxyEventPattern = /^on-([a-zA-Z\\*\\.$_][a-zA-Z\\*\\.$_0-9\-]+)$/,
+	eventPattern = /^on-([a-zA-Z\\*\\.$_][a-zA-Z\\*\\.$_0-9\-]+)$/,
 	reservedEventNames = /^(?:change|reset|teardown|update|construct|config|init|render|unrender|detach|insert)$/,
 	decoratorPattern = /^as-([a-z-A-Z][-a-zA-Z_0-9]*)$/,
 	transitionPattern = /^([a-zA-Z](?:(?!-in-out)[-a-zA-Z_0-9])*)-(in|out|in-out)$/,
 	directives = {
-				   'intro-outro': { t: TRANSITION, v: 't0' },
-				   intro: { t: TRANSITION, v: 't1' },
-				   outro: { t: TRANSITION, v: 't2' },
 				   lazy: { t: BINDING_FLAG, v: 'l' },
-				   twoway: { t: BINDING_FLAG, v: 't' },
-				   decorator: { t: DECORATOR }
+				   twoway: { t: BINDING_FLAG, v: 't' }
 				 },
-	unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
+	unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/,
+	proxyEvent = /^[^\s"'=<>@\[\]()]*/,
+	whitespace = /^\s+/;
 
 export default function readAttribute ( parser ) {
-	var attr, name, value, i, nearest, idx;
+	var name, i, nearest, idx;
 
 	parser.allowWhitespace();
 
@@ -44,14 +43,7 @@ export default function readAttribute ( parser ) {
 		return { n: name };
 	}
 
-	attr = { n: name };
-
-	value = readAttributeValue( parser );
-	if ( value != null ) { // not null/undefined
-		attr.f = value;
-	}
-
-	return attr;
+	return { n: name };
 }
 
 function readAttributeValue ( parser ) {
@@ -197,57 +189,60 @@ export function readAttributeOrDirective ( parser ) {
 			attribute,
 		    directive;
 
-		attribute = readAttribute( parser );
+		attribute = readAttribute( parser, false );
 
 		if ( !attribute ) return null;
 
-		// intro, outro, decorator
+		// lazy, twoway
 		if ( directive = directives[ attribute.n ] ) {
 			attribute.t = directive.t;
 			if ( directive.v ) attribute.v = directive.v;
 			delete attribute.n; // no name necessary
-
-			if ( directive.t === TRANSITION || directive.t === DECORATOR ) attribute.f = processDirective( attribute.f, parser );
-
-			if ( directive.t === TRANSITION ) {
-				warnOnceIfDebug( `${ directive.v === 't0' ? 'intro-outro' : directive.v === 't1' ? 'intro' : 'outro' } is deprecated. To specify tranisitions, use the transition name suffixed with '-in', '-out', or '-in-out' as an attribute. Arguments can be specified in the attribute value as a simple list of expressions without mustaches.` );
-			} else if ( directive.t === DECORATOR ) {
-				warnOnceIfDebug( `decorator is deprecated. To specify decorators, use the decorator name prefixed with 'as-' as an attribute. Arguments can be specified in the attribute value as a simple list of expressions without mustaches.` );
-			}
+			parser.allowWhitespace();
+			if ( parser.nextChar() === '=' ) attribute.f = readAttributeValue( parser );
 		}
 
 		// decorators
 		else if ( match = decoratorPattern.exec( attribute.n ) ) {
-			delete attribute.n;
+			attribute.n = match[1];
 			attribute.t = DECORATOR;
-			attribute.f = processDirective( attribute.f, parser, DECORATOR );
-			if ( typeof attribute.f === 'object' ) attribute.f.n = match[1];
-			else attribute.f = match[1];
+			readArguments( parser, attribute );
 		}
 
 		// transitions
 		else if ( match = transitionPattern.exec( attribute.n ) ) {
-			delete attribute.n;
+			attribute.n = match[1];
 			attribute.t = TRANSITION;
-			attribute.f = processDirective( attribute.f, parser, TRANSITION );
-			if ( typeof attribute.f === 'object' ) attribute.f.n = match[1];
-			else attribute.f = match[1];
+			readArguments( parser, attribute );
 			attribute.v = match[2] === 'in-out' ? 't0' : match[2] === 'in' ? 't1' : 't2';
 		}
 
 		// on-click etc
-		else if ( match = proxyEventPattern.exec( attribute.n ) ) {
+		else if ( match = eventPattern.exec( attribute.n ) ) {
 			attribute.n = match[1];
 			attribute.t = EVENT;
-			attribute.f = processDirective( attribute.f, parser, EVENT );
 
-			if ( reservedEventNames.test( attribute.f.n || attribute.f ) ) {
-				parser.pos -= ( attribute.f.n || attribute.f ).length;
-				parser.error( 'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, detach, insert)' );
+			// check for a proxy event
+			if ( !readProxyEvent( parser, attribute ) ) {
+				// otherwise, it's an expression
+				readArguments( parser, attribute, true );
+			} else {
+				if ( reservedEventNames.test( attribute.f ) ) {
+					parser.pos -= attribute.f.length;
+					parser.error( 'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, detach, insert)' );
+				}
 			}
 		}
 
 		else {
+			parser.allowWhitespace();
+			if ( parser.nextChar() === '=' ) {
+				const value = readAttributeValue( parser );
+				if ( value != null ) { // not null/undefined
+					attribute.f = value;
+				}
+			}
+
 			if ( parser.sanitizeEventAttributes && onPattern.test( attribute.n ) ) {
 				return { exclude: true };
 			} else {
@@ -257,4 +252,49 @@ export function readAttributeOrDirective ( parser ) {
 		}
 
 		return attribute;
+}
+
+function readProxyEvent ( parser, attribute ) {
+	const start = parser.pos;
+	if ( !parser.matchString( '=' ) ) parser.error( `Missing required directive arguments` );
+
+	const quote = parser.matchString( `'` ) || parser.matchString( `"` );
+	parser.allowWhitespace();
+	const proxy = parser.matchPattern( proxyEvent );
+
+	if ( proxy !== undefined ) {
+		if ( quote ) {
+			parser.allowWhitespace();
+			if ( !parser.matchString( quote ) ) parser.pos = start;
+			else return ( attribute.f = proxy ) || true;
+		} else if ( !parser.matchPattern( whitespace ) ) {
+			parser.pos = start;
+		} else {
+			return ( attribute.f = proxy ) || true;
+		}
+	} else {
+		parser.pos = start;
+	}
+}
+
+function readArguments ( parser, attribute, required = false ) {
+	parser.allowWhitespace();
+	if ( !parser.matchString( "=" ) ) {
+		if ( required ) parser.error( `Missing required directive arguments` );
+		return;
+	}
+	parser.allowWhitespace();
+
+	const quote = parser.matchString( "\"" ) || parser.matchString( "'" );
+	const spread = parser.spreadArgs;
+	parser.spreadArgs = true;
+	const exprs = readExpressionList( parser );
+	parser.spreadArgs = spread;
+
+	if ( quote ) {
+		parser.allowWhitespace();
+		if ( parser.matchString( quote ) !== quote ) parser.error( `Expected matching quote '${quote}'` );
+	}
+
+	attribute.f = flattenExpression({ m: exprs, t: 22 });
 }
