@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.1-edge
-	Thu Oct 13 2016 19:48:06 GMT+0000 (UTC) - commit 2cc42813b4cec5a15d21a4b1c75e09abf0ece5ad
+	Fri Oct 14 2016 06:21:49 GMT+0000 (UTC) - commit 473cbe54bb9218a722d5ac5935a03c04fcdb54a7
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -432,13 +432,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.1-edge-2cc42813b4cec5a15d21a4b1c75e09abf0ece5ad %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.1-edge-473cbe54bb9218a722d5ac5935a03c04fcdb54a7 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.1-edge-2cc42813b4cec5a15d21a4b1c75e09abf0ece5ad in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.1-edge-473cbe54bb9218a722d5ac5935a03c04fcdb54a7 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		var hasGroup = !!console.groupCollapsed;
@@ -2358,12 +2358,12 @@
   };
 
   ModelBase.prototype.notifyUpstream = function notifyUpstream () {
-  	var parent = this.parent, prev = this;
+  	var parent = this.parent, path = [ this.key ];
   	while ( parent ) {
-  		if ( parent.patternObservers.length ) parent.patternObservers.forEach( function ( o ) { return o.notify( prev.key ); } );
+  		if ( parent.patternObservers.length ) parent.patternObservers.forEach( function ( o ) { return o.notify( path.slice() ); } );
+  		path.unshift( parent.key );
   		parent.links.forEach( notifiedUpstream );
   		parent.deps.forEach( handleChange );
-  		prev = parent;
   		parent = parent.parent;
   	}
   };
@@ -4266,6 +4266,7 @@
   		// handle case where previously extant keypath no longer exists -
   		// observer should still fire, with undefined as new value
   		// TODO huh. according to the test suite that's not the case...
+  		// NOTE: I don't think this will work with partial updates
   		// Object.keys( this.oldValues ).forEach( keypath => {
   		// this.newValues[ keypath ] = undefined;
   		// });
@@ -4277,17 +4278,23 @@
   			});
   			this.partial = false;
   		} else {
+  			var count = 0;
   			var ok = this.baseModel.isRoot ?
-  				this.changed :
-  				this.changed.map( function ( key ) { return this$1.baseModel.getKeypath( this$1.ractive ) + '.' + escapeKey( key ); } );
+  				this.changed.map( function ( keys ) { return keys.map( escapeKey ).join( '.' ); } ) :
+  				this.changed.map( function ( keys ) { return this$1.baseModel.getKeypath( this$1.ractive ) + '.' + keys.map( escapeKey ).join( '.' ); } );
 
   			this.baseModel.findMatches( this.keys ).forEach( function ( model ) {
   				var keypath = model.getKeypath( this$1.ractive );
   				// is this model on a changed keypath?
-  				if ( ok.filter( function ( k ) { return keypath.indexOf( k ) === 0 && ( keypath.length === k.length || keypath[k.length] === '.' ); } ).length ) {
+  				if ( ok.filter( function ( k ) { return keypath.indexOf( k ) === 0 || k.indexOf( keypath ) === 0; } ).length ) {
+  					count++;
   					this$1.newValues[ keypath ] = model.get();
   				}
   			});
+
+  			// no valid change triggered, so bail to avoid breakage
+  			if ( !count ) return;
+
   			this.partial = true;
   		}
 
@@ -14266,7 +14273,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.1-edge-2cc42813b4cec5a15d21a4b1c75e09abf0ece5ad' },
+  	VERSION:        { value: '0.8.1-edge-473cbe54bb9218a722d5ac5935a03c04fcdb54a7' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
