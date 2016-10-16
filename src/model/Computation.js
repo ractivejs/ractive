@@ -77,6 +77,7 @@ export default class Computation extends Model {
 		if ( this.dirty ) {
 			this.dirty = false;
 			this.value = this.getValue();
+			if ( this.wrapper ) this.wrapper.newValue = this.value;
 			this.adapt();
 		}
 
