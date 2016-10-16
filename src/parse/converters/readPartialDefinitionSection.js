@@ -33,11 +33,12 @@ export default function readPartialDefinitionSection ( parser ) {
 
 	content = [];
 
+	const [ open, close ] = delimiters;
+
 	do {
-		// TODO clean this up
-		if ( child = readClosing( parser, { open: parser.standardDelimiters[0], close: parser.standardDelimiters[1] }) ) {
-			if ( !child.r === 'partial' ) {
-				parser.error( `Expected ${delimiters[0]}/partial${delimiters[1]}` );
+		if ( child = readClosing( parser, { open, close }) ) {
+			if ( child.r !== 'partial' ) {
+				parser.error( `Expected ${open}/partial${close}` );
 			}
 
 			closed = true;
@@ -47,7 +48,7 @@ export default function readPartialDefinitionSection ( parser ) {
 			child = parser.read( READERS );
 
 			if ( !child ) {
-				parser.error( `Expected ${delimiters[0]}/partial${delimiters[1]}` );
+				parser.error( `Expected ${open}/partial${close}` );
 			}
 
 			content.push( child );

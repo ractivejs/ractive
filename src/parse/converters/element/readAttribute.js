@@ -226,22 +226,16 @@ export function readAttributeOrDirective ( parser ) {
 			if ( !readProxyEvent( parser, attribute ) ) {
 				// otherwise, it's an expression
 				readArguments( parser, attribute, true );
-			} else {
-				if ( reservedEventNames.test( attribute.f ) ) {
-					parser.pos -= attribute.f.length;
-					parser.error( 'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, detach, insert)' );
-				}
+			} else if ( reservedEventNames.test( attribute.f ) ) {
+				parser.pos -= attribute.f.length;
+				parser.error( 'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, detach, insert)' );
 			}
 		}
 
 		else {
 			parser.allowWhitespace();
-			if ( parser.nextChar() === '=' ) {
-				const value = readAttributeValue( parser );
-				if ( value != null ) { // not null/undefined
-					attribute.f = value;
-				}
-			}
+			const value = parser.nextChar() === '=' ? readAttributeValue( parser ) : null;
+			attribute.f = value != null ? value : attribute.f;
 
 			if ( parser.sanitizeEventAttributes && onPattern.test( attribute.n ) ) {
 				return { exclude: true };
