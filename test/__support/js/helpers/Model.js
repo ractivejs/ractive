@@ -116,6 +116,10 @@ Model.adaptor = {
 				setting = false;
 			},
 			reset ( newData ) {
+				if ( setting ) {
+					return;
+				}
+
 				if ( newData instanceof Model ) {
 					return false; // teardown
 				}
@@ -124,8 +128,10 @@ Model.adaptor = {
 					return false;
 				}
 
+				setting = true;
 				object.reset( newData );
 				ractive.update( keypath );
+				setting = false;
 			}
 		};
 	}
