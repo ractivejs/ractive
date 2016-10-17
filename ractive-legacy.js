@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.1-edge
-	Sun Oct 16 2016 18:19:23 GMT+0000 (UTC) - commit a766516583baebddbfd4caf409054f27ed177724
+	Mon Oct 17 2016 18:44:18 GMT+0000 (UTC) - commit 24182db3673a1d349739e6aaf56a2fe4c9818c11
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -911,13 +911,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.1-edge-a766516583baebddbfd4caf409054f27ed177724 %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.1-edge-24182db3673a1d349739e6aaf56a2fe4c9818c11 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.1-edge-a766516583baebddbfd4caf409054f27ed177724 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.1-edge-24182db3673a1d349739e6aaf56a2fe4c9818c11 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		var hasGroup = !!console.groupCollapsed;
@@ -1786,7 +1786,7 @@
   	// If updating the view caused some model blowback - e.g. a triple
   	// containing <option> elements caused the binding on the <select>
   	// to update - then we start over
-  	if ( batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length || batch.ractives.length ) return flushChanges();
+  	if ( batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length || batch.ractives.length || batch.tasks.length ) return flushChanges();
   }
 
   var refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
@@ -13536,11 +13536,13 @@
   			}
   		});
 
-  		this.attributes.push( new ConditionalAttribute({
-  			owner: this,
-  			parentFragment: this.parentFragment,
-  			template: leftovers
-  		}) );
+  		if ( leftovers.length ) {
+  			this.attributes.push( new ConditionalAttribute({
+  				owner: this,
+  				parentFragment: this.parentFragment,
+  				template: leftovers
+  			}) );
+  		}
 
   		var i = this.attributes.length;
   		while ( i-- ) {
@@ -16755,11 +16757,13 @@
   	// search for the next node going forward
   	var this$1 = this;
 
+  		if ( item ) {
   		for ( var i = item.index + 1; i < this$1.items.length; i++ ) {
-  		if ( !this$1.items[ i ] ) continue;
+  			if ( !this$1.items[ i ] ) continue;
 
-  		var node = this$1.items[ i ].firstNode( true );
-  		if ( node ) return node;
+  			var node = this$1.items[ i ].firstNode( true );
+  			if ( node ) return node;
+  		}
   	}
 
   	// if this is the root fragment, and there are no more items,
@@ -16774,7 +16778,7 @@
   		return null;
   	}
 
-  	return this.owner.findNextNode( this ); // the argument is in case the parent is a RepeatedFragment
+  	if ( this.parent ) return this.owner.findNextNode( this ); // the argument is in case the parent is a RepeatedFragment
   };
 
   Fragment.prototype.findParentNode = function findParentNode () {
@@ -16874,7 +16878,7 @@
 
   		if ( wasRendered ) {
   			var parentNode = this.findParentNode();
-  			var anchor = this.parent ? this.parent.findNextNode( this.owner ) : null;
+  			var anchor = this.findNextNode();
 
   			if ( anchor ) {
   				var docFrag = createDocumentFragment();
@@ -17424,7 +17428,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.1-edge-a766516583baebddbfd4caf409054f27ed177724' },
+  	VERSION:        { value: '0.8.1-edge-24182db3673a1d349739e6aaf56a2fe4c9818c11' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
