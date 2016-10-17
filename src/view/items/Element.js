@@ -63,11 +63,13 @@ export default class Element extends Item {
 			}
 		});
 
-		this.attributes.push( new ConditionalAttribute({
-			owner: this,
-			parentFragment: this.parentFragment,
-			template: leftovers
-		}) );
+		if ( leftovers.length ) {
+			this.attributes.push( new ConditionalAttribute({
+				owner: this,
+				parentFragment: this.parentFragment,
+				template: leftovers
+			}) );
+		}
 
 		let i = this.attributes.length;
 		while ( i-- ) {
