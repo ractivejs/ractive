@@ -1,11 +1,3 @@
-**Description of the pull request:**
-
-**Fixes the following issues:**
-
-**Is breaking:**
-
-**Reviewers:**
-
 <!--
 Hello!
 
@@ -32,3 +24,12 @@ Once again, thank you for your time and patience.
 Ractive Community
 
 -->
+
+## Description of the pull request:
+
+## Fixes the following issues:
+
+## Is breaking:
+
+## Reviewers:
+

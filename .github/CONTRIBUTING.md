@@ -21,11 +21,11 @@ If you're having trouble getting Ractive to do what you want, there are a couple
 
 ## Raising issues
 
-Before submitting an issue, please make sure you're using the latest released version. A copy of the latest can be found at [http://cdn.ractivejs.org/latest/ractive.js](http://cdn.ractivejs.org/latest/ractive.js).
+Before submitting an issue, please make sure you're using the latest released version. A copy of the latest can be found at [https://unpkg.com/ractive](https://unpkg.com/ractive).
 
-If the bug persists, it may have been fixed in the latest development version. You can always get the most recent successful build from [http://cdn.ractivejs.org/edge/ractive.js](http://cdn.ractivejs.org/edge/ractive.js).
+If the bug persists, it may have been fixed in the latest development version. You can always get the most recent successful build from [http://cdn.ractivejs.org/edge/ractive.js](http://cdn.ractivejs.org/edge/ractive.js). Edge builds are periodically published to as [https://unpkg.com/ractive@edge](https://unpkg.com/ractive@edge).
 
-The best issues contain a reproducible demonstration of the bug in the form of a JSFiddle or similar. [This fiddle](http://jsfiddle.net/rich_harris/va6jU/) has a basic setup to get started with. Even better, you could create a failing test case using [this fiddle](http://jsfiddle.net/rich_harris/UG7Eq/) as a base.
+The best issues contain a reproducible demonstration of the bug in the form of a JSFiddle or similar. [This fiddle](https://jsfiddle.net/evschris/wxc00vup/) has a basic setup to get started with. Even better, you could create a failing test case using [this fiddle](http://jsfiddle.net/rich_harris/UG7Eq/) as a base.
 
 
 ## Pull requests
@@ -66,7 +66,7 @@ var foo = function(bar){
 }
 ```
 
-Above all, code should be clean and readable, and commented where necessary. If you add a new feature, make sure you add a test to go along with it!
+Above all, code should be clean and readable, and commented where necessary. Please include test cases, especially if you add a feature!
 
 
 ## Contributor License Agreement
