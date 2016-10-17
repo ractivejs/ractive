@@ -94,20 +94,6 @@ export default function() {
 		fire( ractive.find( 'button' ), 'click' );
 	});
 
-	test( 'A component can only have one {{yield}}', t => {
-		const Widget = Ractive.extend({
-			template: '<p>{{yield}}{{yield}}</p>'
-		});
-
-		t.throws( () => {
-			new Ractive({
-				el: fixture,
-				template: '<Widget>yeah!</Widget>',
-				components: { Widget }
-			});
-		}, /one {{yield}} declaration/ );
-	});
-
 	test( 'A component {{yield}} can be rerendered in conditional section block', t => {
 		const Widget = Ractive.extend({
 			template: '<p>{{#foo}}{{yield}}{{/}}</p>'
@@ -333,4 +319,20 @@ export default function() {
 			});
 		});
 	}
+
+	test( 'a plain content yielder may provide context via aliases', t => {
+		const cmp = Ractive.extend({
+			template: `<ul>{{#each items}}<li>{{yield with . as item}}</li>{{/each}}</ul>`
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: `<cmp items="{{.list}}">hello {{item}}</cmp>`,
+			data: {
+				list: [ 1, 2, 3 ]
+			},
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<ul><li>hello 1</li><li>hello 2</li><li>hello 3</li></ul>' );
+	});
 }

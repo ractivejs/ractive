@@ -1,12 +1,12 @@
 import { warnOnceIfDebug, warnIfDebug } from '../../utils/log';
-import Mustache from './shared/Mustache';
+import { MustacheContainer } from './shared/Mustache';
 import Fragment from '../Fragment';
 import getPartialTemplate from './partial/getPartialTemplate';
 import { isArray } from '../../utils/is';
 import parser from '../../Ractive/config/runtime-parser';
 import { doInAttributes } from './element/ConditionalAttribute';
 
-export default class Partial extends Mustache {
+export default class Partial extends MustacheContainer {
 	bind () {
 		// keep track of the reference name for future resets
 		this.refName = this.template.r;
@@ -45,30 +45,6 @@ export default class Partial extends Mustache {
 
 	destroyed () {
 		this.fragment.destroyed();
-	}
-
-	detach () {
-		return this.fragment.detach();
-	}
-
-	find ( selector ) {
-		return this.fragment.find( selector );
-	}
-
-	findAll ( selector, query ) {
-		this.fragment.findAll( selector, query );
-	}
-
-	findComponent ( name ) {
-		return this.fragment.findComponent( name );
-	}
-
-	findAllComponents ( name, query ) {
-		this.fragment.findAllComponents( name, query );
-	}
-
-	firstNode ( skipParent ) {
-		return this.fragment.firstNode( skipParent );
 	}
 
 	forceResetTemplate () {
@@ -112,10 +88,6 @@ export default class Partial extends Mustache {
 		}
 
 		this.partialTemplate = template || [];
-	}
-
-	toString ( escape ) {
-		return this.fragment.toString( escape );
 	}
 
 	unbind () {

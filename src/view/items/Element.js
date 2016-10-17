@@ -1,6 +1,6 @@
 import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from '../../config/types';
 import runloop from '../../global/runloop';
-import Item from './shared/Item';
+import { ContainerItem } from './shared/Item';
 import Fragment from '../Fragment';
 import ConditionalAttribute from './element/ConditionalAttribute';
 import updateLiveQueries from './element/updateLiveQueries';
@@ -20,7 +20,7 @@ function makeDirty ( query ) {
 
 const endsWithSemi = /;\s*$/;
 
-export default class Element extends Item {
+export default class Element extends ContainerItem {
 	constructor ( options ) {
 		super( options );
 
@@ -152,18 +152,6 @@ export default class Element extends Item {
 
 		if ( this.fragment ) {
 			this.fragment.findAll( selector, query );
-		}
-	}
-
-	findComponent ( name ) {
-		if ( this.fragment ) {
-			return this.fragment.findComponent( name );
-		}
-	}
-
-	findAllComponents ( name, query ) {
-		if ( this.fragment ) {
-			this.fragment.findAllComponents( name, query );
 		}
 	}
 

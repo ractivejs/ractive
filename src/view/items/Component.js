@@ -53,8 +53,6 @@ export default class Component extends Item {
 		if ( !( 'content' in partials ) ) partials.content = options.template.f || [];
 		this._partials = partials; // TEMP
 
-		this.yielders = {};
-
 		// find container
 		let fragment = options.parentFragment;
 		let container;
@@ -137,15 +135,6 @@ export default class Component extends Item {
 		}
 	}
 
-	checkYielders () {
-		Object.keys( this.yielders ).forEach( name => {
-			if ( this.yielders[ name ].length > 1 ) {
-				runloop.end();
-				throw new Error( `A component template can only have one {{yield${name ? ' ' + name : ''}}} declaration at a time` );
-			}
-		});
-	}
-
 	destroyed () {
 		if ( this.instance.fragment ) this.instance.fragment.destroyed();
 	}
@@ -189,7 +178,6 @@ export default class Component extends Item {
 	render ( target, occupants ) {
 		render( this.instance, target, null, occupants );
 
-		this.checkYielders();
 		this.attributes.forEach( callRender );
 		this.eventHandlers.forEach( callRender );
 		updateLiveQueries( this );
@@ -252,7 +240,6 @@ export default class Component extends Item {
 	update () {
 		this.dirty = false;
 		this.instance.fragment.update();
-		this.checkYielders();
 		this.attributes.forEach( update );
 		this.eventHandlers.forEach( update );
 	}

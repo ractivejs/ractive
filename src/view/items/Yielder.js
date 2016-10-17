@@ -1,10 +1,11 @@
-import Item from './shared/Item';
+import { ContainerItem } from './shared/Item';
 import Fragment from '../Fragment';
 import parse from '../../parse/_parse';
 import { warnIfDebug } from '../../utils/log';
 import { removeFromArray } from '../../utils/array';
+import { resolveAliases } from './Alias';
 
-export default class Yielder extends Item {
+export default class Yielder extends ContainerItem {
 	constructor ( options ) {
 		super( options );
 
@@ -20,8 +21,6 @@ export default class Yielder extends Item {
 
 	bind () {
 		const name = this.name;
-
-		( this.component.yielders[ name ] || ( this.component.yielders[ name ] = [] ) ).push( this );
 
 		// TODO don't parse here
 		let template = this.container._inlinePartials[ name || 'content' ];
@@ -39,7 +38,11 @@ export default class Yielder extends Item {
 			owner: this,
 			ractive: this.container.parent,
 			template
-		}).bind();
+		});
+		if ( this.template.z ) {
+			this.fragment.aliases = resolveAliases( this.template.z, this.containerFragment );
+		}
+		this.fragment.bind();
 	}
 
 	bubble () {
@@ -49,32 +52,17 @@ export default class Yielder extends Item {
 		}
 	}
 
-	detach () {
-		return this.fragment.detach();
-	}
-
-	find ( selector ) {
-		return this.fragment.find( selector );
-	}
-
-	findAll ( selector, queryResult ) {
-		this.fragment.find( selector, queryResult );
-	}
-
-	findComponent ( name ) {
-		return this.fragment.findComponent( name );
-	}
-
-	findAllComponents ( name, queryResult ) {
-		this.fragment.findAllComponents( name, queryResult );
-	}
-
 	findNextNode() {
 		return this.containerFragment.findNextNode( this );
 	}
 
-	firstNode ( skipParent ) {
-		return this.fragment.firstNode( skipParent );
+	rebinding () {
+		if ( this.locked ) return;
+		this.locked = true;
+		runloop.scheduleTask( () => {
+			this.locked = false;
+			this.fragment.aliases = resolveAliases( this.template.z, this.containerFragment );
+		});
 	}
 
 	render ( target, occupants ) {
@@ -91,13 +79,9 @@ export default class Yielder extends Item {
 		this.partialTemplate = template || []; // TODO warn on missing partial
 	}
 
-	toString ( escape ) {
-		return this.fragment.toString( escape );
-	}
-
 	unbind () {
+		this.fragment.aliases = {};
 		this.fragment.unbind();
-		removeFromArray( this.component.yielders[ this.name ], this );
 	}
 
 	unrender ( shouldDestroy ) {
