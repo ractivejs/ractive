@@ -49,7 +49,7 @@ export default function initialise ( ractive, userOptions, options ) {
 
 	if ( fragment ) {
 		// render automatically ( if `el` is specified )
-		const el = getElement( ractive.el );
+		const el = getElement( ractive.el || ractive.target );
 		if ( el ) {
 			let promise = ractive.render( el, ractive.append );
 
