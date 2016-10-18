@@ -1,29 +1,46 @@
 import { YIELDER } from '../../../config/types';
+import readExpression from '../readExpression';
+import refineExpression from '../../utils/refineExpression';
 import { readAliases } from './readAliases';
 
 const yieldPattern = /^yield\s*/;
-const namePattern = /^(?!with)[a-zA-Z_$][a-zA-Z_$0-9\-]*/;
 
 export default function readYielder ( parser, tag ) {
+	let expression;
+	let aliases;
+	let partial = { t: YIELDER };
+
 	if ( !parser.matchPattern( yieldPattern ) ) return null;
 
-	const name = parser.matchPattern( namePattern );
-	let aliases;
+	if ( !( aliases = parser.matchString( 'with' ) ) ) {
+		// Partial names can include hyphens, so we can't use readExpression
+		// blindly. Instead, we use the `relaxedNames` flag to indicate that
+		// `foo-bar` should be read as a single name, rather than 'subtract
+		// bar from foo'
+		parser.relaxedNames = parser.strictRefinement = true;
+		expression = readExpression( parser );
+		parser.relaxedNames = parser.strictRefinement = false;
+
+		if ( expression ) {
+			refineExpression( expression, partial );
+		}
+	}
 
 	parser.allowWhitespace();
 
-	if ( parser.matchString( 'with' ) ) {
+	if ( aliases ) {
 		aliases = readAliases( parser );
 		if ( !aliases || !aliases.length ) parser.error( `expected one or more aliases` );
 	}
+
+	parser.allowWhitespace();
 
 	if ( !parser.matchString( tag.close ) ) {
 		parser.error( `expected legal partial name` );
 	}
 
-	const yielder = { t: YIELDER };
-	if ( name ) yielder.n = name;
-	if ( aliases ) yielder.z = aliases;
+	if ( name ) partial.r = expression;
+	if ( aliases ) partial.z = aliases;
 
-	return yielder;
+	return partial;
 }

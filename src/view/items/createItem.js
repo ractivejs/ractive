@@ -20,7 +20,7 @@ import Textarea from './element/specials/Textarea';
 import Text from './Text';
 import Transition from './element/Transition';
 import Triple from './Triple';
-import Yielder from './Yielder';
+//import Yielder from './Yielder';
 import getComponentConstructor from './component/getComponentConstructor';
 import findElement from './shared/findElement';
 
@@ -31,7 +31,7 @@ constructors[ INTERPOLATOR ] = Interpolator;
 constructors[ PARTIAL ] = Partial;
 constructors[ SECTION ] = Section;
 constructors[ TRIPLE ] = Triple;
-constructors[ YIELDER ] = Yielder;
+constructors[ YIELDER ] = Partial;
 
 constructors[ ATTRIBUTE ] = Attribute;
 constructors[ BINDING_FLAG ] = BindingFlag;

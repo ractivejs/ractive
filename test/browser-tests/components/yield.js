@@ -176,12 +176,17 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>this is foo-bar</p>' );
 	});
 
-	test( 'Named yield must have valid name, not expression (#1681)', t => {
-		t.throws( () => {
-			Ractive.extend({
-				template: '{{yield "<p>nope</p>"}}'
-			});
-		}, /expected legal partial name/ );
+	test( 'yield can yield an expression', t => {
+		const cmp = Ractive.extend({
+			template: '{{yield { template: "<p>yep</p>" } }}'
+		});
+		new Ractive({
+			el: fixture,
+			template: '<cmp />',
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<p>yep</p>' );
 	});
 
 	test( 'Named yield with Ractive.extend() works as with new Ractive() (#1680)', t => {
@@ -306,7 +311,7 @@ export default function() {
 	if ( hasUsableConsole ) {
 		test( 'Yield with missing partial (#1681)', t => {
 			onWarn( msg => {
-				t.ok( /Could not find template for partial "missing"/.test( msg ) );
+				t.ok( /Could not find template for partial 'missing'/.test( msg ) );
 			});
 
 			const Widget = Ractive.extend({
@@ -334,5 +339,21 @@ export default function() {
 		});
 
 		t.htmlEqual( fixture.innerHTML, '<ul><li>hello 1</li><li>hello 2</li><li>hello 3</li></ul>' );
+	});
+
+	test( 'partial expression is evaluated outside of the partial context', t => {
+		new Ractive({
+			el: fixture,
+			template: `{{>foo { foo: 'nope' } }}`,
+			data: {
+				foo: 'yep'
+			},
+			partials: {
+				yep: 'yep',
+				nope: 'nope'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
 }

@@ -27,11 +27,7 @@ export default function readPartial ( parser, tag ) {
 	// turn it into `{{#with bar as bat, bip as bop}}{{>foo}}{{/with}}`
 	const aliases = readAliases( parser );
 	if ( aliases ) {
-		partial = {
-			t: ALIAS,
-			z: aliases,
-			f: [ partial ]
-		};
+		partial.z = aliases;
 	}
 
 	// otherwise check for literal context e.g. `{{>foo bar}}` then
@@ -39,13 +35,8 @@ export default function readPartial ( parser, tag ) {
 	else {
 		const context = readExpression( parser );
 		if ( context) {
-			partial = {
-				t: SECTION,
-				n: SECTION_WITH,
-				f: [ partial ]
-			};
-
-			refineExpression( context, partial );
+			partial.c = {};
+			refineExpression( context, partial.c );
 		}
 	}
 

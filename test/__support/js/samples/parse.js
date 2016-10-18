@@ -672,7 +672,7 @@ const parseTests = [
 	{
 		name: 'Partial with context',
 		template: `{{>item foo}}`,
-		parsed: {v:4,t:[{t:4,n:53,r:'foo',f:[{t:8,r:'item'}]}]}
+		parsed: {v:4,t:[{t:8,r:'item',c:{r:'foo'}}]}
 	},
 
 	// #1094
