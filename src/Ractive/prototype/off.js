@@ -24,6 +24,9 @@ export default function Ractive$off ( eventName, callback ) {
 			if ( subscribers ) {
 				// ...if a callback was specified, only remove that
 				if ( callback ) {
+					// flag this callback as off so that any in-flight firings don't call
+					// a cancelled handler - this is _slightly_ hacky
+					callback.off = true;
 					const index = subscribers.indexOf( callback );
 					if ( index !== -1 ) {
 						subscribers.splice( index, 1 );
