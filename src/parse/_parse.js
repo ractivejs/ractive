@@ -6,7 +6,6 @@ import readUnescaped from './converters/mustache/readUnescaped';
 import readPartial from './converters/mustache/readPartial';
 import readMustacheComment from './converters/mustache/readMustacheComment';
 import readInterpolator from './converters/mustache/readInterpolator';
-import readYielder from './converters/mustache/readYielder';
 import readSection from './converters/mustache/readSection';
 import readHtmlComment from './converters/readHtmlComment';
 import readElement from './converters/readElement';
@@ -21,7 +20,7 @@ import { fromComputationString } from './utils/createFunction';
 // See https://github.com/ractivejs/template-spec for information
 // about the Ractive template specification
 
-let STANDARD_READERS = [ readPartial, readUnescaped, readSection, readYielder, readInterpolator, readMustacheComment ];
+let STANDARD_READERS = [ readPartial, readUnescaped, readSection, readInterpolator, readMustacheComment ];
 let TRIPLE_READERS = [ readTriple ];
 let STATIC_READERS = [ readUnescaped, readSection, readInterpolator ]; // TODO does it make sense to have a static section?
 

@@ -1,42 +1,56 @@
-import { PARTIAL, SECTION, SECTION_WITH, ALIAS } from '../../../config/types';
+import { PARTIAL, YIELDER } from '../../../config/types';
 import readExpression from '../readExpression';
 import refineExpression from '../../utils/refineExpression';
 import { readAliases } from './readAliases';
 
 export default function readPartial ( parser, tag ) {
-	if ( !parser.matchString( '>' ) ) return null;
+	const type = parser.matchString( '>' ) || parser.matchString( 'yield' );
+	const partial = { t: type === '>' ? PARTIAL : YIELDER };
+	let aliases;
+
+	if ( !type ) return null;
 
 	parser.allowWhitespace();
 
-	// Partial names can include hyphens, so we can't use readExpression
-	// blindly. Instead, we use the `relaxedNames` flag to indicate that
-	// `foo-bar` should be read as a single name, rather than 'subtract
-	// bar from foo'
-	parser.relaxedNames = parser.strictRefinement = true;
-	const expression = readExpression( parser );
-	parser.relaxedNames = parser.strictRefinement = false;
+	if ( type === '>' || !( aliases = parser.matchString( 'with' ) ) ) {
+		// Partial names can include hyphens, so we can't use readExpression
+		// blindly. Instead, we use the `relaxedNames` flag to indicate that
+		// `foo-bar` should be read as a single name, rather than 'subtract
+		// bar from foo'
+		parser.relaxedNames = parser.strictRefinement = true;
+		const expression = readExpression( parser );
+		parser.relaxedNames = parser.strictRefinement = false;
 
-	if ( !expression ) return null;
+		if ( !expression && type === '>' ) return null;
 
-	let partial = { t: PARTIAL };
-	refineExpression( expression, partial ); // TODO...
+		if ( expression ) {
+			refineExpression( expression, partial ); // TODO...
+		}
+	}
 
 	parser.allowWhitespace();
 
 	// check for alias context e.g. `{{>foo bar as bat, bip as bop}}` then
 	// turn it into `{{#with bar as bat, bip as bop}}{{>foo}}{{/with}}`
-	const aliases = readAliases( parser );
-	if ( aliases ) {
-		partial.z = aliases;
-	}
+	if ( aliases || type === '>' ) {
+		aliases = readAliases( parser );
+		if ( aliases && aliases.length ) {
+			partial.z = aliases;
+		}
 
-	// otherwise check for literal context e.g. `{{>foo bar}}` then
-	// turn it into `{{#with bar}}{{>foo}}{{/with}}`
-	else {
-		const context = readExpression( parser );
-		if ( context) {
-			partial.c = {};
-			refineExpression( context, partial.c );
+		// otherwise check for literal context e.g. `{{>foo bar}}` then
+		// turn it into `{{#with bar}}{{>foo}}{{/with}}`
+		else if ( type === '>' ) {
+			const context = readExpression( parser );
+			if ( context) {
+				partial.c = {};
+				refineExpression( context, partial.c );
+			}
+		}
+
+		else {
+			// {{yield with}} requires some aliases
+			parser.error( `Expected one or more aliases` );
 		}
 	}
 
