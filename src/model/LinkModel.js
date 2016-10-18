@@ -115,6 +115,10 @@ export default class LinkModel extends ModelBase {
 	}
 
 	shuffle ( newIndices ) {
+		// watch for extra shuffles caused by a shuffle in a downstream link
+		if ( this.shuffling ) return;
+		this.shuffling = true;
+
 		// let the real model handle firing off shuffles
 		if ( !this.target.shuffling ) {
 			this.target.shuffle( newIndices );
@@ -151,6 +155,8 @@ export default class LinkModel extends ModelBase {
 
 			if ( upstream ) this.notifyUpstream();
 		}
+
+		this.shuffling = false;
 	}
 
 	source () {
