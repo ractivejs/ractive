@@ -13,8 +13,6 @@ export default class Model extends ModelBase {
 	constructor ( parent, key ) {
 		super( parent );
 
-		this.value = undefined;
-
 		this.ticker = null;
 
 		if ( parent ) {

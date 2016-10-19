@@ -109,6 +109,12 @@ export default class Computation extends Model {
 		const dependencies = stopCapturing();
 		this.setDependencies( dependencies );
 
+		// if not the first computation and the value is not the same,
+		// register the change for change events
+		if ( 'value' in this && result !== this.value ) {
+			this.registerChange( this.getKeypath(), result );
+		}
+
 		return result;
 	}
 
@@ -148,6 +154,7 @@ export default class Computation extends Model {
 		}
 
 		this.signature.setter( value );
+		this.mark();
 	}
 
 	setDependencies ( dependencies ) {

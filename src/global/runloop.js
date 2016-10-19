@@ -116,7 +116,9 @@ function flushChanges () {
 
 		// TODO deprecate this. It's annoying and serves no useful function
 		const ractive = fragment.ractive;
-		changeHook.fire( ractive, ractive.viewmodel.changes );
+		if ( Object.keys( ractive.viewmodel.changes ).length ) {
+			changeHook.fire( ractive, ractive.viewmodel.changes );
+		}
 		ractive.viewmodel.changes = {};
 		removeFromArray( ractives, ractive );
 

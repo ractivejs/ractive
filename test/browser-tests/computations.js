@@ -973,4 +973,69 @@ export default function() {
 		r.set( 'bat', 'hey' );
 		t.htmlEqual( fixture.innerHTML, 'hey' );
 	});
+
+	test( `computation changes can be observed`, t => {
+		t.expect( 3 );
+
+		const r = new Ractive({
+			data: {
+				foo: 'bar'
+			},
+			computed: {
+				bar: {
+					get () { return this.get( 'foo' ) + 'bar'; },
+					set ( val ) {
+						this.set( 'foo', val.replace( /bar$/, '' ) );
+					}
+				}
+			}
+		});
+
+		t.equal( r.get( 'bar' ), 'barbar' );
+
+		let expected = 'foobar';
+		r.observe( 'bar', v => {
+			t.ok( v === expected );
+		}, { init: false } );
+		r.set( 'foo', 'foo' );
+
+		expected = 'goofbar';
+		r.set( 'bar', 'goof' );
+	});
+
+	test( `computation changes are included in change events`, t => {
+		t.expect( 2 );
+
+		let fluff = 'bar'
+		const r = new Ractive({
+			el: fixture,
+			template: '{{bar}}',
+			data: {
+				foo: 'bar'
+			},
+			computed: {
+				bar: {
+					get () {
+						return this.get( 'foo' ) + fluff;
+					},
+					set ( val ) {
+						fluff = val;
+					}
+				}
+			}
+		});
+
+		let expected;
+		r.on( 'change', changes => {
+			if ( 'bar' in changes ) {
+				t.ok( changes.bar === expected, `"${changes.bar}" === "${expected}"` );
+			}
+		});
+
+		expected = 'foobar';
+		r.set( 'foo', 'foo' );
+
+		expected = 'foogoof';
+		r.set( 'bar', 'goof' );
+	});
 }
