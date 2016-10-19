@@ -117,12 +117,13 @@ export default class LinkModel extends ModelBase {
 	shuffle ( newIndices ) {
 		// watch for extra shuffles caused by a shuffle in a downstream link
 		if ( this.shuffling ) return;
-		this.shuffling = true;
 
 		// let the real model handle firing off shuffles
 		if ( !this.target.shuffling ) {
 			this.target.shuffle( newIndices );
 		} else {
+			this.shuffling = true;
+
 			let i = newIndices.length;
 			while ( i-- ) {
 				const idx = newIndices[ i ];
@@ -154,9 +155,10 @@ export default class LinkModel extends ModelBase {
 			this.marked();
 
 			if ( upstream ) this.notifyUpstream();
+
+			this.shuffling = false;
 		}
 
-		this.shuffling = false;
 	}
 
 	source () {
