@@ -33,9 +33,14 @@ Found a bug? Raise an issue:
 `;
 
 	welcome = () => {
-		let hasGroup = !!console.groupCollapsed;
-		console[ hasGroup ? 'groupCollapsed' : 'log' ].apply( console, welcomeIntro );
-		console.log( welcomeMessage );
+		if ( Ractive.WELCOME_MESSAGE === false ) {
+			welcome = noop;
+			return;
+		}
+		const message = 'WELCOME_MESSAGE' in Ractive ? Ractive.WELCOME_MESSAGE : welcomeMessage;
+		const hasGroup = !!console.groupCollapsed;
+		if ( hasGroup ) console.groupCollapsed.apply( console, welcomeIntro );
+		console.log( message );
 		if ( hasGroup ) {
 			console.groupEnd( welcomeIntro );
 		}

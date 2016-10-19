@@ -16,6 +16,7 @@ export default {
 	preserveWhitespace:     false,
 	sanitize:               false,
 	stripComments:          true,
+	contextLines:           0,
 
 	// data & binding:
 	data:                   {},

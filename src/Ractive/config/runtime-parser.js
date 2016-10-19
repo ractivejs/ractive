@@ -13,7 +13,8 @@ const parseOptions = [
 	'interpolate',
 	'preserveWhitespace',
 	'sanitize',
-	'stripComments'
+	'stripComments',
+	'contextLines'
 ];
 
 const TEMPLATE_INSTRUCTIONS = `Either preparse or use a ractive runtime source that includes the parser. `;

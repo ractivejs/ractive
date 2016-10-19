@@ -3,7 +3,7 @@ import Parser from '../../Parser';
 import readExpression from '../readExpression';
 import flattenExpression from '../../utils/flattenExpression';
 import parseJSON from '../../../utils/parseJSON';
-import { warnOnceIfDebug } from '../../../utils/log';
+import { warnIfDebug } from '../../../utils/log';
 
 var methodCallPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)\(.*\)\s*$/,
 	ExpressionParser;
@@ -24,13 +24,14 @@ export default function processDirective ( tokens, parentParser, type ) {
 		parsed;
 
 	if ( typeof tokens === 'string' ) {
+		const pos = parentParser.pos - tokens.length;
 		if ( type === DECORATOR || type === TRANSITION ) {
 			const parser = new ExpressionParser( `[${tokens}]` );
 			return { a: flattenExpression( parser.result[0] ) };
 		}
 
 		if ( type === EVENT && ( match = methodCallPattern.exec( tokens ) ) ) {
-			warnOnceIfDebug( `Unqualified method events are deprecated. Prefix methods with '@this.' to call methods on the current Ractive instance.` );
+			warnIfDebug( parentParser.getContextMessage( pos, `Unqualified method events are deprecated. Prefix methods with '@this.' to call methods on the current Ractive instance.` )[2] );
 			tokens = `@this.${match[1]}${tokens.substr(match[1].length)}`;
 		}
 
@@ -38,12 +39,14 @@ export default function processDirective ( tokens, parentParser, type ) {
 			const parser = new ExpressionParser( '[' + tokens + ']' );
 			if ( parser.result && parser.result[0] ) {
 				if ( parser.remaining().length ) {
+					parentParser.pos = pos + tokens.length - parser.remaining().length;
 					parentParser.error( `Invalid input after event expression '${parser.remaining()}'` );
 				}
 				return { x: flattenExpression( parser.result[0] ) };
 			}
 
 			if ( tokens.indexOf( ':' ) > tokens.indexOf( '(' ) || !~tokens.indexOf( ':' ) ) {
+				parentParser.pos = pos;
 				parentParser.error( `Invalid input in event expression '${tokens}'` );
 			}
 
@@ -115,8 +118,8 @@ export default function processDirective ( tokens, parentParser, type ) {
 		result = directiveName;
 	}
 
-	if ( directiveArgs.length ) {
-		warnOnceIfDebug( `Proxy events with arguments are deprecated. You can fire events with arguments using "@this.fire('eventName', arg1, arg2, ...)".` );
+	if ( directiveArgs.length && type ) {
+		warnIfDebug( parentParser.getContextMessage( parentParser.pos, `Proxy events with arguments are deprecated. You can fire events with arguments using "@this.fire('eventName', arg1, arg2, ...)".` )[2] );
 	}
 
 	return result;
