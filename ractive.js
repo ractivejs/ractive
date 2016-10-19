@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.1-edge
-	Tue Oct 18 2016 19:38:12 GMT+0000 (UTC) - commit 88399e47144ab1ac7ebea595c5484f39925fb815
+	Wed Oct 19 2016 19:00:48 GMT+0000 (UTC) - commit 464af1ab593ae42fe8300ee1bf92ec54e2adb70a
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -432,13 +432,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.1-edge-88399e47144ab1ac7ebea595c5484f39925fb815 %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.1-edge-464af1ab593ae42fe8300ee1bf92ec54e2adb70a %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.1-edge-88399e47144ab1ac7ebea595c5484f39925fb815 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.1-edge-464af1ab593ae42fe8300ee1bf92ec54e2adb70a in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		var hasGroup = !!console.groupCollapsed;
@@ -1277,7 +1277,9 @@
 
   		// TODO deprecate this. It's annoying and serves no useful function
   		var ractive = fragment.ractive;
-  		changeHook.fire( ractive, ractive.viewmodel.changes );
+  		if ( Object.keys( ractive.viewmodel.changes ).length ) {
+  			changeHook.fire( ractive, ractive.viewmodel.changes );
+  		}
   		ractive.viewmodel.changes = {};
   		removeFromArray( ractives, ractive );
 
@@ -2690,12 +2692,13 @@
   		var this$1 = this;
 
   		if ( this.shuffling ) return;
-  		this.shuffling = true;
 
   		// let the real model handle firing off shuffles
   		if ( !this.target.shuffling ) {
   			this.target.shuffle( newIndices );
   		} else {
+  			this.shuffling = true;
+
   			var i = newIndices.length;
   			while ( i-- ) {
   				var idx = newIndices[ i ];
@@ -2727,9 +2730,10 @@
   			this.marked();
 
   			if ( upstream ) this.notifyUpstream();
+
+  			this.shuffling = false;
   		}
 
-  		this.shuffling = false;
   	};
 
   	LinkModel.prototype.source = function source () {
@@ -2932,8 +2936,6 @@
   var Model = (function (ModelBase) {
   	function Model ( parent, key ) {
   		ModelBase.call( this, parent );
-
-  		this.value = undefined;
 
   		this.ticker = null;
 
@@ -10635,6 +10637,12 @@
   		var dependencies = stopCapturing();
   		this.setDependencies( dependencies );
 
+  		// if not the first computation and the value is not the same,
+  		// register the change for change events
+  		if ( 'value' in this && result !== this.value ) {
+  			this.registerChange( this.getKeypath(), result );
+  		}
+
   		return result;
   	};
 
@@ -10674,6 +10682,7 @@
   		}
 
   		this.signature.setter( value );
+  		this.mark();
   	};
 
   	Computation.prototype.setDependencies = function setDependencies ( dependencies ) {
@@ -16958,7 +16967,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.1-edge-88399e47144ab1ac7ebea595c5484f39925fb815' },
+  	VERSION:        { value: '0.8.1-edge-464af1ab593ae42fe8300ee1bf92ec54e2adb70a' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
