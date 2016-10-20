@@ -24,4 +24,8 @@ export default class Doctype extends Item {
 	unrender () {
 		// noop
 	}
+
+	update () {
+		// noop
+	}
 }

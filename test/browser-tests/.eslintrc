@@ -1,4 +1,7 @@
 {
+	"env": {
+		"browser": true
+	},
 	"globals": {
 		"Ractive": true,
 		"fixture": true

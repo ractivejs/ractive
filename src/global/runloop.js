@@ -116,7 +116,9 @@ function flushChanges () {
 
 		// TODO deprecate this. It's annoying and serves no useful function
 		const ractive = fragment.ractive;
-		changeHook.fire( ractive, ractive.viewmodel.changes );
+		if ( Object.keys( ractive.viewmodel.changes ).length ) {
+			changeHook.fire( ractive, ractive.viewmodel.changes );
+		}
 		ractive.viewmodel.changes = {};
 		removeFromArray( ractives, ractive );
 
@@ -146,5 +148,5 @@ function flushChanges () {
 	// If updating the view caused some model blowback - e.g. a triple
 	// containing <option> elements caused the binding on the <select>
 	// to update - then we start over
-	if ( batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length || batch.ractives.length ) return flushChanges();
+	if ( batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length || batch.ractives.length || batch.tasks.length ) return flushChanges();
 }

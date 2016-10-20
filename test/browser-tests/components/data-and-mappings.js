@@ -1314,4 +1314,39 @@ export default function() {
 		info.setBinding( 'yep' );
 		t.equal( info.getBinding(), 'yep' );
 	});
+
+	test( `shuffling a link to a link to a list doesn't blow the stack (#2699)`, t => {
+		t.expect( 0 );
+
+		const cmp1 = Ractive.extend({ template: '<cmp2 list="{{list}}" />' });
+		const cmp2 = Ractive.extend({ template: '<cmp3 list="{{list}}" />' });
+		const cmp3 = Ractive.extend();
+		const r = new Ractive({
+			el: fixture,
+			template: '<cmp1 list="{{items}}" />',
+			data: { items: [] },
+			components: { cmp1, cmp2, cmp3 }
+		});
+
+		r.findComponent( 'cmp3' ).push( 'list', 1 );
+	});
+
+	test( `shuffling a link to a link to a list updates correctly`, t => {
+		t.expect( 2 );
+
+		const cmp1 = Ractive.extend({ template: '<cmp2 list="{{list}}" />' });
+		const cmp2 = Ractive.extend({ template: '{{#each list}}{{.}}{{/each}}<cmp3 list="{{list}}" />' });
+		const cmp3 = Ractive.extend();
+		const r = new Ractive({
+			el: fixture,
+			template: '<cmp1 list="{{items}}" />',
+			data: { items: [] },
+			components: { cmp1, cmp2, cmp3 }
+		});
+
+		r.findComponent( 'cmp3' ).push( 'list', 1 );
+		t.htmlEqual( fixture.innerHTML, '1' );
+		r.findComponent( 'cmp2' ).unshift( 'list', 2 );
+		t.htmlEqual( fixture.innerHTML, '21' );
+	});
 }

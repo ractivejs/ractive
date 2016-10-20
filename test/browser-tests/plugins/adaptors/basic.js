@@ -443,7 +443,7 @@ export default function() {
 	test( 'adaptors with deeper keypaths should also work with update (#2500)', t => {
 		const thing = { thing: { a: 1, b: 4 } };
 		const adaptor = {
-			filter ( child, parent, keypath ) {
+			filter ( child, keypath, parent ) {
 				if ( !child || !child.thing ) return false;
 				if ( parent && parent._wrapper && parent._wrapper[ keypath ] ) return false;
 				return true;
@@ -628,5 +628,53 @@ export default function() {
 
 		const c = r.findComponent();
 		t.ok( c.get( 'it' ) instanceof Foo, 'value is unwrapped' );
+	});
+
+	test( `updating the child of an adapted value only updates the child (#2693)`, t => {
+		class Wrap {
+			constructor (obj) {
+				this.obj = obj;
+			}
+		}
+
+		const wrapper = {
+			filter ( obj ) {
+				return obj instanceof Wrap;
+			},
+			wrap ( ractive, obj ) {
+				const wrapper = {
+					get () {
+						return obj.obj;
+					},
+					teardown () {
+						delete obj._wrapper;
+					}
+				};
+				obj._wrapper = wrapper;
+				return wrapper;
+			}
+		};
+
+		const foo = new Wrap({ bar: 1, baz: 2 });
+		const r = new Ractive({
+			el: fixture,
+			template: '{{foo.bar}} {{foo.baz}}',
+			data: { foo },
+			adapt: [ wrapper ]
+		});
+
+		let count1 = 0;
+		let count2 = 0;
+		r.observe( 'foo.bar', () => count1++, { init: false } );
+		r.observe( 'foo.baz', () => count2++, { init: false } );
+
+		t.htmlEqual( fixture.innerHTML, '1 2' );
+
+		foo.obj.bar = 42;
+		r.update( 'foo.bar' );
+
+		t.htmlEqual( fixture.innerHTML, '42 2' );
+		t.equal( count1, 1 );
+		t.equal( count2, 0 );
 	});
 }

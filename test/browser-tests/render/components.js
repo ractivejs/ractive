@@ -104,4 +104,26 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '012' );
 	});
+
+	test( 'resetting a nested component should find the correct anchor when rendering (#2695)', t => {
+		const cmp1 = Ractive.extend({
+			template: '<cmp/>',
+			components: {
+				cmp () { return this.get('cmp') || 'cmp2'; }
+			}
+		});
+		const cmp2 = Ractive.extend({ template: 'first' });
+		const cmp3 = Ractive.extend({ template: 'second' });
+		const r = new Ractive({
+			el: fixture,
+			template: 'the <cmp1/> place',
+			components: { cmp1, cmp2, cmp3 }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'the first place' );
+		const cmp = r.findComponent( 'cmp1' );
+		cmp.set( 'cmp', 'cmp3' );
+		cmp.reset();
+		t.htmlEqual( fixture.innerHTML, 'the second place' );
+	});
 }

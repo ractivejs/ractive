@@ -149,11 +149,13 @@ export default class Fragment {
 
 	findNextNode ( item ) {
 		// search for the next node going forward
-		for ( let i = item.index + 1; i < this.items.length; i++ ) {
-			if ( !this.items[ i ] ) continue;
+		if ( item ) {
+			for ( let i = item.index + 1; i < this.items.length; i++ ) {
+				if ( !this.items[ i ] ) continue;
 
-			let node = this.items[ i ].firstNode( true );
-			if ( node ) return node;
+				let node = this.items[ i ].firstNode( true );
+				if ( node ) return node;
+			}
 		}
 
 		// if this is the root fragment, and there are no more items,
@@ -168,7 +170,7 @@ export default class Fragment {
 			return null;
 		}
 
-		return this.owner.findNextNode( this ); // the argument is in case the parent is a RepeatedFragment
+		if ( this.parent ) return this.owner.findNextNode( this ); // the argument is in case the parent is a RepeatedFragment
 	}
 
 	findParentNode () {
@@ -266,7 +268,7 @@ export default class Fragment {
 
 			if ( wasRendered ) {
 				const parentNode = this.findParentNode();
-				const anchor = this.parent ? this.parent.findNextNode( this.owner ) : null;
+				const anchor = this.findNextNode();
 
 				if ( anchor ) {
 					const docFrag = createDocumentFragment();

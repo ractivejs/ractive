@@ -14,15 +14,14 @@ function getData ( data ) {
 
 describe( 'ractive.toHTML()', function () {
 	renderTests.forEach( function ( theTest ) {
-		it( theTest.name, function () {
-			[ false, true ].forEach( function ( magic ) {
+		[ false, true ].forEach( function ( magic ) {
+			it( theTest.name + " (magic: " + magic + ")", function () {
 				var data = getData( theTest.data );
 
 				var ractive = new Ractive({
 					template: theTest.template,
 					data: data,
 					partials: theTest.partials,
-					handlebars: theTest.handlebars, // TODO remove this if handlebars becomes default
 					magic: magic
 				});
 
@@ -40,6 +39,16 @@ describe( 'ractive.toHTML()', function () {
 				ractive.teardown();
 			});
 		});
+	});
+
+	it( 'doctype declarations handle updates (#2679)', function() {
+		// the select triggers an update during bind
+		var template = Ractive.parse('<!DOCTYPE html><html><select value="{{foo}}"><option value="bar">bar</option></select></html>');
+		var r = new Ractive({
+			template: template
+		});
+
+		r.teardown();
 	});
 });
 

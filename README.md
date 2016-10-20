@@ -27,6 +27,8 @@ If you don't find what you're looking for in the [docs](http://docs.ractivejs.or
 - Ask a question on [Stack Overflow](https://stackoverflow.com/questions/ask) with the [`ractivejs`](http://stackoverflow.com/questions/tagged/ractivejs) tag.
 - Send us a tweet via [@RactiveJS](http://twitter.com/RactiveJS).
 
+If you'd like to include an example in your issue, [this fiddle](https://jsfiddle.net/evschris/wxc00vup/) has a convenient minimal setup that has easily switchable Ractive versions.
+
 
 ## Contributing
 
@@ -78,9 +80,23 @@ To run a complete build including linting, testing and minification:
 npm run build
 ```
 
+
 ## Browser support
 
 Tested successfully in IE9+ and all modern browsers. For legacy browser support, use [the builds with suffix `legacy` in the filename](http://cdn.ractivejs.org/latest/ractive-legacy.js). These builds include polyfills and other essential features required by Ractive. If your experience differs [please let us know](https://github.com/ractivejs/ractive/issues/new)!
+
+
+## Published versions
+
+All builds are published to the default npm registry and can thus be accessed from the lovely unpkg CDN:
+
+- https://unpkg.com/ractive is the latest unminified version of Ractive.
+- https://unpkg.com/ractive/ractive.min.js is the latest minified version of Ractive.
+- The rest of the builds play out as you would expect too: ractive-legacy.js, ractive.runtime.js, ractive-legacy.min.js, ractive.runtime.min.js
+- https://unpkg.com/ractive@0.7.3 is the unminified build of Ractive v0.7.3
+- You can also pull specific builds for specific versions e.g. https://unpkg.com/ractive@0.7.3/ractive.min.js
+- `edge` builds are periodically published to npm with a pre-release version like `0.8.1-build-1` and the latest edge build is tagged `edge`.
+- https://unpkg.com/ractive@edge is the latest unminified edge build.
 
 
 ## License

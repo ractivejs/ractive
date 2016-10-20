@@ -17,7 +17,10 @@ export default function observe ( keypath, callback, options ) {
 		Object.keys( map ).forEach( keypath => {
 			const callback = map[ keypath ];
 
-			keypath.split( ' ' ).forEach( keypath => {
+			let keypaths = keypath.split( ' ' );
+			if ( keypaths.length > 1 ) keypaths = keypaths.filter( k => k );
+
+			keypaths.forEach( keypath => {
 				observers.push( createObserver( this, keypath, callback, options ) );
 			});
 		});
@@ -33,6 +36,8 @@ export default function observe ( keypath, callback, options ) {
 		} else {
 			keypaths = keypath.split( ' ' );
 		}
+
+		if ( keypaths.length > 1 ) keypaths = keypaths.filter( k => k );
 
 		keypaths.forEach( keypath => {
 			observers.push( createObserver( this, keypath, callback, options || {} ) );
@@ -275,6 +280,7 @@ class PatternObserver {
 			// handle case where previously extant keypath no longer exists -
 			// observer should still fire, with undefined as new value
 			// TODO huh. according to the test suite that's not the case...
+			// NOTE: I don't think this will work with partial updates
 			// Object.keys( this.oldValues ).forEach( keypath => {
 			// 	this.newValues[ keypath ] = undefined;
 			// });
@@ -286,17 +292,23 @@ class PatternObserver {
 				});
 				this.partial = false;
 			} else {
+				let count = 0;
 				const ok = this.baseModel.isRoot ?
-					this.changed :
-					this.changed.map( key => this.baseModel.getKeypath( this.ractive ) + '.' + escapeKey( key ) );
+					this.changed.map( keys => keys.map( escapeKey ).join( '.' ) ) :
+					this.changed.map( keys => this.baseModel.getKeypath( this.ractive ) + '.' + keys.map( escapeKey ).join( '.' ) );
 
 				this.baseModel.findMatches( this.keys ).forEach( model => {
 					const keypath = model.getKeypath( this.ractive );
 					// is this model on a changed keypath?
-					if ( ok.filter( k => keypath.indexOf( k ) === 0 && ( keypath.length === k.length || keypath[k.length] === '.' ) ).length ) {
+					if ( ok.filter( k => keypath.indexOf( k ) === 0 || k.indexOf( keypath ) === 0 ).length ) {
+						count++;
 						this.newValues[ keypath ] = model.get();
 					}
 				});
+
+				// no valid change triggered, so bail to avoid breakage
+				if ( !count ) return;
+
 				this.partial = true;
 			}
 

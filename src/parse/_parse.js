@@ -61,6 +61,8 @@ StandardParser = Parser.extend({
 			{ isStatic: true,  isTriple: true,  open: staticTripleDelimiters[0],  close: staticTripleDelimiters[1],  readers: TRIPLE_READERS }
 		];
 
+		this.contextLines = options.contextLines || 0;
+
 		this.sortMustacheTags();
 
 		this.sectionDepth = 0;

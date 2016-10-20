@@ -1,13 +1,3 @@
-**Description of the bug:**
-
-**Versions affected:**
-
-**Platforms affected:**
-
-**Reproduction:**
-
-**Code:**
-
 <!--
 Hello!
 
@@ -15,7 +5,7 @@ Thank you for taking your time submitting this issue. To make it easy for everyo
 
 
 
-Description of the bug:
+Description of the bug (or enhancement):
 Describe as much as you can what happened. Include the workarounds you have tried, tools you may have used alongside, build processes and the like.
 
 Versions affected:
@@ -25,10 +15,9 @@ Platforms affected:
 Include the browser or runtime, and if necessary, operating system and device.
 
 Reproduction:
-Include a link to a live specimen of the bug. For your convenience, you can fork the following fiddles:
+Include a link to a live specimen of the bug. For your convenience, you can fork this fiddle:
 
-    Latest (stable)   : http://jsfiddle.net/fskreuz/geo63339/
-    Edge (development): http://jsfiddle.net/fskreuz/kg6na484/
+    https://jsfiddle.net/evschris/exc00vup/
 
 Code:
 It is advised to include the code in question in the issue. This allows us to have a historical reference of your code should your demo service be offline.
@@ -40,3 +29,13 @@ Once again, thank you for your time and patience.
 Ractive Community
 
 -->
+
+## Description:
+
+## Versions affected:
+
+## Platforms affected:
+
+## Reproduction:
+
+## **Code:**

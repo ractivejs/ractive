@@ -173,7 +173,7 @@ export default class RootModel extends Model {
 	}
 
 	retrieve () {
-		return this.value;
+		return this.wrapper ? this.wrapper.get() : this.value;
 	}
 
 	update () {

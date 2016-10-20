@@ -15,43 +15,44 @@ export default function() {
 		if ( !svg && theTest.svg ) return;
 		if ( theTest.nodeOnly ) return;
 
-		test( theTest.name, t => {
-			const data = getData( theTest.data );
+		[ false, true ].forEach( magic => {
+			test( `${theTest.name} (magic: ${magic})`, t => { const data = getData( theTest.data );
 
-			// suppress warnings about non-POJOs
-			onWarn( msg => t.ok( /plain JavaScript object/.test( msg ) ) );
+				// suppress warnings about non-POJOs
+				onWarn( msg => t.ok( /plain JavaScript object/.test( msg ) ) );
 
-			const ractive = new Ractive({
-				el: fixture,
-				data,
-				template: theTest.template,
-				partials: theTest.partials,
-				handlebars: theTest.handlebars, // TODO remove this if handlebars mode becomes default
-				debug: true
-			});
+				const ractive = new Ractive({
+					el: fixture,
+					data,
+					template: theTest.template,
+					partials: theTest.partials,
+					debug: true,
+					magic
+				});
 
-			t.htmlEqual( fixture.innerHTML, theTest.result, 'innerHTML should match result' );
-			t.htmlEqual( ractive.toHTML(), theTest.result, 'toHTML() should match result' );
+				t.htmlEqual( fixture.innerHTML, theTest.result, 'innerHTML should match result' );
+				t.htmlEqual( ractive.toHTML(), theTest.result, 'toHTML() should match result' );
 
-			if ( theTest.new_data ) {
-				const data = getData( theTest.new_data );
-
-				ractive.set( data );
-
-				t.htmlEqual( fixture.innerHTML, theTest.new_result, 'innerHTML should match result' );
-				t.htmlEqual( ractive.toHTML(), theTest.new_result, 'toHTML() should match result' );
-			} else if ( theTest.steps && theTest.steps.length ) {
-				theTest.steps.forEach( step => {
-					const data = getData( step.data );
+				if ( theTest.new_data ) {
+					const data = getData( theTest.new_data );
 
 					ractive.set( data );
 
-					t.htmlEqual( fixture.innerHTML, step.result, step.message || 'innerHTML should match result' );
-					t.htmlEqual( ractive.toHTML(), step.result, step.message || 'toHTML() should match result' );
-				});
-			}
+					t.htmlEqual( fixture.innerHTML, theTest.new_result, 'innerHTML should match result' );
+					t.htmlEqual( ractive.toHTML(), theTest.new_result, 'toHTML() should match result' );
+				} else if ( theTest.steps && theTest.steps.length ) {
+					theTest.steps.forEach( step => {
+						const data = getData( step.data );
 
-			ractive.teardown();
+						ractive.set( data );
+
+						t.htmlEqual( fixture.innerHTML, step.result, step.message || 'innerHTML should match result' );
+						t.htmlEqual( ractive.toHTML(), step.result, step.message || 'toHTML() should match result' );
+					});
+				}
+
+				ractive.teardown();
+			});
 		});
 	});
 

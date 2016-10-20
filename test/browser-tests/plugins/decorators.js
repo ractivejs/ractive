@@ -572,4 +572,22 @@ export default function() {
 		r.toggle( 'foo' );
 		t.equal( count, 0 );
 	});
+
+	test( 'decorators get applied if the element rendered during onrender (#2697)', t => {
+		new Ractive({
+			el: fixture,
+			template: '{{#if show}}<p as-foo>nope</p>{{/if}}',
+			decorators: {
+				foo ( node ) {
+					node.innerHTML = 'yep';
+					return { teardown () {} };
+				}
+			},
+			onrender () {
+				this.toggle( 'show' );
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<p>yep</p>' );
+	});
 }

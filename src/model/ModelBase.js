@@ -191,12 +191,12 @@ export default class ModelBase {
 	}
 
 	notifyUpstream () {
-		let parent = this.parent, prev = this;
+		let parent = this.parent, path = [ this.key ];
 		while ( parent ) {
-			if ( parent.patternObservers.length ) parent.patternObservers.forEach( o => o.notify( prev.key ) );
+			if ( parent.patternObservers.length ) parent.patternObservers.forEach( o => o.notify( path.slice() ) );
+			path.unshift( parent.key );
 			parent.links.forEach( notifiedUpstream );
 			parent.deps.forEach( handleChange );
-			prev = parent;
 			parent = parent.parent;
 		}
 	}
