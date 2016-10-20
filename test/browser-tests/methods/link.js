@@ -126,4 +126,21 @@ export default function() {
 		t.equal( r.get( 'bat.bop.bip' ), undefined );
 		t.htmlEqual( fixture.innerHTML, '' );
 	});
+
+	test( 'links work with root paths too', t => {
+		t.expect(2);
+
+		const parent = new Ractive();
+		const child = new Ractive({
+			data: {
+				foo: { bar: 'baz' }
+			}
+		});
+
+		parent.link( '', 'child.path', { ractive: child } );
+
+		t.equal( parent.get( 'child.path.foo.bar' ), 'baz' );
+		parent.observe( 'child.path.foo', () => t.ok( true, 'parent notified' ) );
+		child.set( 'foo.bar', 'yep' );
+	});
 }
