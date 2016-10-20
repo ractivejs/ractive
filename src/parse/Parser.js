@@ -62,6 +62,40 @@ Parser.prototype = {
 		return null;
 	},
 
+	getContextMessage ( pos, message ) {
+		const [ lineNum, columnNum ] = this.getLinePos( pos );
+		if ( this.options.contextLines === -1 ) {
+			return [ lineNum, columnNum, `${message} at line ${lineNum} character ${columnNum}` ];
+		}
+
+		const line = this.lines[ lineNum - 1 ];
+
+		let contextUp = '';
+		let contextDown = '';
+		if ( this.options.contextLines ) {
+			const start = lineNum - 1 - this.options.contextLines < 0 ? 0 : lineNum - 1 - this.options.contextLines;
+			contextUp = this.lines.slice( start, lineNum - 1 - start ).join( '\n' ).replace( /\t/g, '  ' );
+			contextDown = this.lines.slice( lineNum, lineNum + this.options.contextLines ).join( '\n' ).replace( /\t/g, '  ' );
+			if ( contextUp ) {
+				contextUp += '\n';
+			}
+			if ( contextDown ) {
+				contextDown = '\n' + contextDown;
+			}
+		}
+
+		let numTabs = 0;
+		const annotation = contextUp + line.replace( /\t/g, ( match, char ) => {
+			if ( char < columnNum ) {
+				numTabs += 1;
+			}
+
+			return '  ';
+		}) + '\n' + new Array( columnNum + numTabs ).join( ' ' ) + '^----' + contextDown;
+
+		return [ lineNum, columnNum, `${message} at line ${lineNum} character ${columnNum}:\n${annotation}` ];
+	},
+
 	getLinePos: function ( char ) {
 		var lineNum = 0, lineStart = 0, columnNum;
 
@@ -75,24 +109,12 @@ Parser.prototype = {
 	},
 
 	error: function ( message ) {
-		let pos = this.getLinePos( this.pos );
-		let lineNum = pos[0];
-		let columnNum = pos[1];
+		const [ lineNum, columnNum, msg ] = this.getContextMessage( this.pos, message );
 
-		let line = this.lines[ pos[0] - 1 ];
-		let numTabs = 0;
-		let annotation = line.replace( /\t/g, ( match, char ) => {
-			if ( char < pos[1] ) {
-				numTabs += 1;
-			}
+		let error = new ParseError( msg );
 
-			return '  ';
-		}) + '\n' + new Array( pos[1] + numTabs ).join( ' ' ) + '^----';
-
-		let error = new ParseError( `${message} at line ${lineNum} character ${columnNum}:\n${annotation}` );
-
-		error.line = pos[0];
-		error.character = pos[1];
+		error.line = lineNum;
+		error.character = columnNum;
 		error.shortMessage = message;
 
 		throw error;

@@ -82,9 +82,12 @@ export default function readSection ( parser, tag ) {
 
 	conditions = [];
 
+	let pos;
 	do {
+		pos = parser.pos;
 		if ( child = readClosing( parser, tag ) ) {
 			if ( expectedClose && child.r !== expectedClose ) {
+				parser.pos = pos;
 				parser.error( `Expected ${tag.open}/${expectedClose}${tag.close}` );
 			}
 

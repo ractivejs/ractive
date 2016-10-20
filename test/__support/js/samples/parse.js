@@ -459,7 +459,7 @@ const parseTests = [
 		name: 'Illegal closing section for {{#if}}',
 		template: `{{#if (foo*5 < 20)}}foo{{/wrong}}`,
 		error:
-			'Expected {{/if}} at line 1 character 34:\n{{#if (foo*5 < 20)}}foo{{/wrong}}\n                                 ^----'
+			'Expected {{/if}} at line 1 character 24:\n{{#if (foo*5 < 20)}}foo{{/wrong}}\n                       ^----'
 	},
 	{
 		name: 'Unless syntax',
