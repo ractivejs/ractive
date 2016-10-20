@@ -1,5 +1,19 @@
 # changelog
 
+# 0.8.1
+
+* Bug fixes
+	* Fixed issues with adaptors (#2693, #2698)
+	* Fixed issues with observers (#2682, #2690, #2704)
+	* CSS comments no longer break component styles (#2683)
+	* ... and various other bugs (#2679, #2680, #2695)
+
+* Other
+	* You can now specify a new parse option `contextLines` that will give you more (or less) of the surrounding template with errors and warnings.
+	* There is a new global `Ractive.WELCOME_MESSAGE` that tools can use to control the welcome message that Ractive prints on first init.
+	* Deprecated event constructs will now issue a warning with context for each instance, so that it becomes easier to find proxy events with arguments or old-style, non-prefixed method events in templates.
+
+
 # 0.8.0
 
 * Breaking changes
