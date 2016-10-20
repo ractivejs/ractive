@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.1-edge
-	Wed Oct 19 2016 19:00:48 GMT+0000 (UTC) - commit 464af1ab593ae42fe8300ee1bf92ec54e2adb70a
+	Thu Oct 20 2016 18:47:12 GMT+0000 (UTC) - commit ba2d6f5d7cf9b9d428f5836e411525abeaa02648
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -33,6 +33,7 @@
   	preserveWhitespace:     false,
   	sanitize:               false,
   	stripComments:          true,
+  	contextLines:           0,
 
   	// data & binding:
   	data:                   {},
@@ -911,18 +912,23 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.1-edge-464af1ab593ae42fe8300ee1bf92ec54e2adb70a %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.1-edge-ba2d6f5d7cf9b9d428f5836e411525abeaa02648 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.1-edge-464af1ab593ae42fe8300ee1bf92ec54e2adb70a in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.1-edge-ba2d6f5d7cf9b9d428f5836e411525abeaa02648 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
+  		if ( Ractive.WELCOME_MESSAGE === false ) {
+  			welcome = noop;
+  			return;
+  		}
+  		var message = 'WELCOME_MESSAGE' in Ractive ? Ractive.WELCOME_MESSAGE : welcomeMessage;
   		var hasGroup = !!console.groupCollapsed;
-  		console[ hasGroup ? 'groupCollapsed' : 'log' ].apply( console, welcomeIntro );
-  		console.log( welcomeMessage );
+  		if ( hasGroup ) console.groupCollapsed.apply( console, welcomeIntro );
+  		console.log( message );
   		if ( hasGroup ) {
   			console.groupEnd( welcomeIntro );
   		}
@@ -5444,7 +5450,8 @@
   	'interpolate',
   	'preserveWhitespace',
   	'sanitize',
-  	'stripComments'
+  	'stripComments',
+  	'contextLines'
   ];
 
   var TEMPLATE_INSTRUCTIONS = "Either preparse or use a ractive runtime source that includes the parser. ";
@@ -11105,6 +11112,40 @@
   		return null;
   	},
 
+  	getContextMessage: function ( pos, message ) {
+  		var ref = this.getLinePos( pos ), lineNum = ref[0], columnNum = ref[1];
+  		if ( this.options.contextLines === -1 ) {
+  			return [ lineNum, columnNum, ("" + message + " at line " + lineNum + " character " + columnNum) ];
+  		}
+
+  		var line = this.lines[ lineNum - 1 ];
+
+  		var contextUp = '';
+  		var contextDown = '';
+  		if ( this.options.contextLines ) {
+  			var start = lineNum - 1 - this.options.contextLines < 0 ? 0 : lineNum - 1 - this.options.contextLines;
+  			contextUp = this.lines.slice( start, lineNum - 1 - start ).join( '\n' ).replace( /\t/g, '  ' );
+  			contextDown = this.lines.slice( lineNum, lineNum + this.options.contextLines ).join( '\n' ).replace( /\t/g, '  ' );
+  			if ( contextUp ) {
+  				contextUp += '\n';
+  			}
+  			if ( contextDown ) {
+  				contextDown = '\n' + contextDown;
+  			}
+  		}
+
+  		var numTabs = 0;
+  		var annotation = contextUp + line.replace( /\t/g, function ( match, char ) {
+  			if ( char < columnNum ) {
+  				numTabs += 1;
+  			}
+
+  			return '  ';
+  		}) + '\n' + new Array( columnNum + numTabs ).join( ' ' ) + '^----' + contextDown;
+
+  		return [ lineNum, columnNum, ("" + message + " at line " + lineNum + " character " + columnNum + ":\n" + annotation) ];
+  	},
+
   	getLinePos: function ( char ) {
   		var this$1 = this;
 
@@ -11120,24 +11161,12 @@
   	},
 
   	error: function ( message ) {
-  		var pos = this.getLinePos( this.pos );
-  		var lineNum = pos[0];
-  		var columnNum = pos[1];
+  		var ref = this.getContextMessage( this.pos, message ), lineNum = ref[0], columnNum = ref[1], msg = ref[2];
 
-  		var line = this.lines[ pos[0] - 1 ];
-  		var numTabs = 0;
-  		var annotation = line.replace( /\t/g, function ( match, char ) {
-  			if ( char < pos[1] ) {
-  				numTabs += 1;
-  			}
+  		var error = new ParseError( msg );
 
-  			return '  ';
-  		}) + '\n' + new Array( pos[1] + numTabs ).join( ' ' ) + '^----';
-
-  		var error = new ParseError( ("" + message + " at line " + lineNum + " character " + columnNum + ":\n" + annotation) );
-
-  		error.line = pos[0];
-  		error.character = pos[1];
+  		error.line = lineNum;
+  		error.character = columnNum;
   		error.shortMessage = message;
 
   		throw error;
@@ -14791,7 +14820,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.1-edge-464af1ab593ae42fe8300ee1bf92ec54e2adb70a' },
+  	VERSION:        { value: '0.8.1-edge-ba2d6f5d7cf9b9d428f5836e411525abeaa02648' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
