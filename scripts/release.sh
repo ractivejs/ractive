@@ -12,6 +12,7 @@ set -e
 echo '> fetching cdn repo...'
 
 VERSION=$(cat package.json | grep "version" | sed 's/"version": "\(.*\)",/\1/' | sed 's/[[:space:]]//g')
+echo "releasing ${VERSION}..."
 
 rm -rf cdn
 git clone https://github.com/ractivejs/cdn.ractivejs.org cdn
@@ -21,12 +22,12 @@ mkdir cdn/${VERSION}
 cp -r build/* cdn/${VERSION}
 
 # replace latest/ folder
-rm -f cdn/latest/*
+rm -rf cdn/latest/*
 cp -r build/* cdn/latest
 
 ( cd cdn
 	git add -A
-	git commit -m '${VERSION} release'
+	git commit -m "${VERSION} release"
 	git push
 )
 
@@ -49,16 +50,16 @@ echo '> updating tags...'
 rm -rf build-branch
 git clone https://github.com/ractivejs/ractive -b build build-branch
 
-rm build-branch/*
+rm -r build-branch/*
 cp -r build/* build-branch
 
 ( cd build-branch
 	git add -A
-	git commit -m '${VERSION} release'
+	git commit -m "${VERSION} release"
 	git push
 
 	# Publish to bower...
-	git tag -a v${VERSION} -m 'version ${VERSION}'
+	git tag -a v${VERSION} -m "version ${VERSION}"
 	git push origin v${VERSION}
 )
 
