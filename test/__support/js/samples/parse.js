@@ -813,11 +813,11 @@ const parseTests = [
 	},
 	{
 		name: 'text-only mode',
-		template: `no <elements or="attributes" /> or &amp; entities {{just}} text, [[refs]], and {{#if foo}}sections{{/if}}`,
+		template: `no <elements or="attributes" /> or &amp; & entities <{{any}} foo="bar"> {{just}} text, [[refs]], and {{#if foo}}sections{{/if}}`,
 		options: {
 			textOnlyMode: true
 		},
-		parsed: {v:4,t:['no <elements or="attributes" /> or &amp; entities ',{t:2,r:'just'},' text, ',{t:2,r:'refs',s:true},', and ',{t:4,n:50,r:'foo',f:['sections']}]}
+		parsed: {v:4,t:['no <elements or="attributes" /> or &amp; & entities <',{t:2,r:'any'},' foo="bar"> ',{t:2,r:'just'},' text, ',{t:2,r:'refs',s:true},', and ',{t:4,n:50,r:'foo',f:['sections']}]}
 	},
 	{
 		name: 'unclosed element',

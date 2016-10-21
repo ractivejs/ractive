@@ -321,4 +321,18 @@ export default function() {
 
 		t.equal( fixture.innerHTML, '&nbsp; 1 &nbsp; 2 &nbsp;' );
 	});
+
+	test( `rendering a textOnlyMode template renders text only`, t => {
+		const r = new Ractive({
+			template: Ractive.parse( `no <elements or="attributes" /> or &amp; & entities <{{any}} foo="bar"> {{just}} text, [[refs]], and {{#if foo}}sections{{/if}}`, { textOnlyMode: true } ),
+			data: {
+				any: 'any',
+				just: 'just',
+				refs: 'refs',
+				foo: true
+			}
+		});
+
+		t.equal( r.toText(), 'no <elements or="attributes" /> or &amp; & entities <any foo="bar"> just text, refs, and sections' );
+	});
 }
