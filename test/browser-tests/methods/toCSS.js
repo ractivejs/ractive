@@ -17,6 +17,7 @@ export default function() {
 			frame.onload = () => {
 				const win = frame.contentWindow || frame;
 				const doc = frame.contentDocument || frame.contentWindow.document;
+				win.Promise = Promise;
 
 				const script = document.createElement( 'script' );
 				doc.body.appendChild( script );
