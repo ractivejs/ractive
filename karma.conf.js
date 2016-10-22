@@ -12,6 +12,7 @@ module.exports = function (config) {
 
 		// list of files / patterns to load in the browser
 		files: [
+			'test/es6-shim.js',
 			'ractive.js',
 			'test/qunit-html.js',
 			'test/simulant.js',
