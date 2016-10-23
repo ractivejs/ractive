@@ -1,10 +1,10 @@
 import { KEY_VALUE_PAIR, REFERENCE } from '../../../../../../config/types';
 import readKey from '../../../shared/readKey';
 import readExpression from '../../../../readExpression';
-import { name as namePattern } from '../../../shared/patterns';
+import { name as namePattern, spreadPattern } from '../../../shared/patterns';
 
 export default function readKeyValuePair ( parser ) {
-	var start, key, value;
+	var start, key, value, spread;
 
 	start = parser.pos;
 
@@ -12,8 +12,9 @@ export default function readKeyValuePair ( parser ) {
 	parser.allowWhitespace();
 
 	const refKey = parser.nextChar() !== '\'' && parser.nextChar() !== '"';
+	if ( refKey ) spread = parser.matchPattern( spreadPattern );
 
-	key = readKey( parser );
+	key = spread ? readExpression( parser ) : readKey( parser );
 	if ( key === null ) {
 		parser.pos = start;
 		return null;
@@ -24,11 +25,11 @@ export default function readKeyValuePair ( parser ) {
 
 	// es2015 shorthand property
 	if ( refKey && ( parser.nextChar() === ',' || parser.nextChar() === '}' ) ) {
-		if ( !namePattern.test( key ) ) {
+		if ( !spread && !namePattern.test( key ) ) {
 			parser.error( `Expected a valid reference, but found '${key}' instead.` );
 		}
 
-		return {
+		const pair = {
 			t: KEY_VALUE_PAIR,
 			k: key,
 			v: {
@@ -36,7 +37,14 @@ export default function readKeyValuePair ( parser ) {
 				n: key
 			}
 		};
+
+		if ( spread ) {
+			pair.p = true;
+		}
+
+		return pair;
 	}
+
 
 	// next character must be ':'
 	if ( !parser.matchString( ':' ) ) {

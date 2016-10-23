@@ -879,7 +879,28 @@ const parseTests = [
 		name: 'expression with multiple numeric refinement alt #2325',
 		template: '{{foo[0].bar[10].baz["12"].bat()}}',
 		parsed: {v:4,t:[{t:2,x:{r:["foo.0.bar.10.baz"],s:"_0[\"12\"].bat()"}}]}
+	},
+	{
+		name: 'expression with array spread',
+		template: '{{[foo, bar, ...baz, bat, bip, ...bop, boop, bar]}}',
+		parsed: {v:4,t:[{t:2,x:{r:["foo","baz","bat","bip","bop","boop","bar"],s:"[].concat([_0,_6],_1,[_2,_3],_4,[_5,_6])"}}]}
+	},
+	{
+		name: 'expression with object spread',
+		template: '{{ { foo: "bar", baz: 10 + ref, ...bat, bip: "bop" } }}',
+		parsed: {v:4,t:[{t:2,x:{r:["ref","bat"],s:'Object.assign({},{foo:"bar",baz:10+_0},_1,{bip:"bop"})'}}]}
+	},
+	{
+		name: 'expression with spread args',
+		template: '{{ foo.bar.baz(baz, bat, ...bip, bop, ...boop) }}',
+		parsed: {v:4,t:[{t:2,x:{r:["foo.bar","baz","bat","bip","bop","boop"],s:'(function(){var x$0;return((x$0=_0.baz).apply(x$0,[].concat([_1,_2],_3,[_4],_5)));})()'}}]}
+	},
+	{
+		name: 'various spreads mixed',
+		template: '{{ foo( qux, ...[ bar, ...baz, { bat: 1, bip: 2, ...bop, ...zip( fizz, ...fuzz ), ...{ why: not } }, boop ] ) }}',
+		parsed: {v:4,t:[{t:2,x:{r:['foo','qux','bar','baz','bop','zip','fizz','fuzz','not','boop'],s:'(function(){var x$1,x$0;return((x$0=_0).apply(x$0,[].concat([_1],[].concat([_2],_3,[Object.assign({},{bat:1,bip:2},_4,(x$1=_5).apply(x$1,[].concat([_6],_7)),{why:_8}),_9]))));})()'}}]}
 	}
+
 ];
 
 export default parseTests;

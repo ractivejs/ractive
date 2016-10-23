@@ -1038,4 +1038,36 @@ export default function() {
 		expected = 'foogoof';
 		r.set( 'bar', 'goof' );
 	});
+
+	// phantom just doesn't execute this test... no error, just nothing
+	// even >>> log messages don't come out. passes chrome and ff, though
+	if ( !/phantom/i.test( navigator.userAgent ) ) {
+		test( `various spread expressions compute correctly`, t => {
+			const r = new Ractive({
+				el: fixture,
+				template: `{{ JSON.stringify([ foo, bar, ...baz, ...bat( { bip, bop: 42, ...whimmy.wham( ...[ zat, wozzle, ...qux, bar ], zip ), bif: 84 } ), bar, foo ]) }}`,
+				data: {
+					foo: 1,
+					bar: 2,
+					baz: [ 'a', 'b', 'c' ],
+					bat ( obj ) { return [ obj, 123 ]; },
+					bip: 99,
+					whimmy: {
+						wham ( ...args ) {
+							return args.slice(2).reduce( ( a, c, i ) => {
+								a[ i + 'a' ] = c;
+								return a;
+							}, {} );
+						}
+					},
+					zat: true,
+					wozzle: false,
+					qux: [ 'z', 26, 'y', 25 ],
+					zip: 'zip'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, `[1,2,"a","b","c",{"bip":99,"bop":42,"0a":"z","1a":26,"2a":"y","3a":25,"4a":2,"5a":"zip","bif":84},123,2,1]` );
+		});
+	}
 }

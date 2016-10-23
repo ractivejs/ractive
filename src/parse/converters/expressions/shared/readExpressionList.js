@@ -1,24 +1,37 @@
 import { expectedExpression } from './errors';
 import readExpression from '../../readExpression';
+import { spreadPattern } from './patterns';
 
-export default function readExpressionList ( parser ) {
-	parser.allowWhitespace();
+export default function readExpressionList ( parser, spread ) {
+	let isSpread;
+	const expressions = [];
 
-	const expr = readExpression( parser );
+	const pos = parser.pos;
 
-	if ( expr === null ) return null;
+	do {
+		parser.allowWhitespace();
 
-	let expressions = [ expr ];
+		if ( spread ) {
+			isSpread = parser.matchPattern( spreadPattern );
+		}
 
-	// allow whitespace between expression and ','
-	parser.allowWhitespace();
+		const expr = readExpression( parser );
 
-	if ( parser.matchString( ',' ) ) {
-		const next = readExpressionList( parser );
-		if ( next === null ) parser.error( expectedExpression );
+		if ( expr === null && expressions.length ) {
+			parser.error( expectedExpression );
+		} else if ( expr === null ) {
+			parser.pos = pos;
+			return null;
+		}
 
-		expressions.push.apply( expressions, next );
-	}
+		if ( isSpread ) {
+			expr.p = true;
+		}
+
+		expressions.push( expr );
+
+		parser.allowWhitespace();
+	} while ( parser.matchString( ',' ) );
 
 	return expressions;
 }
