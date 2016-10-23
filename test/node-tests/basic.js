@@ -1,11 +1,5 @@
-/*global require, describe, it */
+QUnit.module( 'Ractive' );
 
-var Ractive = require( '../../ractive' );
-Ractive.WELCOME_MESSAGE = 'Ractive tests...';
-var assert = require( 'assert' );
-
-describe( 'Ractive', function () {
-	it( 'should be a function', function () {
-		assert.equal( typeof Ractive, 'function' );
-	});
+QUnit.test( 'should be a function', function ( assert ) {
+	assert.equal( typeof Ractive, 'function' );
 });

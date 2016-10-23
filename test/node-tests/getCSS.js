@@ -1,9 +1,3 @@
-/*global require, describe, it */
-'use strict';
-
-var Ractive = require( '../../ractive' );
-var assert = require( 'assert' );
-
 function createComponentDefinition( Ractive ) {
 
 	return Ractive.extend( {
@@ -11,30 +5,29 @@ function createComponentDefinition( Ractive ) {
 	} );
 }
 
-describe( 'ractive.toCSS()', function() {
+QUnit.module( 'ractive.toCSS()' );
 
-	it( 'should render CSS with a single component definition', function() {
+QUnit.test( 'should render CSS with a single component definition', function( assert ) {
 
-		var Component = createComponentDefinition( Ractive );
+	var Component = createComponentDefinition( Ractive );
 
-		var cssId = Component.prototype.cssId;
-		var css = Ractive.getCSS();
+	var cssId = Component.prototype.cssId;
+	var css = Ractive.getCSS();
 
-		assert( !!~css.indexOf( '.green[data-ractive-css~="{' + cssId + '}"], [data-ractive-css~="{' + cssId + '}"] .green', '.green selector for ' + cssId + ' should exist' ) );
-	} );
+	assert.ok( !!~css.indexOf( '.green[data-ractive-css~="{' + cssId + '}"], [data-ractive-css~="{' + cssId + '}"] .green', '.green selector for ' + cssId + ' should exist' ) );
+} );
 
-	it( 'should render CSS with multiple components definition', function() {
+QUnit.test( 'should render CSS with multiple components definition', function( assert ) {
 
-		var ComponentA = createComponentDefinition( Ractive );
+	var ComponentA = createComponentDefinition( Ractive );
 
-		var ComponentB = createComponentDefinition( Ractive );
+	var ComponentB = createComponentDefinition( Ractive );
 
-		var cssIdA = ComponentA.prototype.cssId;
-		var cssIdB = ComponentB.prototype.cssId;
-		var css = Ractive.getCSS();
+	var cssIdA = ComponentA.prototype.cssId;
+	var cssIdB = ComponentB.prototype.cssId;
+	var css = Ractive.getCSS();
 
-		// Look for the selectors
-		assert( !!~css.indexOf( '.green[data-ractive-css~="{' + cssIdA + '}"], [data-ractive-css~="{' + cssIdA + '}"] .green' ), '.green selector for ' + cssIdA + ' should exist' );
-		assert( !!~css.indexOf( '.green[data-ractive-css~="{' + cssIdB + '}"], [data-ractive-css~="{' + cssIdB + '}"] .green' ), '.green selector for ' + cssIdB + ' should exist' );
-	} );
+	// Look for the selectors
+	assert.ok( !!~css.indexOf( '.green[data-ractive-css~="{' + cssIdA + '}"], [data-ractive-css~="{' + cssIdA + '}"] .green' ), '.green selector for ' + cssIdA + ' should exist' );
+	assert.ok( !!~css.indexOf( '.green[data-ractive-css~="{' + cssIdB + '}"], [data-ractive-css~="{' + cssIdB + '}"] .green' ), '.green selector for ' + cssIdB + ' should exist' );
 } );
