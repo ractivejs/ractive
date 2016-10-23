@@ -35,7 +35,7 @@ export default class EventDirective {
 				const fn = findInViewHierarchy( 'events', this.ractive, n );
 				// we need to pass in "this" in order to get
 				// access to node when it is created.
-				this.events.push(fn ? new CustomEvent( fn, this.element ) : new DOMEvent( n, this.element ));
+				this.events.push( fn ? new CustomEvent( fn, this.element ) : new DOMEvent( n, this.element ) );
 			});
 		}
 
