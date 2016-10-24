@@ -59,12 +59,15 @@ renderTests.forEach( function ( theTest ) {
 	});
 });
 
-QUnit.test( 'doctype declarations handle updates (#2679)', function() {
+QUnit.test( 'doctype declarations handle updates (#2679)', function( assert ) {
 	// the select triggers an update during bind
 	var template = Ractive.parse('<!DOCTYPE html><html><select value="{{foo}}"><option value="bar">bar</option></select></html>');
 	var r = new Ractive({
 		template: template
 	});
+
+	// If the code reached this point, then the lines before it didn't blow up.
+	assert.ok(true);
 
 	r.teardown();
 });
