@@ -102,11 +102,13 @@ export default class Component extends Item {
 			}
 		});
 
-		this.attributes.push( new ConditionalAttribute({
-			owner: this,
-			parentFragment: this.parentFragment,
-			template: leftovers
-		}) );
+		if ( leftovers.length ) {
+			this.attributes.push( new ConditionalAttribute({
+				owner: this,
+				parentFragment: this.parentFragment,
+				template: leftovers
+			}) );
+		}
 
 		this.eventHandlers = [];
 	}
