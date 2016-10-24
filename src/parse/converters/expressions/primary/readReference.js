@@ -1,5 +1,6 @@
 import { GLOBAL, REFERENCE } from '../../../../config/types';
 import { normalise } from '../../../../shared/keypaths';
+import { legalReference, relaxedName } from '../shared/patterns';
 
 var prefixPattern = /^(?:~\/|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/,
 	globals,
@@ -11,8 +12,6 @@ globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIC
 // keywords are not valid references, with the exception of `this`
 keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
 
-const legalReference = /^(?:[a-zA-Z$_0-9]|\\\.)+(?:(?:\.(?:[a-zA-Z$_0-9]|\\\.)+)|(?:\[[0-9]+\]))*/;
-const relaxedName = /^[a-zA-Z_$][-\/a-zA-Z_$0-9]*/;
 const specials = /^@(?:keypath|rootpath|index|key|this|global)/;
 const specialCall = /^\s*\(/;
 

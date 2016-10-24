@@ -110,8 +110,10 @@ export default class Query {
 	}
 
 	add ( item ) {
-		this.result.push( item );
-		this.makeDirty();
+		if ( !~this.result.indexOf( item ) ) {
+			this.result.push( item );
+			this.makeDirty();
+		}
 	}
 
 	cancel () {

@@ -88,7 +88,7 @@ export default function() {
 		const cmp = Ractive.extend({});
 		const r = new Ractive({
 			el: fixture,
-			template: `{{#if show}}{{>>foo}}{{/if}}<cmp />`,
+			template: `{{#if show}}<#foo />{{/if}}<cmp />`,
 			data: { show: false },
 			components: { cmp }
 		});
@@ -108,7 +108,7 @@ export default function() {
 		const cmp = new Ractive();
 		const r = new Ractive({
 			el: fixture,
-			template: '{{>>foo}}'
+			template: '<#foo />'
 		});
 
 		r.attachChild( cmp, { target: 'foo' } );
@@ -119,7 +119,7 @@ export default function() {
 		const cmp = new Ractive();
 		const r = new Ractive({
 			el: fixture,
-			template: '{{>>foo}}'
+			template: '<#foo />'
 		});
 
 		r.attachChild( cmp, { target: 'foo', name: 'bar' } );

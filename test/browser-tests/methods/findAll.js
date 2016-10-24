@@ -150,7 +150,7 @@ export default function() {
 	test( 'findAll searches targeted attached children in order', t => {
 		const r1 = new Ractive({
 			el: fixture,
-			template: '{{>>anchor}}<div id="r1" />'
+			template: '<#anchor /><div id="r1" />'
 		});
 		const r2 = new Ractive({
 			template: '<div id="r2" />'
@@ -169,7 +169,7 @@ export default function() {
 		fixture.innerHTML = '<div></div><div></div>';
 		const r1 = new Ractive({
 			el: fixture.children[0],
-			template: '{{>>anchor}}<div id="r1" />'
+			template: '<#anchor /><div id="r1" />'
 		});
 		const r2 = new Ractive({
 			template: '<div id="r2" />'
@@ -208,7 +208,7 @@ export default function() {
 		fixture.innerHTML = '<div></div><div></div>';
 		const r1 = new Ractive({
 			el: fixture.children[0],
-			template: '{{>>anchor}}<div id="r1" />'
+			template: '<#anchor /><div id="r1" />'
 		});
 		const r2 = new Ractive({
 			template: '<div id="r2" />'
@@ -256,7 +256,7 @@ export default function() {
 		});
 		const r1 = new Ractive({
 			el: fixture.children[0],
-			template: '{{>>anchor}}<div id="r1" />'
+			template: '<#anchor /><div id="r1" />'
 		});
 		const r2 = new Ractive({
 			template: '<div id="r2" /><cmp />',

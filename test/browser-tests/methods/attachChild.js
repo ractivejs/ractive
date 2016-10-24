@@ -25,7 +25,7 @@ export default function() {
 
 	test( 'child instances can be attached to an anchor', t => {
 		const r1 = new Ractive({
-			template: '{{>>foo}}',
+			template: '<#foo />',
 			el: fixture
 		});
 		const r2 = new Ractive({
@@ -39,7 +39,7 @@ export default function() {
 
 	test( 'targeted child instances are rendered and unrendered with their anchor', t => {
 		const r1 = new Ractive({
-			template: '{{#if show}}{{>>foo}}{{/if}}',
+			template: '{{#if show}}<#foo />{{/if}}',
 			el: fixture
 		});
 		const r2 = new Ractive({
@@ -75,7 +75,7 @@ export default function() {
 		fixture.innerHTML = '<div id="r1"></div><div id="r2"></div>';
 		const r1 = new Ractive({
 			el: fixture.children[0],
-			template: 'r1{{>>foo}}'
+			template: 'r1<#foo />'
 		});
 		const r2 = new Ractive({
 			el: fixture.children[1],
@@ -105,7 +105,7 @@ export default function() {
 
 	test( 'anchors render the attached chile with an index corresponding to their position in the template', t => {
 		const r1 = new Ractive({
-			template: '{{>>foo}}',
+			template: '<#foo />',
 			el: fixture
 		});
 		const r2 = new Ractive({
@@ -128,7 +128,7 @@ export default function() {
 
 	test( 'same-named anchors distribute multiple attached children in template order by attached index', t => {
 		const r1 = new Ractive({
-			template: '{{#each @this.children.byName.foo}}{{>>foo}}{{/each}}',
+			template: '{{#each @this.children.byName.foo}}<#foo />{{/each}}',
 			el: fixture
 		});
 		const r2 = new Ractive({
@@ -153,7 +153,7 @@ export default function() {
 		fixture.innerHTML = '<div id="r1"></div><div id="r2"></div>';
 		const r1 = new Ractive({
 			el: fixture.children[0],
-			template: 'r1{{>>foo}}'
+			template: 'r1<#foo />'
 		});
 		const r2 = new Ractive({
 			el: fixture.children[1],
@@ -206,7 +206,7 @@ export default function() {
 
 		const r1 = new Ractive({
 			el: fixture,
-			template: '{{>>anchor}}'
+			template: '<#anchor />'
 		});
 		const r2 = new Ractive({
 			transitions: { go },
@@ -232,7 +232,7 @@ export default function() {
 
 		const r1 = new Ractive({
 			el: fixture,
-			template: '{{>>a1}}{{>>a2}}'
+			template: '<#a1 /><#a2 />'
 		});
 		const r2 = new Ractive({
 			transitions: { go },
@@ -264,7 +264,7 @@ export default function() {
 
 		const r2 = new Ractive({
 			el: fixture,
-			template: '{{>>foo foo="{{bar}}"}}',
+			template: '<#foo foo="{{bar}}" />',
 			data: {
 				bar: 'yep',
 				baz: 'still yep'
@@ -274,7 +274,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '' );
 		r2.attachChild( r1, { target: 'foo' } );
 		t.htmlEqual( fixture.innerHTML, 'yep' );
-		r2.resetTemplate( '{{>>foo foo="{{baz}}"}}' );
+		r2.resetTemplate( '<#foo foo="{{baz}}" />' );
 		t.htmlEqual( fixture.innerHTML, 'still yep' );
 		r2.detachChild( r1 );
 		t.htmlEqual( fixture.innerHTML, '' );
@@ -292,7 +292,7 @@ export default function() {
 		});
 		const r = new Ractive({
 			el: fixture,
-			template: '{{>>foo}}{{>>foo}}{{>>foo}}'
+			template: '<#foo /><#foo /><#foo />'
 		});
 
 		r.attachChild( r1, { target: 'foo' } );
@@ -310,7 +310,7 @@ export default function() {
 		});
 		const r = new Ractive({
 			el: fixture,
-			template: '{{>>foo}}{{>>foo}}{{>>foo}}'
+			template: '<#foo /><#foo /><#foo />'
 		});
 
 		r.attachChild( r1, { target: 'foo' } );
@@ -333,7 +333,7 @@ export default function() {
 		});
 		const r = new Ractive({
 			el: fixture,
-			template: '{{>>foo}}{{>>foo}}{{>>foo}}{{>>foo}}'
+			template: '<#foo /><#foo /><#foo /><#foo />'
 		});
 
 		r.attachChild( r1, { target: 'foo' } );
@@ -367,13 +367,27 @@ export default function() {
 		});
 		const r = new Ractive({
 			el: fixture,
-			template: '{{>>foo}}'
+			template: '<#foo />'
 		});
 
 		r.attachChild( r1, { target: 'foo' } );
 		t.htmlEqual( fixture.innerHTML, 'r1' );
 		r1.resetTemplate( 'hey1' );
 		t.htmlEqual( fixture.innerHTML, 'hey1' );
+	});
+
+	test( `attached anchored children can be supplied with inline partials`, t => {
+		const r1 = new Ractive({
+			template: '{{>thing}}{{>content}}'
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '<#foo>maybe{{#partial thing}}yep{{/partial}}</foo>'
+		});
+
+		t.equal( r1.toHTML(), '' );
+		r.attachChild( r1, { target: 'foo' } );
+		t.htmlEqual( fixture.innerHTML, 'yepmaybe' );
 	});
 }
 

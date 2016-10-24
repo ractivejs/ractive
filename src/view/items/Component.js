@@ -1,12 +1,13 @@
 import runloop from '../../global/runloop';
 import { warnIfDebug } from '../../utils/log';
-import { ATTRIBUTE, BINDING_FLAG, COMPONENT, DECORATOR, EVENT, TRANSITION, YIELDER } from '../../config/types';
+import { ANCHOR, ATTRIBUTE, BINDING_FLAG, COMPONENT, DECORATOR, EVENT, TRANSITION, YIELDER } from '../../config/types';
 import Item from './shared/Item';
 import ConditionalAttribute from './element/ConditionalAttribute';
 import construct from '../../Ractive/construct';
 import initialise from '../../Ractive/initialise';
 import render from '../../Ractive/render';
-import { create } from '../../utils/object';
+import { create, extend } from '../../utils/object';
+import { createDocumentFragment } from '../../utils/dom';
 import createItem from './createItem';
 import { removeFromArray } from '../../utils/array';
 import { bind, cancel, render as callRender, unbind, unrender, update } from '../../shared/methodCallers';
@@ -14,6 +15,7 @@ import Hook from '../../events/Hook';
 import EventDirective from './shared/EventDirective';
 import RactiveEvent from './component/RactiveEvent';
 import updateLiveQueries from './component/updateLiveQueries';
+import { updateAnchors } from '../../shared/anchors';
 
 function makeDirty ( query ) {
 	query.makeDirty();
@@ -24,48 +26,55 @@ const teardownHook = new Hook( 'teardown' );
 export default class Component extends Item {
 	constructor ( options, ComponentConstructor ) {
 		super( options );
-		this.type = COMPONENT; // override ELEMENT from super
+		this.isAnchor = this.template.t === ANCHOR;
+		this.type = this.isAnchor ? ANCHOR : COMPONENT; // override ELEMENT from super
 
-		const instance = create( ComponentConstructor.prototype );
-
-		this.instance = instance;
-		this.name = options.template.e;
-		this.parentFragment = options.parentFragment;
-
-		this.liveQueries = [];
-
-		if ( instance.el ) {
-			warnIfDebug( `The <${this.name}> component has a default 'el' property; it has been disregarded` );
-		}
-
-		let partials = options.template.p || {};
+		const partials = options.template.p || {};
 		if ( !( 'content' in partials ) ) partials.content = options.template.f || [];
 		this._partials = partials; // TEMP
 
-		// find container
-		let fragment = options.parentFragment;
-		let container;
-		while ( fragment ) {
-			if ( fragment.owner.type === YIELDER ) {
-				container = fragment.owner.container;
-				break;
+		if ( this.isAnchor ) {
+			this.name = options.template.n;
+
+			this.addChild = addChild;
+			this.removeChild = removeChild;
+		} else {
+			const instance = create( ComponentConstructor.prototype );
+
+			this.instance = instance;
+			this.name = options.template.e;
+
+			if ( instance.el ) {
+				warnIfDebug( `The <${this.name}> component has a default 'el' property; it has been disregarded` );
 			}
 
-			fragment = fragment.parent;
+			this.liveQueries = [];
+
+			// find container
+			let fragment = options.parentFragment;
+			let container;
+			while ( fragment ) {
+				if ( fragment.owner.type === YIELDER ) {
+					container = fragment.owner.container;
+					break;
+				}
+
+				fragment = fragment.parent;
+			}
+
+			// add component-instance-specific properties
+			instance.parent = this.parentFragment.ractive;
+			instance.container = container || null;
+			instance.root = instance.parent.root;
+			instance.component = this;
+
+			construct( this.instance, { partials });
+
+			// for hackability, this could be an open option
+			// for any ractive instance, but for now, just
+			// for components and just for ractive...
+			instance._inlinePartials = partials;
 		}
-
-		// add component-instance-specific properties
-		instance.parent = this.parentFragment.ractive;
-		instance.container = container || null;
-		instance.root = instance.parent.root;
-		instance.component = this;
-
-		construct( this.instance, { partials });
-
-		// for hackability, this could be an open option
-		// for any ractive instance, but for now, just
-		// for components and just for ractive...
-		instance._inlinePartials = partials;
 
 		this.attributeByName = {};
 
@@ -75,7 +84,6 @@ export default class Component extends Item {
 			switch ( template.t ) {
 				case ATTRIBUTE:
 				case EVENT:
-				case TRANSITION:
 					this.attributes.push( createItem({
 						owner: this,
 						parentFragment: this.parentFragment,
@@ -83,6 +91,7 @@ export default class Component extends Item {
 					}) );
 					break;
 
+				case TRANSITION:
 				case BINDING_FLAG:
 				case DECORATOR:
 					break;
@@ -100,44 +109,50 @@ export default class Component extends Item {
 		}) );
 
 		this.eventHandlers = [];
-		if ( this.template.v ) this.setupEvents();
 	}
 
 	bind () {
-		this.attributes.forEach( bind );
+		if ( !this.isAnchor ) {
+			this.attributes.forEach( bind );
 
-		initialise( this.instance, {
-			partials: this._partials
-		}, {
-			cssIds: this.parentFragment.cssIds
-		});
+			initialise( this.instance, {
+				partials: this._partials
+			}, {
+				cssIds: this.parentFragment.cssIds
+			});
 
-		this.eventHandlers.forEach( bind );
+			this.eventHandlers.forEach( bind );
 
-		this.bound = true;
+			this.bound = true;
+		}
 	}
 
 	bubble () {
-		if ( !this.dirty ) {
+		if ( !this.isAnchor && !this.dirty ) {
 			this.dirty = true;
 			this.parentFragment.bubble();
 		}
 	}
 
 	destroyed () {
-		if ( this.instance.fragment ) this.instance.fragment.destroyed();
+		if ( !this.isAnchor && this.instance.fragment ) this.instance.fragment.destroyed();
 	}
 
 	detach () {
+		if ( this.isAnchor ) {
+			if ( this.instance ) return this.instance.fragment.detach();
+			return createDocumentFragment()
+		}
+
 		return this.instance.fragment.detach();
 	}
 
 	find ( selector, options ) {
-		return this.instance.fragment.find( selector, options );
+		if ( this.instance ) return this.instance.fragment.find( selector, options );
 	}
 
 	findAll ( selector, query ) {
-		this.instance.fragment.findAll( selector, query );
+		if ( this.instance ) this.instance.fragment.findAll( selector, query );
 	}
 
 	findComponent ( name, options ) {
@@ -149,7 +164,7 @@ export default class Component extends Item {
 	}
 
 	findAllComponents ( name, query ) {
-		if ( query.test( this ) ) {
+		if ( this.instance && query.test( this ) ) {
 			query.add( this.instance );
 
 			if ( query.live ) {
@@ -157,83 +172,187 @@ export default class Component extends Item {
 			}
 		}
 
-		this.instance.findAllComponents( name, { _query: query } );
+		if ( this.instance ) this.instance.findAllComponents( name, { _query: query } );
 	}
 
 	firstNode ( skipParent ) {
-		return this.instance.fragment.firstNode( skipParent );
+		if ( this.instance ) return this.instance.fragment.firstNode( skipParent );
 	}
 
 	removeFromQuery ( query ) {
-		query.remove( this.instance );
+		if ( this.instance ) query.remove( this.instance );
 		removeFromArray( this.liveQueries, query );
 	}
 
 	render ( target, occupants ) {
-		render( this.instance, target, null, occupants );
+		if ( this.isAnchor ) {
+			this.target = target;
+			if ( !checking.length ) {
+				checking.push( this.ractive );
+				runloop.scheduleTask( checkAnchors, true );
+			}
+		} else {
+			render( this.instance, target, null, occupants );
 
-		this.attributes.forEach( callRender );
-		this.eventHandlers.forEach( callRender );
-		updateLiveQueries( this );
-
+			this.checkYielders();
+			this.attributes.forEach( callRender );
+			this.eventHandlers.forEach( callRender );
+			updateLiveQueries( this );
+		}
 		this.rendered = true;
 	}
 
-	setupEvents () {
-		const handlers = this.eventHandlers;
-
-		Object.keys( this.template.v ).forEach( key => {
-			const eventNames = key.split( '-' );
-			const template = this.template.v[ key ];
-
-			eventNames.forEach( eventName => {
-				const event = new RactiveEvent( this.instance, eventName );
-				handlers.push( new EventDirective( this, event, template ) );
-			});
-		});
-	}
-
 	shuffled () {
-		this.liveQueries.forEach( makeDirty );
+		if ( this.instance ) this.liveQueries.forEach( makeDirty );
 		super.shuffled();
 	}
 
 	toString () {
-		return this.instance.toHTML();
+		if ( this.instance ) return this.instance.toHTML();
 	}
 
 	unbind () {
-		this.bound = false;
+		if ( !this.isAnchor ) {
+			this.bound = false;
 
-		this.attributes.forEach( unbind );
+			this.attributes.forEach( unbind );
 
-		const instance = this.instance;
-		instance.viewmodel.teardown();
-		instance.fragment.unbind();
-		instance._observers.forEach( cancel );
+			const instance = this.instance;
+			instance.viewmodel.teardown();
+			instance.fragment.unbind();
+			instance._observers.forEach( cancel );
 
-		if ( instance.fragment.rendered && instance.el.__ractive_instances__ ) {
-			removeFromArray( instance.el.__ractive_instances__, instance );
+			if ( instance.fragment.rendered && instance.el.__ractive_instances__ ) {
+				removeFromArray( instance.el.__ractive_instances__, instance );
+			}
+
+			teardownHook.fire( instance );
 		}
-
-		teardownHook.fire( instance );
 	}
 
 	unrender ( shouldDestroy ) {
-		this.rendered = false;
-
 		this.shouldDestroy = shouldDestroy;
-		this.instance.unrender();
-		this.attributes.forEach( unrender );
-		this.eventHandlers.forEach( unrender );
-		this.liveQueries.forEach( query => query.remove( this.instance ) );
-		this.liveQueries = [];
+
+		if ( this.isAnchor ) {
+			if ( this.item ) unrenderItem( this, this.item );
+			this.target = null;
+			if ( !checking.length ) {
+				checking.push( this.ractive );
+				runloop.scheduleTask( checkAnchors, true );
+			}
+		} else {
+			this.instance.unrender();
+			this.instance.el = null;
+			this.attributes.forEach( unrender );
+			this.eventHandlers.forEach( unrender );
+
+			this.liveQueries.forEach( query => query.remove( this.instance ) );
+			this.liveQueries = [];
+		}
+
+		this.rendered = false;
 	}
 
 	update () {
 		this.dirty = false;
-		this.instance.fragment.update();
-		this.attributes.forEach( update );
-		this.eventHandlers.forEach( update );
+		if ( this.instance ) this.instance.fragment.update();
+		if ( !this.isAnchor ) {
+			this.checkYielders();
+			this.attributes.forEach( update );
+			this.eventHandlers.forEach( update );
+		}
 	}
+}
+
+function addChild ( meta ) {
+	if ( this.item ) this.removeChild( this.item );
+
+	const child = meta.instance;
+	meta.anchor = this;
+
+	meta.parentFragment = this.parentFragment;
+	meta.name = meta.nameOption || this.name;
+	this.name = meta.name;
+
+
+	if ( !child.isolated ) child.viewmodel.attached( this.parentFragment );
+
+	// render as necessary
+	if ( this.rendered ) {
+		renderItem( this, meta );
+	}
+}
+
+function removeChild ( meta ) {
+	// unrender as necessary
+	if ( this.item === meta ) {
+		unrenderItem( this, meta );
+		this.name = this.template.n;
+	}
+}
+
+function renderItem ( anchor, meta ) {
+	if ( !anchor.rendered ) return;
+
+	meta.shouldDestroy = false;
+	meta.parentFragment = anchor.parentFragment;
+
+	anchor.item = meta;
+	anchor.instance = meta.instance;
+	anchor.liveQueries = meta.liveQueries;
+	const nextNode = anchor.parentFragment.findNextNode( anchor );
+
+	if ( meta.instance.fragment.rendered ) {
+		meta.instance.unrender();
+	}
+
+	meta.partials = meta.instance.partials;
+	meta.instance.partials = extend( {}, meta.partials, anchor._partials );
+
+	meta.instance.fragment.unbind();
+	meta.instance.fragment.bind( meta.instance.viewmodel );
+
+	anchor.attributes.forEach( bind );
+	anchor.eventHandlers.forEach( bind );
+	anchor.attributes.forEach( callRender );
+	anchor.eventHandlers.forEach( callRender );
+
+	const target = anchor.parentFragment.findParentNode();
+	render( meta.instance, target, target.contains( nextNode ) ? nextNode : null );
+
+	if ( meta.lastBound !== anchor ) {
+		meta.lastBound = anchor;
+	}
+
+	updateLiveQueries( meta );
+}
+
+function unrenderItem ( anchor, meta ) {
+	if ( !anchor.rendered ) return;
+
+	meta.shouldDestroy = true;
+	meta.instance.unrender();
+
+	anchor.eventHandlers.forEach( unrender );
+	anchor.attributes.forEach( unrender );
+	anchor.eventHandlers.forEach( unbind );
+	anchor.attributes.forEach( unbind );
+
+	meta.instance.el = meta.instance.anchor = null;
+	meta.parentFragment = null;
+	meta.anchor = null;
+	anchor.item = null;
+	anchor.instance = null;
+
+	meta.liveQueries.forEach( q => q.remove( meta.instance ) );
+	meta.liveQueries = [];
+	anchor.liveQueries = null;
+}
+
+var checking = [];
+export function checkAnchors () {
+	const list = checking;
+	checking = [];
+
+	list.forEach( updateAnchors );
 }

@@ -95,7 +95,7 @@ export default function() {
 		});
 		const r2 = new Ractive({
 			el: fixture,
-			template: '{{#if show}}<div id="r2"></div>{{/if}}{{>>foo}}',
+			template: '{{#if show}}<div id="r2"></div>{{/if}}<#foo />',
 			data: {
 				show: true
 			}
@@ -116,7 +116,7 @@ export default function() {
 		});
 		const r2 = new Ractive({
 			el: fixture.children[1],
-			template: '{{#if show}}<div id="r2"></div>{{/if}}{{>>foo}}',
+			template: '{{#if show}}<div id="r2"></div>{{/if}}<#foo />',
 			data: {
 				show: true
 			}
@@ -137,7 +137,7 @@ export default function() {
 		});
 		const r2 = new Ractive({
 			el: fixture.children[1],
-			template: '{{#if show}}<div id="r2"></div>{{/if}}{{>>foo}}',
+			template: '{{#if show}}<div id="r2"></div>{{/if}}<#foo />',
 			data: {
 				show: true
 			}

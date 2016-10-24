@@ -1,3 +1,4 @@
+
 export default function updateLiveQueries ( element ) {
 	// Does this need to be added to any live queries?
 	const node = element.node;

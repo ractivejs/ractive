@@ -121,7 +121,7 @@ export default function() {
 	test( 'findAllComponents searches targeted attached children in order', t => {
 		const r1 = new Ractive({
 			el: fixture,
-			template: '{{>>anchor}}<cmp/>',
+			template: '<#anchor /><cmp/>',
 			components: {
 				cmp: Ractive.extend({})
 			}
@@ -140,7 +140,7 @@ export default function() {
 		fixture.innerHTML = '<div></div><div></div>';
 		const r1 = new Ractive({
 			el: fixture.children[0],
-			template: '{{>>anchor}}<cmp/>',
+			template: '<#anchor /><cmp/>',
 			components: {
 				cmp: Ractive.extend({})
 			}
@@ -177,7 +177,7 @@ export default function() {
 		fixture.innerHTML = '<div></div><div></div>';
 		const r1 = new Ractive({
 			el: fixture.children[0],
-			template: '{{>>anchor}}<cmp/>',
+			template: '<#anchor /><cmp/>',
 			components: {
 				cmp: Ractive.extend({})
 			}
@@ -220,7 +220,7 @@ export default function() {
 		});
 		const r1 = new Ractive({
 			el: fixture.children[0],
-			template: '{{>>anchor}}<div id="r1" />'
+			template: '<#anchor /><div id="r1" />'
 		});
 		const r2 = new Ractive({
 			template: '<div id="r2" /><cmp />',
@@ -258,7 +258,7 @@ export default function() {
 		const cmp1 = new Ractive(), cmp2 = new Ractive();
 		const r = new Ractive({
 			el: fixture,
-			template: '{{>>foo}}{{>>bar}}'
+			template: '<# foo /><# bar />'
 		});
 
 		r.attachChild( cmp2, { target: 'foo' } );
@@ -271,7 +271,7 @@ export default function() {
 		const cmp1 = new Ractive(), cmp2 = new Ractive();
 		const r = new Ractive({
 			el: fixture,
-			template: '{{>>foo}}{{>>bar}}'
+			template: '<#foo /><#bar />'
 		});
 
 		r.attachChild( cmp2, { target: 'foo', name: 'baz' } );

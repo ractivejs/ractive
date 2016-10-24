@@ -11,7 +11,7 @@ export default function() {
 			el: fixture.children[0]
 		});
 		const r2 = new Ractive({
-			template: 'r2{{>>foo}}',
+			template: 'r2<#foo />',
 			el: fixture.children[1]
 		});
 

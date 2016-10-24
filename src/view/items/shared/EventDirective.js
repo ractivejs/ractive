@@ -1,4 +1,4 @@
-import { COMPONENT } from '../../../config/types';
+import { ANCHOR, COMPONENT } from '../../../config/types';
 import { removeFromArray } from '../../../utils/array';
 import fireEvent from '../../../events/fireEvent';
 import Fragment from '../../Fragment';
