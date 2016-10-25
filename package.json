@@ -62,6 +62,7 @@
     "url": "https://github.com/ractivejs/ractive.git"
   },
   "scripts": {
+    "clean": "rm -rfv .gobble .gobble-build build tmp",
     "test": "sh ./scripts/test.sh",
     "start": "node_modules/.bin/gobble",
     "build": "sh ./scripts/build.sh",
