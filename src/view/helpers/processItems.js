@@ -22,7 +22,7 @@ export default function processItems ( items, values, guid, counter = 0 ) {
 
 		values[ placeholderId ] = model ?
 			model.wrapper ?
-				model.wrapper.value :
+				model.wrapperValue :
 				model.get() :
 			undefined;
 

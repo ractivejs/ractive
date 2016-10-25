@@ -36,7 +36,7 @@ export default class Model extends ModelBase {
 		// Exit early if no adaptors
 		if ( len === 0 ) return;
 
-		const value = this.wrapper ? ( 'newValue' in this.wrapper ? this.wrapper.newValue : this.wrapper.value ) : this.value;
+		const value = this.wrapper ? ( 'newWrapperValue' in this ? this.newWrapperValue : this.wrapperValue ) : this.value;
 
 		// TODO remove this legacy nonsense
 		const ractive = this.root.ractive;
@@ -44,7 +44,7 @@ export default class Model extends ModelBase {
 
 		// tear previous adaptor down if present
 		if ( this.wrapper ) {
-			const shouldTeardown = this.wrapper.value === value ? false : !this.wrapper.reset || this.wrapper.reset( value ) === false;
+			const shouldTeardown = this.wrapperValue === value ? false : !this.wrapper.reset || this.wrapper.reset( value ) === false;
 
 			if ( shouldTeardown ) {
 				this.wrapper.teardown();
@@ -56,8 +56,8 @@ export default class Model extends ModelBase {
 					if ( parentValue[ this.key ] !== value ) parentValue[ this.key ] = value;
 				}
 			} else {
-				delete this.wrapper.newValue;
-				this.wrapper.value = value;
+				delete this.newWrapperValue;
+				this.wrapperValue = value;
 				this.value = this.wrapper.get();
 				return;
 			}
@@ -69,7 +69,7 @@ export default class Model extends ModelBase {
 			const adaptor = adaptors[i];
 			if ( adaptor.filter( value, keypath, ractive ) ) {
 				this.wrapper = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
-				this.wrapper.value = value;
+				this.wrapperValue = value;
 				this.wrapper.__model = this; // massive temporary hack to enable array adaptor
 
 				this.value = this.wrapper.get();
@@ -117,10 +117,10 @@ export default class Model extends ModelBase {
 			this.parent.value = this.parent.wrapper.get();
 
 			this.value = this.parent.value[ this.key ];
-			if ( this.wrapper ) this.wrapper.newValue = this.value;
+			if ( this.wrapper ) this.newWrapperValue = this.value;
 			this.adapt();
 		} else if ( this.wrapper ) {
-			this.wrapper.newValue = value;
+			this.newWrapperValue = value;
 			this.adapt();
 		} else {
 			const parentValue = this.parent.value || this.parent.createBranch( this.key );
@@ -158,7 +158,7 @@ export default class Model extends ModelBase {
 		if ( shouldCapture ) capture( this );
 		// if capturing, this value needs to be unwrapped because it's for external use
 		if ( opts && opts.virtual ) return this.getVirtual( false );
-		return ( shouldCapture || ( opts && opts.unwrap ) ) && this.wrapper ? this.wrapper.value : this.value;
+		return ( shouldCapture || ( opts && opts.unwrap ) ) && this.wrapper ? this.wrapperValue : this.value;
 	}
 
 	getKeypathModel ( ractive ) {
@@ -196,7 +196,7 @@ export default class Model extends ModelBase {
 
 			// make sure the wrapper stays in sync
 			if ( old !== value || this.rewrap ) {
-				if ( this.wrapper ) this.wrapper.newValue = value;
+				if ( this.wrapper ) this.newWrapperValue = value;
 				this.adapt();
 			}
 
