@@ -155,7 +155,7 @@ export default class EventDirective {
 					}
 
 					if ( model.wrapper ) {
-						return values.push( model.wrapper.value );
+						return values.push( model.wrapperValue );
 					}
 
 					values.push( model.get() );

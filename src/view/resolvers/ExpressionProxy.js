@@ -64,11 +64,11 @@ export default class ExpressionProxy extends Model {
 		if ( this.dirty ) {
 			this.dirty = false;
 			this.value = this.getValue();
-			if ( this.wrapper ) this.wrapper.newValue = this.value;
+			if ( this.wrapper ) this.newWrapperValue = this.value;
 			this.adapt();
 		}
 
-		return shouldCapture && this.wrapper ? this.wrapper.value : this.value;
+		return shouldCapture && this.wrapper ? this.wrapperValue : this.value;
 	}
 
 	getKeypath () {
