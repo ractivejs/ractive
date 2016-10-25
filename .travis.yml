@@ -4,7 +4,7 @@ node_js:
   - '6'
   - '5'
   - '4'
-script: set -e; mkdir -p build; npm run build; if [[ $(node --version) == v6* ]]; then npm run coveralls; chmod u+x scripts/deploy-edge-to-cdn.sh; ./scripts/deploy-edge-to-cdn.sh; fi
+script: set -e; mkdir -p build; npm run build; if [[ $(node --version) == v6* ]]; then npm run coveralls; fi
 env:
   global:
   - GH_REF: github.com/ractivejs/ractive.git
@@ -12,5 +12,5 @@ env:
   - secure: "nlnXJW/imf/w6qdTd7UCpRqLhLioxU6fllJPbP1DZr/9rp44HNVSPNxxGrA808VDXQ1ccpXBxIV9mgIi4Q/G0FUILA5NsSGYdQE00A+Lw3qnvv5FQ7Qoux44BKYi4L1W+4Zi3NEr7TAL+/dHCAk5k/ZKLTCCxiziAEw3M+akE4A="
 branches:
   only:
-    - master
+    - v0.8
     - dev
