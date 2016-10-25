@@ -49,4 +49,43 @@ export default function() {
 		t.equal( r.get( 'count1' ), 1 );
 		t.equal( r.get( 'count2' ), 2 );
 	});
+
+	test( `conditional event listeners work with components`, t => {
+		let count = 0;
+		const r1 = Ractive.extend({
+			template: ''
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '<foo {{#if go}}on-bar="@this.foo()"{{/if}} />',
+			foo () { count++; },
+			components: { foo: r1 }
+		});
+
+		const foo = r.findComponent( 'foo' );
+		foo.fire( 'bar' );
+		t.equal( count, 0 );
+		r.set( 'go', true );
+		foo.fire( 'bar' );
+		t.equal( count, 1 );
+	});
+
+	test( `conditional event listeners work with anchors`, t => {
+		let count = 0;
+		const r1 = new Ractive({
+			template: ''
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '<#foo {{#if go}}on-bar="@this.foo()"{{/if}} />',
+			foo () { count++; }
+		});
+
+		r.attachChild( r1, { target: 'foo' } );
+		r1.fire( 'bar' );
+		t.equal( count, 0 );
+		r.set( 'go', true );
+		r1.fire( 'bar' );
+		t.equal( count, 1 );
+	});
 }

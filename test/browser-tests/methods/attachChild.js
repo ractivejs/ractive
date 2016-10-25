@@ -389,6 +389,23 @@ export default function() {
 		r.attachChild( r1, { target: 'foo' } );
 		t.htmlEqual( fixture.innerHTML, 'yepmaybe' );
 	});
+
+	test( `anchors attach and detach event proxies`, t => {
+		let count = 0;
+		const r1 = new Ractive({
+			template: ''
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '<#foo on-bar="@this.foo()" />',
+			foo () { count++; }
+		});
+
+		r.attachChild( r1, { target: 'foo' } );
+		r1.fire( 'bar' );
+		t.equal( count, 1 );
+		r.detachChild( r1 );
+		r1.fire( 'bar' );
+		t.equal( count, 1 );
+	});
 }
-
-

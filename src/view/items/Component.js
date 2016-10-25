@@ -33,6 +33,8 @@ export default class Component extends Item {
 		if ( !( 'content' in partials ) ) partials.content = options.template.f || [];
 		this._partials = partials; // TEMP
 
+		this.yielders = {};
+
 		if ( this.isAnchor ) {
 			this.name = options.template.n;
 
@@ -130,7 +132,7 @@ export default class Component extends Item {
 	}
 
 	bubble () {
-		if ( !this.isAnchor && !this.dirty ) {
+		if ( !this.dirty ) {
 			this.dirty = true;
 			this.parentFragment.bubble();
 		}
@@ -257,8 +259,8 @@ export default class Component extends Item {
 
 	update () {
 		this.dirty = false;
-		if ( this.instance ) this.instance.fragment.update();
-		if ( !this.isAnchor ) {
+		if ( this.instance ) {
+			this.instance.fragment.update();
 			this.checkYielders();
 			this.attributes.forEach( update );
 			this.eventHandlers.forEach( update );
