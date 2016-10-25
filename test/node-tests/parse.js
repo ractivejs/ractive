@@ -24,6 +24,23 @@ parseTests.forEach( function ( test ) {
 			}, 'Expected ParseError');
 		} else {
 			var parsed = Ractive.parse( test.template, test.options );
+
+			if (parsed.e && test.parsed.e) {
+				var expectedKeys = Object.keys(test.parsed.e);
+				var parsedKeys = Object.keys(parsed.e);
+
+				assert.deepEqual(parsedKeys, expectedKeys);
+
+				expectedKeys.forEach(key => {
+					// normalize function whitepace for browser vs phantomjs
+					var actual = parsed.e[key].toString().replace(') \{', ')\{');
+					assert.equal(actual, test.parsed.e[key]);
+				});
+
+				delete parsed.e;
+				delete test.parsed.e;
+			}
+
 			assert.deepEqual( parsed, test.parsed );
 		}
 	});
