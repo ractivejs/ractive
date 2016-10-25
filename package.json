@@ -89,7 +89,6 @@
     "karma-coverage": "~1.1",
     "karma-phantomjs-launcher": "~1.0",
     "karma-qunit": "~1.2",
-    "mocha": "^3.1.2",
     "phantomjs-prebuilt": "~2.1",
     "promises-aplus-tests": "^2.1.0",
     "qunit-cli": "^0.2.0",
