@@ -7,34 +7,7 @@ set -e
 #############################
 ./scripts/build.sh
 
-# STEP 2 - PUBLISH TO CDN
-#############################
-echo '> fetching cdn repo...'
-
-VERSION=$(cat package.json | grep "version" | sed 's/"version": "\(.*\)",/\1/' | sed 's/[[:space:]]//g')
-echo "releasing ${VERSION}..."
-
-rm -rf cdn
-git clone https://github.com/ractivejs/cdn.ractivejs.org cdn
-
-# add new release folder
-mkdir cdn/${VERSION}
-cp -r build/* cdn/${VERSION}
-
-# replace latest/ folder
-rm -rf cdn/latest/*
-cp -r build/* cdn/latest
-
-( cd cdn
-	git add -A
-	git commit -m "${VERSION} release"
-	git push
-)
-
-# Clean up
-rm -rf cdn
-
-# STEP 3 - PUBLISH TO NPM
+# STEP 2 - PUBLISH TO NPM
 #############################
 echo '> publishing to npm...'
 
@@ -43,7 +16,7 @@ echo '> publishing to npm...'
 	npm publish
 )
 
-# STEP 4 - UPDATE TAGS
+# STEP 3 - UPDATE TAGS
 #############################
 echo '> updating tags...'
 
@@ -59,8 +32,8 @@ cp -r build/* build-branch
 	git push
 
 	# Publish to bower...
-	git tag -a v${VERSION} -m "version ${VERSION}"
-	git push origin v${VERSION}
+	git tag -a v$VERSION -m "version ${VERSION}"
+	git push origin v$VERSION
 )
 
 rm -rf build-branch
