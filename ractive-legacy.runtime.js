@@ -1,6 +1,6 @@
 /*
-	Ractive.js v0.8.2-edge
-	Fri Oct 21 2016 20:50:29 GMT+0000 (UTC) - commit 0f08133d00f706b458522bc482e0d3c752957cc1
+	Ractive.js v0.8.2
+	Wed Oct 26 2016 11:54:52 GMT-0400 (EDT) - commit 7c357f978e706f3b9c39ce027241c37a5a7ba281
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -912,13 +912,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.2-edge-0f08133d00f706b458522bc482e0d3c752957cc1 %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.2 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.2-edge-0f08133d00f706b458522bc482e0d3c752957cc1 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.2 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -3450,7 +3450,7 @@
   		// Exit early if no adaptors
   		if ( len === 0 ) return;
 
-  		var value = this.wrapper ? ( 'newValue' in this.wrapper ? this.wrapper.newValue : this.wrapper.value ) : this.value;
+  		var value = this.wrapper ? ( 'newWrapperValue' in this ? this.newWrapperValue : this.wrapperValue ) : this.value;
 
   		// TODO remove this legacy nonsense
   		var ractive = this.root.ractive;
@@ -3458,7 +3458,7 @@
 
   		// tear previous adaptor down if present
   		if ( this.wrapper ) {
-  			var shouldTeardown = this.wrapper.value === value ? false : !this.wrapper.reset || this.wrapper.reset( value ) === false;
+  			var shouldTeardown = this.wrapperValue === value ? false : !this.wrapper.reset || this.wrapper.reset( value ) === false;
 
   			if ( shouldTeardown ) {
   				this.wrapper.teardown();
@@ -3470,8 +3470,8 @@
   					if ( parentValue[ this.key ] !== value ) parentValue[ this.key ] = value;
   				}
   			} else {
-  				delete this.wrapper.newValue;
-  				this.wrapper.value = value;
+  				delete this.newWrapperValue;
+  				this.wrapperValue = value;
   				this.value = this.wrapper.get();
   				return;
   			}
@@ -3483,7 +3483,7 @@
   			var adaptor = adaptors[i];
   			if ( adaptor.filter( value, keypath, ractive ) ) {
   				this$1.wrapper = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
-  				this$1.wrapper.value = value;
+  				this$1.wrapperValue = value;
   				this$1.wrapper.__model = this$1; // massive temporary hack to enable array adaptor
 
   				this$1.value = this$1.wrapper.get();
@@ -3533,10 +3533,10 @@
   			this.parent.value = this.parent.wrapper.get();
 
   			this.value = this.parent.value[ this.key ];
-  			if ( this.wrapper ) this.wrapper.newValue = this.value;
+  			if ( this.wrapper ) this.newWrapperValue = this.value;
   			this.adapt();
   		} else if ( this.wrapper ) {
-  			this.wrapper.newValue = value;
+  			this.newWrapperValue = value;
   			this.adapt();
   		} else {
   			var parentValue = this.parent.value || this.parent.createBranch( this.key );
@@ -3574,7 +3574,7 @@
   		if ( shouldCapture ) capture( this );
   		// if capturing, this value needs to be unwrapped because it's for external use
   		if ( opts && opts.virtual ) return this.getVirtual( false );
-  		return ( shouldCapture || ( opts && opts.unwrap ) ) && this.wrapper ? this.wrapper.value : this.value;
+  		return ( shouldCapture || ( opts && opts.unwrap ) ) && this.wrapper ? this.wrapperValue : this.value;
   	};
 
   	Model.prototype.getKeypathModel = function getKeypathModel ( ractive ) {
@@ -3612,7 +3612,7 @@
 
   			// make sure the wrapper stays in sync
   			if ( old !== value || this.rewrap ) {
-  				if ( this.wrapper ) this.wrapper.newValue = value;
+  				if ( this.wrapper ) this.newWrapperValue = value;
   				this.adapt();
   			}
 
@@ -6101,6 +6101,7 @@
   	ComputationChild.prototype.handleChange = function handleChange$1 () {
   		this.dirty = true;
 
+  		this.links.forEach( marked );
   		this.deps.forEach( handleChange );
   		this.children.forEach( handleChange );
   		this.clearUnresolveds(); // TODO is this necessary?
@@ -6184,11 +6185,11 @@
   		if ( this.dirty ) {
   			this.dirty = false;
   			this.value = this.getValue();
-  			if ( this.wrapper ) this.wrapper.newValue = this.value;
+  			if ( this.wrapper ) this.newWrapperValue = this.value;
   			this.adapt();
   		}
 
-  		return shouldCapture && this.wrapper ? this.wrapper.value : this.value;
+  		return shouldCapture && this.wrapper ? this.wrapperValue : this.value;
   	};
 
   	ExpressionProxy.prototype.getKeypath = function getKeypath () {
@@ -7996,12 +7997,12 @@
   		if ( this.dirty ) {
   			this.dirty = false;
   			this.value = this.getValue();
-  			if ( this.wrapper ) this.wrapper.newValue = this.value;
+  			if ( this.wrapper ) this.newWrapperValue = this.value;
   			this.adapt();
   		}
 
   		// if capturing, this value needs to be unwrapped because it's for external use
-  		return shouldCapture && this.wrapper ? this.wrapper.value : this.value;
+  		return shouldCapture && this.wrapper ? this.wrapperValue : this.value;
   	};
 
   	Computation.prototype.getValue = function getValue () {
@@ -8840,7 +8841,7 @@
   				}
 
   				if ( model.wrapper ) {
-  					return values.push( model.wrapper.value );
+  					return values.push( model.wrapperValue );
   				}
 
   				values.push( model.get() );
@@ -13988,7 +13989,7 @@
 
   		values[ placeholderId ] = model ?
   			model.wrapper ?
-  				model.wrapper.value :
+  				model.wrapperValue :
   				model.get() :
   			undefined;
 
@@ -14825,7 +14826,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.2-edge-0f08133d00f706b458522bc482e0d3c752957cc1' },
+  	VERSION:        { value: '0.8.2' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
