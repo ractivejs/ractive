@@ -33,8 +33,6 @@ export default class Component extends Item {
 		if ( !( 'content' in partials ) ) partials.content = options.template.f || [];
 		this._partials = partials; // TEMP
 
-		this.yielders = {};
-
 		if ( this.isAnchor ) {
 			this.name = options.template.n;
 
@@ -198,7 +196,6 @@ export default class Component extends Item {
 		} else {
 			render( this.instance, target, null, occupants );
 
-			this.checkYielders();
 			this.attributes.forEach( callRender );
 			this.eventHandlers.forEach( callRender );
 			updateLiveQueries( this );
@@ -246,7 +243,7 @@ export default class Component extends Item {
 			}
 		} else {
 			this.instance.unrender();
-			this.instance.el = null;
+			this.instance.el = this.instance.target = null;
 			this.attributes.forEach( unrender );
 			this.eventHandlers.forEach( unrender );
 
@@ -261,7 +258,6 @@ export default class Component extends Item {
 		this.dirty = false;
 		if ( this.instance ) {
 			this.instance.fragment.update();
-			this.checkYielders();
 			this.attributes.forEach( update );
 			this.eventHandlers.forEach( update );
 		}
