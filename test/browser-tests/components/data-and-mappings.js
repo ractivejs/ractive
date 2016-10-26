@@ -1349,4 +1349,27 @@ export default function() {
 		r.findComponent( 'cmp2' ).unshift( 'list', 2 );
 		t.htmlEqual( fixture.innerHTML, '21' );
 	});
+
+	test( `computed properties can be mapped`, t => {
+		const cmp = Ractive.extend({ template: '{{foo.0}} {{foo.length}}' });
+		const r = new Ractive({
+			el: fixture,
+			template: `<cmp foo="{{list}}" />`,
+			computed: {
+				list () {
+					return this.get('my.list');
+				}
+			},
+			data: {
+				my: {
+					list: [ 1, 2, 3 ]
+				}
+			},
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '1 3' );
+		r.unshift( 'my.list', 4 );
+		t.htmlEqual( fixture.innerHTML, '4 4' );
+	});
 }

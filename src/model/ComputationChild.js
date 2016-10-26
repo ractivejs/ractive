@@ -1,6 +1,6 @@
 import { capture } from '../global/capture';
 import Model from './Model';
-import { handleChange } from '../shared/methodCallers';
+import { handleChange, marked } from '../shared/methodCallers';
 
 export default class ComputationChild extends Model {
 	get ( shouldCapture ) {
@@ -13,6 +13,7 @@ export default class ComputationChild extends Model {
 	handleChange () {
 		this.dirty = true;
 
+		this.links.forEach( marked );
 		this.deps.forEach( handleChange );
 		this.children.forEach( handleChange );
 		this.clearUnresolveds(); // TODO is this necessary?
