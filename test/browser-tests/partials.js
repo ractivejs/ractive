@@ -612,7 +612,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foo foo bar' );
 	});
 
-	test( '(Only) inline partials can be yielded', t => {
+	test( 'inline partials take precedent over assigned instance partials for yield', t => {
 		onWarn( msg => t.ok( /Could not find template for partial "foo"/.test( msg ) ) );
 
 		const Widget = Ractive.extend({
@@ -628,7 +628,7 @@ export default function() {
 			components: { Widget }
 		});
 
-		t.htmlEqual( fixture.innerHTML, 'foo' );
+		t.htmlEqual( fixture.innerHTML, 'bar foo' );
 	});
 
 	test( 'Don\'t throw on empty partial', t => {

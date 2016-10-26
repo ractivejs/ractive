@@ -3,7 +3,7 @@ import { SECTION_EACH, SECTION_IF, SECTION_IF_WITH, SECTION_UNLESS, SECTION_WITH
 import { isArray, isObject } from '../../utils/is';
 import Fragment from '../Fragment';
 import RepeatedFragment from '../RepeatedFragment';
-import Mustache from './shared/Mustache';
+import { MustacheContainer } from './shared/Mustache';
 
 function isEmpty ( value ) {
 	return !value ||
@@ -18,7 +18,7 @@ function getType ( value, hasIndexRef ) {
 	return SECTION_IF;
 }
 
-export default class Section extends Mustache {
+export default class Section extends MustacheContainer {
 	constructor ( options ) {
 		super( options );
 
@@ -52,38 +52,6 @@ export default class Section extends Mustache {
 		if ( this.fragment ) this.fragment.destroyed();
 	}
 
-	detach () {
-		return this.fragment ? this.fragment.detach() : createDocumentFragment();
-	}
-
-	find ( selector ) {
-		if ( this.fragment ) {
-			return this.fragment.find( selector );
-		}
-	}
-
-	findAll ( selector, query ) {
-		if ( this.fragment ) {
-			this.fragment.findAll( selector, query );
-		}
-	}
-
-	findComponent ( name ) {
-		if ( this.fragment ) {
-			return this.fragment.findComponent( name );
-		}
-	}
-
-	findAllComponents ( name, query ) {
-		if ( this.fragment ) {
-			this.fragment.findAllComponents( name, query );
-		}
-	}
-
-	firstNode ( skipParent ) {
-		return this.fragment && this.fragment.firstNode( skipParent );
-	}
-
 	isTruthy () {
 		if ( this.subordinate && this.sibling.isTruthy() ) return true;
 		const value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();
@@ -107,10 +75,6 @@ export default class Section extends Mustache {
 		if ( this.fragment && this.sectionType === SECTION_EACH ) {
 			this.fragment.shuffle( newIndices );
 		}
-	}
-
-	toString ( escape ) {
-		return this.fragment ? this.fragment.toString( escape ) : '';
 	}
 
 	unbind () {

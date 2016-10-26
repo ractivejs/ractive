@@ -1,12 +1,31 @@
+import { SECTION, SECTION_WITH, YIELDER } from '../../config/types';
 import { warnOnceIfDebug, warnIfDebug } from '../../utils/log';
-import Mustache from './shared/Mustache';
+import { MustacheContainer } from './shared/Mustache';
 import Fragment from '../Fragment';
 import getPartialTemplate from './partial/getPartialTemplate';
 import { isArray } from '../../utils/is';
 import parser from '../../Ractive/config/runtime-parser';
 import { doInAttributes } from './element/ConditionalAttribute';
+import { resolveAliases } from './Alias';
 
-export default class Partial extends Mustache {
+export default class Partial extends MustacheContainer {
+	constructor ( options ) {
+		super( options );
+
+		this.yielder = options.template.t === YIELDER;
+
+		if ( this.yielder ) {
+			this.container = options.parentFragment.ractive;
+			this.component = this.container.component;
+
+			this.containerFragment = options.parentFragment;
+			this.parentFragment = this.component.parentFragment;
+
+			// {{yield}} is equivalent to {{yield content}}
+			if ( !options.template.r && !options.template.rx && !options.template.x ) options.template.r = 'content';
+		}
+	}
+
 	bind () {
 		// keep track of the reference name for future resets
 		this.refName = this.template.r;
@@ -37,38 +56,44 @@ export default class Partial extends Mustache {
 			}
 		}
 
-		this.fragment = new Fragment({
+		const options = {
 			owner: this,
 			template: this.partialTemplate
-		}).bind();
+		};
+
+		if ( this.template.c ) {
+			options.template = [{ t: SECTION, n: SECTION_WITH, f: options.template }]
+			for ( const k in this.template.c ) {
+				options.template[0][k] = this.template.c[k];
+			}
+		}
+
+		if ( this.yielder ) {
+			options.ractive = this.container.parent;
+		}
+
+		this.fragment = new Fragment(options);
+		if ( this.template.z ) {
+			this.fragment.aliases = resolveAliases( this.template.z, this.yielder ? this.containerFragment : this.parentFragment );
+		}
+		this.fragment.bind();
+	}
+
+	bubble () {
+		if ( this.yielder && !this.dirty ) {
+			this.containerFragment.bubble();
+			this.dirty = true;
+		} else {
+			super.bubble();
+		}
 	}
 
 	destroyed () {
 		this.fragment.destroyed();
 	}
 
-	detach () {
-		return this.fragment.detach();
-	}
-
-	find ( selector ) {
-		return this.fragment.find( selector );
-	}
-
-	findAll ( selector, query ) {
-		this.fragment.findAll( selector, query );
-	}
-
-	findComponent ( name ) {
-		return this.fragment.findComponent( name );
-	}
-
-	findAllComponents ( name, query ) {
-		this.fragment.findAllComponents( name, query );
-	}
-
-	firstNode ( skipParent ) {
-		return this.fragment.firstNode( skipParent );
+	findNextNode() {
+		return this.yielder ? this.containerFragment.findNextNode( this ) : super.findNextNode();
 	}
 
 	forceResetTemplate () {
@@ -98,8 +123,17 @@ export default class Partial extends Mustache {
 		this.bubble();
 	}
 
+	rebinding () {
+		if ( this.locked ) return;
+		this.locked = true;
+		runloop.scheduleTask( () => {
+			this.locked = false;
+			this.fragment.aliases = resolveAliases( this.template.z, this.containerFragment );
+		});
+	}
+
 	render ( target, occupants ) {
-		this.fragment.render( target, occupants );
+		return this.fragment.render( target, occupants );
 	}
 
 	setTemplate ( name, template ) {
@@ -114,12 +148,9 @@ export default class Partial extends Mustache {
 		this.partialTemplate = template || [];
 	}
 
-	toString ( escape ) {
-		return this.fragment.toString( escape );
-	}
-
 	unbind () {
 		super.unbind();
+		this.fragment.aliases = {};
 		this.fragment.unbind();
 	}
 

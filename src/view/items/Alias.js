@@ -1,21 +1,20 @@
 import { createDocumentFragment } from '../../utils/dom';
 import Fragment from '../Fragment';
-import Item from './shared/Item';
+import { ContainerItem } from './shared/Item';
 import resolve from '../resolvers/resolve';
 import runloop from '../../global/runloop';
 
-function resolveAliases( section ) {
-	if ( section.template.z ) {
-		section.aliases = {};
+export function resolveAliases( aliases, fragment ) {
+	const resolved = {};
 
-		let refs = section.template.z;
-		for ( let i = 0; i < refs.length; i++ ) {
-			section.aliases[ refs[i].n ] = resolve( section.parentFragment, refs[i].x );
-		}
+	for ( let i = 0; i < aliases.length; i++ ) {
+		resolved[ aliases[i].n ] = resolve( fragment, aliases[i].x );
 	}
+
+	return resolved;
 }
 
-export default class Alias extends Item {
+export default class Alias extends ContainerItem {
 	constructor ( options ) {
 		super( options );
 
@@ -23,44 +22,13 @@ export default class Alias extends Item {
 	}
 
 	bind () {
-		resolveAliases( this );
-
 		this.fragment = new Fragment({
 			owner: this,
 			template: this.template.f
-		}).bind();
-	}
+		});
 
-	detach () {
-		return this.fragment ? this.fragment.detach() : createDocumentFragment();
-	}
-
-	find ( selector ) {
-		if ( this.fragment ) {
-			return this.fragment.find( selector );
-		}
-	}
-
-	findAll ( selector, query ) {
-		if ( this.fragment ) {
-			this.fragment.findAll( selector, query );
-		}
-	}
-
-	findComponent ( name ) {
-		if ( this.fragment ) {
-			return this.fragment.findComponent( name );
-		}
-	}
-
-	findAllComponents ( name, query ) {
-		if ( this.fragment ) {
-			this.fragment.findAllComponents( name, query );
-		}
-	}
-
-	firstNode ( skipParent ) {
-		return this.fragment && this.fragment.firstNode( skipParent );
+		this.fragment.aliases = resolveAliases( this.template.z, this.parentFragment );
+		this.fragment.bind();
 	}
 
 	rebinding () {
@@ -68,7 +36,7 @@ export default class Alias extends Item {
 		this.locked = true;
 		runloop.scheduleTask( () => {
 			this.locked = false;
-			resolveAliases( this );
+			this.fragment.aliases = resolveAliases( this.template.z, this.parentFragment );
 		});
 	}
 
@@ -77,12 +45,8 @@ export default class Alias extends Item {
 		if ( this.fragment ) this.fragment.render( target );
 	}
 
-	toString ( escape ) {
-		return this.fragment ? this.fragment.toString( escape ) : '';
-	}
-
 	unbind () {
-		this.aliases = {};
+		this.fragment.aliases = {};
 		if ( this.fragment ) this.fragment.unbind();
 	}
 

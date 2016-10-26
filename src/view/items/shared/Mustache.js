@@ -1,4 +1,4 @@
-import Item from './Item';
+import Item, { ContainerItem } from './Item';
 import resolve from '../../resolvers/resolve';
 import { rebindMatch } from '../../../shared/rebind';
 
@@ -67,3 +67,15 @@ export default class Mustache extends Item {
 		}
 	}
 }
+
+export class MustacheContainer extends ContainerItem {
+	constructor ( options ) {
+		super( options );
+	}
+};
+const proto = MustacheContainer.prototype;
+const mustache = Mustache.prototype;
+proto.bind = mustache.bind;
+proto.handleChange = mustache.handleChange;
+proto.rebinding = mustache.rebinding;
+proto.unbind = mustache.unbind;
