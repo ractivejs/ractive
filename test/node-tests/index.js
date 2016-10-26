@@ -1,4 +1,5 @@
-/*global require */
+Ractive.DEBUG = false;
+
 require( './basic' );
 require( './components' );
 require( './parse' );

@@ -7,7 +7,7 @@ MOD='node_modules/.bin'
 
 # run node.js tests
 echo "> running node.js-specific tests. working directory is $PWD"
-$MOD/mocha ./tmp/test/node-tests/index.js --reporter progress
+qunit-cli --quiet --code Ractive:./tmp/ractive.js ./tmp/test/node-tests/index.js
 
 # check ractive.runtime doesn't error (#1860)
 node tmp/ractive.runtime.js

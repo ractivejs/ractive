@@ -1,13 +1,15 @@
 {
 	"env": {
-		"node": true
+		"node": true,
+		"qunit": true
 	},
 	"globals": {
 		"Ractive": true,
 		"fixture": true
 	},
 	"rules": {
-		"no-var": 0,
-		"object-shorthand": 0
+		"no-var": "off",
+		"object-shorthand": "off",
+		"prefer-arrow-callback": "off"
 	}
 }
