@@ -10,7 +10,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<ul>{{#items}}<li id="{{.}}" intro-outro="log">{{.}}</li>{{/items}}</ul>',
+			template: '<ul>{{#items}}<li id="{{.}}" log-in-out>{{.}}</li>{{/items}}</ul>',
 			data: {
 				items: [ 'foo', 'bar', 'baz' ]
 			},
@@ -50,7 +50,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<ul>{{#items}}<li id="{{.}}" intro-outro="log">{{.}}</li>{{/items}}</ul>',
+			template: '<ul>{{#items}}<li id="{{.}}" log-in-out>{{.}}</li>{{/items}}</ul>',
 			data: {
 				items: [ 'foo', 'bar', 'baz' ]
 			},
@@ -89,7 +89,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<ul>{{#items}}<li id="{{name}}" intro-outro="log">{{name}}</li>{{/items}}</ul>',
+			template: '<ul>{{#items}}<li id="{{name}}" log-in-out>{{name}}</li>{{/items}}</ul>',
 			data: {
 				items: [{ name: 'foo' }, { name: 'bar' }, { name: 'baz' }]
 			},
@@ -130,7 +130,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<ul>{{#items}}<li id="{{name}}" intro-outro="log">{{name}}</li>{{/items}}</ul>',
+			template: '<ul>{{#items}}<li id="{{name}}" log-in-out>{{name}}</li>{{/items}}</ul>',
 			data: {
 				items: [{ name: 'foo' }, { name: 'bar' }, { name: 'baz' }]
 			},
@@ -171,7 +171,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<ul>{{#items}}<li id="{{name}}" intro-outro="log">{{name}}</li>{{/items}}</ul>',
+			template: '<ul>{{#items}}<li id="{{name}}" log-in-out>{{name}}</li>{{/items}}</ul>',
 			data: {
 				items: [{ name: 'foo' }, { name: 'bar' }, { name: 'baz' }]
 			},
@@ -214,7 +214,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<ul>{{#items}}<li id="{{name}}" intro-outro="log">{{name}}</li>{{/items}}</ul>',
+			template: '<ul>{{#items}}<li id="{{name}}" log-in-out>{{name}}</li>{{/items}}</ul>',
 			data: {
 				items: [{ name: 'foo' }, { name: 'bar' }, { name: 'baz' }]
 			},

@@ -82,7 +82,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<Widget><Middle><button on-click="test(foo)">click me</button></Middle></Widget>',
+			template: '<Widget><Middle><button on-click="@this.test(foo)">click me</button></Middle></Widget>',
 			data: { foo: 'yeah!' },
 			components: { Widget, Middle }
 		});

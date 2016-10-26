@@ -768,7 +768,7 @@ export default function() {
 		let ractive = new Ractive({
 			el: fixture,
 			template: `
-				<select value='{{value}}' on-change='checkValue(value)'>
+				<select value='{{value}}' on-change='@this.checkValue(value)'>
 					<option value='1'>1</option>
 					<option value='2'>2</option>
 				</select>`,

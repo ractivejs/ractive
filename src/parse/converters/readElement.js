@@ -132,6 +132,7 @@ function readElement ( parser ) {
 
 		children = [];
 		partials = create( null );
+		const [ open, close ] = parser.standardDelimiters;
 
 		do {
 			pos = parser.pos;
@@ -177,8 +178,7 @@ function readElement ( parser ) {
 				}
 			}
 
-			// implicit close by closing section tag. TODO clean this up
-			else if ( child = readClosing( parser, { open: parser.standardDelimiters[0], close: parser.standardDelimiters[1] } ) ) {
+			else if ( child = readClosing( parser, { open, close } ) ) {
 				closed = true;
 				parser.pos = pos;
 			}

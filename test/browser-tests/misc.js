@@ -26,7 +26,7 @@ export default function() {
 		let shimmied;
 
 		const Subclass = Ractive.extend({
-			template: '<div intro="wiggle">{{>foo}}{{>bar}}{{>baz}}</div><div intro="shimmy">{{foo}}{{bar}}{{baz}}</div>',
+			template: '<div wiggle-in>{{>foo}}{{>bar}}{{>baz}}</div><div shimmy-in>{{foo}}{{bar}}{{baz}}</div>',
 			data: { foo: 1 },
 			partials: { foo: 'fooPartial' },
 			transitions: { wiggle () { wiggled = true; } }
@@ -445,7 +445,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<button on-click=\'test:{{ ["just a string"] }}\'>test 1</button><button on-click=\'test:{{ {bar: 3} }}\'>test 2</button>'
+			template: '<button on-click=\'@this.fire("test", event, ["just a string"])\'>test 1</button><button on-click=\'@this.fire("test", event, { bar: 3 })\'>test 2</button>'
 		});
 
 		ractive.on( 'test', function ( event, arg ) {
@@ -754,7 +754,7 @@ export default function() {
 	test( 'Regression test for #695 (unrendering non-rendered items)', t => {
 		const ractive = new Ractive({
 			el: fixture,
-			template: '{{# { items: nested.items } }}{{#insert}}{{#items}}<div decorator="foo"></div>{{/items}}{{/insert}}{{/}}',
+			template: '{{# { items: nested.items } }}{{#insert}}{{#items}}<div as-foo></div>{{/items}}{{/insert}}{{/}}',
 			decorators: {
 				foo () {
 					return { teardown () {} };
@@ -1379,19 +1379,19 @@ export default function() {
 		t.equal( span2.ractive, foo2 );
 		t.equal( span3.ractive, foo3 );
 
-		t.equal( span1.keypath, '' );
-		t.equal( span2.keypath, '' );
-		t.equal( span3.keypath, '' );
-		t.equal( b1.keypath, 'bars.0' );
-		t.equal( b2.keypath, 'bars.1' );
+		t.equal( span1.resolve(), '' );
+		t.equal( span2.resolve(), '' );
+		t.equal( span3.resolve(), '' );
+		t.equal( b1.resolve(), 'bars.0' );
+		t.equal( b2.resolve(), 'bars.1' );
 
-		t.equal( span1.index.i, undefined );
-		t.equal( span2.index.i, 0 );
-		t.equal( span3.index.i, 1 );
-		t.equal( b1.index.i, 0 );
-		t.equal( b2.index.i, 1 );
+		t.equal( span1.get( 'i' ), undefined );
+		t.equal( span2.get( 'i' ), 0 );
+		t.equal( span3.get( 'i' ), 1 );
+		t.equal( b1.get( 'i' ), 0 );
+		t.equal( b2.get( 'i' ), 1 );
 
-		t.equal( p.keypath, 'baz.bat' );
+		t.equal( p.resolve(), 'baz.bat' );
 	});
 
 	test( 'Boolean attributes are added/removed based on unstringified fragment value', t => {
@@ -1609,9 +1609,9 @@ export default function() {
 			data: { list: [ 42, 42, 42 ] }
 		});
 
-		t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[2] ).keypath, 'list.2' );
+		t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[2] ).resolve(), 'list.2' );
 		r.unshift( 'list', 42 );
-		t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[2] ).keypath, 'list.2' );
+		t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[2] ).resolve(), 'list.2' );
 	});
 
 	test( 'ractive.escapeKey() works correctly', t => {

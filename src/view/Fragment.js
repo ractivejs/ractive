@@ -30,7 +30,7 @@ export default class Fragment {
 		this.resolvers = [];
 
 		this.dirty = false;
-		this.dirtyArgs = this.dirtyValue = true; // TODO getArgsList is nonsense - should deprecate legacy directives style
+		this.dirtyValue = true; // used for attribute values
 
 		this.template = options.template || [];
 		this.createItems();
@@ -50,7 +50,7 @@ export default class Fragment {
 	}
 
 	bubble () {
-		this.dirtyArgs = this.dirtyValue = true;
+		this.dirtyValue = true;
 
 		if ( !this.dirty ) {
 			this.dirty = true;
@@ -218,24 +218,6 @@ export default class Fragment {
 		if ( skipParent ) return null;
 
 		return this.parent.findNextNode( this.owner );
-	}
-
-	// TODO ideally, this would be deprecated in favour of an
-	// expression-like approach
-	getArgsList () {
-		if ( this.dirtyArgs ) {
-			const values = {};
-			const source = processItems( this.items, values, this.ractive._guid );
-			const parsed = parseJSON( '[' + source + ']', values );
-
-			this.argsList = parsed ?
-				parsed.value :
-				[ this.toString() ];
-
-			this.dirtyArgs = false;
-		}
-
-		return this.argsList;
 	}
 
 	rebinding ( next ) {

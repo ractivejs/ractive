@@ -33,9 +33,6 @@ export default function construct ( ractive, options ) {
 
 	initialiseProperties( ractive );
 
-	// TODO remove this, eventually
-	defineProperty( ractive, 'data', { get: deprecateRactiveData });
-
 	// TODO don't allow `onconstruct` with `new Ractive()`, there's no need for it
 	constructHook.fire( ractive, options );
 
@@ -146,9 +143,4 @@ function initialiseProperties ( ractive ) {
 		ractive.root = ractive;
 		ractive.parent = ractive.container = null; // TODO container still applicable?
 	}
-
-}
-
-function deprecateRactiveData () {
-	throw new Error( 'Using `ractive.data` is no longer supported - you must use the `ractive.get()` API instead' );
 }

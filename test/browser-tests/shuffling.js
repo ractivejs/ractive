@@ -106,7 +106,7 @@ export default function() {
 
 		const r = new Ractive({
 			el: fixture,
-			template: '{{#each items}}<div id="div{{@index}}" on-click="foo:{{.bar}}" />{{/each}}',
+			template: '{{#each items}}<div id="div{{@index}}" on-click="@this.fire("foo", event, .bar)" />{{/each}}',
 			data: {
 				items: [ { bar: 'baz' } ]
 			}
@@ -123,7 +123,7 @@ export default function() {
 		listener.cancel();
 
 		r.on( 'foo', ev => {
-			t.equal( ev.keypath, 'items.1' );
+			t.equal( ev.resolve(), 'items.1' );
 		});
 
 		fire( r.find( '#div1' ), 'click' );
@@ -142,7 +142,7 @@ export default function() {
 
 		const r = new Ractive({
 			el: fixture,
-			template: '{{#each items}}<div id="div{{@index}}" on-click="foo(@keypath, .bar)" />{{/each}}',
+			template: '{{#each items}}<div id="div{{@index}}" on-click="@this.foo(@keypath, .bar)" />{{/each}}',
 			data: {
 				items: [ { bar: 'baz' } ]
 			},
@@ -152,7 +152,7 @@ export default function() {
 					t.equal( path, 'items.0' );
 				} else {
 					t.equal( path, 'items.1' );
-					t.equal( this.event.keypath, 'items.1' );
+					t.equal( this.event.resolve(), 'items.1' );
 				}
 			}
 		});
@@ -183,7 +183,7 @@ export default function() {
 
 		const r = new Ractive({
 			el: fixture,
-			template: '{{#each items}}<button on-click="foo()">clickme</button>{{/each}}',
+			template: '{{#each items}}<button on-click="@this.foo()">clickme</button>{{/each}}',
 			data: { items: [ 1 ] }
 		});
 

@@ -45,7 +45,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: `<span id='test' on-click='inTheater()'></span>`,
+			template: `<span id='test' on-click='@this.inTheater()'></span>`,
 			inTheater () {
 				t.ok ( methodEvent = this.event, 'method call has event' );
 				this.fire( 'yell' );

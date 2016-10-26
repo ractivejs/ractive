@@ -268,7 +268,7 @@ export default function() {
 			el: fixture,
 			template: `
 				{{#if show}}
-					<div outro='wait'>
+					<div wait-out>
 						<Widget/>
 					</div>
 				{{/if}}`,

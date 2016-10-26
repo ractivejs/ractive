@@ -11,7 +11,6 @@ import readSection from './converters/mustache/readSection';
 import readHtmlComment from './converters/readHtmlComment';
 import readElement from './converters/readElement';
 import readText from './converters/readText';
-import readPartialDefinitionComment from './converters/readPartialDefinitionComment';
 import readPartialDefinitionSection from './converters/readPartialDefinitionSection';
 import readTemplate from './converters/readTemplate';
 import cleanup from './utils/cleanup';
@@ -44,7 +43,7 @@ parse.computedStrings = function( computed ) {
 
 
 export const READERS = [ readMustache, readHtmlComment, readElement, readText ];
-export const PARTIAL_READERS = [ readPartialDefinitionComment, readPartialDefinitionSection ];
+export const PARTIAL_READERS = [ readPartialDefinitionSection ];
 
 StandardParser = Parser.extend({
 	init ( str, options ) {

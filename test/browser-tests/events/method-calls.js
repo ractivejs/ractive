@@ -9,7 +9,7 @@ export default function() {
 	test( 'Calling a builtin method', t => {
 		const ractive = new Ractive({
 			el: fixture,
-			template: `<button on-click='set("foo",foo+1)'>{{foo}}</button>`,
+			template: `<button on-click='@this.set("foo",foo+1)'>{{foo}}</button>`,
 			data: { foo: 0 }
 		});
 
@@ -22,7 +22,7 @@ export default function() {
 		t.expect( 2 );
 
 		const Widget = Ractive.extend({
-			template: `<button on-click='activate()'>{{foo}}</button>`,
+			template: `<button on-click='@this.activate()'>{{foo}}</button>`,
 			activate () {
 				t.ok( true );
 				t.equal( this, ractive );
@@ -40,7 +40,7 @@ export default function() {
 		t.expect( 1 );
 
 		const Widget = Ractive.extend({
-			template: `<button on-click='activate()'>{{foo}}</button>`
+			template: `<button on-click='@this.activate()'>{{foo}}</button>`
 		});
 
 		const ractive = new Widget({
@@ -65,7 +65,7 @@ export default function() {
 		t.expect( 1 );
 
 		const Widget = Ractive.extend({
-			template: `<button on-click='activate(event)'>{{foo}}</button>`,
+			template: `<button on-click='@this.activate(event)'>{{foo}}</button>`,
 			activate ( event ) {
 				t.equal( event.original.type, 'click' );
 			}
@@ -82,7 +82,7 @@ export default function() {
 		t.expect( 1 );
 
 		const Widget = Ractive.extend({
-			template: `<button on-click='activate(event.original.type)'>{{foo}}</button>`,
+			template: `<button on-click='@this.activate(event.original.type)'>{{foo}}</button>`,
 			activate ( type ) {
 				t.equal( type, 'click' );
 			}
@@ -100,7 +100,7 @@ export default function() {
 		t.expect( 1 );
 
 		const Widget = Ractive.extend({
-			template: `<button on-click='activate(.event)'>{{foo}}</button>`,
+			template: `<button on-click='@this.activate(.event)'>{{foo}}</button>`,
 			activate ( event ) {
 				t.equal( event, 'Christmas' );
 			}
@@ -121,7 +121,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<button on-click="test(event)"></button>',
+			template: '<button on-click="@this.test(event)"></button>',
 			test ( event ) {
 				t.equal( event, this.event );
 				t.equal( ractive, this );
@@ -135,12 +135,12 @@ export default function() {
 		t.expect( 2 );
 
 		const Component = Ractive.extend({
-			template: `<span id="test" on-click="foo:'foo'">click me</span>`
+			template: `<span id="test" on-click="foo">click me</span>`
 		});
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<Component on-foo="foo(1)" on-bar="bar(2)"/>',
+			template: '<Component on-foo="@this.foo(1)" on-bar="@this.bar(2)"/>',
 			components: { Component },
 			foo ( num ) {
 				t.equal( num, 1 );
@@ -159,12 +159,12 @@ export default function() {
 		t.expect( 5 );
 
 		const Component = Ractive.extend({
-			template: `<span id="test" on-click="foo:'foo', 42">click me</span>`
+			template: `<span id="test" on-click="@this.fire('foo', event, "foo", 42)">click me</span>`
 		});
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<Component on-foo="foo(...arguments)" on-bar="bar(...arguments)"/>',
+			template: '<Component on-foo="@this.foo(...arguments)" on-bar="@this.bar(...arguments)"/>',
 			components: { Component },
 			foo ( e, arg1, arg2 ) {
 				t.equal( e.original.type, 'click' );
@@ -186,12 +186,12 @@ export default function() {
 		t.expect( 7 );
 
 		const Component = Ractive.extend({
-			template: `<span id="test" on-click="foo:'foo', 42">click me</span>`
+			template: `<span id="test" on-click="@this.fire('foo', event, 'foo', 42)">click me</span>`
 		});
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: `<Component on-foo="foo('fooarg', ...arguments)" on-bar="bar('bararg', ...arguments)"/>`,
+			template: `<Component on-foo="@this.foo('fooarg', ...arguments)" on-bar="@this.bar('bararg', ...arguments)"/>`,
 			components: { Component },
 			foo ( arg1, e, arg2, arg3 ) {
 				t.equal( arg1, 'fooarg' );
@@ -215,12 +215,12 @@ export default function() {
 		t.expect( 5 );
 
 		const Component = Ractive.extend({
-			template: `<span id="test" on-click="foo:'foo', 42">click me</span>`
+			template: `<span id="test" on-click="@this.fire('foo', event, 'foo', 42)">click me</span>`
 		});
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: `<Component on-foo="foo(arguments[2], 'qux', arguments[0])" on-bar="bar(arguments[0], 100)"/>`,
+			template: `<Component on-foo="@this.foo(arguments[2], 'qux', arguments[0])" on-bar="@this.bar(arguments[0], 100)"/>`,
 			components: { Component },
 			foo ( arg1, arg2, arg3 ) {
 				t.equal( arg1, 42 );
@@ -242,12 +242,12 @@ export default function() {
 		t.expect( 5 );
 
 		const Component = Ractive.extend({
-			template: '<span id="test" on-click="foo:\'foo\', 42">click me</span>'
+			template: '<span id="test" on-click="@this.fire("foo", event, "foo", 42)">click me</span>'
 		});
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<Component on-foo="foo($3, \'qux\', $1)" on-bar="bar($1, 100)"/>',
+			template: '<Component on-foo="@this.foo($3, \'qux\', $1)" on-bar="@this.bar($1, 100)"/>',
 			components: { Component },
 			foo ( arg1, arg2, arg3 ) {
 				t.equal( arg1, 42 );
@@ -272,9 +272,9 @@ export default function() {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
-				<span id="return_false" on-click="returnFalse()">click me</span>
-				<span id="return_undefined" on-click="returnUndefined()">click me</span>
-				<span id="return_zero" on-click="returnZero()">click me</span>`,
+				<span id="return_false" on-click="@this.returnFalse()">click me</span>
+				<span id="return_undefined" on-click="@this.returnUndefined()">click me</span>
+				<span id="return_zero" on-click="@this.returnZero()">click me</span>`,
 
 			returnFalse () {
 				t.ok( true );

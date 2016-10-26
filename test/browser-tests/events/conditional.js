@@ -8,7 +8,7 @@ export default function() {
 	test( 'event is added and removed with conditional', t => {
 		const r = new Ractive({
 			el: fixture,
-			template: `<a {{#if foo}}on-click="add('count')"{{/if}}>click me</a>`,
+			template: `<a {{#if foo}}on-click="@this.add('count')"{{/if}}>click me</a>`,
 			data: { foo: true, count: 0 }
 		});
 
@@ -29,7 +29,7 @@ export default function() {
 	test( 'events work with else', t => {
 		const r = new Ractive({
 			el: fixture,
-			template: `<a {{#if foo}}on-click="add('count1')"{{else}}on-click="add('count2')"{{/if}}>click me</a>`,
+			template: `<a {{#if foo}}on-click="@this.add('count1')"{{else}}on-click="@this.add('count2')"{{/if}}>click me</a>`,
 			data: { count1: 0, count2: 0 }
 		});
 

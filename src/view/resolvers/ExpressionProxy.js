@@ -49,7 +49,6 @@ export default class ExpressionProxy extends Model {
 
 	bubble ( actuallyChanged = true ) {
 		// refresh the keypath
-		if ( this.registered ) delete this.root.expressions[ this.keypath ];
 		this.keypath = undefined;
 
 		if ( actuallyChanged ) {
@@ -80,9 +79,6 @@ export default class ExpressionProxy extends Model {
 				const model = this.models[i];
 				return model ? model.getKeypath() : '@undefined';
 			});
-
-			this.root.expressions[ this.keypath ] = this;
-			this.registered = true;
 		}
 
 		return this.keypath;
