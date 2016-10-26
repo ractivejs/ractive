@@ -21,10 +21,7 @@ export default function ( parser ) {
 
 		else if ( parser.matchString( '(' ) ) {
 			parser.allowWhitespace();
-			let start = parser.spreadArgs;
-			parser.spreadArgs = true;
-			const expressionList = readExpressionList( parser );
-			parser.spreadArgs = start;
+			const expressionList = readExpressionList( parser, true );
 
 			parser.allowWhitespace();
 

@@ -7,8 +7,6 @@ export default function flattenExpression ( expression ) {
 	extractRefs( expression, refs = [] );
 	stringified = stringify( expression );
 
-	refs = refs.map( r => r.indexOf( '...' ) === 0 ? r.substr( 3 ) : r );
-
 	return {
 		r: refs,
 		s: getVars(stringified)
@@ -17,12 +15,16 @@ export default function flattenExpression ( expression ) {
 	function getVars(expr) {
 		let vars = [];
 		for ( let i = count - 1; i >= 0; i-- ) {
-			vars.push( `spread$${i}` );
+			vars.push( `x$${i}` );
 		}
 		return vars.length ? `(function(){var ${vars.join(',')};return(${expr});})()` : expr;
 	}
 
 	function stringify ( node ) {
+		if ( typeof node === 'string' ) {
+			return node;
+		}
+
 		switch ( node.t ) {
 			case BOOLEAN_LITERAL:
 			case GLOBAL:
@@ -34,13 +36,18 @@ export default function flattenExpression ( expression ) {
 				return JSON.stringify( String( node.v ) );
 
 			case ARRAY_LITERAL:
-				return '[' + ( node.m ? node.m.map( stringify ).join( ',' ) : '' ) + ']';
+				if ( node.m && hasSpread( node.m )) {
+					return `[].concat(${ makeSpread( node.m, '[', ']', stringify ) })`;
+				} else {
+					return '[' + ( node.m ? node.m.map( stringify ).join( ',' ) : '' ) + ']';
+				}
 
 			case OBJECT_LITERAL:
-				return '{' + ( node.m ? node.m.map( stringify ).join( ',' ) : '' ) + '}';
-
-			case KEY_VALUE_PAIR:
-				return node.k + ':' + stringify( node.v );
+				if ( node.m && hasSpread( node.m ) ) {
+					return `Object.assign({},${ makeSpread( node.m, '{', '}', stringifyPair) })`;
+				} else {
+					return '{' + ( node.m ? node.m.map( n => `${ n.k }:${ stringify( n.v ) }` ).join( ',' ) : '' ) + '}';
+				}
 
 			case PREFIX_OPERATOR:
 				return ( node.s === 'typeof' ? 'typeof ' : node.s ) + stringify( node.o );
@@ -49,9 +56,9 @@ export default function flattenExpression ( expression ) {
 				return stringify( node.o[0] ) + ( node.s.substr( 0, 2 ) === 'in' ? ' ' + node.s + ' ' : node.s ) + stringify( node.o[1] );
 
 			case INVOCATION:
-				if ( node.spread ) {
+				if ( node.o && hasSpread( node.o ) ) {
 					let id = count++;
-					return `(spread$${ id } = ${ stringify(node.x) }).apply(spread$${ id }, [].concat(${ node.o ? node.o.map( a => a.n && a.n.indexOf( '...' ) === 0 ? stringify( a ) : '[' + stringify(a) + ']' ).join( ',' ) : '' }) )`;
+					return `(x$${ id }=${ stringify(node.x) }).apply(x$${ id },${ stringify({ t: ARRAY_LITERAL, m: node.o }) })`;
 				} else {
 					return stringify( node.x ) + '(' + ( node.o ? node.o.map( stringify ).join( ',' ) : '' ) + ')';
 				}
@@ -75,14 +82,38 @@ export default function flattenExpression ( expression ) {
 				throw new Error( 'Expected legal JavaScript' );
 		}
 	}
+
+	function stringifyPair ( node ) { return node.p ? stringify( node.k ) : `${ node.k }:${ stringify( node.v ) }`; }
+
+	function makeSpread ( list, open, close, fn ) {
+		const out = list.reduce( function( a, c ) {
+			if ( c.p ) {
+				a.str += `${ a.open ? close + ',' : a.str.length ? ',' : '' }${ fn( c ) }`;
+			} else {
+				a.str += `${ !a.str.length ? open : !a.open ? ',' + open : ',' }${ fn( c ) }`;
+			}
+			a.open = !c.p;
+			return a;
+		}, { open: false, str: '' } );
+		if ( out.open ) out.str += close;
+		return out.str;
+	}
+}
+
+function hasSpread ( list ) {
+	for ( let i = 0; i < list.length; i++ ) {
+		if ( list[i].p ) return true;
+	}
+
+	return false;
 }
 
 // TODO maybe refactor this?
 function extractRefs ( node, refs ) {
 	var i, list;
 
-	if ( node.t === REFERENCE ) {
-		if ( refs.indexOf( node.n ) === -1 ) {
+	if ( node.t === REFERENCE && typeof node.n === 'string' ) {
+		if ( !~refs.indexOf( node.n ) ) {
 			refs.unshift( node.n );
 		}
 	}
@@ -94,12 +125,13 @@ function extractRefs ( node, refs ) {
 		} else {
 			i = list.length;
 			while ( i-- ) {
-				if ( list[i].n && list[i].n.indexOf('...') === 0 ) {
-					node.spread = true;
-				}
 				extractRefs( list[i], refs );
 			}
 		}
+	}
+
+	if ( node.k && node.t === KEY_VALUE_PAIR && typeof node.k !== 'string' ) {
+		extractRefs( node.k, refs );
 	}
 
 	if ( node.x ) {

@@ -14,7 +14,7 @@ export default function ( parser ) {
 		return null;
 	}
 
-	expressionList = readExpressionList( parser );
+	expressionList = readExpressionList( parser, true );
 
 	if ( !parser.matchString( ']' ) ) {
 		parser.pos = start;

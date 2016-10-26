@@ -15,10 +15,9 @@ const legalReference = /^(?:[a-zA-Z$_0-9]|\\\.)+(?:(?:\.(?:[a-zA-Z$_0-9]|\\\.)+)
 const relaxedName = /^[a-zA-Z_$][-\/a-zA-Z_$0-9]*/;
 const specials = /^@(?:keypath|rootpath|index|key|this|global)/;
 const specialCall = /^\s*\(/;
-const spreadPattern = /^\s*\.{3}/;
 
 export default function readReference ( parser ) {
-	var startPos, prefix, name, global, reference, fullLength, lastDotIndex, spread;
+	var startPos, prefix, name, global, reference, fullLength, lastDotIndex;
 
 	startPos = parser.pos;
 
@@ -35,8 +34,6 @@ export default function readReference ( parser ) {
 			name += `(${ref.n})`;
 		}
 	}
-
-	spread = !name && parser.spreadArgs && parser.matchPattern( spreadPattern );
 
 	if ( !name ) {
 		prefix = parser.matchPattern( prefixPattern ) || '';
@@ -69,11 +66,11 @@ export default function readReference ( parser ) {
 
 		return {
 			t: GLOBAL,
-			v: ( spread ? '...' : '' ) + global
+			v: global
 		};
 	}
 
-	fullLength = ( spread ? 3 : 0 ) + ( prefix || '' ).length + name.length;
+	fullLength = ( prefix || '' ).length + name.length;
 	reference = ( prefix || '' ) + normalise( name );
 
 	if ( parser.matchString( '(' ) ) {
@@ -93,6 +90,6 @@ export default function readReference ( parser ) {
 
 	return {
 		t: REFERENCE,
-		n: ( spread ? '...' : '' ) + reference.replace( /^this\./, './' ).replace( /^this$/, '.' )
+		n: reference.replace( /^this\./, './' ).replace( /^this$/, '.' )
 	};
 }
