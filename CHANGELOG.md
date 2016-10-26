@@ -1,5 +1,25 @@
 # changelog
 
+# 0.9.0 (unreleased)
+
+* Breaking changes
+	* All deprecations have been removed, including proxy events with args, un-prefixed method events, decorator="...", transition="...", the ractive.data getter, and partial comment definitions.
+	* The template spec is now a bit simpler after the removal of deprecations, and templates parsed with previous versions of Ractive are no longer compatible.
+	* Partial context (`{{>foo thisIsTheContext}}`) now only applies inside the partial template, meaning it is no longer equivalent to `{{#with thisIsTheContext}}{{>foo}}{{/with}}`. The with is wrapped around the content of `foo`, so that the context doesn't interfere with the partial expression.
+	* Any partial may be yielded, so yielding non-inline partials will no longer warn.
+	* The same partial may be yielded multiple times.
+
+* New features (experimental - feedback welcome!)
+	* You can now create cross-instance links by passing an options object with a target instance e.g. `this.link('source.path', 'dest.path', { ractive: sourceInstance })`. This covers many of the cases handled by the `ractive-ractive` adaptor in a considerably more efficient manner.
+	* There is now an API to manage embedding external instances i.e. out-of-template components. You can use `ractive.attachChild(otherRactive, { options })` and `ractive.detachChild(otherRactive)` to create a component relationship between two instances. There is a new anchor construct `<#anchorName />` that behaves mostly like a regular inline component except that it won't create its own Ractive instance. You can target an anchor when attaching a child by giving an anchor name as an option e.g. `ractive.attachChild(otherRactive, { target: 'anchorName' })`. Attached children need not be components, so you can attach a plain Ractive instance e.g. `const foo = new Ractive({ ... }); ractive.attachChild(foo);`.
+	* `{{yield}}` can now be used with any partial, not just inlines, and it may also use an expression to look up the target partial. It basically behaves as a regular partial with a special context.
+		* `{{yield}}` can also specify aliases, so that yielding is useful inside an iterative section. `{{yield partialName with foo as bar}}` and `{{yield with foo as bar}}` will make `foo` from the component context available to the `partialName` partial as `bar`.
+
+* New features (stable)
+	* `target` is now an alias for `el` when creating a Ractive instance.
+	* You can now use spread expressions with array and object literals in expressions in addition to method calls. Object spreads will require `Object.assign` to be available.
+
+
 # 0.8.1
 
 * Bug fixes
