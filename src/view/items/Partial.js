@@ -7,6 +7,7 @@ import { isArray } from '../../utils/is';
 import parser from '../../Ractive/config/runtime-parser';
 import { doInAttributes } from './element/ConditionalAttribute';
 import { resolveAliases } from './Alias';
+import runloop from '../../global/runloop';
 
 export default class Partial extends MustacheContainer {
 	constructor ( options ) {
@@ -124,7 +125,7 @@ export default class Partial extends MustacheContainer {
 	}
 
 	rebinding () {
-		if ( this.locked ) return;
+		if ( this.locked || !this.template.z ) return;
 		this.locked = true;
 		runloop.scheduleTask( () => {
 			this.locked = false;

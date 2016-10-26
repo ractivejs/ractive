@@ -371,6 +371,22 @@ export default function() {
 		t.equal( postB.myId, 'b' );
 	});
 
+	test( 'arrays merge with themselves when no array is given', t => {
+		const list = [ 1, 2, 3 ];
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#each list}}{{.}}{{/each}}',
+			data: { list },
+			modifyArrays: false
+		});
+
+		t.htmlEqual( fixture.innerHTML, '123' );
+		list.shift();
+		list.splice( 1, 0, 4 );
+		r.merge( 'list' );
+		t.htmlEqual( fixture.innerHTML, '243' );
+	});
+
 	test( 'arrays merge safely with themselves even if they are not rendered', t => {
 		const r = new Ractive({
 			el: fixture,

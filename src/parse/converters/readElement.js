@@ -1,4 +1,4 @@
-import { DOCTYPE, ELEMENT } from '../../config/types';
+import { ANCHOR, DOCTYPE, ELEMENT } from '../../config/types';
 import { voidElementNames } from '../../utils/html';
 import { create } from '../../utils/object';
 import { READERS, PARTIAL_READERS } from '../_parse';
@@ -6,6 +6,7 @@ import cleanup from '../utils/cleanup';
 import readMustache from './readMustache';
 import readClosing from './mustache/section/readClosing';
 import readClosingTag from './element/readClosingTag';
+import { relaxedName } from './expressions/shared/patterns';
 
 var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 	validTagNameFollower = /^[\s\n\/>]/,
@@ -44,7 +45,8 @@ function readElement ( parser ) {
 		closed,
 		pos,
 		remaining,
-		closingTag;
+		closingTag,
+		anchor;
 
 	start = parser.pos;
 
@@ -66,6 +68,7 @@ function readElement ( parser ) {
 		element.p = parser.getLinePos( start );
 	}
 
+	// check for doctype decl
 	if ( parser.matchString( '!' ) ) {
 		element.t = DOCTYPE;
 		if ( !parser.matchPattern( /^doctype/i ) ) {
@@ -75,13 +78,21 @@ function readElement ( parser ) {
 		element.a = parser.matchPattern( /^(.+?)>/ );
 		return element;
 	}
+	// check for anchor
+	else if ( anchor = parser.matchString( '#' ) ) {
+		parser.allowWhitespace();
+		element.t = ANCHOR;
+		element.n = parser.matchPattern( relaxedName );
+	}
+	// otherwise, it's an element/component
+	else {
+		element.t = ELEMENT;
 
-	element.t = ELEMENT;
-
-	// element name
-	element.e = parser.matchPattern( tagNamePattern );
-	if ( !element.e ) {
-		return null;
+		// element name
+		element.e = parser.matchPattern( tagNamePattern );
+		if ( !element.e ) {
+			return null;
+		}
 	}
 
 	// next character must be whitespace, closing solidus or '>'
@@ -118,16 +129,18 @@ function readElement ( parser ) {
 		return null;
 	}
 
-	let lowerCaseName = element.e.toLowerCase();
-	let preserveWhitespace = parser.preserveWhitespace;
+	let lowerCaseName = ( element.e || element.n ).toLowerCase();
+	const preserveWhitespace = parser.preserveWhitespace;
 
-	if ( !selfClosing && !voidElementNames.test( element.e ) ) {
-		parser.elementStack.push( lowerCaseName );
+	if ( !selfClosing && ( anchor || !voidElementNames.test( element.e ) ) ) {
+		if ( !anchor ) {
+			parser.elementStack.push( lowerCaseName );
 
-		// Special case - if we open a script element, further tags should
-		// be ignored unless they're a closing script element
-		if ( lowerCaseName === 'script' || lowerCaseName === 'style' || lowerCaseName === 'textarea' ) {
-			parser.inside = lowerCaseName;
+			// Special case - if we open a script element, further tags should
+			// be ignored unless they're a closing script element
+			if ( lowerCaseName === 'script' || lowerCaseName === 'style' || lowerCaseName === 'textarea' ) {
+				parser.inside = lowerCaseName;
+			}
 		}
 
 		children = [];
@@ -148,12 +161,12 @@ function readElement ( parser ) {
 
 			// if for example we're in an <li> element, and we see another
 			// <li> tag, close the first so they become siblings
-			if ( !canContain( lowerCaseName, remaining ) ) {
+			if ( !anchor && !canContain( lowerCaseName, remaining ) ) {
 				closed = true;
 			}
 
 			// closing tag
-			else if ( closingTag = readClosingTag( parser ) ) {
+			else if ( !anchor && ( closingTag = readClosingTag( parser ) ) ) {
 				closed = true;
 
 				let closingTagName = closingTag.e.toLowerCase();
@@ -178,7 +191,12 @@ function readElement ( parser ) {
 				}
 			}
 
-			else if ( child = readClosing( parser, { open, close } ) ) {
+			else if ( anchor && readAnchorClose( parser, element.n ) ) {
+				closed = true;
+			}
+
+			// implicit close by closing section tag. TODO clean this up
+			else if ( child = readClosing( parser, { open: parser.standardDelimiters[0], close: parser.standardDelimiters[1] } ) ) {
 				closed = true;
 				parser.pos = pos;
 			}
@@ -237,4 +255,28 @@ function canContain ( name, remaining ) {
 	}
 
 	return !~disallowed.indexOf( match[1].toLowerCase() );
+}
+
+function readAnchorClose ( parser, name ) {
+	const pos = parser.pos;
+	if ( !parser.matchString( '</' ) ) {
+		return null;
+	}
+
+	parser.matchString( '#' );
+	parser.allowWhitespace();
+
+	if ( !parser.matchString( name ) ) {
+		parser.pos = pos;
+		return null;
+	}
+
+	parser.allowWhitespace();
+
+	if ( !parser.matchString( '>' ) ) {
+		parser.pos = pos;
+		return null;
+	}
+
+	return true;
 }

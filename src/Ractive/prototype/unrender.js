@@ -16,8 +16,9 @@ export default function Ractive$unrender () {
 
 	// If this is a component, and the component isn't marked for destruction,
 	// don't detach nodes from the DOM unnecessarily
-	const shouldDestroy = !this.component || this.component.shouldDestroy || this.shouldDestroy;
+	const shouldDestroy = !this.component || ( this.component.anchor || {} ).shouldDestroy || this.component.shouldDestroy || this.shouldDestroy;
 	this.fragment.unrender( shouldDestroy );
+	if ( shouldDestroy ) this.destroyed = true;
 
 	removeFromArray( this.el.__ractive_instances__, this );
 

@@ -1,6 +1,7 @@
 import { default as templateConfigurator } from '../config/custom/template';
 import { createDocumentFragment } from '../../utils/dom';
 import Fragment from '../../view/Fragment';
+import runloop from '../../global/runloop';
 
 // TODO should resetTemplate be asynchronous? i.e. should it be a case
 // of outro, update template, intro? I reckon probably not, since that
@@ -22,6 +23,8 @@ export default function Ractive$resetTemplate ( template ) {
 	this.unrender();
 	if ( component ) component.shouldDestroy = false;
 
+	const promise = runloop.start();
+
 	// remove existing fragment and create new one
 	this.fragment.unbind().unrender( true );
 
@@ -36,11 +39,15 @@ export default function Ractive$resetTemplate ( template ) {
 
 	// if this is a component, its el may not be valid, so find a
 	// target based on the component container
-	if ( component ) {
+	if ( component && !component.external ) {
 		this.fragment.findParentNode().insertBefore( docFrag, component.findNextNode() );
 	} else {
 		this.el.insertBefore( docFrag, this.anchor );
 	}
 
+	runloop.end();
+
 	this.transitionsEnabled = transitionsEnabled;
+
+	return promise;
 }

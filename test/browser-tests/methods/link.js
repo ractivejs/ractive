@@ -109,4 +109,38 @@ export default function() {
 		t.ok( !r.get( 'baz' ) );
 		t.ok(r.viewmodel.joinAll(['bip', 'bop']).deps.length === 0);
 	});
+
+	test( 'deeply nested links can be retrieved', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: '{{ bat.bop.bip }}',
+			data: {
+				foo: { bar: { baz: 'yep' } }
+			}
+		});
+
+		r.link( 'foo.bar.baz', 'bat.bop.bip' );
+		t.equal( r.get( 'bat.bop.bip' ), 'yep' );
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+		r.unlink( 'bat.bop.bip' );
+		t.equal( r.get( 'bat.bop.bip' ), undefined );
+		t.htmlEqual( fixture.innerHTML, '' );
+	});
+
+	test( 'links work with root paths too', t => {
+		t.expect(2);
+
+		const parent = new Ractive();
+		const child = new Ractive({
+			data: {
+				foo: { bar: 'baz' }
+			}
+		});
+
+		parent.link( '', 'child.path', { ractive: child } );
+
+		t.equal( parent.get( 'child.path.foo.bar' ), 'baz' );
+		parent.observe( 'child.path.foo', () => t.ok( true, 'parent notified' ) );
+		child.set( 'foo.bar', 'yep' );
+	});
 }

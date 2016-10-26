@@ -86,12 +86,12 @@ export default class Fragment {
 		return docFrag;
 	}
 
-	find ( selector ) {
+	find ( selector, options ) {
 		const len = this.items.length;
 		let i;
 
 		for ( i = 0; i < len; i += 1 ) {
-			const found = this.items[i].find( selector );
+			const found = this.items[i].find( selector, options );
 			if ( found ) return found;
 		}
 	}
@@ -113,12 +113,12 @@ export default class Fragment {
 		return query;
 	}
 
-	findComponent ( name ) {
+	findComponent ( name, options ) {
 		const len = this.items.length;
 		let i;
 
 		for ( i = 0; i < len; i += 1 ) {
-			const found = this.items[i].findComponent( name );
+			const found = this.items[i].findComponent( name, options );
 			if ( found ) return found;
 		}
 	}

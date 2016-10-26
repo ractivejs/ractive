@@ -43,16 +43,16 @@ export default function resolveAmbiguousReference ( fragment, ref ) {
 
 			if ( fragment.context.has( key ) ) {
 				if ( crossedComponentBoundary ) {
-					return localViewmodel.createLink( key, fragment.context.joinKey( keys.shift() ), key ).joinAll( keys );
+					return localViewmodel.createLink( key, fragment.context.joinKey( keys.shift() ), key, { implicit: true } ).joinAll( keys );
 				}
 
 				return fragment.context.joinAll( keys );
 			}
 		}
 
-		if ( fragment.componentParent && !fragment.ractive.isolated ) {
+		if ( ( fragment.componentParent || ( !fragment.parent && fragment.ractive.component ) ) && !fragment.ractive.isolated ) {
 			// ascend through component boundary
-			fragment = fragment.componentParent;
+			fragment = fragment.componentParent || fragment.ractive.component.parentFragment;
 			crossedComponentBoundary = true;
 		} else {
 			fragment = fragment.parent;

@@ -1,13 +1,12 @@
 export default class RactiveEvent {
-
-	constructor ( ractive, name ) {
-		this.ractive = ractive;
+	constructor ( component, name ) {
+		this.component = component;
 		this.name = name;
 		this.handler = null;
 	}
 
 	listen ( directive ) {
-		const ractive = this.ractive;
+		const ractive = this.component.instance;
 
 		this.handler = ractive.on( this.name, function () {
 			let event;

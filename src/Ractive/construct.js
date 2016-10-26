@@ -139,6 +139,11 @@ function initialiseProperties ( ractive ) {
 	// observers
 	ractive._observers = [];
 
+	// external children
+	ractive._children = [];
+	ractive._children.byName = {};
+	ractive.children = ractive._children;
+
 	if(!ractive.component){
 		ractive.root = ractive;
 		ractive.parent = ractive.container = null; // TODO container still applicable?

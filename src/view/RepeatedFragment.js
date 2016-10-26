@@ -101,12 +101,12 @@ export default class RepeatedFragment {
 		return docFrag;
 	}
 
-	find ( selector ) {
+	find ( selector, options ) {
 		const len = this.iterations.length;
 		let i;
 
 		for ( i = 0; i < len; i += 1 ) {
-			const found = this.iterations[i].find( selector );
+			const found = this.iterations[i].find( selector, options );
 			if ( found ) return found;
 		}
 	}
@@ -120,12 +120,12 @@ export default class RepeatedFragment {
 		}
 	}
 
-	findComponent ( name ) {
+	findComponent ( name, options ) {
 		const len = this.iterations.length;
 		let i;
 
 		for ( i = 0; i < len; i += 1 ) {
-			const found = this.iterations[i].findComponent( name );
+			const found = this.iterations[i].findComponent( name, options );
 			if ( found ) return found;
 		}
 	}

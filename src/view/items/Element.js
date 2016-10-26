@@ -4,7 +4,7 @@ import { ContainerItem } from './shared/Item';
 import Fragment from '../Fragment';
 import ConditionalAttribute from './element/ConditionalAttribute';
 import updateLiveQueries from './element/updateLiveQueries';
-import { toArray } from '../../utils/array';
+import { removeFromArray, toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
 import { bind, render, unbind, update } from '../../shared/methodCallers';
 import { createElement, detachNode, matches, safeAttributeString, decamelize } from '../../utils/dom';
@@ -134,10 +134,10 @@ export default class Element extends ContainerItem {
 		return detachNode( this.node );
 	}
 
-	find ( selector ) {
+	find ( selector, options ) {
 		if ( matches( this.node, selector ) ) return this.node;
 		if ( this.fragment ) {
-			return this.fragment.find( selector );
+			return this.fragment.find( selector, options );
 		}
 	}
 
@@ -178,6 +178,11 @@ export default class Element extends ContainerItem {
 			this.binding.bind();
 			if ( this.rendered ) this.binding.render();
 		}
+	}
+
+	removeFromQuery ( query ) {
+		query.remove( this.node );
+		removeFromArray( this.liveQueries, query );
 	}
 
 	render ( target, occupants ) {
@@ -355,7 +360,8 @@ export default class Element extends ContainerItem {
 			runloop.registerTransition( this._outroTransition );
 		}
 
-		removeFromLiveQueries( this );
+		this.liveQueries.forEach( query => query.remove( this.node ) );
+		this.liveQueries = [];
 		// TODO forms are a special case
 	}
 
@@ -389,14 +395,6 @@ function inputIsCheckedRadio ( element ) {
 function stringifyAttribute ( attribute ) {
 	const str = attribute.toString();
 	return str ? ' ' + str : '';
-}
-
-function removeFromLiveQueries ( element ) {
-	let i = element.liveQueries.length;
-	while ( i-- ) {
-		const query = element.liveQueries[i];
-		query.remove( element.node );
-	}
 }
 
 function getNamespace ( element ) {
