@@ -56,4 +56,15 @@ export default function() {
 		t.equal( ractive.foo, 'bar' );
 		t.ok( ractive.fumble() );
 	});
+
+	test( 'target element can be specified with target as well as el (#1848)', t => {
+		const r = new Ractive({
+			target: fixture,
+			template: 'yep'
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+		t.strictEqual( fixture, r.target );
+		t.strictEqual( fixture, r.el );
+	});
 }

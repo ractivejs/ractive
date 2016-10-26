@@ -21,7 +21,7 @@ export default function render ( ractive, target, anchor, occupants ) {
 
 	anchor = getElement( anchor ) || ractive.anchor;
 
-	ractive.el = target;
+	ractive.el = ractive.target = target;
 	ractive.anchor = anchor;
 
 	// ensure encapsulated CSS is up-to-date
