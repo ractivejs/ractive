@@ -20,6 +20,13 @@
 	* You can now use spread expressions with array and object literals in expressions in addition to method calls. Object spreads will require `Object.assign` to be available.
 
 
+# 0.8.2
+
+* Bug fixes
+	* Ractive will no longer create its own properties on adaptor objects.
+	* Child paths on computations will now properly notify links, so component mappings involving a computed property will now update as expected.
+
+
 # 0.8.1
 
 * Bug fixes
