@@ -118,27 +118,6 @@ export default class Computation extends Model {
 		return result;
 	}
 
-	handleChange () {
-		this.dirty = true;
-
-		this.links.forEach( marked );
-		this.deps.forEach( handleChange );
-		this.children.forEach( handleChange );
-		this.clearUnresolveds(); // TODO same question as on Model - necessary for primitives?
-	}
-
-	joinKey ( key ) {
-		if ( key === undefined || key === '' ) return this;
-
-		if ( !this.childByKey.hasOwnProperty( key ) ) {
-			const child = new ComputationChild( this, key );
-			this.children.push( child );
-			this.childByKey[ key ] = child;
-		}
-
-		return this.childByKey[ key ];
-	}
-
 	mark () {
 		this.handleChange();
 	}
@@ -149,7 +128,7 @@ export default class Computation extends Model {
 	}
 
 	set ( value ) {
-		if ( !this.signature.setter ) {
+		if ( this.isReadonly ) {
 			throw new Error( `Cannot set read-only computed value '${this.key}'` );
 		}
 
@@ -183,10 +162,9 @@ export default class Computation extends Model {
 		if ( this.root.computations[this.key] === this ) delete this.root.computations[this.key];
 		super.teardown();
 	}
-
-	unregister ( dependent ) {
-		super.unregister( dependent );
-		// tear down expressions with no deps, because they will be replaced when needed
-		if ( this.isExpression && this.deps.length === 0 ) this.teardown();
-	}
 }
+
+const prototype = Computation.prototype;
+const child = ComputationChild.prototype;
+prototype.handleChange = child.handleChange;
+prototype.joinKey = child.joinKey;

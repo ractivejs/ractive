@@ -1,13 +1,41 @@
 import { capture } from '../global/capture';
 import Model from './Model';
-import { handleChange, marked } from '../shared/methodCallers';
+import { handleChange, mark, marked } from '../shared/methodCallers';
 
 export default class ComputationChild extends Model {
+	constructor ( parent, key ) {
+		super( parent, key );
+
+		this.isReadonly = !this.root.ractive.syncComputedChildren;
+		this.dirty = true;
+	}
+
+	applyValue ( value ) {
+		super.applyValue( value );
+
+		if ( !this.isReadonly ) {
+			let source = this.parent;
+			// computed models don't have a shuffle method
+			while ( source && source.shuffle ) {
+				source = source.parent;
+			}
+
+			if ( source ) {
+				source.dependencies.forEach( mark );
+			}
+		}
+	}
+
 	get ( shouldCapture ) {
 		if ( shouldCapture ) capture( this );
 
-		const parentValue = this.parent.get();
-		return parentValue ? parentValue[ this.key ] : undefined;
+		if ( this.dirty ) {
+			this.dirty = false;
+			const parentValue = this.parent.get();
+			this.value = parentValue ? parentValue[ this.key ] : undefined;
+		}
+
+		return this.value;
 	}
 
 	handleChange () {
@@ -30,9 +58,4 @@ export default class ComputationChild extends Model {
 
 		return this.childByKey[ key ];
 	}
-
-	// TODO this causes problems with inter-component mappings
-	// set () {
-	// 	throw new Error( `Cannot set read-only property of computed value (${this.getKeypath()})` );
-	// }
 }

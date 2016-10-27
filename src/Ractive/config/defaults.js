@@ -21,6 +21,7 @@ export default {
 	// data & binding:
 	data:                   {},
 	computed:               {},
+	syncComputedChildren:   false,
 	magic:                  false,
 	modifyArrays:           false,
 	adapt:                  [],
