@@ -1,6 +1,6 @@
 import { splitKeypath, normalise } from '../../shared/keypaths';
 import { removeFromArray } from '../../utils/array';
-import resolveAmbiguousReference from './resolveAmbiguousReference';
+import resolveReference from './resolveReference';
 import runloop from '../../global/runloop';
 
 export default class ReferenceResolver {
@@ -31,7 +31,7 @@ export default class ReferenceResolver {
 	attemptResolution () {
 		if ( this.resolved ) return;
 
-		const model = resolveAmbiguousReference( this.fragment, this.reference );
+		const model = resolveReference( this.fragment, this.reference );
 
 		if ( model ) {
 			this.resolved = true;

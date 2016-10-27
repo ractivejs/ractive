@@ -130,8 +130,14 @@ export default class RootModel extends Model {
 	}
 
 	joinKey ( key, opts ) {
-		if ( key === '@global' ) return GlobalModel;
-		if ( key === '@this' ) return this.getRactiveModel();
+		if ( key[0] === '@' ) {
+			if ( key === '@global' ) return GlobalModel;
+			if ( key === '@this' ) return this.getRactiveModel();
+			// @this shortcut
+			if ( key !== '@index' && key !== '@key' && key !== '@keypath' && key !== '@rootpath' && key !== '@node' ) {
+				return this.getRactiveModel().joinKey( key.substr( 1 ) );
+			} else return;
+		}
 
 		return this.computations.hasOwnProperty( key ) ? this.computations[ key ] :
 		       super.joinKey( key, opts );

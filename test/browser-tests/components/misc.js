@@ -888,62 +888,6 @@ export default function() {
 		ractive.set('persons', [{}]);
 	});
 
-	test( 'component @keypath references should be relative to the component', t => {
-		const cmp = Ractive.extend({
-			template: '{{#with foo.bar}}{{@keypath}}{{/with}}'
-		});
-
-		new Ractive({
-			el: fixture,
-			template: '<cmp foo="{{baz.bat}}" />',
-			data: {
-				baz: { bat: { bar: 'yep' } }
-			},
-			components: { cmp }
-		});
-
-		t.htmlEqual( fixture.innerHTML, 'foo.bar' );
-	});
-
-	test( 'nested component @keypath references should be relative to the nested component', t => {
-		const cmp1 = Ractive.extend({
-			template: '{{#with foo.bar}}{{@keypath}}{{/with}}'
-		});
-
-		const cmp2 = Ractive.extend({
-			template: '{{#with baz.bat}}<cmp1 foo="{{.}}" />{{/with}}',
-			components: { cmp1 }
-		});
-
-		new Ractive({
-			el: fixture,
-			template: '<cmp2 baz="{{~/bop}}" />',
-			data: {
-				bop: { bat: { bar: 'yep' } }
-			},
-			components: { cmp2 }
-		});
-
-		t.htmlEqual( fixture.innerHTML, 'foo.bar' );
-	});
-
-	test( 'component @rootpath references should be relative to the root', t => {
-		const cmp = Ractive.extend({
-			template: '{{#with foo.bar}}{{@rootpath}}{{/with}}'
-		});
-
-		new Ractive({
-			el: fixture,
-			template: '<cmp foo="{{baz.bat}}" />',
-			data: {
-				baz: { bat: { bar: 'yep' } }
-			},
-			components: { cmp }
-		});
-
-		t.htmlEqual( fixture.innerHTML, 'baz.bat.bar' );
-	});
-
 	test( 'component @keypath references should shuffle correctly', t => {
 		const cmp = Ractive.extend({
 			template: `{{#with foo.bar}}{{.}} {{@keypath}} {{@rootpath}} {{#each ../list}}{{@keypath}}|{{/each}}{{/with}}`
