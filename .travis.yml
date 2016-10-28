@@ -12,5 +12,5 @@ env:
   - secure: "nlnXJW/imf/w6qdTd7UCpRqLhLioxU6fllJPbP1DZr/9rp44HNVSPNxxGrA808VDXQ1ccpXBxIV9mgIi4Q/G0FUILA5NsSGYdQE00A+Lw3qnvv5FQ7Qoux44BKYi4L1W+4Zi3NEr7TAL+/dHCAk5k/ZKLTCCxiziAEw3M+akE4A="
 branches:
   only:
-    - v0.8
+    - 0.8
     - dev
