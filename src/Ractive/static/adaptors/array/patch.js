@@ -36,7 +36,8 @@ mutatorMethods.forEach( methodName => {
 	};
 
 	defineProperty( patchedArrayProto, methodName, {
-		value: method
+		value: method,
+		configurable: true
 	});
 });
 
