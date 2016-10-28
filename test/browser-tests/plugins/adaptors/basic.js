@@ -373,10 +373,10 @@ export default function() {
 		Ractive.adaptors.foo = fooAdaptor;
 
 		Ractive.components.Widget = Ractive.extend({
-			template: '<p>{{wrappedThing}}</p>'
+			template: '<p>{{wrappedThing}}{{otherThing}}</p>'
 		});
 
-		new Ractive({
+		const r = new Ractive({
 			el: fixture,
 			template: '<Widget wrappedThing="{{thing}}"/>',
 			adapt: [ 'foo' ],
@@ -387,7 +387,42 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '<p>whee!</p>' );
 
+		r.findComponent( 'Widget' ).set( 'otherThing', new Foo( 'whoo!' ) );
+
+		t.htmlEqual( fixture.innerHTML, '<p>whee!whoo!</p>' );
+
 		delete Ractive.adaptors.foo;
+	});
+
+	test( 'isolated components do not inherit adaptors from their parents', t => {
+		const adaptor = {
+			filter ( value ) { return typeof value === 'string'; },
+			wrap ( ractive, value ) {
+				return {
+					get () { return `${value}!`; },
+					teardown () {}
+				};
+			}
+		};
+
+		const cmp = Ractive.extend({
+			template: '{{foo}}',
+			isolated: true
+		});
+
+		const r = new Ractive({
+			el: fixture,
+			template: '{{foo}}<cmp />',
+			adapt: [ adaptor ],
+			data: {
+				foo: 'bar'
+			},
+			components: { cmp }
+		});
+
+		r.findComponent( 'cmp' ).set( 'foo', 'baz' );
+
+		t.htmlEqual( fixture.innerHTML, 'bar!baz' );
 	});
 
 	test( 'adaptors should work with update (#2493)', t => {
