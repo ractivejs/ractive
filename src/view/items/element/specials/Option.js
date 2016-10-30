@@ -47,7 +47,7 @@ export default class Option extends Element {
 	bubble () {
 		// if we're using content as value, may need to update here
 		let value = this.getAttribute( 'value' );
-		if ( this.node.value !== value ) {
+		if ( this.node && this.node.value !== value ) {
 			this.node._ractive.value = value;
 		}
 		super.bubble();

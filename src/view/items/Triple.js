@@ -91,6 +91,9 @@ export default class Triple extends Mustache {
 			const anchor = this.parentFragment.findNextNode( this );
 
 			parentNode.insertBefore( docFrag, anchor );
+		} else {
+			// make sure to reset the dirty flag even if not rendered
+			this.dirty = false;
 		}
 	}
 }
