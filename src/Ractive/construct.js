@@ -62,24 +62,30 @@ export default function construct ( ractive, options ) {
 	}
 }
 
-function combine ( a, b ) {
-	const c = a.slice();
-	let i = b.length;
+function combine ( arrays ) {
+	const res = [];
+	const args = res.concat.apply( res, arrays );
 
+	let i = args.length;
 	while ( i-- ) {
-		if ( !~c.indexOf( b[i] ) ) {
-			c.push( b[i] );
+		if ( !~res.indexOf( args[i] ) ) {
+			res.unshift( args[i] );
 		}
 	}
 
-	return c;
+	return res;
 }
 
 function getAdaptors ( ractive, protoAdapt, options ) {
 	protoAdapt = protoAdapt.map( lookup );
 	let adapt = ensureArray( options.adapt ).map( lookup );
 
-	adapt = combine( protoAdapt, adapt );
+	const builtins = [];
+	const srcs = [ protoAdapt, adapt ];
+	if ( ractive.parent && !ractive.isolated ) {
+		srcs.push( ractive.parent.viewmodel.adaptors );
+	}
+	srcs.push( builtins );
 
 	const magic = 'magic' in options ? options.magic : ractive.magic;
 	const modifyArrays = 'modifyArrays' in options ? options.modifyArrays : ractive.modifyArrays;
@@ -90,17 +96,17 @@ function getAdaptors ( ractive, protoAdapt, options ) {
 		}
 
 		if ( modifyArrays ) {
-			adapt.push( magicArrayAdaptor );
+			builtins.push( magicArrayAdaptor );
 		}
 
-		adapt.push( magicAdaptor );
+		builtins.push( magicAdaptor );
 	}
 
 	if ( modifyArrays ) {
-		adapt.push( arrayAdaptor );
+		builtins.push( arrayAdaptor );
 	}
 
-	return adapt;
+	return combine( srcs );
 
 
 	function lookup ( adaptor ) {
