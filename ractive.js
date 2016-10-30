@@ -1,6 +1,6 @@
 /*
-	Ractive.js v0.8.2
-	Wed Oct 26 2016 11:54:52 GMT-0400 (EDT) - commit 7c357f978e706f3b9c39ce027241c37a5a7ba281
+	Ractive.js v0.8.3
+	Sun Oct 30 2016 19:01:35 GMT-0400 (EDT) - commit 43588aa80e53d5567182ab1d8a856abe54108168
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -433,13 +433,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.2 %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.3 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.2 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.3 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -9969,6 +9969,16 @@
   			return;
   		}
 
+  		if ( !this.rendered && this.owner === this.element && ( !this.name.indexOf( 'style-' ) || !this.name.indexOf( 'class-' ) ) ) {
+  			if ( !this.name.indexOf( 'style-' ) ) {
+  				this.styleName = camelize( this.name.substr( 6 ) );
+  			} else {
+  				this.inlineClass = this.name.substr( 6 );
+  			}
+
+  			return;
+  		}
+
   		if ( booleanAttributes.test( this.name ) ) return value ? this.name : '';
   		if ( value == null ) return '';
 
@@ -10268,7 +10278,8 @@
   	};
 
   	defineProperty( patchedArrayProto, methodName, {
-  		value: method
+  		value: method,
+  		configurable: true
   	});
   });
 
@@ -11063,24 +11074,30 @@
   	}
   }
 
-  function combine$2 ( a, b ) {
-  	var c = a.slice();
-  	var i = b.length;
+  function combine$2 ( arrays ) {
+  	var res = [];
+  	var args = res.concat.apply( res, arrays );
 
+  	var i = args.length;
   	while ( i-- ) {
-  		if ( !~c.indexOf( b[i] ) ) {
-  			c.push( b[i] );
+  		if ( !~res.indexOf( args[i] ) ) {
+  			res.unshift( args[i] );
   		}
   	}
 
-  	return c;
+  	return res;
   }
 
   function getAdaptors ( ractive, protoAdapt, options ) {
   	protoAdapt = protoAdapt.map( lookup );
   	var adapt = ensureArray( options.adapt ).map( lookup );
 
-  	adapt = combine$2( protoAdapt, adapt );
+  	var builtins = [];
+  	var srcs = [ protoAdapt, adapt ];
+  	if ( ractive.parent && !ractive.isolated ) {
+  		srcs.push( ractive.parent.viewmodel.adaptors );
+  	}
+  	srcs.push( builtins );
 
   	var magic = 'magic' in options ? options.magic : ractive.magic;
   	var modifyArrays = 'modifyArrays' in options ? options.modifyArrays : ractive.modifyArrays;
@@ -11091,17 +11108,17 @@
   		}
 
   		if ( modifyArrays ) {
-  			adapt.push( magicArrayAdaptor );
+  			builtins.push( magicArrayAdaptor );
   		}
 
-  		adapt.push( magicAdaptor$1 );
+  		builtins.push( magicAdaptor$1 );
   	}
 
   	if ( modifyArrays ) {
-  		adapt.push( arrayAdaptor );
+  		builtins.push( arrayAdaptor );
   	}
 
-  	return adapt;
+  	return combine$2( srcs );
 
 
   	function lookup ( adaptor ) {
@@ -13851,7 +13868,7 @@
   	Option.prototype.bubble = function bubble () {
   		// if we're using content as value, may need to update here
   		var value = this.getAttribute( 'value' );
-  		if ( this.node.value !== value ) {
+  		if ( this.node && this.node.value !== value ) {
   			this.node._ractive.value = value;
   		}
   		Element.prototype.bubble.call(this);
@@ -15937,6 +15954,9 @@
   			var anchor = this.parentFragment.findNextNode( this );
 
   			parentNode.insertBefore( docFrag, anchor );
+  		} else {
+  			// make sure to reset the dirty flag even if not rendered
+  			this.dirty = false;
   		}
   	};
 
@@ -17010,7 +17030,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.2' },
+  	VERSION:        { value: '0.8.3' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
