@@ -1,5 +1,12 @@
 # changelog
 
+# 0.8.3
+
+* Bug fixes
+	* Non-isolated components now inherit adaptors from their parent - partial regression from 0.7.3
+	* Bugs with `toHTML()` without DOM rendering in a few scenarios, including fixes for `class-` and `style-` attributes not being included in the string output.
+
+
 # 0.8.2
 
 * Bug fixes
