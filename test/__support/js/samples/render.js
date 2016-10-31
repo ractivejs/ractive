@@ -1299,12 +1299,6 @@ const renderTests = [
 		result: '1 42'
 	},
 	{
-		name: '{{#with obj}} doesn\'t render if obj is empty',
-		template: '{{#with obj}}foo{{/with}}',
-		data: { obj: {} },
-		result: ''
-	},
-	{
 		name: '{{#with obj}} doesn\'t render if obj is false/null/undefined',
 		template: '{{#with obj}}foo{{/with}}',
 		result: ''
@@ -1348,6 +1342,44 @@ const renderTests = [
 		result: '<span style="display: inline-block;"></span>',
 		new_data: { foo: true },
 		new_result: '<span style="display: block;"></span>'
+	},
+	{
+		name: `{{#with foo}} renders if foo is {} or [], but not any other form of falsey`,
+		template: '{{#with foo}}yep{{else}}nope{{/with}}',
+		result: 'nope',
+		steps: [
+			{
+				data: { foo: {} },
+				result: 'yep'
+			},
+			{
+				data: { foo: [] },
+				result: 'yep'
+			},
+			{
+				data: { foo: undefined },
+				result: 'nope'
+			}
+		]
+	},
+	{
+		name: `{{#foo}} doesn't render if foo is empty or falsey`,
+		template: '{{#foo}}yep{{else}}nope{{/}}',
+		result: 'nope',
+		steps: [
+			{
+				data: { foo: {} },
+				result: 'nope'
+			},
+			{
+				data: { foo: [] },
+				result: 'nope'
+			},
+			{
+				data: { foo: undefined },
+				result: 'nope'
+			}
+		]
 	}
 ];
 
