@@ -51,7 +51,7 @@ export default class Section extends MustacheContainer {
 	isTruthy () {
 		if ( this.subordinate && this.sibling.isTruthy() ) return true;
 		const value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();
-		return !!value && !isEmpty( value );
+		return !!value && ( this.templateSectionType === SECTION_IF_WITH || !isEmpty( value ) );
 	}
 
 	rebinding ( next, previous, safe ) {
@@ -110,69 +110,35 @@ export default class Section extends MustacheContainer {
 
 		let newFragment;
 
-		if ( this.sectionType === SECTION_EACH ) {
+		const fragmentShouldExist = this.sectionType === SECTION_EACH || // each always gets a fragment, which may have no iterations
+		                            this.sectionType === SECTION_WITH || // with (partial context) always gets a fragment
+		                            ( siblingFalsey && ( this.sectionType === SECTION_UNLESS ? !this.isTruthy() : this.isTruthy() ) ); // if, unless, and if-with depend on siblings and the condition
+
+		if ( fragmentShouldExist ) {
 			if ( this.fragment ) {
 				this.fragment.update();
 			} else {
-				// TODO can this happen?
-				newFragment = new RepeatedFragment({
-					owner: this,
-					template: this.template.f,
-					indexRef: this.template.i
-				}).bind( this.model );
-			}
-		}
-
-		// WITH is now IF_WITH; WITH is only used for {{>partial context}}
-		else if ( this.sectionType === SECTION_WITH ) {
-			if ( this.fragment ) {
-				this.fragment.update();
-			} else {
-				newFragment = new Fragment({
-					owner: this,
-					template: this.template.f
-				}).bind( this.model );
-			}
-		}
-
-		else if ( this.sectionType === SECTION_IF_WITH ) {
-			if ( this.fragment ) {
-				if ( isEmpty( value ) ) {
-					if ( this.rendered ) {
-						this.fragment.unbind().unrender( true );
-					}
-
-					this.fragment = null;
+				if ( this.sectionType === SECTION_EACH ) {
+					newFragment = new RepeatedFragment({
+						owner: this,
+						template: this.template.f,
+						indexRef: this.template.i
+					}).bind( this.model );
 				} else {
-					this.fragment.update();
+	 				// only with and if-with provide context - if and unless do not
+					const context = this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS ? this.model : null;
+					newFragment = new Fragment({
+						owner: this,
+						template: this.template.f
+					}).bind( context );
 				}
-			} else if ( !isEmpty( value ) ) {
-				newFragment = new Fragment({
-					owner: this,
-					template: this.template.f
-				}).bind( this.model );
 			}
-		}
-
-		else {
-			const fragmentShouldExist = siblingFalsey && ( this.sectionType === SECTION_UNLESS ? isEmpty( value ) : !!value && !isEmpty( value ) );
-
-			if ( this.fragment ) {
-				if ( fragmentShouldExist ) {
-					this.fragment.update();
-				} else {
-					if ( this.rendered ) {
-						this.fragment.unbind().unrender( true );
-					}
-
-					this.fragment = null;
-				}
-			} else if ( fragmentShouldExist ) {
-				newFragment = new Fragment({
-					owner: this,
-					template: this.template.f
-				}).bind( null );
+		} else {
+			if ( this.fragment && this.rendered ) {
+				this.fragment.unbind().unrender( true );
 			}
+
+			this.fragment = null;
 		}
 
 		if ( newFragment ) {
