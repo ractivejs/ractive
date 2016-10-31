@@ -1090,4 +1090,24 @@ export default function() {
 			done();
 		}, 200 );
 	});
+
+	test( `returning false from a component event doesn't try to cancel something that doesn't exist (#2731)`, t => {
+		t.expect( 0 );
+
+		const cmp = Ractive.extend({
+			template: '<button on-click=@this.asplode()>click me</button>',
+			asplode () {
+				this.fire('boom');
+			}
+		});
+
+		const r = new Ractive({
+			el: fixture,
+			components: { cmp },
+			template: '<cmp on-boom="@this.pow()" />',
+			pow () { return false; }
+		});
+
+		fire( r.find( 'button' ), 'click' );
+	});
 }
