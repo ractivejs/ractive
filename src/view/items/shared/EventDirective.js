@@ -121,7 +121,7 @@ export default class EventDirective {
 
 			// Auto prevent and stop if return is explicitly false
 			let original;
-			if ( result === false && ( original = event.original ) ) {
+			if ( result === false && event && ( original = event.original ) ) {
 				original.preventDefault && original.preventDefault();
 				original.stopPropagation && original.stopPropagation();
 			}
