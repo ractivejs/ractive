@@ -2,6 +2,7 @@
 
 # if anything fails, abort (errexit)
 set -e
+VERSION=$(cat package.json | grep "version" | sed 's/"version": "\(.*\)",/\1/' | sed 's/[[:space:]]//g')
 
 # STEP 1 - BUILD LIBRARY
 #############################
