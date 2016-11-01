@@ -121,10 +121,9 @@ export default class EventDirective {
 			const result = this.fn.apply( ractive, values ).pop();
 
 			// Auto prevent and stop if return is explicitly false
-			let original;
-
 			if ( result === false ) {
-				if ( event && ( original = event.original ) ) {
+				const original = event ? event.original : undefined;
+				if ( original ) {
 					original.preventDefault && original.preventDefault();
 					original.stopPropagation && original.stopPropagation();
 				} else {
