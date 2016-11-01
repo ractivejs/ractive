@@ -12,6 +12,7 @@ import { DOMEvent, CustomEvent } from '../element/ElementEvents';
 import RactiveEvent from '../component/RactiveEvent';
 import runloop from '../../../global/runloop';
 import { addHelpers } from '../../helpers/contextMethods';
+import { warnIfDebug } from '../../../utils/log';
 
 const specialPattern = /^(event|arguments)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
@@ -171,9 +172,14 @@ export default class EventDirective {
 
 			// Auto prevent and stop if return is explicitly false
 			let original;
-			if ( result === false && event && ( original = event.original ) ) {
-				original.preventDefault && original.preventDefault();
-				original.stopPropagation && original.stopPropagation();
+
+			if ( result === false ) {
+				if ( event && ( original = event.original ) ) {
+					original.preventDefault && original.preventDefault();
+					original.stopPropagation && original.stopPropagation();
+				} else {
+					warnIfDebug( 'Handler returns false, but no event object is available' );
+				}
 			}
 
 			ractive.event = oldEvent;
