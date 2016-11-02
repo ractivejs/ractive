@@ -1,6 +1,7 @@
 import getFunction from '../../../shared/getFunction';
 import resolveReference from '../../resolvers/resolveReference';
 import { unbind } from '../../../shared/methodCallers';
+import { removeFromArray } from '../../../utils/array';
 
 export function setupArgsFn ( item, template, fragment, opts = {} ) {
 	if ( template && template.f && template.f.s ) {

@@ -2,6 +2,7 @@
 
 import { test } from 'qunit';
 import { initModule, hasUsableConsole, onWarn } from './test-config';
+import { fire } from 'simulant';
 
 export default function() {
 	initModule( 'partials.js' );
@@ -995,5 +996,27 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'hullo <input type="checkbox" />' );
 		r.set( 'tpl', { template: 'yup <cmp/>' });
 		t.htmlEqual( fixture.innerHTML, 'yup <input type="checkbox" />' );
+	});
+
+	test( 'arg for event handler from previously uninitialised partial context (#2736)', t => {
+		let v;
+		const r = new Ractive({
+			el: fixture,
+			partials: {
+				foo: '<button on-click="@this.handler(id)">asd</button>',
+			},
+			template: '{{>foo item}}',
+			data: { item: { } },
+		});
+
+		r.handler = id => {
+			v = id;
+		};
+
+		r.set( 'item.id', 1123 );
+
+		fire( r.find( 'button' ), 'click' );
+
+		t.equal( v, 1123 );
 	});
 }
