@@ -1,4 +1,5 @@
 import Model from '../../model/Model';
+import Computation from '../../model/Computation';
 import ComputationChild from '../../model/ComputationChild';
 import { handleChange, marked, unbind } from '../../shared/methodCallers';
 import getFunction from '../../shared/getFunction';
@@ -52,22 +53,8 @@ export default class ExpressionProxy extends Model {
 		this.keypath = undefined;
 
 		if ( actuallyChanged ) {
-			this.dirty = true;
 			this.handleChange();
 		}
-	}
-
-	get ( shouldCapture ) {
-		if ( shouldCapture ) capture( this );
-
-		if ( this.dirty ) {
-			this.dirty = false;
-			this.value = this.getValue();
-			if ( this.wrapper ) this.newWrapperValue = this.value;
-			this.adapt();
-		}
-
-		return shouldCapture && this.wrapper ? this.wrapperValue : this.value;
 	}
 
 	getKeypath () {
@@ -110,32 +97,6 @@ export default class ExpressionProxy extends Model {
 		return result;
 	}
 
-	handleChange () {
-		this.dirty = true;
-
-		this.links.forEach( marked );
-		this.deps.forEach( handleChange );
-		this.children.forEach( handleChange );
-
-		this.clearUnresolveds();
-	}
-
-	joinKey ( key ) {
-		if ( key === undefined || key === '' ) return this;
-
-		if ( !this.childByKey.hasOwnProperty( key ) ) {
-			const child = new ComputationChild( this, key );
-			this.children.push( child );
-			this.childByKey[ key ] = child;
-		}
-
-		return this.childByKey[ key ];
-	}
-
-	mark () {
-		this.handleChange();
-	}
-
 	rebinding ( next, previous, safe ) {
 		const idx = this.models.indexOf( previous );
 
@@ -171,3 +132,10 @@ export default class ExpressionProxy extends Model {
 		this.resolvers.forEach( unbind );
 	}
 }
+
+const prototype = ExpressionProxy.prototype;
+const computation = Computation.prototype;
+prototype.get = computation.get;
+prototype.handleChange = computation.handleChange;
+prototype.joinKey = computation.joinKey;
+prototype.mark = computation.mark;

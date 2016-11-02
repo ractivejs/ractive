@@ -1039,6 +1039,37 @@ export default function() {
 		r.set( 'bar', 'goof' );
 	});
 
+	test( `computations can have child values set when allowed`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `
+				{{#each foo}}<i>{{.a}}</i>{{/each}}
+				{{#each foos()}}<i>{{.a}}</i>{{/each}}
+				{{#each list}}<i>{{.a}}</i>{{/each}}
+			`,
+			data: {
+				list: [ { a: 1 } ],
+				foos() { return this.get( 'list' ); }
+			},
+			computed: {
+				foo: {
+					get() { return this.get( 'list' ); }
+				}
+			},
+			syncComputedChildren: true
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<i>1</i><i>1</i><i>1</i>' );
+
+		const [ c, e ] = r.findAll( 'i' ).map( r.getNodeInfo );
+
+		c.set( '.a', 2 );
+		t.htmlEqual( fixture.innerHTML, '<i>2</i><i>2</i><i>2</i>' );
+
+		e.set( '.a', 3 );
+		t.htmlEqual( fixture.innerHTML, '<i>3</i><i>3</i><i>3</i>' );
+	});
+
 	// phantom just doesn't execute this test... no error, just nothing
 	// even >>> log messages don't come out. passes chrome and ff, though
 	if ( !/phantom/i.test( navigator.userAgent ) ) {
