@@ -1092,7 +1092,11 @@ export default function() {
 	});
 
 	test( `returning false from a component event doesn't try to cancel something that doesn't exist (#2731)`, t => {
-		t.expect( 0 );
+		t.expect( 1 );
+
+		onWarn( msg => {
+			t.ok( msg );
+		});
 
 		const cmp = Ractive.extend({
 			template: '<button on-click="@this.asplode()">click me</button>',

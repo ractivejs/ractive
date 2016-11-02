@@ -12,6 +12,7 @@ import RactiveEvent from '../component/RactiveEvent';
 import runloop from '../../../global/runloop';
 import { addHelpers } from '../../helpers/contextMethods';
 import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
+import { warnOnceIfDebug } from '../../../utils/log';
 
 const specialPattern = /^(event|arguments)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
@@ -120,10 +121,14 @@ export default class EventDirective {
 			const result = this.fn.apply( ractive, values ).pop();
 
 			// Auto prevent and stop if return is explicitly false
-			let original;
-			if ( result === false && event && ( original = event.original ) ) {
-				original.preventDefault && original.preventDefault();
-				original.stopPropagation && original.stopPropagation();
+			if ( result === false ) {
+				const original = event ? event.original : undefined;
+				if ( original ) {
+					original.preventDefault && original.preventDefault();
+					original.stopPropagation && original.stopPropagation();
+				} else {
+					warnOnceIfDebug( `handler '${this.template.n}' returned false, but there is no event available to cancel` );
+				}
 			}
 
 			ractive.event = oldEvent;
