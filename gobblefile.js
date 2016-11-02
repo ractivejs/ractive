@@ -22,17 +22,19 @@ var test;
 function noop () {}
 
 function adjustAndSkip ( pattern ) {
-	return { transform: function ( src, path ) {
-		if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
-			return src.replace( /<@version@>/g, version + versionExt );
-		}
+	return {
+		transform: function ( src, path ) {
+			if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
+				return src.replace( /<@version@>/g, version + versionExt );
+			}
 
-		if ( pattern && pattern.test( path ) ) {
-			return 'export default null;';
-		}
+			if ( pattern && pattern.test( path ) ) {
+				return 'export default null;';
+			}
 
-		return src;
-	} };
+			return src;
+		}
+	};
 }
 
 function noConflict ( src ) {

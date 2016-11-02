@@ -801,7 +801,7 @@ export default function() {
 
 		test( 'Using expressions in two-way bindings triggers a warning (#1399)', t => {
 			onWarn( message => {
-				t.ok( ~message.indexOf( 'Cannot use two-way binding on <input> element: foo() is read-only' ) );
+				t.ok( /Cannot use two-way binding on <input> element: "foo\(\)" is read-only/.test( message ) );
 			});
 
 			new Ractive({

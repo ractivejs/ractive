@@ -52,7 +52,7 @@ compress () {
 	local MOD="../node_modules/.bin"
 
 	$MOD/uglifyjs \
-		--compress \
+		--compress dead_code,keep_fargs=false,passes=2 \
 		--mangle \
 		--source-map $dest.map \
 		--output $dest \

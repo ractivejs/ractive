@@ -1,5 +1,5 @@
 import { SECTION, SECTION_WITH, YIELDER } from '../../config/types';
-import { warnOnceIfDebug, warnIfDebug } from '../../utils/log';
+import { message } from '../../utils/log';
 import { MustacheContainer } from './shared/Mustache';
 import Fragment from '../Fragment';
 import getPartialTemplate from './partial/getPartialTemplate';
@@ -111,7 +111,7 @@ export default class Partial extends MustacheContainer {
 		}
 
 		if ( !this.partialTemplate ) {
-			warnOnceIfDebug( `Could not find template for partial '${this.name}'` );
+			message( 'MISSING_PARTIAL', this.name );
 			this.partialTemplate = [];
 		}
 
@@ -143,7 +143,7 @@ export default class Partial extends MustacheContainer {
 		if ( !template && template !== null ) template = getPartialTemplate( this.ractive, name, this.parentFragment );
 
 		if ( !template ) {
-			warnOnceIfDebug( `Could not find template for partial '${name}'` );
+			message( 'MISSING_PARTIAL', name );
 		}
 
 		this.partialTemplate = template || [];
@@ -198,7 +198,7 @@ function parsePartial( name, partial, ractive ) {
 	try {
 		parsed = parser.parse( partial, parser.getParseOptions( ractive ) );
 	} catch (e) {
-		warnIfDebug( `Could not parse partial from expression '${name}'\n${e.message}` );
+		message( 'PARTIAL_PARSE_FAIL', name, e.message );
 	}
 
 	return parsed || { t: [] };

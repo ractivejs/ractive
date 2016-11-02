@@ -1,4 +1,4 @@
-import { fatal } from '../../utils/log';
+import { message } from '../../utils/log';
 import bind from '../../utils/bind';
 import { createFunctionFromString } from '../config/runtime-parser';
 
@@ -31,7 +31,7 @@ export default function getComputationSignature ( ractive, key, signature ) {
 			getterString = signature.get.toString();
 			getterUseStack = true;
 		} else {
-			fatal( '`%s` computation must have a `get()` method', key );
+			message( 'COMPUTED_GET', key );
 		}
 
 		if ( typeof signature.set === 'function' ) {

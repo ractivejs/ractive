@@ -2,8 +2,10 @@
 import { hasConsole } from '../config/environment';
 import Ractive from '../Ractive';
 import noop from './noop';
+import messages from './messages';
 
-var alreadyWarned = {}, log, printWarning, welcome;
+export let welcome, message;
+let print;
 
 if ( hasConsole ) {
 	let welcomeIntro = [
@@ -13,31 +15,13 @@ if ( hasConsole ) {
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 	];
-	let welcomeMessage = `You're running Ractive <@version@> in debug mode - messages will be printed to the console to help you fix problems and optimise your application.
-
-To disable debug mode, add this line at the start of your app:
-  Ractive.DEBUG = false;
-
-To disable debug mode when your app is minified, add this snippet:
-  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});
-
-Get help and support:
-  http://docs.ractivejs.org
-  http://stackoverflow.com/questions/tagged/ractivejs
-  http://groups.google.com/forum/#!forum/ractive-js
-  http://twitter.com/ractivejs
-
-Found a bug? Raise an issue:
-  https://github.com/ractivejs/ractive/issues
-
-`;
 
 	welcome = () => {
 		if ( Ractive.WELCOME_MESSAGE === false ) {
 			welcome = noop;
 			return;
 		}
-		const message = 'WELCOME_MESSAGE' in Ractive ? Ractive.WELCOME_MESSAGE : welcomeMessage;
+		const message = 'WELCOME_MESSAGE' in Ractive ? Ractive.WELCOME_MESSAGE : messages.WELCOME_MESSAGE.m;
 		const hasGroup = !!console.groupCollapsed;
 		if ( hasGroup ) console.groupCollapsed.apply( console, welcomeIntro );
 		console.log( message );
@@ -48,80 +32,79 @@ Found a bug? Raise an issue:
 		welcome = noop;
 	};
 
-	printWarning = ( message, args ) => {
+	print = ( warn, message, args ) => {
 		welcome();
 
-		// extract information about the instance this message pertains to, if applicable
-		if ( typeof args[ args.length - 1 ] === 'object' ) {
-			let options = args.pop();
-			let ractive = options ? options.ractive : null;
+		console[ warn ? 'warn' : 'log' ].apply( console, [ '%cRactive.js: %c' + message, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);' ].concat( args ) );
+	};
 
-			if ( ractive ) {
-				// if this is an instance of a component that we know the name of, add
-				// it to the message
-				let name;
-				if ( ractive.component && ( name = ractive.component.name ) ) {
-					message = `<${name}> ${message}`;
-				}
-
-				let node;
-				if ( node = ( options.node || ( ractive.fragment && ractive.fragment.rendered && ractive.find( '*' ) ) ) ) {
-					args.push( node );
-				}
-			}
+	const issued = {};
+	const replaceArgs = /\{\s*(\d+)\s*\}/g;
+	message = function message ( id, ...args ) {
+		const lastArg = args[ args.length - 1 ];
+		const msg = messages[ id ] || {};
+		const opts = typeof lastArg === 'object' && lastArg.constructor === Object ? args.pop() : {};
+		if ( !( 'error' in opts ) ) opts.error = msg.e;
+		if ( !( 'once' in opts ) ) opts.once = msg.o;
+		if ( !( 'warn' in opts ) ) opts.warn = 'w' in msg ? msg.w : true;
+		if ( !( 'debug' in opts ) ) opts.debug = 'd' in msg ? msg.d : true;
+		if ( !( id in messages ) ) {
+			return message( 'UNKNOWN_MESSAGE', id, opts );
 		}
 
-		console.warn.apply( console, [ '%cRactive.js: %c' + message, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);' ].concat( args ) );
-	};
+		if ( opts.debug && !Ractive.DEBUG && !opts.error ) return;
 
-	log = function () {
-		console.log.apply( console, arguments );
+		let consumed = -1;
+		const str = `${opts.ractive && opts.ractive.component && opts.ractive.component.name ? '<' + opts.ractive.component.name +'> ' : ''}${id}: ` + msg.m.replace( replaceArgs, function( _, num ) {
+			if ( +num > consumed ) consumed = +num;
+			return args[ num ] || '<UNKNOWN>';
+		});
+
+		if ( opts.error ) {
+			const error = new Error( str );
+			if ( opts.ractive ) error.ractive = opts.ractive;
+			if ( opts.node ) error.node = opts.node;
+			throw error;
+		}
+
+		if ( opts.once ) {
+			if ( str in issued ) return;
+			issued[ str ] = true;
+		}
+
+		const params = [];
+		if ( consumed + 1 < args.length ) params.push.apply( params, args.slice( consumed + 1 ) );
+		if ( opts.ractive ) params.push( opts.ractive );
+
+		if ( opts.node ) params.push( opts.node );
+		else if ( opts.ractive && opts.ractive.fragment && opts.ractive.fragment.rendered ) params.push( opts.ractive.find( '*' ) );
+
+		print( opts.warn, str, params );
 	};
 } else {
-	printWarning = log = welcome = noop;
+	print = welcome = noop;
+
+	message = function message ( id, ...args ) {
+		const lastArg = args[ args.length - 1 ];
+		const msg = messages[ id ] || {};
+		const opts = typeof lastArg === 'object' && lastArg.constructor === Object ? args.pop() : {};
+		if ( !( 'error' in opts ) ) opts.error = msg.e;
+		if ( !( 'once' in opts ) ) opts.once = msg.o;
+		if ( !( 'warn' in opts ) ) opts.warn = 'w' in msg ? msg.w : true;
+		if ( !( 'debug' in opts ) ) opts.debug = 'd' in msg ? msg.d : true;
+		if ( !( id in messages ) ) {
+			return message( 'UNKNOWN_MESSAGE', id, opts );
+		}
+
+		const str = `${opts.ractive && opts.ractive.component && opts.ractive.component.name ? '<' + opts.ractive.component.name +'> ' : ''}${id}: ` + msg.m.replace( replaceArgs, function( _, num ) {
+			return args[ num ] || '<UNKNOWN>';
+		});
+
+		if ( opts.error ) {
+			const error = new Error( str );
+			if ( opts.ractive ) error.ractive = opts.ractive;
+			if ( opts.node ) error.node = opts.node;
+			throw error;
+		}
+	};
 }
-
-function format ( message, args ) {
-	return message.replace( /%s/g, () => args.shift() );
-}
-
-function fatal ( message, ...args ) {
-	message = format( message, args );
-	throw new Error( message );
-}
-
-function logIfDebug () {
-	if ( Ractive.DEBUG ) {
-		log.apply( null, arguments );
-	}
-}
-
-function warn ( message, ...args ) {
-	message = format( message, args );
-	printWarning( message, args );
-}
-
-function warnOnce ( message, ...args ) {
-	message = format( message, args );
-
-	if ( alreadyWarned[ message ] ) {
-		return;
-	}
-
-	alreadyWarned[ message ] = true;
-	printWarning( message, args );
-}
-
-function warnIfDebug () {
-	if ( Ractive.DEBUG ) {
-		warn.apply( null, arguments );
-	}
-}
-
-function warnOnceIfDebug () {
-	if ( Ractive.DEBUG ) {
-		warnOnce.apply( null, arguments );
-	}
-}
-
-export { fatal, log, logIfDebug, warn, warnOnce, warnIfDebug, warnOnceIfDebug, welcome };

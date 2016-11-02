@@ -1,6 +1,6 @@
 import { fromExpression, fromComputationString } from '../../parse/utils/createFunction';
 import { doc } from '../../config/environment';
-import { fatal } from '../../utils/log';
+import { message } from '../../utils/log';
 import { addFunctions } from '../../shared/getFunction';
 import parse from '../../parse/_parse';
 
@@ -17,28 +17,17 @@ const parseOptions = [
 	'contextLines'
 ];
 
-const TEMPLATE_INSTRUCTIONS = `Either preparse or use a ractive runtime source that includes the parser. `;
-
-const COMPUTATION_INSTRUCTIONS = `Either use:
-
-	Ractive.parse.computedStrings( component.computed )
-
-at build time to pre-convert the strings to functions, or use functions instead of strings in computed properties.`;
-
-
-function throwNoParse ( method, error, instructions ) {
-	if ( !method ) {
-		fatal( `Missing Ractive.parse - cannot parse ${error}. ${instructions}` );
-	}
-}
-
 export function createFunction ( body, length ) {
-	throwNoParse( fromExpression, 'new expression function', TEMPLATE_INSTRUCTIONS );
+	if ( !fromExpression ) {
+		message( 'MISSING_TEMPLATE_PARSER', 'new expression function' );
+	}
 	return fromExpression( body, length );
 }
 
 export function createFunctionFromString ( str, bindTo ) {
-	throwNoParse( fromComputationString, 'compution string "${str}"', COMPUTATION_INSTRUCTIONS );
+	if ( !fromComputationString ) {
+		message( 'MISSING_COMPUTE_PARSER', `computation string "${str}"` );
+	}
 	return fromComputationString( str, bindTo );
 }
 
@@ -83,7 +72,9 @@ const parser = {
 	},
 
 	parse ( template, options ) {
-		throwNoParse( parse, 'template', TEMPLATE_INSTRUCTIONS );
+		if ( !parse ) {
+			message( 'MISSING_TEMPLATE_PARSER', 'template' );
+		}
 		const parsed = parse( template, options );
 		addFunctions( parsed );
 		return parsed;

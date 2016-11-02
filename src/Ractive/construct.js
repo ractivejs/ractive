@@ -1,5 +1,4 @@
-import { fatal, welcome } from '../utils/log';
-import { missingPlugin } from '../config/errors';
+import { message, welcome } from '../utils/log';
 import { magic as magicSupported } from '../config/environment';
 import { ensureArray } from '../utils/array';
 import { findInViewHierarchy } from '../shared/registry';
@@ -89,7 +88,7 @@ function getAdaptors ( ractive, protoAdapt, options ) {
 
 	if ( magic ) {
 		if ( !magicSupported ) {
-			throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
+			message( 'NO_PROPERTY_SUPPORT' );
 		}
 
 		if ( modifyArrays ) {
@@ -111,7 +110,7 @@ function getAdaptors ( ractive, protoAdapt, options ) {
 			adaptor = findInViewHierarchy( 'adaptors', ractive, adaptor );
 
 			if ( !adaptor ) {
-				fatal( missingPlugin( adaptor, 'adaptor' ) );
+				message( 'MISSING_PLUGIN', adaptor, 'adaptor', { ractive } );
 			}
 		}
 

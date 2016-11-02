@@ -1,7 +1,6 @@
 import resolveReference from '../resolvers/resolveReference';
 import { defineProperties } from '../../utils/object';
 import gatherRefs from './gatherRefs';
-import { warnOnceIfDebug } from '../../utils/log';
 import { set as sharedSet } from '../../shared/set';
 import { isNumeric, isObject } from '../../utils/is';
 import makeArrayMethod from '../../Ractive/prototype/shared/makeArrayMethod';

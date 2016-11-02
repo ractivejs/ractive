@@ -1,5 +1,5 @@
 import runloop from '../../../../global/runloop';
-import { warnOnceIfDebug } from '../../../../utils/log';
+import { message } from '../../../../utils/log';
 
 // TODO element.parent currently undefined
 function findParentForm ( element ) {
@@ -8,10 +8,6 @@ function findParentForm ( element ) {
 			return element;
 		}
 	}
-}
-
-function warnAboutAmbiguity ( description, ractive ) {
-	warnOnceIfDebug( `The ${description} being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity`, { ractive });
 }
 
 export default class Binding {
@@ -31,19 +27,19 @@ export default class Binding {
 			interpolator.resolver.forceResolution();
 			model = interpolator.model;
 
-			warnAboutAmbiguity( `'${interpolator.template.r}' reference`, this.ractive );
+			message( 'AMBIGUOUS_BINDING', `'${interpolator.template.r}' reference`, { ractive: this.ractive } );
 		}
 
 		else if ( model.isUnresolved ) {
 			// reference expressions (e.g. foo[bar])
 			model.forceResolution();
-			warnAboutAmbiguity( 'expression', this.ractive );
+			message( 'AMBIGUOUS_BINDING', 'expression', { ractive: this.ractive } );
 		}
 
 		// TODO include index/key/keypath refs as read-only
 		else if ( model.isReadonly ) {
 			const keypath = model.getKeypath().replace( /^@/, '' );
-			warnOnceIfDebug( `Cannot use two-way binding on <${element.name}> element: ${keypath} is read-only. To suppress this warning use <${element.name} twoway='false'...>`, { ractive: this.ractive });
+			message( 'READ_ONLY_BINDING', element.name, keypath, { ractive: this.ractive } );
 			return false;
 		}
 

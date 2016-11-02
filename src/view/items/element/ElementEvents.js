@@ -1,10 +1,9 @@
-import { missingPlugin } from '../../../config/errors';
-import { fatal, warnOnce } from '../../../utils/log';
+import { message } from '../../../utils/log';
 
 class DOMEvent {
 	constructor ( name, owner ) {
 		if ( name.indexOf( '*' ) !== -1 ) {
-			fatal( `Only component proxy-events may contain "*" wildcards, <${owner.name} on-${name}="..."/> is not valid` );
+			message( 'NO_EVENT_WILDCARD', owner.name, name );
 		}
 
 		this.name = name;
@@ -18,7 +17,7 @@ class DOMEvent {
 		const name = this.name;
 
 		if ( !( `on${name}` in node ) ) {
-			warnOnce( missingPlugin( name, 'events' ) );
+			message( 'MISSING_PLUGIN', name, 'events', { error: false, once: true } );
 		}
 
 		node.addEventListener( name, this.handler = function( event ) {

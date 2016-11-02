@@ -1,6 +1,6 @@
 import runloop from '../../global/runloop';
 import Transition from '../../view/items/element/Transition';
-import { fatal } from '../../utils/log';
+import { message } from '../../utils/log';
 import { isObject } from '../../utils/is';
 
 export default function Ractive$transition ( name, node, params ) {
@@ -24,7 +24,7 @@ export default function Ractive$transition ( name, node, params ) {
 	node = node || this.event.node;
 
 	if ( !node || !node._ractive ) {
-		fatal( `No node was supplied for transition ${name}` );
+		message( 'NO_TRANSITION_NODE', name );
 	}
 
 	params = params || {};

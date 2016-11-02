@@ -357,7 +357,7 @@ export default function() {
 	});
 
 	test( 'Nameless expressions with no matching partial don\'t throw', t => {
-		onWarn( msg => t.ok( /Could not find template for partial 'missing'/.test( msg ) ) );
+		onWarn( msg => t.ok( /Could not find template for partial .missing./.test( msg ) ) );
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -382,7 +382,7 @@ export default function() {
 	});
 
 	test( 'Partials with variable names can be changed with resetPartial', t => {
-		onWarn( msg => t.ok( /Could not find template for partial 'partial'/.test( msg ) ) );
+		onWarn( msg => t.ok( /Could not find template for partial .partial./.test( msg ) ) );
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -405,7 +405,7 @@ export default function() {
 	});
 
 	test( 'Partials with expression names can be changed with resetPartial', t => {
-		onWarn( msg => t.ok( /Could not find template for partial 'undefinedPartial'/.test( msg ) ) );
+		onWarn( msg => t.ok( /Could not find template for partial .undefinedPartial./.test( msg ) ) );
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -769,7 +769,7 @@ export default function() {
 	test( 'Removing a missing partial (#1808)', t => {
 		t.expect( 1 );
 
-		onWarn( msg => t.ok( /Could not find template for partial 'item'/.test( msg ) ) );
+		onWarn( msg => t.ok( /Could not find template for partial .item./.test( msg ) ) );
 
 		const ractive = new Ractive({
 			template: '{{#items}}{{>item}}{{/}}',
@@ -866,7 +866,7 @@ export default function() {
 	});
 
 	test( 'resetting a dynamic partial to its reference name should replace the partial (#2185)', t => {
-		onWarn( msg => t.ok( /Could not find template for partial 'nope'/.test( msg ) ) );
+		onWarn( msg => t.ok( /Could not find template for partial .nope./.test( msg ) ) );
 
 		const r = new Ractive({
 			el: fixture,

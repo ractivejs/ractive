@@ -1,4 +1,4 @@
-import { logIfDebug, warnIfDebug, warnOnceIfDebug } from '../utils/log';
+import { message } from '../utils/log';
 import { getElement } from '../utils/dom';
 import config from './config/config';
 import Fragment from '../view/Fragment';
@@ -37,9 +37,8 @@ export default function initialise ( ractive, userOptions, options ) {
 
 			if ( Ractive.DEBUG_PROMISES ) {
 				promise.catch( err => {
-					warnOnceIfDebug( 'Promise debugging is enabled, to help solve errors that happen asynchronously. Some browsers will log unhandled promise rejections, in which case you can safely disable promise debugging:\n  Ractive.DEBUG_PROMISES = false;' );
-					warnIfDebug( 'An error happened during rendering', { ractive });
-					logIfDebug( err );
+					message( 'PROMISE_DEBUG' );
+					message( 'RENDER_ERROR', err, { ractive } );
 
 					throw err;
 				});

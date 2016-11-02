@@ -115,7 +115,7 @@ export default function() {
 				data: 1
 			});
 		} catch ( err ) {
-			t.equal( err.message, 'data option must be an object or a function, `1` is not valid' );
+			t.ok( /data option must be an object or a function/.test( err.message ) );
 		}
 	});
 

@@ -2,11 +2,11 @@ import { getElement } from '../../utils/dom';
 import { toArray } from '../../utils/array';
 import render from '../render';
 import { teardown } from '../../shared/methodCallers';
-import { warnIfDebug } from '../../utils/log';
+import { message } from '../../utils/log';
 
 export default function Ractive$render ( target, anchor ) {
 	if ( this.torndown ) {
-		warnIfDebug( 'ractive.render() was called on a Ractive instance that was already torn down' );
+		message( 'USE_AFTER_TEARDOWN', 'render' );
 		return Promise.resolve();
 	}
 

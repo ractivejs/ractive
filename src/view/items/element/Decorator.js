@@ -1,7 +1,6 @@
 import { findInViewHierarchy } from '../../../shared/registry';
 import findElement from '../shared/findElement';
-import { warnOnce } from '../../../utils/log';
-import { missingPlugin } from '../../../config/errors';
+import { message } from '../../../utils/log';
 import Fragment from '../../Fragment';
 import noop from '../../../utils/noop';
 import runloop from '../../../global/runloop';
@@ -67,7 +66,7 @@ export default class Decorator {
 			const fn = findInViewHierarchy( 'decorators', this.ractive, this.name );
 
 			if ( !fn ) {
-				warnOnce( missingPlugin( this.name, 'decorator' ) );
+				message( 'MISSING_PLUGIN', this.name, 'decorator', { error: false, once: true } );
 				this.intermediary = missingDecorator;
 				return;
 			}
@@ -87,7 +86,7 @@ export default class Decorator {
 			this.intermediary = fn.apply( this.ractive, [ this.node ].concat( args ) );
 
 			if ( !this.intermediary || !this.intermediary.teardown ) {
-				throw new Error( `The '${this.name}' decorator must return an object with a teardown method` );
+				message( 'MISSING_TEARDOWN', this.name, 'decorator' );
 			}
 		}, true );
 		this.rendered = true;

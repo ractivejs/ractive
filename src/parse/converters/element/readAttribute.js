@@ -4,7 +4,6 @@ import readMustache from '../readMustache';
 import { decodeCharacterReferences } from '../../../utils/html';
 import readExpressionList from '../expressions/shared/readExpressionList';
 import flattenExpression from '../../utils/flattenExpression';
-import { warnOnceIfDebug } from '../../../utils/log';
 
 const attributeNamePattern = /^[^\s"'>\/=]+/,
 	onPattern = /^on/,

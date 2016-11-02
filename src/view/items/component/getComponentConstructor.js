@@ -1,5 +1,4 @@
-import { noRegistryFunctionReturn } from '../../../config/errors';
-import { warnIfDebug } from '../../../utils/log';
+import { message } from '../../../utils/log';
 import { findInstance } from '../../../shared/registry';
 
 // finds the component constructor in the registry or view hierarchy registries
@@ -18,7 +17,7 @@ export default function getComponentConstructor ( ractive, name ) {
 			Component = fn();
 
 			if ( !Component ) {
-				warnIfDebug( noRegistryFunctionReturn, name, 'component', 'component', { ractive });
+				message( 'NO_REGISTRY_FUNCTION_RETURN', name, 'component', { ractive } );
 				return;
 			}
 

@@ -4,9 +4,8 @@ import { isArray } from '../../../utils/is';
 import { addToArray, removeFromArray } from '../../../utils/array';
 import findElement from '../shared/findElement';
 import prefix from './transitions/prefix';
-import { warnOnceIfDebug } from '../../../utils/log';
+import { message } from '../../../utils/log';
 import { extend } from '../../../utils/object';
-import { missingPlugin } from '../../../config/errors';
 import { findInViewHierarchy } from '../../../shared/registry';
 import { visible } from '../../../config/visibility';
 import createTransitions from './transitions/createTransitions';
@@ -59,16 +58,6 @@ export default class Transition {
 
 			// shuffle arguments
 			options = value;
-		}
-
-		// As of 0.3.9, transition authors should supply an `option` object with
-		// `duration` and `easing` properties (and optional `delay`), plus a
-		// callback function that gets called after the animation completes
-
-		// TODO remove this check in a future version
-		if ( !options ) {
-			warnOnceIfDebug( 'The "%s" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340', this.name );
-			options = this;
 		}
 
 		return new Promise( fulfil => {
@@ -138,7 +127,7 @@ export default class Transition {
 		}
 
 		if ( !this._fn ) {
-			warnOnceIfDebug( missingPlugin( this.name, 'transition' ), { ractive });
+			message( 'MISSING_PLUGIN', this.name, 'transition', { error: false, once: true, ractive } );
 		}
 
 		setupArgsFn( this, options.template, this.parentFragment );

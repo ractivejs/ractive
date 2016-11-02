@@ -1,4 +1,4 @@
-import { warnIfDebug } from '../../utils/log';
+import { message } from '../../utils/log';
 import adaptConfigurator from './custom/adapt';
 import cssConfigurator from './custom/css/css';
 import dataConfigurator from './custom/data';
@@ -6,7 +6,6 @@ import templateConfigurator from './custom/template';
 import defaults from './defaults';
 import registries from './registries';
 import wrapPrototype from './wrapPrototypeMethod';
-import deprecate from './deprecate';
 
 const custom = {
 	adapt: adaptConfigurator,
@@ -47,8 +46,6 @@ const config = {
 };
 
 function configure ( method, Parent, target, options ) {
-	deprecate( options );
-
 	for ( let key in options ) {
 		if ( isStandardKey.hasOwnProperty( key ) ) {
 			let value = options[ key ];
@@ -59,8 +56,7 @@ function configure ( method, Parent, target, options ) {
 			// and some libraries or ef'ed-up virtual browsers (phantomJS) return a
 			// function object as the result of querySelector methods
 			if ( key !== 'el' && typeof value === 'function' ) {
-				warnIfDebug( `${ key } is a Ractive option that does not expect a function and will be ignored`,
-					method === 'init' ? target : null );
+				message( 'NON_FUNCTION_OPTION', key, method === 'init' ? target : null );
 			}
 			else {
 				target[ key ] = value;
@@ -70,7 +66,7 @@ function configure ( method, Parent, target, options ) {
 
 	// disallow combination of `append` and `enhance`
 	if ( options.append && options.enhance ) {
-		throw new Error( 'Cannot use append and enhance at the same time' );
+		message( 'ENHANCE_APPEND' );
 	}
 
 	registries.forEach( registry => {

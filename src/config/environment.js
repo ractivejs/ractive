@@ -1,7 +1,8 @@
-/*global console, navigator */
+/*global console, navigator, global */
 
 const win = typeof window !== 'undefined' ? window : null;
 const doc = win ? document : null;
+const top = typeof global !== 'undefined' ? global : window;
 
 const isClient = !!doc;
 const isJsdom = ( typeof navigator !== 'undefined' && /jsDom/.test( navigator.appName ) );
@@ -21,4 +22,4 @@ const svg = doc ?
 
 const vendors = [ 'o', 'ms', 'moz', 'webkit' ];
 
-export { win, doc, isClient, isJsdom, hasConsole, magic, svg, vendors };
+export { win, doc, top, isClient, isJsdom, hasConsole, magic, svg, vendors };

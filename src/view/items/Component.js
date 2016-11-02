@@ -1,5 +1,5 @@
 import runloop from '../../global/runloop';
-import { warnIfDebug } from '../../utils/log';
+import { message } from '../../utils/log';
 import { ANCHOR, ATTRIBUTE, BINDING_FLAG, COMPONENT, DECORATOR, EVENT, TRANSITION, YIELDER } from '../../config/types';
 import Item from './shared/Item';
 import ConditionalAttribute from './element/ConditionalAttribute';
@@ -45,7 +45,7 @@ export default class Component extends Item {
 			this.name = options.template.e;
 
 			if ( instance.el ) {
-				warnIfDebug( `The <${this.name}> component has a default 'el' property; it has been disregarded` );
+				message( 'COMPONENT_EL', this.name );
 			}
 
 			this.liveQueries = [];

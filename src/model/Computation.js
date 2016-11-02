@@ -1,7 +1,7 @@
 /* global console */
 
 import { capture, startCapturing, stopCapturing } from '../global/capture';
-import { warnIfDebug } from '../utils/log';
+import { message } from '../utils/log';
 import Model from './Model';
 import ComputationChild from './ComputationChild';
 import { handleChange, marked } from '../shared/methodCallers';
@@ -92,18 +92,7 @@ export default class Computation extends Model {
 		try {
 			result = this.signature.getter.call( this.context );
 		} catch ( err ) {
-			warnIfDebug( `Failed to compute ${this.getKeypath()}: ${err.message || err}` );
-
-			// TODO this is all well and good in Chrome, but...
-			// ...also, should encapsulate this stuff better, and only
-			// show it if Ractive.DEBUG
-			if ( hasConsole ) {
-				if ( console.groupCollapsed ) console.groupCollapsed( '%cshow details', 'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;' );
-				const functionBody = prettify( this.signature.getterString );
-				const stack = this.signature.getterUseStack ? '\n\n' + truncateStack( err.stack ) : '';
-				console.error( `${err.name}: ${err.message}\n\n${functionBody}${stack}` );
-				if ( console.groupCollapsed ) console.groupEnd();
-			}
+			message( 'COMPUTE_FAIL', this.getKeypath(), err.message || err );
 		}
 
 		const dependencies = stopCapturing();

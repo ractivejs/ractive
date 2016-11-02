@@ -1,6 +1,5 @@
-import { missingPlugin } from '../../../../config/errors';
 import { isClient } from '../../../../config/environment';
-import { warnIfDebug, warnOnceIfDebug } from '../../../../utils/log';
+import { message } from '../../../../utils/log';
 import { createElement } from '../../../../utils/dom';
 import camelCase from '../../../../utils/camelCase';
 import interpolate from '../../../../shared/interpolate';
@@ -162,7 +161,7 @@ if ( !isClient ) {
 						// will get confused
 						index = changedProperties.indexOf( prop );
 						if ( index === -1 ) {
-							warnIfDebug( 'Something very strange happened with transitions. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!', { node: t.node });
+							message( 'TRANSITION_WAT', { node: t.node } );
 						} else {
 							changedProperties.splice( index, 1 );
 						}
@@ -189,7 +188,7 @@ if ( !isClient ) {
 						easing = t.ractive.easing[ options.easing ];
 
 						if ( !easing ) {
-							warnOnceIfDebug( missingPlugin( options.easing, 'easing' ) );
+							message( 'MISSING_PLUGIN', options.easing, 'easing', { error: false, once: true } );
 							easing = linear;
 						}
 					} else if ( typeof options.easing === 'function' ) {

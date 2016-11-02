@@ -4,8 +4,8 @@ import { handleChange, marked, unbind } from '../../shared/methodCallers';
 import getFunction from '../../shared/getFunction';
 import resolveReference from './resolveReference';
 import { removeFromArray } from '../../utils/array';
+import { message } from '../../utils/log';
 import { capture, startCapturing, stopCapturing } from '../../global/capture';
-import { warnIfDebug } from '../../utils/log';
 import { rebindMatch } from '../../shared/rebind';
 
 function createResolver ( proxy, ref, index ) {
@@ -92,7 +92,7 @@ export default class ExpressionProxy extends Model {
 			const params = this.models.map( m => m ? m.get( true ) : undefined );
 			result = this.fn.apply( this.fragment.ractive, params );
 		} catch ( err ) {
-			warnIfDebug( `Failed to compute ${this.getKeypath()}: ${err.message || err}` );
+			message( 'COMPUTE_FAIL', this.getKeypath(), err.message || err );
 		}
 
 		const dependencies = stopCapturing();

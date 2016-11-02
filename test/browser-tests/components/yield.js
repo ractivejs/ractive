@@ -311,7 +311,7 @@ export default function() {
 	if ( hasUsableConsole ) {
 		test( 'Yield with missing partial (#1681)', t => {
 			onWarn( msg => {
-				t.ok( /Could not find template for partial 'missing'/.test( msg ) );
+				t.ok( /Could not find template for partial "missing"/.test( msg ) );
 			});
 
 			const Widget = Ractive.extend({
