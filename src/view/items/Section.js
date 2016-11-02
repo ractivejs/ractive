@@ -48,10 +48,6 @@ export default class Section extends MustacheContainer {
 		}
 	}
 
-	destroyed () {
-		if ( this.fragment ) this.fragment.destroyed();
-	}
-
 	isTruthy () {
 		if ( this.subordinate && this.sibling.isTruthy() ) return true;
 		const value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();

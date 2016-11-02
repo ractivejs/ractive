@@ -89,10 +89,6 @@ export default class Partial extends MustacheContainer {
 		}
 	}
 
-	destroyed () {
-		this.fragment.destroyed();
-	}
-
 	findNextNode() {
 		return this.yielder ? this.containerFragment.findNextNode( this ) : super.findNextNode();
 	}

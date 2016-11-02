@@ -558,4 +558,29 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '<p>yep</p>' );
 	});
+
+	test( 'decorators within a nested alias block are torn down appropriately (#2735)', t => {
+		let count = 0;
+
+		function foo () {
+			count++;
+			return {
+				teardown () { count--; }
+			};
+		};
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#if show}}<div>{{#with 1 as sure}}<span as-foo />{{/with}}</div>{{/if}}` ,
+			data: { show: true },
+			decorators: { foo }
+		});
+
+		t.equal( count, 1 );
+
+		r.toggle( 'show' );
+		t.equal( count, 0 );
+
+		r.toggle( 'show' );
+		t.equal( count, 1 );
+	});
 }
