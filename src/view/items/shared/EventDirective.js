@@ -12,7 +12,7 @@ import RactiveEvent from '../component/RactiveEvent';
 import runloop from '../../../global/runloop';
 import { addHelpers } from '../../helpers/contextMethods';
 import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
-import { warnIfDebug } from '../../../utils/log';
+import { warnOnceIfDebug } from '../../../utils/log';
 
 const specialPattern = /^(event|arguments)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
@@ -127,7 +127,7 @@ export default class EventDirective {
 					original.preventDefault && original.preventDefault();
 					original.stopPropagation && original.stopPropagation();
 				} else {
-					warnIfDebug( 'Handler returns false, but no event object is available' );
+					warnOnceIfDebug( `handler '${this.template.n}' returned false, but there is no event available to cancel` );
 				}
 			}
 
