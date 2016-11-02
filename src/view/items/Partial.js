@@ -43,10 +43,6 @@ export default class Partial extends Mustache {
 		}).bind();
 	}
 
-	destroyed () {
-		this.fragment.destroyed();
-	}
-
 	detach () {
 		return this.fragment.detach();
 	}

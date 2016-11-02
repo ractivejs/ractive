@@ -17,7 +17,9 @@ export default class Item {
 		}
 	}
 
-	destroyed () {}
+	destroyed () {
+		if ( this.fragment ) this.fragment.destroyed();
+	}
 
 	find () {
 		return null;
