@@ -4,6 +4,7 @@ import Binding from './Binding';
 import CheckboxBinding from './CheckboxBinding';
 import CheckboxNameBinding from './CheckboxNameBinding';
 import ContentEditableBinding from './ContentEditableBinding';
+import FileBinding from './FileBinding';
 import GenericBinding from './GenericBinding';
 import MultipleSelectBinding from './MultipleSelectBinding';
 import NumericBinding from './NumericBinding';
@@ -57,7 +58,7 @@ export default function selectBinding ( element ) {
 		}
 
 		if ( type === 'file' && isBindable( attributes.value ) ) {
-			return Binding;
+			return FileBinding;
 		}
 
 		if ( isBindable( attributes.value ) ) {
