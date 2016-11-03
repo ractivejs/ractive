@@ -1,4 +1,5 @@
 /* global console */
+/* eslint no-console:"off" */
 
 import { capture, startCapturing, stopCapturing } from '../global/capture';
 import { warnIfDebug } from '../utils/log';

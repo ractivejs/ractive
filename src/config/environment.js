@@ -1,4 +1,5 @@
-/*global console, navigator */
+/* global console, navigator */
+/* eslint no-console:"off" */
 
 const win = typeof window !== 'undefined' ? window : null;
 const doc = win ? document : null;
