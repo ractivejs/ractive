@@ -333,4 +333,19 @@ export default function() {
 			});
 		});
 	}
+
+	test ( 'findAll works correctly in yielder (#2743)', t => {
+		const cmp = Ractive.extend({
+			template: '{{yield}}',
+			onrender () {
+				t.equal( this.findAll( 'span' ).length, 2 );
+			}
+		});
+
+		new Ractive({
+			el: fixture,
+			template: '<cmp><span /><span /></cmp>',
+			components: { cmp }
+		});
+	});
 }

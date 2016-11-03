@@ -58,7 +58,7 @@ export default class Yielder extends Item {
 	}
 
 	findAll ( selector, queryResult ) {
-		this.fragment.find( selector, queryResult );
+		this.fragment.findAll( selector, queryResult );
 	}
 
 	findComponent ( name ) {
