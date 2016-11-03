@@ -1,4 +1,6 @@
 /* global console */
+/* eslint no-console:"off" */
+
 import { hasConsole } from '../config/environment';
 import Ractive from '../Ractive';
 import noop from './noop';
