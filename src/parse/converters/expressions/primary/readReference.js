@@ -2,14 +2,14 @@ import { GLOBAL, REFERENCE } from '../../../../config/types';
 import { normalise } from '../../../../shared/keypaths';
 import { legalReference, relaxedName } from '../shared/patterns';
 
-const prefixPattern = /^(?:\@|~\/|(?:\^\^\/(?:\^\^\/)*(?:\.\.\/)*)|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/;
-
 // if a reference is a browser global, we don't deference it later, so it needs special treatment
 const globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null|Object|Number|String|Boolean)\b/;
 
 // keywords are not valid references, with the exception of `this`
 const keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
 
+const prefixPattern = /^(?:\@\.|\@|~\/|(?:\^\^\/(?:\^\^\/)*(?:\.\.\/)*)|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/;
+const specials = /^(key|index|keypath|rootpath|this|global)/;
 const specialCall = /^\s*\(/;
 
 export default function readReference ( parser ) {
@@ -21,6 +21,12 @@ export default function readReference ( parser ) {
 	name = ( !prefix && parser.relaxedNames && parser.matchPattern( relaxedName ) ) ||
 			parser.matchPattern( legalReference );
 
+	if ( prefix === '@.' ) {
+		prefix = '@';
+		if ( name ) name = 'this.' + name;
+		else name = 'this';
+	}
+
 	if ( !name && prefix ) {
 		name = prefix;
 		prefix = '';
@@ -30,15 +36,19 @@ export default function readReference ( parser ) {
 		return null;
 	}
 
-	if ( prefix === '@' && ( name === 'keypath' || name === 'rootpath' ) ) {
-		if ( parser.matchPattern( specialCall ) ) {
-			const ref = readReference( parser );
-			if ( !ref ) parser.error( `Expected a valid reference for a keypath expression` );
+	if ( prefix === '@' ) {
+		if ( name === 'keypath' || name === 'rootpath' ) {
+			if ( parser.matchPattern( specialCall ) ) {
+				const ref = readReference( parser );
+				if ( !ref ) parser.error( `Expected a valid reference for a keypath expression` );
 
-			parser.allowWhitespace();
+				parser.allowWhitespace();
 
-			if ( !parser.matchString( ')' ) ) parser.error( `Unclosed keypath expression` );
-			name += `(${ref.n})`;
+				if ( !parser.matchString( ')' ) ) parser.error( `Unclosed keypath expression` );
+				name += `(${ref.n})`;
+			}
+		} else if ( !specials.test( name ) ) {
+			parser.error( `Unrecognized special reference @${name}` );
 		}
 	}
 
