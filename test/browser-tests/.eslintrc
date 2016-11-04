@@ -4,6 +4,7 @@
 	},
 	"globals": {
 		"Ractive": true,
-		"fixture": true
+		"fixture": true,
+		"simulant": true
 	}
 }
