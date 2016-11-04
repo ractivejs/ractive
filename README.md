@@ -90,13 +90,13 @@ Tested successfully in IE9+ and all modern browsers. For legacy browser support,
 
 All builds are published to the default npm registry and can thus be accessed from the lovely unpkg CDN:
 
-- https://unpkg.com/ractive is the latest unminified version of Ractive.
-- https://unpkg.com/ractive/ractive.min.js is the latest minified version of Ractive.
+- https://unpkg.com/ractive is the latest stable unminified version of Ractive.
+- https://unpkg.com/ractive/ractive.min.js is the latest stable minified version of Ractive.
 - The rest of the builds play out as you would expect too: ractive-legacy.js, ractive.runtime.js, ractive-legacy.min.js, ractive.runtime.min.js
 - https://unpkg.com/ractive@0.7.3 is the unminified build of Ractive v0.7.3
 - You can also pull specific builds for specific versions e.g. https://unpkg.com/ractive@0.7.3/ractive.min.js
-- `edge` builds are periodically published to npm with a pre-release version like `0.8.1-build-1` and the latest edge build is tagged `edge`.
-- https://unpkg.com/ractive@edge is the latest unminified edge build.
+- The latest pre-release build in a series is tagged e.g. `v0.8-dev` or `v0.9-dev`, starting with `v0.8`. This dev tag will point to the latest released version in a series if there is no dev build e.g. immediately after a release.
+- `dev` builds are periodically published to npm with a pre-release version like `0.8.1-build-1`, and the latest dev build is tagged `edge`.
 
 
 ## License

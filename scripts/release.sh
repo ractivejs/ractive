@@ -3,6 +3,11 @@
 # if anything fails, abort (errexit)
 set -e
 VERSION=$(cat package.json | grep "version" | sed 's/"version": "\(.*\)",/\1/' | sed 's/[[:space:]]//g')
+TAG="v$(cat package.json | grep "version" | sed 's/"version": "\([0-9]*\.[0-9]\).*",/\1/' | sed 's/[[:space:]]//g')-dev"
+REV=$(git rev-parse --abbrev-ref HEAD)
+if [ "$REV" = "dev" ]; then
+	EDGE_TAG="edge"
+fi
 
 # STEP 1 - BUILD LIBRARY
 #############################
@@ -14,7 +19,12 @@ echo '> publishing to npm...'
 
 ( cd build
 	# ...and to npm
-	npm publish
+	npm publish --tag $TAG
+
+	if [ ! -z $EDGE_TAG ]; then
+		echo "also publishing as $EDGE_TAG"
+		npm dist-tag add ractive@$TARGET $EDGE_TAG
+	fi
 )
 
 # STEP 3 - UPDATE TAGS
