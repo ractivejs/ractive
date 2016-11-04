@@ -1,5 +1,15 @@
 # changelog
 
+# 0.8.4
+
+* Bug fixes
+	* VDOM destruction now propagates correctly through all types of item (#2735)
+	* Component events proxies no longer try to cancel an event that doesn't exist (#2731). A warning will now be issued in this situation.
+	* `findAll` propagates through yielders correctly (#2743)
+
+* Other changes
+	* `{{#with foo}}` will now render if `foo` is an empty object or array, as it is valid context. `{{#foo}}` will _not_ render if `foo` is empty.
+
 # 0.8.3
 
 * Bug fixes
