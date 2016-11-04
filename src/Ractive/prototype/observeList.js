@@ -61,11 +61,11 @@ class ListObserver {
 	shuffle ( newIndices ) {
 		const newValue = this.slice();
 
-		let inserted = [];
-		let deleted = [];
+		const inserted = [];
+		const deleted = [];
 		let start;
 
-		let hadIndex = {};
+		const hadIndex = {};
 
 		newIndices.forEach( ( newIndex, oldIndex ) => {
 			hadIndex[ newIndex ] = true;
@@ -81,7 +81,7 @@ class ListObserver {
 
 		if ( start === undefined ) start = newIndices.length;
 
-		let len = newValue.length;
+		const len = newValue.length;
 		for ( let i = 0; i < len; i += 1 ) {
 			if ( !hadIndex[i] ) inserted.push( newValue[i] );
 		}

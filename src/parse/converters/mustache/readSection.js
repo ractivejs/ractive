@@ -8,12 +8,12 @@ import readExpression from '../readExpression';
 import refineExpression from '../../utils/refineExpression';
 import { readAlias, readAliases } from './readAliases';
 
-var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
+let indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' );
 
 export default function readSection ( parser, tag ) {
-	var start, expression, section, child, children, hasElse, block, unlessBlock, conditions, closed, i, expectedClose, aliasOnly = false;
+	let start, expression, section, child, children, hasElse, block, unlessBlock, conditions, closed, i, expectedClose, aliasOnly = false;
 
 	start = parser.pos;
 
@@ -38,14 +38,14 @@ export default function readSection ( parser, tag ) {
 	parser.allowWhitespace();
 
 	if ( block === 'with' ) {
-		let aliases = readAliases( parser );
+		const aliases = readAliases( parser );
 		if ( aliases ) {
 			aliasOnly = true;
 			section.z = aliases;
 			section.t = ALIAS;
 		}
 	} else if ( block === 'each' ) {
-		let alias = readAlias( parser );
+		const alias = readAlias( parser );
 		if ( alias ) {
 			section.z = [ { n: alias.n, x: { r: '.' } } ];
 			expression = alias.x;

@@ -1,4 +1,4 @@
-let stack = [];
+const stack = [];
 let captureGroup;
 
 export function startCapturing () {

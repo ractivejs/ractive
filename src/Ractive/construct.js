@@ -53,7 +53,7 @@ export default function construct ( ractive, options ) {
 	// Add computed properties
 	const computed = extend( create( ractive.constructor.prototype.computed ), options.computed );
 
-	for ( let key in computed ) {
+	for ( const key in computed ) {
 		const signature = getComputationSignature( ractive, key, computed[ key ] );
 		viewmodel.compute( key, signature );
 	}
@@ -75,7 +75,7 @@ function combine ( arrays ) {
 
 function getAdaptors ( ractive, protoAdapt, options ) {
 	protoAdapt = protoAdapt.map( lookup );
-	let adapt = ensureArray( options.adapt ).map( lookup );
+	const adapt = ensureArray( options.adapt ).map( lookup );
 
 	const builtins = [];
 	const srcs = [ protoAdapt, adapt ];

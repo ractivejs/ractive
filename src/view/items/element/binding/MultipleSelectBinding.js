@@ -25,7 +25,7 @@ export default class MultipleSelectBinding extends Binding {
 		const options = this.element.node.options;
 		const len = options.length;
 
-		let selectedValues = [];
+		const selectedValues = [];
 
 		for ( let i = 0; i < len; i += 1 ) {
 			const option = options[i];
@@ -64,9 +64,9 @@ export default class MultipleSelectBinding extends Binding {
 	}
 
 	setFromNode ( node ) {
-		let selectedOptions = getSelectedOptions( node );
+		const selectedOptions = getSelectedOptions( node );
 		let i = selectedOptions.length;
-		let result = new Array( i );
+		const result = new Array( i );
 
 		while ( i-- ) {
 			const option = selectedOptions[i];

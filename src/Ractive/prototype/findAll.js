@@ -7,7 +7,7 @@ export default function Ractive$findAll ( selector, options = {} ) {
 	let query = options._query;
 
 	if ( !query ) {
-		let liveQueries = this._liveQueries;
+		const liveQueries = this._liveQueries;
 
 		// Shortcut: if we're maintaining a live query with this
 		// selector, we don't need to traverse the parallel DOM

@@ -3,7 +3,7 @@ import readExpressionOrReference from '../readExpressionOrReference';
 import refineExpression from '../../utils/refineExpression';
 
 export default function readInterpolator ( parser, tag ) {
-	var start, expression, interpolator, err;
+	let start, expression, interpolator, err;
 
 	start = parser.pos;
 

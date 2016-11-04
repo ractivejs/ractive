@@ -2,7 +2,7 @@ import { REFERENCE, BRACKETED, MEMBER, REFINEMENT } from '../../config/types';
 import flattenExpression from './flattenExpression';
 
 export default function refineExpression ( expression, mustache ) {
-	var referenceExpression;
+	let referenceExpression;
 
 	if ( expression ) {
 		while ( expression.t === BRACKETED && expression.x ) {
@@ -25,7 +25,7 @@ export default function refineExpression ( expression, mustache ) {
 
 // TODO refactor this! it's bewildering
 function getReferenceExpression ( expression ) {
-	var members = [], refinement;
+	let members = [], refinement;
 
 	while ( expression.t === MEMBER && expression.r.t === REFINEMENT ) {
 		refinement = expression.r;

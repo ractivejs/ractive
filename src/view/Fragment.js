@@ -69,7 +69,7 @@ export default class Fragment {
 
 	createItems () {
 		// this is a hot code path
-		let max = this.template.length;
+		const max = this.template.length;
 		this.items = [];
 		for ( let i = 0; i < max; i++ ) {
 			this.items[i] = createItem({ parentFragment: this, template: this.template[i], index: i });
@@ -153,7 +153,7 @@ export default class Fragment {
 			for ( let i = item.index + 1; i < this.items.length; i++ ) {
 				if ( !this.items[ i ] ) continue;
 
-				let node = this.items[ i ].firstNode( true );
+				const node = this.items[ i ].firstNode( true );
 				if ( node ) return node;
 			}
 		}

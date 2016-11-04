@@ -1,9 +1,9 @@
 import { ELSE } from '../../../../config/types';
 
-var elsePattern = /^\s*else\s*/;
+const elsePattern = /^\s*else\s*/;
 
 export default function readElse ( parser, tag ) {
-	var start = parser.pos;
+	const start = parser.pos;
 
 	if ( !parser.matchString( tag.open ) ) {
 		return null;

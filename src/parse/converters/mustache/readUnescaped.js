@@ -3,7 +3,7 @@ import readExpression from '../readExpression';
 import refineExpression from '../../utils/refineExpression';
 
 export default function readUnescaped ( parser, tag ) {
-	var expression, triple;
+	let expression, triple;
 
 	if ( !parser.matchString( '&' ) ) {
 		return null;

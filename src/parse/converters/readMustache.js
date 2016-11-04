@@ -3,10 +3,10 @@ import readDelimiterChange from './mustache/readDelimiterChange';
 import readRegexpLiteral from './expressions/primary/literal/readRegexpLiteral';
 import { readAttributeOrDirective } from './element/readAttribute';
 
-var delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
+const delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
 
 export default function readMustache ( parser ) {
-	var mustache, i;
+	let mustache, i;
 
 	// If we're inside a <script> or <style> tag, and we're not
 	// interpolating, bug out
@@ -30,7 +30,7 @@ export default function readMustache ( parser ) {
 }
 
 function readMustacheOfType ( parser, tag ) {
-	var start, mustache, reader, i;
+	let start, mustache, reader, i;
 
 	start = parser.pos;
 
@@ -62,7 +62,7 @@ function readMustacheOfType ( parser, tag ) {
 	// illegal section closer
 	if ( parser.matchString( '/' ) ) {
 		parser.pos -= 1;
-		let rewind = parser.pos;
+		const rewind = parser.pos;
 		if ( !readRegexpLiteral( parser ) ) {
 			parser.pos = rewind - ( tag.close.length );
 			if ( parser.inAttribute ) {

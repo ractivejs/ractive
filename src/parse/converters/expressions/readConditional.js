@@ -5,7 +5,7 @@ import readExpression from '../readExpression';
 
 // The conditional operator is the lowest precedence operator, so we start here
 export default function getConditional ( parser ) {
-	var start, expression, ifTrue, ifFalse;
+	let start, expression, ifTrue, ifFalse;
 
 	expression = readLogicalOr( parser );
 	if ( !expression ) {

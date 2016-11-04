@@ -2,7 +2,7 @@ import '../legacy';
 import { doc } from '../config/environment';
 import { createElement } from './dom';
 
-var create, defineProperty, defineProperties;
+let create, defineProperty, defineProperties;
 
 try {
 	Object.defineProperty({}, 'test', { get() {}, set() {} });
@@ -36,7 +36,7 @@ try {
 	defineProperties = Object.defineProperties;
 } catch ( err ) {
 	defineProperties = function ( obj, props ) {
-		var prop;
+		let prop;
 
 		for ( prop in props ) {
 			if ( props.hasOwnProperty( prop ) ) {
@@ -53,10 +53,10 @@ try {
 } catch ( err ) {
 	// sigh
 	create = (function () {
-		var F = function () {};
+		const F = function () {};
 
 		return function ( proto, props ) {
-			var obj;
+			let obj;
 
 			if ( proto === null ) {
 				return {};
@@ -77,7 +77,7 @@ try {
 export { create, defineProperty, defineProperties };
 
 export function extend ( target, ...sources ) {
-	var prop;
+	let prop;
 
 	sources.forEach( source => {
 		for ( prop in source ) {
@@ -92,7 +92,7 @@ export function extend ( target, ...sources ) {
 
 export function fillGaps ( target, ...sources ) {
 	sources.forEach( s => {
-		for ( let key in s ) {
+		for ( const key in s ) {
 			if ( hasOwn.call( s, key ) && !( key in target ) ) {
 				target[ key ] = s[ key ];
 			}
@@ -102,4 +102,4 @@ export function fillGaps ( target, ...sources ) {
 	return target;
 }
 
-export var hasOwn = Object.prototype.hasOwnProperty;
+export const hasOwn = Object.prototype.hasOwnProperty;

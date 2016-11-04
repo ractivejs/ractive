@@ -2,7 +2,7 @@ import { OBJECT_LITERAL } from '../../../../../config/types';
 import readKeyValuePairs from './objectLiteral/keyValuePairs';
 
 export default function ( parser ) {
-	var start, keyValuePairs;
+	let start, keyValuePairs;
 
 	start = parser.pos;
 

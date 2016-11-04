@@ -1,7 +1,7 @@
 import { enqueue, dequeue } from './eventStack';
 import getPotentialWildcardMatches from '../utils/getPotentialWildcardMatches';
 
-var wildcardCache = {};
+const wildcardCache = {};
 
 export default function fireEvent ( ractive, eventName, options = {} ) {
 	if ( !eventName ) { return; }
@@ -16,7 +16,7 @@ export default function fireEvent ( ractive, eventName, options = {} ) {
 		options.event.name = eventName;
 	}
 
-	var eventNames = getWildcardNames( eventName );
+	const eventNames = getWildcardNames( eventName );
 
 	return fireEventAs( ractive, eventNames, options.event, options.args, true );
 }
@@ -31,7 +31,7 @@ function getWildcardNames ( eventName ) {
 
 function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) {
 
-	var subscribers, i, bubble = true;
+	let subscribers, i, bubble = true;
 
 	enqueue( ractive, event );
 
@@ -48,7 +48,7 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 	if ( ractive.parent && bubble ) {
 
 		if ( initialFire && ractive.component ) {
-			let fullName = ractive.component.name + '.' + eventNames[ eventNames.length-1 ];
+			const fullName = ractive.component.name + '.' + eventNames[ eventNames.length-1 ];
 			eventNames = getWildcardNames( fullName );
 
 			if( event && !event.component ) {
@@ -63,7 +63,7 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 }
 
 function notifySubscribers ( ractive, subscribers, event, args ) {
-	var originalEvent = null, stopEvent = false;
+	let originalEvent = null, stopEvent = false;
 
 	if ( event && !event._noArg ) {
 		args = [ event ].concat( args );

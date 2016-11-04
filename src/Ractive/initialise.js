@@ -6,8 +6,8 @@ import Hook from '../events/Hook';
 import HookQueue from '../events/HookQueue';
 import Ractive from '../Ractive';
 
-let configHook = new Hook( 'config' );
-let initHook = new HookQueue( 'init' );
+const configHook = new Hook( 'config' );
+const initHook = new HookQueue( 'init' );
 
 export default function initialise ( ractive, userOptions, options ) {
 	Object.keys( ractive.viewmodel.computations ).forEach( key => {
@@ -24,7 +24,7 @@ export default function initialise ( ractive, userOptions, options ) {
 	configHook.fire( ractive );
 	initHook.begin( ractive );
 
-	let fragment = ractive.fragment = createFragment( ractive, options );
+	const fragment = ractive.fragment = createFragment( ractive, options );
 	if ( fragment ) fragment.bind( ractive.viewmodel );
 
 	initHook.end( ractive );
@@ -33,7 +33,7 @@ export default function initialise ( ractive, userOptions, options ) {
 		// render automatically ( if `el` is specified )
 		const el = getElement( ractive.el || ractive.target );
 		if ( el ) {
-			let promise = ractive.render( el, ractive.append );
+			const promise = ractive.render( el, ractive.append );
 
 			if ( Ractive.DEBUG_PROMISES ) {
 				promise.catch( err => {

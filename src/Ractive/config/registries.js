@@ -36,7 +36,7 @@ class Registry {
 
 		const registry = create( Parent[name] );
 
-		for ( let key in option ) {
+		for ( const key in option ) {
 			registry[ key ] = option[ key ];
 		}
 

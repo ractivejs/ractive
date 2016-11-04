@@ -2,7 +2,7 @@ import { win, doc } from './config/environment';
 import noop from './utils/noop';
 import { defineProperty, defineProperties } from './utils/object';
 
-var exportedShims;
+let exportedShims;
 
 if ( !win ) {
 	exportedShims = null;
@@ -24,13 +24,13 @@ if ( !win ) {
 	// Polyfill for Object.create
 	if ( !Object.create ) {
 		Object.create = (function () {
-			var Temp = function () {};
+			const Temp = function () {};
 			return function ( prototype, properties ) {
 				if ( typeof prototype !== 'object' ) {
 					throw new TypeError( 'Prototype must be an object' );
 				}
 				Temp.prototype = prototype;
-				var result = new Temp();
+				const result = new Temp();
 				defineProperties( result, properties );
 				Temp.prototype = null;
 				return result;
@@ -51,7 +51,7 @@ if ( !win ) {
 	// https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/keys
 	if ( !Object.keys ) {
 		Object.keys = (function () {
-			var hasOwnProperty = Object.prototype.hasOwnProperty,
+			let hasOwnProperty = Object.prototype.hasOwnProperty,
 				hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
 				dontEnums = [
 					'toString',
@@ -69,16 +69,16 @@ if ( !win ) {
 					throw new TypeError( 'Object.keys called on non-object' );
 				}
 
-				var result = [];
+				const result = [];
 
-				for ( var prop in obj ) {
+				for ( const prop in obj ) {
 					if ( hasOwnProperty.call( obj, prop ) ){
 						result.push( prop );
 					}
 				}
 
 				if ( hasDontEnumBug ) {
-					for ( var i=0; i < dontEnumsLength; i++ ) {
+					for ( let i=0; i < dontEnumsLength; i++ ) {
 						if ( hasOwnProperty.call( obj, dontEnums[i] ) ){
 							result.push( dontEnums[i] );
 						}
@@ -94,7 +94,7 @@ if ( !win ) {
 	// Array extras
 	if ( !Array.prototype.indexOf ) {
 		Array.prototype.indexOf = function ( needle, i ) {
-			var len;
+			let len;
 
 			if ( i === undefined ) {
 				i = 0;
@@ -120,7 +120,7 @@ if ( !win ) {
 
 	if ( !Array.prototype.forEach ) {
 		Array.prototype.forEach = function ( callback, context ) {
-			var i, len;
+			let i, len;
 
 			for ( i=0, len=this.length; i<len; i+=1 ) {
 				if ( this.hasOwnProperty( i ) ) {
@@ -132,7 +132,7 @@ if ( !win ) {
 
 	if ( !Array.prototype.map ) {
 		Array.prototype.map = function ( mapper, context ) {
-			var array = this, i, len, mapped = [], isActuallyString;
+			let array = this, i, len, mapped = [], isActuallyString;
 
 			// incredibly, if you do something like
 			// Array.prototype.map.call( someString, iterator )
@@ -155,7 +155,7 @@ if ( !win ) {
 
 	if ( typeof Array.prototype.reduce !== 'function' ) {
 		Array.prototype.reduce = function(callback, opt_initialValue){
-			var i, value, len, valueIsSet;
+			let i, value, len, valueIsSet;
 
 			if ('function' !== typeof callback) {
 				throw new TypeError(callback + ' is not a function');
@@ -190,7 +190,7 @@ if ( !win ) {
 
 	if ( !Array.prototype.filter ) {
 		Array.prototype.filter = function ( filter, context ) {
-			var i, len, filtered = [];
+			let i, len, filtered = [];
 
 			for ( i=0, len=this.length; i<len; i+=1 ) {
 				if ( this.hasOwnProperty( i ) && filter.call( context, this[i], i, this ) ) {
@@ -204,7 +204,7 @@ if ( !win ) {
 
 	if ( !Array.prototype.every ) {
 		Array.prototype.every = function ( iterator, context ) {
-			var t, len, i;
+			let t, len, i;
 
 			if ( this == null ) {
 				throw new TypeError();
@@ -229,7 +229,7 @@ if ( !win ) {
 
 	if ( typeof Function.prototype.bind !== 'function' ) {
 		Function.prototype.bind = function ( context ) {
-			var args, fn, Empty, bound, slice = [].slice;
+			let args, fn, Empty, bound, slice = [].slice;
 
 			if ( typeof this !== 'function' ) {
 				throw new TypeError( 'Function.prototype.bind called on non-function' );
@@ -240,7 +240,7 @@ if ( !win ) {
 			Empty = function () {};
 
 			bound = function () {
-				var ctx = this instanceof Empty && context ? this : context;
+				const ctx = this instanceof Empty && context ? this : context;
 				return fn.apply( ctx, args.concat( slice.call( arguments ) ) );
 			};
 
@@ -255,13 +255,13 @@ if ( !win ) {
 	// addEventListener polyfill IE6+
 	if ( !win.addEventListener ) {
 		((function(win, doc) {
-			var Event, addEventListener, removeEventListener, head, style, origCreateElement;
+			let Event, addEventListener, removeEventListener, head, style, origCreateElement;
 
 			// because sometimes inquiring minds want to know
 			win.appearsToBeIELessEqual8 = true;
 
 			Event = function ( e, element ) {
-				var property, instance = this;
+				let property, instance = this;
 
 				for ( property in e ) {
 					instance[ property ] = e[ property ];
@@ -281,7 +281,7 @@ if ( !win ) {
 			};
 
 			addEventListener = function ( type, listener ) {
-				var element = this, listeners, i;
+				let element = this, listeners, i;
 
 				listeners = element.listeners || ( element.listeners = [] );
 				i = listeners.length;
@@ -294,7 +294,7 @@ if ( !win ) {
 			};
 
 			removeEventListener = function ( type, listener ) {
-				var element = this, listeners, i;
+				let element = this, listeners, i;
 
 				if ( !element.listeners ) {
 					return;
@@ -323,7 +323,7 @@ if ( !win ) {
 				origCreateElement = doc.createElement;
 
 				doc.createElement = function ( tagName ) {
-					var el = origCreateElement( tagName );
+					const el = origCreateElement( tagName );
 					el.addEventListener = addEventListener;
 					el.removeEventListener = removeEventListener;
 					return el;
@@ -347,7 +347,7 @@ if ( !win ) {
 	// https://github.com/jonathantneal/Polyfills-for-IE8/blob/master/getComputedStyle.js
 	if ( !win.getComputedStyle ) {
 		exportedShims.getComputedStyle = (function () {
-			var borderSizes = {};
+			const borderSizes = {};
 
 			function getPixelSize ( element, style, property, fontSize ) {
 				const sizeWithSuffix = style[property];
@@ -372,7 +372,7 @@ if ( !win ) {
 			}
 
 			function getBorderPixelSize ( size ) {
-				var div, bcr;
+				let div, bcr;
 
 				// `thin`, `medium` and `thick` vary between browsers. (Don't ever use them.)
 				if ( !borderSizes[ size ] ) {
@@ -404,14 +404,14 @@ if ( !win ) {
 				: [style[t], style[r], style[b], style[l]]).join(' ');
 			}
 
-			var normalProps = {
+			const normalProps = {
 				fontWeight: 400,
 				lineHeight: 1.2, // actually varies depending on font-family, but is generally close enough...
 				letterSpacing: 0
 			};
 
 			function CSSStyleDeclaration(element) {
-				var currentStyle, style, fontSize, property;
+				let currentStyle, style, fontSize, property;
 
 				currentStyle = element.currentStyle;
 				style = this;
@@ -455,7 +455,7 @@ if ( !win ) {
 			CSSStyleDeclaration.prototype = {
 				constructor: CSSStyleDeclaration,
 				getPropertyPriority: noop,
-				getPropertyValue: function ( prop ) {
+				getPropertyValue ( prop ) {
 					return this[prop] || '';
 				},
 				item: noop,

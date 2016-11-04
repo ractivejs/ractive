@@ -81,7 +81,7 @@ export default class Transition {
 
 			// Get a list of the properties we're animating
 			const propertyNames = Object.keys( to );
-			let changedProperties = [];
+			const changedProperties = [];
 
 			// Store the current styles
 			const computedStyle = getComputedStyle( this.owner.node );
@@ -150,7 +150,7 @@ export default class Transition {
 		const computedStyle = getComputedStyle( this.owner.node );
 
 		if ( typeof props === 'string' ) {
-			let value = computedStyle[ prefix( props ) ];
+			const value = computedStyle[ prefix( props ) ];
 			return value === '0px' ? 0 : value;
 		}
 
@@ -158,7 +158,7 @@ export default class Transition {
 			throw new Error( 'Transition$getStyle must be passed a string, or an array of strings representing CSS properties' );
 		}
 
-		let styles = {};
+		const styles = {};
 
 		let i = props.length;
 		while ( i-- ) {

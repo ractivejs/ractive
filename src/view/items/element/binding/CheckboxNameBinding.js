@@ -8,7 +8,7 @@ const push = [].push;
 
 function getValue() {
 	const all = this.bindings.filter(b => b.node && b.node.checked).map(b => b.element.getAttribute( 'value' ));
-	let res = [];
+	const res = [];
 	all.forEach(v => { if ( !arrayContains( res, v ) ) res.push( v ); });
 	return res;
 }

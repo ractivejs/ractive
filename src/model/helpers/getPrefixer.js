@@ -1,8 +1,8 @@
-let prefixers = {};
+const prefixers = {};
 
 // TODO this is legacy. sooner we can replace the old adaptor API the better
 function prefixKeypath ( obj, prefix ) {
-	var prefixed = {}, key;
+	let prefixed = {}, key;
 
 	if ( !prefix ) {
 		return obj;
@@ -20,13 +20,13 @@ function prefixKeypath ( obj, prefix ) {
 }
 
 export default function getPrefixer ( rootKeypath ) {
-	var rootDot;
+	let rootDot;
 
 	if ( !prefixers[ rootKeypath ] ) {
 		rootDot = rootKeypath ? rootKeypath + '.' : '';
 
 		prefixers[ rootKeypath ] = function ( relativeKeypath, value ) {
-			var obj;
+			let obj;
 
 			if ( typeof relativeKeypath === 'string' ) {
 				obj = {};

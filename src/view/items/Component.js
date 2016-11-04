@@ -143,7 +143,7 @@ export default class Component extends Item {
 	detach () {
 		if ( this.isAnchor ) {
 			if ( this.instance ) return this.instance.fragment.detach();
-			return createDocumentFragment()
+			return createDocumentFragment();
 		}
 
 		return this.instance.fragment.detach();
@@ -349,7 +349,7 @@ function unrenderItem ( anchor, meta ) {
 	anchor.liveQueries = null;
 }
 
-var checking = [];
+let checking = [];
 export function checkAnchors () {
 	const list = checking;
 	checking = [];

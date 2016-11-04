@@ -49,9 +49,9 @@ const config = {
 function configure ( method, Parent, target, options ) {
 	deprecate( options );
 
-	for ( let key in options ) {
+	for ( const key in options ) {
 		if ( isStandardKey.hasOwnProperty( key ) ) {
-			let value = options[ key ];
+			const value = options[ key ];
 
 			// warn the developer if they passed a function and ignore its value
 
@@ -85,7 +85,7 @@ function configure ( method, Parent, target, options ) {
 }
 
 function extendOtherMethods ( parent, target, options ) {
-	for ( let key in options ) {
+	for ( const key in options ) {
 		if ( !isBlacklisted[ key ] && options.hasOwnProperty( key ) ) {
 			let member = options[ key ];
 
@@ -100,7 +100,7 @@ function extendOtherMethods ( parent, target, options ) {
 }
 
 function makeObj ( array ) {
-	let obj = {};
+	const obj = {};
 	array.forEach( x => obj[x] = true );
 	return obj;
 }

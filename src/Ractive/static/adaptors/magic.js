@@ -27,13 +27,13 @@ function createOrWrapDescriptor ( originalDescriptor, ractive, keypath, wrapper 
 
 	let setting;
 
-	let dependants = [{ ractive, keypath }];
+	const dependants = [{ ractive, keypath }];
 
 	const descriptor = {
-		get: function () {
+		get () {
 			return 'value' in originalDescriptor ? originalDescriptor.value : originalDescriptor.get.call( this );
 		},
-		set: function (value) {
+		set (value) {
 			if ( setting ) return;
 
 			if ( 'value' in originalDescriptor ) {
@@ -60,7 +60,7 @@ function createOrWrapDescriptor ( originalDescriptor, ractive, keypath, wrapper 
 function revert ( descriptor, ractive, keypath ) {
 	if ( !descriptor.set || !descriptor.set.__magic ) return true;
 
-	let dependants = descriptor.set.__magic;
+	const dependants = descriptor.set.__magic;
 	let i = dependants.length;
 	while ( i-- ) {
 		const dependant = dependants[i];

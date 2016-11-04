@@ -20,7 +20,7 @@ export default class TransitionManager {
 	}
 
 	add ( transition ) {
-		var list = transition.isIntro ? this.intros : this.outros;
+		const list = transition.isIntro ? this.intros : this.outros;
 		list.push( transition );
 	}
 
@@ -51,7 +51,7 @@ export default class TransitionManager {
 	}
 
 	remove ( transition ) {
-		var list = transition.isIntro ? this.intros : this.outros;
+		const list = transition.isIntro ? this.intros : this.outros;
 		removeFromArray( list, transition );
 		check( this );
 	}

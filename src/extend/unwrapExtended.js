@@ -3,7 +3,7 @@ import registries from '../Ractive/config/registries';
 import Ractive from '../Ractive';
 
 export default function unwrap ( Child ) {
-	let options = {};
+	const options = {};
 
 	while ( Child ) {
 		addRegistries( Child, options );
@@ -28,7 +28,7 @@ function addRegistries ( Child, options ) {
 }
 
 function addRegistry ( target, options, name ) {
-	var registry, keys = Object.keys( target[ name ] );
+	let registry, keys = Object.keys( target[ name ] );
 
 	if ( !keys.length ) { return; }
 
@@ -45,7 +45,7 @@ function addOtherOptions ( Child, options ) {
 	Object.keys( Child.prototype ).forEach( key => {
 		if ( key === 'computed' ) { return; }
 
-		var value = Child.prototype[ key ];
+		let value = Child.prototype[ key ];
 
 		if ( !( key in options ) ) {
 			options[ key ] = value._method ? value._method : value;

@@ -17,7 +17,7 @@ function extend ( ...options ) {
 }
 
 function extendOne ( Parent, options = {} ) {
-	var Child, proto;
+	let Child, proto;
 
 	// if we're extending with another Ractive instance...
 	//

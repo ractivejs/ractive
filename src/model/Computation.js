@@ -31,7 +31,7 @@ function truncateStack ( stack ) {
 	const lines = stack.split( '\n' );
 	const name = Computation.name + '.getValue';
 
-	let truncated = [];
+	const truncated = [];
 
 	const len = lines.length;
 	for ( let i = 1; i < len; i += 1 ) {

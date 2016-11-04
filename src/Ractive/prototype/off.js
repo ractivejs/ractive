@@ -18,7 +18,7 @@ export default function Ractive$off ( eventName, callback ) {
 		const eventNames = eventName.split( ' ' ).map( trim ).filter( notEmptyString );
 
 		eventNames.forEach( eventName => {
-			let subscribers = this._subs[ eventName ];
+			const subscribers = this._subs[ eventName ];
 
 			// If we have subscribers for this event...
 			if ( subscribers ) {

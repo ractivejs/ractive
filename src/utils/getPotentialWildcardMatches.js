@@ -1,6 +1,6 @@
 import { splitKeypath } from '../shared/keypaths';
 
-var starMaps = {};
+const starMaps = {};
 
 // This function takes a keypath such as 'foo.bar.baz', and returns
 // all the variants of that keypath that include a wildcard in place
@@ -9,7 +9,7 @@ var starMaps = {};
 // to see if any pattern observers are downstream of one or more of
 // these wildcard keypaths (e.g. 'foo.bar.*.status')
 export default function getPotentialWildcardMatches ( keypath ) {
-	var keys, starMap, mapper, i, result, wildcardKeypath;
+	let keys, starMap, mapper, i, result, wildcardKeypath;
 
 	keys = splitKeypath( keypath );
 	if( !( starMap = starMaps[ keys.length ]) ) {
@@ -40,7 +40,7 @@ export default function getPotentialWildcardMatches ( keypath ) {
 // [ true, true ], [ true, false ], [ false, true ], [ false, false ].
 // It does so by getting all the binary values between 0 and e.g. 11
 function getStarMap ( num ) {
-	var ones = '', max, binary, starMap, mapper, i, j, l, map;
+	let ones = '', max, binary, starMap, mapper, i, j, l, map;
 
 	if ( !starMaps[ num ] ) {
 		starMap = [];

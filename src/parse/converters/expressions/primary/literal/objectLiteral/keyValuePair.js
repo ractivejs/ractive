@@ -4,7 +4,7 @@ import readExpression from '../../../../readExpression';
 import { name as namePattern, spreadPattern } from '../../../shared/patterns';
 
 export default function readKeyValuePair ( parser ) {
-	var start, key, value, spread;
+	let start, key, value, spread;
 
 	start = parser.pos;
 

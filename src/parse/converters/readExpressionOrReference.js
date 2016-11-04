@@ -3,7 +3,7 @@ import readExpression from './readExpression';
 import readReference from './expressions/primary/readReference';
 
 export default function readExpressionOrReference ( parser, expectedFollowers ) {
-	var start, expression, i;
+	let start, expression, i;
 
 	start = parser.pos;
 	expression = readExpression( parser );

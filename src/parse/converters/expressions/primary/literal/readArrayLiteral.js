@@ -2,7 +2,7 @@ import { ARRAY_LITERAL } from '../../../../../config/types';
 import readExpressionList from '../../shared/readExpressionList';
 
 export default function ( parser ) {
-	var start, expressionList;
+	let start, expressionList;
 
 	start = parser.pos;
 

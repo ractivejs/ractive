@@ -2,7 +2,7 @@ import getLowestIndex from './utils/getLowestIndex';
 import { decodeCharacterReferences } from '../../utils/html';
 
 export default function readText ( parser ) {
-	var index, remaining, disallowed, barrier;
+	let index, remaining, disallowed, barrier;
 
 	remaining = parser.remaining();
 

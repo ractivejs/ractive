@@ -1,4 +1,4 @@
-var pattern = /[-/\\^$*+?.()|[\]{}]/g;
+const pattern = /[-/\\^$*+?.()|[\]{}]/g;
 
 export default function escapeRegExp ( str ) {
 	return str.replace( pattern, '\\$&' );

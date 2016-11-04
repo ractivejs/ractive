@@ -70,7 +70,7 @@ function resetValue ( ractive ) {
 		return;
 	}
 
-	let result = getDynamicTemplate( ractive, initial.fn );
+	const result = getDynamicTemplate( ractive, initial.fn );
 
 	// TODO deep equality check to prevent unnecessary re-rendering
 	// in the case of already-parsed templates
@@ -137,7 +137,7 @@ function extendPartials ( existingPartials, newPartials, overwrite ) {
 	// TODO there's an ambiguity here - we need to overwrite in the `reset()`
 	// case, but not initially...
 
-	for ( let key in newPartials ) {
+	for ( const key in newPartials ) {
 		if ( overwrite || !existingPartials.hasOwnProperty( key ) ) {
 			existingPartials[ key ] = newPartials[ key ];
 		}

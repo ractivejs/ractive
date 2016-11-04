@@ -1,7 +1,7 @@
 import { isArray } from './is';
 
 export function addToArray ( array, value ) {
-	var index = array.indexOf( value );
+	const index = array.indexOf( value );
 
 	if ( index === -1 ) {
 		array.push( value );
@@ -19,7 +19,7 @@ export function arrayContains ( array, value ) {
 }
 
 export function arrayContentsMatch ( a, b ) {
-	var i;
+	let i;
 
 	if ( !isArray( a ) || !isArray( b ) ) {
 		return false;
@@ -68,7 +68,7 @@ export function removeFromArray ( array, member ) {
 }
 
 export function toArray ( arrayLike ) {
-	var array = [], i = arrayLike.length;
+	let array = [], i = arrayLike.length;
 	while ( i-- ) {
 		array[i] = arrayLike[i];
 	}

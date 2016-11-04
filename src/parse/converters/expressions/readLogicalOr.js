@@ -1,11 +1,11 @@
 import { INFIX_OPERATOR } from '../../../config/types';
 import readTypeof from './readTypeof';
 
-var readLogicalOr, makeInfixSequenceMatcher;
+let readLogicalOr, makeInfixSequenceMatcher;
 
 makeInfixSequenceMatcher = function ( symbol, fallthrough ) {
 	return function ( parser ) {
-		var start, left, right;
+		let start, left, right;
 
 		left = fallthrough( parser );
 		if ( !left ) {
@@ -54,7 +54,7 @@ makeInfixSequenceMatcher = function ( symbol, fallthrough ) {
 
 // create all infix sequence matchers, and return readLogicalOr
 (function() {
-	var i, len, matcher, infixOperators, fallthrough;
+	let i, len, matcher, infixOperators, fallthrough;
 
 	// All the infix operators on order of precedence (source: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/Operator_Precedence)
 	// Each sequence matcher will initially fall through to its higher precedence

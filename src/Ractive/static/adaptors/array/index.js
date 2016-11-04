@@ -55,7 +55,7 @@ class ArrayWrapper {
 	}
 
 	teardown () {
-		var array, storage, wrappers, instances, index;
+		let array, storage, wrappers, instances, index;
 
 		array = this.value;
 		storage = array._ractive;

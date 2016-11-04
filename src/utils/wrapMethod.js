@@ -4,7 +4,7 @@ export default function ( method, superMethod, force ) {
 
 		return function () {
 
-			var hasSuper = ( '_super' in this ), _super = this._super, result;
+			let hasSuper = ( '_super' in this ), _super = this._super, result;
 
 			this._super = superMethod;
 

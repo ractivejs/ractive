@@ -72,7 +72,7 @@ const JsonParser = Parser.extend({
 		function getObject ( parser ) {
 			if ( !parser.matchString( '{' ) ) return null;
 
-			let result = {};
+			const result = {};
 
 			parser.allowWhitespace();
 
@@ -101,7 +101,7 @@ const JsonParser = Parser.extend({
 		function getArray ( parser ) {
 			if ( !parser.matchString( '[' ) ) return null;
 
-			let result = [];
+			const result = [];
 
 			parser.allowWhitespace();
 
@@ -138,7 +138,7 @@ function getKeyValuePair ( parser ) {
 
 	if ( !key ) return null;
 
-	let pair = { key };
+	const pair = { key };
 
 	parser.allowWhitespace();
 	if ( !parser.matchString( ':' ) ) {

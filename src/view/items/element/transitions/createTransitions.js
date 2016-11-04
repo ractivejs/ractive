@@ -17,8 +17,8 @@ if ( !isClient ) {
 	const testStyle = createElement( 'div' ).style;
 	const linear = x => x;
 
-	let canUseCssTransitions = {};
-	let cannotUseCssTransitions = {};
+	const canUseCssTransitions = {};
+	const cannotUseCssTransitions = {};
 
 	// determine some facts about our environment
 	let TRANSITION;
@@ -123,7 +123,7 @@ if ( !isClient ) {
 				let hash;
 				let originalValue;
 				let index;
-				let propertiesToTransitionInJs = [];
+				const propertiesToTransitionInJs = [];
 				let prop;
 				let suffix;
 				let interpolator;

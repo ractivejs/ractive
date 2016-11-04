@@ -1,5 +1,5 @@
 export function findInViewHierarchy ( registryName, ractive, name ) {
-	var instance = findInstance( registryName, ractive, name );
+	const instance = findInstance( registryName, ractive, name );
 	return instance ? instance[ registryName ][ name ] : null;
 }
 
