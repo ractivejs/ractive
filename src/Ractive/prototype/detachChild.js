@@ -33,7 +33,7 @@ export default function detachChild ( child ) {
 		this.merge( `@this.children.byName.${meta.target}` );
 		updateAnchors( this, meta.target );
 	}
-	child.parent = null;
+	child.set( '@this.parent', undefined );
 	child.component = null;
 
 	detachHook.fire( child );

@@ -1,13 +1,13 @@
 import ModelBase, { fireShuffleTasks } from './ModelBase';
 import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
-import { handleChange, marked, notifiedUpstream, teardown } from '../shared/methodCallers';
+import { handleChange, marked, markedAll, notifiedUpstream, teardown } from '../shared/methodCallers';
 import { rebindMatch } from '../shared/rebind';
 import resolveReference from '../view/resolvers/resolveReference';
 import noop from '../utils/noop';
 
 // temporary placeholder target for detached implicit links
-const missing = {
+export const Missing = {
 	key: '@missing',
 	animate: noop,
 	applyValue: noop,
@@ -16,11 +16,12 @@ const missing = {
 	joinAll () { return this; },
 	joinKey () { return this; },
 	mark: noop,
+	registerLink: noop,
 	shufle: noop,
 	set: noop,
 	unregisterLink: noop
 };
-missing.parent = missing;
+Missing.parent = Missing;
 
 export default class LinkModel extends ModelBase {
 	constructor ( parent, owner, target, key ) {
@@ -56,7 +57,7 @@ export default class LinkModel extends ModelBase {
 	}
 
 	detach () {
-		this.relinking( missing, true, false );
+		this.relinking( Missing, true, false );
 	}
 
 	get ( shouldCapture, opts ) {
@@ -89,7 +90,7 @@ export default class LinkModel extends ModelBase {
 		this.notifyUpstream();
 	}
 
-	isDetached () { return this.virtual && this.target === missing; }
+	isDetached () { return this.virtual && this.target === Missing; }
 
 	joinKey ( key ) {
 		// TODO: handle nested links
@@ -113,6 +114,11 @@ export default class LinkModel extends ModelBase {
 
 		this.deps.forEach( handleChange );
 		this.clearUnresolveds();
+	}
+
+	markedAll () {
+		this.children.forEach( markedAll );
+		this.marked();
 	}
 
 	notifiedUpstream () {

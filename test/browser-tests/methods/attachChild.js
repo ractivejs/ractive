@@ -410,4 +410,31 @@ export default function() {
 		r1.fire( 'bar' );
 		t.equal( count, 1 );
 	});
+
+	test( 'attached children have their parent ref updated', t => {
+		const p1 = new Ractive({});
+		const p2 = new Ractive({});
+		const c = new Ractive({
+			el: fixture,
+			template: '{{ @.parent._guid }}'
+		});
+
+		t.ok( !c.parent );
+
+		p1.attachChild( c );
+		t.ok( c.parent === p1 );
+		t.htmlEqual( fixture.innerHTML, p1._guid );
+
+		p1.detachChild( c );
+		t.ok( !c.parent );
+		t.htmlEqual( fixture.innerHTML, '' );
+
+		p2.attachChild( c );
+		t.ok( c.parent === p2 );
+		t.htmlEqual( fixture.innerHTML, p2._guid );
+
+		p2.detachChild( c );
+		t.ok( !c.parent );
+		t.htmlEqual( fixture.innerHTML, '' );
+	});
 }

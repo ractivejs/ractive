@@ -1372,4 +1372,18 @@ export default function() {
 		r.unshift( 'my.list', 4 );
 		t.htmlEqual( fixture.innerHTML, '4 4' );
 	});
+
+	test( `parent data can be referenced via special model to avoid computations with get`, t => {
+		const cmp = Ractive.extend({ template: '{{@.parent.data.foo}}' });
+		const r = new Ractive({
+			target: fixture,
+			template: '<cmp />',
+			data: { foo: 'bar' },
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'bar' );
+		r.set( 'foo', 'baz' );
+		t.htmlEqual( fixture.innerHTML, 'baz' );
+	});
 }
