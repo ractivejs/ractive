@@ -1,6 +1,6 @@
 /*
-	Ractive.js v0.8.3
-	Mon Oct 31 2016 17:21:12 GMT-0400 (EDT) - commit 43588aa80e53d5567182ab1d8a856abe54108168
+	Ractive.js v0.8.4
+	Fri Nov 04 2016 00:26:26 GMT-0400 (EDT) - commit c71fa46dd2aa33cd96030b9b440d71a26a64cd8b
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -433,13 +433,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.3 %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.4 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.3 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.4 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -8798,7 +8798,9 @@
   	}
   };
 
-  Item.prototype.destroyed = function destroyed () {};
+  Item.prototype.destroyed = function destroyed () {
+  	if ( this.fragment ) this.fragment.destroyed();
+  };
 
   Item.prototype.find = function find () {
   	return null;
@@ -11519,10 +11521,14 @@
   		var result = this.fn.apply( ractive, values ).pop();
 
   		// Auto prevent and stop if return is explicitly false
-  		var original;
-  		if ( result === false && ( original = event.original ) ) {
-  			original.preventDefault && original.preventDefault();
-  			original.stopPropagation && original.stopPropagation();
+  		if ( result === false ) {
+  			var original = event ? event.original : undefined;
+  			if ( original ) {
+  				original.preventDefault && original.preventDefault();
+  				original.stopPropagation && original.stopPropagation();
+  			} else {
+  				warnOnceIfDebug( ("handler '" + (this.template.n) + "' returned false, but there is no event available to cancel") );
+  			}
   		}
 
   		ractive.event = oldEvent;
@@ -12622,6 +12628,34 @@
   	return GenericBinding;
   }(Binding));
 
+  var FileBinding = (function (GenericBinding) {
+  	function FileBinding () {
+  		GenericBinding.apply(this, arguments);
+  	}
+
+  	FileBinding.prototype = Object.create( GenericBinding && GenericBinding.prototype );
+  	FileBinding.prototype.constructor = FileBinding;
+
+  	FileBinding.prototype.getInitialValue = function getInitialValue () {
+  		return undefined;
+  	};
+
+  	FileBinding.prototype.getValue = function getValue () {
+  		return this.node.files;
+  	};
+
+  	FileBinding.prototype.render = function render () {
+  		this.element.lazy = false;
+  		GenericBinding.prototype.render.call(this);
+  	};
+
+  	FileBinding.prototype.setFromNode = function setFromNode( node ) {
+  		this.model.set( node.files );
+  	};
+
+  	return FileBinding;
+  }(GenericBinding));
+
   function getSelectedOptions ( select ) {
       return select.selectedOptions
   		? toArray( select.selectedOptions )
@@ -13058,7 +13092,7 @@
   		}
 
   		if ( type === 'file' && isBindable( attributes.value ) ) {
-  			return Binding;
+  			return FileBinding;
   		}
 
   		if ( isBindable( attributes.value ) ) {
@@ -14058,10 +14092,6 @@
   		}).bind();
   	};
 
-  	Partial.prototype.destroyed = function destroyed () {
-  		this.fragment.destroyed();
-  	};
-
   	Partial.prototype.detach = function detach () {
   		return this.fragment.detach();
   	};
@@ -14683,10 +14713,6 @@
   		}
   	};
 
-  	Section.prototype.destroyed = function destroyed () {
-  		if ( this.fragment ) this.fragment.destroyed();
-  	};
-
   	Section.prototype.detach = function detach () {
   		return this.fragment ? this.fragment.detach() : createDocumentFragment();
   	};
@@ -14722,7 +14748,7 @@
   	Section.prototype.isTruthy = function isTruthy () {
   		if ( this.subordinate && this.sibling.isTruthy() ) return true;
   		var value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();
-  		return !!value && !isEmpty( value );
+  		return !!value && ( this.templateSectionType === SECTION_IF_WITH || !isEmpty( value ) );
   	};
 
   	Section.prototype.rebinding = function rebinding ( next, previous, safe ) {
@@ -14785,69 +14811,35 @@
 
   		var newFragment;
 
-  		if ( this.sectionType === SECTION_EACH ) {
+  		var fragmentShouldExist = this.sectionType === SECTION_EACH || // each always gets a fragment, which may have no iterations
+  		                            this.sectionType === SECTION_WITH || // with (partial context) always gets a fragment
+  		                            ( siblingFalsey && ( this.sectionType === SECTION_UNLESS ? !this.isTruthy() : this.isTruthy() ) ); // if, unless, and if-with depend on siblings and the condition
+
+  		if ( fragmentShouldExist ) {
   			if ( this.fragment ) {
   				this.fragment.update();
   			} else {
-  				// TODO can this happen?
-  				newFragment = new RepeatedFragment({
-  					owner: this,
-  					template: this.template.f,
-  					indexRef: this.template.i
-  				}).bind( this.model );
-  			}
-  		}
-
-  		// WITH is now IF_WITH; WITH is only used for {{>partial context}}
-  		else if ( this.sectionType === SECTION_WITH ) {
-  			if ( this.fragment ) {
-  				this.fragment.update();
-  			} else {
-  				newFragment = new Fragment({
-  					owner: this,
-  					template: this.template.f
-  				}).bind( this.model );
-  			}
-  		}
-
-  		else if ( this.sectionType === SECTION_IF_WITH ) {
-  			if ( this.fragment ) {
-  				if ( isEmpty( value ) ) {
-  					if ( this.rendered ) {
-  						this.fragment.unbind().unrender( true );
-  					}
-
-  					this.fragment = null;
+  				if ( this.sectionType === SECTION_EACH ) {
+  					newFragment = new RepeatedFragment({
+  						owner: this,
+  						template: this.template.f,
+  						indexRef: this.template.i
+  					}).bind( this.model );
   				} else {
-  					this.fragment.update();
+  	 				// only with and if-with provide context - if and unless do not
+  					var context = this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS ? this.model : null;
+  					newFragment = new Fragment({
+  						owner: this,
+  						template: this.template.f
+  					}).bind( context );
   				}
-  			} else if ( !isEmpty( value ) ) {
-  				newFragment = new Fragment({
-  					owner: this,
-  					template: this.template.f
-  				}).bind( this.model );
   			}
-  		}
-
-  		else {
-  			var fragmentShouldExist = siblingFalsey && ( this.sectionType === SECTION_UNLESS ? isEmpty( value ) : !!value && !isEmpty( value ) );
-
-  			if ( this.fragment ) {
-  				if ( fragmentShouldExist ) {
-  					this.fragment.update();
-  				} else {
-  					if ( this.rendered ) {
-  						this.fragment.unbind().unrender( true );
-  					}
-
-  					this.fragment = null;
-  				}
-  			} else if ( fragmentShouldExist ) {
-  				newFragment = new Fragment({
-  					owner: this,
-  					template: this.template.f
-  				}).bind( null );
+  		} else {
+  			if ( this.fragment && this.rendered ) {
+  				this.fragment.unbind().unrender( true );
   			}
+
+  			this.fragment = null;
   		}
 
   		if ( newFragment ) {
@@ -16020,7 +16012,7 @@
   	};
 
   	Yielder.prototype.findAll = function findAll ( selector, queryResult ) {
-  		this.fragment.find( selector, queryResult );
+  		this.fragment.findAll( selector, queryResult );
   	};
 
   	Yielder.prototype.findComponent = function findComponent ( name ) {
@@ -17030,7 +17022,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.3' },
+  	VERSION:        { value: '0.8.4' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
