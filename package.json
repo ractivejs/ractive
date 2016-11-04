@@ -70,8 +70,8 @@
     "edge-release": "sh ./scripts/edge-release.sh",
     "fakebuild": "sh ./scripts/build.sh --fake",
     "promises-aplus-tests": "./scripts/promises-aplus-tests.js",
-    "lint": "node node_modules/eslint/bin/eslint src/ --ext .js",
-    "lint-tests": "node node_modules/eslint/bin/eslint test/__nodetests test/__tests test/testdeps --ext .js",
+    "lint-src": "node node_modules/eslint/bin/eslint src/ --ext .js",
+    "lint-test": "node node_modules/eslint/bin/eslint test/node-tests/ test/browser-tests/ --ext .js",
     "coverage": "karma start",
     "coveralls": "npm run coverage && cat ./tmp/coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./tmp/coverage"
   },
