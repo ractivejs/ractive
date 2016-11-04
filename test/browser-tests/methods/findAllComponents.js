@@ -16,7 +16,7 @@ export default function() {
 		components: { Widget, Decoy }
 	});
 
-	test( 'ractive.findAllComponents() finds all components, of any type', function ( t ) {
+	test( 'ractive.findAllComponents() finds all components, of any type', ( t ) => {
 		const ractive = new MockRactive({
 			el: fixture,
 			template: '<Widget/><Widget/><Widget/>'
@@ -28,7 +28,7 @@ export default function() {
 		t.ok( widgets[0] instanceof Widget && widgets[1] instanceof Widget && widgets[2] instanceof Widget );
 	});
 
-	test( 'ractive.findAllComponents(selector) finds all components of type `selector`', function ( t ) {
+	test( 'ractive.findAllComponents(selector) finds all components of type `selector`', ( t ) => {
 		const ractive = new MockRactive({
 			el: fixture,
 			template: '<Widget/><Decoy/><Widget/>'
@@ -40,7 +40,7 @@ export default function() {
 		t.ok( widgets[0] instanceof Widget && widgets[1] instanceof Widget );
 	});
 
-	test( 'ractive.findAllComponents(selector, {live: true}) returns a live query that maintains sort order', function ( t ) {
+	test( 'ractive.findAllComponents(selector, {live: true}) returns a live query that maintains sort order', ( t ) => {
 		const ractive = new MockRactive({
 			el: fixture,
 			template: '{{#widgets}}<div><Widget content="{{this}}"/></div>{{/widgets}}',
@@ -75,7 +75,7 @@ export default function() {
 		t.ok( widgets[3] === widgetB );
 	});
 
-	test( 'Components containing other components work as expected with ractive.findAllComponents()', function ( t ) {
+	test( 'Components containing other components work as expected with ractive.findAllComponents()', ( t ) => {
 		const Compound = MockRactive.extend({
 			template: '<Widget content="foo"/><div><Widget content="bar"/></div>'
 		});
@@ -235,8 +235,8 @@ export default function() {
 		r1.attachChild( r2, { target: 'anchor' } );
 		r1.attachChild( r3 );
 
-		let q1 = r1.findAllComponents( { live: true } );
-		let q2 = r1.findAllComponents( { live: true, remote: true } );
+		const q1 = r1.findAllComponents( { live: true } );
+		const q2 = r1.findAllComponents( { live: true, remote: true } );
 
 		t.equal( q1.length, 2 );
 		t.equal( q2.length, 4 );

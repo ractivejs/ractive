@@ -44,7 +44,7 @@ export default function() {
 			template: ''
 		});
 
-		var val;
+		let val;
 		r.observe( '@this.children.byName.foo.length', v => val = v );
 		t.ok( val === undefined, 'starts undefined' );
 		r.attachChild( r1, { target: 'foo' } );

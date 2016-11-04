@@ -11,7 +11,7 @@ export default function() {
 
 			const done = t.async();
 
-			let items = [ 'alice', 'bob', 'charles' ];
+			const items = [ 'alice', 'bob', 'charles' ];
 
 			const ractive = new Ractive({
 				el: fixture,
@@ -76,7 +76,7 @@ export default function() {
 	});
 
 	test( 'splice with one argument (#1943)', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items}}{{this}}{{/}}',
 			data: {

@@ -20,7 +20,7 @@ export default function() {
 			el: fixture
 		});
 
-		t.throws(function(){
+		t.throws(() => {
 			ractive.reset( 'data' );
 		});
 
@@ -29,7 +29,7 @@ export default function() {
 		// ractive.reset(fn(), cb)
 		// Otherwise introduces ambiguity...
 		t.throws( () => {
-			ractive.reset( function () {}, function () {});
+			ractive.reset( () => {}, () => {});
 		});
 	});
 
@@ -73,7 +73,7 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'fizz' );
 		ractive.set('condition', false);
-		ractive.reset( ractive.viewmodel.get() ).then( function () {
+		ractive.reset( ractive.viewmodel.get() ).then( () => {
 			t.htmlEqual( fixture.innerHTML, 'bizz' );
 			done();
 		});
@@ -297,13 +297,13 @@ export default function() {
 	});
 
 	test( 'resetting an instance of a component with a data function (#1745)', t => {
-		let Widget = Ractive.extend({
+		const Widget = Ractive.extend({
 			data () {
 				return { foo: 'bar' };
 			}
 		});
 
-		let widget = new Widget();
+		const widget = new Widget();
 
 		widget.set( 'foo', 'baz' );
 		widget.reset();

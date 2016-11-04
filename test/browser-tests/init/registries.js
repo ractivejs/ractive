@@ -6,10 +6,10 @@ export default function() {
 	initModule( 'init/registries.js' );
 
 	test( 'has globally registered', t => {
-		let foo = {};
+		const foo = {};
 
 		registries.forEach( r => {
-			let target = r.useDefaults ? Ractive.defaults : Ractive;
+			const target = r.useDefaults ? Ractive.defaults : Ractive;
 			target[ r.name ].foo = foo;
 		});
 
@@ -23,7 +23,7 @@ export default function() {
 		});
 
 		registries.forEach( r => {
-			let target = r.useDefaults ? Ractive.defaults : Ractive;
+			const target = r.useDefaults ? Ractive.defaults : Ractive;
 			delete target[ r.name ] .foo;
 		});
 	});

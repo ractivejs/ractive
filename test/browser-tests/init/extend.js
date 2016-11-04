@@ -197,7 +197,7 @@ export default function() {
 			let warned;
 			onWarn( () => warned = true );
 
-			let LessBad = Ractive.extend({
+			const LessBad = Ractive.extend({
 				data () {
 					return new Foo();
 				}

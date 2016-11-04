@@ -7,7 +7,7 @@ export default function() {
 
 	[ true, false ].forEach( modifyArrays => {
 		test( `ractive.unshift() (modifyArrays: ${modifyArrays})`, t => {
-			let items = [ 'alice', 'bob', 'charles' ];
+			const items = [ 'alice', 'bob', 'charles' ];
 
 			const ractive = new Ractive({
 				el: fixture,
@@ -50,7 +50,7 @@ export default function() {
 	});
 
 	test( 'Check for this.model existence when rebinding (#2114)', t => {
-		let list = [ {} ];
+		const list = [ {} ];
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -66,7 +66,7 @@ export default function() {
 	});
 
 	test( 'Nested sections don\'t grow a context on rebind during smart updates #1737', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: `
 			{{#each outer}}
@@ -96,7 +96,7 @@ export default function() {
 	});
 
 	test( 'Array updates cause sections to shuffle with correct results', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#each items}}{{.title}}{{#each .tags}}{{.}}{{/each}}{{/each}}',
 			data: {

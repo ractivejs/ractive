@@ -6,7 +6,7 @@ export default function() {
 
 	test( 'sharing names with array mutator functions doesn\'t break events', t => {
 		const eventNames = ['sort', 'reverse', 'push', 'pop', 'shift', 'unshift', 'fhtagn']; // the last one just tests the test
-		let results = new Object( null );
+		const results = new Object( null );
 
 		t.expect( eventNames.length );
 
@@ -112,7 +112,7 @@ export default function() {
 
 		const ractive = new Ractive( {} );
 
-		ractive.once( 'foo bar', function () {
+		ractive.once( 'foo bar', () => {
 			t.ok( true );
 		});
 
@@ -127,7 +127,7 @@ export default function() {
 			template: '<span id="test" on-click="foo"/>'
 		});
 
-		let fired = [];
+		const fired = [];
 
 		ractive.on( 'foo.* fuzzy *.bop', function () {
 			fired.push( this.event.name );
@@ -151,7 +151,7 @@ export default function() {
 
 		ractive.on( 'foo', first );
 
-		ractive.on( 'foo', function () {
+		ractive.on( 'foo', () => {
 			t.ok( true );
 		});
 

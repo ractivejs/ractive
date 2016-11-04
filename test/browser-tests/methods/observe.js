@@ -62,7 +62,7 @@ export default function() {
 			data: { foo: 'bar' }
 		});
 
-		ractive.observe( 'foo', function ( foo ) {
+		ractive.observe( 'foo', ( foo ) => {
 			t.equal( foo, 'bar' );
 		});
 	});
@@ -76,7 +76,7 @@ export default function() {
 			data: {}
 		});
 
-		ractive.observe( 'foo', function ( foo, old, keypath ) {
+		ractive.observe( 'foo', ( foo, old, keypath ) => {
 			t.ok( !foo );
 			t.equal( keypath, 'foo' );
 		});
@@ -106,7 +106,7 @@ export default function() {
 			data: { foo: 'bar' }
 		});
 
-		ractive.observe( 'foo', function ( n, o ) {
+		ractive.observe( 'foo', ( n, o ) => {
 			t.equal( o, 'bar' );
 			t.equal( n, 'baz' );
 		}, { init: false });
@@ -162,7 +162,7 @@ export default function() {
 			template: 'irrelevant'
 		});
 
-		let results = {};
+		const results = {};
 
 		ractive.observe( 'foo bar baz', ( n, o, k ) => {
 			results[ k ] = n;
@@ -238,7 +238,7 @@ export default function() {
 		});
 
 		try {
-			ractive.observe( 'foo', function () {
+			ractive.observe( 'foo', () => {
 				throw new Error( 'test' );
 			});
 		} catch ( err ) {
@@ -246,7 +246,7 @@ export default function() {
 		}
 
 		try {
-			ractive.observe( 'bar.*', function () {
+			ractive.observe( 'bar.*', () => {
 				throw new Error( 'test' );
 			});
 		} catch ( err ) {
@@ -277,9 +277,9 @@ export default function() {
 	test( '.observeOnce() functionality', t => {
 		t.expect( 1 );
 
-		let ractive = new Ractive({ data: { foo: 'bar' } });
+		const ractive = new Ractive({ data: { foo: 'bar' } });
 
-		ractive.observeOnce( 'foo', function () {
+		ractive.observeOnce( 'foo', () => {
 			t.ok( true );
 		});
 
@@ -290,7 +290,7 @@ export default function() {
 	test( 'Observer with no keypath argument (#1868)', t => {
 		t.expect( 1 );
 
-		let ractive = new Ractive();
+		const ractive = new Ractive();
 
 		ractive.observe( data => t.equal( data.answer, 42 ), { init: false });
 		ractive.set( 'answer', 42 );
@@ -299,7 +299,7 @@ export default function() {
 	test( 'Observer with empty string keypath argument (#1868)', t => {
 		t.expect( 1 );
 
-		let ractive = new Ractive();
+		const ractive = new Ractive();
 
 		ractive.observe( '', data => t.equal( data.answer, 42 ), { init: false });
 		ractive.set( 'answer', 42 );
@@ -312,7 +312,7 @@ export default function() {
 		let rendered = 0;
 		let observed = 0;
 
-		let Widget = Ractive.extend({
+		const Widget = Ractive.extend({
 			template: '{{foo}}',
 			onrender () {
 				rendered += 1;
@@ -320,7 +320,7 @@ export default function() {
 			}
 		});
 
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: `{{#if foo}}<Widget foo='{{foo}}'/>{{/if}}`,
 			data: { foo: false },
@@ -366,7 +366,7 @@ export default function() {
 
 		let expected = 1;
 
-		ractive.observe( 'foo.bar.*', function ( n, o, keypath ) {
+		ractive.observe( 'foo.bar.*', ( n, o, keypath ) => {
 			t.equal( n, expected );
 			t.equal( keypath, 'foo.bar.baz' );
 		});
@@ -433,7 +433,7 @@ export default function() {
 			data: {}
 		});
 
-		ractive.observe( '*', function () {
+		ractive.observe( '*', () => {
 			t.ok( true );
 		});
 	});
@@ -449,7 +449,7 @@ export default function() {
 
 		let expected = { baz: 1 };
 
-		ractive.observe( 'foo.*', function ( n, o, keypath ) {
+		ractive.observe( 'foo.*', ( n, o, keypath ) => {
 			t.deepEqual( n, expected );
 			t.equal( keypath, 'foo.bar' );
 		});
@@ -491,7 +491,7 @@ export default function() {
 
 		let expected = 1;
 
-		ractive.observe( 'foo.*.baz', function ( n, o, keypath ) {
+		ractive.observe( 'foo.*.baz', ( n, o, keypath ) => {
 			t.deepEqual( n, expected );
 			t.equal( keypath, 'foo.bar.baz' );
 		});
@@ -517,7 +517,7 @@ export default function() {
 
 		let expected = 1;
 
-		ractive.observe( 'foo.*.baz', function ( n, o, keypath ) {
+		ractive.observe( 'foo.*.baz', ( n, o, keypath ) => {
 			t.deepEqual( n, expected, 'foo.*.baz observer' );
 			t.equal( keypath, 'foo.bar.baz', 'keypath' );
 		});
@@ -543,7 +543,7 @@ export default function() {
 
 		let expected = 1;
 
-		ractive.observe( 'foo.*.*', function ( n, o, keypath ) {
+		ractive.observe( 'foo.*.*', ( n, o, keypath ) => {
 			t.deepEqual( n, expected );
 			t.equal( keypath, 'foo.bar.baz' );
 		});
@@ -563,7 +563,7 @@ export default function() {
 
 		let expected = 1;
 
-		ractive.observe( 'gup.*.bar.baz', function ( n, o, keypath ) {
+		ractive.observe( 'gup.*.bar.baz', ( n, o, keypath ) => {
 			t.deepEqual( n, expected );
 			t.equal( keypath, 'gup.foo.bar.baz' );
 		});
@@ -581,7 +581,7 @@ export default function() {
 			data: { items: [ 'a', 'b', 'c' ] }
 		});
 
-		ractive.observe( 'items.*', function ( n, o, k ) {
+		ractive.observe( 'items.*', ( n, o, k ) => {
 			t.equal( k, 'items.1' );
 			t.equal( n, 'd' );
 		}, { init: false });
@@ -599,9 +599,9 @@ export default function() {
 			}
 		});
 
-		let values = {};
+		const values = {};
 
-		ractive.observe( '*.number', function ( n, o, k ) {
+		ractive.observe( '*.number', ( n, o, k ) => {
 			values[ k ] = n;
 		});
 
@@ -630,7 +630,7 @@ export default function() {
 		let lastValue;
 		let observedLengthChange = false;
 
-		ractive.observe( 'items.*', function ( n, o, k ) {
+		ractive.observe( 'items.*', ( n, o, k ) => {
 			lastKeypath = k;
 			lastValue = n;
 
@@ -744,7 +744,7 @@ export default function() {
 			}
 		});
 
-		let dummy = [];
+		const dummy = [];
 		const observer = ractive.observe( 'fruits.*', fruit => {
 			dummy.push( fruit );
 		}, { defer: true });
@@ -758,7 +758,7 @@ export default function() {
 	});
 
 	test( 'Asterisks should not be left in computation keypaths (#1472)', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: '{{foo * 2}}',
 			data: { foo: 3 }
@@ -828,14 +828,14 @@ export default function() {
 	}
 
 	test( 'Observer fires on initialisation for computed properties', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			data: { num: 21 },
 			computed: {
 				doubled: '${num}*2'
 			}
 		});
 
-		let observed = {};
+		const observed = {};
 
 		ractive.observe( '*', ( n, o, k ) => {
 			observed[k] = n;
@@ -1391,6 +1391,6 @@ export default function() {
 
 		r.set( 'a', 1 );
 		t.equal( count1, 1 );
-		t.equal( count2, 1 )
+		t.equal( count2, 1 );
 	});
 }

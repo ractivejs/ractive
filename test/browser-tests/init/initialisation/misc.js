@@ -15,7 +15,7 @@ export default function() {
 			let warned;
 			onWarn( message => warned = message );
 
-			let ractive = new Ractive({
+			const ractive = new Ractive({
 				noIntro () {
 					return true;
 				}

@@ -13,7 +13,7 @@ export default function() {
 			template: '<span id="test" on-click="someEvent">click me</span>'
 		});
 
-		ractive.on( 'someEvent', function ( event ) {
+		ractive.on( 'someEvent', ( event ) => {
 			t.ok( true );
 			t.equal( event.original.type, 'click' );
 		});
@@ -58,7 +58,7 @@ export default function() {
 			template: '<span id="test" on-click="someEvent">click me</span>'
 		});
 
-		ractive.on( 'someEvent', function ( event ) {
+		ractive.on( 'someEvent', ( event ) => {
 			t.equal( event.node, ractive.nodes.test );
 			t.equal( event.name, 'someEvent' );
 			t.ok( event.original );
@@ -141,7 +141,7 @@ export default function() {
 			}
 		});
 
-		ractive.on( 'someEvent', function ( event ) {
+		ractive.on( 'someEvent', ( event ) => {
 			t.equal( event.resolve(), 'foo' );
 			t.equal( event.get( '.bar' ), 'test' );
 		});
@@ -167,11 +167,11 @@ export default function() {
 			components: { cmp, cmp2 }
 		});
 
-		ractive.on( 'cmp.someEvent', function ( event ) {
+		ractive.on( 'cmp.someEvent', ( event ) => {
 			t.equal( event.resolve(), 'baz' );
 			t.equal( event.get( '.bar' ), 'test' );
 		});
-		ractive.on( 'cmp2.someEvent', function ( event ) {
+		ractive.on( 'cmp2.someEvent', ( event ) => {
 			t.equal( event.resolve(), 'oof' );
 			t.equal( event.get( '.bar' ), 'test' );
 		});
@@ -222,7 +222,7 @@ export default function() {
 			}
 		});
 
-		ractive.on( 'someEvent', function ( event ) {
+		ractive.on( 'someEvent', ( event ) => {
 			t.equal( event.node.innerHTML, '2: c' );
 			t.equal( event.resolve(), 'array.2' );
 			t.equal( event.get(), 'c' );
@@ -247,7 +247,7 @@ export default function() {
 
 		t.equal( ractive.nodes.test_001.innerHTML, '001' );
 
-		ractive.on( 'someEvent', function ( event ) {
+		ractive.on( 'someEvent', ( event ) => {
 			t.equal( event.get( 'x' ), 0 );
 			t.equal( event.get( 'y' ), 0 );
 			t.equal( event.get( 'z' ), 1 );
@@ -259,7 +259,7 @@ export default function() {
 	test( 'Splicing arrays correctly modifies two-way bindings', t => {
 		t.expect( 25 );
 
-		let items = [
+		const items = [
 			{ description: 'one' },
 			{ description: 'two', done: true },
 			{ description: 'three' }
@@ -366,7 +366,7 @@ export default function() {
 
 		let changes;
 
-		ractive.on( 'change', function ( c ) {
+		ractive.on( 'change', ( c ) => {
 			changes = c;
 		});
 

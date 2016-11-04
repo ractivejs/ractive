@@ -6,7 +6,7 @@ export default function() {
 
 	[ true, false ].forEach( modifyArrays => {
 		test( `ractive.push() (modifyArrays: ${modifyArrays})`, t => {
-			let items = [ 'alice', 'bob', 'charles' ];
+			const items = [ 'alice', 'bob', 'charles' ];
 
 			const ractive = new Ractive({
 				el: fixture,
@@ -29,7 +29,7 @@ export default function() {
 
 		const done = t.async();
 
-		let items = [ 'alice', 'bob', 'charles' ];
+		const items = [ 'alice', 'bob', 'charles' ];
 		let transitioned;
 
 		const ractive = new Ractive({

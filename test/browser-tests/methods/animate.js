@@ -26,7 +26,7 @@ export default function() {
 			data: { foo: 0 }
 		});
 
-		ractive.animate( 'foo', 100, { duration: 10 }).then( function () {
+		ractive.animate( 'foo', 100, { duration: 10 }).then( () => {
 			t.htmlEqual( fixture.innerHTML, '100' );
 			done();
 		});
@@ -95,7 +95,7 @@ export default function() {
 
 		const done = t.async();
 
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			data: {
 				foo: 1
@@ -124,7 +124,7 @@ export default function() {
 
 		const done = t.async();
 
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			data: {
 				foo: 1

@@ -181,7 +181,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div contenteditable="true">one</div><div contenteditable="true">two</div>' );
 	});
 
-	[ 'number', 'range' ].forEach( function ( type ) {
+	[ 'number', 'range' ].forEach( ( type ) => {
 		test( 'input type=' + type + ' values are coerced', t => {
 			const ractive = new Ractive({
 				el: fixture,
@@ -405,9 +405,9 @@ export default function() {
 			template: '{{#items}}<input type="radio" name="{{~/color}}" value="{{.}}" />{{/items}}',
 			data: {
 				items: [
-					"red", "blue"
+					'red', 'blue'
 				],
-				color: "red"
+				color: 'red'
 			}
 		});
 
@@ -460,7 +460,7 @@ export default function() {
 			},
 			computed: {
 				rows() {
-					var list = this.get( 'list' ).slice(0);
+					const list = this.get( 'list' ).slice(0);
 					return list.sort( ( a, b ) => a.v.localeCompare( b.v ) ).map( o => o.o );
 				}
 			},
@@ -708,7 +708,7 @@ export default function() {
 			},
 			onrender () {
 				inputs = this.findAll( 'input' );
-				whatever: { x: 1 }
+				whatever: { x: 1; }
 			}
 		});
 
@@ -765,7 +765,7 @@ export default function() {
 	test( 'Change events propagate after the model has been updated (#1371)', t => {
 		t.expect( 1 );
 
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: `
 				<select value='{{value}}' on-change='@this.checkValue(value)'>
@@ -1214,7 +1214,7 @@ export default function() {
 			},
 			syncComputedChildren: true
 		});
-		r.set( 'some.expr', function() { return r.get('array'); } );
+		r.set( 'some.expr', () => { return r.get('array'); } );
 
 		const input = r.find( 'input' );
 		const label = r.find( 'div' );
@@ -1234,7 +1234,7 @@ export default function() {
 			},
 			syncComputedChildren: true
 		});
-		r.set( 'some.expr', function() { return r.get('array'); } );
+		r.set( 'some.expr', () => { return r.get('array'); } );
 
 		const input = r.find( 'input' );
 		const label = r.find( 'div' );
@@ -1255,7 +1255,7 @@ export default function() {
 			syncComputedChildren: true
 		});
 
-		r.set( 'foos',function() { return r.get( 'foo' ); });
+		r.set( 'foos',() => { return r.get( 'foo' ); });
 
 		const [ check1, check2 ] = r.findAll( 'input' );
 

@@ -6,7 +6,7 @@ export default function() {
 
 	[ true, false ].forEach( modifyArrays => {
 		test( `ractive.reverse() (modifyArrays: ${modifyArrays})`, t => {
-			let items = [ 'alice', 'bob', 'charles' ];
+			const items = [ 'alice', 'bob', 'charles' ];
 
 			const ractive = new Ractive({
 				el: fixture,

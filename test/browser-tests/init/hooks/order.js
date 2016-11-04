@@ -13,7 +13,7 @@ export default function() {
 	];
 
 	test( 'basic order', t => {
-		let options = {
+		const options = {
 			el: fixture,
 			template: 'foo'
 		};
@@ -42,10 +42,10 @@ export default function() {
 	});
 
 	test( 'hooks call _super', t => {
-		let superOptions = {};
+		const superOptions = {};
 		let options = {};
 
-		let fired = [];
+		const fired = [];
 
 		hooks.forEach( hook => {
 			superOptions[ hook ] = function () {
@@ -164,10 +164,10 @@ export default function() {
 		test( hook, t => {
 			const done = t.async();
 
-			let fired = [];
+			const fired = [];
 
 			function getOptions ( level ) {
-				let options = {};
+				const options = {};
 				options[ hook ] = function () {
 					fired.push( level );
 				};

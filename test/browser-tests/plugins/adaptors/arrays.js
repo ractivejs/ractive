@@ -96,7 +96,7 @@ export default function() {
 			template: '<p>{{person.name}}</p>'
 		});
 
-		let people = [
+		const people = [
 			{ name: 'alice' },
 			{ name: 'bob' },
 			{ name: 'charles' }
@@ -212,7 +212,7 @@ export default function() {
 	// });
 
 	test( 'popping from an empty array (#1665)', t => {
-		let array = [];
+		const array = [];
 
 		new Ractive({
 			template: '{{array}}',

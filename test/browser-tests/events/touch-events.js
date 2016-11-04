@@ -18,7 +18,7 @@ export default function() {
 				<span id="test2" on-touchstart-mousedown="foo"/>`
 		});
 
-		ractive.on( 'foo', function () {
+		ractive.on( 'foo', () => {
 			t.ok( true );
 		});
 

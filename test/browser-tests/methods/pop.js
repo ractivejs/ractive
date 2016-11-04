@@ -10,7 +10,7 @@ export default function() {
 
 			const done = t.async();
 
-			let items = [ 'alice', 'bob', 'charles' ];
+			const items = [ 'alice', 'bob', 'charles' ];
 
 			const ractive = new Ractive({
 				el: fixture,

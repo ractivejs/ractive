@@ -149,7 +149,7 @@ export default function() {
 	});
 
 	test( 'Updating values with properties corresponding to unresolved references works', t => {
-		let user = {};
+		const user = {};
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -246,7 +246,7 @@ export default function() {
 	test( 'Bindings without explicit keypaths can survive a splice operation', t => {
 		t.expect( 1 );
 
-		let items = new Array( 3 );
+		const items = new Array( 3 );
 
 		onWarn( () => {} ); // suppress
 
@@ -383,7 +383,7 @@ export default function() {
 	});
 
 	test( 'Regression test for #271', t => {
-		let items = [{}];
+		const items = [{}];
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items}}<p>foo</p>{{# items.length > 1 }}<p>bar</p>{{/}}{{/items}}',
@@ -404,7 +404,7 @@ export default function() {
 	});
 
 	test( 'Partials in shuffled sections are updated/removed correctly (#297)', t => {
-		let items = [ 'one', 'two', 'three' ];
+		const items = [ 'one', 'two', 'three' ];
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -422,8 +422,8 @@ export default function() {
 	});
 
 	test( 'Regression test for #316', t => {
-		let a = [];
-		let b = [];
+		const a = [];
+		const b = [];
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -448,7 +448,7 @@ export default function() {
 			template: '<button on-click=\'@this.fire("test", event, ["just a string"])\'>test 1</button><button on-click=\'@this.fire("test", event, { bar: 3 })\'>test 2</button>'
 		});
 
-		ractive.on( 'test', function ( event, arg ) {
+		ractive.on( 'test', ( event, arg ) => {
 			t.deepEqual( arg, expected );
 		});
 
@@ -530,7 +530,7 @@ export default function() {
 
 	// only run these tests if magic mode is supported
 	try {
-		let obj = {};
+		const obj = {};
 		let _foo;
 		Object.defineProperty( obj, 'foo', {
 			get () {
@@ -542,7 +542,7 @@ export default function() {
 		});
 
 		test( 'Array mutators work when `magic` is `true` (#376)', t => {
-			let items = [
+			const items = [
 				{ name: 'one' },
 				{ name: 'two' },
 				{ name: 'three' }
@@ -562,7 +562,7 @@ export default function() {
 		test( 'Implicit iterators work in magic mode', t => {
 			onWarn( msg => t.ok( /should be a plain JavaScript object/.test( msg ) ) );
 
-			let items = [
+			const items = [
 				{ name: 'one' },
 				{ name: 'two' },
 				{ name: 'three' }
@@ -633,7 +633,7 @@ export default function() {
 			{ desc: 'foo' },
 			{ desc: 'bar' },
 			{ desc: 'baz' }
-		];
+			];
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -699,7 +699,7 @@ export default function() {
 			template: 'foo'
 		});
 
-		ractive.on( 'teardown', function () {
+		ractive.on( 'teardown', () => {
 			t.ok( true );
 		});
 
@@ -786,7 +786,7 @@ export default function() {
 			throw 'ruh-roh';
 		});
 
-		p.then( null, function ( err ) {
+		p.then( null, ( err ) => {
 			t.equal( err, 'ruh-roh' );
 			done();
 		});
@@ -1063,7 +1063,7 @@ export default function() {
 			}
 		});
 
-		ractive.observe('selected', function() {
+		ractive.observe('selected', () => {
 			ractive.set('editing', false);
 		}, { init: false });
 
@@ -1368,8 +1368,8 @@ export default function() {
 			}
 		});
 
-		let div = Ractive.getNodeInfo( ractive.find( 'div' ) );
-		let p = Ractive.getNodeInfo( ractive.find( 'p' ) );
+		const div = Ractive.getNodeInfo( ractive.find( 'div' ) );
+		const p = Ractive.getNodeInfo( ractive.find( 'p' ) );
 		let [b1, b2] = ractive.findAll( 'b' ).map( n => Ractive.getNodeInfo( n ) );
 		let [span1, span2, span3] = ractive.findAll( 'span' ).map( n => Ractive.getNodeInfo( n ) );
 		let [foo1, foo2, foo3] = ractive.findAllComponents( 'foo' );
@@ -1429,7 +1429,7 @@ export default function() {
 	test( 'regression test for #1630', t => {
 		const ractive = new Ractive();
 
-		let obj = { foo: 'bar' };
+		const obj = { foo: 'bar' };
 		obj.constructor = obj.constructor;
 
 		ractive.set( obj );
@@ -1446,7 +1446,7 @@ export default function() {
 	});
 
 	test( 'multiple pattern keypaths can be set simultaneously (#1319)', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			data: {
 				foo: [ 1, 2, 3 ],
 				bar: [ 4, 5, 6 ]
@@ -1534,7 +1534,7 @@ export default function() {
 		test( 'Ractive.DEBUG can be changed', t => {
 			t.expect( 0 );
 
-			let DEBUG = Ractive.DEBUG;
+			const DEBUG = Ractive.DEBUG;
 			Ractive.DEBUG = false;
 
 			onWarn( () => t.ok( false ) );
@@ -1721,7 +1721,7 @@ export default function() {
 		});
 
 		test( 'Components with two-way bindings set parent values on initialisation', t => {
-			var Dropdown, ractive;
+			let Dropdown, ractive;
 
 			Dropdown = Ractive.extend({
 				template: '<select value="{{value}}">{{#options}}<option value="{{this}}">{{ this[ display ] }}</option>{{/options}}</select>'

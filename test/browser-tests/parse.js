@@ -9,8 +9,8 @@ export default function() {
 
 	const phantom = /phantomjs/i.test( navigator.userAgent );
 
-	test( 'Mismatched template version causes error', function ( t ) {
-		t.throws( function () {
+	test( 'Mismatched template version causes error', ( t ) => {
+		t.throws( () => {
 			new Ractive({
 				template: {v:'nope',t:[]}
 			});
@@ -20,7 +20,7 @@ export default function() {
 	tests.forEach( theTest => {
 		if ( theTest.skipPhantom && phantom ) return;
 
-		test( theTest.name, function ( t ) {
+		test( theTest.name, ( t ) => {
 			// disable for tests unless explicitly specified
 			// we can just test the signatures, so set false
 			theTest.options = theTest.options || { csp: false };
@@ -45,7 +45,7 @@ export default function() {
 					t.deepEqual( Object.keys( parsed.e ),  expectedKeys );
 					expectedKeys.forEach( key => {
 						// normalize function whitepace for browser vs phantomjs
-						let actual = parsed.e[ key ].toString().replace( ') \{', ')\{');
+						const actual = parsed.e[ key ].toString().replace( ') \{', ')\{');
 						t.equal( actual, theTest.parsed.e[ key ] );
 					});
 

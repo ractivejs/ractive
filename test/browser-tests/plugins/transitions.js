@@ -19,7 +19,7 @@ export default function() {
 		Ractive.transitions.test = function ( t, params ) {
 			const delay = ( params && params.delay ) || 10;
 
-			setTimeout( function () {
+			setTimeout( () => {
 				if ( t.ractive.beforeComplete ) {
 					t.ractive.beforeComplete( t, params );
 				}
@@ -92,7 +92,7 @@ export default function() {
 
 		p = ractive.find( 'p' );
 
-		ractive.set( 'foo', false ).then( function () {
+		ractive.set( 'foo', false ).then( () => {
 			t.ok( shouldHaveCompleted, 'promise was fulfilled before transition had completed' );
 			t.ok( !fixture.contains( p ), '<p> element should have been removed from the DOM' );
 			done();
@@ -164,7 +164,7 @@ export default function() {
 			el: fixture,
 			data: { foo: true },
 			oncomplete () {
-				this.set( 'foo', false ).then( function(){
+				this.set( 'foo', false ).then( () => {
 					t.ok( !transitioned, 'outro transition happened');
 					done();
 				});
@@ -259,7 +259,7 @@ export default function() {
 		t.expect(3);
 
 		let uid = 0;
-		let objects = [];
+		const objects = [];
 
 		new Ractive({
 			el: fixture,
@@ -300,7 +300,7 @@ export default function() {
 	});
 
 	test( 'An intro will be aborted if a corresponding outro begins before it completes', t => {
-		var ractive, tooLate;
+		let ractive, tooLate;
 
 		const done = t.async();
 		t.expect( 0 );
@@ -309,23 +309,23 @@ export default function() {
 			el: fixture,
 			template: '{{#showBox}}<div wait-in="2000" wait-out="1"></div>{{/showBox}}',
 			transitions: {
-				wait: function ( t, ms ) {
+				wait ( t, ms ) {
 					setTimeout( t.complete, ms );
 				}
 			}
 		});
 
-		ractive.set( 'showBox', true ).then( function () {
+		ractive.set( 'showBox', true ).then( () => {
 			if ( !tooLate ) {
 				done();
 			}
 		});
 
-		setTimeout( function () {
+		setTimeout( () => {
 			ractive.set( 'showBox', false );
 		}, 0 );
 
-		setTimeout( function () {
+		setTimeout( () => {
 			tooLate = true;
 		}, 200 );
 	});

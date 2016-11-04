@@ -16,7 +16,7 @@ export default function() {
 		let lastValue;
 		let observedLengthChange = false;
 
-		ractive.observe( 'items.*', function ( n, o, k ) {
+		ractive.observe( 'items.*', ( n, o, k ) => {
 			lastKeypath = k;
 			lastValue = n;
 
@@ -112,7 +112,7 @@ export default function() {
 			}
 		});
 
-		let listener = r.on( 'foo', ( ev, bar ) => {
+		const listener = r.on( 'foo', ( ev, bar ) => {
 			t.equal( r.get( 'items.0.bar' ), bar );
 		});
 
@@ -157,7 +157,7 @@ export default function() {
 			}
 		});
 
-		let listener = r.on( 'foo', ( path ) => {
+		const listener = r.on( 'foo', ( path ) => {
 			t.equal( r.get( 'items.0' ), path );
 		});
 
@@ -364,7 +364,7 @@ export default function() {
 
 			t.expect( 5 );
 
-			let ractive = new Ractive({
+			const ractive = new Ractive({
 				debug: true,
 				el: fixture,
 				template: '{{#options}}{{get(this)}}{{/options}}',
@@ -377,7 +377,7 @@ export default function() {
 				}
 			});
 
-			ractive.observe( 'options.2', function ( n, o ) {
+			ractive.observe( 'options.2', ( n, o ) => {
 				t.ok( !n );
 				t.equal( o, 'c' );
 				observed = true;

@@ -16,7 +16,7 @@ export default function() {
 		components: { Widget, Decoy }
 	});
 
-	test( 'ractive.findComponent() finds the first component, of any type', function ( t ) {
+	test( 'ractive.findComponent() finds the first component, of any type', ( t ) => {
 		const ractive = new MockRactive({
 			el: fixture,
 			template: '<Widget/>'
@@ -27,7 +27,7 @@ export default function() {
 		t.ok( widget instanceof Widget );
 	});
 
-	test( 'ractive.findComponent(selector) finds the first component of type `selector`', function ( t ) {
+	test( 'ractive.findComponent(selector) finds the first component of type `selector`', ( t ) => {
 		const ractive = new MockRactive({
 			el: fixture,
 			template: '<Decoy/><Widget/>'

@@ -5,7 +5,7 @@ export default function() {
 	initModule( 'methods/subtract.js' );
 
 	test( 'ractive.subtract("foo") subtracts 1 from the value of foo', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			data: { foo: 10 }
 		});
 
@@ -17,7 +17,7 @@ export default function() {
 	});
 
 	test( 'ractive.subtract("foo",x) subtracts x from the value of foo', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			data: { foo: 10 }
 		});
 
