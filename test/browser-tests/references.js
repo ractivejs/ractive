@@ -184,4 +184,12 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, JSON.stringify( bar ) );
 	});
+
+	test( '@shared special refers to ractive-only global state', t => {
+		const r1 = new Ractive();
+		const r2 = new Ractive();
+
+		r1.set( '@shared.foo', 'bar' );
+		t.equal( r2.get( '@shared.foo' ), 'bar' );
+	});
 }

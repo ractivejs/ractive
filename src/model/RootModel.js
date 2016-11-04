@@ -4,6 +4,7 @@ import Model from './Model';
 import { handleChange, mark } from '../shared/methodCallers';
 import RactiveModel from './specials/RactiveModel';
 import GlobalModel from './specials/GlobalModel';
+import SharedModel from './specials/SharedModel';
 import { splitKeypath, unescapeKey } from '../shared/keypaths';
 import resolveReference from '../view/resolvers/resolveReference';
 
@@ -113,7 +114,7 @@ export default class RootModel extends Model {
 		const value = this.value;
 
 		key = unescapeKey( key );
-		if ( key === '@this' || key === '@global' ) return true;
+		if ( key === '@this' || key === '@global' || key === '@shared' ) return true;
 		if ( hasProp.call( value, key ) ) return true;
 
 		// mappings/links and computations
@@ -133,6 +134,7 @@ export default class RootModel extends Model {
 		if ( key[0] === '@' ) {
 			if ( key === '@this' || key === '@' ) return this.getRactiveModel();
 			if ( key === '@global' ) return GlobalModel;
+			if ( key === '@shared' ) return SharedModel;
 			return;
 		}
 

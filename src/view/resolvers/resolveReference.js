@@ -1,5 +1,6 @@
 import { splitKeypath } from '../../shared/keypaths';
 import GlobalModel from '../../model/specials/GlobalModel';
+import SharedModel from '../../model/specials/SharedModel';
 
 const keypathExpr = /^@[^\(]+\(([^\)]+)\)/;
 
@@ -56,8 +57,9 @@ export default function resolveReference ( fragment, ref ) {
 
 	// special refs
 	if ( base[0] === '@' ) {
+		// shorthand from outside the template
 		// @this referring to local ractive instance
-		if ( base === '@this' ) {
+		if ( base === '@this' || base === '@' ) {
 			return fragment.ractive.viewmodel.getRactiveModel().joinAll( keys );
 		}
 
@@ -73,6 +75,11 @@ export default function resolveReference ( fragment, ref ) {
 		// @global referring to window or global
 		else if ( base === '@global' ) {
 			return GlobalModel.joinAll( keys );
+		}
+
+		// @global referring to window or global
+		else if ( base === '@shared' ) {
+			return SharedModel.joinAll( keys );
 		}
 
 		// @keypath or @rootpath, the current keypath string, which may also be used to resolve relative keypaths
@@ -94,15 +101,9 @@ export default function resolveReference ( fragment, ref ) {
 			return context.getKeypathModel( root );
 		}
 
-		// @node is reserved for future use
-		else if ( base === '@node' ) {
-			return;
-		}
-
-		// anything else with an @ is a shortcut for @this.whatever
+		// nope
 		else {
-			keys.unshift( base.substr( 1 ) );
-			return fragment.ractive.viewmodel.getRactiveModel().joinAll( keys );
+			throw new Error( `Invalid special reference '${base}'` );
 		}
 	}
 
@@ -133,7 +134,7 @@ export default function resolveReference ( fragment, ref ) {
 
 		// alias node or iteration
 		if ( fragment.aliases  && fragment.aliases.hasOwnProperty( base ) ) {
-			let model = fragment.aliases[ base ];
+			const model = fragment.aliases[ base ];
 
 			if ( keys.length === 0 ) return model;
 			else if ( typeof model.joinAll === 'function' ) {
