@@ -64,8 +64,6 @@ export default function() {
 	});
 
 	test('Section with nested sections and inner context does splice()', t => {
-		let called = 0;
-
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -77,7 +75,6 @@ export default function() {
 			data: {
 				model: [ { thing: { inner: [3,4] } } ],
 				format ( a ) {
-					called++;
 					return a;
 				}
 			}

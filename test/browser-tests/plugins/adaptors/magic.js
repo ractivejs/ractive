@@ -158,7 +158,7 @@ export default function() {
 					thisObservedInGetter = this;
 					return 'foo';
 				},
-				set ( value ) {
+				set () {
 					thisObservedInSetter = this;
 				},
 				configurable: true,
@@ -171,7 +171,6 @@ export default function() {
 				data
 			});
 
-			const foo = data.propertyLoggingObservedThisOnCall;
 			t.strictEqual( thisObservedInGetter, data );
 
 			data.propertyLoggingObservedThisOnCall = 'foo';

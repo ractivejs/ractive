@@ -65,7 +65,8 @@ export default function() {
 	});
 
 	test( 'aliased complex computations are cached', t => {
-		let normal = 0, aliased = 0;
+		let normal = 0;
+		let aliased = 0;
 
 		new Ractive({
 			el: fixture,

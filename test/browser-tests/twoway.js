@@ -708,7 +708,6 @@ export default function() {
 			},
 			onrender () {
 				inputs = this.findAll( 'input' );
-				whatever: { x: 1; }
 			}
 		});
 
@@ -718,9 +717,8 @@ export default function() {
 	});
 
 	test( 'Changes made after render to unresolved', t => {
-		let ractive, inputs;
 
-		ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#each items}}<input type="checkbox" name="{{selected}}" value="{{this}}">{{/each}}',
 			data: {
@@ -731,7 +729,8 @@ export default function() {
 		});
 
 		ractive.set( 'selected', [ 'b' ] );
-		inputs = ractive.findAll( 'input' );
+
+		const inputs = ractive.findAll( 'input' );
 
 		t.ok( !inputs[0].checked );
 		t.ok(  inputs[1].checked );

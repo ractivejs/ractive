@@ -907,12 +907,13 @@ export default function() {
 
 	test( 'nested component @keypath references should be relative to the nested component', t => {
 		const cmp1 = Ractive.extend({
-				template: '{{#with foo.bar}}{{@keypath}}{{/with}}'
-			}),
-			cmp2 = Ractive.extend({
-				template: '{{#with baz.bat}}<cmp1 foo="{{.}}" />{{/with}}',
-				components: { cmp1 }
-			});
+			template: '{{#with foo.bar}}{{@keypath}}{{/with}}'
+		});
+
+		const cmp2 = Ractive.extend({
+			template: '{{#with baz.bat}}<cmp1 foo="{{.}}" />{{/with}}',
+			components: { cmp1 }
+		});
 
 		new Ractive({
 			el: fixture,
@@ -986,7 +987,8 @@ export default function() {
 			components: { cmp }
 		});
 
-		const outer = Ractive.getNodeInfo ( r.find( 'outer' ) ), inner = Ractive.getNodeInfo( r.find( 'inner' ) );
+		const outer = Ractive.getNodeInfo ( r.find( 'outer' ) );
+		const inner = Ractive.getNodeInfo( r.find( 'inner' ) );
 
 		t.equal( outer.resolve(), 'baz' );
 		t.equal( outer.resolve( '.', r ), 'baz' );
@@ -1055,7 +1057,9 @@ export default function() {
 
 	test( 'nested components play nice with the transition manager - #2578', t => {
 		const done = t.async();
-		let count = 0, count1 = 0, count2 = 0;
+		let count = 0;
+		let count1 = 0;
+		let count2 = 0;
 
 		const cmp2 = Ractive.extend({
 			template: 'yep',

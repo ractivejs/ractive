@@ -255,7 +255,8 @@ export default function() {
 	});
 
 	test( 'findAllComponents finds anchored components by anchor name when there is no instance name', t => {
-		const cmp1 = new Ractive(), cmp2 = new Ractive();
+		const cmp1 = new Ractive();
+		const cmp2 = new Ractive();
 		const r = new Ractive({
 			el: fixture,
 			template: '<# foo /><# bar />'
@@ -268,7 +269,8 @@ export default function() {
 	});
 
 	test( 'findAllComponents finds anchored components by instance name when available', t => {
-		const cmp1 = new Ractive(), cmp2 = new Ractive();
+		const cmp1 = new Ractive();
+		const cmp2 = new Ractive();
 		const r = new Ractive({
 			el: fixture,
 			template: '<#foo /><#bar />'

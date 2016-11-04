@@ -329,7 +329,8 @@ export default function() {
 		const cmp = Ractive.extend({
 			template: `<ul>{{#each items}}<li>{{yield with . as item}}</li>{{/each}}</ul>`
 		});
-		const r = new Ractive({
+
+		new Ractive({
 			el: fixture,
 			template: `<cmp items="{{.list}}">hello {{item}}</cmp>`,
 			data: {

@@ -220,7 +220,7 @@ export default function() {
 	});
 
 	test( 'Computations can be updated with ractive.update() (#651)', t => {
-		let bar;
+		let bar = undefined;
 
 		const ractive = new Ractive({
 			computed: {
@@ -1074,7 +1074,7 @@ export default function() {
 	// even >>> log messages don't come out. passes chrome and ff, though
 	if ( !/phantom/i.test( navigator.userAgent ) ) {
 		test( `various spread expressions compute correctly`, t => {
-			const r = new Ractive({
+			new Ractive({
 				el: fixture,
 				template: `{{ JSON.stringify([ foo, bar, ...baz, ...bat( { bip, bop: 42, ...whimmy.wham( ...[ zat, wozzle, ...qux, bar ], zip ), bif: 84 } ), bar, foo ]) }}`,
 				data: {

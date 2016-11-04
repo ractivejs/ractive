@@ -6,7 +6,6 @@ export default function() {
 
 	test( 'Merging an array of strings only creates the necessary fragments', ( t ) => {
 		let entered = 0;
-		let exited = 0;
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -18,8 +17,6 @@ export default function() {
 				log ( t ) {
 					if ( t.isIntro ) {
 						entered += 1;
-					} else {
-						exited += 1;
 					}
 
 					t.complete();
@@ -366,7 +363,10 @@ export default function() {
 		r.merge( 'list', list );
 		t.htmlEqual( fixture.innerHTML, 'c<span>c</span><span>b</span><span>a</span>' );
 
+		/*eslint-disable no-unused-vars*/
 		const [ postC, postB, postA ] = r.findAll( 'span' );
+		/*eslint-enable no-unused-vars*/
+
 		t.equal( postA.myId, 'a' );
 		t.equal( postB.myId, 'b' );
 	});

@@ -555,7 +555,11 @@ export default function() {
 	});
 
 	test( 'mapped observers shuffle correctly', t => {
-		let rel, stat, relKey, statKey;
+		let rel;
+		let stat;
+		let relKey;
+		let statKey;
+
 		const cmp = Ractive.extend({
 			onconfig () {
 				this.observe( 'foo.bar', ( v, o, k ) => {
@@ -592,7 +596,13 @@ export default function() {
 	});
 
 	test( 'mapped pattern observers shuffle correctly', t => {
-		let rel, stat, relKey, statKey, relPart, statPart;
+		let rel;
+		let stat;
+		let relKey;
+		let statKey;
+		let relPart;
+		let statPart;
+
 		const cmp = Ractive.extend({
 			onconfig () {
 				this.observe( 'foo.*', ( v, o, k, p ) => {
@@ -635,7 +645,10 @@ export default function() {
 	});
 
 	test( 'decorators shuffle correctly', t => {
-		let inits = 0, upds = 0, tears = 0;
+		let inits = 0;
+		let upds = 0;
+		let tears = 0;
+
 		const r = new Ractive({
 			el: fixture,
 			template: '{{#each list}}<span as-foo="." />{{/each}}',

@@ -628,12 +628,12 @@ export default function() {
 
 
 	test( 'Regression test for #460', t => {
-		let done = t.async(),
-			items = [
+		const done = t.async();
+		const items = [
 			{ desc: 'foo' },
 			{ desc: 'bar' },
 			{ desc: 'baz' }
-			];
+		];
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -1370,9 +1370,9 @@ export default function() {
 
 		const div = Ractive.getNodeInfo( ractive.find( 'div' ) );
 		const p = Ractive.getNodeInfo( ractive.find( 'p' ) );
-		let [b1, b2] = ractive.findAll( 'b' ).map( n => Ractive.getNodeInfo( n ) );
-		let [span1, span2, span3] = ractive.findAll( 'span' ).map( n => Ractive.getNodeInfo( n ) );
-		let [foo1, foo2, foo3] = ractive.findAllComponents( 'foo' );
+		const [b1, b2] = ractive.findAll( 'b' ).map( n => Ractive.getNodeInfo( n ) );
+		const [span1, span2, span3] = ractive.findAll( 'span' ).map( n => Ractive.getNodeInfo( n ) );
+		const [foo1, foo2, foo3] = ractive.findAllComponents( 'foo' );
 
 		t.equal( div.ractive, ractive );
 		t.equal( span1.ractive, foo1 );
@@ -1721,13 +1721,11 @@ export default function() {
 		});
 
 		test( 'Components with two-way bindings set parent values on initialisation', t => {
-			let Dropdown, ractive;
-
-			Dropdown = Ractive.extend({
+			const Dropdown = Ractive.extend({
 				template: '<select value="{{value}}">{{#options}}<option value="{{this}}">{{ this[ display ] }}</option>{{/options}}</select>'
 			});
 
-			ractive = new Ractive({
+			const ractive = new Ractive({
 				el: fixture,
 				template: '<h2>Select an option:</h2><dropdown options="{{numbers}}" value="{{number}}" display="word"/><p>Selected: {{number.digit}}</p>',
 				data: {

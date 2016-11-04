@@ -97,7 +97,8 @@ export default function() {
 	test( 'change hook fires even if no fragments changed (#2090)', t => {
 		t.expect( 8 );
 
-		let count = 1, next = false;
+		let count = 1;
+		let next = false;
 		const r = new Ractive({
 			data: { foo: 1 }
 		});

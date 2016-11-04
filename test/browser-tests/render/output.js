@@ -1,5 +1,4 @@
 import { test } from 'qunit';
-import legacy from '../../legacy';
 import { svg } from '../../config/environment';
 import tests from '../samples/render';
 import { onWarn, initModule } from '../test-config';
