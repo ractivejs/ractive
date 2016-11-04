@@ -425,7 +425,7 @@ export default function() {
 	});
 
 	test( 'node info with query selector', t => {
-		const r = new Ractive({
+		new Ractive({
 			el: fixture,
 			template: `{{#with foo.bar}}<span id="baz">yep</span>{{/with}}`,
 			data: { foo: { bar: { baz: true } } }

@@ -932,7 +932,8 @@ export default function() {
 	});
 
 	test( 'wildcard * and root include computed but not expressions', t => {
-		let wildcard = 0, root = 0;
+		let wildcard = 0;
+		let root = 0;
 
 		new Ractive({
 			el: fixture,
@@ -1303,7 +1304,10 @@ export default function() {
 	});
 
 	test( `pattern observers fire properly on upstream links (#2675)`, t => {
-		let val, path, key;
+		let val;
+		let path;
+		let key;
+
 		const cmp = Ractive.extend({
 			template: '{{ JSON.stringify(obj) }}',
 			onrender () {
@@ -1379,7 +1383,8 @@ export default function() {
 	});
 
 	test( 'observe ignores additional empty paths (#2690)', t => {
-		let count1 = 0, count2 = 0;
+		let count1 = 0;
+		let count2 = 0;
 		const r = new Ractive({
 			el: fixture
 		});

@@ -197,7 +197,8 @@ export default function() {
 	});
 
 	test( `attaching and detaching a child triggers transitions`, t => {
-		let ins = 0, outs = 0;
+		let ins = 0;
+		let outs = 0;
 		function go ( trans ) {
 			if ( trans.isIntro ) ins++;
 			else outs++;
@@ -221,7 +222,8 @@ export default function() {
 	});
 
 	test( `transitions while detaching and reattaching child should carry on`, t => {
-		let ins = 0, outs = 0;
+		let ins = 0;
+		let outs = 0;
 		const done = t.async();
 
 		function go ( trans ) {

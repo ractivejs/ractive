@@ -271,9 +271,10 @@ export default function() {
 		t.expect( 0 );
 
 		const r = new Ractive();
-		let second;
-		const first = r.on( 'foo', () => second.cancel() );
-		second = r.on( 'foo', () => t.ok( false, 'this should not fire' ) );
+
+		r.on( 'foo', () => cancellable.cancel() );
+
+		const cancellable = r.on( 'foo', () => t.ok( false, 'this should not fire' ) );
 
 		r.fire( 'foo' );
 	});

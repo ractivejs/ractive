@@ -71,7 +71,6 @@ export default function() {
 		const done = t.async();
 
 		let shouldHaveCompleted;
-		let p;
 
 		const Widget = Ractive.extend({
 			template: '<p test-out>foo</p>',
@@ -90,7 +89,7 @@ export default function() {
 			data: { foo: true }
 		});
 
-		p = ractive.find( 'p' );
+		const p = ractive.find( 'p' );
 
 		ractive.set( 'foo', false ).then( () => {
 			t.ok( shouldHaveCompleted, 'promise was fulfilled before transition had completed' );
@@ -196,8 +195,6 @@ export default function() {
 		// we're using line height for testing because it's a numerical CSS property that IE8 supports
 		const done = t.async();
 
-		let div;
-
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div changeLineHeight-in></div>',
@@ -221,7 +218,7 @@ export default function() {
 			}
 		});
 
-		div = ractive.find( 'div' );
+		const div = ractive.find( 'div' );
 		t.equal( div.style.lineHeight, 0 );
 	});
 
@@ -300,12 +297,12 @@ export default function() {
 	});
 
 	test( 'An intro will be aborted if a corresponding outro begins before it completes', t => {
-		let ractive, tooLate;
+		let tooLate;
 
 		const done = t.async();
 		t.expect( 0 );
 
-		ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#showBox}}<div wait-in="2000" wait-out="1"></div>{{/showBox}}',
 			transitions: {
@@ -629,7 +626,8 @@ export default function() {
 
 	test( `transition safety net doesn't break with manual render/unrender`, t => {
 		const done = t.async();
-		let r, count = 0;
+		let count = 0;
+		let r;
 
 		function go ( trans ) {
 			if ( trans.isIntro ) {

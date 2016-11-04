@@ -1,6 +1,6 @@
 import { test } from 'qunit';
 import { fire } from 'simulant';
-import { initModule, onWarn } from '../test-config';
+import { initModule } from '../test-config';
 
 export default function() {
 	initModule('event/expression.js');

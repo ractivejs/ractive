@@ -79,7 +79,7 @@ export default function() {
 		});
 
 		test( 'Custom namespaces are supported (#2038)', t => {
-			const ractive = new Ractive({
+			new Ractive({
 				el: fixture,
 				template: `
 				<svg xmlns='http://www.w3.org/2000/svg' xmlns:v='http://schemas.microsoft.com/visio/2003/SVGExtensions/' >

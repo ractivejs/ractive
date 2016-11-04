@@ -25,7 +25,7 @@ export default function() {
 
 	test( 'element inside option is an error', t => {
 		t.throws( () => {
-			const ractive = new Ractive({
+			new Ractive({
 				el: fixture,
 				template: '<select><option><blink/></option></select>'
 			});
