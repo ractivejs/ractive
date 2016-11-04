@@ -8,20 +8,21 @@
 		"sourceType": "module"
 	},
 	"rules": {
+		"arrow-spacing": "error",
 		"indent": [ "error", "tab", { "SwitchCase": 1 }],
-		"quotes": [ "error", "single" ],
 		"linebreak-style": [ "error", "unix" ],
-		"semi": [ "error", "always" ],
 		"no-mixed-spaces-and-tabs": [ "error", "smart-tabs" ],
-		"object-shorthand":  [ "error", "always" ],
-		"no-const-assign": "error",
 		"no-class-assign": "error",
+		"no-cond-assign": "off",
+		"no-const-assign": "error",
 		"no-this-before-super": "error",
 		"no-var": "error",
-		"quote-props": [ "error", "as-needed" ],
+		"object-shorthand":  [ "error", "always" ],
 		"one-var": [ "error", "never" ],
 		"prefer-arrow-callback": "error",
-		"arrow-spacing": "error",
-		"no-cond-assign": "off"
+		"prefer-const": "error",
+		"quotes": [ "error", "single", { "avoidEscape": true, "allowTemplateLiterals": true } ],
+		"quote-props": [ "error", "as-needed" ],
+		"semi": [ "error", "always" ]
 	}
 }
