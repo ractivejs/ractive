@@ -1,6 +1,6 @@
 import { SECTION, INVERTED, CLOSING, PARTIAL, COMMENT, TRIPLE } from '../../../config/types';
 
-var mustacheTypes = {
+const mustacheTypes = {
 	'#': SECTION,
 	'^': INVERTED,
 	'/': CLOSING,
@@ -10,7 +10,7 @@ var mustacheTypes = {
 };
 
 export default function ( parser ) {
-	var type = mustacheTypes[ parser.nextChar() ];
+	const type = mustacheTypes[ parser.nextChar() ];
 
 	if ( !type ) {
 		return null;

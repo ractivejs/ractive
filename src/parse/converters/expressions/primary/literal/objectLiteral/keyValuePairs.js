@@ -1,7 +1,7 @@
 import getKeyValuePair from './keyValuePair';
 
 export default function readKeyValuePairs ( parser ) {
-	var start, pairs, pair, keyValuePairs;
+	let start, pairs, pair, keyValuePairs;
 
 	start = parser.pos;
 

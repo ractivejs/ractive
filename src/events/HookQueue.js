@@ -5,7 +5,7 @@ function getChildQueue ( queue, ractive ) {
 }
 
 function fire ( hookQueue, ractive ) {
-	var childQueue = getChildQueue( hookQueue.queue, ractive );
+	const childQueue = getChildQueue( hookQueue.queue, ractive );
 
 	hookQueue.hook.fire( ractive );
 

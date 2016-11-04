@@ -20,7 +20,7 @@ export default class Decorator {
 		this.element = this.owner.attributeByName ? this.owner : findElement( options.parentFragment );
 		this.parentFragment = this.owner.parentFragment;
 		this.ractive = this.owner.ractive;
-		let template = this.template = options.template;
+		const template = this.template = options.template;
 
 		this.name = template.n;
 		this.args = [];

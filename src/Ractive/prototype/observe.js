@@ -7,7 +7,7 @@ import { rebindMatch } from '../../shared/rebind';
 import ReferenceResolver from '../../view/resolvers/ReferenceResolver';
 
 export default function observe ( keypath, callback, options ) {
-	let observers = [];
+	const observers = [];
 	let map;
 
 	if ( isObject( keypath ) ) {

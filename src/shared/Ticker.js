@@ -4,7 +4,7 @@ import runloop from '../global/runloop';
 
 // TODO what happens if a transition is aborted?
 
-let tickers = [];
+const tickers = [];
 let running = false;
 
 function tick () {

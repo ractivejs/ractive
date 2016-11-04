@@ -21,7 +21,7 @@ class ReferenceExpressionChild extends Model {
 		let parent = this.parent, keys = [ this.key ];
 		while ( parent ) {
 			if ( parent.base ) {
-				let target = parent.model.joinAll( keys );
+				const target = parent.model.joinAll( keys );
 				target.applyValue( value );
 				break;
 			}

@@ -1,6 +1,6 @@
 import { create, hasOwn } from '../utils/object';
 
-var Parser, ParseError, leadingWhitespace = /^\s+/;
+let Parser, ParseError, leadingWhitespace = /^\s+/;
 
 ParseError = function ( message ) {
 	this.name = 'ParseError';
@@ -15,7 +15,7 @@ ParseError = function ( message ) {
 ParseError.prototype = Error.prototype;
 
 Parser = function ( str, options ) {
-	var items, item, lineStart = 0;
+	let items, item, lineStart = 0;
 
 	this.str = str;
 	this.options = options || {};
@@ -23,7 +23,7 @@ Parser = function ( str, options ) {
 
 	this.lines = this.str.split( '\n' );
 	this.lineEnds = this.lines.map( line => {
-		var lineEnd = lineStart + line.length + 1; // +1 for the newline
+		const lineEnd = lineStart + line.length + 1; // +1 for the newline
 
 		lineStart = lineEnd;
 		return lineEnd;
@@ -43,8 +43,8 @@ Parser = function ( str, options ) {
 };
 
 Parser.prototype = {
-	read: function ( converters ) {
-		var pos, i, len, item;
+	read ( converters ) {
+		let pos, i, len, item;
 
 		if ( !converters ) converters = this.converters;
 
@@ -96,8 +96,8 @@ Parser.prototype = {
 		return [ lineNum, columnNum, `${message} at line ${lineNum} character ${columnNum}:\n${annotation}` ];
 	},
 
-	getLinePos: function ( char ) {
-		var lineNum = 0, lineStart = 0, columnNum;
+	getLinePos ( char ) {
+		let lineNum = 0, lineStart = 0, columnNum;
 
 		while ( char >= this.lineEnds[ lineNum ] ) {
 			lineStart = this.lineEnds[ lineNum ];
@@ -108,10 +108,10 @@ Parser.prototype = {
 		return [ lineNum + 1, columnNum + 1, char ]; // line/col should be one-based, not zero-based!
 	},
 
-	error: function ( message ) {
+	error ( message ) {
 		const [ lineNum, columnNum, msg ] = this.getContextMessage( this.pos, message );
 
-		let error = new ParseError( msg );
+		const error = new ParseError( msg );
 
 		error.line = lineNum;
 		error.character = columnNum;
@@ -120,15 +120,15 @@ Parser.prototype = {
 		throw error;
 	},
 
-	matchString: function ( string ) {
+	matchString ( string ) {
 		if ( this.str.substr( this.pos, string.length ) === string ) {
 			this.pos += string.length;
 			return string;
 		}
 	},
 
-	matchPattern: function ( pattern ) {
-		var match;
+	matchPattern ( pattern ) {
+		let match;
 
 		if ( match = pattern.exec( this.remaining() ) ) {
 			this.pos += match[0].length;
@@ -136,21 +136,21 @@ Parser.prototype = {
 		}
 	},
 
-	allowWhitespace: function () {
+	allowWhitespace () {
 		this.matchPattern( leadingWhitespace );
 	},
 
-	remaining: function () {
+	remaining () {
 		return this.str.substring( this.pos );
 	},
 
-	nextChar: function () {
+	nextChar () {
 		return this.str.charAt( this.pos );
 	}
 };
 
 Parser.extend = function ( proto ) {
-	var Parent = this, Child, key;
+	let Parent = this, Child, key;
 
 	Child = function ( str, options ) {
 		Parser.call( this, str, options );

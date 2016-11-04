@@ -1,4 +1,4 @@
-var toString = Object.prototype.toString,
+let toString = Object.prototype.toString,
 	arrayLikePattern = /^\[object (?:Array|FileList)\]$/;
 
 // thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/

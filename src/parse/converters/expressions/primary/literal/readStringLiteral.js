@@ -1,11 +1,11 @@
 import { STRING_LITERAL } from '../../../../../config/types';
 import makeQuotedStringMatcher from './stringLiteral/makeQuotedStringMatcher';
 
-var getSingleQuotedString = makeQuotedStringMatcher( `"` );
-var getDoubleQuotedString = makeQuotedStringMatcher( `'` );
+const getSingleQuotedString = makeQuotedStringMatcher( `"` );
+const getDoubleQuotedString = makeQuotedStringMatcher( `'` );
 
 export default function ( parser ) {
-	var start, string;
+	let start, string;
 
 	start = parser.pos;
 

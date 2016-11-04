@@ -1,9 +1,9 @@
 import { CLOSING_TAG } from '../../../config/types';
 
-var closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
+const closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
 
 export default function readClosingTag ( parser ) {
-	var start, tag;
+	let start, tag;
 
 	start = parser.pos;
 

@@ -1,4 +1,4 @@
-var _Promise,
+let _Promise,
 	PENDING = {},
 	FULFILLED = {},
 	REJECTED = {};
@@ -8,7 +8,7 @@ if ( typeof Promise === 'function' ) {
 	_Promise = Promise;
 } else {
 	_Promise = function ( callback ) {
-		var fulfilledHandlers = [],
+		let fulfilledHandlers = [],
 			rejectedHandlers = [],
 			state = PENDING,
 
@@ -47,15 +47,15 @@ if ( typeof Promise === 'function' ) {
 
 		promise = {
 			// `then()` returns a Promise - 2.2.7
-			then: function ( onFulfilled, onRejected ) {
-				var promise2 = new _Promise( function ( fulfil, reject ) {
+			then ( onFulfilled, onRejected ) {
+				const promise2 = new _Promise( ( fulfil, reject ) => {
 
-					var processResolutionHandler = function ( handler, handlers, forward ) {
+					const processResolutionHandler = function ( handler, handlers, forward ) {
 
 						// 2.2.1.1
 						if ( typeof handler === 'function' ) {
-							handlers.push( function ( p1result ) {
-								var x;
+							handlers.push( ( p1result ) => {
+								let x;
 
 								try {
 									x = handler( p1result );
@@ -94,8 +94,8 @@ if ( typeof Promise === 'function' ) {
 	};
 
 	_Promise.all = function ( promises ) {
-		return new _Promise( function ( fulfil, reject ) {
-			var result = [], pending, i, processPromise;
+		return new _Promise( ( fulfil, reject ) => {
+			let result = [], pending, i, processPromise;
 
 			if ( !promises.length ) {
 				fulfil( result );
@@ -124,13 +124,13 @@ if ( typeof Promise === 'function' ) {
 	};
 
 	_Promise.resolve = function ( value ) {
-		return new _Promise( function ( fulfil ) {
+		return new _Promise( ( fulfil ) => {
 			fulfil( value );
 		});
 	};
 
 	_Promise.reject = function ( reason ) {
-		return new _Promise( function ( fulfil, reject ) {
+		return new _Promise( ( fulfil, reject ) => {
 			reject( reason );
 		});
 	};
@@ -145,7 +145,7 @@ function wait ( callback ) {
 
 function makeDispatcher ( handlers, result ) {
 	return function () {
-		var handler;
+		let handler;
 
 		while ( handler = handlers.shift() ) {
 			handler( result );
@@ -155,7 +155,7 @@ function makeDispatcher ( handlers, result ) {
 
 function resolve ( promise, x, fulfil, reject ) {
 	// Promise Resolution Procedure
-	var then;
+	let then;
 
 	// 2.3.1
 	if ( x === promise ) {
@@ -178,7 +178,7 @@ function resolve ( promise, x, fulfil, reject ) {
 
 		// 2.3.3.3
 		if ( typeof then === 'function' ) {
-			var called, resolvePromise, rejectPromise;
+			let called, resolvePromise, rejectPromise;
 
 			resolvePromise = function ( y ) {
 				if ( called ) {

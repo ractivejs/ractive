@@ -7,7 +7,7 @@ import { splitKeypath } from '../../shared/keypaths';
 import easing from '../../Ractive/static/easing';
 import noop from '../../utils/noop';
 
-let noAnimation = Promise.resolve();
+const noAnimation = Promise.resolve();
 defineProperty( noAnimation, 'stop', { value: noop });
 
 const linear = easing.linear;

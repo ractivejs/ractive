@@ -81,7 +81,7 @@ function set ( flag, value, update ) {
 		flag.value = value;
 	}
 
-	let current = flag.element[ flag.flag ];
+	const current = flag.element[ flag.flag ];
 	flag.element[ flag.flag ] = flag.value;
 	if ( update && !flag.element.attributes.binding && current !== flag.value ) {
 		flag.element.recreateTwowayBinding();

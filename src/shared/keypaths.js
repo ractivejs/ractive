@@ -22,7 +22,7 @@ export function splitKeypath ( keypath ) {
 	keypath = normalise( keypath );
 
 	while ( match = splitPattern.exec( keypath ) ) {
-		let index = match.index + match[1].length;
+		const index = match.index + match[1].length;
 		result.push( keypath.substr( 0, index ) );
 		keypath = keypath.substr( index + 1 );
 	}

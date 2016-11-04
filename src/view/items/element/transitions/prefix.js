@@ -7,7 +7,7 @@ let prefix;
 if ( !isClient ) {
 	prefix = null;
 } else {
-	let prefixCache = {};
+	const prefixCache = {};
 	const testStyle = createElement( 'div' ).style;
 
 	prefix = function ( prop ) {

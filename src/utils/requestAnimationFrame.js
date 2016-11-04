@@ -1,6 +1,6 @@
 import { vendors, win } from '../config/environment';
 
-var requestAnimationFrame;
+let requestAnimationFrame;
 
 // If window doesn't exist, we don't need requestAnimationFrame
 if ( !win ) {
@@ -9,7 +9,7 @@ if ( !win ) {
 	// https://gist.github.com/paulirish/1579671
 	(function(vendors, lastTime, win) {
 
-		var x, setTimeout;
+		let x, setTimeout;
 
 		if ( win.requestAnimationFrame ) {
 			return;
@@ -23,11 +23,11 @@ if ( !win ) {
 			setTimeout = win.setTimeout;
 
 			win.requestAnimationFrame = function(callback) {
-				var currTime, timeToCall, id;
+				let currTime, timeToCall, id;
 
 				currTime = Date.now();
 				timeToCall = Math.max( 0, 16 - (currTime - lastTime ) );
-				id = setTimeout( function() { callback(currTime + timeToCall); }, timeToCall );
+				id = setTimeout( () => { callback(currTime + timeToCall); }, timeToCall );
 
 				lastTime = currTime + timeToCall;
 				return id;

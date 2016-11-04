@@ -1,7 +1,7 @@
 import { isClient, svg, vendors, win, doc } from '../config/environment';
 import { html } from '../config/namespaces';
 
-var createElement, matches, div, methodNames, unprefixed, prefixed, i, j, makeFunction;
+let createElement, matches, div, methodNames, unprefixed, prefixed, i, j, makeFunction;
 
 // Test for SVG support
 if ( !svg ) {
@@ -33,7 +33,7 @@ export function createDocumentFragment () {
 }
 
 function getElement ( input ) {
-	var output;
+	let output;
 
 	if ( !input || typeof input === 'boolean' ) { return; }
 
@@ -105,7 +105,7 @@ if ( !isClient ) {
 	// IE8...
 	if ( !matches ) {
 		matches = function ( node, selector ) {
-			var nodes, parentNode, i;
+			let nodes, parentNode, i;
 
 			parentNode = node.parentNode;
 

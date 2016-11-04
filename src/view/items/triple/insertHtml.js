@@ -1,7 +1,7 @@
 import { svg } from '../../../config/namespaces';
 import { createElement } from '../../../utils/dom';
 
-let elementCache = {};
+const elementCache = {};
 
 let ieBug;
 let ieBlacklist;
@@ -21,7 +21,7 @@ try {
 }
 
 export default function ( html, node, docFrag ) {
-	let nodes = [];
+	const nodes = [];
 
 	// render 0 and false
 	if ( html == null || html === '' ) return nodes;

@@ -1,7 +1,7 @@
 import { CLOSING } from '../../../../config/types';
 
 export default function readClosing ( parser, tag ) {
-	var start, remaining, index, closing;
+	let start, remaining, index, closing;
 
 	start = parser.pos;
 

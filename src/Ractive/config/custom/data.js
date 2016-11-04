@@ -58,7 +58,7 @@ export default {
 		// bind functions to the ractive instance at the top level,
 		// unless it's a non-POJO (in which case alarm bells should ring)
 		if ( result && result.constructor === Object ) {
-			for ( let prop in result ) {
+			for ( const prop in result ) {
 				if ( typeof result[ prop ] === 'function' ) result[ prop ] = bind( result[ prop ], ractive );
 			}
 		}
@@ -76,8 +76,8 @@ export default {
 function combine ( parentValue, childValue ) {
 	validate( childValue );
 
-	let parentIsFn = typeof parentValue === 'function';
-	let childIsFn = typeof childValue === 'function';
+	const parentIsFn = typeof parentValue === 'function';
+	const childIsFn = typeof childValue === 'function';
 
 	// Very important, otherwise child instance can become
 	// the default data object on Ractive or a component.
@@ -93,15 +93,15 @@ function combine ( parentValue, childValue ) {
 	}
 
 	return function () {
-		let child = childIsFn ? callDataFunction( childValue, this ) : childValue;
-		let parent = parentIsFn ? callDataFunction( parentValue, this ) : parentValue;
+		const child = childIsFn ? callDataFunction( childValue, this ) : childValue;
+		const parent = parentIsFn ? callDataFunction( parentValue, this ) : parentValue;
 
 		return fromProperties( child, parent );
 	};
 }
 
 function callDataFunction ( fn, context ) {
-	let data = fn.call( context );
+	const data = fn.call( context );
 
 	if ( !data ) return;
 
@@ -118,7 +118,7 @@ function callDataFunction ( fn, context ) {
 
 function fromProperties ( primary, secondary ) {
 	if ( primary && secondary ) {
-		for ( let key in secondary ) {
+		for ( const key in secondary ) {
 			if ( !( key in primary ) ) {
 				primary[ key ] = secondary[ key ];
 			}

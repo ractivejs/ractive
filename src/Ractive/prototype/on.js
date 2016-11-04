@@ -4,7 +4,7 @@ import notEmptyString from './shared/notEmptyString';
 export default function Ractive$on ( eventName, callback ) {
 	// allow multiple listeners to be bound in one go
 	if ( typeof eventName === 'object' ) {
-		let listeners = [];
+		const listeners = [];
 		let n;
 
 		for ( n in eventName ) {

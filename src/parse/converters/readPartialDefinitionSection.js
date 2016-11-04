@@ -2,14 +2,14 @@ import { INLINE_PARTIAL } from '../../config/types';
 import { READERS } from '../_parse';
 import readClosing from './mustache/section/readClosing';
 
-var partialDefinitionSectionPattern = /^\s*#\s*partial\s+/;
+const partialDefinitionSectionPattern = /^\s*#\s*partial\s+/;
 
 export default function readPartialDefinitionSection ( parser ) {
-	var start, name, content, child, closed;
+	let start, name, content, child, closed;
 
 	start = parser.pos;
 
-	let delimiters = parser.standardDelimiters;
+	const delimiters = parser.standardDelimiters;
 
 	if ( !parser.matchString( delimiters[0] ) ) {
 		return null;

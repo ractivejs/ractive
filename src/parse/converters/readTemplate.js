@@ -4,11 +4,11 @@ import { READERS, PARTIAL_READERS } from '../_parse';
 import cleanup from '../utils/cleanup';
 
 export default function readTemplate ( parser ) {
-	let fragment = [];
-	let partials = create( null );
+	const fragment = [];
+	const partials = create( null );
 	let hasPartials = false;
 
-	let preserveWhitespace = parser.preserveWhitespace;
+	const preserveWhitespace = parser.preserveWhitespace;
 
 	while ( parser.pos < parser.str.length ) {
 		let pos = parser.pos, item, partial;
@@ -30,7 +30,7 @@ export default function readTemplate ( parser ) {
 		}
 	}
 
-	let result = {
+	const result = {
 		v: TEMPLATE_VERSION,
 		t: fragment
 	};

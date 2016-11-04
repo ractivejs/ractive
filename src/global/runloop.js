@@ -9,7 +9,7 @@ let batch;
 
 const runloop = {
 	start ( instance, returnPromise ) {
-		var promise, fulfilPromise;
+		let promise, fulfilPromise;
 
 		if ( returnPromise ) {
 			promise = new Promise( f => ( fulfilPromise = f ) );
@@ -23,7 +23,7 @@ const runloop = {
 			immediateObservers: [],
 			deferredObservers: [],
 			ractives: [],
-			instance: instance
+			instance
 		};
 
 		return promise;
@@ -72,7 +72,7 @@ const runloop = {
 	},
 
 	scheduleTask ( task, postRender ) {
-		var _batch;
+		let _batch;
 
 		if ( !batch ) {
 			task();

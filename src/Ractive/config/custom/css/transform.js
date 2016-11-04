@@ -13,7 +13,7 @@ function extractString ( unit ) {
 }
 
 function transformSelector ( selector, parent ) {
-	let selectorUnits = [];
+	const selectorUnits = [];
 	let match;
 
 	while ( match = selectorUnitPattern.exec( selector ) ) {
@@ -28,17 +28,17 @@ function transformSelector ( selector, parent ) {
 	// that a) combines with the id, and b) is inside the id
 	const base = selectorUnits.map( extractString );
 
-	let transformed = [];
+	const transformed = [];
 	let i = selectorUnits.length;
 
 	while ( i-- ) {
-		let appended = base.slice();
+		const appended = base.slice();
 
 		// Pseudo-selectors should go after the attribute selector
 		const unit = selectorUnits[i];
 		appended[i] = unit.base + parent + unit.modifiers || '';
 
-		let prepended = base.slice();
+		const prepended = base.slice();
 		prepended[i] = parent + ' ' + prepended[i];
 
 		transformed.push( appended.join( ' ' ), prepended.join( ' ' ) );

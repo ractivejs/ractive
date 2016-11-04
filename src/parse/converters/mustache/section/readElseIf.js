@@ -1,7 +1,7 @@
 import { ELSEIF } from '../../../../config/types';
 import readExpression from '../../readExpression';
 
-var elsePattern = /^\s*elseif\s+/;
+const elsePattern = /^\s*elseif\s+/;
 
 export default function readElseIf ( parser, tag ) {
 	const start = parser.pos;

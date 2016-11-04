@@ -99,7 +99,7 @@ export default class RootModel extends Model {
 			}
 		});
 
-		for ( let k in this.computations ) {
+		for ( const k in this.computations ) {
 			children.push( this.computations[k] );
 		}
 
@@ -111,7 +111,7 @@ export default class RootModel extends Model {
 	}
 
 	has ( key ) {
-		let value = this.value;
+		const value = this.value;
 
 		key = unescapeKey( key );
 		if ( key === '@this' || key === '@global' ) return true;

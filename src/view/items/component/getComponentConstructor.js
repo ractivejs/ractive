@@ -13,7 +13,7 @@ export default function getComponentConstructor ( ractive, name ) {
 		// best test we have for not Ractive.extend
 		if ( !Component._Parent ) {
 			// function option, execute and store for reset
-			let fn = Component.bind( instance );
+			const fn = Component.bind( instance );
 			fn.isOwner = instance.components.hasOwnProperty( name );
 			Component = fn();
 

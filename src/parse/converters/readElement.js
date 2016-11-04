@@ -8,7 +8,7 @@ import readClosing from './mustache/section/readClosing';
 import readClosingTag from './element/readClosingTag';
 import { relaxedName } from './expressions/shared/patterns';
 
-var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
+let tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 	validTagNameFollower = /^[\s\n\/>]/,
 	exclude = { exclude: true },
 	disallowedContents;
@@ -34,7 +34,7 @@ disallowedContents = {
 export default readElement;
 
 function readElement ( parser ) {
-	var start,
+	let start,
 		element,
 		attribute,
 		selfClosing,
@@ -129,7 +129,7 @@ function readElement ( parser ) {
 		return null;
 	}
 
-	let lowerCaseName = ( element.e || element.n ).toLowerCase();
+	const lowerCaseName = ( element.e || element.n ).toLowerCase();
 	const preserveWhitespace = parser.preserveWhitespace;
 
 	if ( !selfClosing && ( anchor || !voidElementNames.test( element.e ) ) ) {
@@ -169,7 +169,7 @@ function readElement ( parser ) {
 			else if ( !anchor && ( closingTag = readClosingTag( parser ) ) ) {
 				closed = true;
 
-				let closingTagName = closingTag.e.toLowerCase();
+				const closingTagName = closingTag.e.toLowerCase();
 
 				// if this *isn't* the closing tag for the current element...
 				if ( closingTagName !== lowerCaseName ) {
@@ -245,7 +245,7 @@ function readElement ( parser ) {
 }
 
 function canContain ( name, remaining ) {
-	var match, disallowed;
+	let match, disallowed;
 
 	match = /^<([a-zA-Z][a-zA-Z0-9]*)/.exec( remaining );
 	disallowed = disallowedContents[ name ];

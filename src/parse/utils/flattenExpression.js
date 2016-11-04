@@ -2,7 +2,7 @@ import { REFERENCE, BOOLEAN_LITERAL, GLOBAL, NUMBER_LITERAL, REGEXP_LITERAL, STR
 import { isObject } from '../../utils/is';
 
 export default function flattenExpression ( expression ) {
-	var refs, count = 0, stringified;
+	let refs, count = 0, stringified;
 
 	extractRefs( expression, refs = [] );
 	stringified = stringify( expression );
@@ -13,7 +13,7 @@ export default function flattenExpression ( expression ) {
 	};
 
 	function getVars(expr) {
-		let vars = [];
+		const vars = [];
 		for ( let i = count - 1; i >= 0; i-- ) {
 			vars.push( `x$${i}` );
 		}
@@ -57,7 +57,7 @@ export default function flattenExpression ( expression ) {
 
 			case INVOCATION:
 				if ( node.o && hasSpread( node.o ) ) {
-					let id = count++;
+					const id = count++;
 					return `(x$${ id }=${ stringify(node.x) }).apply(x$${ id },${ stringify({ t: ARRAY_LITERAL, m: node.o }) })`;
 				} else {
 					return stringify( node.x ) + '(' + ( node.o ? node.o.map( stringify ).join( ',' ) : '' ) + ')';
@@ -86,7 +86,7 @@ export default function flattenExpression ( expression ) {
 	function stringifyPair ( node ) { return node.p ? stringify( node.k ) : `${ node.k }:${ stringify( node.v ) }`; }
 
 	function makeSpread ( list, open, close, fn ) {
-		const out = list.reduce( function( a, c ) {
+		const out = list.reduce( ( a, c ) => {
 			if ( c.p ) {
 				a.str += `${ a.open ? close + ',' : a.str.length ? ',' : '' }${ fn( c ) }`;
 			} else {
@@ -110,7 +110,7 @@ function hasSpread ( list ) {
 
 // TODO maybe refactor this?
 function extractRefs ( node, refs ) {
-	var i, list;
+	let i, list;
 
 	if ( node.t === REFERENCE && typeof node.n === 'string' ) {
 		if ( !~refs.indexOf( node.n ) ) {

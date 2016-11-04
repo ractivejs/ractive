@@ -31,8 +31,8 @@ export default class Mapping extends Item {
 			this.fragment.bind();
 		}
 
-		let template = this.template.f;
-		let viewmodel = this.element.instance.viewmodel;
+		const template = this.template.f;
+		const viewmodel = this.element.instance.viewmodel;
 
 		if ( template === 0 ) {
 			// empty attributes are `true`

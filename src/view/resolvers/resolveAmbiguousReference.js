@@ -29,7 +29,7 @@ export default function resolveAmbiguousReference ( fragment, ref ) {
 
 		// alias node or iteration
 		if ( ( ( aliases = fragment.aliases ) ) && aliases.hasOwnProperty( key ) ) {
-			let model = aliases[ key ];
+			const model = aliases[ key ];
 
 			if ( keys.length === 1 ) return model;
 			else if ( typeof model.joinAll === 'function' ) {

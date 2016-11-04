@@ -6,9 +6,9 @@ function snap ( to ) {
 	return () => to;
 }
 
-var interpolators = {
-	number: function ( from, to ) {
-		var delta;
+const interpolators = {
+	number ( from, to ) {
+		let delta;
 
 		if ( !isNumeric( from ) || !isNumeric( to ) ) {
 			return null;
@@ -28,8 +28,8 @@ var interpolators = {
 		};
 	},
 
-	array: function ( from, to ) {
-		var intermediate, interpolators, len, i;
+	array ( from, to ) {
+		let intermediate, interpolators, len, i;
 
 		if ( !isArray( from ) || !isArray( to ) ) {
 			return null;
@@ -53,7 +53,7 @@ var interpolators = {
 		}
 
 		return function ( t ) {
-			var i = len;
+			let i = len;
 
 			while ( i-- ) {
 				intermediate[i] = interpolators[i]( t );
@@ -63,8 +63,8 @@ var interpolators = {
 		};
 	},
 
-	object: function ( from, to ) {
-		var properties, len, interpolators, intermediate, prop;
+	object ( from, to ) {
+		let properties, len, interpolators, intermediate, prop;
 
 		if ( !isObject( from ) || !isObject( to ) ) {
 			return null;
@@ -96,7 +96,7 @@ var interpolators = {
 		len = properties.length;
 
 		return function ( t ) {
-			var i = len, prop;
+			let i = len, prop;
 
 			while ( i-- ) {
 				prop = properties[i];

@@ -17,7 +17,7 @@ export default class Select extends Element {
 
 	foundNode ( node ) {
 		if ( this.binding ) {
-			let selectedOptions = getSelectedOptions( node );
+			const selectedOptions = getSelectedOptions( node );
 
 			if ( selectedOptions.length > 0 ) {
 				this.selectedOptions = selectedOptions;

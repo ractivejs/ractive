@@ -3,11 +3,11 @@ import { expectedExpression } from './shared/errors';
 import readMemberOrInvocation from './readMemberOrInvocation';
 import readExpression from '../readExpression';
 
-var readTypeOf, makePrefixSequenceMatcher;
+let readTypeOf, makePrefixSequenceMatcher;
 
 makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 	return function ( parser ) {
-		var expression;
+		let expression;
 
 		if ( expression = fallthrough( parser ) ) {
 			return expression;
@@ -34,7 +34,7 @@ makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 
 // create all prefix sequence matchers, return readTypeOf
 (function() {
-	var i, len, matcher, prefixOperators, fallthrough;
+	let i, len, matcher, prefixOperators, fallthrough;
 
 	prefixOperators = '! ~ + - typeof'.split( ' ' );
 

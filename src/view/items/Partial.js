@@ -32,7 +32,7 @@ export default class Partial extends MustacheContainer {
 		this.refName = this.template.r;
 
 		// name matches take priority over expressions
-		let template = this.refName ? getPartialTemplate( this.ractive, this.refName, this.parentFragment ) || null : null;
+		const template = this.refName ? getPartialTemplate( this.ractive, this.refName, this.parentFragment ) || null : null;
 		let templateObj;
 
 		if ( template ) {
@@ -63,7 +63,7 @@ export default class Partial extends MustacheContainer {
 		};
 
 		if ( this.template.c ) {
-			options.template = [{ t: SECTION, n: SECTION_WITH, f: options.template }]
+			options.template = [{ t: SECTION, n: SECTION_WITH, f: options.template }];
 			for ( const k in this.template.c ) {
 				options.template[0][k] = this.template.c[k];
 			}

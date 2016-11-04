@@ -8,8 +8,8 @@ import runloop from '../global/runloop';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
-let shuffleTasks = { early: [], mark: [] };
-let registerQueue = { early: [], mark: [] };
+const shuffleTasks = { early: [], mark: [] };
+const registerQueue = { early: [], mark: [] };
 
 export default class ModelBase {
 	constructor ( parent ) {

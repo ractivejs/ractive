@@ -221,7 +221,7 @@ export default class Model extends ModelBase {
 
 		const oldLength = oldArray.length;
 
-		let usedIndices = {};
+		const usedIndices = {};
 		let firstUnusedIndex = 0;
 
 		const newIndices = oldArray.map( item => {

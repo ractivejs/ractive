@@ -1,7 +1,7 @@
 import { lastItem } from '../../utils/array';
 
 export default function ( items, leadingPattern, trailingPattern ) {
-	var item;
+	let item;
 
 	if ( leadingPattern ) {
 		item = items[0];

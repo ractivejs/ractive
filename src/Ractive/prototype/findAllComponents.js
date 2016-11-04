@@ -12,7 +12,7 @@ export default function Ractive$findAllComponents ( selector, options ) {
 	let query = options._query;
 
 	if ( !query ) {
-		let liveQueries = this._liveComponentQueries;
+		const liveQueries = this._liveComponentQueries;
 
 		// Shortcut: if we're maintaining a live query with this
 		// selector, we don't need to traverse the parallel DOM

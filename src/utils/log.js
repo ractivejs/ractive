@@ -5,17 +5,17 @@ import { hasConsole } from '../config/environment';
 import Ractive from '../Ractive';
 import noop from './noop';
 
-var alreadyWarned = {}, log, printWarning, welcome;
+let alreadyWarned = {}, log, printWarning, welcome;
 
 if ( hasConsole ) {
-	let welcomeIntro = [
+	const welcomeIntro = [
 		`%cRactive.js %c<@version@> %cin debug mode, %cmore...`,
 		'color: rgb(114, 157, 52); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 	];
-	let welcomeMessage = `You're running Ractive <@version@> in debug mode - messages will be printed to the console to help you fix problems and optimise your application.
+	const welcomeMessage = `You're running Ractive <@version@> in debug mode - messages will be printed to the console to help you fix problems and optimise your application.
 
 To disable debug mode, add this line at the start of your app:
   Ractive.DEBUG = false;
@@ -55,8 +55,8 @@ Found a bug? Raise an issue:
 
 		// extract information about the instance this message pertains to, if applicable
 		if ( typeof args[ args.length - 1 ] === 'object' ) {
-			let options = args.pop();
-			let ractive = options ? options.ractive : null;
+			const options = args.pop();
+			const ractive = options ? options.ractive : null;
 
 			if ( ractive ) {
 				// if this is an instance of a component that we know the name of, add

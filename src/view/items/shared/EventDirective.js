@@ -89,7 +89,7 @@ export default class EventDirective {
 		}
 
 		if ( this.fn ) {
-			let values = [];
+			const values = [];
 
 			if ( event ) passedArgs.unshift( event );
 
@@ -99,7 +99,7 @@ export default class EventDirective {
 
 					if ( model.special ) {
 						let obj = model.special === 'event' ? event : passedArgs;
-						let keys = model.keys.slice();
+						const keys = model.keys.slice();
 
 						while ( keys.length ) obj = obj[ keys.shift() ];
 						return values.push( obj );

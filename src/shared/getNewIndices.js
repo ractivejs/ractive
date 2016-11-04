@@ -24,7 +24,7 @@
 // sections when you do e.g. `ractive.splice( 'items', 2, 2 );
 
 export default function getNewIndices ( length, methodName, args ) {
-	var spliceArguments, newIndices = [], removeStart, removeEnd, balance, i;
+	let spliceArguments, newIndices = [], removeStart, removeEnd, balance, i;
 
 	spliceArguments = getSpliceEquivalent( length, methodName, args );
 

@@ -73,7 +73,7 @@ export default class Element extends ContainerItem {
 
 		let i = this.attributes.length;
 		while ( i-- ) {
-			let attr = this.attributes[ i ];
+			const attr = this.attributes[ i ];
 			if ( attr.name === 'type' ) this.attributes.unshift( this.attributes.splice( i, 1 )[ 0 ] );
 			else if ( attr.name === 'max' ) this.attributes.unshift( this.attributes.splice( i, 1 )[ 0 ] );
 			else if ( attr.name === 'min' ) this.attributes.unshift( this.attributes.splice( i, 1 )[ 0 ] );
@@ -337,7 +337,7 @@ export default class Element extends ContainerItem {
 
 		// unrendering before intro completed? complete it now
 		// TODO should be an API for aborting transitions
-		let transition = this._introTransition;
+		const transition = this._introTransition;
 		if ( transition && transition.complete ) transition.complete();
 
 		// Detach as soon as we can

@@ -2,7 +2,7 @@ import { GLOBAL, REFERENCE } from '../../../../config/types';
 import { normalise } from '../../../../shared/keypaths';
 import { legalReference, relaxedName } from '../shared/patterns';
 
-var prefixPattern = /^(?:~\/|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/,
+let prefixPattern = /^(?:~\/|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/,
 	globals,
 	keywords;
 
@@ -16,7 +16,7 @@ const specials = /^@(?:keypath|rootpath|index|key|this|global)/;
 const specialCall = /^\s*\(/;
 
 export default function readReference ( parser ) {
-	var startPos, prefix, name, global, reference, fullLength, lastDotIndex;
+	let startPos, prefix, name, global, reference, fullLength, lastDotIndex;
 
 	startPos = parser.pos;
 
@@ -24,7 +24,7 @@ export default function readReference ( parser ) {
 
 	if ( name === '@keypath' || name === '@rootpath' ) {
 		if ( parser.matchPattern( specialCall ) ) {
-			let ref = readReference( parser );
+			const ref = readReference( parser );
 			if ( !ref ) parser.error( `Expected a valid reference for a keypath expression` );
 
 			parser.allowWhitespace();
@@ -79,7 +79,7 @@ export default function readReference ( parser ) {
 		// but only if the reference was actually a member and not a refinement
 		lastDotIndex = reference.lastIndexOf( '.' );
 		if ( lastDotIndex !== -1 && name[ name.length - 1 ] !== ']' ) {
-			let refLength = reference.length;
+			const refLength = reference.length;
 			reference = reference.substr( 0, lastDotIndex );
 			parser.pos = startPos + (fullLength - ( refLength - lastDotIndex ) );
 		} else {

@@ -3,17 +3,17 @@ import { isArray } from '../../utils/is';
 import stripStandalones from './stripStandalones';
 import trimWhitespace from './trimWhitespace';
 
-let contiguousWhitespace = /[ \t\f\r\n]+/g;
-let preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i;
-let leadingWhitespace = /^[ \t\f\r\n]+/;
-let trailingWhitespace = /[ \t\f\r\n]+$/;
-let leadingNewLine = /^(?:\r\n|\r|\n)/;
-let trailingNewLine = /(?:\r\n|\r|\n)$/;
+const contiguousWhitespace = /[ \t\f\r\n]+/g;
+const preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i;
+const leadingWhitespace = /^[ \t\f\r\n]+/;
+const trailingWhitespace = /[ \t\f\r\n]+$/;
+const leadingNewLine = /^(?:\r\n|\r|\n)/;
+const trailingNewLine = /(?:\r\n|\r|\n)$/;
 
 export default function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace ) {
 	if ( typeof items === 'string' ) return;
 
-	var i,
+	let i,
 		item,
 		previousItem,
 		nextItem,
@@ -49,7 +49,7 @@ export default function cleanup ( items, stripComments, preserveWhitespace, remo
 
 		// Recurse
 		if ( item.f ) {
-			let isPreserveWhitespaceElement = item.t === ELEMENT && preserveWhitespaceElements.test( item.e );
+			const isPreserveWhitespaceElement = item.t === ELEMENT && preserveWhitespaceElements.test( item.e );
 			preserveWhitespaceInsideFragment = preserveWhitespace || isPreserveWhitespaceElement;
 
 			if ( !preserveWhitespace && isPreserveWhitespaceElement ) {

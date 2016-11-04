@@ -82,7 +82,7 @@ function getParent ( item ) {
 }
 
 function getAncestry ( item ) {
-	let ancestry = [ item ];
+	const ancestry = [ item ];
 	let ancestor = getParent( item );
 
 	while ( ancestor ) {
@@ -121,7 +121,7 @@ export default class Query {
 
 		this.cancelled = true;
 
-		let liveQueries = this.ractive[ this.isComponentQuery ? '_liveComponentQueries' : '_liveQueries' ];
+		const liveQueries = this.ractive[ this.isComponentQuery ? '_liveComponentQueries' : '_liveQueries' ];
 
 		const index = liveQueries.indexOf( this );
 

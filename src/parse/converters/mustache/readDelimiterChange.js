@@ -1,7 +1,7 @@
-var delimiterChangePattern = /^[^\s=]+/, whitespacePattern = /^\s+/;
+let delimiterChangePattern = /^[^\s=]+/, whitespacePattern = /^\s+/;
 
 export default function readDelimiterChange ( parser ) {
-	var start, opening, closing;
+	let start, opening, closing;
 
 	if ( !parser.matchString( '=' ) ) {
 		return null;

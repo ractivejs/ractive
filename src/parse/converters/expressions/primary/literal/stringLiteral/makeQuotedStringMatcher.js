@@ -1,4 +1,4 @@
-var stringMiddlePattern, escapeSequencePattern, lineContinuationPattern;
+let stringMiddlePattern, escapeSequencePattern, lineContinuationPattern;
 
 // Match one or more characters until: ", ', \, or EOL/EOF.
 // EOL/EOF is written as (?!.) (meaning there's no non-newline char next).

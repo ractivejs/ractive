@@ -3,7 +3,7 @@ import { removeFromArray } from '../../../../utils/array';
 import Binding from './Binding';
 import handleDomEvent from './handleDomEvent';
 
-let siblings = {};
+const siblings = {};
 
 function getSiblings ( hash ) {
 	return siblings[ hash ] || ( siblings[ hash ] = [] );

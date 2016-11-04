@@ -42,7 +42,7 @@ function forceResetTemplate ( partial ) {
 }
 
 export default function ( name, partial ) {
-	let collection = [];
+	const collection = [];
 	collect( this.fragment.items, name, false, collection );
 
 	const promise = runloop.start( this, true );

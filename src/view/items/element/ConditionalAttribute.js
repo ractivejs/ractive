@@ -8,7 +8,7 @@ import noop from '../../../utils/noop';
 
 const div = doc ? createElement( 'div' ) : null;
 
-var attributes = false;
+let attributes = false;
 export function inAttributes() { return attributes; }
 export function doInAttributes( fn ) {
 	attributes = true;

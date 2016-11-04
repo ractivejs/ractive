@@ -1,7 +1,7 @@
 import { COMMENT } from '../../../config/types';
 
 export default function readComment ( parser, tag ) {
-	var index;
+	let index;
 
 	if ( !parser.matchString( '!' ) ) {
 		return null;

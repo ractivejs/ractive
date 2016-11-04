@@ -72,7 +72,7 @@ export class MustacheContainer extends ContainerItem {
 	constructor ( options ) {
 		super( options );
 	}
-};
+}
 const proto = MustacheContainer.prototype;
 const mustache = Mustache.prototype;
 proto.bind = mustache.bind;
