@@ -178,7 +178,7 @@ export default function() {
 	});
 
 	test( 'node info animate', t => {
-		var done = t.async();
+		const done = t.async();
 		t.expect( 1 );
 
 		const r = new Ractive({

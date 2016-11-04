@@ -6,7 +6,7 @@ export default function() {
 	initModule( 'init/hooks/misc.js' );
 
 	test( 'detach and insert hooks fire', t => {
-		let fired = [];
+		const fired = [];
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -153,7 +153,7 @@ export default function() {
 		reset();
 
 		// specifying both options is an error
-		t.throws( function () {
+		t.throws( () => {
 			new Ractive({
 				onconstruct: () => count.construct += 1,
 				beforeInit: () => count.beforeInit += 1
@@ -172,7 +172,7 @@ export default function() {
 
 		let Subclass;
 
-		t.throws( function () {
+		t.throws( () => {
 			Subclass = Ractive.extend({
 				onconstruct: () => count.construct += 1,
 				beforeInit: () => count.beforeInit += 1

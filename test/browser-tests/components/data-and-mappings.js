@@ -865,8 +865,8 @@ export default function() {
 	});
 
 	test( 'Component bindings respect smart updates (#1209)', t => {
-		let intros = {};
-		let outros = {};
+		const intros = {};
+		const outros = {};
 
 		const Widget = Ractive.extend({
 			template: '{{#each items}}<p log-in-out>{{this}}</p>{{/each}}',
@@ -1209,7 +1209,7 @@ export default function() {
 	test( 'root references inside a component should resolve to the component', t => {
 		const cmp = Ractive.extend({
 			template: '{{#with foo.bar}}{{~/test}}{{/with}}',
-			data: function() {
+			data() {
 				return { test: 'yep' };
 			}
 		});
@@ -1236,7 +1236,7 @@ export default function() {
 			components: { cmp }
 		});
 
-		let c = r.findComponent( 'cmp' );
+		const c = r.findComponent( 'cmp' );
 
 		r.set( 'bar', 'maybe' );
 		t.equal( c.get( 'bar' ), 'maybe' );

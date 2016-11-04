@@ -5,7 +5,7 @@ export default function() {
 	initModule( 'methods/add.js' );
 
 	test( 'ractive.add("foo") adds 1 to the value of foo', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			data: { foo: 0 }
 		});
 
@@ -17,7 +17,7 @@ export default function() {
 	});
 
 	test( 'ractive.add("foo",x) adds x to the value of foo', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			data: { foo: 0 }
 		});
 
@@ -29,7 +29,7 @@ export default function() {
 	});
 
 	test( 'non-numeric values are an error', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			data: { foo: 'potato' }
 		});
 
@@ -37,13 +37,13 @@ export default function() {
 	});
 
 	test( 'each keypath that matches a wildcard is added to individually (#1604)', t => {
-		let items = [
+		const items = [
 			{ count: 1 },
 			{ count: 2 },
 			{ count: 3 }
 		];
 
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			data: { items }
 		});
 

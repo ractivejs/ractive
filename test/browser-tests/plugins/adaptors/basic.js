@@ -37,11 +37,11 @@ export default function() {
 			percent: 150
 		});
 
-		model.transform( 'foo', function ( newValue ) {
+		model.transform( 'foo', ( newValue ) => {
 			return newValue.toLowerCase();
 		});
 
-		model.transform( 'percent', function ( newValue ) {
+		model.transform( 'percent', ( newValue ) => {
 			return Math.min( 100, Math.max( 0, newValue ) );
 		});
 
@@ -73,7 +73,7 @@ export default function() {
 			unwanted: 'here'
 		});
 
-		model.transform( 'foo', function ( newValue ) {
+		model.transform( 'foo', ( newValue ) => {
 			return newValue.toLowerCase();
 		});
 
@@ -89,7 +89,7 @@ export default function() {
 
 		model = new Model({ foo: 'QUX' });
 
-		model.transform( 'foo', function ( newValue ) {
+		model.transform( 'foo', ( newValue ) => {
 			return newValue.toLowerCase();
 		});
 
@@ -145,7 +145,7 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '<button>bar</button>' );
 
-		ractive.on( 'select', function ( event, model ) {
+		ractive.on( 'select', ( event, model ) => {
 			t.ok( model instanceof Model );
 		});
 
@@ -490,8 +490,8 @@ export default function() {
 
 				return {
 					get () {
-						var res = {};
-						for ( let k in child.thing ) res[k] = child.thing[k] + 1;
+						const res = {};
+						for ( const k in child.thing ) res[k] = child.thing[k] + 1;
 						return res;
 					},
 					teardown () { delete parent._wrapper[ keypath ]; }

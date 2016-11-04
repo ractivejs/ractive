@@ -96,12 +96,12 @@ export default function() {
 
 	if ( 'draggable' in document.createElement( 'div' ) ) {
 		test( 'draggable attribute is handled correctly (#1780)', t => {
-			let ractive = new Ractive({
+			const ractive = new Ractive({
 				el: fixture,
 				template: '<div draggable="true" /><div draggable="false" /><div draggable="" /><div draggable /><div draggable="{{true}}" /><div draggable="{{false}}" /><div draggable="{{empty}}" />'
 			});
 
-			let divs = ractive.findAll( 'div' );
+			const divs = ractive.findAll( 'div' );
 			t.equal( divs[0].draggable, true );
 			t.equal( divs[1].draggable, false );
 			t.equal( divs[2].draggable, false );

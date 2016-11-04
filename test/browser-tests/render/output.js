@@ -83,9 +83,9 @@ export default function() {
 			return source.map( deepClone );
 		}
 
-		let target = {};
+		const target = {};
 
-		for ( let key in source ) {
+		for ( const key in source ) {
 			if ( source.hasOwnProperty( key ) ) {
 				target[ key ] = deepClone( source[ key ] );
 			}

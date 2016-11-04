@@ -351,7 +351,7 @@ export default function() {
 				}
 			});
 
-			let ractive = new Widget({ el: fixture });
+			const ractive = new Widget({ el: fixture });
 
 			ractive.reset();
 			ractive.update();
@@ -455,7 +455,7 @@ export default function() {
 	});
 
 	test( 'Computed properties referencing deep objects', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: '{{one.two.tre}}',
 			data: {
@@ -526,7 +526,7 @@ export default function() {
 	});
 
 	test( 'Computed values are only computed as necessary', t => {
-		let count = { foo: 0, bar: 0, baz: 0, qux: 0 };
+		const count = { foo: 0, bar: 0, baz: 0, qux: 0 };
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -601,7 +601,7 @@ export default function() {
 	});
 
 	test( 'Computations can depend on array values (#1747)', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: '{{count}} {{count === 4}}',
 			data: {
@@ -663,8 +663,8 @@ export default function() {
 	});
 
 	test( 'Setting an Array to [] does not recompute removed values (#2069)', t => {
-		let called = { func: 0, f1: 0, f2: 0, f3: 0 };
-		let ractive = new Ractive({
+		const called = { func: 0, f1: 0, f2: 0, f3: 0 };
+		const ractive = new Ractive({
 			el: fixture,
 			template: `
 				<ul>
@@ -1006,7 +1006,7 @@ export default function() {
 	test( `computation changes are included in change events`, t => {
 		t.expect( 2 );
 
-		let fluff = 'bar'
+		let fluff = 'bar';
 		const r = new Ractive({
 			el: fixture,
 			template: '{{bar}}',

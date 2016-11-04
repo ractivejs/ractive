@@ -108,7 +108,7 @@ export default function() {
 			options: ['red', 'blue', 'yellow']
 		});
 
-		ractive.findAll('input').forEach(function(input){
+		ractive.findAll('input').forEach((input) => {
 			t.equal( input.name, '{{responses.Colors}}' );
 		});
 	});
@@ -130,7 +130,7 @@ export default function() {
 	});
 
 	test( 'Render may be called with a selector (#1430)', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			template: 'foo'
 		});
 

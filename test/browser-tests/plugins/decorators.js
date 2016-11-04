@@ -567,7 +567,7 @@ export default function() {
 			return {
 				teardown () { count--; }
 			};
-		};
+		}
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#if show}}<div>{{#with 1 as sure}}<span as-foo />{{/with}}</div>{{/if}}` ,

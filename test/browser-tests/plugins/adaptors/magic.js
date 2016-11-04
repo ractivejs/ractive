@@ -9,7 +9,7 @@ export default function() {
 
 	// only run these tests if magic mode is supported
 	try {
-		let obj = {};
+		const obj = {};
 		let _foo;
 		Object.defineProperty( obj, 'foo', {
 			get () {
@@ -123,7 +123,7 @@ export default function() {
 
 		test( 'Magic mode works with existing accessors', t => {
 			let _foo = 'Bar';
-			let data = {};
+			const data = {};
 
 			Object.defineProperty( data, 'foo', {
 				get () {
@@ -149,9 +149,9 @@ export default function() {
 		});
 
 		test( 'Magic mode preserves "this" for existing accessors', t => {
-			let data = {};
-			var thisObservedInGetter = undefined;
-			var thisObservedInSetter = undefined;
+			const data = {};
+			let thisObservedInGetter = undefined;
+			let thisObservedInSetter = undefined;
 
 			Object.defineProperty( data, 'propertyLoggingObservedThisOnCall', {
 				get () {
@@ -171,7 +171,7 @@ export default function() {
 				data
 			});
 
-			let foo = data.propertyLoggingObservedThisOnCall;
+			const foo = data.propertyLoggingObservedThisOnCall;
 			t.strictEqual( thisObservedInGetter, data );
 
 			data.propertyLoggingObservedThisOnCall = 'foo';
@@ -181,7 +181,7 @@ export default function() {
 		test( 'Setting properties in magic mode triggers change events', t => {
 			t.expect( 1 );
 
-			let foo = { bar: 'baz' };
+			const foo = { bar: 'baz' };
 
 			const ractive = new MagicRactive({
 				el: fixture,
@@ -199,7 +199,7 @@ export default function() {
 		test( 'A magic component is magic regardless of whether its parent is magic', t => {
 			t.expect( 3 );
 
-			let data = {
+			const data = {
 				magician: 'Harry Houdini'
 			};
 
@@ -230,11 +230,11 @@ export default function() {
 		});
 
 		test( "Magic adapters shouldn't tear themselves down while resetting (#1342)", t => {
-			let list = 'abcde'.split('');
+			const list = 'abcde'.split('');
 			const r = new MagicRactive({
 				el: fixture,
 				template: '{{#list}}{{.}}{{/}}',
-				data: { list: list },
+				data: { list },
 				magic: true
 			});
 
@@ -254,7 +254,7 @@ export default function() {
 				magic: true
 			});
 
-			let data = { world: 'mars' };
+			const data = { world: 'mars' };
 
 			new Ractive({
 				el: fixture,

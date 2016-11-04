@@ -10,7 +10,7 @@ export default function() {
 
 			const done = t.async();
 
-			let items = [ 'alice', 'bob', 'charles' ];
+			const items = [ 'alice', 'bob', 'charles' ];
 
 			const ractive = new Ractive({
 				el: fixture,
@@ -35,7 +35,7 @@ export default function() {
 	test( 'shifting an empty array', t => {
 		t.expect( 0 );
 
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			template: '{{#items}}x{{/}}',
 			el: 'main',
 			data: {

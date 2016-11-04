@@ -89,10 +89,10 @@ export default function() {
 			components: { Widget }
 		});
 
-		let divs = ractive.findAll( 'div', { live: true });
+		const divs = ractive.findAll( 'div', { live: true });
 		t.equal( divs.length, 0 );
 
-		[ 3, 2, 5, 10, 0 ].forEach( function ( length ) {
+		[ 3, 2, 5, 10, 0 ].forEach( ( length ) => {
 			ractive.set( 'widgets', new Array( length ) );
 			t.equal( divs.length, length );
 		});
@@ -271,8 +271,8 @@ export default function() {
 		r1.attachChild( r2, { target: 'anchor' } );
 		r1.attachChild( r3 );
 
-		let q1 = r1.findAll( 'div', { live: true } );
-		let q2 = r1.findAll( 'div', { live: true, remote: true } );
+		const q1 = r1.findAll( 'div', { live: true } );
+		const q2 = r1.findAll( 'div', { live: true, remote: true } );
 
 		t.equal( q1.length, 3 );
 		t.equal( q2.length, 5 );

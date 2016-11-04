@@ -36,7 +36,7 @@ export default function() {
 			template: '<span id="test" on-custom="someEvent">click me</span>'
 		});
 
-		ractive.on( 'someEvent', function ( event ) {
+		ractive.on( 'someEvent', ( event ) => {
 			t.ok( true );
 			t.equal( event.original.type, 'click' );
 		});
@@ -53,7 +53,7 @@ export default function() {
 			t.expect( 1 );
 
 			onWarn( msg => {
-			t.ok( /Missing "foo" events plugin/.test( msg ) );
+				t.ok( /Missing "foo" events plugin/.test( msg ) );
 			});
 
 			new Ractive({

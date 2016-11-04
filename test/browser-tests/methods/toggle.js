@@ -5,7 +5,7 @@ export default function() {
 	initModule( 'methods/toggle.js' );
 
 	test( 'ractive.toggle("foo") toggles the value of foo', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			data: { foo: false }
 		});
 
@@ -17,7 +17,7 @@ export default function() {
 	});
 
 	test( 'non-boolean values are effectively coerced', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			data: {
 				foo: null,
 				bar: 0,
@@ -37,13 +37,13 @@ export default function() {
 	});
 
 	test( 'each keypath that matches a wildcard is toggled individually (#1604)', t => {
-		let items = [
+		const items = [
 			{ active: true },
 			{ active: false },
 			{ active: true }
 		];
 
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			data: { items }
 		});
 

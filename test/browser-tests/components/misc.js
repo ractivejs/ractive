@@ -553,7 +553,7 @@ export default function() {
 	});
 
 	test( 'Decorators and transitions are only initialised post-render, when components are inside elements (#1346)', t => {
-		let inDom = {};
+		const inDom = {};
 
 		const Widget = Ractive.extend({
 			template: '<div as-check=""widget"">{{yield}}</div>'
@@ -669,7 +669,7 @@ export default function() {
 			components: { ListBaz }
 		});
 
-		let list = [];
+		const list = [];
 
 		const r = new Ractive({
 			el: fixture,
@@ -685,7 +685,7 @@ export default function() {
 			data: { list }
 		});
 
-		let list2 = [
+		const list2 = [
 			{ foo: 1 },
 			{ foo: 2, bar: [ { a: 1 }, { a: 2 }, { a: 3 } ] },
 			{ foo: 3 }
@@ -874,7 +874,7 @@ export default function() {
 			`
 		});
 
-		var ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: `
 				<Component />
@@ -907,12 +907,12 @@ export default function() {
 
 	test( 'nested component @keypath references should be relative to the nested component', t => {
 		const cmp1 = Ractive.extend({
-			template: '{{#with foo.bar}}{{@keypath}}{{/with}}'
-		}),
-		cmp2 = Ractive.extend({
-			template: '{{#with baz.bat}}<cmp1 foo="{{.}}" />{{/with}}',
-			components: { cmp1 }
-		});
+				template: '{{#with foo.bar}}{{@keypath}}{{/with}}'
+			}),
+			cmp2 = Ractive.extend({
+				template: '{{#with baz.bat}}<cmp1 foo="{{.}}" />{{/with}}',
+				components: { cmp1 }
+			});
 
 		new Ractive({
 			el: fixture,

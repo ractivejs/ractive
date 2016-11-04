@@ -295,7 +295,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>it still works</p>' );
 	});
 
-	test( 'Partials with expressions may also have context', function( t ) {
+	test( 'Partials with expressions may also have context', ( t ) => {
 		new Ractive({
 			el: fixture,
 			template: '{{>(tpl + ".test") ctx}} : {{>"test." + tpl ctx.expr}}',
@@ -943,7 +943,7 @@ export default function() {
 
 	test( 'Partials can be parsed from a partial template (#1445)', t => {
 		fixture.innerHTML = '<div id="fixture-tmp"></div>';
-		let script = document.createElement( 'script' );
+		const script = document.createElement( 'script' );
 		script.setAttribute( 'type', 'text/html' );
 		script.setAttribute( 'id', 'foo' );
 		script[ 'textContent' in script ? 'textContent' : 'innerHTML' ] = `

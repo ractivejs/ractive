@@ -8,7 +8,7 @@ export default function() {
 	// TODO finish moving these into more sensible locations
 
 	test( 'Grandchild component teardown when nested in element (#1360)', t => {
-		let torndown = [];
+		const torndown = [];
 
 		const Child = Ractive.extend({
 			template: `
@@ -80,7 +80,7 @@ export default function() {
 			}
 		});
 
-		ractive.on( 'bar', function ( event, parameter ) {
+		ractive.on( 'bar', ( event, parameter ) => {
 			t.equal( parameter, 'bar' );
 		});
 
@@ -149,7 +149,7 @@ export default function() {
 	});
 
 	test( 'correct function scope for this.bar() in template', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: `
 				<button on-click='@this.set("foo",bar())'>click me</button>
@@ -211,7 +211,7 @@ export default function() {
 				data: { foo: 'test' }
 			});
 
-			let node = ractive.find( 'input' );
+			const node = ractive.find( 'input' );
 			node.value = 'bar';
 			fire( node, 'input' );
 			t.equal( ractive.get( 'foo' ), 'test' );

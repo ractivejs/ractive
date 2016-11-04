@@ -88,7 +88,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>1,2</p><p>3,4</p>');
 	});
 
-	test( 'Components in a list can be rebound', function ( t ) {
+	test( 'Components in a list can be rebound', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items}}<widget letter="{{.}}"/>{{/items}}',
@@ -110,7 +110,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>d</p><p>e</p>' );
 	});
 
-	test( 'Index references can be used as key attributes on components, and rebinding works', function ( t ) {
+	test( 'Index references can be used as key attributes on components, and rebinding works', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items:i}}<widget index="{{i}}" letter="{{.}}"/>{{/items}}',
@@ -145,7 +145,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '0,1,2,3,');
 	});
 
-	test( 'Expressions with unresolved references can be rebound (#630)', function ( t ) {
+	test( 'Expressions with unresolved references can be rebound (#630)', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#list}}{{#check > length}}true{{/test}}{{/list}}',
@@ -156,7 +156,7 @@ export default function() {
 		t.ok( true );
 	});
 
-	test( 'Regression test for #697', function ( t ) {
+	test( 'Regression test for #697', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#model}}{{#thing}}{{# foo && bar }}<p>works</p>{{/inner}}{{/thing}}{{/model}}',
@@ -176,7 +176,7 @@ export default function() {
 		t.ok( true );
 	});
 
-	test( 'Regression test for #715', function ( t ) {
+	test( 'Regression test for #715', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items}}{{#test}}{{# .entries > 1 }}{{{ foo }}}{{/ .entries }}{{/test}}{{/items}}',
@@ -194,7 +194,7 @@ export default function() {
 		t.ok( true );
 	});
 
-	test( 'Items are not unrendered and rerendered unnecessarily in cases like #715', function ( t ) {
+	test( 'Items are not unrendered and rerendered unnecessarily in cases like #715', ( t ) => {
 		let renderCount = 0;
 		let unrenderCount = 0;
 
@@ -226,8 +226,8 @@ export default function() {
 		t.equal( unrenderCount, 0 );
 	});
 
-	test( 'Regression test for #729 (part one) - rebinding silently-created elements', function ( t ) {
-		let items = [{test: { bool: false }}];
+	test( 'Regression test for #729 (part one) - rebinding silently-created elements', ( t ) => {
+		const items = [{test: { bool: false }}];
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -241,8 +241,8 @@ export default function() {
 		t.ok( true );
 	});
 
-	test( 'Regression test for #729 (part two) - inserting before silently-created elements', function ( t ) {
-		let items = [];
+	test( 'Regression test for #729 (part two) - inserting before silently-created elements', ( t ) => {
+		const items = [];
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -257,7 +257,7 @@ export default function() {
 		t.ok( true );
 	});
 
-	test( 'Regression test for #756 - fragment contexts are not rebound to undefined', function ( t ) {
+	test( 'Regression test for #756 - fragment contexts are not rebound to undefined', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -269,7 +269,7 @@ export default function() {
 			data: { items:[{},{}] }
 		});
 
-		let new_items = [
+		const new_items = [
 			{ test: { list: [{ thing: 'Z' }, { thing: 'Z' }] }, foo: false },
 			{ test: { list: [{ thing: 'Z' }, { thing: 'Z' }] }, foo: false }
 		];
@@ -282,7 +282,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div class></div><div class>[ Z ]</div>' );
 	});
 
-	test( '@index rebinds correctly', function ( t ) {
+	test( '@index rebinds correctly', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#each items}}<p>{{@index}}:{{this}}</p>{{/each}}',
@@ -293,7 +293,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>0:a</p><p>1:b</p><p>2:c</p><p>3:d</p>' );
 	});
 
-	test( 'index rebinds do not go past new index providers (#1457)', function ( t ) {
+	test( 'index rebinds do not go past new index providers (#1457)', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#each foo}}{{@index}}{{#each .bar}}{{@index}}{{/each}}<br/>{{/each}}',
@@ -355,7 +355,7 @@ export default function() {
 		ractive.splice( 'items', 0, 1 );
 	});
 
-	test( 'rebinds of IF sections do not add new context (#2454)', function ( t ) {
+	test( 'rebinds of IF sections do not add new context (#2454)', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -366,8 +366,8 @@ export default function() {
 	{{/}}`,
 			data: {
 				items: [
-					{ name: "foo", disabled: true },
-					{ name: "bar", disabled: true }
+					{ name: 'foo', disabled: true },
+					{ name: 'bar', disabled: true }
 				]
 			}
 		});
@@ -380,7 +380,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'bar' );
 	});
 
-	test( 'rebinds of if/else sections do not add new context (#2454)', function ( t ) {
+	test( 'rebinds of if/else sections do not add new context (#2454)', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -393,8 +393,8 @@ export default function() {
 	{{/}}`,
 			data: {
 				items: [
-					{ name: "foo", disabled: false },
-					{ name: "bar", disabled: false }
+					{ name: 'foo', disabled: false },
+					{ name: 'bar', disabled: false }
 				]
 			}
 		});
@@ -407,7 +407,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'bar' );
 	});
 
-	test( 'rebinds of UNLESS sections do not add new context (#2454)', function ( t ) {
+	test( 'rebinds of UNLESS sections do not add new context (#2454)', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -418,8 +418,8 @@ export default function() {
 	{{/}}`,
 			data: {
 				items: [
-					{ name: "foo", disabled: false },
-					{ name: "bar", disabled: false }
+					{ name: 'foo', disabled: false },
+					{ name: 'bar', disabled: false }
 				]
 			}
 		});

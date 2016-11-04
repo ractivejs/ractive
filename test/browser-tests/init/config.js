@@ -11,7 +11,7 @@ export default function() {
 	test( 'Ractive.defaults', t => {
 		t.equal( Ractive.defaults, Ractive.prototype, 'defaults aliases prototype' );
 
-		for( let key in defaults ) {
+		for( const key in defaults ) {
 			t.ok( Ractive.defaults.hasOwnProperty( key ), 'has default ' + key );
 		}
 	});

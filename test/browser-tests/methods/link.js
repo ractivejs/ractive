@@ -5,7 +5,7 @@ export default function() {
 	initModule( 'methods/link.js' );
 
 	test( 'Keypaths can be linked', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: '{{ foo }} {{ bar.baz.bat }}',
 			data: { bar: { baz: { bat: 'linked' } } }
@@ -21,7 +21,7 @@ export default function() {
 	});
 
 	test( 'Deep references on links should work as expected', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: '{{ person.name }} is {{ person.status }}',
 			data: {
@@ -42,7 +42,7 @@ export default function() {
 	});
 
 	test( 'Re-linking overwrites the existing link', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: '{{ dog.name }}',
 			data: { dogs: [ { name: 'Abel' }, { name: 'John' } ] }
@@ -57,7 +57,7 @@ export default function() {
 
 	// only for non-mapped links
 	test( 'Links can be set to nested paths', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: '{{ foo.baz.bar }}',
 			data: { bippy: { boppy: { bar: 1 } } }
@@ -69,7 +69,7 @@ export default function() {
 	});
 
 	test( 'Links cannot have overlapping paths', t => {
-		let ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: '',
 		});
@@ -84,7 +84,7 @@ export default function() {
 	});
 
 	test( 'Links should not outlive their instance', t => {
-		let r = new Ractive({
+		const r = new Ractive({
 			el: fixture,
 			template: '{{#if foo}}<bar />{{/if}}',
 			components: {

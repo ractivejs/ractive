@@ -244,17 +244,17 @@ export default function() {
 	});
 
 	test( 'Components inherited from more than one generation off work with named yields', t => {
-		let widget = Ractive.extend({
+		const widget = Ractive.extend({
 			template: '{{yield foo}}'
 		});
 
-		let Base = Ractive.extend({
+		const Base = Ractive.extend({
 			components: { widget }
 		});
 
-		let Step1 = Base.extend();
-		let Step2 = Step1.extend();
-		let Step3 = Step2.extend({
+		const Step1 = Base.extend();
+		const Step2 = Step1.extend();
+		const Step3 = Step2.extend({
 			template: `
 				<widget>
 					{{#partial foo}}

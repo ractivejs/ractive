@@ -4,7 +4,7 @@ import { initModule } from '../test-config';
 export default function() {
 	initModule( 'methods/merge.js' );
 
-	test( 'Merging an array of strings only creates the necessary fragments', function ( t ) {
+	test( 'Merging an array of strings only creates the necessary fragments', ( t ) => {
 		let entered = 0;
 		let exited = 0;
 
@@ -44,7 +44,7 @@ export default function() {
 		t.ok( baz === ractive.nodes.baz );
 	});
 
-	test( 'Merging an array of strings only removes the necessary fragments', function ( t ) {
+	test( 'Merging an array of strings only removes the necessary fragments', ( t ) => {
 		let entered = 0;
 		let exited = 0;
 
@@ -83,7 +83,7 @@ export default function() {
 		t.ok( baz === ractive.nodes.baz );
 	});
 
-	test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is `true`', function ( t ) {
+	test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is `true`', ( t ) => {
 		let entered = 0;
 		let exited = 0;
 
@@ -124,7 +124,7 @@ export default function() {
 		t.ok( baz === ractive.nodes.baz );
 	});
 
-	test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is a string id field', function ( t ) {
+	test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is a string id field', ( t ) => {
 		let entered = 0;
 		let exited = 0;
 
@@ -165,7 +165,7 @@ export default function() {
 		t.ok( baz === ractive.nodes.baz );
 	});
 
-	test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is a comparison function', function ( t ) {
+	test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is a comparison function', ( t ) => {
 		let entered = 0;
 		let exited = 0;
 
@@ -208,7 +208,7 @@ export default function() {
 		t.ok( baz === ractive.nodes.baz );
 	});
 
-	test( 'If identity comparison fails, the resulting shape of the DOM is still correct', function ( t ) {
+	test( 'If identity comparison fails, the resulting shape of the DOM is still correct', ( t ) => {
 		let entered = 0;
 		let exited = 0;
 
@@ -249,7 +249,7 @@ export default function() {
 		t.ok( baz !== ractive.nodes.baz );
 	});
 
-	test( 'Merging will trigger upstream updates regardless of whether items are being added/removed', function ( t ) {
+	test( 'Merging will trigger upstream updates regardless of whether items are being added/removed', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{items}} {{JSON.stringify(items)}}',
@@ -263,7 +263,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'b,a,c ["b","a","c"]' );
 	});
 
-	test( '#if section with merged array (#952)', function ( t ) {
+	test( '#if section with merged array (#952)', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#if list}}yes{{else}}no{{/if}}',
@@ -278,7 +278,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yes' );
 	});
 
-	test( 'Unbound sections disregard merge instructions (#967)', function ( t ) {
+	test( 'Unbound sections disregard merge instructions (#967)', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -296,7 +296,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<ul><li>a: ac</li><li>c: ac</li></ul>' );
 	});
 
-	test( 'Shuffling the order of array members', function ( t ) {
+	test( 'Shuffling the order of array members', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<ul>{{#each items}}<li>{{this}}</li>{{/each}}</ul>',
@@ -309,7 +309,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<ul><li>c</li><li>b</li><li>d</li><li>a</li></ul>' );
 	});
 
-	test( 'Merging works with unrendered instances (#1314)', function ( t ) {
+	test( 'Merging works with unrendered instances (#1314)', ( t ) => {
 		const ractive = new Ractive({
 			template: '{{#items}}{{.}}{{/}}',
 			data: {
@@ -360,7 +360,7 @@ export default function() {
 
 		const list = r.get( 'list' );
 		list.unshift({ key: 'c' });
-		let tmp = list[1];
+		const tmp = list[1];
 		list[1] = list[2];
 		list[2] = tmp;
 		r.merge( 'list', list );
@@ -400,7 +400,7 @@ export default function() {
 
 		const list = r.get( 'list' );
 		list.unshift({ key: 'c' });
-		let tmp = list[1];
+		const tmp = list[1];
 		list[1] = list[2];
 		list[2] = tmp;
 		r.merge( 'list', list );
