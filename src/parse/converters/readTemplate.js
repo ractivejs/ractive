@@ -11,7 +11,8 @@ export default function readTemplate ( parser ) {
 	const preserveWhitespace = parser.preserveWhitespace;
 
 	while ( parser.pos < parser.str.length ) {
-		let pos = parser.pos, item, partial;
+		const pos = parser.pos;
+		let item, partial;
 
 		if ( partial = parser.read( PARTIAL_READERS ) ) {
 			if ( partials[ partial.n ] ) {

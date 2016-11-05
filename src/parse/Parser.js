@@ -1,8 +1,8 @@
 import { create, hasOwn } from '../utils/object';
 
-let Parser, ParseError, leadingWhitespace = /^\s+/;
+const leadingWhitespace = /^\s+/;
 
-ParseError = function ( message ) {
+const ParseError = function ( message ) {
 	this.name = 'ParseError';
 	this.message = message;
 	try {
@@ -14,8 +14,9 @@ ParseError = function ( message ) {
 
 ParseError.prototype = Error.prototype;
 
-Parser = function ( str, options ) {
-	let items, item, lineStart = 0;
+const Parser = function ( str, options ) {
+	let item;
+	let lineStart = 0;
 
 	this.str = str;
 	this.options = options || {};
@@ -32,7 +33,7 @@ Parser = function ( str, options ) {
 	// Custom init logic
 	if ( this.init ) this.init( str, options );
 
-	items = [];
+	const items = [];
 
 	while ( ( this.pos < this.str.length ) && ( item = this.read() ) ) {
 		items.push( item );
@@ -44,13 +45,13 @@ Parser = function ( str, options ) {
 
 Parser.prototype = {
 	read ( converters ) {
-		let pos, i, len, item;
+		let i, item;
 
 		if ( !converters ) converters = this.converters;
 
-		pos = this.pos;
+		const pos = this.pos;
 
-		len = converters.length;
+		const len = converters.length;
 		for ( i = 0; i < len; i += 1 ) {
 			this.pos = pos; // reset for each attempt
 
@@ -97,14 +98,15 @@ Parser.prototype = {
 	},
 
 	getLinePos ( char ) {
-		let lineNum = 0, lineStart = 0, columnNum;
+		let lineNum = 0;
+		let lineStart = 0;
 
 		while ( char >= this.lineEnds[ lineNum ] ) {
 			lineStart = this.lineEnds[ lineNum ];
 			lineNum += 1;
 		}
 
-		columnNum = char - lineStart;
+		const columnNum = char - lineStart;
 		return [ lineNum + 1, columnNum + 1, char ]; // line/col should be one-based, not zero-based!
 	},
 
@@ -150,15 +152,14 @@ Parser.prototype = {
 };
 
 Parser.extend = function ( proto ) {
-	let Parent = this, Child, key;
-
-	Child = function ( str, options ) {
+	const Parent = this;
+	const Child = function ( str, options ) {
 		Parser.call( this, str, options );
 	};
 
 	Child.prototype = create( Parent.prototype );
 
-	for ( key in proto ) {
+	for ( const key in proto ) {
 		if ( hasOwn.call( proto, key ) ) {
 			Child.prototype[ key ] = proto[ key ];
 		}

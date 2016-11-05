@@ -24,20 +24,21 @@
 // sections when you do e.g. `ractive.splice( 'items', 2, 2 );
 
 export default function getNewIndices ( length, methodName, args ) {
-	let spliceArguments, newIndices = [], removeStart, removeEnd, balance, i;
+	const newIndices = [];
 
-	spliceArguments = getSpliceEquivalent( length, methodName, args );
+	const spliceArguments = getSpliceEquivalent( length, methodName, args );
 
 	if ( !spliceArguments ) {
 		return null; // TODO support reverse and sort?
 	}
 
-	balance = ( spliceArguments.length - 2 ) - spliceArguments[1];
+	const balance = ( spliceArguments.length - 2 ) - spliceArguments[1];
 
-	removeStart = Math.min( length, spliceArguments[0] );
-	removeEnd = removeStart + spliceArguments[1];
+	const removeStart = Math.min( length, spliceArguments[0] );
+	const removeEnd = removeStart + spliceArguments[1];
 	newIndices.startIndex = removeStart;
 
+	let i;
 	for ( i = 0; i < removeStart; i += 1 ) {
 		newIndices.push( i );
 	}

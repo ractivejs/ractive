@@ -3,9 +3,9 @@ import { expectedExpression } from './shared/errors';
 import readMemberOrInvocation from './readMemberOrInvocation';
 import readExpression from '../readExpression';
 
-let readTypeOf, makePrefixSequenceMatcher;
+let readTypeOf;
 
-makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
+const makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 	return function ( parser ) {
 		let expression;
 
@@ -34,9 +34,9 @@ makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 
 // create all prefix sequence matchers, return readTypeOf
 (function() {
-	let i, len, matcher, prefixOperators, fallthrough;
+	let i, len, matcher, fallthrough;
 
-	prefixOperators = '! ~ + - typeof'.split( ' ' );
+	const prefixOperators = '! ~ + - typeof'.split( ' ' );
 
 	fallthrough = readMemberOrInvocation;
 	for ( i = 0, len = prefixOperators.length; i < len; i += 1 ) {

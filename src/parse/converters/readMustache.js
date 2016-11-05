@@ -30,9 +30,9 @@ export default function readMustache ( parser ) {
 }
 
 function readMustacheOfType ( parser, tag ) {
-	let start, mustache, reader, i;
+	let mustache, reader, i;
 
-	start = parser.pos;
+	const start = parser.pos;
 
 	if ( parser.matchString( '\\' + tag.open ) ) {
 		if ( start === 0 || parser.str[ start - 1 ] !== '\\' ) {

@@ -1,5 +1,5 @@
 import ModelBase, { fireShuffleTasks } from './ModelBase';
-import LinkModel from './LinkModel';
+import LinkModel from './LinkModel'; // eslint-disable-line no-unused-vars
 import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
 import Promise from '../utils/Promise';
@@ -161,7 +161,7 @@ export default class Model extends ModelBase {
 		return ( shouldCapture || ( opts && opts.unwrap ) ) && this.wrapper ? this.wrapperValue : this.value;
 	}
 
-	getKeypathModel ( ractive ) {
+	getKeypathModel () {
 		if ( !this.keypathModel ) this.keypathModel = new KeypathModel( this );
 		return this.keypathModel;
 	}
@@ -212,7 +212,8 @@ export default class Model extends ModelBase {
 	}
 
 	merge ( array, comparator ) {
-		let oldArray = this.value, newArray = array;
+		let oldArray = this.value;
+		let newArray = array;
 		if ( oldArray === newArray ) oldArray = recreateArray( this );
 		if ( comparator ) {
 			oldArray = oldArray.map( comparator );

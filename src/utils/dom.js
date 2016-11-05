@@ -105,7 +105,7 @@ if ( !isClient ) {
 	// IE8...
 	if ( !matches ) {
 		matches = function ( node, selector ) {
-			let nodes, parentNode, i;
+			let parentNode, i;
 
 			parentNode = node.parentNode;
 
@@ -119,7 +119,7 @@ if ( !isClient ) {
 				div.appendChild( node );
 			}
 
-			nodes = parentNode.querySelectorAll( selector );
+			const nodes = parentNode.querySelectorAll( selector );
 
 			i = nodes.length;
 			while ( i-- ) {
@@ -134,7 +134,8 @@ if ( !isClient ) {
 }
 
 function detachNode ( node ) {
-	if ( node && typeof node.parentNode !== 'unknown' && node.parentNode ) {
+	// stupid ie
+	if ( node && typeof node.parentNode !== 'unknown' && node.parentNode ) { // eslint-disable-line valid-typeof
 		node.parentNode.removeChild( node );
 	}
 

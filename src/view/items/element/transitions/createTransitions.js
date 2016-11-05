@@ -53,7 +53,7 @@ if ( !isClient ) {
 		setTimeout( () => {
 			let jsTransitionsComplete;
 			let cssTransitionsComplete;
-			let cssTimeout;
+			let cssTimeout; // eslint-disable-line prefer-const
 
 			function transitionDone () { clearTimeout( cssTimeout ); }
 

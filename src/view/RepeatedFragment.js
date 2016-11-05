@@ -236,8 +236,8 @@ export default class RepeatedFragment {
 		if ( this.updating ) return;
 		this.updating = true;
 
-		const value = this.context.get(),
-			  wasArray = this.isArray;
+		const value = this.context.get();
+		const wasArray = this.isArray;
 
 		let toRemove;
 		let oldKeys;
@@ -352,9 +352,10 @@ export default class RepeatedFragment {
 		// This algorithm (for detaching incorrectly-ordered fragments from the DOM and
 		// storing them in a document fragment for later reinsertion) seems a bit hokey,
 		// but it seems to work for now
-		const len = this.context.get().length, oldLen = this.previousIterations.length;
-		let i;
+		const len = this.context.get().length;
+		const oldLen = this.previousIterations.length;
 		const removed = {};
+		let i;
 
 		newIndices.forEach( ( newIndex, oldIndex ) => {
 			const fragment = this.previousIterations[ oldIndex ];

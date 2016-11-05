@@ -2,9 +2,7 @@ import { ARRAY_LITERAL } from '../../../../../config/types';
 import readExpressionList from '../../shared/readExpressionList';
 
 export default function ( parser ) {
-	let start, expressionList;
-
-	start = parser.pos;
+	const start = parser.pos;
 
 	// allow whitespace before '['
 	parser.allowWhitespace();
@@ -14,7 +12,7 @@ export default function ( parser ) {
 		return null;
 	}
 
-	expressionList = readExpressionList( parser, true );
+	const expressionList = readExpressionList( parser, true );
 
 	if ( !parser.matchString( ']' ) ) {
 		parser.pos = start;

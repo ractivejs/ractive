@@ -9,16 +9,16 @@ const starMaps = {};
 // to see if any pattern observers are downstream of one or more of
 // these wildcard keypaths (e.g. 'foo.bar.*.status')
 export default function getPotentialWildcardMatches ( keypath ) {
-	let keys, starMap, mapper, i, result, wildcardKeypath;
+	let starMap, i, wildcardKeypath;
 
-	keys = splitKeypath( keypath );
+	const keys = splitKeypath( keypath );
 	if( !( starMap = starMaps[ keys.length ]) ) {
 		starMap = getStarMap( keys.length );
 	}
 
-	result = [];
+	const result = [];
 
-	mapper = function ( star, i ) {
+	const mapper = function ( star, i ) {
 		return star ? '*' : keys[i];
 	};
 
@@ -40,7 +40,8 @@ export default function getPotentialWildcardMatches ( keypath ) {
 // [ true, true ], [ true, false ], [ false, true ], [ false, false ].
 // It does so by getting all the binary values between 0 and e.g. 11
 function getStarMap ( num ) {
-	let ones = '', max, binary, starMap, mapper, i, j, l, map;
+	let ones = '';
+	let max, binary, starMap, mapper, i, j, l, map;
 
 	if ( !starMaps[ num ] ) {
 		starMap = [];

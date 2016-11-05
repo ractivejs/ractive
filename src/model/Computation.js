@@ -5,7 +5,6 @@ import { capture, startCapturing, stopCapturing } from '../global/capture';
 import { warnIfDebug } from '../utils/log';
 import Model from './Model';
 import ComputationChild from './ComputationChild';
-import { handleChange, marked } from '../shared/methodCallers';
 import { hasConsole } from '../config/environment';
 
 // TODO this is probably a bit anal, maybe we should leave it out

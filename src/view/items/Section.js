@@ -125,7 +125,7 @@ export default class Section extends MustacheContainer {
 						indexRef: this.template.i
 					}).bind( this.model );
 				} else {
-	 				// only with and if-with provide context - if and unless do not
+					// only with and if-with provide context - if and unless do not
 					const context = this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS ? this.model : null;
 					newFragment = new Fragment({
 						owner: this,

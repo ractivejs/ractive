@@ -1,9 +1,7 @@
 import { CLOSING } from '../../../../config/types';
 
 export default function readClosing ( parser, tag ) {
-	let start, remaining, index, closing;
-
-	start = parser.pos;
+	const start = parser.pos;
 
 	if ( !parser.matchString( tag.open ) ) {
 		return null;
@@ -18,11 +16,11 @@ export default function readClosing ( parser, tag ) {
 
 	parser.allowWhitespace();
 
-	remaining = parser.remaining();
-	index = remaining.indexOf( tag.close );
+	const remaining = parser.remaining();
+	const index = remaining.indexOf( tag.close );
 
 	if ( index !== -1 ) {
-		closing = {
+		const closing = {
 			t: CLOSING,
 			r: remaining.substr( 0, index ).split( ' ' )[0]
 		};

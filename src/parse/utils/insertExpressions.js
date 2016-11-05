@@ -8,7 +8,7 @@ export default function insertExpressions ( obj, expr ) {
 
 		const ref = obj[ key ];
 		if ( hasChildren( ref ) ) insertExpressions( ref, expr );
- 	});
+	});
 }
 
 function isExpression( key, obj ) {

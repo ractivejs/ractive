@@ -8,14 +8,15 @@ import readExpression from '../readExpression';
 import refineExpression from '../../utils/refineExpression';
 import { readAlias, readAliases } from './readAliases';
 
-let indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
-	keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
-	handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' );
+const indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
+const keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
+const handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' );
 
 export default function readSection ( parser, tag ) {
-	let start, expression, section, child, children, hasElse, block, unlessBlock, conditions, closed, i, expectedClose, aliasOnly = false;
+	let expression, section, child, children, hasElse, block, unlessBlock, closed, i, expectedClose;
+	let aliasOnly = false;
 
-	start = parser.pos;
+	const start = parser.pos;
 
 	if ( parser.matchString( '^' ) ) {
 		section = { t: SECTION, f: [], n: SECTION_UNLESS };
@@ -79,8 +80,6 @@ export default function readSection ( parser, tag ) {
 
 	parser.sectionDepth += 1;
 	children = section.f;
-
-	conditions = [];
 
 	let pos;
 	do {

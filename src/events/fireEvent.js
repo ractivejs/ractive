@@ -31,7 +31,8 @@ function getWildcardNames ( eventName ) {
 
 function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) {
 
-	let subscribers, i, bubble = true;
+	let subscribers, i;
+	let bubble = true;
 
 	enqueue( ractive, event );
 
@@ -63,7 +64,8 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 }
 
 function notifySubscribers ( ractive, subscribers, event, args ) {
-	let originalEvent = null, stopEvent = false;
+	let originalEvent = null;
+	let stopEvent = false;
 
 	if ( event && !event._noArg ) {
 		args = [ event ].concat( args );

@@ -4,11 +4,12 @@ export default function ( method, superMethod, force ) {
 
 		return function () {
 
-			let hasSuper = ( '_super' in this ), _super = this._super, result;
+			const hasSuper = ( '_super' in this );
+			const _super = this._super;
 
 			this._super = superMethod;
 
-			result = method.apply( this, arguments );
+			const result = method.apply( this, arguments );
 
 			if ( hasSuper ) {
 				this._super = _super;

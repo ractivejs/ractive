@@ -51,18 +51,18 @@ if ( !win ) {
 	// https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/keys
 	if ( !Object.keys ) {
 		Object.keys = (function () {
-			let hasOwnProperty = Object.prototype.hasOwnProperty,
-				hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
-				dontEnums = [
-					'toString',
-					'toLocaleString',
-					'valueOf',
-					'hasOwnProperty',
-					'isPrototypeOf',
-					'propertyIsEnumerable',
-					'constructor'
-				],
-				dontEnumsLength = dontEnums.length;
+			const hasOwnProperty = Object.prototype.hasOwnProperty;
+			const hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString');
+			const dontEnums = [
+				'toString',
+				'toLocaleString',
+				'valueOf',
+				'hasOwnProperty',
+				'isPrototypeOf',
+				'propertyIsEnumerable',
+				'constructor'
+			];
+			const dontEnumsLength = dontEnums.length;
 
 			return function ( obj ) {
 				if ( typeof obj !== 'object' && typeof obj !== 'function' || obj === null ) {
@@ -132,7 +132,9 @@ if ( !win ) {
 
 	if ( !Array.prototype.map ) {
 		Array.prototype.map = function ( mapper, context ) {
-			let array = this, i, len, mapped = [], isActuallyString;
+			let i, len, isActuallyString;
+			let array = this;
+			const mapped = [];
 
 			// incredibly, if you do something like
 			// Array.prototype.map.call( someString, iterator )
@@ -155,13 +157,13 @@ if ( !win ) {
 
 	if ( typeof Array.prototype.reduce !== 'function' ) {
 		Array.prototype.reduce = function(callback, opt_initialValue){
-			let i, value, len, valueIsSet;
+			let i, value, valueIsSet;
 
 			if ('function' !== typeof callback) {
 				throw new TypeError(callback + ' is not a function');
 			}
 
-			len = this.length;
+			const len = this.length;
 			valueIsSet = false;
 
 			if ( arguments.length > 1 ) {
@@ -190,7 +192,8 @@ if ( !win ) {
 
 	if ( !Array.prototype.filter ) {
 		Array.prototype.filter = function ( filter, context ) {
-			let i, len, filtered = [];
+			let i, len;
+			const filtered = [];
 
 			for ( i=0, len=this.length; i<len; i+=1 ) {
 				if ( this.hasOwnProperty( i ) && filter.call( context, this[i], i, this ) ) {
@@ -204,14 +207,14 @@ if ( !win ) {
 
 	if ( !Array.prototype.every ) {
 		Array.prototype.every = function ( iterator, context ) {
-			let t, len, i;
+			let i;
 
 			if ( this == null ) {
 				throw new TypeError();
 			}
 
-			t = Object( this );
-			len = t.length >>> 0;
+			const t = Object( this );
+			const len = t.length >>> 0;
 
 			if ( typeof iterator !== 'function' ) {
 				throw new TypeError();
@@ -229,17 +232,17 @@ if ( !win ) {
 
 	if ( typeof Function.prototype.bind !== 'function' ) {
 		Function.prototype.bind = function ( context ) {
-			let args, fn, Empty, bound, slice = [].slice;
+			const slice = [].slice;
 
 			if ( typeof this !== 'function' ) {
 				throw new TypeError( 'Function.prototype.bind called on non-function' );
 			}
 
-			args = slice.call( arguments, 1 );
-			fn = this;
-			Empty = function () {};
+			const args = slice.call( arguments, 1 );
+			const fn = this;
+			const Empty = function () {};
 
-			bound = function () {
+			const bound = function () {
 				const ctx = this instanceof Empty && context ? this : context;
 				return fn.apply( ctx, args.concat( slice.call( arguments ) ) );
 			};
@@ -255,15 +258,13 @@ if ( !win ) {
 	// addEventListener polyfill IE6+
 	if ( !win.addEventListener ) {
 		((function(win, doc) {
-			let Event, addEventListener, removeEventListener, head, style, origCreateElement;
-
 			// because sometimes inquiring minds want to know
 			win.appearsToBeIELessEqual8 = true;
 
-			Event = function ( e, element ) {
-				let property, instance = this;
+			const Event = function ( e, element ) {
+				const instance = this;
 
-				for ( property in e ) {
+				for ( const property in e ) {
 					instance[ property ] = e[ property ];
 				}
 
@@ -280,11 +281,10 @@ if ( !win ) {
 				};
 			};
 
-			addEventListener = function ( type, listener ) {
-				let element = this, listeners, i;
-
-				listeners = element.listeners || ( element.listeners = [] );
-				i = listeners.length;
+			const addEventListener = function ( type, listener ) {
+				const element = this;
+				const listeners = element.listeners || ( element.listeners = [] );
+				const i = listeners.length;
 
 				listeners[i] = [ listener, function (e) {
 					listener.call( element, new Event( e, element ) );
@@ -293,15 +293,15 @@ if ( !win ) {
 				element.attachEvent( 'on' + type, listeners[i][1] );
 			};
 
-			removeEventListener = function ( type, listener ) {
-				let element = this, listeners, i;
+			const removeEventListener = function ( type, listener ) {
+				const element = this;
 
 				if ( !element.listeners ) {
 					return;
 				}
 
-				listeners = element.listeners;
-				i = listeners.length;
+				const listeners = element.listeners;
+				let i = listeners.length;
 
 				while ( i-- ) {
 					if (listeners[i][0] === listener) {
@@ -320,7 +320,7 @@ if ( !win ) {
 				// First, intercept any calls to document.createElement - this is necessary
 				// because the CSS hack (see below) doesn't come into play until after a
 				// node is added to the DOM, which is too late for a lot of Ractive setup work
-				origCreateElement = doc.createElement;
+				const origCreateElement = doc.createElement;
 
 				doc.createElement = function ( tagName ) {
 					const el = origCreateElement( tagName );
@@ -331,8 +331,8 @@ if ( !win ) {
 
 				// Then, mop up any additional elements that weren't created via
 				// document.createElement (i.e. with innerHTML).
-				head = doc.getElementsByTagName('head')[0];
-				style = doc.createElement('style');
+				const head = doc.getElementsByTagName('head')[0];
+				const style = doc.createElement('style');
 
 				head.insertBefore( style, head.firstChild );
 
@@ -411,14 +411,12 @@ if ( !win ) {
 			};
 
 			function CSSStyleDeclaration(element) {
-				let currentStyle, style, fontSize, property;
-
-				currentStyle = element.currentStyle;
-				style = this;
-				fontSize = getPixelSize(element, currentStyle, 'fontSize', null);
+				const currentStyle = element.currentStyle;
+				const style = this;
+				const fontSize = getPixelSize(element, currentStyle, 'fontSize', null);
 
 				// TODO tidy this up, test it, send PR to jonathantneal!
-				for (property in currentStyle) {
+				for ( const property in currentStyle ) {
 					if ( currentStyle[property] === 'normal' && normalProps.hasOwnProperty( property ) ) {
 						style[ property ] = normalProps[ property ];
 					} else if ( /width|height|margin.|padding.|border.+W/.test(property) ) {

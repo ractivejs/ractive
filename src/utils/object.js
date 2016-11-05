@@ -56,14 +56,12 @@ try {
 		const F = function () {};
 
 		return function ( proto, props ) {
-			let obj;
-
 			if ( proto === null ) {
 				return {};
 			}
 
 			F.prototype = proto;
-			obj = new F();
+			const obj = new F();
 
 			if ( props ) {
 				Object.defineProperties( obj, props );

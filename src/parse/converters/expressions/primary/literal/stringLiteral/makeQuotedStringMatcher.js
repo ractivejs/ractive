@@ -1,14 +1,12 @@
-let stringMiddlePattern, escapeSequencePattern, lineContinuationPattern;
-
 // Match one or more characters until: ", ', \, or EOL/EOF.
 // EOL/EOF is written as (?!.) (meaning there's no non-newline char next).
-stringMiddlePattern = /^(?=.)[^"'\\]+?(?:(?!.)|(?=["'\\]))/;
+const stringMiddlePattern = /^(?=.)[^"'\\]+?(?:(?!.)|(?=["'\\]))/;
 
 // Match one escape sequence, including the backslash.
-escapeSequencePattern = /^\\(?:['"\\bfnrt]|0(?![0-9])|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|(?=.)[^ux0-9])/;
+const escapeSequencePattern = /^\\(?:['"\\bfnrt]|0(?![0-9])|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|(?=.)[^ux0-9])/;
 
 // Match one ES5 line continuation (backslash + line terminator).
-lineContinuationPattern = /^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/;
+const lineContinuationPattern = /^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/;
 
 // Helper for defining getDoubleQuotedString and getSingleQuotedString.
 export default function ( okQuote ) {

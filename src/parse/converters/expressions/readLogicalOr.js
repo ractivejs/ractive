@@ -1,9 +1,9 @@
 import { INFIX_OPERATOR } from '../../../config/types';
 import readTypeof from './readTypeof';
 
-let readLogicalOr, makeInfixSequenceMatcher;
+let readLogicalOr;
 
-makeInfixSequenceMatcher = function ( symbol, fallthrough ) {
+const makeInfixSequenceMatcher = function ( symbol, fallthrough ) {
 	return function ( parser ) {
 		let start, left, right;
 
@@ -54,13 +54,13 @@ makeInfixSequenceMatcher = function ( symbol, fallthrough ) {
 
 // create all infix sequence matchers, and return readLogicalOr
 (function() {
-	let i, len, matcher, infixOperators, fallthrough;
+	let i, len, matcher, fallthrough;
 
 	// All the infix operators on order of precedence (source: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/Operator_Precedence)
 	// Each sequence matcher will initially fall through to its higher precedence
 	// neighbour, and only attempt to match if one of the higher precedence operators
 	// (or, ultimately, a literal, reference, or bracketed expression) already matched
-	infixOperators = '* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||'.split( ' ' );
+	const infixOperators = '* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||'.split( ' ' );
 
 	// A typeof operator is higher precedence than multiplication
 	fallthrough = readTypeof;

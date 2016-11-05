@@ -4,9 +4,8 @@ import readExpression from '../../../../readExpression';
 import { name as namePattern, spreadPattern } from '../../../shared/patterns';
 
 export default function readKeyValuePair ( parser ) {
-	let start, key, value, spread;
-
-	start = parser.pos;
+	let spread;
+	const start = parser.pos;
 
 	// allow whitespace between '{' and key
 	parser.allowWhitespace();
@@ -14,7 +13,7 @@ export default function readKeyValuePair ( parser ) {
 	const refKey = parser.nextChar() !== '\'' && parser.nextChar() !== '"';
 	if ( refKey ) spread = parser.matchPattern( spreadPattern );
 
-	key = spread ? readExpression( parser ) : readKey( parser );
+	const key = spread ? readExpression( parser ) : readKey( parser );
 	if ( key === null ) {
 		parser.pos = start;
 		return null;
@@ -56,7 +55,7 @@ export default function readKeyValuePair ( parser ) {
 	parser.allowWhitespace();
 
 	// next expression must be a, well... expression
-	value = readExpression( parser );
+	const value = readExpression( parser );
 	if ( value === null ) {
 		parser.pos = start;
 		return null;

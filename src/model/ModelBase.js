@@ -191,7 +191,8 @@ export default class ModelBase {
 	}
 
 	notifyUpstream () {
-		let parent = this.parent, path = [ this.key ];
+		let parent = this.parent;
+		const path = [ this.key ];
 		while ( parent ) {
 			if ( parent.patternObservers.length ) parent.patternObservers.forEach( o => o.notify( path.slice() ) );
 			path.unshift( parent.key );

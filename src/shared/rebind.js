@@ -19,7 +19,8 @@ export function rebindMatch ( template, next, previous ) {
 	// check the keypath against the model keypath to see if it matches
 	let model = next || previous;
 	let i = keys.length;
-	let match = true, shuffling = false;
+	let match = true;
+	let shuffling = false;
 
 	while ( model && i-- ) {
 		if ( model.shuffling ) shuffling = true;

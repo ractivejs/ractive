@@ -5,9 +5,9 @@ import readClosing from './mustache/section/readClosing';
 const partialDefinitionSectionPattern = /^\s*#\s*partial\s+/;
 
 export default function readPartialDefinitionSection ( parser ) {
-	let start, name, content, child, closed;
+	let child, closed;
 
-	start = parser.pos;
+	const start = parser.pos;
 
 	const delimiters = parser.standardDelimiters;
 
@@ -20,7 +20,7 @@ export default function readPartialDefinitionSection ( parser ) {
 		return null;
 	}
 
-	name = parser.matchPattern( /^[a-zA-Z_$][a-zA-Z_$0-9\-\/]*/ );
+	const name = parser.matchPattern( /^[a-zA-Z_$][a-zA-Z_$0-9\-\/]*/ );
 
 	if ( !name ) {
 		parser.error( 'expected legal partial name' );
@@ -31,7 +31,7 @@ export default function readPartialDefinitionSection ( parser ) {
 		parser.error( `Expected closing delimiter '${delimiters[1]}'` );
 	}
 
-	content = [];
+	const content = [];
 
 	const [ open, close ] = delimiters;
 

@@ -3,9 +3,9 @@ import { CLOSING_TAG } from '../../../config/types';
 const closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
 
 export default function readClosingTag ( parser ) {
-	let start, tag;
+	let tag;
 
-	start = parser.pos;
+	const start = parser.pos;
 
 	// are we looking at a closing tag?
 	if ( !parser.matchString( '</' ) ) {

@@ -23,32 +23,14 @@ const STANDARD_READERS = [ readPartial, readUnescaped, readSection, readInterpol
 const TRIPLE_READERS = [ readTriple ];
 const STATIC_READERS = [ readUnescaped, readSection, readInterpolator ]; // TODO does it make sense to have a static section?
 
-let StandardParser;
-
-export default function parse ( template, options ) {
-	return new StandardParser( template, options || {} ).result;
-}
-
-parse.computedStrings = function( computed ) {
-	if ( !computed ) return [];
-
-	Object.keys( computed ).forEach( key => {
-		const value = computed[ key ];
-		if ( typeof value === 'string' ) {
-			computed[ key ] = fromComputationString( value );
-		}
-	});
-};
-
-
 export const READERS = [ readMustache, readHtmlComment, readElement, readText ];
 export const PARTIAL_READERS = [ readPartialDefinitionSection ];
 
-StandardParser = Parser.extend({
+const StandardParser = Parser.extend({
 	init ( str, options ) {
-		let tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ],
-			staticDelimiters = options.staticDelimiters || [ '[[', ']]' ],
-			staticTripleDelimiters = options.staticTripleDelimiters || [ '[[[', ']]]' ];
+		const tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
+		const staticDelimiters = options.staticDelimiters || [ '[[', ']]' ];
+		const staticTripleDelimiters = options.staticTripleDelimiters || [ '[[[', ']]]' ];
 
 		this.standardDelimiters = options.delimiters || [ '{{', '}}' ];
 
@@ -122,3 +104,18 @@ StandardParser = Parser.extend({
 		});
 	}
 });
+
+export default function parse ( template, options ) {
+	return new StandardParser( template, options || {} ).result;
+}
+
+parse.computedStrings = function( computed ) {
+	if ( !computed ) return [];
+
+	Object.keys( computed ).forEach( key => {
+		const value = computed[ key ];
+		if ( typeof value === 'string' ) {
+			computed[ key ] = fromComputationString( value );
+		}
+	});
+};

@@ -97,7 +97,7 @@ export default class Binding {
 			this.model = next;
 			runloop.scheduleTask( () => next.registerTwowayBinding( this ) );
 		}
-   	}
+	}
 
 	render () {
 		this.node = this.element.node;

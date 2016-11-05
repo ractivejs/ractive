@@ -2,7 +2,7 @@ const prefixers = {};
 
 // TODO this is legacy. sooner we can replace the old adaptor API the better
 function prefixKeypath ( obj, prefix ) {
-	let prefixed = {}, key;
+	const prefixed = {};
 
 	if ( !prefix ) {
 		return obj;
@@ -10,7 +10,7 @@ function prefixKeypath ( obj, prefix ) {
 
 	prefix += '.';
 
-	for ( key in obj ) {
+	for ( const key in obj ) {
 		if ( obj.hasOwnProperty( key ) ) {
 			prefixed[ prefix + key ] = obj[ key ];
 		}

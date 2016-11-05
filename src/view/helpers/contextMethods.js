@@ -1,7 +1,5 @@
 import resolveReference from '../resolvers/resolveReference';
 import { defineProperties } from '../../utils/object';
-import gatherRefs from './gatherRefs';
-import { warnOnceIfDebug } from '../../utils/log';
 import { set as sharedSet } from '../../shared/set';
 import { isNumeric, isObject } from '../../utils/is';
 import makeArrayMethod from '../../Ractive/prototype/shared/makeArrayMethod';
@@ -68,7 +66,8 @@ function add ( keypath, value ) {
 	if ( value === undefined ) value = 1;
 	if ( !isNumeric( value ) ) throw new Error( 'Bad arguments' );
 	return sharedSet( this.ractive, build( this, keypath, value ).map( pair => {
-		const [ model, val ] = pair, value = model.get();
+		const [ model, val ] = pair;
+		const value = model.get();
 		if ( !isNumeric( val ) || !isNumeric( value ) ) throw new Error( 'Cannot add non-numeric value' );
 		return [ model, value + val ];
 	}) );
@@ -80,7 +79,8 @@ function animate ( keypath, value, options ) {
 }
 
 function link ( source, dest ) {
-	const there = findModel( this, source ).model, here = findModel( this, dest ).model;
+	const there = findModel( this, source ).model;
+	const here = findModel( this, dest ).model;
 	const promise = runloop.start( this.ractive, true );
 	here.link( there, source );
 	runloop.end();
@@ -124,7 +124,8 @@ function subtract ( keypath, value ) {
 	if ( value === undefined ) value = 1;
 	if ( !isNumeric( value ) ) throw new Error( 'Bad arguments' );
 	return sharedSet( this.ractive, build( this, keypath, value ).map( pair => {
-		const [ model, val ] = pair, value = model.get();
+		const [ model, val ] = pair;
+		const value = model.get();
 		if ( !isNumeric( val ) || !isNumeric( value ) ) throw new Error( 'Cannot add non-numeric value' );
 		return [ model, value - val ];
 	}) );

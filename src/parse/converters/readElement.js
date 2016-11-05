@@ -8,13 +8,12 @@ import readClosing from './mustache/section/readClosing';
 import readClosingTag from './element/readClosingTag';
 import { relaxedName } from './expressions/shared/patterns';
 
-let tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
-	validTagNameFollower = /^[\s\n\/>]/,
-	exclude = { exclude: true },
-	disallowedContents;
+const tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/;
+const validTagNameFollower = /^[\s\n\/>]/;
+const exclude = { exclude: true };
 
 // based on http://developers.whatwg.org/syntax.html#syntax-tag-omission
-disallowedContents = {
+const disallowedContents = {
 	li: [ 'li' ],
 	dt: [ 'dt', 'dd' ],
 	dd: [ 'dt', 'dd' ],
@@ -34,21 +33,9 @@ disallowedContents = {
 export default readElement;
 
 function readElement ( parser ) {
-	let start,
-		element,
-		attribute,
-		selfClosing,
-		children,
-		partials,
-		hasPartials,
-		child,
-		closed,
-		pos,
-		remaining,
-		closingTag,
-		anchor;
+	let attribute, selfClosing, children, partials, hasPartials, child, closed, pos, remaining, closingTag, anchor;
 
-	start = parser.pos;
+	const start = parser.pos;
 
 	if ( parser.inside || parser.inAttribute ) {
 		return null;
@@ -63,7 +50,7 @@ function readElement ( parser ) {
 		return null;
 	}
 
-	element = {};
+	const element = {};
 	if ( parser.includeLinePositions ) {
 		element.p = parser.getLinePos( start );
 	}
@@ -145,7 +132,6 @@ function readElement ( parser ) {
 
 		children = [];
 		partials = create( null );
-		const [ open, close ] = parser.standardDelimiters;
 
 		do {
 			pos = parser.pos;
@@ -245,10 +231,8 @@ function readElement ( parser ) {
 }
 
 function canContain ( name, remaining ) {
-	let match, disallowed;
-
-	match = /^<([a-zA-Z][a-zA-Z0-9]*)/.exec( remaining );
-	disallowed = disallowedContents[ name ];
+	const match = /^<([a-zA-Z][a-zA-Z0-9]*)/.exec( remaining );
+	const disallowed = disallowedContents[ name ];
 
 	if ( !match || !disallowed ) {
 		return true;

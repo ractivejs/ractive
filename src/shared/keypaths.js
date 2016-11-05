@@ -16,8 +16,8 @@ export function normalise ( ref ) {
 }
 
 export function splitKeypath ( keypath ) {
-	let result = [],
-		match;
+	const result = [];
+	let match;
 
 	keypath = normalise( keypath );
 

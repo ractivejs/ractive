@@ -1,11 +1,10 @@
 import Model from '../../model/Model';
 import Computation from '../../model/Computation';
-import ComputationChild from '../../model/ComputationChild';
-import { handleChange, marked, unbind } from '../../shared/methodCallers';
+import { unbind } from '../../shared/methodCallers';
 import getFunction from '../../shared/getFunction';
 import resolveReference from './resolveReference';
 import { removeFromArray } from '../../utils/array';
-import { capture, startCapturing, stopCapturing } from '../../global/capture';
+import { startCapturing, stopCapturing } from '../../global/capture';
 import { warnIfDebug } from '../../utils/log';
 import { rebindMatch } from '../../shared/rebind';
 

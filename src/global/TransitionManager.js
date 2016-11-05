@@ -108,7 +108,9 @@ function detachImmediate ( manager ) {
 	const queue = manager.detachQueue;
 	const outros = collectAllOutros( manager );
 
-	let i = queue.length, j = 0, node, trans;
+	let i = queue.length;
+	let j = 0;
+	let node, trans;
 	start: while ( i-- ) {
 		node = queue[i].node;
 		j = outros.length;

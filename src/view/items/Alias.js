@@ -1,4 +1,3 @@
-import { createDocumentFragment } from '../../utils/dom';
 import Fragment from '../Fragment';
 import { ContainerItem } from './shared/Item';
 import resolve from '../resolvers/resolve';

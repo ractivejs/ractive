@@ -8,8 +8,6 @@ function snap ( to ) {
 
 const interpolators = {
 	number ( from, to ) {
-		let delta;
-
 		if ( !isNumeric( from ) || !isNumeric( to ) ) {
 			return null;
 		}
@@ -17,7 +15,7 @@ const interpolators = {
 		from = +from;
 		to = +to;
 
-		delta = to - from;
+		const delta = to - from;
 
 		if ( !delta ) {
 			return function () { return from; };
@@ -29,14 +27,14 @@ const interpolators = {
 	},
 
 	array ( from, to ) {
-		let intermediate, interpolators, len, i;
+		let len, i;
 
 		if ( !isArray( from ) || !isArray( to ) ) {
 			return null;
 		}
 
-		intermediate = [];
-		interpolators = [];
+		const intermediate = [];
+		const interpolators = [];
 
 		i = len = Math.min( from.length, to.length );
 		while ( i-- ) {
@@ -64,17 +62,15 @@ const interpolators = {
 	},
 
 	object ( from, to ) {
-		let properties, len, interpolators, intermediate, prop;
-
 		if ( !isObject( from ) || !isObject( to ) ) {
 			return null;
 		}
 
-		properties = [];
-		intermediate = {};
-		interpolators = {};
+		const properties = [];
+		const intermediate = {};
+		const interpolators = {};
 
-		for ( prop in from ) {
+		for ( const prop in from ) {
 			if ( hasOwn.call( from, prop ) ) {
 				if ( hasOwn.call( to, prop ) ) {
 					properties.push( prop );
@@ -87,19 +83,19 @@ const interpolators = {
 			}
 		}
 
-		for ( prop in to ) {
+		for ( const prop in to ) {
 			if ( hasOwn.call( to, prop ) && !hasOwn.call( from, prop ) ) {
 				intermediate[ prop ] = to[ prop ];
 			}
 		}
 
-		len = properties.length;
+		const len = properties.length;
 
 		return function ( t ) {
-			let i = len, prop;
+			let i = len;
 
 			while ( i-- ) {
-				prop = properties[i];
+				const prop = properties[i];
 
 				intermediate[ prop ] = interpolators[ prop ]( t );
 			}

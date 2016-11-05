@@ -7,7 +7,7 @@ if ( !win ) {
 	requestAnimationFrame = null;
 } else {
 	// https://gist.github.com/paulirish/1579671
-	(function(vendors, lastTime, win) {
+	(function ( vendors, lastTime, win ) {
 
 		let x, setTimeout;
 
@@ -16,18 +16,16 @@ if ( !win ) {
 		}
 
 		for ( x = 0; x < vendors.length && !win.requestAnimationFrame; ++x ) {
-			win.requestAnimationFrame = win[vendors[x]+'RequestAnimationFrame'];
+			win.requestAnimationFrame = win[ vendors[x] + 'RequestAnimationFrame' ];
 		}
 
 		if ( !win.requestAnimationFrame ) {
 			setTimeout = win.setTimeout;
 
-			win.requestAnimationFrame = function(callback) {
-				let currTime, timeToCall, id;
-
-				currTime = Date.now();
-				timeToCall = Math.max( 0, 16 - (currTime - lastTime ) );
-				id = setTimeout( () => { callback(currTime + timeToCall); }, timeToCall );
+			win.requestAnimationFrame = function ( callback ) {
+				const currTime = Date.now();
+				const timeToCall = Math.max( 0, 16 - ( currTime - lastTime ) );
+				const id = setTimeout( () => { callback(currTime + timeToCall); }, timeToCall );
 
 				lastTime = currTime + timeToCall;
 				return id;

@@ -68,7 +68,8 @@ export function removeFromArray ( array, member ) {
 }
 
 export function toArray ( arrayLike ) {
-	let array = [], i = arrayLike.length;
+	const array = [];
+	let i = arrayLike.length;
 	while ( i-- ) {
 		array[i] = arrayLike[i];
 	}
