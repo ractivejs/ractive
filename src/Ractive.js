@@ -40,6 +40,20 @@ export default function Ractive ( options ) {
 	initialise( this, options || {}, {} );
 }
 
+// check to see if we're being asked to force Ractive as a global for some weird environments
+if ( win && !win.Ractive ) {
+	let opts = '';
+	const script = document.currentScript || document.querySelector( 'script[data-ractive-options]' );
+
+	if ( script ) {
+		opts = script.getAttribute( 'data-ractive-options' ) || '';
+	}
+
+	if ( ~opts.indexOf( 'ForceGlobal' ) ) {
+		win.Ractive = Ractive;
+	}
+}
+
 extendObj( Ractive.prototype, proto, defaults );
 Ractive.prototype.constructor = Ractive;
 
