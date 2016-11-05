@@ -1,5 +1,6 @@
 import { splitKeypath } from '../../shared/keypaths';
 import SharedModel, { GlobalModel } from '../../model/specials/SharedModel';
+import { warnIfDebug } from '../../utils/log';
 
 const keypathExpr = /^@[^\(]+\(([^\)]+)\)/;
 
@@ -117,6 +118,7 @@ export default function resolveReference ( fragment, ref ) {
 	// walk up the fragment hierarchy looking for a matching ref, alias, or key in a context
 	let hasContextChain;
 	let crossedComponentBoundary;
+	const shouldWarn = fragment.ractive.warnAboutAmbiguity;
 
 	while ( fragment ) {
 		// repeated fragments
@@ -149,9 +151,11 @@ export default function resolveReference ( fragment, ref ) {
 			if ( fragment.context.has( base ) ) {
 				// this is an implicit mapping
 				if ( crossedComponentBoundary ) {
+					if ( shouldWarn ) warnIfDebug( `'${ref}' resolved but is ambiguous and will create a mapping to a parent component.` );
 					return context.root.createLink( base, fragment.context.joinKey( base ), base, { implicit: true } ).joinAll( keys );
 				}
 
+				if ( shouldWarn ) warnIfDebug( `'${ref}' resolved but is ambiguous.` );
 				return fragment.context.joinKey( base ).joinAll( keys );
 			}
 		}
@@ -171,6 +175,10 @@ export default function resolveReference ( fragment, ref ) {
 		if ( model.has( base ) ) {
 			return model.joinKey( base ).joinAll( keys );
 		}
+	}
+
+	if ( shouldWarn ) {
+		warnIfDebug( `'${ref}' is ambiguous and did not resolve.` );
 	}
 
 	// didn't find anything, so go ahead and create the key on the local model

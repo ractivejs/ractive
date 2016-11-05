@@ -1,5 +1,5 @@
 import { test } from 'qunit';
-import { initModule } from './test-config';
+import { initModule, onWarn } from './test-config';
 
 export default function() {
 	initModule( 'references.js' );
@@ -216,5 +216,37 @@ export default function() {
 		});
 
 		t.htmlEqual( fixture.innerHTML, '?' );
+	});
+
+	test( 'if asked, ractive will issue warnings about ambiguous references', t => {
+		t.expect( 4 );
+
+		onWarn( w => {
+			t.ok( /resolved.*is ambiguous/.test( w ) );
+			onWarn( w => {
+				t.ok( /resolved.*is ambiguous and will create a mapping/.test( w ) );
+				onWarn( w => {
+					t.ok( /is ambiguous and did not resolve/.test( w ) );
+				});
+			});
+		});
+
+		const cmp = Ractive.extend({
+			template: '{{foo}}',
+			warnAboutAmbiguity: true
+		});
+		new Ractive({
+			target: fixture,
+			template: '{{#with some}}{{#with ~/other}}{{foo}}{{/with}}{{/with}}<cmp />{{nope}}',
+			data: {
+				some: {},
+				other: {},
+				foo: 'yep'
+			},
+			components: { cmp },
+			warnAboutAmbiguity: true
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'yepyep' );
 	});
 }
