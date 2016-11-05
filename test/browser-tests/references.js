@@ -192,4 +192,29 @@ export default function() {
 		r1.set( '@shared.foo', 'bar' );
 		t.equal( r2.get( '@shared.foo' ), 'bar' );
 	});
+
+	test( 'by default instance members resolve after ambiguous context', t => {
+		new Ractive({
+			target: fixture,
+			template: '{{foo}} {{#with 1 as foo}}{{foo}}{{/with}} {{#with bar}}{{#with ~/other}}{{foo}}{{/with}}{{/with}}',
+			data: {
+				bar: { foo: 'yep' },
+				other: {}
+			},
+			foo: 'hey'
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'hey 1 yep' );
+	});
+
+	test( 'instance members are not resolved if resolveInstanceMembers is false', t => {
+		new Ractive({
+			target: fixture,
+			template: '{{foo}}?',
+			foo: 'hey',
+			resolveInstanceMembers: false
+		});
+
+		t.htmlEqual( fixture.innerHTML, '?' );
+	});
 }

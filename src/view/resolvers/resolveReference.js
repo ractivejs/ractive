@@ -4,6 +4,7 @@ import SharedModel, { GlobalModel } from '../../model/specials/SharedModel';
 const keypathExpr = /^@[^\(]+\(([^\)]+)\)/;
 
 export default function resolveReference ( fragment, ref ) {
+	const initialFragment = fragment;
 	// current context ref
 	if ( ref === '.' ) return fragment.findContext();
 
@@ -161,6 +162,14 @@ export default function resolveReference ( fragment, ref ) {
 			crossedComponentBoundary = true;
 		} else {
 			fragment = fragment.parent;
+		}
+	}
+
+	// if enabled, check the instance for a match
+	if ( initialFragment.ractive.resolveInstanceMembers ) {
+		const model = initialFragment.ractive.viewmodel.getRactiveModel();
+		if ( model.has( base ) ) {
+			return model.joinKey( base ).joinAll( keys );
 		}
 	}
 
