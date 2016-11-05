@@ -3,11 +3,12 @@ import LinkModel from './LinkModel'; // eslint-disable-line no-unused-vars
 import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
 import Promise from '../utils/Promise';
-import { isArray, isEqual, isNumeric } from '../utils/is';
+import { isArray, isEqual, isNumeric, isObjectLike } from '../utils/is';
 import { handleChange, mark, marked, teardown } from '../shared/methodCallers';
 import Ticker from '../shared/Ticker';
 import getPrefixer from './helpers/getPrefixer';
 import { unescapeKey } from '../shared/keypaths';
+import { warnIfDebug } from '../utils/log';
 
 export default class Model extends ModelBase {
 	constructor ( parent, key ) {
@@ -124,7 +125,12 @@ export default class Model extends ModelBase {
 			this.adapt();
 		} else {
 			const parentValue = this.parent.value || this.parent.createBranch( this.key );
-			parentValue[ this.key ] = value;
+			if ( isObjectLike( parentValue ) ) {
+				parentValue[ this.key ] = value;
+			} else {
+				warnIfDebug( `Attempted to set a property of a non-object '${this.getKeypath()}'` );
+				return;
+			}
 
 			this.value = value;
 			this.adapt();

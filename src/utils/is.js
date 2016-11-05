@@ -30,3 +30,9 @@ export function isNumeric ( thing ) {
 export function isObject ( thing ) {
 	return ( thing && toString.call( thing ) === '[object Object]' );
 }
+
+export function isObjectLike ( thing ) {
+	if ( !thing ) return false;
+	const type = typeof thing;
+	if ( type === 'object' || type === 'function' ) return true;
+}

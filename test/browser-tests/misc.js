@@ -1825,5 +1825,17 @@ export default function() {
 			ractive.set( 'array', array );
 			t.htmlEqual( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
 		});
+
+		test( `trying to set a property on a non-object doesn't break the world (#2451)`, t => {
+			t.expect( 1 );
+
+			onWarn( w => {
+				t.ok( /non-object/.test( w ) );
+			});
+
+			const r = new Ractive();
+			r.set( 'foo', 'string' );
+			r.set( 'foo.bar', 'nerp' );
+		});
 	}
 }
