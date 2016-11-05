@@ -19,7 +19,8 @@ echo '> publishing to npm...'
 
 ( cd build
 	# ...and to npm
-	npm publish --tag $TAG
+	npm publish
+	npm dist-tag add ractive@target $TAG
 
 	if [ ! -z $EDGE_TAG ]; then
 		echo "also publishing as $EDGE_TAG"
