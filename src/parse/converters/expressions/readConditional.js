@@ -5,14 +5,12 @@ import readExpression from '../readExpression';
 
 // The conditional operator is the lowest precedence operator, so we start here
 export default function getConditional ( parser ) {
-	let start, expression, ifTrue, ifFalse;
-
-	expression = readLogicalOr( parser );
+	const expression = readLogicalOr( parser );
 	if ( !expression ) {
 		return null;
 	}
 
-	start = parser.pos;
+	const start = parser.pos;
 
 	parser.allowWhitespace();
 
@@ -23,7 +21,7 @@ export default function getConditional ( parser ) {
 
 	parser.allowWhitespace();
 
-	ifTrue = readExpression( parser );
+	const ifTrue = readExpression( parser );
 	if ( !ifTrue ) {
 		parser.error( expectedExpression );
 	}
@@ -36,7 +34,7 @@ export default function getConditional ( parser ) {
 
 	parser.allowWhitespace();
 
-	ifFalse = readExpression( parser );
+	const ifFalse = readExpression( parser );
 	if ( !ifFalse ) {
 		parser.error( expectedExpression );
 	}

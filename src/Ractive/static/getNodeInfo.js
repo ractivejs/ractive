@@ -1,4 +1,3 @@
-import gatherRefs from '../../view/helpers/gatherRefs';
 import { addHelpers } from '../../view/helpers/contextMethods';
 import { doc } from '../../config/environment';
 

@@ -2,10 +2,11 @@ import { REFERENCE, BOOLEAN_LITERAL, GLOBAL, NUMBER_LITERAL, REGEXP_LITERAL, STR
 import { isObject } from '../../utils/is';
 
 export default function flattenExpression ( expression ) {
-	let refs, count = 0, stringified;
+	let refs;
+	let count = 0;
 
 	extractRefs( expression, refs = [] );
-	stringified = stringify( expression );
+	const stringified = stringify( expression );
 
 	return {
 		r: refs,
@@ -110,20 +111,18 @@ function hasSpread ( list ) {
 
 // TODO maybe refactor this?
 function extractRefs ( node, refs ) {
-	let i, list;
-
 	if ( node.t === REFERENCE && typeof node.n === 'string' ) {
 		if ( !~refs.indexOf( node.n ) ) {
 			refs.unshift( node.n );
 		}
 	}
 
-	list = node.o || node.m;
+	const list = node.o || node.m;
 	if ( list ) {
 		if ( isObject( list ) ) {
 			extractRefs( list, refs );
 		} else {
-			i = list.length;
+			let i = list.length;
 			while ( i-- ) {
 				extractRefs( list[i], refs );
 			}

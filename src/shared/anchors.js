@@ -22,7 +22,8 @@ function findAnchorsIn ( item, name, result ) {
 
 export function updateAnchors ( instance, name = null ) {
 	const anchors = findAnchors( instance.fragment, name );
-	const idxs = {}, children = instance._children.byName;
+	const idxs = {};
+	const children = instance._children.byName;
 
 	anchors.forEach( a => {
 		const name = a.name;

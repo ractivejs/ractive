@@ -6,7 +6,7 @@ import { findInViewHierarchy } from '../shared/registry';
 import arrayAdaptor from './static/adaptors/array/index';
 import magicAdaptor from './static/adaptors/magic';
 import magicArrayAdaptor from './static/adaptors/magicArray';
-import { create, defineProperty, extend } from '../utils/object';
+import { create, extend } from '../utils/object';
 import dataConfigurator from './config/custom/data';
 import RootModel from '../model/RootModel';
 import Hook from '../events/Hook';

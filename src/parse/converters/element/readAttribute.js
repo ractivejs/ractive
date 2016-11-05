@@ -4,21 +4,20 @@ import readMustache from '../readMustache';
 import { decodeCharacterReferences } from '../../../utils/html';
 import readExpressionList from '../expressions/shared/readExpressionList';
 import flattenExpression from '../../utils/flattenExpression';
-import { warnOnceIfDebug } from '../../../utils/log';
 
-const attributeNamePattern = /^[^\s"'>\/=]+/,
-	onPattern = /^on/,
-	eventPattern = /^on-([a-zA-Z\\*\\.$_][a-zA-Z\\*\\.$_0-9\-]+)$/,
-	reservedEventNames = /^(?:change|reset|teardown|update|construct|config|init|render|unrender|detach|insert)$/,
-	decoratorPattern = /^as-([a-z-A-Z][-a-zA-Z_0-9]*)$/,
-	transitionPattern = /^([a-zA-Z](?:(?!-in-out)[-a-zA-Z_0-9])*)-(in|out|in-out)$/,
-	directives = {
-				   lazy: { t: BINDING_FLAG, v: 'l' },
-				   twoway: { t: BINDING_FLAG, v: 't' }
-				 },
-	unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/,
-	proxyEvent = /^[^\s"'=<>@\[\]()]*/,
-	whitespace = /^\s+/;
+const attributeNamePattern = /^[^\s"'>\/=]+/;
+const onPattern = /^on/;
+const eventPattern = /^on-([a-zA-Z\\*\\.$_][a-zA-Z\\*\\.$_0-9\-]+)$/;
+const reservedEventNames = /^(?:change|reset|teardown|update|construct|config|init|render|unrender|detach|insert)$/;
+const decoratorPattern = /^as-([a-z-A-Z][-a-zA-Z_0-9]*)$/;
+const transitionPattern = /^([a-zA-Z](?:(?!-in-out)[-a-zA-Z_0-9])*)-(in|out|in-out)$/;
+const directives = {
+	lazy: { t: BINDING_FLAG, v: 'l' },
+	twoway: { t: BINDING_FLAG, v: 't' }
+};
+const unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
+const proxyEvent = /^[^\s"'=<>@\[\]()]*/;
+const whitespace = /^\s+/;
 
 export default function readAttribute ( parser ) {
 	let name, i, nearest, idx;
@@ -47,9 +46,7 @@ export default function readAttribute ( parser ) {
 }
 
 function readAttributeValue ( parser ) {
-	let start, valueStart, startDepth, value;
-
-	start = parser.pos;
+	const start = parser.pos;
 
 	// next character must be `=`, `/`, `>` or whitespace
 	if ( !/[=\/>\s]/.test( parser.nextChar() ) ) {
@@ -65,10 +62,10 @@ function readAttributeValue ( parser ) {
 
 	parser.allowWhitespace();
 
-	valueStart = parser.pos;
-	startDepth = parser.sectionDepth;
+	const valueStart = parser.pos;
+	const startDepth = parser.sectionDepth;
 
-	value = readQuotedAttributeValue( parser, `'` ) ||
+	const value = readQuotedAttributeValue( parser, `'` ) ||
 			readQuotedAttributeValue( parser, `"` ) ||
 			readUnquotedAttributeValue( parser );
 
@@ -93,9 +90,9 @@ function readAttributeValue ( parser ) {
 }
 
 function readUnquotedAttributeValueToken ( parser ) {
-	let start, text, haystack, needles, index;
+	let text, index;
 
-	start = parser.pos;
+	const start = parser.pos;
 
 	text = parser.matchPattern( unquotedAttributeValueTextPattern );
 
@@ -103,8 +100,8 @@ function readUnquotedAttributeValueToken ( parser ) {
 		return null;
 	}
 
-	haystack = text;
-	needles = parser.tags.map( t => t.open ); // TODO refactor... we do this in readText.js as well
+	const haystack = text;
+	const needles = parser.tags.map( t => t.open ); // TODO refactor... we do this in readText.js as well
 
 	if ( ( index = getLowestIndex( haystack, needles ) ) !== -1 ) {
 		text = text.substr( 0, index );
@@ -115,13 +112,11 @@ function readUnquotedAttributeValueToken ( parser ) {
 }
 
 function readUnquotedAttributeValue ( parser ) {
-	let tokens, token;
-
 	parser.inAttribute = true;
 
-	tokens = [];
+	const tokens = [];
 
-	token = readMustache( parser ) || readUnquotedAttributeValueToken( parser );
+	let token = readMustache( parser ) || readUnquotedAttributeValueToken( parser );
 	while ( token ) {
 		tokens.push( token );
 		token = readMustache( parser ) || readUnquotedAttributeValueToken( parser );
@@ -136,9 +131,7 @@ function readUnquotedAttributeValue ( parser ) {
 }
 
 function readQuotedAttributeValue ( parser, quoteMark ) {
-	let start, tokens, token;
-
-	start = parser.pos;
+	const start = parser.pos;
 
 	if ( !parser.matchString( quoteMark ) ) {
 		return null;
@@ -146,9 +139,9 @@ function readQuotedAttributeValue ( parser, quoteMark ) {
 
 	parser.inAttribute = quoteMark;
 
-	tokens = [];
+	const tokens = [];
 
-	token = readMustache( parser ) || readQuotedStringToken( parser, quoteMark );
+	let token = readMustache( parser ) || readQuotedStringToken( parser, quoteMark );
 	while ( token !== null ) {
 		tokens.push( token );
 		token = readMustache( parser ) || readQuotedStringToken( parser, quoteMark );
@@ -185,11 +178,9 @@ function readQuotedStringToken ( parser, quoteMark ) {
 }
 
 export function readAttributeOrDirective ( parser ) {
-	let match,
-		attribute,
-		    directive;
+	let match, directive;
 
-	attribute = readAttribute( parser, false );
+	const attribute = readAttribute( parser, false );
 
 	if ( !attribute ) return null;
 

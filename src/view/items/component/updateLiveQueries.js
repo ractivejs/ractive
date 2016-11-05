@@ -3,7 +3,8 @@
 export default function updateLiveQueries ( component ) {
 	// Does this need to be added to any live queries?
 	let instance = component.ractive;
-	const queries = [], remotes = {};
+	const queries = [];
+	const remotes = {};
 	let remote = component.target === false;
 	let i;
 

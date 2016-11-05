@@ -12,8 +12,6 @@ import createItem from './createItem';
 import { removeFromArray } from '../../utils/array';
 import { bind, cancel, render as callRender, unbind, unrender, update } from '../../shared/methodCallers';
 import Hook from '../../events/Hook';
-import EventDirective from './shared/EventDirective';
-import RactiveEvent from './component/RactiveEvent';
 import updateLiveQueries from './component/updateLiveQueries';
 import { updateAnchors } from '../../shared/anchors';
 

@@ -13,7 +13,6 @@ export default function attachChild ( child, options = {} ) {
 	if ( child.parent && child.parent !== this ) throw new Error( `Instance ${child._guid} is already attached to a different instance ${child.parent._guid}. Please detach it from the other instance using detachChild first.` );
 	else if ( child.parent ) throw new Error( `Instance ${child._guid} is already attached to this instance.` );
 
-	const anchors = this._anchors;
 	const meta = {
 		instance: child,
 		ractive: this,

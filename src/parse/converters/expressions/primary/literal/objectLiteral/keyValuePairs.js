@@ -1,19 +1,17 @@
 import getKeyValuePair from './keyValuePair';
 
 export default function readKeyValuePairs ( parser ) {
-	let start, pairs, pair, keyValuePairs;
+	const start = parser.pos;
 
-	start = parser.pos;
-
-	pair = getKeyValuePair( parser );
+	const pair = getKeyValuePair( parser );
 	if ( pair === null ) {
 		return null;
 	}
 
-	pairs = [ pair ];
+	const pairs = [ pair ];
 
 	if ( parser.matchString( ',' ) ) {
-		keyValuePairs = readKeyValuePairs( parser );
+		const keyValuePairs = readKeyValuePairs( parser );
 
 		if ( !keyValuePairs ) {
 			parser.pos = start;

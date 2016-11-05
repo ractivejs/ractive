@@ -2,9 +2,9 @@ import getLowestIndex from './utils/getLowestIndex';
 import { decodeCharacterReferences } from '../../utils/html';
 
 export default function readText ( parser ) {
-	let index, remaining, disallowed, barrier;
+	let index, disallowed, barrier;
 
-	remaining = parser.remaining();
+	const remaining = parser.remaining();
 
 	if ( parser.textOnlyMode ) {
 		disallowed = parser.tags.map( t => t.open );

@@ -5,7 +5,8 @@ import { hasConsole } from '../config/environment';
 import Ractive from '../Ractive';
 import noop from './noop';
 
-let alreadyWarned = {}, log, printWarning, welcome;
+const alreadyWarned = {};
+let log, printWarning, welcome;
 
 if ( hasConsole ) {
 	const welcomeIntro = [

@@ -2,10 +2,8 @@ import { findInViewHierarchy } from '../../../shared/registry';
 import findElement from '../shared/findElement';
 import { warnOnce } from '../../../utils/log';
 import { missingPlugin } from '../../../config/errors';
-import Fragment from '../../Fragment';
 import noop from '../../../utils/noop';
 import runloop from '../../../global/runloop';
-import { removeFromArray } from '../../../utils/array';
 import { rebindMatch } from '../../../shared/rebind';
 import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
 

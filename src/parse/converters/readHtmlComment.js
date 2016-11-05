@@ -1,28 +1,26 @@
 import { COMMENT } from '../../config/types';
 
-let OPEN_COMMENT = '<!--',
-	CLOSE_COMMENT = '-->';
+const OPEN_COMMENT = '<!--';
+const CLOSE_COMMENT = '-->';
 
 export default function readHtmlComment ( parser ) {
-	let start, content, remaining, endIndex, comment;
-
-	start = parser.pos;
+	const start = parser.pos;
 
 	if ( !parser.matchString( OPEN_COMMENT ) ) {
 		return null;
 	}
 
-	remaining = parser.remaining();
-	endIndex = remaining.indexOf( CLOSE_COMMENT );
+	const remaining = parser.remaining();
+	const endIndex = remaining.indexOf( CLOSE_COMMENT );
 
 	if ( endIndex === -1 ) {
 		parser.error( 'Illegal HTML - expected closing comment sequence (\'-->\')' );
 	}
 
-	content = remaining.substr( 0, endIndex );
+	const content = remaining.substr( 0, endIndex );
 	parser.pos += endIndex + 3;
 
-	comment = {
+	const comment = {
 		t: COMMENT,
 		c: content
 	};

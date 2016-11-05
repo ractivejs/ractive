@@ -2,9 +2,7 @@ import { OBJECT_LITERAL } from '../../../../../config/types';
 import readKeyValuePairs from './objectLiteral/keyValuePairs';
 
 export default function ( parser ) {
-	let start, keyValuePairs;
-
-	start = parser.pos;
+	const start = parser.pos;
 
 	// allow whitespace
 	parser.allowWhitespace();
@@ -14,7 +12,7 @@ export default function ( parser ) {
 		return null;
 	}
 
-	keyValuePairs = readKeyValuePairs( parser );
+	const keyValuePairs = readKeyValuePairs( parser );
 
 	// allow whitespace between final value and '}'
 	parser.allowWhitespace();

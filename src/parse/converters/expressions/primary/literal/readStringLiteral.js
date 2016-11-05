@@ -5,12 +5,10 @@ const getSingleQuotedString = makeQuotedStringMatcher( `"` );
 const getDoubleQuotedString = makeQuotedStringMatcher( `'` );
 
 export default function ( parser ) {
-	let start, string;
-
-	start = parser.pos;
+	const start = parser.pos;
 
 	if ( parser.matchString( '"' ) ) {
-		string = getDoubleQuotedString( parser );
+		const string = getDoubleQuotedString( parser );
 
 		if ( !parser.matchString( '"' ) ) {
 			parser.pos = start;
@@ -24,7 +22,7 @@ export default function ( parser ) {
 	}
 
 	if ( parser.matchString( `'` ) ) {
-		string = getSingleQuotedString( parser );
+		const string = getSingleQuotedString( parser );
 
 		if ( !parser.matchString( `'` ) ) {
 			parser.pos = start;

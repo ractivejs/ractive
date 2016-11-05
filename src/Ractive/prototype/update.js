@@ -18,7 +18,8 @@ export function update ( ractive, model ) {
 
 	if ( !model.isRoot ) {
 		// there may be unresolved refs that are now resolvable up the context tree
-		let parent = model.parent, key = model.key;
+		let parent = model.parent;
+		let key = model.key;
 		while ( parent && !parent.isRoot ) {
 			if ( parent.clearUnresolveds ) parent.clearUnresolveds( key );
 			key = parent.key;

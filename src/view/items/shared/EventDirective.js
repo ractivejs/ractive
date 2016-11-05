@@ -1,9 +1,5 @@
 import { ANCHOR, COMPONENT } from '../../../config/types';
-import { removeFromArray } from '../../../utils/array';
 import fireEvent from '../../../events/fireEvent';
-import Fragment from '../../Fragment';
-import getFunction from '../../../shared/getFunction';
-import resolveReference from '../../resolvers/resolveReference';
 import { splitKeypath } from '../../../shared/keypaths';
 import findElement from './findElement';
 import { findInViewHierarchy } from '../../../shared/registry';
@@ -47,7 +43,7 @@ export default class EventDirective {
 
 	bind () {
 		setupArgsFn( this, this.template, this.parentFragment, {
-			specialRef ( ref, i ) {
+			specialRef ( ref ) {
 				const specialMatch = specialPattern.exec( ref );
 				if ( specialMatch ) {
 					// on-click="foo(event.node)"

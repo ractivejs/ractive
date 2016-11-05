@@ -11,7 +11,8 @@ export default function add ( ractive, keypath, d ) {
 	const sets = build( ractive, keypath, d );
 
 	return set( ractive, sets.map( pair => {
-		const [ model, add ] = pair, value = model.get();
+		const [ model, add ] = pair;
+		const value = model.get();
 		if ( !isNumeric( add ) || !isNumeric( value ) ) throw new Error( errorMessage );
 		return [ model, value + add ];
 	}));

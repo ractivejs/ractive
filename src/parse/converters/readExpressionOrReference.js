@@ -3,10 +3,8 @@ import readExpression from './readExpression';
 import readReference from './expressions/primary/readReference';
 
 export default function readExpressionOrReference ( parser, expectedFollowers ) {
-	let start, expression, i;
-
-	start = parser.pos;
-	expression = readExpression( parser );
+	const start = parser.pos;
+	const expression = readExpression( parser );
 
 	if ( !expression ) {
 		// valid reference but invalid expression e.g. `{{new}}`?
@@ -21,7 +19,7 @@ export default function readExpressionOrReference ( parser, expectedFollowers ) 
 		return null;
 	}
 
-	for ( i = 0; i < expectedFollowers.length; i += 1 ) {
+	for ( let i = 0; i < expectedFollowers.length; i += 1 ) {
 		if ( parser.remaining().substr( 0, expectedFollowers[i].length ) === expectedFollowers[i] ) {
 			return expression;
 		}

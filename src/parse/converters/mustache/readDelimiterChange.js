@@ -1,18 +1,17 @@
-let delimiterChangePattern = /^[^\s=]+/, whitespacePattern = /^\s+/;
+const delimiterChangePattern = /^[^\s=]+/;
+const whitespacePattern = /^\s+/;
 
 export default function readDelimiterChange ( parser ) {
-	let start, opening, closing;
-
 	if ( !parser.matchString( '=' ) ) {
 		return null;
 	}
 
-	start = parser.pos;
+	const start = parser.pos;
 
 	// allow whitespace before new opening delimiter
 	parser.allowWhitespace();
 
-	opening = parser.matchPattern( delimiterChangePattern );
+	const opening = parser.matchPattern( delimiterChangePattern );
 	if ( !opening ) {
 		parser.pos = start;
 		return null;
@@ -23,7 +22,7 @@ export default function readDelimiterChange ( parser ) {
 		return null;
 	}
 
-	closing = parser.matchPattern( delimiterChangePattern );
+	const closing = parser.matchPattern( delimiterChangePattern );
 	if ( !closing ) {
 		parser.pos = start;
 		return null;

@@ -3,9 +3,9 @@ import readExpressionOrReference from '../readExpressionOrReference';
 import refineExpression from '../../utils/refineExpression';
 
 export default function readInterpolator ( parser, tag ) {
-	let start, expression, interpolator, err;
+	let expression, err;
 
-	start = parser.pos;
+	const start = parser.pos;
 
 	// TODO would be good for perf if we could do away with the try-catch
 	try {
@@ -39,7 +39,7 @@ export default function readInterpolator ( parser, tag ) {
 		}
 	}
 
-	interpolator = { t: INTERPOLATOR };
+	const interpolator = { t: INTERPOLATOR };
 	refineExpression( expression, interpolator ); // TODO handle this differently - it's mysterious
 
 	return interpolator;

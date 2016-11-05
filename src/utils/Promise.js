@@ -1,26 +1,19 @@
-let _Promise,
-	PENDING = {},
-	FULFILLED = {},
-	REJECTED = {};
+let _Promise;
+const PENDING = {};
+const FULFILLED = {};
+const REJECTED = {};
 
 if ( typeof Promise === 'function' ) {
 	// use native Promise
 	_Promise = Promise;
 } else {
 	_Promise = function ( callback ) {
-		let fulfilledHandlers = [],
-			rejectedHandlers = [],
-			state = PENDING,
+		const fulfilledHandlers = [];
+		const rejectedHandlers = [];
+		let state = PENDING;
+		let result, dispatchHandlers;
 
-			result,
-			dispatchHandlers,
-			makeResolver,
-			fulfil,
-			reject,
-
-			promise;
-
-		makeResolver = function ( newState ) {
+		const makeResolver = function ( newState ) {
 			return function ( value ) {
 				if ( state !== PENDING ) {
 					return;
@@ -36,8 +29,8 @@ if ( typeof Promise === 'function' ) {
 			};
 		};
 
-		fulfil = makeResolver( FULFILLED );
-		reject = makeResolver( REJECTED );
+		const fulfil = makeResolver( FULFILLED );
+		const reject = makeResolver( REJECTED );
 
 		try {
 			callback( fulfil, reject );
@@ -45,7 +38,7 @@ if ( typeof Promise === 'function' ) {
 			reject( err );
 		}
 
-		promise = {
+		const promise = {
 			// `then()` returns a Promise - 2.2.7
 			then ( onFulfilled, onRejected ) {
 				const promise2 = new _Promise( ( fulfil, reject ) => {
@@ -95,14 +88,15 @@ if ( typeof Promise === 'function' ) {
 
 	_Promise.all = function ( promises ) {
 		return new _Promise( ( fulfil, reject ) => {
-			let result = [], pending, i, processPromise;
+			const result = [];
+			let pending, i;
 
 			if ( !promises.length ) {
 				fulfil( result );
 				return;
 			}
 
-			processPromise = ( promise, i ) => {
+			const processPromise = ( promise, i ) => {
 				if ( promise && typeof promise.then === 'function' ) {
 					promise.then( value => {
 						result[i] = value;
@@ -178,9 +172,9 @@ function resolve ( promise, x, fulfil, reject ) {
 
 		// 2.3.3.3
 		if ( typeof then === 'function' ) {
-			let called, resolvePromise, rejectPromise;
+			let called;
 
-			resolvePromise = function ( y ) {
+			const resolvePromise = function ( y ) {
 				if ( called ) {
 					return;
 				}
@@ -188,7 +182,7 @@ function resolve ( promise, x, fulfil, reject ) {
 				resolve( promise, y, fulfil, reject );
 			};
 
-			rejectPromise = function ( r ) {
+			const rejectPromise = function ( r ) {
 				if ( called ) {
 					return;
 				}

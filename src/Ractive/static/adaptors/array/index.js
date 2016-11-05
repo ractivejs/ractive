@@ -55,12 +55,10 @@ class ArrayWrapper {
 	}
 
 	teardown () {
-		let array, storage, wrappers, instances, index;
-
-		array = this.value;
-		storage = array._ractive;
-		wrappers = storage.wrappers;
-		instances = storage.instances;
+		const array = this.value;
+		const storage = array._ractive;
+		const wrappers = storage.wrappers;
+		const instances = storage.instances;
 
 		// if teardown() was invoked because we're clearing the cache as a result of
 		// a change that the array itself triggered, we can save ourselves the teardown
@@ -69,7 +67,7 @@ class ArrayWrapper {
 			return false; // so that we don't remove it from cached wrappers
 		}
 
-		index = wrappers.indexOf( this );
+		let index = wrappers.indexOf( this );
 		if ( index === -1 ) {
 			throw new Error( errorMessage );
 		}

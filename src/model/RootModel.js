@@ -5,7 +5,6 @@ import { handleChange, mark } from '../shared/methodCallers';
 import RactiveModel from './specials/RactiveModel';
 import GlobalModel from './specials/GlobalModel';
 import { splitKeypath, unescapeKey } from '../shared/keypaths';
-import { warnIfDebug } from '../utils/log';
 import resolveReference from '../view/resolvers/resolveReference';
 
 const hasProp = Object.prototype.hasOwnProperty;

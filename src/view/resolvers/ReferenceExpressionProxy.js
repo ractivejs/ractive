@@ -18,7 +18,8 @@ class ReferenceExpressionChild extends Model {
 	applyValue ( value ) {
 		if ( isEqual( value, this.value ) ) return;
 
-		let parent = this.parent, keys = [ this.key ];
+		let parent = this.parent;
+		const keys = [ this.key ];
 		while ( parent ) {
 			if ( parent.base ) {
 				const target = parent.model.joinAll( keys );
@@ -155,7 +156,8 @@ export default class ReferenceExpressionProxy extends Model {
 		if ( this.dirty ) {
 			this.bubble();
 
-			let i = this.members.length, resolved = true;
+			let i = this.members.length;
+			let resolved = true;
 			while ( resolved && i-- ) {
 				if ( !this.members[i] ) resolved = false;
 			}

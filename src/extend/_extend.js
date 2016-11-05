@@ -17,8 +17,6 @@ function extend ( ...options ) {
 }
 
 function extendOne ( Parent, options = {} ) {
-	let Child, proto;
-
 	// if we're extending with another Ractive instance...
 	//
 	//   var Human = Ractive.extend(...), Spider = Ractive.extend(...);
@@ -29,14 +27,14 @@ function extendOne ( Parent, options = {} ) {
 		options = unwrapExtended( options );
 	}
 
-	Child = function ( options ) {
+	const Child = function ( options ) {
 		if ( !( this instanceof Child ) ) return new Child( options );
 
 		construct( this, options || {} );
 		initialise( this, options || {}, {} );
 	};
 
-	proto = create( Parent.prototype );
+	const proto = create( Parent.prototype );
 	proto.constructor = Child;
 
 	// Static properties

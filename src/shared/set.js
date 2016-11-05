@@ -8,7 +8,8 @@ export function set ( ractive, pairs ) {
 
 	let i = pairs.length;
 	while ( i-- ) {
-		let [ model, value ] = pairs[i];
+		const model = pairs[i][0];
+		let value = pairs[i][1];
 		if ( typeof value === 'function' ) value = bind( value, ractive );
 		model.set( value );
 	}

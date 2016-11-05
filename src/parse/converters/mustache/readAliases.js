@@ -5,7 +5,9 @@ const legalAlias = /^(?:[a-zA-Z$_0-9]|\\\.)+(?:(?:(?:[a-zA-Z$_0-9]|\\\.)+)|(?:\[
 const asRE = /^as/i;
 
 export function readAliases( parser ) {
-	let aliases = [], alias, start = parser.pos;
+	const aliases = [];
+	let alias;
+	const start = parser.pos;
 
 	parser.allowWhitespace();
 
@@ -38,11 +40,11 @@ export function readAliases( parser ) {
 }
 
 export function readAlias( parser ) {
-	let expr, alias, start = parser.pos;
+	const start = parser.pos;
 
 	parser.allowWhitespace();
 
-	expr = readExpression( parser, [] );
+	const expr = readExpression( parser, [] );
 
 	if ( !expr ) {
 		parser.pos = start;
@@ -58,7 +60,7 @@ export function readAlias( parser ) {
 
 	parser.allowWhitespace();
 
-	alias = parser.matchPattern( legalAlias );
+	const alias = parser.matchPattern( legalAlias );
 
 	if ( !alias ) {
 		parser.error( 'Expected a legal alias name.' );

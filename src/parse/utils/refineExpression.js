@@ -25,7 +25,8 @@ export default function refineExpression ( expression, mustache ) {
 
 // TODO refactor this! it's bewildering
 function getReferenceExpression ( expression ) {
-	let members = [], refinement;
+	const members = [];
+	let refinement;
 
 	while ( expression.t === MEMBER && expression.r.t === REFINEMENT ) {
 		refinement = expression.r;

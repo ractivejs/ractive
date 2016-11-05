@@ -28,7 +28,8 @@ function addRegistries ( Child, options ) {
 }
 
 function addRegistry ( target, options, name ) {
-	let registry, keys = Object.keys( target[ name ] );
+	let registry;
+	const keys = Object.keys( target[ name ] );
 
 	if ( !keys.length ) { return; }
 
@@ -56,12 +57,12 @@ function addOtherOptions ( Child, options ) {
 				&& typeof value === 'function'
 				&& options[ key ]._method ) {
 
-			let result, needsSuper = value._method;
+			const needsSuper = value._method;
 
 			if ( needsSuper ) { value = value._method; }
 
 			// rewrap bound directly to parent fn
-			result = wrap( options[ key ]._method, value );
+			const result = wrap( options[ key ]._method, value );
 
 			if ( needsSuper ) { result._method = result; }
 
