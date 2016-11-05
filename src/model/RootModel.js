@@ -3,8 +3,7 @@ import Computation from './Computation';
 import Model from './Model';
 import { handleChange, mark } from '../shared/methodCallers';
 import RactiveModel from './specials/RactiveModel';
-import GlobalModel from './specials/GlobalModel';
-import SharedModel from './specials/SharedModel';
+import SharedModel, { GlobalModel } from './specials/SharedModel';
 import { splitKeypath, unescapeKey } from '../shared/keypaths';
 import resolveReference from '../view/resolvers/resolveReference';
 

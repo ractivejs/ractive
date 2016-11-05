@@ -1,6 +1,5 @@
 import { splitKeypath } from '../../shared/keypaths';
-import GlobalModel from '../../model/specials/GlobalModel';
-import SharedModel from '../../model/specials/SharedModel';
+import SharedModel, { GlobalModel } from '../../model/specials/SharedModel';
 
 const keypathExpr = /^@[^\(]+\(([^\)]+)\)/;
 

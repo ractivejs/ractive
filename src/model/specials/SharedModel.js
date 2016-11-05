@@ -1,22 +1,25 @@
+/* global global */
 import Model from '../Model';
 
 const data = {};
 
-class SharedModel extends Model {
-	constructor ( ) {
-		super( null, '@shared' );
-		this.value = data;
+export class SharedModel extends Model {
+	constructor ( value, name ) {
+		super( null, `@${name}` );
+		this.value = value;
 		this.isRoot = true;
 		this.root = this;
 		this.adaptors = [];
 	}
 
 	getKeypath() {
-		return '@shared';
+		return this.key;
 	}
 
 	// shared model doesn't contribute changes events because it has no instance
 	registerChange () {}
 }
 
-export default new SharedModel();
+export default new SharedModel( data, 'shared' );
+
+export const GlobalModel = new SharedModel( typeof global !== 'undefined' ? global : window, 'global' );
