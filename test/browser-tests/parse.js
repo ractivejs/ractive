@@ -34,7 +34,11 @@ export default function() {
 					if ( error.name !== 'ParseError' ) {
 						throw error;
 					}
-					t.equal( error.message, theTest.error );
+					if ( theTest.error.test ) {
+						t.ok( theTest.error.test( error.message ) );
+					} else {
+						t.equal( error.message, theTest.error );
+					}
 					return true;
 				}, 'Expected ParseError' );
 			} else {

@@ -211,4 +211,48 @@ export default function() {
 	testHierarchy( 'oncomplete', bottomUp );
 	testHierarchy( 'onunrender', bottomUp );
 	testHierarchy( 'onteardown', bottomUp );
+
+	test( 'destruct hook fires after everything is completely torn down, including element removal after transitions', t => {
+		const done = t.async();
+
+		let finish;
+		let finished = false;
+		const foo = function ( t ) {
+			finish = t.complete;
+		};
+		const cmp = Ractive.extend({
+			template: '<div foo-out />',
+			onteardown () {
+				t.ok( !finished );
+				t.ok( this.find( '*' ) );
+			},
+			ondestruct () {
+				t.ok( finished );
+				t.ok( !fixture.querySelector( '*' ) );
+			}
+		});
+
+		const r = new Ractive({
+			target: fixture,
+			transitions: { foo },
+			components: { cmp },
+			template: '{{#if show}}<cmp />{{/if}}',
+			data: { show: true }
+		});
+
+		r.on( 'cmp.teardown', function () {
+			t.ok( !finished );
+			t.ok( this.find( '*' ) );
+		});
+
+		r.on( 'cmp.destruct', () => {
+			t.ok( finished );
+			t.ok( !fixture.querySelector( '*' ) );
+			done();
+		});
+
+		r.toggle( 'show' );
+		finished = true;
+		finish();
+	});
 }

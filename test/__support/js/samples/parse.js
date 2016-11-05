@@ -543,8 +543,7 @@ const parseTests = [
 	{
 		name: 'Reserved event names cannot be used for proxy events',
 		template: `<div on-foo="change"></div>`,
-		error: 'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, detach, insert) at line 1 character 15:\n' +
-			'<div on-foo=\"change\"></div>\n              ^----'
+		error: /Cannot use reserved event names/
 	},
 	{
 		name: 'Reserved event names can be part of proxy event names',
@@ -863,37 +862,37 @@ const parseTests = [
 	{
 		name: 'expression with numeric refinement #2325',
 		template: '{{foo[0].bar()}}',
-		parsed: {v:4,t:[{t:2,x:{r:["foo.0"],s:"_0.bar()"}}]}
+		parsed: {v:4,t:[{t:2,x:{r:['foo.0'],s:'_0.bar()'}}]}
 	},
 	{
 		name: 'expression with numeric refinement alt #2325',
 		template: '{{foo[0]()}}',
-		parsed: {v:4,t:[{t:2,x:{r:["foo.0"],s:"_0()"}}]}
+		parsed: {v:4,t:[{t:2,x:{r:['foo.0'],s:'_0()'}}]}
 	},
 	{
 		name: 'expression with multiple numeric refinement #2325',
 		template: '{{foo[0].bar()[10].baz.bat()}}',
-		parsed: {v:4,t:[{t:2,x:{r:["foo.0"],s:"_0.bar()[10].baz.bat()"}}]}
+		parsed: {v:4,t:[{t:2,x:{r:['foo.0'],s:'_0.bar()[10].baz.bat()'}}]}
 	},
 	{
 		name: 'expression with multiple numeric refinement alt #2325',
 		template: '{{foo[0].bar[10].baz["12"].bat()}}',
-		parsed: {v:4,t:[{t:2,x:{r:["foo.0.bar.10.baz"],s:"_0[\"12\"].bat()"}}]}
+		parsed: {v:4,t:[{t:2,x:{r:['foo.0.bar.10.baz'],s:'_0["12"].bat()'}}]}
 	},
 	{
 		name: 'expression with array spread',
 		template: '{{[foo, bar, ...baz, bat, bip, ...bop, boop, bar]}}',
-		parsed: {v:4,t:[{t:2,x:{r:["foo","baz","bat","bip","bop","boop","bar"],s:"[].concat([_0,_6],_1,[_2,_3],_4,[_5,_6])"}}]}
+		parsed: {v:4,t:[{t:2,x:{r:['foo','baz','bat','bip','bop','boop','bar'],s:'[].concat([_0,_6],_1,[_2,_3],_4,[_5,_6])'}}]}
 	},
 	{
 		name: 'expression with object spread',
 		template: '{{ { foo: "bar", baz: 10 + ref, ...bat, bip: "bop" } }}',
-		parsed: {v:4,t:[{t:2,x:{r:["ref","bat"],s:'Object.assign({},{foo:"bar",baz:10+_0},_1,{bip:"bop"})'}}]}
+		parsed: {v:4,t:[{t:2,x:{r:['ref','bat'],s:'Object.assign({},{foo:"bar",baz:10+_0},_1,{bip:"bop"})'}}]}
 	},
 	{
 		name: 'expression with spread args',
 		template: '{{ foo.bar.baz(baz, bat, ...bip, bop, ...boop) }}',
-		parsed: {v:4,t:[{t:2,x:{r:["foo.bar","baz","bat","bip","bop","boop"],s:'(function(){var x$0;return((x$0=_0.baz).apply(x$0,[].concat([_1,_2],_3,[_4],_5)));})()'}}]}
+		parsed: {v:4,t:[{t:2,x:{r:['foo.bar','baz','bat','bip','bop','boop'],s:'(function(){var x$0;return((x$0=_0.baz).apply(x$0,[].concat([_1,_2],_3,[_4],_5)));})()'}}]}
 	},
 	{
 		name: 'various spreads mixed',

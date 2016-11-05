@@ -10,16 +10,14 @@ import { create, extend } from '../../utils/object';
 import { createDocumentFragment } from '../../utils/dom';
 import createItem from './createItem';
 import { removeFromArray } from '../../utils/array';
-import { bind, cancel, render as callRender, unbind, unrender, update } from '../../shared/methodCallers';
-import Hook from '../../events/Hook';
+import { bind, render as callRender, unbind, unrender, update } from '../../shared/methodCallers';
 import updateLiveQueries from './component/updateLiveQueries';
 import { updateAnchors } from '../../shared/anchors';
+import { teardown } from '../../Ractive/prototype/teardown';
 
 function makeDirty ( query ) {
 	query.makeDirty();
 }
-
-const teardownHook = new Hook( 'teardown' );
 
 export default class Component extends Item {
 	constructor ( options, ComponentConstructor ) {
@@ -216,16 +214,7 @@ export default class Component extends Item {
 
 			this.attributes.forEach( unbind );
 
-			const instance = this.instance;
-			instance.viewmodel.teardown();
-			instance.fragment.unbind();
-			instance._observers.forEach( cancel );
-
-			if ( instance.fragment.rendered && instance.el.__ractive_instances__ ) {
-				removeFromArray( instance.el.__ractive_instances__, instance );
-			}
-
-			teardownHook.fire( instance );
+			teardown( this.instance, () => runloop.promise() );
 		}
 	}
 

@@ -221,4 +221,23 @@ export default function() {
 			});
 		});
 	}
+
+	test( 'hooks include the source ractive instance as the last argument', t => {
+		const done = t.async();
+		t.expect( 3 );
+
+		const cmp = Ractive.extend();
+		const r = new Ractive({
+			template: '<cmp />',
+			components: { cmp }
+		});
+		const c = r.findComponent( 'cmp' );
+
+		r.on( 'cmp.render', inst => t.ok( c === inst ) );
+		r.on( 'cmp.complete', inst => { t.ok( c === inst ); done(); } );
+		r.on( 'cmp.teardown', inst => t.ok( c === inst ) );
+
+		r.render( fixture );
+		r.teardown();
+	});
 }
