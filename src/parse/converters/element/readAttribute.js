@@ -8,7 +8,7 @@ import flattenExpression from '../../utils/flattenExpression';
 const attributeNamePattern = /^[^\s"'>\/=]+/;
 const onPattern = /^on/;
 const eventPattern = /^on-([a-zA-Z\\*\\.$_][a-zA-Z\\*\\.$_0-9\-]+)$/;
-const reservedEventNames = /^(?:change|reset|teardown|update|construct|config|init|render|unrender|detach|insert)$/;
+const reservedEventNames = /^(?:change|reset|teardown|update|construct|config|init|render|complete|unrender|detach|insert|destruct|attachchild|detachchild)$/;
 const decoratorPattern = /^as-([a-z-A-Z][-a-zA-Z_0-9]*)$/;
 const transitionPattern = /^([a-zA-Z](?:(?!-in-out)[-a-zA-Z_0-9])*)-(in|out|in-out)$/;
 const directives = {
@@ -219,7 +219,7 @@ export function readAttributeOrDirective ( parser ) {
 			readArguments( parser, attribute, true );
 		} else if ( reservedEventNames.test( attribute.f ) ) {
 			parser.pos -= attribute.f.length;
-			parser.error( 'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, detach, insert)' );
+			parser.error( 'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, complete, detach, insert, destruct, attachchild, detachchild)' );
 		}
 	}
 

@@ -8,12 +8,9 @@ const changeHook = new Hook( 'change' );
 let batch;
 
 const runloop = {
-	start ( instance, returnPromise ) {
-		let promise, fulfilPromise;
-
-		if ( returnPromise ) {
-			promise = new Promise( f => ( fulfilPromise = f ) );
-		}
+	start ( instance ) {
+		let fulfilPromise;
+		const promise = new Promise( f => ( fulfilPromise = f ) );
 
 		batch = {
 			previousBatch: batch,
@@ -23,7 +20,8 @@ const runloop = {
 			immediateObservers: [],
 			deferredObservers: [],
 			ractives: [],
-			instance
+			instance,
+			promise
 		};
 
 		return promise;
@@ -87,6 +85,17 @@ const runloop = {
 
 			_batch.tasks.push( task );
 		}
+	},
+
+	promise () {
+		if ( !batch ) return Promise.resolve();
+
+		let target = batch;
+		while ( target.previousBatch ) {
+			target = target.previousBatch;
+		}
+
+		return target.promise || Promise.resolve();
 	}
 };
 

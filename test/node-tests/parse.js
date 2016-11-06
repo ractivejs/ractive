@@ -19,7 +19,11 @@ parseTests.forEach( function ( test ) {
 				if (error.name !== 'ParseError') {
 					throw error;
 				}
-				assert.equal( error.message, test.error );
+				if ( test.error.test ) {
+					assert.ok( test.error.test( error.message ) );
+				} else {
+					assert.equal( error.message, test.error );
+				}
 				return true;
 			}, 'Expected ParseError');
 		} else {

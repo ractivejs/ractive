@@ -5,6 +5,7 @@ import { cancel } from '../../shared/methodCallers';
 import { warnIfDebug } from '../../utils/log';
 
 const teardownHook = new Hook( 'teardown' );
+const destructHook = new Hook( 'destruct' );
 
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself
@@ -15,20 +16,24 @@ export default function Ractive$teardown () {
 		return Promise.resolve();
 	}
 
-	this.torndown = true;
-	this.fragment.unbind();
-	this.viewmodel.teardown();
+	this.shouldDestroy = true;
+	return teardown( this, () => this.fragment.rendered ? this.unrender() : Promise.resolve() );
+}
 
-	this._observers.forEach( cancel );
+export function teardown ( instance, getPromise ) {
+	instance.torndown = true;
+	instance.viewmodel.teardown();
+	instance.fragment.unbind();
+	instance._observers.forEach( cancel );
 
-	if ( this.fragment.rendered && this.el.__ractive_instances__ ) {
-		removeFromArray( this.el.__ractive_instances__, this );
+	if ( instance.fragment.rendered && instance.el.__ractive_instances__ ) {
+		removeFromArray( instance.el.__ractive_instances__, instance );
 	}
 
-	this.shouldDestroy = true;
-	const promise = ( this.fragment.rendered ? this.unrender() : Promise.resolve() );
+	const promise = getPromise();
 
-	teardownHook.fire( this );
+	teardownHook.fire( instance );
+	promise.then( () => destructHook.fire( instance ) );
 
 	return promise;
 }

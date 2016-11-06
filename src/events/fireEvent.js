@@ -30,7 +30,6 @@ function getWildcardNames ( eventName ) {
 }
 
 function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) {
-
 	let subscribers, i;
 	let bubble = true;
 
