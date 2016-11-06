@@ -3,7 +3,7 @@
 # 0.9.0 (unreleased)
 
 * Breaking changes
-	* All deprecations have been removed, including proxy events with args, un-prefixed method events, decorator="...", transition="...", the ractive.data getter, and partial comment definitions.
+	* All deprecations have been removed, including proxy events with args, un-prefixed method events, decorator="...", transition="...", the ractive.data getter, partial comment definitions, and lifecycle methods like `init` and `beforeInit`.
 	* The template spec is now a bit simpler after the removal of deprecations, and templates parsed with previous versions of Ractive are no longer compatible.
 	* Partial context (`{{>foo thisIsTheContext}}`) now only applies inside the partial template, meaning it is no longer equivalent to `{{#with thisIsTheContext}}{{>foo}}{{/with}}`. The with is wrapped around the content of `foo`, so that the context doesn't interfere with the partial expression.
 	* Any partial may be yielded, so yielding non-inline partials will no longer warn.
@@ -15,10 +15,20 @@
 	* `{{yield}}` can now be used with any partial, not just inlines, and it may also use an expression to look up the target partial. It basically behaves as a regular partial with a special context.
 		* `{{yield}}` can also specify aliases, so that yielding is useful inside an iterative section. `{{yield partialName with foo as bar}}` and `{{yield with foo as bar}}` will make `foo` from the component context available to the `partialName` partial as `bar`.
 	* You can specify that child keypaths of computations should trigger updates on the computation's dependencies, which _should_ have the effect of keeping the models involved in the computation in sync with changes to the computed models. The flag to enable this behavior at instance creation is `syncComputedChildren: true`. With that flag set, children of computations are available for two-way binding and mutation from event or `getNodeInfo` objects using relative keypaths.
+	* `@.foo` has been introduced as shorthand for `@this.foo`. This mirrors the data shorthand `.foo` for `this.foo`.
+	* You can now pop contexts using `^^/` in the same way that you can pop keypaths with `../`.
+	* Special keypaths that resolve to Ractive instances now resolve using the proper model rather than a computation, so they now stay in sync.
+	* There is now a special key `data` on special keypaths that resolve to Ractive instances that resolves to the instance's root model. This allows things like `@.root.data.foo` to keep the root instance `foo` reference in sync throughout the component tree.
+	* There is a new Ractive-private shared store, `@shared`. This is roughly the same as `@global`, but it is not susceptible to interference from the global scope.
+	* There is a new option, `resolveInstanceMembers`, which defaults to `true`, and when enabled, it adds the instance scope `@this` to the end of the reference resolution process. This means that as long as there are no conflicting members in the context hierarchy, things like `<button on-click="set('foo', 'bar')">yep</button>` work as expected.
+	* There is a new option, `warnAboutAmbiguity`, which defaults to `false`, and when set, it will issue a warning any time a reference fails to resolve at all or fails to resolve to a member in the immediate context.
+	* API methods can now handle things like `ractive.set('~/foo', 'bar')`, mirroring how context methods for `getNodeInfo` and `event`s are handled. Things like `ractive.set('.foo', 'bar')` will now issue a warning and do nothing rather than creating an incorrect keypath (`<empty string>.foo`).
 
 * New features (stable)
 	* `target` is now an alias for `el` when creating a Ractive instance.
 	* You can now use spread expressions with array and object literals in expressions in addition to method calls. Object spreads will require `Object.assign` to be available.
+	* There is a new lifecycle hook, `destruct` that fires after teardown is complete and any related transitions have completed.
+	* Lifecycle events now receive the source Ractive instance as their last argument.
 
 
 # 0.8.4
