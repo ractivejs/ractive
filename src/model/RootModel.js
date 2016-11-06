@@ -3,7 +3,7 @@ import Computation from './Computation';
 import Model from './Model';
 import { handleChange, mark } from '../shared/methodCallers';
 import RactiveModel from './specials/RactiveModel';
-import GlobalModel from './specials/GlobalModel';
+import SharedModel, { GlobalModel } from './specials/SharedModel';
 import { splitKeypath, unescapeKey } from '../shared/keypaths';
 import resolveReference from '../view/resolvers/resolveReference';
 
@@ -113,7 +113,8 @@ export default class RootModel extends Model {
 		const value = this.value;
 
 		key = unescapeKey( key );
-		if ( key === '@this' || key === '@global' ) return true;
+		if ( key === '@this' || key === '@global' || key === '@shared' ) return true;
+		if ( key[0] === '~' && key[1] === '/' ) key = key.slice( 2 );
 		if ( hasProp.call( value, key ) ) return true;
 
 		// mappings/links and computations
@@ -130,8 +131,14 @@ export default class RootModel extends Model {
 	}
 
 	joinKey ( key, opts ) {
-		if ( key === '@global' ) return GlobalModel;
-		if ( key === '@this' ) return this.getRactiveModel();
+		if ( key[0] === '@' ) {
+			if ( key === '@this' || key === '@' ) return this.getRactiveModel();
+			if ( key === '@global' ) return GlobalModel;
+			if ( key === '@shared' ) return SharedModel;
+			return;
+		}
+
+		if ( key[0] === '~' && key[1] === '/' ) key = key.slice( 2 );
 
 		return this.computations.hasOwnProperty( key ) ? this.computations[ key ] :
 		       super.joinKey( key, opts );

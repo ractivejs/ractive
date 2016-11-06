@@ -22,6 +22,8 @@ export default {
 	data:                   {},
 	computed:               {},
 	syncComputedChildren:   false,
+	resolveInstanceMembers: true,
+	warnAboutAmbiguity:     false,
 	magic:                  false,
 	modifyArrays:           false,
 	adapt:                  [],
