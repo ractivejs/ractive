@@ -2,6 +2,7 @@ import runloop from '../global/runloop';
 import { splitKeypath } from './keypaths';
 import { isObject } from '../utils/is';
 import bind from '../utils/bind';
+import { warnIfDebug } from '../utils/log';
 
 export function set ( ractive, pairs ) {
 	const promise = runloop.start( ractive, true );
@@ -11,11 +12,14 @@ export function set ( ractive, pairs ) {
 		const model = pairs[i][0];
 		let value = pairs[i][1];
 		const keypath = pairs[i][2];
+
 		if ( !model ) {
 			runloop.end();
 			throw new Error( `Failed to set invalid keypath '${ keypath }'` );
 		}
+
 		if ( typeof value === 'function' ) value = bind( value, ractive );
+
 		model.set( value );
 	}
 
@@ -25,11 +29,17 @@ export function set ( ractive, pairs ) {
 }
 
 const star = /\*/;
-export function gather ( ractive, keypath, base = ractive.viewmodel ) {
+export function gather ( ractive, keypath, base ) {
+	if ( !base && keypath[0] === '.' ) {
+		warnIfDebug( `Attempted to set a relative keypath from a non-relative context. You can use a getNodeInfo or event object to set relative keypaths.` );
+		return [];
+	}
+
+	const model = base || ractive.viewmodel;
 	if ( star.test( keypath ) ) {
-		return base.findMatches( splitKeypath( keypath ) );
+		return model.findMatches( splitKeypath( keypath ) );
 	} else {
-		return [ base.joinAll( splitKeypath( keypath ) ) ];
+		return [ model.joinAll( splitKeypath( keypath ) ) ];
 	}
 }
 
