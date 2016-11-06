@@ -1,7 +1,7 @@
 #!/bin/sh
 
 FAKE=0
-if [ "$1" == "--fake" ]; then
+if [ "$1" = "--fake" ]; then
 	echo "If this build fails, it will not return an error."
 	FAKE=1
 fi
