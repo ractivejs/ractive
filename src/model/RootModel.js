@@ -114,6 +114,7 @@ export default class RootModel extends Model {
 
 		key = unescapeKey( key );
 		if ( key === '@this' || key === '@global' || key === '@shared' ) return true;
+		if ( key[0] === '~' && key[1] === '/' ) key = key.slice( 2 );
 		if ( hasProp.call( value, key ) ) return true;
 
 		// mappings/links and computations
@@ -136,6 +137,8 @@ export default class RootModel extends Model {
 			if ( key === '@shared' ) return SharedModel;
 			return;
 		}
+
+		if ( key[0] === '~' && key[1] === '/' ) key = key.slice( 2 );
 
 		return this.computations.hasOwnProperty( key ) ? this.computations[ key ] :
 		       super.joinKey( key, opts );

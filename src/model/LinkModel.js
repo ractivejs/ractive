@@ -34,7 +34,7 @@ export default class LinkModel extends ModelBase {
 
 		target.registerLink( this );
 
-		this.isReadonly = parent.isReadonly;
+		if ( parent ) this.isReadonly = parent.isReadonly;
 
 		this.isLink = true;
 	}
@@ -221,7 +221,7 @@ ModelBase.prototype.link = function link ( model, keypath, options ) {
 
 	const unresolved = !this._link;
 	this._link = lnk;
-	if ( unresolved ) this.parent.clearUnresolveds();
+	if ( unresolved && this.parent ) this.parent.clearUnresolveds();
 	lnk.marked();
 	return lnk;
 };

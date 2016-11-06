@@ -39,7 +39,10 @@ export default function attachChild ( child, options = {} ) {
 		list.splice( idx, 0, meta );
 	}
 
-	child.set( '@this.parent', this );
+	child.set({
+		'@this.parent': this,
+		'@this.root': this.root
+	});
 	child.component = meta;
 	children.push( meta );
 

@@ -249,4 +249,54 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'yepyep' );
 	});
+
+	test( 'component tree root data can be accessed with @.root.data (#2432)', t => {
+		const cmp = Ractive.extend({
+			template: '{{#with some.path}}{{~/foo}} {{@.root.data.foo}}{{/with}}',
+			data: {
+				foo: 'cmp',
+				some: { path: {} }
+			}
+		});
+		new Ractive({
+			target: fixture,
+			template: '{{#with other.path}}<cmp />{{/with}}',
+			data: {
+				foo: 'root',
+				other: { path: {} }
+			},
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'cmp root' );
+	});
+
+	test( 'root model will deal with ~/ references (#2432)', t => {
+		const cmp = Ractive.extend({
+			data: { foo: { bar: 'cmp' } }
+		});
+		const r = new Ractive({
+			target: fixture,
+			data: { foo: { bar: 'root' } },
+			template: '<cmp />',
+			components: { cmp }
+		});
+
+		const c = r.findComponent( 'cmp' );
+
+		t.equal( c.get( '~/foo.bar' ), 'cmp' );
+		t.equal( c.get( '@.root.data.foo.bar' ), 'root' );
+	});
+
+	test( `trying to set a relative keypath from instance set warns and doesn't do unexpected things`, t => {
+		onWarn( w => {
+			t.ok( /relative keypath.*non-relative.*getNodeInfo.*event object/.test( w ) );
+		});
+
+		const r = new Ractive();
+
+		r.set( '.foo.bar', 'nope' );
+		t.ok( !r.get( 'foo.bar' ) );
+		t.ok( !( '' in r.get() ) );
+	});
 }

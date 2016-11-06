@@ -150,7 +150,7 @@ function initialiseProperties ( ractive ) {
 	ractive._children.byName = {};
 	ractive.children = ractive._children;
 
-	if(!ractive.component){
+	if ( !ractive.component ) {
 		ractive.root = ractive;
 		ractive.parent = ractive.container = null; // TODO container still applicable?
 	}

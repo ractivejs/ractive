@@ -411,30 +411,45 @@ export default function() {
 		t.equal( count, 1 );
 	});
 
-	test( 'attached children have their parent ref updated', t => {
-		const p1 = new Ractive({});
-		const p2 = new Ractive({});
+	test( 'attached children have their parent and root ref updated', t => {
+		const p1 = new Ractive({
+			data: { foo: 'p1' }
+		});
+		const p2 = new Ractive({
+			data: { foo: 'p2' }
+		});
 		const c = new Ractive({
 			el: fixture,
-			template: '{{ @.parent._guid }}'
+			template: '{{ @.parent._guid }} {{ @.root.data.foo }}',
+			data: { foo: 'c' }
 		});
 
 		t.ok( !c.parent );
 
 		p1.attachChild( c );
 		t.ok( c.parent === p1 );
-		t.htmlEqual( fixture.innerHTML, p1._guid );
+		t.ok( c.root === p1 );
+		t.htmlEqual( fixture.innerHTML, `${p1._guid} p1` );
+		p1.set( 'foo', '_p1' );
+		t.htmlEqual( fixture.innerHTML, `${p1._guid} _p1` );
 
 		p1.detachChild( c );
 		t.ok( !c.parent );
-		t.htmlEqual( fixture.innerHTML, '' );
+		t.ok( c.root === c );
+		t.htmlEqual( fixture.innerHTML, 'c' );
+		c.set( 'foo', '_c' );
+		t.htmlEqual( fixture.innerHTML, '_c' );
 
 		p2.attachChild( c );
 		t.ok( c.parent === p2 );
-		t.htmlEqual( fixture.innerHTML, p2._guid );
+		t.ok( c.root === p2 );
+		t.htmlEqual( fixture.innerHTML, `${p2._guid} p2` );
+		p2.set( 'foo', '_p2' );
+		t.htmlEqual( fixture.innerHTML, `${p2._guid} _p2` );
 
 		p2.detachChild( c );
 		t.ok( !c.parent );
-		t.htmlEqual( fixture.innerHTML, '' );
+		t.ok( c.root === c );
+		t.htmlEqual( fixture.innerHTML, '_c' );
 	});
 }
