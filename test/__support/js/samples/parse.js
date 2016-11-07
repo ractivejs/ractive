@@ -814,6 +814,22 @@ const parseTests = [
 		parsed: {v:4,t:['no <elements or="attributes" /> or &amp; & entities <',{t:2,r:'any'},' foo="bar"> ',{t:2,r:'just'},' text, ',{t:2,r:'refs',s:true},', and ',{t:4,n:50,r:'foo',f:['sections']}]}
 	},
 	{
+		name: 'text-only mode starting with an element',
+		template: '<input value="{{something}}" />',
+		options: {
+			textOnlyMode: true
+		},
+		parsed: {v:4,t:['<input value="',{t:2,r:'something'},'" />']}
+	},
+	{
+		name: 'text-only mode starting with an html comment',
+		template: '<!-- comment -->',
+		options: {
+			textOnlyMode: true
+		},
+		parsed: {v:4,t:['<!-- comment -->']}
+	},
+	{
 		name: 'unclosed element',
 		template: '<ul><li>',
 		error: `Missing end tags (</li></ul>) at line 1 character 9:

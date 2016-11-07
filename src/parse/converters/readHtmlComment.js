@@ -6,7 +6,7 @@ const CLOSE_COMMENT = '-->';
 export default function readHtmlComment ( parser ) {
 	const start = parser.pos;
 
-	if ( !parser.matchString( OPEN_COMMENT ) ) {
+	if ( parser.textOnlyMode || !parser.matchString( OPEN_COMMENT ) ) {
 		return null;
 	}
 
