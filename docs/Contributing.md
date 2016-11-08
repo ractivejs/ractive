@@ -1,17 +1,27 @@
----
-title: Contributing
----
+Ractive is a community-driven project. Most of its best features were [suggested by users like you](https://github.com/ractivejs/ractive/issues?q=is%3Aissue%20label%3Aenhancement%20). There are a lot of ways you can contribute to the project. Here are a few examples:
 
-Ractive.js is a community-driven project - most of its best features were suggested by users. If you think something is missing from the library, [come over to the mailing list](http://groups.google.com/forum/#!forum/ractive-js) to discuss it with other users.
+# Contribute code
 
-Pull requests are always welcome on [GitHub](https://github.com/ractivejs/ractive), though for non-trivial proposals it's best to discuss it on the mailing list or raise an issue first.
+An open pull request is better than one that's never submitted. [Pull requests](https://github.com/ractivejs/ractive/pulls) are always welcome.
 
+# Write documentation
 
-## Other ways to contribute
+Each page in the documentation is just [a file written in markdown](). Again, [pull requests](https://github.com/ractivejs/ractive/pulls) are always welcome.
 
-* Spread the word! The larger the community using Ractive, the better it becomes. Write blog posts, mention it to your developer colleagues and friends, submit talks (here are some [tips on speaking at tech meetups](http://speaking.io/)).
-* Fix documentation. Each page on this site has an 'edit' button in the top right, which will take you to GitHub where you can submit fixes. If you spot an error or think something's missing and aren't sure how to fix it, [raise an issue](https://github.com/ractivejs/docs.ractivejs.org/issues).
-* Help other developers on StackOverflow. Subscribe to [questions tagged 'ractivejs'](http://stackoverflow.com/questions/tagged/ractivejs), and you'll get alerts when someone asks a question that you might be able to answer.
-* Write plugins. See the {{{createLink 'Create plugins'}}} page for more information.
+# Write plugins
 
-But above all, build stuff! If you make something with Ractive, we'd love to hear about it on the [mailing list](http://groups.google.com/forum/#!forum/ractive-js) and on [Twitter](http://twitter.com/RactiveJS).
+Extend Ractive in ways you've never seen before. Interface with other libraries, create effects, widgets, interactions, custom elements, and so much more with Ractive's very extensible core.
+
+Refer to [Plugins]() for details on how to start writing Ractive plugins.
+
+# Help other developers
+
+Subscribe to [Stack Overflow questions tagged with `ractivejs`](http://stackoverflow.com/questions/tagged/ractivejs), and you'll get alerts when someone asks a question that you might be able to answer.
+
+# Spread the word
+
+Tweet, write blog posts, recommend it to your friends, submit talks (here are some [tips on speaking at tech meetups](http://speaking.io/)). These are just a few ways to spread the word about Ractive. The larger the community, the better it becomes. 
+
+# Build stuff
+
+But above all, build stuff! If you make something with Ractive, we'd love to hear about it.
