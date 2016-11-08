@@ -1,14 +1,6 @@
 import runloop from '../../../../global/runloop';
 import { warnOnceIfDebug } from '../../../../utils/log';
-
-// TODO element.parent currently undefined
-function findParentForm ( element ) {
-	while ( element = element.parent ) {
-		if ( element.name === 'form' ) {
-			return element;
-		}
-	}
-}
+import findElement from '../../shared/findElement';
 
 function warnAboutAmbiguity ( description, ractive ) {
 	warnOnceIfDebug( `The ${description} being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity`, { ractive });
@@ -59,7 +51,7 @@ export default class Binding {
 			model.set( value );
 		}
 
-		const parentForm = findParentForm( element );
+		const parentForm = findElement( this.element, false, 'form' );
 		if ( parentForm ) {
 			this.resetValue = value;
 			parentForm.formBindings.push( this );
