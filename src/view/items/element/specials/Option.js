@@ -1,13 +1,7 @@
 import Element from '../../Element';
 import { removeFromArray } from '../../../../utils/array';
 import { isArray } from '../../../../utils/is';
-
-function findParentSelect ( element ) {
-	while ( element ) {
-		if ( element.name === 'select' ) return element;
-		element = element.parent;
-	}
-}
+import findElement from '../../shared/findElement';
 
 export default class Option extends Element {
 	constructor ( options ) {
@@ -22,7 +16,7 @@ export default class Option extends Element {
 
 		super( options );
 
-		this.select = findParentSelect( this.parent );
+		this.select = findElement( this.parent || this.parentFragment, false, 'select' );
 	}
 
 	bind () {

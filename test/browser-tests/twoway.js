@@ -1293,4 +1293,15 @@ export default function() {
 		fire( input, 'click' );
 		t.ok( input.checked, 'input checked by click' );
 	});
+
+	test( `options that exist across a component boundary register with their parent select correctly`, t => {
+		const cmp = Ractive.extend({ template: '<select value="{{foo}}">{{yield}}</select>' });
+		const r = new Ractive({
+			el: fixture,
+			template: '<cmp foo="{{foo}}"><option>a</option><option>b</option></cmp>',
+			components: { cmp }
+		});
+
+		t.equal( r.get( 'foo' ), 'a' );
+	});
 }
