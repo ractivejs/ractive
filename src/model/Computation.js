@@ -4,6 +4,7 @@
 import { capture, startCapturing, stopCapturing } from '../global/capture';
 import { warnIfDebug } from '../utils/log';
 import Model from './Model';
+import { maybeBind } from './ModelBase';
 import ComputationChild from './ComputationChild';
 import { hasConsole } from '../config/environment';
 
@@ -82,7 +83,7 @@ export default class Computation extends Model {
 		}
 
 		// if capturing, this value needs to be unwrapped because it's for external use
-		return shouldCapture && this.wrapper ? this.wrapperValue : this.value;
+		return maybeBind( this, shouldCapture && this.wrapper ? this.wrapperValue : this.value );
 	}
 
 	getValue () {

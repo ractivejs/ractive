@@ -1,5 +1,6 @@
 import { test } from 'qunit';
 import { initModule, onWarn } from './test-config';
+import { fire } from 'simulant';
 
 export default function() {
 	initModule( 'references.js' );
@@ -298,5 +299,40 @@ export default function() {
 		r.set( '.foo.bar', 'nope' );
 		t.ok( !r.get( 'foo.bar' ) );
 		t.ok( !( '' in r.get() ) );
+	});
+
+	test( `instance methods are bound properly when used with resolveInstanceMembers (#2757)`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `<button on-click="set('foo', 'bar')">click me</button>`
+		});
+
+		fire( r.find( 'button' ), 'click' );
+
+		t.equal( r.get( 'foo' ), 'bar' );
+	});
+
+	test( `context takes precedent over instance methods`, t => {
+		new Ractive({
+			target: fixture,
+			template: '{{foo()}}',
+			data: {
+				foo () { return 'foo'; }
+			},
+			foo () { return 'nope'; }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'foo' );
+	});
+
+	test( `instance methods aren't resolved if resolveInstanceMembers is false`, t => {
+		new Ractive({
+			target: fixture,
+			template: '{{foo()}}',
+			foo () { return 'nope'; },
+			resolveInstanceMembers: false
+		});
+
+		t.htmlEqual( fixture.innerHTML, '' );
 	});
 }

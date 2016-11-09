@@ -1,4 +1,4 @@
-import ModelBase, { fireShuffleTasks } from './ModelBase';
+import ModelBase, { fireShuffleTasks, maybeBind } from './ModelBase';
 import LinkModel from './LinkModel'; // eslint-disable-line no-unused-vars
 import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
@@ -109,6 +109,7 @@ export default class Model extends ModelBase {
 
 	applyValue ( value ) {
 		if ( isEqual( value, this.value ) ) return;
+		if ( this.boundValue ) this.boundValue = null;
 
 		// TODO deprecate this nonsense
 		this.registerChange( this.getKeypath(), value );
@@ -164,7 +165,7 @@ export default class Model extends ModelBase {
 		if ( shouldCapture ) capture( this );
 		// if capturing, this value needs to be unwrapped because it's for external use
 		if ( opts && opts.virtual ) return this.getVirtual( false );
-		return ( shouldCapture || ( opts && opts.unwrap ) ) && this.wrapper ? this.wrapperValue : this.value;
+		return maybeBind( this, ( shouldCapture || ( opts && opts.unwrap ) ) && this.wrapper ? this.wrapperValue : this.value, !opts || opts.shouldBind !== false );
 	}
 
 	getKeypathModel () {
@@ -199,6 +200,7 @@ export default class Model extends ModelBase {
 		if ( !isEqual( value, this.value ) ) {
 			const old = this.value;
 			this.value = value;
+			if ( this.boundValue ) this.boundValue = null;
 
 			// make sure the wrapper stays in sync
 			if ( old !== value || this.rewrap ) {

@@ -1386,4 +1386,24 @@ export default function() {
 		r.set( 'foo', 'baz' );
 		t.htmlEqual( fixture.innerHTML, 'baz' );
 	});
+
+	test( `mapped functions are bound to the right root context (#2552)`, t => {
+		const cmp = Ractive.extend({
+			template: '{{foo()}}',
+			data: {
+				bar: 'baz'
+			}
+		});
+		new Ractive({
+			target: fixture,
+			template: '<cmp foo="{{fn}}" />',
+			data: {
+				fn() { return this.get('bar'); },
+				bar: 'nope'
+			},
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'baz' );
+	});
 }

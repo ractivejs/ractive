@@ -1,4 +1,4 @@
-import ModelBase, { fireShuffleTasks } from './ModelBase';
+import ModelBase, { fireShuffleTasks, maybeBind } from './ModelBase';
 import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
 import { handleChange, marked, markedAll, notifiedUpstream, teardown } from '../shared/methodCallers';
@@ -44,6 +44,7 @@ export default class LinkModel extends ModelBase {
 	}
 
 	applyValue ( value ) {
+		if ( this.boundValue ) this.boundValue = null;
 		this.target.applyValue( value );
 	}
 
@@ -60,16 +61,18 @@ export default class LinkModel extends ModelBase {
 		this.relinking( Missing, true, false );
 	}
 
-	get ( shouldCapture, opts ) {
+	get ( shouldCapture, opts = {} ) {
 		if ( shouldCapture ) {
 			capture( this );
 
 			// may need to tell the target to unwrap
-			opts = opts || {};
 			opts.unwrap = true;
 		}
 
-		return this.target.get( false, opts );
+		const bind = 'shouldBind' in opts ? opts.shouldBind : true;
+		opts.shouldBind = false;
+
+		return maybeBind( this, this.target.get( false, opts ), bind );
 	}
 
 	getKeypath ( ractive ) {
@@ -110,6 +113,8 @@ export default class LinkModel extends ModelBase {
 	}
 
 	marked () {
+		if ( this.boundValue ) this.boundValue = null;
+
 		this.links.forEach( marked );
 
 		this.deps.forEach( handleChange );
@@ -150,6 +155,7 @@ export default class LinkModel extends ModelBase {
 	}
 
 	set ( value ) {
+		if ( this.boundValue ) this.boundValue = null;
 		this.target.set( value );
 	}
 

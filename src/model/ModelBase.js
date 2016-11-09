@@ -4,6 +4,7 @@ import { escapeKey, unescapeKey } from '../shared/keypaths';
 import { handleChange, notifiedUpstream } from '../shared/methodCallers';
 import { addToArray, removeFromArray } from '../utils/array';
 import { isArray, isObject } from '../utils/is';
+import bind from '../utils/bind';
 import runloop from '../global/runloop';
 
 const hasProp = Object.prototype.hasOwnProperty;
@@ -321,6 +322,19 @@ export default class ModelBase {
 			if ( this._link ) this._link.updateFromBindings( cascade );
 		}
 	}
+}
+
+// TODO: this may be better handled by overreiding `get` on models with a parent that isRoot
+export function maybeBind ( model, value, shouldBind ) {
+	if ( shouldBind && typeof value === 'function' && model.parent && model.parent.isRoot ) {
+		if ( !model.boundValue ) {
+			model.boundValue = bind( value._r_unbound || value, model.parent.ractive );
+		}
+
+		return model.boundValue;
+	}
+
+	return value;
 }
 
 function updateFromBindings ( model ) {

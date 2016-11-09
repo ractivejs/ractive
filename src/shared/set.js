@@ -1,7 +1,6 @@
 import runloop from '../global/runloop';
 import { splitKeypath } from './keypaths';
 import { isObject } from '../utils/is';
-import bind from '../utils/bind';
 import { warnIfDebug } from '../utils/log';
 
 export function set ( ractive, pairs ) {
@@ -10,15 +9,13 @@ export function set ( ractive, pairs ) {
 	let i = pairs.length;
 	while ( i-- ) {
 		const model = pairs[i][0];
-		let value = pairs[i][1];
+		const value = pairs[i][1];
 		const keypath = pairs[i][2];
 
 		if ( !model ) {
 			runloop.end();
 			throw new Error( `Failed to set invalid keypath '${ keypath }'` );
 		}
-
-		if ( typeof value === 'function' ) value = bind( value, ractive );
 
 		model.set( value );
 	}

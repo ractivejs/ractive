@@ -59,7 +59,11 @@ export default {
 		// unless it's a non-POJO (in which case alarm bells should ring)
 		if ( result && result.constructor === Object ) {
 			for ( const prop in result ) {
-				if ( typeof result[ prop ] === 'function' ) result[ prop ] = bind( result[ prop ], ractive );
+				if ( typeof result[ prop ] === 'function' ) {
+					const value = result[ prop ];
+					result[ prop ] = bind( value, ractive );
+					result[ prop ]._r_unbound = value;
+				}
 			}
 		}
 
