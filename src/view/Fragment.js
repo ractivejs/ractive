@@ -2,10 +2,11 @@ import { ELEMENT, YIELDER } from '../config/types';
 import runloop from '../global/runloop';
 import createItem from './items/createItem';
 import ReferenceResolver from './resolvers/ReferenceResolver';
-import { bind, toEscapedString, toString, unbind, unrender, update } from '../shared/methodCallers';
+import { bind, destroyed, shuffled, toEscapedString, toString, unbind, unrender, update } from '../shared/methodCallers';
 import processItems from './helpers/processItems';
 import parseJSON from '../utils/parseJSON';
 import { createDocumentFragment } from '../utils/dom';
+import { findMap } from '../utils/array';
 
 function unrenderAndDestroy ( item ) {
 	item.unrender( true );
@@ -77,7 +78,7 @@ export default class Fragment {
 	}
 
 	destroyed () {
-		this.items.forEach( i => i.destroyed() );
+		this.items.forEach( destroyed );
 	}
 
 	detach () {
@@ -87,57 +88,23 @@ export default class Fragment {
 	}
 
 	find ( selector, options ) {
-		const len = this.items.length;
-		let i;
-
-		for ( i = 0; i < len; i += 1 ) {
-			const found = this.items[i].find( selector, options );
-			if ( found ) return found;
-		}
+		return findMap( this.items, i => i.find( selector, options ) );
 	}
 
 	findAll ( selector, query ) {
 		if ( this.items ) {
-			const len = this.items.length;
-			let i;
-
-			for ( i = 0; i < len; i += 1 ) {
-				const item = this.items[i];
-
-				if ( item.findAll ) {
-					item.findAll( selector, query );
-				}
-			}
+			this.items.forEach( i => i.findAll && i.findAll( selector, query ) );
 		}
-
-		return query;
 	}
 
 	findComponent ( name, options ) {
-		const len = this.items.length;
-		let i;
-
-		for ( i = 0; i < len; i += 1 ) {
-			const found = this.items[i].findComponent( name, options );
-			if ( found ) return found;
-		}
+		return findMap( this.items, i => i.findComponent( name, options ) );
 	}
 
 	findAllComponents ( name, query ) {
 		if ( this.items ) {
-			const len = this.items.length;
-			let i;
-
-			for ( i = 0; i < len; i += 1 ) {
-				const item = this.items[i];
-
-				if ( item.findAllComponents ) {
-					item.findAllComponents( name, query );
-				}
-			}
+			this.items.forEach( i => i.findAllComponents && i.findAllComponents( name, query ) );
 		}
-
-		return query;
 	}
 
 	findContext () {
@@ -206,15 +173,8 @@ export default class Fragment {
 	}
 
 	firstNode ( skipParent ) {
-		let node;
-		for ( let i = 0; i < this.items.length; i++ ) {
-			node = this.items[i].firstNode( true );
-
-			if ( node ) {
-				return node;
-			}
-		}
-
+		const node = findMap( this.items, i => i.firstNode( true ) );
+		if ( node ) return node;
 		if ( skipParent ) return null;
 
 		return this.parent.findNextNode( this.owner );
@@ -275,7 +235,7 @@ export default class Fragment {
 	}
 
 	shuffled () {
-		this.items.forEach( i => i.shuffled() );
+		this.items.forEach( shuffled );
 	}
 
 	toHtml () {

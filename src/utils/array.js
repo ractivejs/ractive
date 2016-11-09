@@ -83,3 +83,11 @@ export function find ( array, fn ) {
 		if ( fn( array[i] ) ) return array[i];
 	}
 }
+
+export function findMap ( array, fn ) {
+	const len = array.length;
+	for ( let i = 0; i < len; i++ ) {
+		const result = fn( array[i] );
+		if ( result ) return result;
+	}
+}

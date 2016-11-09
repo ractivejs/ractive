@@ -6,7 +6,7 @@ import ConditionalAttribute from './element/ConditionalAttribute';
 import updateLiveQueries from './element/updateLiveQueries';
 import { removeFromArray, toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
-import { bind, render, unbind, update } from '../../shared/methodCallers';
+import { bind, destroyed, render, unbind, update } from '../../shared/methodCallers';
 import { createElement, detachNode, matches, safeAttributeString, decamelize } from '../../utils/dom';
 import createItem from './createItem';
 import { html, svg } from '../../config/namespaces';
@@ -71,17 +71,7 @@ export default class Element extends ContainerItem {
 			}) );
 		}
 
-		let i = this.attributes.length;
-		while ( i-- ) {
-			const attr = this.attributes[ i ];
-			if ( attr.name === 'type' ) this.attributes.unshift( this.attributes.splice( i, 1 )[ 0 ] );
-			else if ( attr.name === 'max' ) this.attributes.unshift( this.attributes.splice( i, 1 )[ 0 ] );
-			else if ( attr.name === 'min' ) this.attributes.unshift( this.attributes.splice( i, 1 )[ 0 ] );
-			else if ( attr.name === 'class' ) this.attributes.unshift( this.attributes.splice( i, 1 )[ 0 ] );
-			else if ( attr.name === 'value' ) {
-				this.attributes.push( this.attributes.splice( i, 1 )[ 0 ] );
-			}
-		}
+		this.attributes.sort( sortAttributes );
 
 		// create children
 		if ( options.template.f && !options.deferContent ) {
@@ -107,23 +97,17 @@ export default class Element extends ContainerItem {
 	}
 
 	createTwowayBinding () {
-		const shouldBind = 'twoway' in this ? this.twoway : this.ractive.twoway;
-
-		if ( !shouldBind ) return null;
-
-		const Binding = selectBinding( this );
-
-		if ( !Binding ) return null;
-
-		const binding = new Binding( this );
-
-		return binding && binding.model ?
-			binding :
-			null;
+		if ( 'twoway' in this ? this.twoway : this.ractive.twoway ) {
+			const Binding = selectBinding( this );
+			if ( Binding ) {
+				const binding = new Binding( this );
+				if ( binding && binding.model ) return binding;
+			}
+		}
 	}
 
 	destroyed () {
-		this.attributes.forEach( a => a.destroyed() );
+		this.attributes.forEach( destroyed );
 		if ( this.fragment ) this.fragment.destroyed();
 	}
 
@@ -210,6 +194,7 @@ export default class Element extends ContainerItem {
 			this.node = node;
 		}
 
+		// tie the node to this vdom element
 		defineProperty( node, '_ractive', {
 			value: {
 				proxy: this
@@ -376,20 +361,20 @@ export default class Element extends ContainerItem {
 	}
 }
 
+const toFront = [ 'min', 'max', 'class', 'type' ];
+function sortAttributes ( left, right ) {
+	left = left.name;
+	right = right.name;
+	const l = left === 'value' ? 1 : ~toFront.indexOf( left );
+	const r = right === 'value' ? 1 : ~toFront.indexOf( right );
+	return l < r ? -1 : l > r ? 1 : 0;
+}
+
 function inputIsCheckedRadio ( element ) {
-	const attributes = element.attributeByName;
-
-	const typeAttribute  = attributes.type;
-	const valueAttribute = attributes.value;
-	const nameAttribute  = attributes.name;
-
-	if ( !typeAttribute || ( typeAttribute.value !== 'radio' ) || !valueAttribute || !nameAttribute.interpolator ) {
-		return;
-	}
-
-	if ( valueAttribute.getValue() === nameAttribute.interpolator.model.get() ) {
-		return true;
-	}
+	const nameAttr = element.attributeByName.name;
+	return element.getAttribute( 'type' ) === 'radio' &&
+		( nameAttr || {} ).interpolator &&
+		element.getAttribute( 'value' ) === nameAttr.interpolator.model.get();
 }
 
 function stringifyAttribute ( attribute ) {

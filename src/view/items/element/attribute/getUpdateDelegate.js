@@ -171,13 +171,12 @@ function updateValue ( reset ) {
 		if ( reset ) {
 			this.node.removeAttribute( 'value' );
 			this.node.value = this.node._ractive.value = null;
-			return;
+		} else {
+			const value = this.getValue();
+
+			this.node.value = this.node._ractive.value = value;
+			this.node.setAttribute( 'value', value );
 		}
-
-		const value = this.getValue();
-
-		this.node.value = this.node._ractive.value = value;
-		this.node.setAttribute( 'value', value );
 	}
 }
 
@@ -186,15 +185,14 @@ function updateStringValue ( reset ) {
 		if ( reset ) {
 			this.node._ractive.value = '';
 			this.node.removeAttribute( 'value' );
-			return;
+		} else {
+			const value = this.getValue();
+
+			this.node._ractive.value = value;
+
+			this.node.value = safeToStringValue( value );
+			this.node.setAttribute( 'value', safeToStringValue( value ) );
 		}
-
-		const value = this.getValue();
-
-		this.node._ractive.value = value;
-
-		this.node.value = safeToStringValue( value );
-		this.node.setAttribute( 'value', safeToStringValue( value ) );
 	}
 }
 
@@ -306,16 +304,15 @@ function updateBoolean ( reset ) {
 		if ( reset ) {
 			if ( this.useProperty ) this.node[ this.propertyName ] = false;
 			this.node.removeAttribute( this.propertyName );
-			return;
-		}
-
-		if ( this.useProperty ) {
-			this.node[ this.propertyName ] = this.getValue();
 		} else {
-			if ( this.getValue() ) {
-				this.node.setAttribute( this.propertyName, '' );
+			if ( this.useProperty ) {
+				this.node[ this.propertyName ] = this.getValue();
 			} else {
-				this.node.removeAttribute( this.propertyName );
+				if ( this.getValue() ) {
+					this.node.setAttribute( this.propertyName, '' );
+				} else {
+					this.node.removeAttribute( this.propertyName );
+				}
 			}
 		}
 	}

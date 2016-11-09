@@ -1,7 +1,8 @@
 import Fragment from './Fragment';
 import { createDocumentFragment } from '../utils/dom';
 import { isArray, isObject } from '../utils/is';
-import { toEscapedString, toString, unbind, unrender, unrenderAndDestroy, update } from '../shared/methodCallers';
+import { findMap } from '../utils/array';
+import { toEscapedString, toString, destroyed, shuffled, unbind, unrender, unrenderAndDestroy, update } from '../shared/methodCallers';
 
 export default class RepeatedFragment {
 	constructor ( options ) {
@@ -92,7 +93,7 @@ export default class RepeatedFragment {
 	}
 
 	destroyed () {
-		this.iterations.forEach( i => i.destroyed() );
+		this.iterations.forEach( destroyed );
 	}
 
 	detach () {
@@ -102,41 +103,19 @@ export default class RepeatedFragment {
 	}
 
 	find ( selector, options ) {
-		const len = this.iterations.length;
-		let i;
-
-		for ( i = 0; i < len; i += 1 ) {
-			const found = this.iterations[i].find( selector, options );
-			if ( found ) return found;
-		}
+		return findMap( this.iterations, i => i.find( selector, options ) );
 	}
 
 	findAll ( selector, query ) {
-		const len = this.iterations.length;
-		let i;
-
-		for ( i = 0; i < len; i += 1 ) {
-			this.iterations[i].findAll( selector, query );
-		}
+		return this.iterations.forEach( i => i.findAll( selector, query ) );
 	}
 
 	findComponent ( name, options ) {
-		const len = this.iterations.length;
-		let i;
-
-		for ( i = 0; i < len; i += 1 ) {
-			const found = this.iterations[i].findComponent( name, options );
-			if ( found ) return found;
-		}
+		return findMap( this.iterations, i => i.findComponent( name, options ) );
 	}
 
 	findAllComponents ( name, query ) {
-		const len = this.iterations.length;
-		let i;
-
-		for ( i = 0; i < len; i += 1 ) {
-			this.iterations[i].findAllComponents( name, query );
-		}
+		return this.iterations.forEach( i => i.findAllComponents( name, query ) );
 	}
 
 	findNextNode ( iteration ) {
@@ -157,7 +136,7 @@ export default class RepeatedFragment {
 	rebinding ( next ) {
 		this.context = next;
 		this.iterations.forEach( fragment => {
-			const model = next ? next.joinKey( fragment.key || fragment.index ) : undefined;
+			const model = next ? next.joinKey( fragment.key ) : undefined;
 			fragment.context = model;
 			if ( this.owner.template.z ) {
 				fragment.aliases = {};
@@ -200,7 +179,7 @@ export default class RepeatedFragment {
 	}
 
 	shuffled () {
-		this.iterations.forEach( i => i.shuffled() );
+		this.iterations.forEach( shuffled );
 	}
 
 	toString ( escape ) {

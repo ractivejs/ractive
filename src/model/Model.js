@@ -1,4 +1,4 @@
-import ModelBase, { fireShuffleTasks, maybeBind } from './ModelBase';
+import ModelBase, { maybeBind, shuffle } from './ModelBase';
 import LinkModel from './LinkModel'; // eslint-disable-line no-unused-vars
 import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
@@ -271,42 +271,10 @@ export default class Model extends ModelBase {
 	}
 
 	shuffle ( newIndices ) {
-		this.shuffling = true;
-		let i = newIndices.length;
-		while ( i-- ) {
-			const idx = newIndices[ i ];
-			// nothing is actually changing, so move in the index and roll on
-			if ( i === idx ) {
-				continue;
-			}
-
-			// rebind the children on i to idx
-			if ( i in this.childByKey ) this.childByKey[ i ].rebinding( !~idx ? undefined : this.joinKey( idx ), this.childByKey[ i ], true );
-
-			if ( !~idx && this.keyModels[ i ] ) {
-				this.keyModels[i].rebinding( undefined, this.keyModels[i], false );
-			} else if ( ~idx && this.keyModels[ i ] ) {
-				if ( !this.keyModels[ idx ] ) this.childByKey[ idx ].getKeyModel( idx );
-				this.keyModels[i].rebinding( this.keyModels[ idx ], this.keyModels[i], false );
-			}
-		}
-
-		const upstream = this.length !== this.value.length;
-
-		this.links.forEach( l => l.shuffle( newIndices ) );
-		fireShuffleTasks( 'early' );
-
-		i = this.deps.length;
-		while ( i-- ) {
-			if ( this.deps[i].shuffle ) this.deps[i].shuffle( newIndices );
-		}
-
-		this.mark();
-		fireShuffleTasks( 'mark' );
-
-		if ( upstream ) this.notifyUpstream();
-		this.shuffling = false;
+		shuffle( this, newIndices, false );
 	}
+
+	source () { return this; }
 
 	teardown () {
 		if ( this._link ) this._link.teardown();

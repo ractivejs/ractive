@@ -373,6 +373,46 @@ export function fireShuffleTasks ( stage ) {
 	}
 }
 
+export function shuffle ( model, newIndices, link ) {
+	model.shuffling = true;
+
+	let i = newIndices.length;
+	while ( i-- ) {
+		const idx = newIndices[ i ];
+		// nothing is actually changing, so move in the index and roll on
+		if ( i === idx ) {
+			continue;
+		}
+
+		// rebind the children on i to idx
+		if ( i in model.childByKey ) model.childByKey[ i ].rebinding( !~idx ? undefined : model.joinKey( idx ), model.childByKey[ i ], true );
+
+		if ( !~idx && model.keyModels[ i ] ) {
+			model.keyModels[i].rebinding( undefined, model.keyModels[i], false );
+		} else if ( ~idx && model.keyModels[ i ] ) {
+			if ( !model.keyModels[ idx ] ) model.childByKey[ idx ].getKeyModel( idx );
+			model.keyModels[i].rebinding( model.keyModels[ idx ], model.keyModels[i], false );
+		}
+	}
+
+	const upstream = model.source().length !== model.source().value.length;
+
+	model.links.forEach( l => l.shuffle( newIndices ) );
+	if ( !link ) fireShuffleTasks( 'early' );
+
+	i = model.deps.length;
+	while ( i-- ) {
+		if ( model.deps[i].shuffle ) model.deps[i].shuffle( newIndices );
+	}
+
+	model[ link ? 'marked' : 'mark' ]();
+	if ( !link ) fireShuffleTasks( 'mark' );
+
+	if ( upstream ) model.notifyUpstream();
+
+	model.shuffling = false;
+}
+
 KeyModel.prototype.addShuffleTask = ModelBase.prototype.addShuffleTask;
 KeyModel.prototype.addShuffleRegister = ModelBase.prototype.addShuffleRegister;
 KeypathModel.prototype.addShuffleTask = ModelBase.prototype.addShuffleTask;
