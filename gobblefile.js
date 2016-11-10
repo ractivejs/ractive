@@ -12,10 +12,10 @@ var version = require( './package.json' ).version;
 var hash = process.env.COMMIT_HASH || 'unknown';
 var versionExt = ~version.indexOf( '-edge' ) ? '-' + hash : '';
 
-var bubleLegacyOptions = { target: { ie: 8 } };
+var bubleLegacyOptions = { target: { ie: 9 }, transforms: { modules: false } };
 
 var src = gobble( 'src' );
-var es5 = src.transform( 'buble', { target: { ie: 8 } });
+var es5 = src.transform( 'buble', bubleLegacyOptions );
 var lib;
 var test;
 
