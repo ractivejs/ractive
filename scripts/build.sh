@@ -81,6 +81,7 @@ fi
 echo "> copying library to build folder..."
 mkdir -p build/typings
 cp tmp/*.js build
+cp tmp/*.mjs build
 cp tmp/*.map build
 cp typings/* build/typings
 

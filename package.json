@@ -4,6 +4,8 @@
   "version": "0.9.0-edge",
   "homepage": "http://ractivejs.org",
   "main": "build/ractive.js",
+  "jsnext:main": "build/ractive.mjs",
+  "module": "build/ractive.mjs",
   "keywords": [
     "template",
     "templating",
@@ -26,11 +28,15 @@
     "include": [
       "ractive.js",
       "build/ractive.js",
+      "build/ractive.mjs",
       "build/ractive.runtime.js",
+      "build/ractive.runtime.mjs",
       "build/ractive.min.js",
       "build/ractive.runtime.min.js",
       "build/ractive-legacy.js",
+      "build/ractive-legacy.mjs",
       "build/ractive-legacy.runtime.js",
+      "build/ractive-legacy.runtime.mjs",
       "build/ractive-legacy.min.js",
       "build/ractive-legacy.runtime.min.js",
       "README.md"

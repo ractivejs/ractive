@@ -2,6 +2,7 @@
 /*eslint no-var:0, object-shorthand:0 */
 var gobble = require( 'gobble' );
 var sander = require( 'sander' );
+var path = require( 'path' );
 var junk = require( 'junk' );
 var Promise = sander.Promise;
 var rollup = require( 'rollup' );
@@ -51,6 +52,17 @@ function buildLib ( dest, pattern ) {
 	}).transform( noConflict );
 }
 
+function buildESLib ( dest, pattern ) {
+	return es5.transform( 'rollup', {
+		plugins: [ adjustAndSkip( pattern ) ],
+		format: 'es',
+		entry: 'Ractive.js',
+		moduleName: 'Ractive',
+		dest: dest,
+		banner: banner
+	});
+}
+
 var banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
 	.replace( '${version}', version )
 	.replace( '${time}', new Date() )
@@ -61,11 +73,16 @@ if ( gobble.env() === 'production' ) {
 		buildLib( 'ractive-legacy.js' ),
 		buildLib( 'ractive.js', /legacy\.js/ ),
 		buildLib( 'ractive.runtime.js', /legacy\.js|_parse\.js/ ),
-		buildLib( 'ractive-legacy.runtime.js', /_parse\.js/ )
+		buildLib( 'ractive-legacy.runtime.js', /_parse\.js/ ),
+		buildESLib( 'ractive-legacy.mjs' ),
+		buildESLib( 'ractive.mjs', /legacy\.js/ ),
+		buildESLib( 'ractive.runtime.mjs', /legacy\.js|_parse\.js/ ),
+		buildESLib( 'ractive-legacy.runtime.mjs', /_parse\.js/ )
 	]).transform( noConflict );
 } else {
 	lib = gobble([
 		buildLib( 'ractive-legacy.js' ),
+		buildESLib( 'ractive-legacy.mjs' ),
 		sandbox
 	]);
 }
@@ -89,7 +106,7 @@ test = (function () {
 				if ( f.indexOf( 'polyfills.js' ) !== -1 || data.indexOf( 'initModule(' ) !== -1 ) {
 					modules.push( f );
 					return sander.link( inputdir, 'browser-tests', f ).to( outputdir, 'browser-tests', f );
-				} else {
+				} else if ( path.basename( f ) !== '.eslintrc' )  {
 					console.log( 'WARNING: not including test ' + f );
 				}
 			});
