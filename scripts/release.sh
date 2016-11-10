@@ -33,7 +33,7 @@ echo '> publishing to npm...'
 echo '> updating tags...'
 
 rm -rf build-branch
-git clone https://github.com/ractivejs/ractive -b build build-branch
+git clone https://github.com/ractivejs/ractive -b build --depth 2 build-branch
 
 rm -r build-branch/*
 cp -r build/* build-branch
