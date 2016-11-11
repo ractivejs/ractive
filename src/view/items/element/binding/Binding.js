@@ -50,6 +50,7 @@ export default class Binding {
 			value = this.getInitialValue();
 			model.set( value );
 		}
+		this.lastVal( true, value );
 
 		const parentForm = findElement( this.element, false, 'form' );
 		if ( parentForm ) {
