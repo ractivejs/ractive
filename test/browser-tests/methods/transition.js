@@ -37,7 +37,7 @@ export default function() {
 	});
 
 	// this test really likes to randomly fail on phantom
-	if ( !/phantom/.test( navigator.userAgent ) ) {
+	if ( !/phantom/i.test( navigator.userAgent ) ) {
 		test( 'Use transitions from event with implicit node', t => {
 			const done = t.async();
 			t.expect(2);
