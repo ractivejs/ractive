@@ -17,11 +17,7 @@
   "author": {
     "name": "Rich Harris"
   },
-  "licenses": [
-    {
-      "type": "MIT"
-    }
-  ],
+  "license": "MIT",
   "jam": {
     "name": "ractive",
     "main": "ractive.js",
@@ -100,7 +96,7 @@
     "promises-aplus-tests": "^2.1.0",
     "qunit-cli": "^0.2.0",
     "qunitjs": "~2.0",
-    "rollup": "^0.25.0",
+    "rollup": "^0.36.0",
     "rollup-plugin-buble": "^0.14.0",
     "sander": "^0.5.1",
     "sorcery": "^0.10.0",
