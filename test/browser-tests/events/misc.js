@@ -53,7 +53,7 @@ export default function() {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `{{#foo}}<button on-click="@this.test(event.keypath + '.foo')">Click</button>{{/}}`,
-			test () {}
+			test: function () {} // eslint-disable-line object-shorthand
 		});
 
 		ractive.set( 'foo', true );

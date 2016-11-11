@@ -122,7 +122,7 @@ export default function() {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<button on-click="@this.test(event)"></button>',
-			test ( event ) {
+			test: function ( event ) { // eslint-disable-line object-shorthand
 				t.equal( event, this.event );
 				t.equal( ractive, this );
 			}

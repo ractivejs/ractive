@@ -42,7 +42,7 @@ export default function() {
 			</ul>`,
 			data: { items },
 			transitions: {
-				test ( t ) {
+				test: function ( t ) { // eslint-disable-line object-shorthand
 					transitioned = true;
 					t.complete();
 				}

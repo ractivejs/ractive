@@ -47,7 +47,7 @@ export default function() {
 					<div test-in>content...</div>
 				{{/if show}}`,
 			transitions: {
-				test ( transition ) {
+				test: function ( transition ) { // eslint-disable-line object-shorthand
 					transition.setStyle( 'height', '100px' );
 
 					transition.animateStyle( 'height', '200px', {
@@ -242,7 +242,7 @@ export default function() {
 			el: fixture,
 			template: '<div test-in="{ duration: foo ? 1000 : 0 }"></div>',
 			transitions: {
-				test ( transition, params ) {
+				test: function ( transition, params ) { // eslint-disable-line object-shorthand
 					t.deepEqual( params, { duration: 0 });
 					done();
 				}
@@ -420,7 +420,7 @@ export default function() {
 			template: `{{#if visible}}<div test-in></div>{{/if}}`,
 			data: { visible: false },
 			transitions: {
-				test ( transition ) {
+				test: function ( transition ) { // eslint-disable-line object-shorthand
 					t.ok( this === ractive );
 					transition.complete();
 				}
