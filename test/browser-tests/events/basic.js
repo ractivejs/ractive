@@ -158,4 +158,20 @@ export default function() {
 		ractive.fire( 'foo' );
 		ractive.fire( 'foo' );
 	});
+
+	test( `hyphens in event names can be escaped`, t => {
+		const cmp = Ractive.extend();
+		const r = new Ractive({
+			target: fixture,
+			template: `<cmp on-foo\\-bar-baz="@.set('foo', 'yep')" />`,
+			components: { cmp }
+		});
+
+		r.findComponent( 'cmp' ).fire( 'foo-bar' );
+		t.equal( r.get( 'foo' ), 'yep' );
+
+		r.set( 'foo', 'nope' );
+		r.findComponent( 'cmp' ).fire( 'baz' );
+		t.equal( r.get( 'foo' ), 'yep' );
+	});
 }

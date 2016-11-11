@@ -24,11 +24,11 @@ export default class EventDirective {
 		this.events = [];
 
 		if ( this.element.type === COMPONENT || this.element.type === ANCHOR ) {
-			this.template.n.split( '-' ).forEach( n => {
+			this.template.n.forEach( n => {
 				this.events.push( new RactiveEvent( this.element, n ) );
 			});
 		} else {
-			this.template.n.split( '-' ).forEach( n => {
+			this.template.n.forEach( n => {
 				const fn = findInViewHierarchy( 'events', this.ractive, n );
 				// we need to pass in "this" in order to get
 				// access to node when it is created.
@@ -123,7 +123,7 @@ export default class EventDirective {
 					original.preventDefault && original.preventDefault();
 					original.stopPropagation && original.stopPropagation();
 				} else {
-					warnOnceIfDebug( `handler '${this.template.n}' returned false, but there is no event available to cancel` );
+					warnOnceIfDebug( `handler '${this.template.n.join( ' ' )}' returned false, but there is no event available to cancel` );
 				}
 			}
 

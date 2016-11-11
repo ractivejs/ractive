@@ -538,7 +538,7 @@ const parseTests = [
 	{
 		name: 'Empty event attribute',
 		template: `<p on-click=''></p>`,
-		parsed: {v:4,t:[{t:7,e:'p',m:[{n:'click',t:70,f:''}]}]}
+		parsed: {v:4,t:[{t:7,e:'p',m:[{n:['click'],t:70,f:''}]}]}
 	},
 	{
 		name: 'Reserved event names cannot be used for proxy events',
@@ -548,12 +548,12 @@ const parseTests = [
 	{
 		name: 'Reserved event names can be part of proxy event names',
 		template: `<div on-foo="thiswillchange"></div>`,
-		parsed: {v:4,t:[{t:7,e:'div',m:[{n:'foo',f:'thiswillchange',t:70}]}]}
+		parsed: {v:4,t:[{t:7,e:'div',m:[{n:['foo'],f:'thiswillchange',t:70}]}]}
 	},
 	{
 		name: 'Multiple proxy event names joined by "-"',
 		template: `<div on-foo-bar="baz"></div>`,
-		parsed: {v:4,t:[{t:7,e:'div',m:[{n:'foo-bar',f:'baz',t:70}]}]}
+		parsed: {v:4,t:[{t:7,e:'div',m:[{n:['foo','bar'],f:'baz',t:70}]}]}
 	},
 
 	// Illegal expressions
@@ -860,7 +860,7 @@ const parseTests = [
 		template: '{{x + 1}}<a {{#if x + 2}}data-id={{x + 3}}{{/if}} slide-in="x+4" on-click="proxy" on-focus="method(x + 5)">{{foo.bar[x + 6].baz}}</a>',
 		options: { csp: true },
 		parsed: {
-			v:4,t:[{t:2,x:{r:['x'],s:'_0+1'}},{t:7,e:'a',m:[{t:4,f:[{n:'data-id',f:[{t:2,x:{r:['x'],s:'_0+3'}}],t:13}],n:50,x:{r:['x'],s:'_0+2'}},{v:'t1',n:'slide',f:{s:'[_0+4]',r:['x']},t:72},{n:'click',f:'proxy',t:70},{n:'focus',f:{r:['method','x'],s:'[_0(_1+5)]'},t:70}],f:[{t:2,rx:{r:'foo.bar',m:[{r:['x'],s:'_0+6'},'baz']}}]}],
+			v:4,t:[{t:2,x:{r:['x'],s:'_0+1'}},{t:7,e:'a',m:[{t:4,f:[{n:'data-id',f:[{t:2,x:{r:['x'],s:'_0+3'}}],t:13}],n:50,x:{r:['x'],s:'_0+2'}},{v:'t1',n:'slide',f:{s:'[_0+4]',r:['x']},t:72},{n:['click'],f:'proxy',t:70},{n:['focus'],f:{r:['method','x'],s:'[_0(_1+5)]'},t:70}],f:[{t:2,rx:{r:'foo.bar',m:[{r:['x'],s:'_0+6'},'baz']}}]}],
 			// these are intentially made strings for testing purposes
 			// actual template has javascript function objects
 			e:{
