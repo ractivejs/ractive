@@ -1294,6 +1294,23 @@ export default function() {
 		t.ok( input.checked, 'input checked by click' );
 	});
 
+	test( `numeric bindings update correctly if set to undefined from initial value (#2761)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: '<input type="number" value="{{x}}" />',
+			data: { x: 1 }
+		});
+
+		let hit = false;
+		r.observe( 'x', () => hit = true, { init: false } );
+
+		const input = r.find( 'input' );
+		input.value = undefined;
+		fire( input, 'input' );
+
+		t.ok( hit );
+	});
+
 	test( `options that exist across a component boundary register with their parent select correctly`, t => {
 		const cmp = Ractive.extend({ template: '<select value="{{foo}}">{{yield}}</select>' });
 		const r = new Ractive({

@@ -50,6 +50,7 @@ export default class Binding {
 			value = this.getInitialValue();
 			model.set( value );
 		}
+		this.lastVal( true, value );
 
 		const parentForm = findElement( this.element, false, 'form' );
 		if ( parentForm ) {
@@ -89,7 +90,7 @@ export default class Binding {
 			this.model = next;
 			runloop.scheduleTask( () => next.registerTwowayBinding( this ) );
 		}
-   	}
+	}
 
 	render () {
 		this.node = this.element.node;
