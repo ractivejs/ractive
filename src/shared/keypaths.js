@@ -27,7 +27,7 @@ export function splitKeypath ( keypath ) {
 		keypath = keypath.substr( index + 1 );
 	}
 
-	result.push(keypath);
+	result.push( keypath );
 
 	return result;
 }

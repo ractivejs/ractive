@@ -20,6 +20,7 @@ export default function readReference ( parser ) {
 	prefix = parser.matchPattern( prefixPattern ) || '';
 	name = ( !prefix && parser.relaxedNames && parser.matchPattern( relaxedName ) ) ||
 			parser.matchPattern( legalReference );
+	const actual = prefix.length + ( ( name && name.length ) || 0 );
 
 	if ( prefix === '@.' ) {
 		prefix = '@';
@@ -69,7 +70,6 @@ export default function readReference ( parser ) {
 		};
 	}
 
-	const fullLength = ( prefix || '' ).length + name.length;
 	reference = ( prefix || '' ) + normalise( name );
 
 	if ( parser.matchString( '(' ) ) {
@@ -81,7 +81,7 @@ export default function readReference ( parser ) {
 		if ( lastDotIndex !== -1 && name[ name.length - 1 ] !== ']' ) {
 			const refLength = reference.length;
 			reference = reference.substr( 0, lastDotIndex );
-			parser.pos = startPos + (fullLength - ( refLength - lastDotIndex ) );
+			parser.pos = startPos + ( actual - ( refLength - lastDotIndex ) );
 		} else {
 			parser.pos -= 1;
 		}

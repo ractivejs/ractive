@@ -95,6 +95,17 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foo baz' );
 	});
 
+	test( 'instance shortcut in event handlers', t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `<button on-click="@.set('foo', 'yep')">click me</button>`
+		});
+
+		fire( r.find( 'button' ), 'click' );
+
+		t.equal( r.get( 'foo' ), 'yep' );
+	});
+
 	test( 'calling set with an instance property shortcut', t => {
 		const r = new Ractive({
 			el: fixture,
