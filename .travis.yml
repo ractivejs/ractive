@@ -1,16 +1,18 @@
 sudo: false
 language: node_js
 node_js:
-  - '6'
-  - '5'
-  - '4'
-script: set -e; mkdir -p build; npm run build; if [[ $(node --version) == v6* ]]; then npm run coveralls; fi
+- '6'
+- '5'
+- '4'
+script: set -e; mkdir -p build; npm run build; if [[ $(node --version) == v6* ]];
+  then npm run coveralls; chmod u+x scripts/travis-deploy.sh; ./scripts/travis-deploy.sh; fi
 env:
   global:
   - GH_REF: github.com/ractivejs/ractive.git
   - CDN_REF: github.com/ractivejs/cdn.ractivejs.org.git
-  - secure: "nlnXJW/imf/w6qdTd7UCpRqLhLioxU6fllJPbP1DZr/9rp44HNVSPNxxGrA808VDXQ1ccpXBxIV9mgIi4Q/G0FUILA5NsSGYdQE00A+Lw3qnvv5FQ7Qoux44BKYi4L1W+4Zi3NEr7TAL+/dHCAk5k/ZKLTCCxiziAEw3M+akE4A="
+  - secure: nlnXJW/imf/w6qdTd7UCpRqLhLioxU6fllJPbP1DZr/9rp44HNVSPNxxGrA808VDXQ1ccpXBxIV9mgIi4Q/G0FUILA5NsSGYdQE00A+Lw3qnvv5FQ7Qoux44BKYi4L1W+4Zi3NEr7TAL+/dHCAk5k/ZKLTCCxiziAEw3M+akE4A=
+  - secure: W+gKWvHDgHXI+1tARD+QxFbgjxhU6AN9Fn40v4u5lNwjOXuxcgH6UMK9YaePPaFAO62H7EeUZdbeghn3qTixR6naUewdq+U50U814Y6gcXhAAHcPoHBkbUOUAuUWbp3saNcECOMUlLsiOl2S+A8iMvwEFqz84O2Pdwj68TmKJHw=
 branches:
   only:
-    - 0.8
-    - dev
+  - 0.8
+  - dev
