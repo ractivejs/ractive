@@ -96,7 +96,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 			node -e "var package = JSON.parse(fs.readFileSync('./package.json')); package.version = '${TARGET}'; fs.writeFileSync('./package.json', JSON.stringify(package, null, '  '));"
 			# ...and to npm
 			npm publish --tag $TAG
-			npm dist-tag add rative@$TARGET edge
+			npm dist-tag add ractive@$TARGET edge
 		)
 
 		echo '> release complete'
