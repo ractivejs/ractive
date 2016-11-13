@@ -38,7 +38,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 
 		( cd build
 			npm publish
-			npm dist-tag add ractive@target $TAG
+			npm dist-tag add ractive@$TARGET $TAG
 		)
 
 		echo '> updating tags...'
