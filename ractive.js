@@ -1,6 +1,6 @@
 /*
-	Ractive.js v0.8.4
-	Fri Nov 04 2016 00:26:26 GMT-0400 (EDT) - commit c71fa46dd2aa33cd96030b9b440d71a26a64cd8b
+	Ractive.js v0.8.5
+	Sun Nov 13 2016 16:48:48 GMT-0500 (EST) - commit d533d91f155a4f042c1acc87136459141c2c8af9
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -433,13 +433,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.4 %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.5 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.4 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.5 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -7385,7 +7385,7 @@
 
   	start = parser.pos;
 
-  	if ( !parser.matchString( OPEN_COMMENT ) ) {
+  	if ( parser.textOnlyMode || !parser.matchString( OPEN_COMMENT ) ) {
   		return null;
   	}
 
@@ -7695,7 +7695,7 @@
 
   	start = parser.pos;
 
-  	if ( parser.inside || parser.inAttribute ) {
+  	if ( parser.inside || parser.inAttribute || parser.textOnlyMode ) {
   		return null;
   	}
 
@@ -9430,14 +9430,19 @@
   	return Alias;
   }(Item));
 
-  function findElement( start, orComponent ) {
+  function findElement( start, orComponent, name ) {
   	if ( orComponent === void 0 ) orComponent = true;
 
-  	while ( start && start.type !== ELEMENT && ( !orComponent || start.type !== COMPONENT ) ) {
+  	while ( start && ( start.type !== ELEMENT || ( name && start.name !== name ) ) && ( !orComponent || start.type !== COMPONENT ) ) {
+  		// start is a fragment - look at the owner
   		if ( start.owner ) start = start.owner;
-  		else if ( start.component ) start = start.component.parentFragment;
+  		// start is a component or yielder - look at the container
+  		else if ( start.component ) start = start.containerFragment || start.component.parentFragment;
+  		// start is an item - look at the parent
   		else if ( start.parent ) start = start.parent;
+  		// start is an item without a parent - look at the parent fragment
   		else if ( start.parentFragment ) start = start.parentFragment;
+
   		else start = undefined;
   	}
 
@@ -12155,15 +12160,6 @@
   	} while ( instance = instance.parent );
   }
 
-  // TODO element.parent currently undefined
-  function findParentForm ( element ) {
-  	while ( element = element.parent ) {
-  		if ( element.name === 'form' ) {
-  			return element;
-  		}
-  	}
-  }
-
   function warnAboutAmbiguity ( description, ractive ) {
   	warnOnceIfDebug( ("The " + description + " being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity"), { ractive: ractive });
   }
@@ -12187,18 +12183,18 @@
   		model = interpolator.model;
 
   		warnAboutAmbiguity( ("'" + (interpolator.template.r) + "' reference"), this.ractive );
-  	}
+  		}
 
-  	else if ( model.isUnresolved ) {
-  		// reference expressions (e.g. foo[bar])
-  		model.forceResolution();
-  		warnAboutAmbiguity( 'expression', this.ractive );
+  		else if ( model.isUnresolved ) {
+  			// reference expressions (e.g. foo[bar])
+  			model.forceResolution();
+  			warnAboutAmbiguity( 'expression', this.ractive );
   	}
 
   	// TODO include index/key/keypath refs as read-only
   	else if ( model.isReadonly ) {
   		var keypath = model.getKeypath().replace( /^@/, '' );
-  			warnOnceIfDebug( ("Cannot use two-way binding on <" + (element.name) + "> element: " + keypath + " is read-only. To suppress this warning use <" + (element.name) + " twoway='false'...>"), { ractive: this.ractive });
+  		warnOnceIfDebug( ("Cannot use two-way binding on <" + (element.name) + "> element: " + keypath + " is read-only. To suppress this warning use <" + (element.name) + " twoway='false'...>"), { ractive: this.ractive });
   		return false;
   	}
 
@@ -12213,8 +12209,9 @@
   		value = this.getInitialValue();
   		model.set( value );
   	}
+  	this.lastVal( true, value );
 
-  	var parentForm = findParentForm( element );
+  	var parentForm = findElement( this.element, false, 'form' );
   	if ( parentForm ) {
   		this.resetValue = value;
   		parentForm.formBindings.push( this );
@@ -12256,7 +12253,7 @@
   		this.model = next;
   		runloop.scheduleTask( function () { return next.registerTwowayBinding( this$1 ); } );
   	}
-     };
+  };
 
   Binding.prototype.render = function render () {
   	this.node = this.element.node;
@@ -12264,8 +12261,8 @@
   	this.rendered = true; // TODO is this used anywhere?
   };
 
-  Binding.prototype.setFromNode = function setFromNode ( node ) {
-  	this.model.set( node.value );
+  	Binding.prototype.setFromNode = function setFromNode ( node ) {
+  		this.model.set( node.value );
   };
 
   Binding.prototype.unbind = function unbind () {
@@ -12273,8 +12270,8 @@
   };
 
   Binding.prototype.unrender = function unrender () {
-  	// noop?
-  };
+  		// noop?
+  	};
 
   // This is the handler for DOM events that would lead to a change in the model
   // (i.e. change, sometimes, input, and occasionally click and keyup)
@@ -12901,6 +12898,7 @@
   	};
 
   	RadioNameBinding.prototype.lastVal = function lastVal ( setting, value ) {
+  		if ( !this.group ) return;
   		if ( setting ) this.group.lastValue = value;
   		else return this.group.lastValue;
   	};
@@ -13854,13 +13852,6 @@
   	}
   }
 
-  function findParentSelect ( element ) {
-  	while ( element ) {
-  		if ( element.name === 'select' ) return element;
-  		element = element.parent;
-  	}
-  }
-
   var Option = (function (Element) {
   	function Option ( options ) {
   		var template = options.template;
@@ -13874,7 +13865,7 @@
 
   		Element.call( this, options );
 
-  		this.select = findParentSelect( this.parent );
+  		this.select = findElement( this.parent || this.parentFragment, false, 'select' );
   	}
 
   	Option.prototype = Object.create( Element && Element.prototype );
@@ -17022,7 +17013,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.4' },
+  	VERSION:        { value: '0.8.5' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
