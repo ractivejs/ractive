@@ -215,6 +215,14 @@ export function addHelpers ( obj, element ) {
 		getBindingPath: { value: getBindingPath },
 		getBinding: { value: getBinding },
 		setBinding: { value: setBinding },
+
+		decorators: {
+			get () {
+				const items = {};
+				element.decorators.forEach( d => items[ d.name ] = d.intermediary );
+				return items;
+			}
+		}
 	});
 
 	return obj;

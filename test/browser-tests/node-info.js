@@ -453,4 +453,26 @@ export default function() {
 
 		t.equal( r.getNodeInfo( '#baz' ).resolve(), 'foo.bar' );
 	});
+
+	test( `decorator objects are available from node info objects`, t => {
+		let flag = false;
+		const r = new Ractive({
+			target: fixture,
+			template: '<div as-foo />',
+			decorators: {
+				foo () {
+					return {
+						teardown () {},
+						method () {
+							flag = true;
+						}
+					};
+				}
+			}
+		});
+
+		r.getNodeInfo( 'div' ).decorators.foo.method();
+
+		t.ok( flag );
+	});
 }
