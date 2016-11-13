@@ -1,5 +1,11 @@
 # changelog
 
+# 0.8.5
+
+* Bug fixes
+	* Form elements nested inside yielders now correctly find their parents. This includes options finding their parent select (#2754)
+	* Number bindings now record their initial value properly (#2671)
+
 # 0.8.4
 
 * Bug fixes
