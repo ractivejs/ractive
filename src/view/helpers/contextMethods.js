@@ -111,6 +111,23 @@ function push ( keypath, ...values ) {
 	return modelPush( findModel( this, keypath ).model, values );
 }
 
+function raise ( name, event, ...args ) {
+	let element = this._element;
+
+	while ( element ) {
+		const events = element.events;
+		for ( let i = 0; i < events.length; i++ ) {
+			const event = events[i];
+			if ( ~event.template.n.indexOf( name ) ) {
+				event.fire( event, args );
+				return;
+			}
+		}
+
+		element = element.parent;
+	}
+}
+
 function reverse ( keypath ) {
 	return modelReverse( findModel( this, keypath ).model, [] );
 }
@@ -213,6 +230,7 @@ export function addHelpers ( obj, element ) {
 		observeOnce: { value: observeOnce },
 		pop: { value: pop },
 		push: { value: push },
+		raise: { value: raise },
 		reverse: { value: reverse },
 		set: { value: set },
 		shift: { value: shift },

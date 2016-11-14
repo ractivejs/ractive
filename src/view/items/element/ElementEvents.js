@@ -1,5 +1,4 @@
-import { missingPlugin } from '../../../config/errors';
-import { fatal, warnOnce } from '../../../utils/log';
+import { fatal } from '../../../utils/log';
 
 class DOMEvent {
 	constructor ( name, owner ) {
@@ -17,9 +16,8 @@ class DOMEvent {
 		const node = this.node = this.owner.node;
 		const name = this.name;
 
-		if ( !( `on${name}` in node ) ) {
-			warnOnce( missingPlugin( name, 'events' ) );
-		}
+		// this is probably a custom event fired from a decorator or manually
+		if ( !( `on${name}` in node ) ) return;
 
 		node.addEventListener( name, this.handler = function( event ) {
 			directive.fire({
@@ -30,7 +28,7 @@ class DOMEvent {
 	}
 
 	unlisten () {
-		this.node.removeEventListener( this.name, this.handler, false );
+		if ( this.handler ) this.node.removeEventListener( this.name, this.handler, false );
 	}
 }
 

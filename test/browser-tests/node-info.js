@@ -538,4 +538,33 @@ export default function() {
 		r.set( 'foo.bar.baz.bip', 'yep' );
 		t.equal( count, 3 );
 	});
+
+	test( `context objects can trigger events on their element`, t => {
+		t.expect( 1 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: `<div on-foo="wat" />`
+		});
+
+		r.on( 'wat', () => t.ok( true ) );
+
+		r.getNodeInfo( 'div' ).raise( 'foo' );
+	});
+
+	test( `context objects can trigger events on parent elements`, t => {
+		t.expect( 1 );
+
+		const cmp = Ractive.extend({
+			template: '{{yield}}'
+		});
+		const r = new Ractive({
+			target: fixture,
+			template: `<div on-foo="@.foo()"><div><cmp><span /></cmp></div></div>`,
+			components: { cmp },
+			foo () { t.ok( true ); }
+		});
+
+		r.getNodeInfo( 'span' ).raise( 'foo' );
+	});
 }
