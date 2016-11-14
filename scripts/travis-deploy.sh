@@ -11,10 +11,8 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 
 	if [[ $EDGE == 0 ]]; then
 		# find the last published build number for this series
-		LAST=$(npm show ractive versions | grep "${VERSION_NUM}-build-" | tail -n 1 | grep "${VERSION_NUM}-build-")
-		if [ $? -eq 0 ]; then
-			LAST=$(echo $LAST | sed 's/.*-build-\([0-9]*\).*/\1/')
-		else
+		LAST=$(npm show ractive versions --json | grep "${VERSION_NUM}-build-" | sed -re 's/.*-([0-9]+).*/\1/g' | sort -n | tail -n 1 | grep -v '^$')
+		if [ $? -ne 0 ]; then
 			LAST=0
 		fi
 		LAST=$((LAST + 1))

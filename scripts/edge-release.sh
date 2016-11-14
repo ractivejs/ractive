@@ -4,10 +4,8 @@ VERSION_NUM=$(echo $VERSION | sed 's/[^0-9\./\]//g')
 TAG="v$(cat package.json | grep "version" | sed 's/"version": "\([0-9]*\.[0-9]\).*",/\1/' | sed 's/[[:space:]]//g')-dev"
 
 # find the last published build number for this series
-LAST=$(npm show ractive versions | grep "${VERSION_NUM}-build-" | tail -n 1 | grep "${VERSION_NUM}-build-")
-if [ $? -eq 0 ]; then
-	LAST=$(echo $LAST | sed 's/.*-build-\([0-9]*\).*/\1/')
-else
+LAST=$(npm show ractive versions --json | grep "${VERSION_NUM}-build-" | sed -re 's/.*-([0-9]+).*/\1/g' | sort -n | tail -n 1 | grep -v '^$')
+if [ $? -ne 0 ]; then
 	LAST=0
 fi
 LAST=$((LAST + 1))
