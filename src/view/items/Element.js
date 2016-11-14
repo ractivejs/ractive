@@ -135,7 +135,7 @@ export default class Element extends Item {
 	}
 
 	find ( selector ) {
-		if ( matches( this.node, selector ) ) return this.node;
+		if ( this.node && matches( this.node, selector ) ) return this.node;
 		if ( this.fragment ) {
 			return this.fragment.find( selector );
 		}
