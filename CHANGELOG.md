@@ -2,6 +2,9 @@
 
 # 0.9.0 (unreleased)
 
+* Bug fixes
+	* Observers on uninitialized data may be added during the `config` event (#2725)
+
 * Breaking changes
 	* All deprecations have been removed, including proxy events with args, un-prefixed method events, decorator="...", transition="...", the ractive.data getter, partial comment definitions, and lifecycle methods like `init` and `beforeInit`.
 	* The template spec is now a bit simpler after the removal of deprecations, and templates parsed with previous versions of Ractive are no longer compatible.
