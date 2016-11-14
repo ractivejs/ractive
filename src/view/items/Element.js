@@ -120,7 +120,7 @@ export default class Element extends ContainerItem {
 	}
 
 	find ( selector, options ) {
-		if ( matches( this.node, selector ) ) return this.node;
+		if ( this.node && matches( this.node, selector ) ) return this.node;
 		if ( this.fragment ) {
 			return this.fragment.find( selector, options );
 		}
