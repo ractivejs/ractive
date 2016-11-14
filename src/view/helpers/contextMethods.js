@@ -91,6 +91,18 @@ function merge ( keypath, array, options ) {
 	return protoMerge( this.ractive, findModel( this, keypath ).model, array, options );
 }
 
+function observe ( keypath, callback, options = {} ) {
+	if ( isObject( keypath ) ) options = callback || {};
+	options.fragment = this._element.parentFragment;
+	return this.ractive.observe( keypath, callback, options );
+}
+
+function observeOnce ( keypath, callback, options = {} ) {
+	if ( isObject( keypath ) ) options = callback || {};
+	options.fragment = this._element.parentFragment;
+	return this.ractive.observeOnce( keypath, callback, options );
+}
+
 function pop ( keypath ) {
 	return modelPop( findModel( this, keypath ).model, [] );
 }
@@ -197,6 +209,8 @@ export function addHelpers ( obj, element ) {
 		animate: { value: animate },
 		link: { value: link },
 		merge: { value: merge },
+		observe: { value: observe },
+		observeOnce: { value: observeOnce },
 		pop: { value: pop },
 		push: { value: push },
 		reverse: { value: reverse },

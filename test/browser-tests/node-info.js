@@ -475,4 +475,67 @@ export default function() {
 
 		t.ok( flag );
 	});
+
+	test( `context observe resolves using the context fragment`, t => {
+		let count = 0;
+		const r = new Ractive({
+			target: fixture,
+			template: '{{#with foo}}{{#with bar}}<div />{{/with}}{{/with}}',
+			data: {
+				foo: { bar: {} }
+			}
+		});
+
+		r.getNodeInfo( 'div' ).observe( '.foo', () => count++, { init: false } );
+
+		r.set( 'foo.bar.foo', 'yep' );
+		t.equal( count, 1 );
+	});
+
+	test( `context observe works with a map and wildcards`, t => {
+		let count = 0;
+		const r = new Ractive({
+			target: fixture,
+			template: '{{#with foo}}{{#with bar}}<div />{{/with}}{{/with}}',
+			data: {
+				foo: { bar: {} }
+			}
+		});
+
+		r.getNodeInfo( 'div' ).observe({
+			'.foo': () => count++,
+			'.*': () => count++
+		}, { init: false } );
+
+		r.set( 'foo.bar.foo', 'yep' );
+		t.equal( count, 2 );
+
+		r.set( 'foo.bar.baz.bat', 'yep' );
+		t.equal( count, 3 );
+	});
+
+	test( `context observeOnce resolves using the context fragment`, t => {
+		let count = 0;
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#with foo.bar}}<div />{{/with}}`,
+			data: {
+				foo: { bar: {} }
+			}
+		});
+
+		r.getNodeInfo( 'div' ).observeOnce({
+			'.foo': () => count++,
+			'.*': () => count++
+		});
+
+		r.set( 'foo.bar.foo', 'yep' );
+		r.set( 'foo.bar.foo', 'yep' );
+		t.equal( count, 2 );
+
+		r.getNodeInfo( 'div' ).observeOnce('.*', () => count++);
+		r.set( 'foo.bar.baz.bar', 'yep' );
+		r.set( 'foo.bar.baz.bip', 'yep' );
+		t.equal( count, 3 );
+	});
 }
