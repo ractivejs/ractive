@@ -74,6 +74,7 @@ export default class Component extends Item {
 
 		this.attributeByName = {};
 
+		this.events = [];
 		this.attributes = [];
 		const leftovers = [];
 		( this.template.m || [] ).forEach( template => {

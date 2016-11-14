@@ -9,6 +9,7 @@ import runloop from '../../../global/runloop';
 import { addHelpers } from '../../helpers/contextMethods';
 import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
 import { warnOnceIfDebug } from '../../../utils/log';
+import { addToArray, removeFromArray } from '../../../utils/array';
 
 const specialPattern = /^(event|arguments)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
@@ -42,6 +43,8 @@ export default class EventDirective {
 	}
 
 	bind () {
+		addToArray( this.element.events, this );
+
 		setupArgsFn( this, this.template, this.parentFragment, {
 			specialRef ( ref ) {
 				const specialMatch = specialPattern.exec( ref );
@@ -163,6 +166,8 @@ export default class EventDirective {
 	toString() { return ''; }
 
 	unbind () {
+		removeFromArray( this.element.events, this );
+
 		teardownArgsFn( this, this.template );
 	}
 

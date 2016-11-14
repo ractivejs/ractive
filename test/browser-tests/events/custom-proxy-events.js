@@ -1,6 +1,5 @@
 import { test } from 'qunit';
 import { fire } from 'simulant';
-import { hasUsableConsole, onWarn } from '../test-config';
 import { initModule } from '../test-config';
 
 export default function() {
@@ -47,19 +46,4 @@ export default function() {
 		ractive.unrender();
 		fire( span, 'click' );
 	});
-
-	if ( hasUsableConsole ) {
-		test( 'Missing event plugin', t => {
-			t.expect( 1 );
-
-			onWarn( msg => {
-				t.ok( /Missing "foo" events plugin/.test( msg ) );
-			});
-
-			new Ractive({
-				el: fixture,
-				template: '<div on-foo="">missing</div>',
-			});
-		});
-	}
 }

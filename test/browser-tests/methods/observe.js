@@ -1398,4 +1398,20 @@ export default function() {
 		t.equal( count1, 1 );
 		t.equal( count2, 1 );
 	});
+
+	test( `observeOnce works from the config event, even if the data is initialized - #2725`, t => {
+		let count = 0;
+		const r = new Ractive({
+			target: fixture,
+			onconfig () {
+				this.observeOnce( 'foo', () => count++ );
+				this.set( 'foo', 'yep' );
+			}
+		});
+
+		t.equal( count, 1 );
+
+		r.set( 'foo', 'bar' );
+		t.equal( count, 1 );
+	});
 }

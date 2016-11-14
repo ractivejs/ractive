@@ -91,12 +91,41 @@ function merge ( keypath, array, options ) {
 	return protoMerge( this.ractive, findModel( this, keypath ).model, array, options );
 }
 
+function observe ( keypath, callback, options = {} ) {
+	if ( isObject( keypath ) ) options = callback || {};
+	options.fragment = this._element.parentFragment;
+	return this.ractive.observe( keypath, callback, options );
+}
+
+function observeOnce ( keypath, callback, options = {} ) {
+	if ( isObject( keypath ) ) options = callback || {};
+	options.fragment = this._element.parentFragment;
+	return this.ractive.observeOnce( keypath, callback, options );
+}
+
 function pop ( keypath ) {
 	return modelPop( findModel( this, keypath ).model, [] );
 }
 
 function push ( keypath, ...values ) {
 	return modelPush( findModel( this, keypath ).model, values );
+}
+
+function raise ( name, event, ...args ) {
+	let element = this._element;
+
+	while ( element ) {
+		const events = element.events;
+		for ( let i = 0; i < events.length; i++ ) {
+			const event = events[i];
+			if ( ~event.template.n.indexOf( name ) ) {
+				event.fire( event, args );
+				return;
+			}
+		}
+
+		element = element.parent;
+	}
 }
 
 function reverse ( keypath ) {
@@ -197,8 +226,11 @@ export function addHelpers ( obj, element ) {
 		animate: { value: animate },
 		link: { value: link },
 		merge: { value: merge },
+		observe: { value: observe },
+		observeOnce: { value: observeOnce },
 		pop: { value: pop },
 		push: { value: push },
+		raise: { value: raise },
 		reverse: { value: reverse },
 		set: { value: set },
 		shift: { value: shift },
@@ -215,6 +247,14 @@ export function addHelpers ( obj, element ) {
 		getBindingPath: { value: getBindingPath },
 		getBinding: { value: getBinding },
 		setBinding: { value: setBinding },
+
+		decorators: {
+			get () {
+				const items = {};
+				element.decorators.forEach( d => items[ d.name ] = d.intermediary );
+				return items;
+			}
+		}
 	});
 
 	return obj;

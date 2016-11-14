@@ -4,7 +4,6 @@ import { splitKeypath, escapeKey } from '../../shared/keypaths';
 import { removeFromArray } from '../../utils/array';
 import resolveReference from '../../view/resolvers/resolveReference';
 import { rebindMatch } from '../../shared/rebind';
-import ReferenceResolver from '../../view/resolvers/ReferenceResolver';
 
 export default function observe ( keypath, callback, options ) {
 	const observers = [];
@@ -13,36 +12,26 @@ export default function observe ( keypath, callback, options ) {
 	if ( isObject( keypath ) ) {
 		map = keypath;
 		options = callback || {};
-
-		Object.keys( map ).forEach( keypath => {
-			const callback = map[ keypath ];
-
-			let keypaths = keypath.split( ' ' );
-			if ( keypaths.length > 1 ) keypaths = keypaths.filter( k => k );
-
-			keypaths.forEach( keypath => {
-				observers.push( createObserver( this, keypath, callback, options ) );
-			});
-		});
+	} else {
+		if ( typeof keypath === 'function' ) {
+			map = { '': keypath };
+			options = callback;
+		} else {
+			map = {};
+			map[ keypath ] = callback;
+		}
 	}
 
-	else {
-		let keypaths;
+	Object.keys( map ).forEach( keypath => {
+		const callback = map[ keypath ];
 
-		if ( typeof keypath === 'function' ) {
-			options = callback;
-			callback = keypath;
-			keypaths = [ '' ];
-		} else {
-			keypaths = keypath.split( ' ' );
-		}
-
+		let keypaths = keypath.split( ' ' );
 		if ( keypaths.length > 1 ) keypaths = keypaths.filter( k => k );
 
 		keypaths.forEach( keypath => {
 			observers.push( createObserver( this, keypath, callback, options || {} ) );
 		});
-	}
+	});
 
 	// add observers to the Ractive instance, so they can be
 	// cancelled on ractive.teardown()
@@ -59,40 +48,35 @@ export default function observe ( keypath, callback, options ) {
 }
 
 function createObserver ( ractive, keypath, callback, options ) {
-	const viewmodel = ractive.viewmodel;
-
 	const keys = splitKeypath( keypath );
-	const wildcardIndex = keys.indexOf( '*' );
+	let wildcardIndex = keys.indexOf( '*' );
 	options.keypath = keypath;
+	options.fragment = options.fragment || ractive.fragment;
 
-	// normal keypath - no wildcards
-	if ( !~wildcardIndex ) {
-		const key = keys[0];
-		let model;
-
-		// if not the root model itself, check if viewmodel has key.
-		if ( key !== '' && !viewmodel.has( key ) ) {
-			// if this is an inline component, we may need to create an implicit mapping
-			if ( ractive.component && !ractive.isolated ) {
-				model = resolveReference( ractive.component.parentFragment, key );
-				if ( model ) {
-					viewmodel.map( key, model );
-					model = viewmodel.joinAll( keys );
-				}
-			}
+	let model;
+	if ( !options.fragment ) {
+		model = ractive.viewmodel.joinKey( keys[0] );
+	} else {
+		// .*.whatever relative wildcard is a special case because splitkeypath doesn't handle the leading .
+		if ( keys[0] === '.*' ) {
+			model = options.fragment.findContext();
+			wildcardIndex = 0;
+			keys[0] = '*';
 		} else {
-			model = viewmodel.joinAll( keys );
+			model = wildcardIndex === 0 ? options.fragment.findContext() : resolveReference( options.fragment, keys[0] );
 		}
-
-		return new Observer( ractive, model, callback, options );
 	}
 
-	// pattern observers - more complex case
-	const baseModel = wildcardIndex === 0 ?
-		viewmodel :
-		viewmodel.joinAll( keys.slice( 0, wildcardIndex ) );
+	// the model may not exist key
+	if ( !model ) model = ractive.viewmodel.joinKey( keys[0] );
 
-	return new PatternObserver( ractive, baseModel, keys.splice( wildcardIndex ), callback, options );
+	if ( !~wildcardIndex ) {
+		model = model.joinAll( keys.slice( 1 ) );
+		return new Observer( ractive, model, callback, options );
+	} else {
+		model = model.joinAll( keys.slice( 1, wildcardIndex ) );
+		return new PatternObserver( ractive, model, keys.slice( wildcardIndex ), callback, options );
+	}
 }
 
 class Observer {
@@ -102,12 +86,6 @@ class Observer {
 		this.ractive = ractive;
 
 		if ( model ) this.resolved( model );
-		else {
-			this.keypath = options.keypath;
-			this.resolver = new ReferenceResolver( ractive.fragment, options.keypath, model => {
-				this.resolved( model );
-			});
-		}
 
 		if ( options.init !== false ) {
 			this.dirty = true;

@@ -37,6 +37,7 @@ export default class Element extends ContainerItem {
 		}
 
 		this.decorators = [];
+		this.events = [];
 
 		// create attributes
 		this.attributeByName = {};

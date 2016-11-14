@@ -140,7 +140,7 @@ export default function() {
 		parent.link( '', 'child.path', { ractive: child } );
 
 		t.equal( parent.get( 'child.path.foo.bar' ), 'baz' );
-		parent.observe( 'child.path.foo', () => t.ok( true, 'parent notified' ) );
+		parent.observe( 'child.path.foo', () => t.ok( true, 'parent notified' ), { init: false } );
 		child.set( 'foo.bar', 'yep' );
 	});
 }
