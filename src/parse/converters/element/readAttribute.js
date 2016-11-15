@@ -15,7 +15,7 @@ const directives = {
 	lazy: { t: BINDING_FLAG, v: 'l' },
 	twoway: { t: BINDING_FLAG, v: 't' }
 };
-const unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
+const unquotedAttributeValueTextPattern = /^[^\s"'=<>\/`]+/;
 const proxyEvent = /^[^\s"'=<>@\[\]()]*/;
 const whitespace = /^\s+/;
 
