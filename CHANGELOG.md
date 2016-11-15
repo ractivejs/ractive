@@ -13,6 +13,10 @@
 	* The same partial may be yielded multiple times.
 	* Events now fire in an initial implicit `this.` namespace. This means that with `this.on( '*.foo', handler )`, `handler` will be called if and component fires a `foo` event or if the `this` instance fires a `foo` event. 
 	* The `noIntro` option now applies to any nested components that are also being rendered, unless they have their own explicit setting.
+	* Legacy builds removed. Only regular and runtime builds are now available.
+		* `Promise` shim required for IE11.
+		* `requestAnimationFrame` polyfill required for IE10.
+		* es5-shim required for non-ES5 browsers.
 
 * New features (experimental - feedback welcome!)
 	* You can now create cross-instance links by passing an options object with a target instance e.g. `this.link('source.path', 'dest.path', { ractive: sourceInstance })`. This covers many of the cases handled by the `ractive-ractive` adaptor in a considerably more efficient manner.
