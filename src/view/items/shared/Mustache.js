@@ -18,8 +18,10 @@ export default class Mustache extends Item {
 	}
 
 	bind () {
+		// yield mustaches should resolve in container context
+		const start = this.containerFragment || this.parentFragment;
 		// try to find a model for this view
-		const model = resolve( this.parentFragment, this.template );
+		const model = resolve( start, this.template );
 		const value = model ? model.get() : undefined;
 
 		if ( this.isStatic ) {
@@ -31,7 +33,7 @@ export default class Mustache extends Item {
 			model.register( this );
 			this.model = model;
 		} else {
-			this.resolver = this.parentFragment.resolve( this.template.r, model => {
+			this.resolver = start.resolve( this.template.r, model => {
 				this.model = model;
 				model.register( this );
 

@@ -357,4 +357,20 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
+
+	test( 'yield resolves its expression in the correct context', t => {
+		const cmp = Ractive.extend({
+			template: '{{yield foo.bar}}',
+			data: {
+				foo: { bar: 'content' }
+			}
+		});
+		new Ractive({
+			target: fixture,
+			template: '<cmp>yep</cmp>',
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
 }
