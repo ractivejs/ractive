@@ -19,7 +19,7 @@ var attributeNamePattern = /^[^\s"'>\/=]+/,
 				   twoway: { t: BINDING_FLAG, v: 't' },
 				   decorator: { t: DECORATOR }
 				 },
-	unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
+	unquotedAttributeValueTextPattern = /^[^\s"'=<>\/`]+/;
 
 export default function readAttribute ( parser ) {
 	var attr, name, value, i, nearest, idx;

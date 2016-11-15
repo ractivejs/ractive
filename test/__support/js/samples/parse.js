@@ -901,6 +901,11 @@ const parseTests = [
 		name: 'expression with multiple numeric refinement alt #2325',
 		template: '{{foo[0].bar[10].baz["12"].bat()}}',
 		parsed: {v:4,t:[{t:2,x:{r:["foo.0.bar.10.baz"],s:"_0[\"12\"].bat()"}}]}
+	},
+	{
+		name: `components with unquoted attributes don't eat closing solidii (#2765)`,
+		template: `<a b={{b}}/><a b=1/>`,
+		parsed: {v:4,t:[{t:7,e:'a',m:[{t:13,n:'b',f:[{t:2,r:'b'}]}]},{t:7,e:'a',m:[{t:13,n:'b',f:'1'}]}]}
 	}
 ];
 
