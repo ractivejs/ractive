@@ -914,6 +914,11 @@ const parseTests = [
 		name: 'various spreads mixed',
 		template: '{{ foo( qux, ...[ bar, ...baz, { bat: 1, bip: 2, ...bop, ...zip( fizz, ...fuzz ), ...{ why: not } }, boop ] ) }}',
 		parsed: {v:4,t:[{t:2,x:{r:['foo','qux','bar','baz','bop','zip','fizz','fuzz','not','boop'],s:'(function(){var x$1,x$0;return((x$0=_0).apply(x$0,[].concat([_1],[].concat([_2],_3,[Object.assign({},{bat:1,bip:2},_4,(x$1=_5).apply(x$1,[].concat([_6],_7)),{why:_8}),_9]))));})()'}}]}
+	},
+	{
+		name: 'partial and yield references parse as references, not reference expressions',
+		template: '{{> foo.bar}}{{yield foo.bar}}',
+		parsed: {v:4,t:[{t:8,r:'foo.bar'},{t:16,r:'foo.bar'}]}
 	}
 
 ];
