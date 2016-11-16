@@ -25,13 +25,14 @@ export default function readPartial ( parser, tag ) {
 
 		if ( expression ) {
 			refineExpression( expression, partial ); // TODO...
+			parser.allowWhitespace();
+			if ( type !== '>' ) aliases = parser.matchString( 'with' );
 		}
 	}
 
 	parser.allowWhitespace();
 
-	// check for alias context e.g. `{{>foo bar as bat, bip as bop}}` then
-	// turn it into `{{#with bar as bat, bip as bop}}{{>foo}}{{/with}}`
+	// check for alias context e.g. `{{>foo bar as bat, bip as bop}}`
 	if ( aliases || type === '>' ) {
 		aliases = readAliases( parser );
 		if ( aliases && aliases.length ) {
