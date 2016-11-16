@@ -42,6 +42,7 @@ export default class Decorator {
 
 	destroyed () {
 		if ( this.intermediary ) this.intermediary.teardown();
+		this.shouldDestroy = true;
 	}
 
 	handleChange () { this.bubble(); }
@@ -87,6 +88,9 @@ export default class Decorator {
 			if ( !this.intermediary || !this.intermediary.teardown ) {
 				throw new Error( `The '${this.name}' decorator must return an object with a teardown method` );
 			}
+
+			// watch out for decorators that cause their host element to be unrendered
+			if ( this.shouldDestroy ) this.destroyed();
 		}, true );
 		this.rendered = true;
 	}
