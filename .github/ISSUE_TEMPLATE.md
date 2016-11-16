@@ -17,7 +17,7 @@ Include the browser or runtime, and if necessary, operating system and device.
 Reproduction:
 Include a link to a live specimen of the bug. For your convenience, you can fork this fiddle:
 
-    https://jsfiddle.net/evschris/exc00vup/
+    https://jsfiddle.net/evschris/swkz9n7n/
 
 Code:
 It is advised to include the code in question in the issue. This allows us to have a historical reference of your code should your demo service be offline.

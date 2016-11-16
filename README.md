@@ -27,7 +27,7 @@ If you don't find what you're looking for in the [docs](http://docs.ractivejs.or
 - Ask a question on [Stack Overflow](https://stackoverflow.com/questions/ask) with the [`ractivejs`](http://stackoverflow.com/questions/tagged/ractivejs) tag.
 - Send us a tweet via [@RactiveJS](http://twitter.com/RactiveJS).
 
-If you'd like to include an example in your issue, [this fiddle](https://jsfiddle.net/evschris/wxc00vup/) has a convenient minimal setup that has easily switchable Ractive versions.
+If you'd like to include an example in your issue, [this fiddle](https://jsfiddle.net/evschris/swkz9n7n/) has a convenient minimal setup that has easily switchable Ractive versions.
 
 
 ## Contributing
