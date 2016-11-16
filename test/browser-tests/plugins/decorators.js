@@ -615,4 +615,34 @@ export default function() {
 		r.toggle( 'show' );
 		t.equal( count, 1 );
 	});
+
+	test( `decorators that cause themselves to be torn down during their init are torn down properly (#2412)`, t => {
+		let go = true;
+		let setup = 0;
+		let teardown = 0;
+
+		const foo = function () {
+			setup++;
+
+			if ( go ) {
+				go = false;
+				this.shift( 'items' );
+			}
+
+			return {
+				teardown () { teardown++; }
+			};
+		};
+
+		new Ractive({
+			el: fixture,
+			template: '{{#each items}}<div as-foo>{{.}}</div>{{/each}}',
+			decorators: { foo },
+			data: { items: [ 'a', 'b', 'c' ] }
+		});
+
+		t.equal( setup, 3 );
+		t.equal( teardown, 1 );
+		t.htmlEqual( fixture.innerHTML, '<div>b</div><div>c</div>' );
+	});
 }
