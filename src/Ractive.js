@@ -12,6 +12,7 @@ import initialise from './Ractive/initialise';
 import { getCSS } from './global/css';
 import { escapeKey, unescapeKey } from './shared/keypaths';
 import { joinKeys, splitKeypath } from './Ractive/static/keypaths';
+import readTemplate from './view/helpers/template';
 
 export default function Ractive ( options ) {
 	if ( !( this instanceof Ractive ) ) return new Ractive( options );
@@ -56,6 +57,7 @@ defineProperties( Ractive, {
 	splitKeypath:   { value: splitKeypath },
 	unescapeKey:    { value: unescapeKey },
 	getCSS:         { value: getCSS },
+	template:       { value: readTemplate },
 
 	// support
 	enhance:        { writable: true, value: false },
