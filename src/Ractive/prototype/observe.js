@@ -22,14 +22,19 @@ export default function observe ( keypath, callback, options ) {
 		}
 	}
 
+	let silent = false;
 	Object.keys( map ).forEach( keypath => {
 		const callback = map[ keypath ];
+		const caller = function ( ...args ) {
+			if ( silent ) return;
+			return callback.apply( this, args );
+		};
 
 		let keypaths = keypath.split( ' ' );
 		if ( keypaths.length > 1 ) keypaths = keypaths.filter( k => k );
 
 		keypaths.forEach( keypath => {
-			observers.push( createObserver( this, keypath, callback, options || {} ) );
+			observers.push( createObserver( this, keypath, caller, options || {} ) );
 		});
 	});
 
@@ -38,12 +43,10 @@ export default function observe ( keypath, callback, options ) {
 	this._observers.push.apply( this._observers, observers );
 
 	return {
-		cancel: () => {
-			observers.forEach( ( observer ) => {
-				removeFromArray ( this._observers, observer );
-				observer.cancel();
-			} );
-		}
+		cancel: () => observers.forEach( o => o.cancel() ),
+		isSilenced: () => silent,
+		silence: () => silent = true,
+		resume: () => silent = false
 	};
 }
 
@@ -108,6 +111,7 @@ class Observer {
 		} else {
 			this.resolver.unbind();
 		}
+		removeFromArray( this.ractive._observers, this );
 	}
 
 	dispatch () {
@@ -194,6 +198,7 @@ class PatternObserver {
 
 	cancel () {
 		this.baseModel.unregisterPatternObserver( this );
+		removeFromArray( this.ractive._observers, this );
 	}
 
 	dispatch () {

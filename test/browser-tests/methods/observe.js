@@ -1414,4 +1414,26 @@ export default function() {
 		r.set( 'foo', 'bar' );
 		t.equal( count, 1 );
 	});
+
+	test( `observers can be silenced and resumed`, t => {
+		let count = 0;
+		const r = new Ractive();
+		const handle = r.observe( 'foo', function () {
+			t.ok( this === r );
+			count++;
+		}, { init: false });
+
+		r.toggle( 'foo' );
+		t.equal( count, 1 );
+
+		handle.silence();
+		r.toggle( 'foo' );
+		t.equal( count, 1 );
+		t.equal( handle.isSilenced(), true );
+
+		handle.resume();
+		r.toggle( 'foo' );
+		t.equal( count, 2 );
+		t.equal( handle.isSilenced(), false );
+	});
 }
