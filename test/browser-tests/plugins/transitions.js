@@ -687,7 +687,7 @@ export default function() {
 		}
 
 		const r = new Ractive({
-			template: '<style>div { height: 300px }</style><div go-in-out />',
+			template: '<style>div#def-nerp { height: 300px }</style><div id="def-nerp" go-in-out />',
 			transitions: { go }
 		});
 
@@ -697,6 +697,67 @@ export default function() {
 			r.unrender().then( () => {
 				done();
 			});
+		});
+	});
+
+	test( `transitions that are nested: false and at root fire`, t => {
+		const done = t.async();
+		let count = 0;
+
+		function go ( trans ) {
+			count++;
+			trans.complete();
+		}
+
+		const r = new Ractive({
+			template: '<div><div go-in="{ nested: false }" /></div>',
+			transitions: { go }
+		});
+
+		r.render( fixture ).then( () => {
+			t.equal( count, 1 );
+			done();
+		});
+	});
+
+	test( `transitions that are nested: false don't fire when they aren't the root`, t => {
+		const done = t.async();
+		let count = 0;
+
+		function go ( trans ) {
+			count++;
+			trans.complete();
+		}
+
+		const r = new Ractive({
+			template: '<div go-in><div go-in="{ nested: false }" /></div>',
+			transitions: { go }
+		});
+
+		r.render( fixture ).then( () => {
+			t.equal( count, 1 );
+			done();
+		});
+	});
+
+	test( `transitions can be defaulted to nested: false at the instance level with nestedTransitions`, t => {
+		const done = t.async();
+		let count = 0;
+
+		function go ( trans ) {
+			count++;
+			trans.complete();
+		}
+
+		const r = new Ractive({
+			template: '<div go-in><div go-in /></div>',
+			transitions: { go },
+			nestedTransitions: false
+		});
+
+		r.render( fixture ).then( () => {
+			t.equal( count, 1 );
+			done();
 		});
 	});
 }

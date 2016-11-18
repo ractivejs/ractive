@@ -35,6 +35,7 @@ export default {
 	noIntro:                false,
 	transitionsEnabled:     true,
 	complete:               void 0,
+	nestedTransitions:      true,
 
 	// css:
 	css:                    null,

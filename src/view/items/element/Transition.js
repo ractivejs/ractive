@@ -115,8 +115,8 @@ export default class Transition {
 	bind () {
 		const options = this.options;
 		if ( options.template ) {
-			if ( options.template.v === 't0' || options.template.v == 't1' ) this.element._introTransition = this;
-			if ( options.template.v === 't0' || options.template.v == 't2' ) this.element._outroTransition = this;
+			if ( options.template.v === 't0' || options.template.v == 't1' ) this.element.intro = this;
+			if ( options.template.v === 't0' || options.template.v == 't2' ) this.element.outro = this;
 			this.eventName = names[ options.template.v ];
 		}
 
@@ -143,6 +143,20 @@ export default class Transition {
 	}
 
 	destroyed () {}
+
+	getParams () {
+		if ( this.params ) return this.params;
+
+		// get expression args if supplied
+		if ( this.fn ) {
+			const values = this.models.map( model => {
+				if ( !model ) return undefined;
+
+				return model.get();
+			});
+			return this.fn.apply( this.ractive, values );
+		}
+	}
 
 	getStyle ( props ) {
 		const computedStyle = getComputedStyle( this.owner.node );
@@ -225,17 +239,35 @@ export default class Transition {
 		return this;
 	}
 
+	shouldFire ( type ) {
+		if ( !this.ractive.transitionsEnabled ) return false;
+
+		const params = this.getParams(); // this is an array, the params object should be the first member
+		// if there's not a root param or parent element, the transition can start
+		if ( !this.element.parent ) return true;
+		if ( ( !params || !params[0] || params[0].nested !== false ) && this.ractive.nestedTransitions ) return true;
+
+		let el = this.element.parent;
+		while ( el ) {
+			if ( el[type] && el[type].starting ) return false;
+			el = el.parent;
+		}
+
+		return true;
+	}
+
 	start () {
 		const node = this.node = this.element.node;
 		const originalStyle = node.getAttribute( 'style' );
 
 		let completed;
-		let args = this.params;
+		const args = this.getParams();
 
 		// create t.complete() - we don't want this on the prototype,
 		// because we don't want `this` silliness when passing it as
 		// an argument
 		this.complete = noReset => {
+			this.starting = false;
 			if ( completed ) {
 				return;
 			}
@@ -256,16 +288,6 @@ export default class Transition {
 		if ( !this._fn ) {
 			this.complete();
 			return;
-		}
-
-		// get expression args if supplied
-		if ( this.fn ) {
-			const values = this.models.map( model => {
-				if ( !model ) return undefined;
-
-				return model.get();
-			});
-			args = this.fn.apply( this.ractive, values );
 		}
 
 		const promise = this._fn.apply( this.ractive, [ this ].concat( args ) );
