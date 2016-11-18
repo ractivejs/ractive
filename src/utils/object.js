@@ -101,3 +101,11 @@ export function fillGaps ( target, ...sources ) {
 }
 
 export const hasOwn = Object.prototype.hasOwnProperty;
+
+export function toPairs ( obj = {} ) {
+	const res = [];
+	for ( const k in obj ) {
+		if ( hasOwn.call( obj, k ) ) res.push( [ k, obj[k] ] );
+	}
+	return res;
+}

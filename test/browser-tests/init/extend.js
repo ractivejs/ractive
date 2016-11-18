@@ -207,4 +207,33 @@ export default function() {
 			t.ok( warned );
 		});
 	}
+
+	test( 'children inherit subscribers', t => {
+		t.expect( 7 );
+
+		const cmp = Ractive.extend({
+			on: {
+				foo() { t.ok( true ); }
+			},
+			observe: {
+				foo() { t.ok( true ); }
+			}
+		});
+		const two = cmp.extend({
+			on: {
+				foo() { t.ok( true ); },
+				bar() { t.ok( true ); }
+			},
+			observe: {
+				bar() { t.ok( true ); }
+			}
+		});
+
+		const r = new two();
+
+		r.fire( 'foo' );
+		r.fire( 'bar' );
+		r.toggle( 'foo' );
+		r.toggle( 'bar' );
+	});
 }

@@ -20,7 +20,7 @@ const defaultKeys = Object.keys( defaults );
 const isStandardKey = makeObj( defaultKeys.filter( key => !custom[ key ] ) );
 
 // blacklisted keys that we don't double extend
-const isBlacklisted = makeObj( defaultKeys.concat( registries.map( r => r.name ) ) );
+const isBlacklisted = makeObj( defaultKeys.concat( registries.map( r => r.name ), [ 'on', 'observe' ] ) );
 
 const order = [].concat(
 	defaultKeys.filter( key => !registries[ key ] && !custom[ key ] ),

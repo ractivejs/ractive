@@ -67,6 +67,20 @@ export function removeFromArray ( array, member ) {
 	}
 }
 
+export function combine ( first, ...rest ) {
+	const res = first.slice();
+	rest = rest.concat.apply( [], rest );
+
+	let i = rest.length;
+	while ( i-- ) {
+		if ( !~res.indexOf( rest[i] ) ) {
+			res.push( rest[i] );
+		}
+	}
+
+	return res;
+}
+
 export function toArray ( arrayLike ) {
 	const array = [];
 	let i = arrayLike.length;

@@ -1,4 +1,4 @@
-import { create, defineProperties, extend as extendObj } from '../utils/object';
+import { create, defineProperties, extend as extendObj, toPairs } from '../utils/object';
 import config from '../Ractive/config/config';
 import dataConfigurator from '../Ractive/config/custom/data';
 import construct from '../Ractive/construct';
@@ -51,6 +51,10 @@ function extendOne ( Parent, options = {} ) {
 
 	// extend configuration
 	config.extend( Parent, proto, options );
+
+	// store event and observer registries on the constructor when extending
+	Child._on = ( Parent._on || [] ).concat( toPairs( options.on ) );
+	Child._observe = ( Parent._observe || [] ).concat( toPairs( options.observe ) );
 
 	dataConfigurator.extend( Parent, proto, options );
 

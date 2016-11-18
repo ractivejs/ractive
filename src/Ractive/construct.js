@@ -1,7 +1,7 @@
 import { fatal, welcome } from '../utils/log';
 import { missingPlugin } from '../config/errors';
 import { magic as magicSupported } from '../config/environment';
-import { ensureArray } from '../utils/array';
+import { ensureArray, combine } from '../utils/array';
 import { findInViewHierarchy } from '../shared/registry';
 import arrayAdaptor from './static/adaptors/array/index';
 import magicAdaptor from './static/adaptors/magic';
@@ -59,20 +59,6 @@ export default function construct ( ractive, options ) {
 	}
 }
 
-function combine ( arrays ) {
-	const res = [];
-	const args = res.concat.apply( res, arrays );
-
-	let i = args.length;
-	while ( i-- ) {
-		if ( !~res.indexOf( args[i] ) ) {
-			res.unshift( args[i] );
-		}
-	}
-
-	return res;
-}
-
 function getAdaptors ( ractive, protoAdapt, options ) {
 	protoAdapt = protoAdapt.map( lookup );
 	const adapt = ensureArray( options.adapt ).map( lookup );
@@ -103,7 +89,7 @@ function getAdaptors ( ractive, protoAdapt, options ) {
 		builtins.push( arrayAdaptor );
 	}
 
-	return combine( srcs );
+	return combine.apply( null, srcs );
 
 
 	function lookup ( adaptor ) {
