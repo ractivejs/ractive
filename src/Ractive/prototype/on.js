@@ -2,33 +2,34 @@ import trim from './shared/trim';
 import notEmptyString from './shared/notEmptyString';
 
 export default function Ractive$on ( eventName, callback ) {
-	// allow multiple listeners to be bound in one go
-	if ( typeof eventName === 'object' ) {
-		const listeners = [];
-		let n;
+	// eventName may already be a map
+	const map = typeof eventName === 'object' ? eventName : {};
+	// or it may be a string along with a callback
+	if ( typeof eventName === 'string' ) map[ eventName ] = callback;
 
-		for ( n in eventName ) {
-			if ( eventName.hasOwnProperty( n ) ) {
-				listeners.push( this.on( n, eventName[ n ] ) );
-			}
-		}
+	let silent = false;
+	const events = [];
 
-		return {
-			cancel () {
-				let listener;
-				while ( listener = listeners.pop() ) listener.cancel();
-			}
+	for ( const k in map ) {
+		const callback = map[k];
+		const caller = function ( ...args ) {
+			if ( !silent ) return callback.apply( this, args );
 		};
+		callback._proxy = caller;
+
+		if ( map.hasOwnProperty( k ) ) {
+			const names = k.split( ' ' ).map( trim ).filter( notEmptyString );
+			names.forEach( n => {
+				( this._subs[ n ] || ( this._subs[ n ] = [] ) ).push( caller );
+				events.push( [ n, caller ] );
+			});
+		}
 	}
 
-	// Handle multiple space-separated event names
-	const eventNames = eventName.split( ' ' ).map( trim ).filter( notEmptyString );
-
-	eventNames.forEach( eventName => {
-		( this._subs[ eventName ] || ( this._subs[ eventName ] = [] ) ).push( callback );
-	});
-
 	return {
-		cancel: () => this.off( eventName, callback )
+		cancel: () => events.forEach( e => this.off( e[0], e[1] ) ),
+		isSilenced: () => silent,
+		silence: () => silent = true,
+		resume: () => silent = false
 	};
 }

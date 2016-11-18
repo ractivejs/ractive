@@ -174,4 +174,27 @@ export default function() {
 		r.findComponent( 'cmp' ).fire( 'baz' );
 		t.equal( r.get( 'foo' ), 'yep' );
 	});
+
+	test( `events can be silenced and resumed`, t => {
+		let count = 0;
+		const r = new Ractive();
+		const handle = r.on( 'foo', function ( num ) {
+			t.equal( num, 1 );
+			t.ok( this === r );
+			count++;
+		});
+
+		r.fire( 'foo', 1 );
+		t.equal( count, 1 );
+
+		handle.silence();
+		r.fire( 'foo', 1 );
+		t.equal( count, 1 );
+		t.equal( handle.isSilenced(), true );
+
+		handle.resume();
+		r.fire( 'foo', 1 );
+		t.equal( count, 2 );
+		t.equal( handle.isSilenced(), false );
+	});
 }

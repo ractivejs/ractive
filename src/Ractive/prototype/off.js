@@ -1,42 +1,28 @@
 import trim from './shared/trim';
 import notEmptyString from './shared/notEmptyString';
+import { removeFromArray } from '../../utils/array';
 
 export default function Ractive$off ( eventName, callback ) {
-	// if no arguments specified, remove all callbacks
+	// if no event is specified, remove _all_ event listeners
 	if ( !eventName ) {
-		// TODO use this code instead, once the following issue has been resolved
-		// in PhantomJS (tests are unpassable otherwise!)
-		// https://github.com/ariya/phantomjs/issues/11856
-		// defineProperty( this, '_subs', { value: create( null ), configurable: true });
-		for ( eventName in this._subs ) {
-			delete this._subs[ eventName ];
-		}
-	}
-
-	else {
+		this._subs = {};
+	} else {
 		// Handle multiple space-separated event names
 		const eventNames = eventName.split( ' ' ).map( trim ).filter( notEmptyString );
 
-		eventNames.forEach( eventName => {
-			const subscribers = this._subs[ eventName ];
+		eventNames.forEach( event => {
+			const subs = this._subs[ event ];
+			// if given a specific callback to remove, remove only it
+			if ( subs && callback ) {
+				// flag this callback as off so that any in-flight firings don't call
+				// a cancelled handler - this is _slightly_ hacky
+				( callback._proxy || callback ).off = true;
+				removeFromArray( subs, callback._proxy || callback );
+			}
 
-			// If we have subscribers for this event...
-			if ( subscribers ) {
-				// ...if a callback was specified, only remove that
-				if ( callback ) {
-					// flag this callback as off so that any in-flight firings don't call
-					// a cancelled handler - this is _slightly_ hacky
-					callback.off = true;
-					const index = subscribers.indexOf( callback );
-					if ( index !== -1 ) {
-						subscribers.splice( index, 1 );
-					}
-				}
-
-				// ...otherwise remove all callbacks
-				else {
-					this._subs[ eventName ] = [];
-				}
+			// otherwise, remove all listeners for this event
+			else if ( subs ) {
+				subs.length = 0;
 			}
 		});
 	}
