@@ -242,4 +242,29 @@ export default function() {
 		t.equal( count, 2 );
 		t.equal( handle.isSilenced(), false );
 	});
+
+	test( `event handle cancels all events when multiple events are subscribed`, t => {
+		let count = 0;
+		const r = new Ractive();
+		const obj = r.on({
+			foo() { count++; },
+			bar() { count++; },
+			'baz bat': () => count++
+		});
+		const space = r.on( 'foo baz', () => count++ );
+
+		r.fire( 'foo' );
+		t.equal( count, 2 );
+
+		r.fire( 'baz' );
+		t.equal( count, 4 );
+
+		space.cancel();
+		r.fire( 'foo' );
+		t.equal( count, 5 );
+
+		obj.cancel();
+		r.fire( 'bar' );
+		t.equal( count, 5 );
+	});
 }

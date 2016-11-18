@@ -1436,4 +1436,19 @@ export default function() {
 		t.equal( count, 2 );
 		t.equal( handle.isSilenced(), false );
 	});
+
+	test( `observer handle cancels all observers when multiple observers are created`, t => {
+		let count = 0;
+		const r = new Ractive();
+		const handle = r.observe( 'foo bar baz', () => count++, { init: false } );
+
+		r.toggle( 'foo' );
+		r.toggle( 'bar' );
+		t.equal( count, 2 );
+
+		handle.cancel();
+
+		r.toggle( 'bar' );
+		t.equal( count, 2 );
+	});
 }
