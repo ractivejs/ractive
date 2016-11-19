@@ -141,6 +141,59 @@ export default function() {
 		ractive.render( fixture );
 	});
 
+	test( 'noIntro on a rendering parent instance prevents intro transition on component', t => {
+		t.expect( 1 );
+		const done = t.async();
+
+		const cmp = Ractive.extend({
+			template: '<div check-in />',
+			transitions: {
+				check ( trans ) {
+					t.ok( false, 'transition should not run' );
+					trans.complete();
+				}
+			}
+		});
+
+		const r = new Ractive({
+			noIntro: true,
+			template: '<cmp />',
+			components: { cmp }
+		});
+
+		r.render( fixture ).then( () => {
+			t.htmlEqual( fixture.innerHTML, '<div></div>' );
+			done();
+		});
+	});
+
+	test( `noIntro on already rendered parent instance doesn't affect components`, t => {
+		t.expect( 2 );
+		const done = t.async();
+
+		const cmp = Ractive.extend({
+			template: '<div check-in />',
+			transitions: {
+				check ( trans ) {
+					t.ok( true, 'transition should run' );
+					trans.complete();
+				}
+			}
+		});
+
+		const r = new Ractive({
+			noIntro: true,
+			target: fixture,
+			template: '{{#if show}}<cmp />{{/if}}',
+			components: { cmp }
+		});
+
+		r.toggle( 'show').then( () => {
+			t.htmlEqual( fixture.innerHTML, '<div></div>' );
+			done();
+		});
+	});
+
 	test( 'ractive.transitionsEnabled false prevents all transitions', t => {
 		t.expect( 1 );
 
