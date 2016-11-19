@@ -1,5 +1,4 @@
 import { win } from '../../../config/environment';
-import legacy from '../../../legacy';
 import { isArray } from '../../../utils/is';
 import { addToArray, removeFromArray } from '../../../utils/array';
 import findElement from '../shared/findElement';
@@ -11,11 +10,10 @@ import { findInViewHierarchy } from '../../../shared/registry';
 import { visible } from '../../../config/visibility';
 import createTransitions from './transitions/createTransitions';
 import resetStyle from './transitions/resetStyle';
-import Promise from '../../../utils/Promise';
 import { rebindMatch } from '../../../shared/rebind';
 import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
 
-const getComputedStyle = win && ( win.getComputedStyle || legacy.getComputedStyle );
+const getComputedStyle = win && win.getComputedStyle;
 const resolved = Promise.resolve();
 
 const names = {

@@ -12,7 +12,8 @@ module.exports = function (config) {
 
 		// list of files / patterns to load in the browser
 		files: [
-			'ractive-legacy.js',
+			'test/es6-shim.js',
+			'ractive.js',
 			'test/qunit-html.js',
 			'test/simulant.js',
 			'test/karma-init.js',

@@ -1,6 +1,5 @@
 import runloop from '../../global/runloop';
 import interpolate from '../../shared/interpolate';
-import Promise from '../../utils/Promise';
 import { defineProperty } from '../../utils/object';
 import { isEqual } from '../../utils/is';
 import { splitKeypath } from '../../shared/keypaths';

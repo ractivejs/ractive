@@ -6,7 +6,7 @@ export default function() {
 
 	function createIsolatedEnv() {
 
-		return new Ractive.Promise( ( resolve, reject ) => {
+		return new Promise( ( resolve, reject ) => {
 
 			const frame = document.createElement( 'iframe' );
 
@@ -17,6 +17,7 @@ export default function() {
 			frame.onload = () => {
 				const win = frame.contentWindow || frame;
 				const doc = frame.contentDocument || frame.contentWindow.document;
+				win.Promise = Promise;
 
 				const script = document.createElement( 'script' );
 				doc.body.appendChild( script );
@@ -32,9 +33,9 @@ export default function() {
 					reject();
 				};
 
-				script.src = '../ractive-legacy.js';
+				script.src = '../ractive.js';
 			};
-			
+
 			document.body.appendChild( frame );
 		} );
 
@@ -150,7 +151,7 @@ export default function() {
 			const done5 = t.async();
 
 		// Simulate two separate Ractive environments using iframes
-			Ractive.Promise.all( [ createIsolatedEnv(), createIsolatedEnv() ] ).then( envs => {
+			Promise.all( [ createIsolatedEnv(), createIsolatedEnv() ] ).then( envs => {
 
 				const ComponentA = createComponentDefinition( envs[ 0 ].Ractive );
 				const ComponentB = createComponentDefinition( envs[ 1 ].Ractive );

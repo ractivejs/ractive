@@ -11,6 +11,10 @@
 	* Partial context (`{{>foo thisIsTheContext}}`) now only applies inside the partial template, meaning it is no longer equivalent to `{{#with thisIsTheContext}}{{>foo}}{{/with}}`. The with is wrapped around the content of `foo`, so that the context doesn't interfere with the partial expression.
 	* Any partial may be yielded, so yielding non-inline partials will no longer warn.
 	* The same partial may be yielded multiple times.
+	* Legacy builds removed. Only regular and runtime builds are now available.
+		* `Promise` shim required for IE11.
+		* `requestAnimationFrame` polyfill required for IE10.
+		* es5-shim required for non-ES5 browsers.
 
 * New features (experimental - feedback welcome!)
 	* You can now create cross-instance links by passing an options object with a target instance e.g. `this.link('source.path', 'dest.path', { ractive: sourceInstance })`. This covers many of the cases handled by the `ractive-ractive` adaptor in a considerably more efficient manner.

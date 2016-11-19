@@ -2,7 +2,6 @@ import ModelBase, { maybeBind, shuffle } from './ModelBase';
 import LinkModel from './LinkModel'; // eslint-disable-line no-unused-vars
 import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
-import Promise from '../utils/Promise';
 import { isArray, isEqual, isNumeric, isObjectLike } from '../utils/is';
 import { handleChange, mark, marked, teardown } from '../shared/methodCallers';
 import Ticker from '../shared/Ticker';
