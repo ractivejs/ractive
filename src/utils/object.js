@@ -74,17 +74,7 @@ try {
 export { create, defineProperty, defineProperties };
 
 export function extend ( target, ...sources ) {
-	let prop;
-
-	sources.forEach( source => {
-		for ( prop in source ) {
-			if ( hasOwn.call( source, prop ) ) {
-				target[ prop ] = source[ prop ];
-			}
-		}
-	});
-
-	return target;
+	return Object.assign(target, ...sources);
 }
 
 export function fillGaps ( target, ...sources ) {
