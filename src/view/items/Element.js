@@ -210,6 +210,13 @@ export default class Element extends ContainerItem {
 
 		if ( existing && this.foundNode ) this.foundNode( node );
 
+		// register intro before rendering content so children can find the intro
+		const intro = this.intro;
+		if ( intro && intro.shouldFire( 'intro' ) ) {
+			intro.isIntro = true;
+			runloop.registerTransition( intro );
+		}
+
 		if ( this.fragment ) {
 			const children = existing ? toArray( node.childNodes ) : undefined;
 
@@ -237,11 +244,6 @@ export default class Element extends ContainerItem {
 		if ( this.binding ) this.binding.render();
 
 		updateLiveQueries( this );
-
-		if ( this._introTransition && this.ractive.transitionsEnabled ) {
-			this._introTransition.isIntro = true;
-			runloop.registerTransition( this._introTransition );
-		}
 
 		if ( !existing ) {
 			target.appendChild( node );
@@ -323,7 +325,7 @@ export default class Element extends ContainerItem {
 
 		// unrendering before intro completed? complete it now
 		// TODO should be an API for aborting transitions
-		const transition = this._introTransition;
+		const transition = this.intro;
 		if ( transition && transition.complete ) transition.complete();
 
 		// Detach as soon as we can
@@ -336,15 +338,16 @@ export default class Element extends ContainerItem {
 			runloop.detachWhenReady( this );
 		}
 
+		// outro transition
+		const outro = this.outro;
+		if ( outro && outro.shouldFire( 'outro' ) ) {
+			outro.isIntro = false;
+			runloop.registerTransition( outro );
+		}
+
 		if ( this.fragment ) this.fragment.unrender();
 
 		if ( this.binding ) this.binding.unrender();
-
-		// outro transition
-		if ( this._outroTransition && this.ractive.transitionsEnabled ) {
-			this._outroTransition.isIntro = false;
-			runloop.registerTransition( this._outroTransition );
-		}
 
 		this.liveQueries.forEach( query => query.remove( this.node ) );
 		this.liveQueries = [];

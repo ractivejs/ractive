@@ -12,6 +12,7 @@ export default function Ractive$unrender () {
 		return Promise.resolve();
 	}
 
+	this.unrendering = true;
 	const promise = runloop.start( this, true );
 
 	// If this is a component, and the component isn't marked for destruction,
@@ -25,5 +26,7 @@ export default function Ractive$unrender () {
 	unrenderHook.fire( this );
 
 	runloop.end();
+	this.unrendering = false;
+
 	return promise;
 }

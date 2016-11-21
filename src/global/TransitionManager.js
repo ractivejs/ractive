@@ -21,6 +21,7 @@ export default class TransitionManager {
 
 	add ( transition ) {
 		const list = transition.isIntro ? this.intros : this.outros;
+		transition.starting = true;
 		list.push( transition );
 	}
 

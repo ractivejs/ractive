@@ -33,8 +33,10 @@ export default {
 
 	// transitions:
 	noIntro:                false,
+	noOutro:                false,
 	transitionsEnabled:     true,
 	complete:               void 0,
+	nestedTransitions:      true,
 
 	// css:
 	css:                    null,

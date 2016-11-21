@@ -9,9 +9,8 @@ const renderHook = new Hook( 'render' );
 const completeHook = new Hook( 'complete' );
 
 export default function render ( ractive, target, anchor, occupants ) {
-	// if `noIntro` is `true`, temporarily disable transitions
-	const transitionsEnabled = ractive.transitionsEnabled;
-	if ( ractive.noIntro ) ractive.transitionsEnabled = false;
+	// set a flag to let any transitions know that this instance is currently rendering
+	ractive.rendering = true;
 
 	const promise = runloop.start( ractive, true );
 	runloop.scheduleTask( () => renderHook.fire( ractive ), true );
@@ -46,7 +45,7 @@ export default function render ( ractive, target, anchor, occupants ) {
 	}
 
 	runloop.end();
-	ractive.transitionsEnabled = transitionsEnabled;
+	ractive.rendering = false;
 
 	return promise.then( () => completeHook.fire( ractive ) );
 }

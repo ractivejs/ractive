@@ -119,6 +119,28 @@ export default function() {
 		});
 	});
 
+	test( 'noOutro option prevents outro transition', t => {
+		const done = t.async();
+
+		t.expect( 1 );
+
+		let transitioned;
+
+		const r = new Ractive({
+			el: fixture,
+			template: '<div test-out></div>',
+			noIntro: true,
+			beforeComplete(){
+				transitioned = true;
+			},
+			onteardown(){
+				t.ok( !transitioned, 'transition happened');
+				done();
+			}
+		});
+		r.teardown();
+	});
+
 	test( 'noIntro option prevents intro transition when el is initially undefined', t => {
 		t.expect( 1 );
 
@@ -139,6 +161,86 @@ export default function() {
 		});
 
 		ractive.render( fixture );
+	});
+
+	test( 'noIntro on a rendering parent instance prevents intro transition on component', t => {
+		t.expect( 1 );
+		const done = t.async();
+
+		const cmp = Ractive.extend({
+			template: '<div check-in />',
+			transitions: {
+				check ( trans ) {
+					t.ok( false, 'transition should not run' );
+					trans.complete();
+				}
+			}
+		});
+
+		const r = new Ractive({
+			noIntro: true,
+			template: '<cmp />',
+			components: { cmp }
+		});
+
+		r.render( fixture ).then( () => {
+			t.htmlEqual( fixture.innerHTML, '<div></div>' );
+			done();
+		});
+	});
+
+	test( `noIntro on already rendered parent instance doesn't affect components`, t => {
+		t.expect( 2 );
+		const done = t.async();
+
+		const cmp = Ractive.extend({
+			template: '<div check-in />',
+			transitions: {
+				check ( trans ) {
+					t.ok( true, 'transition should run' );
+					trans.complete();
+				}
+			}
+		});
+
+		const r = new Ractive({
+			noIntro: true,
+			target: fixture,
+			template: '{{#if show}}<cmp />{{/if}}',
+			components: { cmp }
+		});
+
+		r.toggle( 'show' ).then( () => {
+			t.htmlEqual( fixture.innerHTML, '<div></div>' );
+			done();
+		});
+	});
+
+	test( `noOutro on still rendered parent instance doesn't affect components`, t => {
+		t.expect( 2 );
+		const done = t.async();
+
+		const cmp = Ractive.extend({
+			template: '<div check-out />',
+			transitions: {
+				check ( trans ) {
+					t.ok( true, 'transition should run' );
+					trans.complete();
+				}
+			}
+		});
+
+		const r = new Ractive({
+			noOutro: true,
+			target: fixture,
+			template: '{{#unless hide}}<cmp />{{/unless}}',
+			components: { cmp }
+		});
+
+		r.toggle( 'hide' ).then( () => {
+			t.htmlEqual( fixture.innerHTML, '' );
+			done();
+		});
 	});
 
 	test( 'ractive.transitionsEnabled false prevents all transitions', t => {
@@ -687,7 +789,7 @@ export default function() {
 		}
 
 		const r = new Ractive({
-			template: '<style>div { height: 300px }</style><div go-in-out />',
+			template: '<style>div#def-nerp { height: 300px }</style><div id="def-nerp" go-in-out />',
 			transitions: { go }
 		});
 
@@ -697,6 +799,114 @@ export default function() {
 			r.unrender().then( () => {
 				done();
 			});
+		});
+	});
+
+	test( `transitions that are nested: false and at root fire`, t => {
+		const done = t.async();
+		let count = 0;
+
+		function go ( trans ) {
+			count++;
+			trans.complete();
+		}
+
+		const r = new Ractive({
+			template: '<div><div go-in="{ nested: false }" /></div>',
+			transitions: { go }
+		});
+
+		r.render( fixture ).then( () => {
+			t.equal( count, 1 );
+			done();
+		});
+	});
+
+	test( `transitions that are nested: false don't fire when they aren't the root`, t => {
+		const done = t.async();
+		let count = 0;
+
+		function go ( trans ) {
+			count++;
+			trans.complete();
+		}
+
+		const r = new Ractive({
+			template: '<div go-in><div go-in="{ nested: false }" /></div>',
+			transitions: { go }
+		});
+
+		r.render( fixture ).then( () => {
+			t.equal( count, 1 );
+			done();
+		});
+	});
+
+	test( `transitions can be defaulted to nested: false at the instance level with nestedTransitions`, t => {
+		const done = t.async();
+		let count = 0;
+
+		function go ( trans ) {
+			count++;
+			trans.complete();
+		}
+
+		const r = new Ractive({
+			template: '<div go-in><div go-in /></div>',
+			transitions: { go },
+			nestedTransitions: false
+		});
+
+		r.render( fixture ).then( () => {
+			t.equal( count, 1 );
+			done();
+		});
+	});
+
+	test( `transitions that are nested: true override their instance nestedTransitions setting`, t => {
+		const done = t.async();
+		let count = 0;
+
+		function go ( trans ) {
+			count++;
+			trans.complete();
+		}
+
+		const r = new Ractive({
+			template: '<div go-in><div go-in={ nested: true } /></div>',
+			transitions: { go },
+			nestedTransitions: false
+		});
+
+		r.render( fixture ).then( () => {
+			t.equal( count, 2 );
+			done();
+		});
+	});
+
+	test( `transitions look to the nearest set nested setting if neither they nor their instance have an explicit setting`, t => {
+		const done = t.async();
+		let count = 0;
+
+		const cmp = Ractive.extend({
+			template: '<div go-in />'
+		});
+
+		function go ( trans ) {
+			count++;
+			trans.complete();
+		}
+
+		const r = new Ractive({
+			template: '<div go-in><cmp /></div>',
+			transitions: { go },
+			components: { cmp },
+			nestedTransitions: false
+		});
+
+		r.render( fixture ).then( () => {
+			t.equal( count, 1 );
+			done();
 		});
 	});
 }
