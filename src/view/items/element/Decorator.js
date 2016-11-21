@@ -21,7 +21,6 @@ export default class Decorator {
 		const template = this.template = options.template;
 
 		this.name = template.n;
-		this.args = [];
 
 		this.node = null;
 		this.intermediary = null;
@@ -117,17 +116,8 @@ export default class Decorator {
 				this.render();
 			}
 			else {
-				if ( this.fn ) {
-					const args = this.models.map( model => {
-						if ( !model ) return undefined;
-
-						return model.get();
-					});
-					this.intermediary.update.apply( this.ractive, this.fn.apply( this.ractive, args ) );
-				}
-				else {
-					this.intermediary.update.apply( this.ractive, this.args );
-				}
+				const args = this.models.map( model => model && model.get() );
+				this.intermediary.update.apply( this.ractive, this.fn.apply( this.ractive, args ) );
 			}
 		}
 	}

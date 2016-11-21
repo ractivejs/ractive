@@ -274,18 +274,6 @@ export default class ModelBase {
 		}
 	}
 
-	shuffled () {
-		let i = this.children.length;
-		while ( i-- ) {
-			this.children[i].shuffled();
-		}
-		if ( this.wrapper ) {
-			this.wrapper.teardown();
-			this.wrapper = null;
-			this.rewrap = true;
-		}
-	}
-
 	unregister ( dependant ) {
 		removeFromArray( this.deps, dependant );
 	}
