@@ -813,4 +813,51 @@ export default function() {
 			done();
 		});
 	});
+
+	test( `transitions that are nested: true override their instance nestedTransitions setting`, t => {
+		const done = t.async();
+		let count = 0;
+
+		function go ( trans ) {
+			count++;
+			trans.complete();
+		}
+
+		const r = new Ractive({
+			template: '<div go-in><div go-in={ nested: true } /></div>',
+			transitions: { go },
+			nestedTransitions: false
+		});
+
+		r.render( fixture ).then( () => {
+			t.equal( count, 2 );
+			done();
+		});
+	});
+
+	test( `transitions look to the nearest set nested setting if neither they nor their instance have an explicit setting`, t => {
+		const done = t.async();
+		let count = 0;
+
+		const cmp = Ractive.extend({
+			template: '<div go-in />'
+		});
+
+		function go ( trans ) {
+			count++;
+			trans.complete();
+		}
+
+		const r = new Ractive({
+			template: '<div go-in><cmp /></div>',
+			transitions: { go },
+			components: { cmp },
+			nestedTransitions: false
+		});
+
+		r.render( fixture ).then( () => {
+			t.equal( count, 1 );
+			done();
+		});
+	});
 }

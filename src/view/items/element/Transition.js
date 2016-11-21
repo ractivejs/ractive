@@ -242,11 +242,22 @@ export default class Transition {
 	shouldFire ( type ) {
 		if ( !this.ractive.transitionsEnabled ) return false;
 
-		const params = this.getParams(); // this is an array, the params object should be the first member
-		// if there's not a root param or parent element, the transition can start
-		if ( !this.element.parent ) return true;
-		if ( ( !params || !params[0] || params[0].nested !== false ) && this.ractive.nestedTransitions ) return true;
+		// check for noIntro case, which only applies when the owner ractive is rendering
+		if ( type === 'intro' && this.ractive.rendering && nearestProp( 'noIntro', this.ractive, true ) ) return false;
 
+		const params = this.getParams(); // this is an array, the params object should be the first member
+		// if there's not a parent element, this can't be nested, so roll on
+		if ( !this.element.parent ) return true;
+
+		// if there is a local param, it takes precedent
+		if ( params && params[0] && 'nested' in params[0] ) {
+			if ( params[0].nested !== false ) return true;
+		} else { // use the nearest instance setting
+			// find the nearest instance that actually has a nested setting
+			if ( nearestProp( 'nestedTransitions', this.ractive ) !== false ) return true;
+		}
+
+		// check to see if this is actually a nested transition
 		let el = this.element.parent;
 		while ( el ) {
 			if ( el[type] && el[type].starting ) return false;
@@ -307,4 +318,14 @@ export default class Transition {
 	unrender () {}
 
 	update () {}
+}
+
+function nearestProp ( prop, ractive, rendering = false ) {
+	let instance = ractive;
+	while ( instance ) {
+		if ( instance.hasOwnProperty( prop ) && ( !rendering || instance.rendering ) ) return instance[ prop ];
+		instance = instance.component && instance.component.ractive;
+	}
+
+	return ractive[ prop ];
 }

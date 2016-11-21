@@ -9,10 +9,8 @@ const renderHook = new Hook( 'render' );
 const completeHook = new Hook( 'complete' );
 
 export default function render ( ractive, target, anchor, occupants ) {
-	// if `noIntro` is `true`, temporarily disable transitions
-	const transitionsEnabled = ractive.transitionsEnabled;
+	// set a flag to let any transitions know that this instance is currently rendering
 	ractive.rendering = true;
-	if ( noIntro( ractive ) ) ractive.transitionsEnabled = false;
 
 	const promise = runloop.start( ractive, true );
 	runloop.scheduleTask( () => renderHook.fire( ractive ), true );
@@ -47,18 +45,7 @@ export default function render ( ractive, target, anchor, occupants ) {
 	}
 
 	runloop.end();
-	ractive.transitionsEnabled = transitionsEnabled;
 	ractive.rendering = false;
 
 	return promise.then( () => completeHook.fire( ractive ) );
-}
-
-function noIntro ( ractive ) {
-	let instance = ractive;
-	while ( instance && instance.rendering ) {
-		if ( instance.hasOwnProperty( 'noIntro' ) ) return instance.noIntro;
-		instance = instance.component && instance.component.ractive;
-	}
-
-	return ractive.noIntro;
 }
