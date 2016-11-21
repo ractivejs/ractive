@@ -1,4 +1,5 @@
 import { createDocumentFragment } from '../../../utils/dom';
+import noop from '../../../utils/noop';
 
 export default class Item {
 	constructor ( options ) {
@@ -27,16 +28,8 @@ export default class Item {
 		return null;
 	}
 
-	findAll () {
-		// noop
-	}
-
 	findComponent () {
 		return null;
-	}
-
-	findAllComponents () {
-		// noop;
 	}
 
 	findNextNode () {
@@ -51,6 +44,9 @@ export default class Item {
 		return this.toString();
 	}
 }
+
+Item.prototype.findAll = noop;
+Item.prototype.findAllComponents = noop;
 
 export class ContainerItem extends Item {
 	constructor ( options ) {

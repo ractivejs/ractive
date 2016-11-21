@@ -238,10 +238,6 @@ export default class Fragment {
 		this.items.forEach( shuffled );
 	}
 
-	toHtml () {
-		return this.toString();
-	}
-
 	toString ( escape ) {
 		return this.items.map( escape ? toEscapedString : toString ).join( '' );
 	}

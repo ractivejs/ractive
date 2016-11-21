@@ -69,13 +69,6 @@ export default class EventDirective {
 		if ( !this.fn ) this.action = this.template.f;
 	}
 
-	bubble () {
-		if ( !this.dirty ) {
-			this.dirty = true;
-			this.owner.bubble();
-		}
-	}
-
 	destroyed () {
 		this.events.forEach( e => e.unlisten() );
 	}
