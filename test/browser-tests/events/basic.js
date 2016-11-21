@@ -87,6 +87,51 @@ export default function() {
 		t.equal( count, 4 );
 	});
 
+	test( `events also initially fire in the implicit this namespace`, t => {
+		let thisFoo = 0;
+		let starFoo = 0;
+		let justFoo = 0;
+		let starStar = 0;
+		let star = 0;
+
+		const r = new Ractive();
+
+		r.on( 'this.foo', () => thisFoo++ );
+		r.on( '*.foo', () => starFoo++ );
+		r.on( 'foo', () => justFoo++ );
+		r.on( '*', () => star++ );
+		// implicit this namespace doesn't trigger *.* for non-breakage purposes with lifecycle events
+		r.on( '*.*', () => starStar++ );
+
+		r.fire( 'foo' );
+
+		t.equal( thisFoo, 1 );
+		t.equal( starFoo, 1 );
+		t.equal( justFoo, 1 );
+		t.equal( starStar, 0 );
+		t.equal( star, 1 );
+	});
+
+	test( `events that bubble drop the this namespace on their way up`, t => {
+		const cmp = Ractive.extend();
+		const r = new Ractive({
+			target: fixture,
+			template: '<cmp />',
+			components: { cmp }
+		});
+
+		let starFoo = 0;
+		let starStarFoo = 0;
+
+		r.on( '*.foo', () => starFoo++ );
+		r.on( '*.*.foo', () => starStarFoo++ );
+
+		r.findComponent().fire( 'foo' );
+
+		t.equal( starFoo, 1 );
+		t.equal( starStarFoo, 0 );
+	});
+
 	test( 'ractive.off() is chainable (#677)', t => {
 		const ractive = new Ractive();
 		const returnedValue = ractive.off( 'foo' );
@@ -173,5 +218,53 @@ export default function() {
 		r.set( 'foo', 'nope' );
 		r.findComponent( 'cmp' ).fire( 'baz' );
 		t.equal( r.get( 'foo' ), 'yep' );
+	});
+
+	test( `events can be silenced and resumed`, t => {
+		let count = 0;
+		const r = new Ractive();
+		const handle = r.on( 'foo', function ( num ) {
+			t.equal( num, 1 );
+			t.ok( this === r );
+			count++;
+		});
+
+		r.fire( 'foo', 1 );
+		t.equal( count, 1 );
+
+		handle.silence();
+		r.fire( 'foo', 1 );
+		t.equal( count, 1 );
+		t.equal( handle.isSilenced(), true );
+
+		handle.resume();
+		r.fire( 'foo', 1 );
+		t.equal( count, 2 );
+		t.equal( handle.isSilenced(), false );
+	});
+
+	test( `event handle cancels all events when multiple events are subscribed`, t => {
+		let count = 0;
+		const r = new Ractive();
+		const obj = r.on({
+			foo() { count++; },
+			bar() { count++; },
+			'baz bat': () => count++
+		});
+		const space = r.on( 'foo baz', () => count++ );
+
+		r.fire( 'foo' );
+		t.equal( count, 2 );
+
+		r.fire( 'baz' );
+		t.equal( count, 4 );
+
+		space.cancel();
+		r.fire( 'foo' );
+		t.equal( count, 5 );
+
+		obj.cancel();
+		r.fire( 'bar' );
+		t.equal( count, 5 );
 	});
 }

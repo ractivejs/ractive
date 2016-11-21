@@ -1,5 +1,6 @@
 import { logIfDebug, warnIfDebug, warnOnceIfDebug } from '../utils/log';
 import { getElement } from '../utils/dom';
+import { toPairs } from '../utils/object';
 import config from './config/config';
 import Fragment from '../view/Fragment';
 import Hook from '../events/Hook';
@@ -18,10 +19,17 @@ export default function initialise ( ractive, userOptions, options ) {
 		}
 	});
 
+	// set up event subscribers
+	subscribe( ractive, userOptions, 'on' );
+
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, userOptions );
 
 	configHook.fire( ractive );
+
+	// general config done, set up observers
+	subscribe( ractive, userOptions, 'observe' );
+
 	initHook.begin( ractive );
 
 	const fragment = ractive.fragment = createFragment( ractive, options );
@@ -66,4 +74,17 @@ export function createFragment ( ractive, options = {} ) {
 			cssIds
 		});
 	}
+}
+
+function subscribe ( instance, options, type ) {
+	const subs = ( instance.constructor[ `_${type}` ] || [] ).concat( toPairs( options[ type ] || [] ) );
+	const single = type === 'on' ? 'once' : `${type}Once`;
+
+	subs.forEach( ([ target, config ]) => {
+		if ( typeof config === 'function' ) {
+			instance[type]( target, config );
+		} else if ( typeof config === 'object' && typeof config.handler === 'function' ) {
+			instance[ config.once ? single : type ]( target, config.handler, config );
+		}
+	});
 }

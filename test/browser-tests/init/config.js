@@ -67,4 +67,46 @@ export default function() {
 		t.strictEqual( fixture, r.target );
 		t.strictEqual( fixture, r.el );
 	});
+
+	test( 'events can be subscribed with the on option', t => {
+		t.expect( 2 );
+
+		const r = new Ractive({
+			on: {
+				foo() { t.ok( true ); },
+				bar: {
+					once: true,
+					handler() { t.ok( true ); }
+				}
+			}
+		});
+
+		r.fire( 'foo' );
+		r.fire( 'bar' );
+		r.fire( 'bar' );
+	});
+
+	test( 'observers can be subscribed with the observe option', t => {
+		t.expect( 4 );
+
+		const r = new Ractive({
+			observe: {
+				foo() { t.ok( true ); },
+				bar: {
+					once: true,
+					handler() { t.ok( true ); }
+				},
+				baz: {
+					init: false,
+					handler() { t.ok( true ); }
+				}
+			}
+		});
+
+		// foo has already run once, because init defaults to true
+		r.toggle( 'foo' );
+		r.toggle( 'bar' );
+		r.toggle( 'bar' );
+		r.toggle( 'baz' );
+	});
 }

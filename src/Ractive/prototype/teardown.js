@@ -24,7 +24,7 @@ export function teardown ( instance, getPromise ) {
 	instance.torndown = true;
 	instance.viewmodel.teardown();
 	instance.fragment.unbind();
-	instance._observers.forEach( cancel );
+	instance._observers.slice().forEach( cancel );
 
 	if ( instance.fragment.rendered && instance.el.__ractive_instances__ ) {
 		removeFromArray( instance.el.__ractive_instances__, instance );
