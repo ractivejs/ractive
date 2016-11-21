@@ -119,6 +119,28 @@ export default function() {
 		});
 	});
 
+	test( 'noOutro option prevents outro transition', t => {
+		const done = t.async();
+
+		t.expect( 1 );
+
+		let transitioned;
+
+		const r = new Ractive({
+			el: fixture,
+			template: '<div test-out></div>',
+			noIntro: true,
+			beforeComplete(){
+				transitioned = true;
+			},
+			onteardown(){
+				t.ok( !transitioned, 'transition happened');
+				done();
+			}
+		});
+		r.teardown();
+	});
+
 	test( 'noIntro option prevents intro transition when el is initially undefined', t => {
 		t.expect( 1 );
 
@@ -188,8 +210,35 @@ export default function() {
 			components: { cmp }
 		});
 
-		r.toggle( 'show').then( () => {
+		r.toggle( 'show' ).then( () => {
 			t.htmlEqual( fixture.innerHTML, '<div></div>' );
+			done();
+		});
+	});
+
+	test( `noOutro on still rendered parent instance doesn't affect components`, t => {
+		t.expect( 2 );
+		const done = t.async();
+
+		const cmp = Ractive.extend({
+			template: '<div check-out />',
+			transitions: {
+				check ( trans ) {
+					t.ok( true, 'transition should run' );
+					trans.complete();
+				}
+			}
+		});
+
+		const r = new Ractive({
+			noOutro: true,
+			target: fixture,
+			template: '{{#unless hide}}<cmp />{{/unless}}',
+			components: { cmp }
+		});
+
+		r.toggle( 'hide' ).then( () => {
+			t.htmlEqual( fixture.innerHTML, '' );
 			done();
 		});
 	});

@@ -242,8 +242,9 @@ export default class Transition {
 	shouldFire ( type ) {
 		if ( !this.ractive.transitionsEnabled ) return false;
 
-		// check for noIntro case, which only applies when the owner ractive is rendering
+		// check for noIntro and noOutro cases, which only apply when the owner ractive is rendering and unrendering, respectively
 		if ( type === 'intro' && this.ractive.rendering && nearestProp( 'noIntro', this.ractive, true ) ) return false;
+		if ( type === 'outro' && this.ractive.unrendering && nearestProp( 'noOutro', this.ractive, false ) ) return false;
 
 		const params = this.getParams(); // this is an array, the params object should be the first member
 		// if there's not a parent element, this can't be nested, so roll on
@@ -320,10 +321,10 @@ export default class Transition {
 	update () {}
 }
 
-function nearestProp ( prop, ractive, rendering = false ) {
+function nearestProp ( prop, ractive, rendering ) {
 	let instance = ractive;
 	while ( instance ) {
-		if ( instance.hasOwnProperty( prop ) && ( !rendering || instance.rendering ) ) return instance[ prop ];
+		if ( instance.hasOwnProperty( prop ) && ( rendering === undefined || rendering ? instance.rendering : instance.unrendering ) ) return instance[ prop ];
 		instance = instance.component && instance.component.ractive;
 	}
 
