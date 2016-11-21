@@ -19,13 +19,16 @@ export default function initialise ( ractive, userOptions, options ) {
 		}
 	});
 
+	// set up event subscribers
+	subscribe( ractive, userOptions, 'on' );
+
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, userOptions );
 
 	configHook.fire( ractive );
 
-	// general config done, subscribe events and observers
-	subscribe( ractive, userOptions );
+	// general config done, set up observers
+	subscribe( ractive, userOptions, 'observe' );
 
 	initHook.begin( ractive );
 
@@ -73,20 +76,15 @@ export function createFragment ( ractive, options = {} ) {
 	}
 }
 
-function subscribe ( instance, options ) {
-	const obj = {
-		on: ( instance.constructor._on || [] ).concat( toPairs( options.on ) ),
-		observe: ( instance.constructor._observe || [] ).concat( toPairs( options.observe ) )
-	};
+function subscribe ( instance, options, type ) {
+	const subs = ( instance.constructor[ `_${type}` ] || [] ).concat( toPairs( options[ type ] || [] ) );
+	const single = type === 'on' ? 'once' : `${type}Once`;
 
-	for ( const k in obj ) {
-		const single = k === 'on' ? 'once' : `${k}Once`;
-		obj[k].forEach( ([ target, config ]) => {
-			if ( typeof config === 'function' ) {
-				instance[k]( target, config );
-			} else if ( typeof config === 'object' && typeof config.handler === 'function' ) {
-				instance[ config.once ? single : k ]( target, config.handler, config );
-			}
-		});
-	}
+	subs.forEach( ([ target, config ]) => {
+		if ( typeof config === 'function' ) {
+			instance[type]( target, config );
+		} else if ( typeof config === 'object' && typeof config.handler === 'function' ) {
+			instance[ config.once ? single : type ]( target, config.handler, config );
+		}
+	});
 }
