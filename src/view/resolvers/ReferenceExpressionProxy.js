@@ -76,7 +76,7 @@ export default class ReferenceExpressionProxy extends Model {
 
 		const intermediary = this.intermediary = {
 			handleChange: () => this.handleChange(),
-			rebinding: ( next, previous ) => {
+			rebind: ( next, previous ) => {
 				if ( previous === this.base ) {
 					next = rebindMatch( template, next, previous );
 					if ( next !== this.base ) {
@@ -242,7 +242,7 @@ export default class ReferenceExpressionProxy extends Model {
 		return this.value;
 	}
 
-	rebinding () { } // NOOP
+	rebind () { } // NOOP
 
 	set ( value ) {
 		if ( !this.model ) throw new Error( 'Unresolved reference expression. This should not happen!' );

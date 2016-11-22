@@ -6,8 +6,9 @@ export function mark               ( x ) { x.mark(); }
 export function marked             ( x ) { x.marked(); }
 export function markedAll          ( x ) { x.markedAll(); }
 export function notifiedUpstream   ( x ) { x.notifiedUpstream(); }
+export function rebinding          ( x ) { x.rebinding(); }
 export function render             ( x ) { x.render(); }
-export function shuffled           ( x )  { x.shuffled(); }
+export function shuffled           ( x ) { x.shuffled(); }
 export function teardown           ( x ) { x.teardown(); }
 export function unbind             ( x ) { x.unbind(); }
 export function unrender           ( x ) { x.unrender(); }

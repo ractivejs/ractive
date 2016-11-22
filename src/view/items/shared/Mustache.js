@@ -47,8 +47,8 @@ export default class Mustache extends Item {
 		this.bubble();
 	}
 
-	rebinding ( next, previous, safe ) {
-		next = rebindMatch( this.template, next, previous );
+	rebind ( next, previous, safe ) {
+		next = rebindMatch( this.template, next, previous, this.parentFragment );
 		if ( this.static ) return false;
 		if ( next === this.model ) return false;
 
@@ -58,6 +58,7 @@ export default class Mustache extends Item {
 		if ( next ) next.addShuffleRegister( this, 'mark' );
 		this.model = next;
 		if ( !safe ) this.handleChange();
+		if ( this.rebinding ) this.rebinding();
 		return true;
 	}
 
@@ -74,10 +75,14 @@ export class MustacheContainer extends ContainerItem {
 	constructor ( options ) {
 		super( options );
 	}
+
+	rebinding () {
+		if ( this.fragment ) this.fragment.rebinding( this.model );
+	}
 }
 const proto = MustacheContainer.prototype;
 const mustache = Mustache.prototype;
 proto.bind = mustache.bind;
 proto.handleChange = mustache.handleChange;
-proto.rebinding = mustache.rebinding;
+proto.rebind = mustache.rebind;
 proto.unbind = mustache.unbind;

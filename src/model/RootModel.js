@@ -150,7 +150,7 @@ export default class RootModel extends Model {
 		local.link( origin, localKey, options );
 	}
 
-	rebinding () {
+	rebind () {
 	}
 
 	set ( value ) {

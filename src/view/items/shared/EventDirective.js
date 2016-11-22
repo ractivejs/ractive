@@ -140,7 +140,7 @@ export default class EventDirective {
 
 	handleChange () {}
 
-	rebinding ( next, previous ) {
+	rebind ( next, previous ) {
 		if ( !this.models ) return;
 		const idx = this.models.indexOf( previous );
 

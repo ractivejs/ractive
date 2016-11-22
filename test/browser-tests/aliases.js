@@ -153,4 +153,54 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '|1-a|2-d|3-b|4-c' );
 	});
+
+	test( `aliases survive shuffling`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '{{#each items as item}}{{#with item.foo as foo}}{{foo}}{{/with}}{{/each}}',
+			data: {
+				items: [
+					{ foo: 1 }
+				]
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '1' );
+
+		r.unshift( 'items', { foo: 2 } );
+		t.htmlEqual( fixture.innerHTML, '21' );
+	});
+
+	test( `explicit aliases survive rebinding`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#with foo.0.bar as baz}}{{baz}}{{/with}}`,
+			data: {
+				foo: [ { bar: '?' } ]
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '?' );
+
+		r.unshift( 'foo', { bar: 'yep' } );
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
+
+	test( `partial aliases survive rebinding`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `{{>p foo.0.bar as baz}}`,
+			data: {
+				foo: [ { bar: '?' } ]
+			},
+			partials: {
+				p: '{{baz}}'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '?' );
+
+		r.unshift( 'foo', { bar: 'yep' } );
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
 }

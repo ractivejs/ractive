@@ -47,6 +47,7 @@ export default class Item {
 
 Item.prototype.findAll = noop;
 Item.prototype.findAllComponents = noop;
+Item.prototype.rebinding = noop;
 
 export class ContainerItem extends Item {
 	constructor ( options ) {
@@ -83,6 +84,10 @@ export class ContainerItem extends Item {
 
 	firstNode ( skipParent ) {
 		return this.fragment && this.fragment.firstNode( skipParent );
+	}
+
+	rebinding ( next ) {
+		if ( this.fragment ) this.fragment.rebinding( next );
 	}
 
 	toString ( escape ) {

@@ -31,11 +31,11 @@ export default class Alias extends ContainerItem {
 	}
 
 	rebinding () {
-		if ( this.locked ) return;
+		if ( this.locked || !this.template.z ) return;
 		this.locked = true;
 		runloop.scheduleTask( () => {
 			this.locked = false;
-			this.fragment.aliases = resolveAliases( this.template.z, this.parentFragment );
+			this.fragment.aliases = resolveAliases( this.template.z, this.containerFragment );
 		});
 	}
 

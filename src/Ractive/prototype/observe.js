@@ -138,7 +138,7 @@ class Observer {
 		}
 	}
 
-	rebinding ( next, previous ) {
+	rebind ( next, previous ) {
 		next = rebindMatch( this.keypath, next, previous );
 		// TODO: set up a resolver if next is undefined?
 		if ( next === this.model ) return false;

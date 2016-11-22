@@ -188,7 +188,7 @@ ModelBase.prototype.link = function link ( model, keypath, options ) {
 	lnk.implicit = options && options.implicit;
 	lnk.sourcePath = keypath;
 	if ( this._link ) this._link.relinking( model, true, false );
-	this.rebinding( lnk, this, false );
+	this.rebind( lnk, this, false );
 	fireShuffleTasks();
 
 	const unresolved = !this._link;
@@ -202,7 +202,7 @@ ModelBase.prototype.unlink = function unlink () {
 	if ( this._link ) {
 		const ln = this._link;
 		this._link = undefined;
-		ln.rebinding( this, this._link );
+		ln.rebind( this, this._link );
 		fireShuffleTasks();
 		ln.teardown();
 	}

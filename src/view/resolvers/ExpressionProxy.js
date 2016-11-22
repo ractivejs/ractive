@@ -96,7 +96,7 @@ export default class ExpressionProxy extends Model {
 		return result;
 	}
 
-	rebinding ( next, previous, safe ) {
+	rebind ( next, previous, safe ) {
 		const idx = this.models.indexOf( previous );
 
 		if ( ~idx ) {

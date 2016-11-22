@@ -54,10 +54,10 @@ export default class Section extends MustacheContainer {
 		return !!value && ( this.templateSectionType === SECTION_IF_WITH || !isEmpty( value ) );
 	}
 
-	rebinding ( next, previous, safe ) {
-		if ( super.rebinding( next, previous, safe ) ) {
+	rebind ( next, previous, safe ) {
+		if ( super.rebind( next, previous, safe ) ) {
 			if ( this.fragment && this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS ) {
-				this.fragment.rebinding( next, previous );
+				this.fragment.rebinding( next );
 			}
 		}
 	}

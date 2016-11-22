@@ -50,18 +50,18 @@ export default class KeypathModel {
 		}
 	}
 
-	rebinding ( next, previous ) {
+	rebind ( next, previous ) {
 		const model = next ? next.getKeypathModel( this.ractive ) : undefined;
 
 		const keys = Object.keys( this.children );
 		let i = keys.length;
 		while ( i-- ) {
-			this.children[ keys[i] ].rebinding( next, previous, false );
+			this.children[ keys[i] ].rebind( next, previous, false );
 		}
 
 		i = this.deps.length;
 		while ( i-- ) {
-			this.deps[i].rebinding( model, this, false );
+			this.deps[i].rebind( model, this, false );
 		}
 	}
 

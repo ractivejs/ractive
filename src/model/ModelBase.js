@@ -203,11 +203,11 @@ export default class ModelBase {
 		}
 	}
 
-	rebinding ( next, previous, safe ) {
+	rebind ( next, previous, safe ) {
 		// tell the deps to move to the new target
 		let i = this.deps.length;
 		while ( i-- ) {
-			if ( this.deps[i].rebinding ) this.deps[i].rebinding( next, previous, safe );
+			if ( this.deps[i].rebind ) this.deps[i].rebind( next, previous, safe );
 		}
 
 		i = this.links.length;
@@ -220,7 +220,7 @@ export default class ModelBase {
 		i = this.children.length;
 		while ( i-- ) {
 			const child = this.children[i];
-			child.rebinding( next ? next.joinKey( child.key ) : undefined, child, safe );
+			child.rebind( next ? next.joinKey( child.key ) : undefined, child, safe );
 		}
 
 		i = this.unresolved.length;
@@ -228,15 +228,15 @@ export default class ModelBase {
 			const unresolved = this.unresolvedByKey[ this.unresolved[i] ];
 			let c = unresolved.length;
 			while ( c-- ) {
-				unresolved[c].rebinding( next, previous );
+				unresolved[c].rebind( next, previous );
 			}
 		}
 
-		if ( this.keypathModel ) this.keypathModel.rebinding( next, previous, false );
+		if ( this.keypathModel ) this.keypathModel.rebind( next, previous, false );
 
 		i = this.bindings.length;
 		while ( i-- ) {
-			this.bindings[i].rebinding( next, previous, safe );
+			this.bindings[i].rebind( next, previous, safe );
 		}
 	}
 
@@ -373,13 +373,13 @@ export function shuffle ( model, newIndices, link ) {
 		}
 
 		// rebind the children on i to idx
-		if ( i in model.childByKey ) model.childByKey[ i ].rebinding( !~idx ? undefined : model.joinKey( idx ), model.childByKey[ i ], true );
+		if ( i in model.childByKey ) model.childByKey[ i ].rebind( !~idx ? undefined : model.joinKey( idx ), model.childByKey[ i ], true );
 
 		if ( !~idx && model.keyModels[ i ] ) {
-			model.keyModels[i].rebinding( undefined, model.keyModels[i], false );
+			model.keyModels[i].rebind( undefined, model.keyModels[i], false );
 		} else if ( ~idx && model.keyModels[ i ] ) {
 			if ( !model.keyModels[ idx ] ) model.childByKey[ idx ].getKeyModel( idx );
-			model.keyModels[i].rebinding( model.keyModels[ idx ], model.keyModels[i], false );
+			model.keyModels[i].rebind( model.keyModels[ idx ], model.keyModels[i], false );
 		}
 	}
 
