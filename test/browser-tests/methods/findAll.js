@@ -289,4 +289,17 @@ export default function() {
 		t.equal( q1.length, 3 );
 		t.equal( q2.length, 5 );
 	});
+
+	test( `findAll() finds elements in triples`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `{{{foo}}}{{{bar}}}`,
+			data: {
+				foo: '<div><a /><a /><span><a /></span></div>',
+				bar: '<section />'
+			}
+		});
+
+		t.ok( r.findAll( 'a' ).length === 3 );
+	});
 }

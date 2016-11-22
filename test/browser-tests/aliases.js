@@ -174,7 +174,7 @@ export default function() {
 	test( `explicit aliases survive rebinding`, t => {
 		const r = new Ractive({
 			target: fixture,
-			template: `{{#with foo.0.bar as baz}}{{baz}}{{/with}}`,
+			template: `{{#with foo.0.bar as baz}}{{#if flip}}{{baz}}{{else}}{{baz}}{{/if}}{{/with}}`,
 			data: {
 				foo: [ { bar: '?' } ]
 			}
@@ -183,6 +183,9 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '?' );
 
 		r.unshift( 'foo', { bar: 'yep' } );
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+
+		r.toggle( 'flip' );
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
 
@@ -194,7 +197,7 @@ export default function() {
 				foo: [ { bar: '?' } ]
 			},
 			partials: {
-				p: '{{baz}}'
+				p: '{{#if flip}}{{baz}}{{else}}{{baz}}{{/if}}'
 			}
 		});
 
@@ -202,5 +205,27 @@ export default function() {
 
 		r.unshift( 'foo', { bar: 'yep' } );
 		t.htmlEqual( fixture.innerHTML, 'yep' );
+
+		r.toggle( 'flip' );
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
+
+	test( `nested iteration aliases survive rebinding`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#each list as outer}}{{#each outer.sub as inner}}{{#if flip}}{{outer.a}}{{inner.a}}{{else}}{{outer.a}}{{inner.a}}{{/if}}{{/each}}{{/each}}`,
+			data: {
+				list: [ { a: 'out1', sub: [ { a: 'in1' } ] } ]
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'out1in1' );
+
+		r.unshift( 'list', { a: 'out2', sub: [ { a: 'in2' } ] } );
+		t.htmlEqual( fixture.innerHTML, 'out2in2out1in1' );
+		r.unshift( 'list.1.sub', { a: 'in3' } );
+		t.htmlEqual( fixture.innerHTML, 'out2in2out1in3out1in1' );
+		r.toggle( 'flip' );
+		t.htmlEqual( fixture.innerHTML, 'out2in2out1in3out1in1' );
 	});
 }

@@ -1576,32 +1576,6 @@ export default function() {
 		Ractive.DEBUG = DEBUG;
 	});
 
-	test( '@global special ref gives access to the vm global object', t => {
-		/* global global, window */
-		const target = typeof global !== 'undefined' ? global : window;
-		const r = new Ractive({
-			el: fixture,
-			template: `{{@global.foo.bar}} <input value="{{@global.foo.bar}}" />`
-		});
-		const input = r.find( 'input' );
-
-		t.htmlEqual( fixture.innerHTML, ' <input />' );
-
-		target.foo = { bar: 'baz' };
-		r.update( '@global.foo' );
-		t.htmlEqual( fixture.innerHTML, 'baz <input />' );
-		t.equal( input.value, 'baz' );
-
-		input.value = 'bat';
-		fire( r.find( 'input' ), 'change' );
-		t.htmlEqual( fixture.innerHTML, 'bat <input />' );
-		t.equal( target.foo.bar, 'bat' );
-
-		r.set( '@global.foo.bar', 10 );
-		t.htmlEqual( fixture.innerHTML, '10 <input />' );
-		t.equal( target.foo.bar, 10 );
-	});
-
 	test( 'shuffled elements have the correct keypath in their node info', t => {
 		const r = new Ractive({
 			el: fixture,
@@ -1838,4 +1812,12 @@ export default function() {
 			r.set( 'foo.bar', 'nerp' );
 		});
 	}
+
+	test( `you can request more lines of context for parser errors`, t => {
+		try {
+			Ractive.parse( 'hello\n{{foo}\nworld', { contextLines: 1 } );
+		} catch (e) {
+			t.ok( ~e.message.indexOf( 'hello\n{{foo}\n     ^----\nworld' ) );
+		}
+	});
 }

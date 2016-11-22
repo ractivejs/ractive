@@ -150,6 +150,19 @@ export default function() {
 		t.ok( r2.find( 'div', { remote: true } ).id === 'r1' );
 	});
 
+	test( `find() finds elements in triples`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '{{{bar}}}{{{foo}}}',
+			data: {
+				foo: '<div><a /></div>',
+				bar: '<section />'
+			}
+		});
+
+		t.ok( r.find( 'a' ) );
+	});
+
 	// TODO add tests (and add the functionality)...
 	// * cancelling a live query (also, followed by teardown)
 	// * components

@@ -6,6 +6,7 @@ const data = {};
 export class SharedModel extends Model {
 	constructor ( value, name ) {
 		super( null, `@${name}` );
+		this.key = `@${name}`;
 		this.value = value;
 		this.isRoot = true;
 		this.root = this;

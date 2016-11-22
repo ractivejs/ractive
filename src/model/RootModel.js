@@ -28,13 +28,6 @@ export default class RootModel extends Model {
 		this.computations = {};
 	}
 
-	applyChanges () {
-		this._changeHash = {};
-		this.flush();
-
-		return this._changeHash;
-	}
-
 	attached ( fragment ) {
 		attachImplicits( this, fragment );
 	}
@@ -105,10 +98,6 @@ export default class RootModel extends Model {
 		return children;
 	}
 
-	handleChange () {
-		this.deps.forEach( handleChange );
-	}
-
 	has ( key ) {
 		const value = this.value;
 
@@ -148,9 +137,6 @@ export default class RootModel extends Model {
 	map ( localKey, origin, options ) {
 		const local = this.joinKey( localKey );
 		local.link( origin, localKey, options );
-	}
-
-	rebind () {
 	}
 
 	set ( value ) {

@@ -19,7 +19,8 @@ export default function() {
 	test( 'ractive.findAllComponents() finds all components, of any type', ( t ) => {
 		const ractive = new MockRactive({
 			el: fixture,
-			template: '<Widget/><Widget/><Widget/>'
+			template: '{{{ covered }}}<Widget/><Widget/><Widget/>',
+			data: { covered: '<span />' }
 		});
 
 		const widgets = ractive.findAllComponents();

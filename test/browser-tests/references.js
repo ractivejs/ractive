@@ -84,6 +84,32 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'baz.bat.bar' );
 	});
 
+	test( '@global special ref gives access to the vm global object', t => {
+		/* global global, window */
+		const target = typeof global !== 'undefined' ? global : window;
+		const r = new Ractive({
+			el: fixture,
+			template: `{{@global.foo.bar}} <input value="{{@global.foo.bar}}" />`
+		});
+		const input = r.find( 'input' );
+
+		t.htmlEqual( fixture.innerHTML, ' <input />' );
+
+		target.foo = { bar: 'baz' };
+		r.update( '@global.foo' );
+		t.htmlEqual( fixture.innerHTML, 'baz <input />' );
+		t.equal( input.value, 'baz' );
+
+		input.value = 'bat';
+		fire( r.find( 'input' ), 'change' );
+		t.htmlEqual( fixture.innerHTML, 'bat <input />' );
+		t.equal( target.foo.bar, 'bat' );
+
+		r.set( '@global.foo.bar', 10 );
+		t.htmlEqual( fixture.innerHTML, '10 <input />' );
+		t.equal( target.foo.bar, 10 );
+	});
+
 	test( 'instance property shortcut @.foo === @this.foo', t => {
 		new Ractive({
 			el: fixture,
@@ -198,11 +224,16 @@ export default function() {
 	});
 
 	test( '@shared special refers to ractive-only global state', t => {
-		const r1 = new Ractive();
+		const r1 = new Ractive({
+			target: fixture,
+			template: `{{#with @shared.foo}}{{@keypath}} {{.}}{{/with}}`
+		});
 		const r2 = new Ractive();
 
-		r1.set( '@shared.foo', 'bar' );
-		t.equal( r2.get( '@shared.foo' ), 'bar' );
+		r2.set( '@shared.foo', 'bar' );
+		t.equal( r1.get( '@shared.foo' ), 'bar' );
+
+		t.htmlEqual( fixture.innerHTML, '@shared.foo bar' );
 	});
 
 	test( 'by default instance members resolve after ambiguous context', t => {
