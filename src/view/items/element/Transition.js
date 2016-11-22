@@ -204,7 +204,7 @@ export default class Transition {
 		return extend( {}, defaults, params );
 	}
 
-	rebinding ( next, previous ) {
+	rebind ( next, previous ) {
 		const idx = this.models.indexOf( previous );
 		if ( !~idx ) return;
 

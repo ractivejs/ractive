@@ -84,7 +84,7 @@ export default class Binding {
 		else return this.lastValue;
 	}
 
-	rebinding ( next, previous ) {
+	rebind ( next, previous ) {
 		if ( this.model && this.model === previous ) previous.unregisterTwowayBinding( this );
 		if ( next ) {
 			this.model = next;

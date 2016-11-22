@@ -123,7 +123,7 @@ export default class Computation extends Model {
 		this.handleChange();
 	}
 
-	rebinding ( next, previous ) {
+	rebind ( next, previous ) {
 		// computations will grab all of their deps again automagically
 		if ( next !== previous ) this.handleChange();
 	}

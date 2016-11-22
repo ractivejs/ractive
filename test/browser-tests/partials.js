@@ -1019,4 +1019,23 @@ export default function() {
 
 		t.equal( v, 1123 );
 	});
+
+	test( `partial expressions survive rebinding`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `{{> foo[0].bar}}`,
+			data: {
+				foo: [ { bar: 'p' } ]
+			},
+			partials: {
+				p: '?',
+				q: 'yep'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '?' );
+
+		r.unshift( 'foo', { bar: 'q' } );
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
 }

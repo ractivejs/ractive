@@ -20,12 +20,12 @@ export default class KeyModel {
 		return unescapeKey( this.value );
 	}
 
-	rebinding ( next, previous ) {
+	rebind ( next, previous ) {
 		let i = this.deps.length;
-		while ( i-- ) this.deps[i].rebinding( next, previous, false );
+		while ( i-- ) this.deps[i].rebind( next, previous, false );
 
 		i = this.links.length;
-		while ( i-- ) this.links[i].rebinding( next, previous, false );
+		while ( i-- ) this.links[i].rebind( next, previous, false );
 	}
 
 	register ( dependant ) {

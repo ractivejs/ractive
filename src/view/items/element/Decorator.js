@@ -46,7 +46,7 @@ export default class Decorator {
 
 	handleChange () { this.bubble(); }
 
-	rebinding ( next, previous, safe ) {
+	rebind ( next, previous, safe ) {
 		const idx = this.models.indexOf( previous );
 		if ( !~idx ) return;
 
