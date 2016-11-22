@@ -2,7 +2,7 @@ import { ELEMENT, YIELDER } from '../config/types';
 import runloop from '../global/runloop';
 import createItem from './items/createItem';
 import ReferenceResolver from './resolvers/ReferenceResolver';
-import { bind, destroyed, rebinding, shuffled, toEscapedString, toString, unbind, unrender, update } from '../shared/methodCallers';
+import { bind, destroyed, shuffled, toEscapedString, toString, unbind, unrender, update } from '../shared/methodCallers';
 import processItems from './helpers/processItems';
 import parseJSON from '../utils/parseJSON';
 import { createDocumentFragment } from '../utils/dom';
@@ -182,7 +182,6 @@ export default class Fragment {
 
 	rebinding ( next ) {
 		this.context = next;
-		this.items.forEach( rebinding );
 	}
 
 	render ( target, occupants ) {

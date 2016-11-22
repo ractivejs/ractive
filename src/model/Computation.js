@@ -8,43 +8,6 @@ import { maybeBind } from './ModelBase';
 import ComputationChild from './ComputationChild';
 import { hasConsole } from '../config/environment';
 
-// TODO this is probably a bit anal, maybe we should leave it out
-function prettify ( fnBody ) {
-	const lines = fnBody
-		.replace( /^\t+/gm, tabs => tabs.split( '\t' ).join( '  ' ) )
-		.split( '\n' );
-
-	const minIndent = lines.length < 2 ? 0 :
-		lines.slice( 1 ).reduce( ( prev, line ) => {
-			return Math.min( prev, /^\s*/.exec( line )[0].length );
-		}, Infinity );
-
-	return lines.map( ( line, i ) => {
-		return '    ' + ( i ? line.substring( minIndent ) : line );
-	}).join( '\n' );
-}
-
-// Ditto. This function truncates the stack to only include app code
-function truncateStack ( stack ) {
-	if ( !stack ) return '';
-
-	const lines = stack.split( '\n' );
-	const name = Computation.name + '.getValue';
-
-	const truncated = [];
-
-	const len = lines.length;
-	for ( let i = 1; i < len; i += 1 ) {
-		const line = lines[i];
-
-		if ( ~line.indexOf( name ) ) {
-			return truncated.join( '\n' );
-		} else {
-			truncated.push( line );
-		}
-	}
-}
-
 export default class Computation extends Model {
 	constructor ( viewmodel, signature, key ) {
 		super( null, null );
@@ -100,9 +63,8 @@ export default class Computation extends Model {
 			// show it if Ractive.DEBUG
 			if ( hasConsole ) {
 				if ( console.groupCollapsed ) console.groupCollapsed( '%cshow details', 'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;' );
-				const functionBody = prettify( this.signature.getterString );
-				const stack = this.signature.getterUseStack ? '\n\n' + truncateStack( err.stack ) : '';
-				console.error( `${err.name}: ${err.message}\n\n${functionBody}${stack}` );
+				const sig = this.signature;
+				console.error( `${err.name}: ${err.message}\n\n${sig.getterString}${sig.getterUseStack ? '\n\n' + err.stack : ''}` );
 				if ( console.groupCollapsed ) console.groupEnd();
 			}
 		}

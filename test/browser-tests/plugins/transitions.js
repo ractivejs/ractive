@@ -55,7 +55,7 @@ export default function() {
 					}).then( transition.complete );
 
 					// should not have changed yet
-					t.equal( transition.getStyle( 'height' ), '100px' );
+					t.equal( transition.getStyle( [ 'height' ] ).height, '100px' );
 				}
 			}
 		});
@@ -733,7 +733,7 @@ export default function() {
 
 		function go ( trans ) {
 			if ( trans.isIntro ) {
-				trans.setStyle( 'opacity', 0 );
+				trans.setStyle( { opacity: 0 } );
 				trans.animateStyle( 'opacity', 1, { duration: 100 } ).then( () => {
 					trans.complete();
 				});

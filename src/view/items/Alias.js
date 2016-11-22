@@ -1,7 +1,6 @@
 import Fragment from '../Fragment';
 import { ContainerItem } from './shared/Item';
 import resolve from '../resolvers/resolve';
-import runloop from '../../global/runloop';
 
 export function resolveAliases( aliases, fragment ) {
 	const resolved = {};
@@ -28,15 +27,6 @@ export default class Alias extends ContainerItem {
 
 		this.fragment.aliases = resolveAliases( this.template.z, this.parentFragment );
 		this.fragment.bind();
-	}
-
-	rebinding () {
-		if ( this.locked || !this.template.z ) return;
-		this.locked = true;
-		runloop.scheduleTask( () => {
-			this.locked = false;
-			this.fragment.aliases = resolveAliases( this.template.z, this.containerFragment );
-		});
 	}
 
 	render ( target ) {

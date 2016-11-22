@@ -19,7 +19,8 @@ export default function() {
 	test( 'ractive.findComponent() finds the first component, of any type', ( t ) => {
 		const ractive = new MockRactive({
 			el: fixture,
-			template: '<Widget/>'
+			template: '{{{ covered }}}<Widget/>',
+			data: { covered: '<span />' }
 		});
 
 		const widget = ractive.findComponent();

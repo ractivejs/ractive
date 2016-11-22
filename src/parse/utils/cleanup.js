@@ -1,5 +1,4 @@
 import { COMMENT, ELEMENT } from '../../config/types';
-import { isArray } from '../../utils/is';
 import stripStandalones from './stripStandalones';
 import trimWhitespace from './trimWhitespace';
 
@@ -19,8 +18,7 @@ export default function cleanup ( items, stripComments, preserveWhitespace, remo
 		nextItem,
 		preserveWhitespaceInsideFragment,
 		removeLeadingWhitespaceInsideFragment,
-		removeTrailingWhitespaceInsideFragment,
-		key;
+		removeTrailingWhitespaceInsideFragment;
 
 	// First pass - remove standalones and comments etc
 	stripStandalones( items );
@@ -73,16 +71,6 @@ export default function cleanup ( items, stripComments, preserveWhitespace, remo
 			}
 
 			cleanup( item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
-
-			// clean up name templates (events, decorators, etc)
-			if ( isArray( item.f.n ) ) {
-				cleanup( item.f.n, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespace );
-			}
-
-			// clean up arg templates (events, decorators, etc)
-			if ( isArray( item.f.d ) ) {
-				cleanup( item.f.d, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespace );
-			}
 		}
 
 		// Split if-else blocks into two (an if, and an unless)
@@ -95,14 +83,6 @@ export default function cleanup ( items, stripComments, preserveWhitespace, remo
 			delete item.l; // TODO would be nice if there was a way around this
 		}
 
-		// Clean up element attributes
-		if ( item.a ) {
-			for ( key in item.a ) {
-				if ( item.a.hasOwnProperty( key ) && typeof item.a[ key ] !== 'string' ) {
-					cleanup( item.a[ key ], stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
-				}
-			}
-		}
 		// Clean up conditional attributes
 		if ( item.m ) {
 			cleanup( item.m, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );

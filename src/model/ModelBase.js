@@ -107,7 +107,8 @@ export default class ModelBase {
 		if ( ractive !== this.ractive && this._link ) return this._link.target.getKeypath( ractive );
 
 		if ( !this.keypath ) {
-			this.keypath = this.parent.isRoot ? this.key : `${this.parent.getKeypath( ractive )}.${escapeKey( this.key )}`;
+			const parent = this.parent && this.parent.getKeypath( ractive );
+			this.keypath = parent ? `${this.parent.getKeypath( ractive )}.${escapeKey( this.key )}` : escapeKey( this.key );
 		}
 
 		return this.keypath;

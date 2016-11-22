@@ -7,7 +7,6 @@ import { isArray } from '../../utils/is';
 import parser from '../../Ractive/config/runtime-parser';
 import { doInAttributes } from './element/ConditionalAttribute';
 import { resolveAliases } from './Alias';
-import runloop from '../../global/runloop';
 
 export default class Partial extends MustacheContainer {
 	constructor ( options ) {
@@ -118,15 +117,6 @@ export default class Partial extends MustacheContainer {
 		}
 
 		this.bubble();
-	}
-
-	rebinding () {
-		if ( this.locked || !this.template.z ) return;
-		this.locked = true;
-		runloop.scheduleTask( () => {
-			this.locked = false;
-			this.fragment.aliases = resolveAliases( this.template.z, this.containerFragment );
-		});
 	}
 
 	render ( target, occupants ) {

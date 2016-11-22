@@ -1406,4 +1406,15 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'baz' );
 	});
+
+	test( `component attributes can contain stringified jsonish values`, t => {
+		const cmp = Ractive.extend();
+		const r = new Ractive({
+			target: fixture,
+			template: `<cmp json="{ foo: [1,2,3], bar: { baz: true }, bat: 'yep' }" />`,
+			components: { cmp }
+		});
+
+		t.equal( JSON.stringify( r.findComponent().get( 'json' ) ), JSON.stringify( { foo: [1,2,3], bar: { baz: true }, bat: 'yep' } ) );
+	});
 }
