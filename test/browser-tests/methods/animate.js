@@ -43,6 +43,26 @@ export default function() {
 		t.ok( promise.stop );
 	});
 
+	test( `ractive.animate() on a linked path returns a promise`, t => {
+		const done = t.async();
+
+		const r = new Ractive({
+			data: {
+				foo: 10
+			}
+		});
+
+		r.link( 'foo', 'bar' );
+
+		const promise = r.animate( 'bar', 1 );
+
+		t.ok( typeof promise.then === 'function' );
+		promise.then( () => {
+			t.equal( r.get( 'foo' ), 1 );
+			done();
+		});
+	});
+
 	test( 'all animations are updated in a single batch', t => {
 		const done = t.async();
 

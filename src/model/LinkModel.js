@@ -21,7 +21,7 @@ export default class LinkModel extends ModelBase {
 	}
 
 	animate ( from, to, options, interpolator ) {
-		this.target.animate( from, to, options, interpolator );
+		return this.target.animate( from, to, options, interpolator );
 	}
 
 	applyValue ( value ) {
