@@ -333,4 +333,30 @@ export default function() {
 		t.equal( getHexColor( one ), hexCodes.red );
 		t.equal( getHexColor( two ), hexCodes.blue );
 	});
+
+	test( 'Multiline comments are removed (#2683)', t => {
+		const Widget = Ractive.extend({
+			template: '<p>foo</p>',
+			css: '/*p \n{ color: red; }*/ p { color: blue; }'
+		});
+
+		const ractive = new Widget({
+			el: fixture
+		});
+
+		t.equal( getHexColor( ractive.find( 'p' ) ), hexCodes.blue );
+	});
+
+	test( 'Attribute selectors are handled correctly (#2778)', t => {
+		const Widget = Ractive.extend({
+			template: '<p data-foo="https://\'\']:">foo</p>',
+			css: 'p[data-foo=\'https://\\\'\\\']:\'] { color: blue; }'
+		});
+
+		const ractive = new Widget({
+			el: fixture
+		});
+
+		t.equal( getHexColor( ractive.find( 'p' ) ), hexCodes.blue );
+	});
 }
