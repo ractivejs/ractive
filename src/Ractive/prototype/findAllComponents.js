@@ -1,5 +1,4 @@
-import Query from './shared/Query';
-import { find } from '../../utils/array';
+import { getQuery } from './shared/Query';
 
 export default function Ractive$findAllComponents ( selector, options ) {
 	if ( !options && typeof selector === 'object' ) {
@@ -12,26 +11,8 @@ export default function Ractive$findAllComponents ( selector, options ) {
 	let query = options._query;
 
 	if ( !query ) {
-		const liveQueries = this._liveComponentQueries;
-
-		// Shortcut: if we're maintaining a live query with this
-		// selector, we don't need to traverse the parallel DOM
-		query = find( liveQueries, q => q.selector === selector && q.remote === options.remote );
-		if ( query ) {
-			if ( options.live ) query.refs++;
-			// Either return the exact same query, or (if not live) a snapshot
-			return ( options.live ) ? query : query.slice();
-		}
-
-		query = new Query( this, selector, !!options.live, true );
-		options._query = query;
-		query.remote = options.remote;
-
-		// Add this to the list of live queries Ractive needs to maintain,
-		// if applicable
-		if ( query.live ) {
-			liveQueries.push( query );
-		}
+		query = getQuery( this, selector, options, true );
+		if ( query.old ) return query.old;
 	}
 
 	this.fragment.findAllComponents( selector, query );

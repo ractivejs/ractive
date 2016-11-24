@@ -284,4 +284,15 @@ export default function() {
 		t.ok( r.findAllComponents( 'baz' )[0] === cmp2, 'same instance' );
 		t.ok( r.findAllComponents( 'bat' )[0] === cmp1, 'same instance' );
 	});
+
+	test( `the same findAllComponents live query is returned for a given string`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: ''
+		});
+
+		const q = r.findAllComponents( 'nerp', { live: true } );
+		t.strictEqual( q, r.findAllComponents( 'nerp', { live: true } ) );
+		t.deepEqual( r.findAllComponents( 'nerp' ), q );
+	});
 }

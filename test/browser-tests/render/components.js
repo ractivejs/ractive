@@ -126,4 +126,26 @@ export default function() {
 		cmp.reset();
 		t.htmlEqual( fixture.innerHTML, 'the second place' );
 	});
+
+	test( `decorators, transitions, and binding flags are ignored on components`, t => {
+		const cmp = Ractive.extend({
+			template: 'yep'
+		});
+		new Ractive({
+			target: fixture,
+			template: '<cmp as-foo bar-in lazy />',
+			components: { cmp },
+			decorators: {
+				foo () { t.ok( false, 'no decorators' ); }
+			},
+			transitions: {
+				bar ( trans ) {
+					t.ok( false, 'no transitions' );
+					trans.complete();
+				}
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
 }

@@ -1,6 +1,7 @@
 import runloop from '../../../../global/runloop';
 import { warnOnceIfDebug } from '../../../../utils/log';
 import findElement from '../../shared/findElement';
+import noop from '../../../../utils/noop';
 
 function warnAboutAmbiguity ( description, ractive ) {
 	warnOnceIfDebug( `The ${description} being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity`, { ractive });
@@ -105,8 +106,6 @@ export default class Binding {
 	unbind () {
 		this.model.unregisterTwowayBinding( this );
 	}
-
-	unrender () {
-		// noop?
-	}
 }
+
+Binding.prototype.unrender = noop;

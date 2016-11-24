@@ -14,7 +14,6 @@ import readPartialDefinitionSection from './converters/readPartialDefinitionSect
 import readTemplate from './converters/readTemplate';
 import cleanup from './utils/cleanup';
 import insertExpressions from './utils/insertExpressions';
-import { fromComputationString } from './utils/createFunction';
 
 // See https://github.com/ractivejs/template-spec for information
 // about the Ractive template specification
@@ -108,14 +107,3 @@ const StandardParser = Parser.extend({
 export default function parse ( template, options ) {
 	return new StandardParser( template, options || {} ).result;
 }
-
-parse.computedStrings = function( computed ) {
-	if ( !computed ) return [];
-
-	Object.keys( computed ).forEach( key => {
-		const value = computed[ key ];
-		if ( typeof value === 'string' ) {
-			computed[ key ] = fromComputationString( value );
-		}
-	});
-};

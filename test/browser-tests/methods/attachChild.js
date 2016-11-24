@@ -11,11 +11,13 @@ export default function() {
 			}
 		});
 		const r2 = new Ractive({
-			template: '{{foo}}'
+			template: '{{#with empty}}{{#with other}}{{foo}}{{/with}}{{/with}}',
+			data: { empty: {} }
 		});
 
 		t.equal( r2.toHTML(), '' );
 		r1.attachChild( r2 );
+		r2.set( 'other', {} );
 		t.equal( r2.toHTML(), 'bar' );
 		r1.detachChild( r2 );
 		t.equal( r2.toHTML(), '' );

@@ -1417,4 +1417,31 @@ export default function() {
 
 		t.equal( r.get( 'foo' ), 'a' );
 	});
+
+	test( `multi select binding`, t => {
+		fixture.innerHTML = '<select multiple><option value="1">one</option><option value="2">two</option><option value="3">three</option></select>';
+		const r = new Ractive({
+			target: fixture,
+			template: `<select multiple value="{{list}}"><option value="1">one</option><option value="2" selected>two</option><option value="3">three</option></select>`,
+			enhance: true
+		});
+
+		t.deepEqual( r.get( 'list' ), [ '2' ] );
+
+		const opts = r.findAll( 'option' );
+		const sel = r.find( 'select' );
+
+		opts[0].selected = true;
+		opts[2].selected = true;
+		fire( sel, 'change' );
+		t.deepEqual( r.get( 'list' ), [ '1', '2', '3' ] );
+
+		r.set( 'list', [ '1', '2' ] );
+		t.ok( !opts[2].selected );
+
+		opts[2].selected = true;
+		opts[0].selected = false;
+		fire( sel, 'change' );
+		t.deepEqual( r.get( 'list' ), [ '2', '3' ] );
+	});
 }

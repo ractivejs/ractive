@@ -9,6 +9,7 @@ import { handleChange, mark, marked, unbind } from '../../shared/methodCallers';
 import { removeFromArray } from '../../utils/array';
 import { isEqual } from '../../utils/is';
 import { escapeKey } from '../../shared/keypaths';
+import noop from '../../utils/noop';
 
 class ReferenceExpressionChild extends Model {
 	constructor ( parent, key ) {
@@ -242,8 +243,6 @@ export default class ReferenceExpressionProxy extends Model {
 		return this.value;
 	}
 
-	rebind () { } // NOOP
-
 	set ( value ) {
 		if ( !this.model ) throw new Error( 'Unresolved reference expression. This should not happen!' );
 		this.model.set( value );
@@ -257,3 +256,5 @@ export default class ReferenceExpressionProxy extends Model {
 		}
 	}
 }
+
+ReferenceExpressionProxy.prototype.rebind = noop;

@@ -14,6 +14,7 @@ import resetStyle from './transitions/resetStyle';
 import Promise from '../../../utils/Promise';
 import { rebindMatch } from '../../../shared/rebind';
 import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
+import noop from '../../../utils/noop';
 
 const getComputedStyle = win && ( win.getComputedStyle || legacy.getComputedStyle );
 const resolved = Promise.resolve();
@@ -142,8 +143,6 @@ export default class Transition {
 		setupArgsFn( this, options.template, this.parentFragment );
 	}
 
-	destroyed () {}
-
 	getParams () {
 		if ( this.params ) return this.params;
 
@@ -219,8 +218,6 @@ export default class Transition {
 	registerCompleteHandler ( fn ) {
 		addToArray( this.onComplete, fn );
 	}
-
-	render () {}
 
 	setStyle ( style, value ) {
 		if ( typeof style === 'string' ) {
@@ -315,11 +312,10 @@ export default class Transition {
 	unregisterCompleteHandler ( fn ) {
 		removeFromArray( this.onComplete, fn );
 	}
-
-	unrender () {}
-
-	update () {}
 }
+
+const proto = Transition.prototype;
+proto.destroyed = proto.render = proto.unrender = proto.update = noop;
 
 function nearestProp ( prop, ractive, rendering ) {
 	let instance = ractive;

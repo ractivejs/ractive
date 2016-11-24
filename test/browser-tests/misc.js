@@ -1820,4 +1820,27 @@ export default function() {
 			t.ok( ~e.message.indexOf( 'hello\n{{foo}\n     ^----\nworld' ) );
 		}
 	});
+
+	test( `setting a null value to null does nothing`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#if !foo}}yep{{/if}}`,
+			data: { foo: null }
+		});
+
+		r.observe( 'foo', () => t.ok( false, 'should not fire' ), { init: false } );
+		r.set( 'foo', null );
+
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
+
+	test( `non-bmp characters in templates`, t => {
+		new Ractive({
+			target: fixture,
+			template: '{{foo}}',
+			data: { foo: '😀𠀀' }
+		});
+
+		t.equal( fixture.innerHTML, '😀𠀀'  );
+	});
 }

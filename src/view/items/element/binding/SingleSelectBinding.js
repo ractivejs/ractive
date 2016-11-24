@@ -86,11 +86,6 @@ export default class SingleSelectBinding extends Binding {
 		this.model.set( option._ractive ? option._ractive.value : option.value );
 	}
 
-	// TODO this method is an anomaly... is it necessary?
-	setValue ( value ) {
-		this.model.set( value );
-	}
-
 	unrender () {
 		this.node.removeEventListener( 'change', handleDomEvent, false );
 	}

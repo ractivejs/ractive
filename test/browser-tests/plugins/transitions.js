@@ -909,4 +909,29 @@ export default function() {
 			done();
 		});
 	});
+
+	test( `transition params normalization`, t => {
+		const done = t.async();
+		const r = new Ractive({
+			template: '<div go-in />',
+			transitions: {
+				go ( trans ) {
+					let p = trans.processParams( 'slow' );
+					t.equal( p.duration, 600 );
+					p = trans.processParams( 'fast' );
+					t.equal( p.duration, 200 );
+					p = trans.processParams( 'wat' );
+					t.equal( p.duration, 400 );
+					p = trans.processParams();
+					t.ok( typeof p === 'object' );
+					p = trans.processParams( 300 );
+					t.equal( p.duration, 300 );
+
+					trans.complete();
+				}
+			}
+		});
+
+		r.render( fixture ).then( done );
+	});
 }
