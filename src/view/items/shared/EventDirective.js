@@ -10,6 +10,7 @@ import { addHelpers } from '../../helpers/contextMethods';
 import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
 import { warnOnceIfDebug } from '../../../utils/log';
 import { addToArray, removeFromArray } from '../../../utils/array';
+import noop from '../../../utils/noop';
 
 const specialPattern = /^(event|arguments)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
@@ -167,8 +168,6 @@ export default class EventDirective {
 	unrender () {
 		this.events.forEach( e => e.unlisten() );
 	}
-
-	update () {
-		// noop
-	}
 }
+
+EventDirective.prototype.update = noop;

@@ -4,15 +4,12 @@ import { escapeHtml } from '../../utils/html';
 import Item from './shared/Item';
 import { detachNode } from '../../utils/dom';
 import { inAttributes } from './element/ConditionalAttribute';
+import noop from '../../utils/noop';
 
 export default class Text extends Item {
 	constructor ( options ) {
 		super( options );
 		this.type = TEXT;
-	}
-
-	bind () {
-		// noop
 	}
 
 	detach () {
@@ -54,20 +51,15 @@ export default class Text extends Item {
 		return escape ? escapeHtml( this.template ) : this.template;
 	}
 
-	unbind () {
-		// noop
-	}
-
 	unrender ( shouldDestroy ) {
 		if ( this.rendered && shouldDestroy ) this.detach();
 		this.rendered = false;
-	}
-
-	update () {
-		// noop
 	}
 
 	valueOf () {
 		return this.template;
 	}
 }
+
+const proto = Text.prototype;
+proto.bind = proto.unbind = proto.update = noop;

@@ -1,5 +1,5 @@
 import runloop from '../../../global/runloop';
-import { lastItem } from '../../../utils/array';
+import { find, lastItem } from '../../../utils/array';
 import { matches } from '../../../utils/dom';
 
 function sortByDocumentPosition ( node, otherNode ) {
@@ -166,4 +166,30 @@ export default class Query {
 			( !this.selector || item.name === this.selector ) :
 			( item ? matches( item, this.selector ) : null );
 	}
+}
+
+export function getQuery ( ractive, selector, options, component ) {
+	const liveQueries = ractive[`_live${ component ? 'Component' : ''}Queries`];
+	let query;
+
+	// Shortcut: if we're maintaining a live query with this
+	// selector, we don't need to traverse the parallel DOM
+	query = find( liveQueries, q => q.selector === selector && q.remote === options.remote );
+	if ( query ) {
+		if ( options.live ) query.refs++;
+		// Either return the exact same query, or (if not live) a snapshot
+		return { old: options.live ? query.result : query.result.slice() };
+	}
+
+	query = new Query( ractive, selector, !!options.live, component );
+	options._query = query;
+	query.remote = options.remote;
+
+	// Add this to the list of live queries Ractive needs to maintain,
+	// if applicable
+	if ( query.live ) {
+		liveQueries.push( query );
+	}
+
+	return query;
 }

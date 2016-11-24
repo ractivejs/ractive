@@ -47,12 +47,6 @@ export default class CheckboxNameBinding extends Binding {
 		}
 	}
 
-	changed () {
-		const wasChecked = !!this.isChecked;
-		this.isChecked = this.node.checked;
-		return this.isChecked === wasChecked;
-	}
-
 	getInitialValue () {
 		// This only gets called once per group (of inputs that
 		// share a name), because it only gets called if there

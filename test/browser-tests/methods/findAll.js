@@ -302,4 +302,15 @@ export default function() {
 
 		t.ok( r.findAll( 'a' ).length === 3 );
 	});
+
+	test( `the same findAll live query is returned for a given string`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '<div><span foo /><div><span foo></div><div><span /></div></div>'
+		});
+
+		const q = r.findAll( 'span[foo]', { live: true } );
+		t.strictEqual( q, r.findAll( 'span[foo]', { live: true } ) );
+		t.deepEqual( r.findAll( 'span[foo]' ), q );
+	});
 }

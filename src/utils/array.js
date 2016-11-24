@@ -71,8 +71,8 @@ export function combine ( first, ...rest ) {
 	const res = first.slice();
 	rest = rest.concat.apply( [], rest );
 
-	let i = rest.length;
-	while ( i-- ) {
+	const len = rest.length;
+	for ( let i = 0; i < len; i++ ) {
 		if ( !~res.indexOf( rest[i] ) ) {
 			res.push( rest[i] );
 		}

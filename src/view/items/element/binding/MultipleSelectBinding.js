@@ -1,20 +1,9 @@
-import runloop from '../../../../global/runloop';
 import Binding from './Binding';
 import handleDomEvent from './handleDomEvent';
 import { arrayContentsMatch } from '../../../../utils/array';
 import getSelectedOptions from '../../../../utils/getSelectedOptions';
 
 export default class MultipleSelectBinding extends Binding {
-	forceUpdate () {
-		const value = this.getValue();
-
-		if ( value !== undefined ) {
-			this.attribute.locked = true;
-			runloop.scheduleTask( () => this.attribute.locked = false );
-			this.model.set( value );
-		}
-	}
-
 	getInitialValue () {
 		return this.element.options
 			.filter( option => option.getAttribute( 'selected' ) )
@@ -76,17 +65,7 @@ export default class MultipleSelectBinding extends Binding {
 		this.model.set( result );
 	}
 
-	setValue () {
-		throw new Error( 'TODO not implemented yet' );
-	}
-
 	unrender () {
 		this.node.removeEventListener( 'change', handleDomEvent, false );
-	}
-
-	updateModel () {
-		if ( this.attribute.value === undefined || !this.attribute.value.length ) {
-			this.keypath.set( this.initialValue );
-		}
 	}
 }

@@ -19,11 +19,7 @@ const parseOptions = [
 
 const TEMPLATE_INSTRUCTIONS = `Either preparse or use a ractive runtime source that includes the parser. `;
 
-const COMPUTATION_INSTRUCTIONS = `Either use:
-
-	Ractive.parse.computedStrings( component.computed )
-
-at build time to pre-convert the strings to functions, or use functions instead of strings in computed properties.`;
+const COMPUTATION_INSTRUCTIONS = `Either include a version of Ractive that can parse or convert your computation strings to functions.`;
 
 
 function throwNoParse ( method, error, instructions ) {

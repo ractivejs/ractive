@@ -6,6 +6,7 @@ import RactiveModel from './specials/RactiveModel';
 import SharedModel, { GlobalModel } from './specials/SharedModel';
 import { splitKeypath, unescapeKey } from '../shared/keypaths';
 import resolveReference from '../view/resolvers/resolveReference';
+import noop from '../utils/noop';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
@@ -171,11 +172,8 @@ export default class RootModel extends Model {
 			this.computations[ k ].teardown();
 		}
 	}
-
-	update () {
-		// noop
-	}
 }
+RootModel.prototype.update = noop;
 
 function attachImplicits ( model, fragment ) {
 	if ( model._link && model._link.implicit && model._link.isDetached() ) {

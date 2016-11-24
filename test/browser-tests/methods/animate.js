@@ -204,4 +204,19 @@ export default function() {
 
 		ractive.animate( 'x', 1, { easing: 'easeOut' });
 	});
+
+	test( `animating an array animates the values in the array`, t => {
+		const done = t.async();
+
+		const r = new Ractive({
+			data: { foo: [ 1, 2, 3 ] }
+		});
+
+		r.animate( 'foo', [ 4, 5, 6 ], { duration: 10 } ).then( () => {
+			t.deepEqual( r.get( 'foo' ), [ 4, 5, 6 ] );
+			done();
+		});
+
+		t.deepEqual( r.get( 'foo' ), [ 1, 2, 3 ] );
+	});
 }
