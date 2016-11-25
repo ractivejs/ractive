@@ -2,7 +2,7 @@
 
 const path = require( 'path' );
 const fs = require( 'fs' );
-const Ractive = require( path.resolve( path.basename( fs.realpathSync( __filename ) ), '../ractive.js' ) );
+const Ractive = require( path.resolve( path.dirname( fs.realpathSync( __filename ) ), '../ractive.js' ) );
 
 const args = process.argv.slice();
 
