@@ -5,13 +5,26 @@
   "keywords": [ "reactive", "templates", "templating", "ui", "mustache", "handlebars", "dom" ],
   "homepage": "http://ractivejs.org",
   "main": "ractive.js",
+  "jsnext:main": "ractive.mjs",
+  "module": "ractive.mjs",
+  "license": "MIT",
   "licenses": [
     {
       "type": "MIT"
     }
   ],
+  "categories": [
+    "DOM",
+    "Templating"
+  ],
+  "bugs": {
+    "url": "https://github.com/ractivejs/ractive/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/ractivejs/ractive.git"
+  },
+  "bin": {
+    "ractive": "./bin/ractive"
   }
 }

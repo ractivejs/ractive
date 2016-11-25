@@ -77,6 +77,9 @@
     "coverage": "karma start",
     "coveralls": "npm run coverage && cat ./tmp/coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./tmp/coverage"
   },
+  "bin": {
+    "ractive": "./bin/ractive"
+  },
   "github": "https://github.com/ractivejs/ractive",
   "devDependencies": {
     "cheerio": "^0.22.0",

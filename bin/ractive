@@ -1,0 +1,111 @@
+#!/usr/bin/env node
+
+const path = require( 'path' );
+const fs = require( 'fs' );
+const Ractive = require( path.resolve( path.basename( fs.realpathSync( __filename ) ), '../ractive.js' ) );
+
+const args = process.argv.slice();
+
+if ( ~args[0].indexOf( 'node' ) ) args.shift();
+const program = args.shift();
+const cmd = args.shift();
+
+let input = process.stdin;
+let output = process.stdout;
+let parseArgs = {};
+
+switch ( cmd ) {
+	case 'parse':
+		let arg;
+		while ( arg = args.shift() ) {
+			switch ( arg ) {
+				case '-i':
+				case '--input':
+					input = fs.createReadStream( args.shift() );
+					break;
+
+				case '-o':
+				case '--output':
+					output = fs.createWriteStream( args.shift() );
+					break;
+
+				case '-t':
+				case '--text-only':
+					parseArgs.textOnlyMode = true;
+					break;
+
+				case '-x':
+				case '--nocsp':
+					parseArgs.csp = false;
+					break;
+					
+				case '-d':
+				case '--delimiters':
+					parseArgs.delimiters = [ args.shift(), args.shift() ];
+					break;
+
+				case '-s':
+				case '--static':
+					parseArgs.staticDelimiters = [ args.shift(), args.shift() ];
+					break;
+
+				case '-r':
+				case '--triple':
+					parseArgs.tripleDelimiters = [ args.shift(), args.shift() ];
+					break;
+
+				case '-p':
+				case '--static-triple':
+					parseArgs.staticTripleDelimiters = [ args.shift(), args.shift() ];
+					break;
+
+				default:
+					console.error( '??? ', arg );
+					break;
+			}
+		}
+		const data = [];
+		input.on( 'data', chunk => data.push( chunk ) );
+		input.on( 'end', () => {
+			const str = Buffer.concat( data ).toString( 'utf8' );
+			const tpl = Ractive.parse( str, parseArgs );
+			output.on( 'drain', () => process.exit( 0 ) );
+			if ( tpl.e ) {
+				let str = '{';
+				let i = 0;
+				for ( const k in tpl ) {
+					if ( i++ > 0 ) str += ',';
+					if ( k === 'e' ) {
+						str += 'e:{';
+						let i = 0;
+						for ( const k in tpl.e ) {
+							if ( i++ > 0 ) str += ',';
+							str += `${JSON.stringify(k)}:${tpl.e[k].toString()}`;
+						}
+						str += '}';
+					} else {
+						str += `${JSON.stringify(k)}:${JSON.stringify(tpl[k])}`;
+					}
+				}
+				output.write( str + '}', 'utf8' );
+			} else {
+				output.write( JSON.stringify( tpl ), 'utf8' );
+			}
+		});
+		break;
+
+	default:
+		console.error( `Usage: ractive [command] [options]
+  Commands:
+    parse
+      -i, --input {file} - file to parse, otherwise STDIN
+      -o, --output {file} - file to write, otherwise STDOUT
+      -t, --text-only - text only
+      -x, --nocsp - don't output expression functions
+      -d, --delimiters {open} {close} - set the plain mustache delimiters (default {{ }})
+      -s, --static {open} {close} - set the static mustache delimiters (default [[ ]])
+      -r, --triple {open} {close} - set the triple mustache delimiters (default {{{ }}})
+      -p, --static-triple {open} {close} - set the static triple delimiters (default [[[ ]]])
+` );
+		process.exit( 1 );
+}
