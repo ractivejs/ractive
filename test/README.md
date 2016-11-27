@@ -63,7 +63,7 @@ Try to adhere to the following guidelines:
 * Ideally, it should be possible to move a test from one file to another without anything breaking. In particular, any changes to the `Ractive` object should be reverted at the end of the test
 * Use ES6 syntax (arrow functions, object shorthand, template strings, `const`/`let`, etc)
 * Don't use `module`. The module name is auto-generated based on filename – i.e. one module per file
-* Lint the test suite with `npm run lint-tests` before submitting your PR.
+* Lint the test suite with `npm run lint:tests` before submitting your PR.
 
 
 ## Advanced tests
