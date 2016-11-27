@@ -3,47 +3,40 @@
   "description": "Next-generation DOM manipulation",
   "version": "0.9.0-edge",
   "homepage": "http://ractivejs.org",
+  "license": "MIT",
   "main": "build/ractive.js",
   "jsnext:main": "build/ractive.mjs",
   "module": "build/ractive.mjs",
+  "bin": {
+    "ractive": "./bin/ractive"
+  },
   "keywords": [
-    "template",
-    "templating",
-    "data binding",
     "binding",
+    "data binding",
     "declarative",
+    "dom",
+    "handlebars",
+    "mustache",
+    "reactive",
+    "template",
+    "templates",
+    "templating",
+    "ui",
     "view model"
-  ],
-  "author": {
-    "name": "Rich Harris"
-  },
-  "license": "MIT",
-  "jam": {
-    "name": "ractive",
-    "main": "ractive.js",
-    "include": [
-      "ractive.js",
-      "build/ractive.js",
-      "build/ractive.mjs",
-      "build/ractive.runtime.js",
-      "build/ractive.runtime.mjs",
-      "build/ractive.min.js",
-      "build/ractive.runtime.min.js",
-      "build/ractive-legacy.js",
-      "build/ractive-legacy.mjs",
-      "build/ractive-legacy.runtime.js",
-      "build/ractive-legacy.runtime.mjs",
-      "build/ractive-legacy.min.js",
-      "build/ractive-legacy.runtime.min.js",
-      "README.md"
-    ]
-  },
-  "categories": [
-    "DOM",
-    "Templating"
   ],
   "bugs": {
     "url": "https://github.com/ractivejs/ractive/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ractivejs/ractive.git"
+  },
+  "engines" : {
+    "node" : ">=4.0.0",
+    "npm" : ">=2.14.2"
+  },
+  "author": {
+    "name": "Rich Harris"
   },
   "contributors": [
     {
@@ -59,28 +52,6 @@
       "web": "https://github.com/1N50MN14"
     }
   ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ractivejs/ractive.git"
-  },
-  "scripts": {
-    "clean": "rm -rfv .gobble .gobble-build build tmp",
-    "test": "sh ./scripts/test.sh",
-    "start": "node_modules/.bin/gobble",
-    "build": "sh ./scripts/build.sh",
-    "release": "sh ./scripts/release.sh",
-    "edge-release": "sh ./scripts/edge-release.sh",
-    "fakebuild": "sh ./scripts/build.sh --fake",
-    "promises-aplus-tests": "./scripts/promises-aplus-tests.js",
-    "lint-src": "node node_modules/eslint/bin/eslint src/ --ext .js",
-    "lint-test": "node node_modules/eslint/bin/eslint test/node-tests/ test/browser-tests/ --ext .js",
-    "coverage": "karma start",
-    "coveralls": "npm run coverage && cat ./tmp/coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./tmp/coverage"
-  },
-  "bin": {
-    "ractive": "./bin/ractive"
-  },
-  "github": "https://github.com/ractivejs/ractive",
   "devDependencies": {
     "cheerio": "^0.22.0",
     "coveralls": "~2.11",
@@ -106,22 +77,17 @@
     "surge": "^0.18.0",
     "uglify-js": "^2.6.2"
   },
-  "testling": {
-    "html": "test/testling.html",
-    "browsers": [
-      "ie/8..latest",
-      "chrome/10.0",
-      "chrome/15.0",
-      "chrome/23..canary",
-      "firefox/3.6",
-      "firefox/7.0",
-      "firefox/12.0",
-      "firefox/18.0..nightly",
-      "opera/10..next",
-      "safari/4..latest",
-      "iphone/6.0",
-      "ipad/6.0",
-      "android-browser/4.2"
-    ]
+  "scripts": {
+    "start": "gobble serve",
+    "lint-src": "eslint src/ --ext .js",
+    "lint-test": "eslint test/node-tests/ test/browser-tests/ --ext .js",
+    "test": "sh ./scripts/test.sh",
+    "promises-aplus-tests": "./scripts/promises-aplus-tests.js",
+    "build": "sh ./scripts/build.sh",
+    "fakebuild": "sh ./scripts/build.sh --fake",
+    "release": "sh ./scripts/release.sh",
+    "edge-release": "sh ./scripts/edge-release.sh",
+    "coverage": "karma start",
+    "coveralls": "npm run coverage && cat ./tmp/coverage/lcov.info | coveralls && rm -rf ./tmp/coverage"
   }
 }
