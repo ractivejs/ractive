@@ -1,12 +1,22 @@
+## Description:
+
+## Versions affected:
+
+## Platforms affected:
+
+## Reproduction:
+
+## Code:
+
 <!--
 Hello!
 
+
+
 Thank you for taking your time submitting this issue. To make it easy for everyone to debug, we'll just need a few key pieces of information:
 
-
-
 Description of the bug (or enhancement):
-Describe as much as you can what happened. Include the workarounds you have tried, tools you may have used alongside, build processes and the like.
+Describe as much as you can what happened. Include the description of the problem, what you have tried, tools you have used, build processes and the like.
 
 Versions affected:
 Include the version of Ractive affected. To ensure that this is not a regression nor has already been fixed in the next version, it is advised to also test the previous versions and next versions.
@@ -29,13 +39,3 @@ Once again, thank you for your time and patience.
 Ractive Community
 
 -->
-
-## Description:
-
-## Versions affected:
-
-## Platforms affected:
-
-## Reproduction:
-
-## **Code:**
