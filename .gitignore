@@ -1,22 +1,29 @@
+# OS junk
 .DS_Store
+
+# Dependencies
 node_modules/
+
+# Debugging directory
 sandbox/*
 !sandbox/_base.html
 !sandbox/_sandbox.css
-!sandbox/require.js
-!sandbox/debugRequire.js
 !sandbox/sample/
+
+# Temporary directories
 tmp/
-tmp-build/
-tmp-rel/
-FIX.js
-build/*
-.amd/
-.transpiled/
+
+# Build directory
+build/
+
+# Gobble directories
 .gobble
-ractive.js
-!src/Ractive.js
 .gobble-build
+.gobble-watch
+
+# Performance tests
 perf/control/*
 !perf/control/.empty
-npm-debug.log
+
+# Log files
+*.log
