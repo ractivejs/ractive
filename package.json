@@ -1,57 +1,12 @@
 {
   "name": "ractive",
-  "description": "Next-generation DOM manipulation",
   "version": "0.9.0-edge",
-  "homepage": "http://ractivejs.org",
   "license": "MIT",
-  "main": "build/ractive.js",
-  "jsnext:main": "build/ractive.mjs",
-  "module": "build/ractive.mjs",
-  "bin": {
-    "ractive": "./bin/ractive"
-  },
-  "keywords": [
-    "binding",
-    "data binding",
-    "declarative",
-    "dom",
-    "handlebars",
-    "mustache",
-    "reactive",
-    "template",
-    "templates",
-    "templating",
-    "ui",
-    "view model"
-  ],
-  "bugs": {
-    "url": "https://github.com/ractivejs/ractive/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ractivejs/ractive.git"
-  },
+  "private": true,
   "engines" : {
     "node" : ">=4.0.0",
     "npm" : ">=2.14.2"
   },
-  "author": {
-    "name": "Rich Harris"
-  },
-  "contributors": [
-    {
-      "name": "Max Ogden",
-      "web": "https://github.com/maxogden"
-    },
-    {
-      "name": "Ryan Ramage",
-      "web": "https://github.com/ryanramage"
-    },
-    {
-      "name": "Ayman Mackouly",
-      "web": "https://github.com/1N50MN14"
-    }
-  ],
   "devDependencies": {
     "cheerio": "^0.22.0",
     "coveralls": "~2.11",
@@ -79,8 +34,8 @@
   },
   "scripts": {
     "start": "gobble serve",
-    "lint-src": "eslint src/ --ext .js",
-    "lint-test": "eslint test/node-tests/ test/browser-tests/ --ext .js",
+    "lint:src": "eslint src/ --ext .js",
+    "lint:test": "eslint test/node-tests/ test/browser-tests/ --ext .js",
     "test": "sh ./scripts/test.sh",
     "promises-aplus-tests": "./scripts/promises-aplus-tests.js",
     "build": "sh ./scripts/build.sh",
