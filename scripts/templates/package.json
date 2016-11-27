@@ -2,20 +2,27 @@
   "name": "ractive",
   "description": "Next-generation DOM manipulation",
   "version": "VERSION_PLACEHOLDER",
-  "keywords": [ "reactive", "templates", "templating", "ui", "mustache", "handlebars", "dom" ],
   "homepage": "http://ractivejs.org",
+  "license": "MIT",
   "main": "ractive.js",
   "jsnext:main": "ractive.mjs",
   "module": "ractive.mjs",
-  "license": "MIT",
-  "licenses": [
-    {
-      "type": "MIT"
-    }
-  ],
-  "categories": [
-    "DOM",
-    "Templating"
+  "bin": {
+    "ractive": "./bin/ractive"
+  },
+  "keywords": [
+    "binding",
+    "data binding",
+    "declarative",
+    "dom",
+    "handlebars",
+    "mustache",
+    "reactive",
+    "template",
+    "templates",
+    "templating",
+    "ui",
+    "view model"
   ],
   "bugs": {
     "url": "https://github.com/ractivejs/ractive/issues"
@@ -24,7 +31,8 @@
     "type": "git",
     "url": "https://github.com/ractivejs/ractive.git"
   },
-  "bin": {
-    "ractive": "./bin/ractive"
+  "engines" : {
+    "node" : ">=4.0.0",
+    "npm" : ">=2.14.2"
   }
 }
