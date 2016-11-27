@@ -2,13 +2,22 @@
   "name": "ractive",
   "description": "Next-generation DOM manipulation",
   "version": "VERSION_PLACEHOLDER",
-  "keywords": [ "reactive", "templates", "templating", "ui", "mustache", "handlebars", "dom" ],
   "homepage": "http://ractivejs.org",
+  "license": "MIT",
   "main": "ractive.js",
-  "licenses": [
-    {
-      "type": "MIT"
-    }
+  "keywords": [
+    "binding",
+    "data binding",
+    "declarative",
+    "dom",
+    "handlebars",
+    "mustache",
+    "reactive",
+    "template",
+    "templates",
+    "templating",
+    "ui",
+    "view model"
   ],
   "repository": {
     "type": "git",
