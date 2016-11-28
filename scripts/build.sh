@@ -85,7 +85,7 @@ cp tmp/*.js build
 cp tmp/*.mjs build
 cp tmp/*.map build
 cp typings/* build/typings
-cp bin/* build/bin
+cp -r bin/* build/bin
 
 echo "> copying *.json files to build folder..."
 for FILE in scripts/templates/*.json; do
