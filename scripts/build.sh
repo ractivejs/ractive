@@ -80,12 +80,14 @@ fi
 
 echo "> copying library to build folder..."
 mkdir -p build/typings
-mkdir -p build/bin
+mkdir build/bin
+mkdir build/lib
 cp tmp/*.js build
 cp tmp/*.mjs build
 cp tmp/*.map build
 cp typings/* build/typings
-cp -r bin/* build/bin
+cp bin/* build/bin
+cp lib/* build/lib
 
 echo "> copying *.json files to build folder..."
 for FILE in scripts/templates/*.json; do

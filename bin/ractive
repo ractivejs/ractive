@@ -3,29 +3,9 @@
 const path = require( 'path' );
 const fs = require( 'fs' );
 
-function stat ( file ) {
-	try {
-		return fs.statSync( file );
-	} catch ( e ) {}
-}
-
-function readToString ( stream ) {
-	return new Promise( ( ok, fail ) => {
-		const data = [];
-		stream.on( 'data', chunk => data.push( chunk ) );
-		stream.on( 'end', () => ok( Buffer.concat( data ).toString( 'utf8' ) ) );
-		stream.on( 'error', fail );
-	});
-}
-
-// find Ractive
-const basePath = path.resolve( path.dirname( fs.realpathSync( __filename ) ) );
-const devFile = path.resolve( basePath, '../build/ractive.js' );
-const modFile = path.resolve( basePath, '../ractive.js' );
-const Ractive = require( stat( modFile ) ? modFile : devFile );
-
-const parse = require( './lib/parse' );
-const component = require( './lib/component' );
+const util = require( '../lib/util' );
+const parse = require( '../lib/parse' );
+const component = require( '../lib/component' );
 
 const args = process.argv.slice();
 
@@ -37,6 +17,10 @@ let input = process.stdin;
 let output = process.stdout;
 // base path for resolving paths
 let base = process.cwd();
+
+function readFile ( name ) {
+	return Promise.resolve( fs.readFileSync( path.resolve( base, name ), { encoding: 'utf8' } ) );
+}
 
 let arg;
 const opts = {};
@@ -90,8 +74,9 @@ switch ( cmd ) {
 					break;
 			}
 		}
-		readToString( input ).then( string => {
-			parse.parse( Ractive, string, output, opts );
+		util.readToString( input ).then( string => {
+			return parse.parse( string, opts ).
+				then( string => util.writeToStream( output, string ) );
 		}, err => {
 			console.error( err.message );
 			process.exit( 1 );
@@ -104,10 +89,10 @@ switch ( cmd ) {
 				case '-i':
 				case '--input':
 					const file = args.shift();
-					const stats = stat( file );
+					const stats = util.stat( file );
 					if ( stats && stats.isDirectory() ) {
 						base = file;
-						if ( stat( path.resolve( file, './index.ractive' ) ) ) {
+						if ( util.stat( path.resolve( file, './index.ractive' ) ) ) {
 							input = fs.createReadStream( path.resolve( file, './index.ractive' ) );
 						} else {
 							input = fs.createReadStream( path.resolve( file, './index.html' ) );
@@ -153,8 +138,9 @@ switch ( cmd ) {
 					break;
 			}
 		}
-		readToString( input ).then( string => {
-			component.build( Ractive, string, output, opts, base );
+		util.readToString( input ).then( string => {
+			return component.build( string, opts, readFile ).
+				then( string => util.writeToStream( output, string ) );
 		}, err => {
 			console.error( err.message );
 			process.exit( 1 );
