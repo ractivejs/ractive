@@ -1,4 +1,4 @@
-import { INTERPOLATOR } from '../../../../config/types';
+import { INTERPOLATOR, TRIPLE } from '../../../../config/types';
 import { warnIfDebug } from '../../../../utils/log';
 import CheckboxBinding from './CheckboxBinding';
 import CheckboxNameBinding from './CheckboxNameBinding';
@@ -12,68 +12,95 @@ import RadioNameBinding from './RadioNameBinding';
 import SingleSelectBinding from './SingleSelectBinding';
 
 export function isBindable ( attribute ) {
-	return attribute &&
-		   attribute.template.f &&
-	       attribute.template.f.length === 1 &&
-	       attribute.template.f[0].t === INTERPOLATOR &&
-	       !attribute.template.f[0].s;
+
+	// The fragment must be a single non-string fragment
+	if ( !attribute || !attribute.template.f || !attribute.template.f.length === 1 || attribute.template.f[0].s ) return false;
+
+	// A binding is an interpolator `{{ }}`, yey.
+	if ( attribute.template.f[0].t === INTERPOLATOR ) return true;
+
+	// The above is probably the only true case. For the rest, show an appropriate
+	// warning before returning false.
+
+	// You can't bind a triple curly. HTML values on an attribute makes no sense.
+	if ( attribute.template.f[0].t === TRIPLE ) warnIfDebug( 'It is not possible create a binding using a triple mustache.' );
+
+	return false;
 }
 
 export default function selectBinding ( element ) {
+	const name = element.name;
 	const attributes = element.attributeByName;
+	const isBindableByValue = isBindable( attributes.value );
+	const isBindableByContentEditable = isBindable( attributes.contenteditable );
+	const isContentEditable =  element.getAttribute( 'contenteditable' );
 
-	// contenteditable - bind if the contenteditable attribute is true
-	// or is bindable and may thus become true...
-	if ( element.getAttribute( 'contenteditable' ) || isBindable( attributes.contenteditable ) ) {
-		// ...and this element also has a value attribute to bind
-		return isBindable( attributes.value ) ? ContentEditableBinding : null;
-	}
+	// contenteditable
+	// Bind if the contenteditable is true or a binding that may become true.
+	if ( ( isContentEditable || isBindableByContentEditable ) && isBindableByValue ) return ContentEditableBinding;
 
 	// <input>
-	if ( element.name === 'input' ) {
+	if ( name === 'input' ) {
 		const type = element.getAttribute( 'type' );
 
-		if ( type === 'radio' || type === 'checkbox' ) {
-			const bindName = isBindable( attributes.name );
-			const bindChecked = isBindable( attributes.checked );
+		if ( type === 'radio' ) {
+			const isBindableByName = isBindable( attributes.name );
+			const isBindableByChecked = isBindable( attributes.checked );
 
-			// for radios we can either bind the name attribute, or the checked attribute - not both
-			if ( bindName && bindChecked ) {
-				if ( type === 'radio' ) {
-					warnIfDebug( 'A radio input can have two-way binding on its name attribute, or its checked attribute - not both', { ractive: element.root });
-				} else {
-					// A checkbox with bindings for both name and checked - see https://github.com/ractivejs/ractive/issues/1749
-					return CheckboxBinding;
-				}
+			// For radios we can either bind the name or checked, but not both.
+			// Name binding is handed instead.
+			if ( isBindableByName && isBindableByChecked ) {
+				warnIfDebug( 'A radio input can have two-way binding on its name attribute, or its checked attribute - not both', { ractive: element.root });
+				return RadioNameBinding;
 			}
 
-			if ( bindName ) {
-				return type === 'radio' ? RadioNameBinding : CheckboxNameBinding;
-			}
+			if ( isBindableByName ) return RadioNameBinding;
 
-			if ( bindChecked ) {
-				return type === 'radio' ? RadioBinding : CheckboxBinding;
-			}
+			if ( isBindableByChecked ) return RadioBinding;
+
+			// Dead end. Unknown binding on radio input.
+			return null;
 		}
 
-		if ( type === 'file' && isBindable( attributes.value ) ) {
-			return FileBinding;
+		if ( type === 'checkbox' ) {
+			const isBindableByName = isBindable( attributes.name );
+			const isBindableByChecked = isBindable( attributes.checked );
+
+			// A checkbox with bindings for both name and checked. Checked treated as
+			// the checkbox value, name is treated as a regular binding.
+			//
+			// See https://github.com/ractivejs/ractive/issues/1749
+			if ( isBindableByName && isBindableByChecked ) return CheckboxBinding;
+
+			if ( isBindableByName ) return CheckboxNameBinding;
+
+			if ( isBindableByChecked ) return CheckboxBinding;
+
+			// Dead end. Unknown binding on checkbox input.
+			return null;
 		}
 
-		if ( isBindable( attributes.value ) ) {
-			return ( type === 'number' || type === 'range' ) ? NumericBinding : GenericBinding;
-		}
+		if ( type === 'file' && isBindableByValue ) return FileBinding;
 
+		if ( type === 'number' && isBindableByValue ) return NumericBinding;
+
+		if ( type === 'range' && isBindableByValue ) return NumericBinding;
+
+		// Some input of unknown type (browser usually falls back to text).
+		if ( isBindableByValue ) return GenericBinding;
+
+		// Dead end. Some unknown input and an unbindable.
 		return null;
 	}
 
 	// <select>
-	if ( element.name === 'select' && isBindable( attributes.value ) ) {
+	if ( name === 'select' && isBindableByValue ){
 		return element.getAttribute( 'multiple' ) ? MultipleSelectBinding : SingleSelectBinding;
 	}
 
 	// <textarea>
-	if ( element.name === 'textarea' && isBindable( attributes.value ) ) {
-		return GenericBinding;
-	}
+	if ( name === 'textarea' && isBindableByValue ) return GenericBinding;
+
+	// Dead end. Some unbindable element.
+	return null;
 }
