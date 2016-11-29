@@ -1631,6 +1631,36 @@ export default function() {
 		t.deepEqual( Ractive.splitKeypath( 'foo.bar\\\\\\.baz' ), [ 'foo', 'bar\\.baz' ] );
 	});
 
+	test( 'triple curly binding', t => {
+		t.expect( 11 );
+
+		onWarn( message => {
+			t.ok( ~message.indexOf( 'It is not possible create a binding using a triple mustache.' ), 'Binding a triple curly should warn.' );
+		});
+
+		new Ractive({
+			el: fixture,
+			template: `
+				<input type="text" value="{{{foo}}}">
+				<input type="number" value="{{{foo}}}">
+				<input type="file" value="{{{foo}}}">
+				<input type="checkbox" name="{{{foo}}}">
+				<input type="checkbox" checked="{{{foo}}}">
+				<input type="radio" name="{{{foo}}}">
+				<input type="radio" checked="{{{foo}}}">
+				<textarea value="{{{foo}}}"></textarea>
+				<select value="{{{foo}}}">
+					<option value="bar">bar</option>
+				</select>
+				<select value="{{{foo}}}" multiple>
+					<option value="bar">bar</option>
+				</select>
+				<div contenteditable="true" value="{{{foo}}}"></div>
+			`,
+			data: { foo: 'bar' }
+		});
+	});
+
 	// Is there a way to artificially create a FileList? Leaving this commented
 	// out until someone smarter than me figures out how
 	// test( '{{#each}} iterates over a FileList (#1220)', t => {
