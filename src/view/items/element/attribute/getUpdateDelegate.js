@@ -1,5 +1,6 @@
 import { html } from '../../../../config/namespaces';
-import { safeToStringValue, camelize } from '../../../../utils/dom';
+import { safeToStringValue} from '../../../../utils/dom';
+import camelCase from '../../../../utils/camelCase.js';
 import { arrayContains } from '../../../../utils/array';
 import { isArray } from '../../../../utils/is';
 import noop from '../../../../utils/noop';
@@ -249,7 +250,7 @@ function updateStyleAttribute ( reset ) {
 
 function updateInlineStyle ( reset ) {
 	if ( !this.styleName ) {
-		this.styleName = camelize( this.name.substr( 6 ) );
+		this.styleName = camelCase( this.name.substr( 6 ) );
 	}
 
 	this.node.style[ this.styleName ] = reset ? '' : this.getValue();
