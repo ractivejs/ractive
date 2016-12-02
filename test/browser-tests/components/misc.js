@@ -359,7 +359,7 @@ export default function() {
 			t.expect( 1 );
 
 			onWarn( msg => {
-				t.ok( msg );
+				if(msg.indexOf( 'no component was returned' ) > -1) t.ok(1);
 			});
 
 			new Ractive({

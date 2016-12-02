@@ -36,3 +36,7 @@ export function isObjectLike ( thing ) {
 	const type = typeof thing;
 	if ( type === 'object' || type === 'function' ) return true;
 }
+
+export function isNotAnElement ( name ){
+	return document.createElement( name ).constructor === HTMLUnknownElement;
+}

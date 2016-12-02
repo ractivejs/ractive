@@ -1,6 +1,6 @@
 /*global document, HTMLParagraphElement */
 import { test } from 'qunit';
-import { initModule } from '../test-config';
+import { initModule, onWarn } from '../test-config';
 
 export default function() {
 	initModule( 'render/elements.js' );
@@ -163,4 +163,18 @@ export default function() {
 		t.equal( r.findAll( 'circle' ).length, 3 );
 		r.findAll( 'circle' ).forEach( e => t.equal( e.namespaceURI, svg ) );
 	});
+
+	test( 'Unknown elements should give off a warning - #1723', t => {
+		t.expect( 1 );
+
+		onWarn( msg => {
+			if(msg.indexOf( 'not a component nor an element' ) > -1) t.ok(1);
+		});
+
+		new Ractive({
+			el: fixture,
+			template: 'Outside <xxx>Inside</xxx>'
+		});
+	});
+
 }
