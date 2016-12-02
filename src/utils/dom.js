@@ -153,14 +153,4 @@ function safeAttributeString ( string ) {
 		.replace( /'/g, '&#39;' );
 }
 
-const camel = /(-.)/g;
-function camelize ( string ) {
-	return string.replace( camel, s => s.charAt( 1 ).toUpperCase() );
-}
-
-const decamel = /[A-Z]/g;
-function decamelize ( string ) {
-	return string.replace( decamel, s => `-${s.toLowerCase()}` );
-}
-
-export { createElement, detachNode, getElement, matches, safeToStringValue, safeAttributeString, camelize, decamelize };
+export { createElement, detachNode, getElement, matches, safeToStringValue, safeAttributeString };

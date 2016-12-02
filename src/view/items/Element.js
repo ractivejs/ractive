@@ -7,7 +7,8 @@ import updateLiveQueries from './element/updateLiveQueries';
 import { removeFromArray, toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
 import { bind, destroyed, render, unbind, update } from '../../shared/methodCallers';
-import { createElement, detachNode, matches, safeAttributeString, decamelize } from '../../utils/dom';
+import { createElement, detachNode, matches, safeAttributeString } from '../../utils/dom';
+import hyphenateCamel from '../../utils/hyphenateCamel.js';
 import createItem from './createItem';
 import { html, svg } from '../../config/namespaces';
 import findElement from './shared/findElement';
@@ -281,7 +282,7 @@ export default class Element extends ContainerItem {
 				style = ( style || '' ) + ( style ? ' ' : '' ) + safeAttributeString( attr.getString() );
 				if ( style && !endsWithSemi.test( style ) ) style += ';';
 			} else if ( attr.styleName ) {
-				style = ( style || '' ) + ( style ? ' ' : '' ) +  `${decamelize( attr.styleName )}: ${safeAttributeString( attr.getString() )};`;
+				style = ( style || '' ) + ( style ? ' ' : '' ) +  `${hyphenateCamel( attr.styleName )}: ${safeAttributeString( attr.getString() )};`;
 			} else if ( attr.inlineClass && attr.getValue() ) {
 				cls = ( cls || '' ) + ( cls ? ' ' : '' ) + attr.inlineClass;
 			}

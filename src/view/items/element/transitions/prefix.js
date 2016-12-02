@@ -1,6 +1,6 @@
 import { isClient, vendors } from '../../../../config/environment';
 import { createElement } from '../../../../utils/dom';
-import camelCase from '../../../../utils/camelCase';
+import camelizeHyphenated from '../../../../utils/camelizeHyphenated.js';
 
 let prefix;
 
@@ -11,7 +11,7 @@ if ( !isClient ) {
 	const testStyle = createElement( 'div' ).style;
 
 	prefix = function ( prop ) {
-		prop = camelCase( prop );
+		prop = camelizeHyphenated( prop );
 
 		if ( !prefixCache[ prop ] ) {
 			if ( testStyle[ prop ] !== undefined ) {

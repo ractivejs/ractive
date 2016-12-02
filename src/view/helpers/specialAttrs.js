@@ -1,4 +1,4 @@
-import camelCase from '../../utils/camelCase';
+import camelizeHyphenated from '../../utils/camelizeHyphenated.js';
 import cleanCss from '../../utils/cleanCss';
 
 const space = /\s+/;
@@ -13,7 +13,7 @@ export function readStyle ( css ) {
 			.map( reconstruct )
 			.reduce(( rules, rule ) => {
 				const i = rule.indexOf(':');
-				const name = camelCase( rule.substr( 0, i ).trim() );
+				const name = camelizeHyphenated( rule.substr( 0, i ).trim() );
 				rules[ specials[ name ] || name ] = rule.substr( i + 1 ).trim();
 				return rules;
 			}, {});
