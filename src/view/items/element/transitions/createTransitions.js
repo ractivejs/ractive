@@ -2,7 +2,7 @@ import { missingPlugin } from '../../../../config/errors';
 import { isClient } from '../../../../config/environment';
 import { warnIfDebug, warnOnceIfDebug } from '../../../../utils/log';
 import { createElement } from '../../../../utils/dom';
-import camelCase from '../../../../utils/camelCase';
+import camelizeHyphenated from '../../../../utils/camelizeHyphenated.js';
 import interpolate from '../../../../shared/interpolate';
 import Ticker from '../../../../shared/Ticker';
 import prefix from './prefix';
@@ -83,7 +83,7 @@ if ( !isClient ) {
 			style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
 
 			function transitionEndHandler ( event ) {
-				const index = changedProperties.indexOf( camelCase( unprefix( event.propertyName ) ) );
+				const index = changedProperties.indexOf( camelizeHyphenated( unprefix( event.propertyName ) ) );
 
 				if ( index !== -1 ) {
 					changedProperties.splice( index, 1 );
