@@ -43,6 +43,7 @@
     "release": "sh ./scripts/release.sh",
     "edge-release": "sh ./scripts/edge-release.sh",
     "coverage": "karma start",
-    "coveralls": "npm run coverage && cat ./tmp/coverage/lcov.info | coveralls && rm -rf ./tmp/coverage"
+    "coveralls": "npm run coverage && cat ./tmp/coverage/lcov.info | coveralls && rm -rf ./tmp/coverage",
+    "perf": "cd perf; gobble"
   }
 }

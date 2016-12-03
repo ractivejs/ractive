@@ -5,9 +5,8 @@ var tests = [
 		name: 'js web framework benchmark approximation',
 		test: [
 			{
-				name: 'create 1000 rows',
-				max: 1500,
-				totalMax: 5000,
+				name: 'init',
+				max: 1,
 				test() {
 					var r = window.ractive = new Ractive({
 						el: 'body',
@@ -16,7 +15,7 @@ var tests = [
 	<tr><th>name</th><th>index</th><th>remove</th></tr>
 	{{#if show}}
 	{{#rows:i}}
-	<tr class="{{#selected === .id}}selected{{/}}">
+	<tr class="{{#if ~/selected === .id}}selected{{/if}}">
 		<td>{{.id}}</td>
 		<td>{{.name}}</td>
 		<td>{{i}} - {{@index}}</td>
@@ -27,11 +26,11 @@ var tests = [
 </table>`,
 						data: { rows: [], show: true }
 					});
-
 					var id = 0;
 					var random = window.random = function random(max) {
 						return Math.round(Math.random() * 1000) % max;
 					};
+
 					var gen = window.gen = function(count = 1000) {
 						var adjectives = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"];
 						var colours = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"];
@@ -42,7 +41,19 @@ var tests = [
 						return data;
 					};
 
-					r.set( 'rows', gen() );
+					const style = document.createElement('style');
+					style.textContent = 'table tr:nth-child(even) { background-color: green; }';
+					document.head.appendChild( style );
+				}
+			},
+
+			{
+				name: 'create 1000 rows',
+				max: 1500,
+				totalMax: 5000,
+				test() {
+					ractive.set( 'rows', [] );
+					ractive.set( 'rows', gen() );
 				}
 			},
 
@@ -198,9 +209,15 @@ var tests = [
 					rows.unshift( 'rows' );
 					ractive.push.apply( ractive, rows );
 				}
+			},
+
+			{
+				name: 'clear all rows',
+				test() {
+					ractive.set( 'rows', [] );
+				},
+				maxCount: 1
 			}
 		]
 	}
 ];
-
-if ( tests ) ; // shut up, linter

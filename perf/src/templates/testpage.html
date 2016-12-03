@@ -21,7 +21,7 @@
 		}
 
 		button {
-			display: block;
+			display: inline-block;
 			margin: 0 0 1em 0;
 			font-family: inherit;
 			font-size: inherit;
@@ -37,6 +37,11 @@
 
 		button:active, button:focus {
 			outline: none;
+		}
+
+		table input[type=checkbox] {
+			width: 1.5em;
+			height: 1.5em;
 		}
 
 		table {
@@ -91,8 +96,29 @@
 			{{#each versions}}
 				<option>{{this}}</option>
 			{{/each}}
-		</select> <label><input type="checkbox" checked="{{~/showResult}}" /> Show Result?</label></p>
+		</select> <label><input type="checkbox" checked="{{~/showResult}}" /> Show Result?</label> <label><input type="checkbox" checked="{{~/shouldProfile}}" /> Profile suite?</label></p>
+		{{#if showSettings}}
+			<table>
+				<tr><th></th><th>Skip?</th><th>Test</th><th>Profile?</th></tr>
+				{{#each tests}}
+				<tr>
+					<td>-</td>
+					<td><input type="checkbox" checked="{{.skip}}" /></td>
+					<td>{{.name}}</td>
+					<td><input type="checkbox" checked="{{.profile}}" /></td>
+				</tr>
+				{{#each .test}}
+				<tr>
+					<td></td>
+					<td><input type="checkbox" checked="{{.skip}}" /></td>
+					<td>{{.name}}</td>
+					<td><input type="checkbox" checked="{{.profile}}" /></td>
+				{{/each}}
+				{{/each}}
+			</table>
+		{{/if}}
 
+		<button disabled='{{running}}' on-click="toggle('showSettings')">test settings</button>
 		<button disabled='{{running}}' on-click='run()'>{{running ? "running" : "run" }} benchmark suite</button>
 
 		{{#each results}}
@@ -149,7 +175,8 @@
 				results: [],
 				formatTime: function ( ms ) {
 					return ms.toFixed( 1 );
-				}
+				},
+				tests
 			},
 			run: function () {
 				var version, start, url;

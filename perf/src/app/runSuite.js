@@ -12,12 +12,16 @@ if ( window.performance && window.performance.now ) {
 const durationMax = 1000;
 const totalDurationMax = 3000;
 
+let shouldProfile = false;
+
 function runSuite ( tests, version, ractiveUrl, callback ) {
 	var testResults = { tests: [] },
 		container = document.querySelector( '.iframe-container' ),
 		solo;
 
 	console.group( 'running performance tests (' + version + ')' );
+
+	shouldProfile = ractive.get( 'shouldProfile' );
 
 	tests = tests.filter( function ( t ) { return !t.skip; });
 
@@ -81,8 +85,7 @@ function runTest ( context, test, version, ractiveUrl, callback ) {
 			if ( alreadySetup ) throw new Error( 'setupComplete callback was called more than once' );
 			alreadySetup = true;
 
-			// TODO: this currently causes chrome to aww, snap
-			//console.profile( label );
+			if ( shouldProfile || test.profile ) console.profile( label );
 
 			start = now();
 			duration = totalDuration = 0;
@@ -98,16 +101,20 @@ function runTest ( context, test, version, ractiveUrl, callback ) {
 				runStart = now();
 
 				try {
-					if ( Object.prototype.toString.call( test.test ) === '[object Array]' ) {
+					if ( Array.isArray( test.test ) ) {
 						for ( let i = 0; i < test.test.length; i++ ) {
 							const t = test.test[i];
-							runStep( context, t, ( err, res ) => {
-								steps.push( res );
-								if ( err ) {
-									res.error = err;
-									died = true;
-								}
-							});
+							if ( !t.skip ) {
+								if ( t.profile ) console.profile( label + ' - ' + t.name );
+								runStep( context, t, ( err, res ) => {
+									steps.push( res );
+									if ( err ) {
+										res.error = err;
+										died = true;
+									}
+								});
+								if ( t.profile ) console.profileEnd( label + ' - ' + t.name );
+							}
 						}
 					} else {
 						context.eval( '(' + test.test.toString() + ')(setupResult)' );
@@ -120,8 +127,7 @@ function runTest ( context, test, version, ractiveUrl, callback ) {
 				totalDuration = now() - start;
 			}
 
-			// TODO: this currently causes chrome to aww, snap
-			//console.profileEnd( label );
+			if ( shouldProfile || test.profile ) console.profileEnd( label );
 
 			console.groupEnd();
 
