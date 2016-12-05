@@ -99,7 +99,7 @@ All builds are published to the default npm registry and can thus be accessed fr
 
 - https://unpkg.com/ractive is the latest stable unminified version of Ractive.
 - https://unpkg.com/ractive/ractive.min.js is the latest stable minified version of Ractive.
-- The rest of the builds play out as you would expect too: ractive-legacy.js, ractive.runtime.js, ractive-legacy.min.js, ractive.runtime.min.js
+- The rest of the builds play out as you would expect too: ractive.runtime.js, ractive.runtime.min.js
 - https://unpkg.com/ractive@0.7.3 is the unminified build of Ractive v0.7.3
 - You can also pull specific builds for specific versions e.g. https://unpkg.com/ractive@0.7.3/ractive.min.js
 - The latest pre-release build in a series is tagged e.g. `v0.8-dev` or `v0.9-dev`, starting with `v0.8`. This dev tag will point to the latest released version in a series if there is no dev build e.g. immediately after a release.
