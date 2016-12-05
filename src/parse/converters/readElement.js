@@ -125,7 +125,7 @@ function readElement ( parser ) {
 
 			// Special case - if we open a script element, further tags should
 			// be ignored unless they're a closing script element
-			if ( lowerCaseName === 'script' || lowerCaseName === 'style' || lowerCaseName === 'textarea' ) {
+			if ( lowerCaseName in parser.interpolate ) {
 				parser.inside = lowerCaseName;
 			}
 		}

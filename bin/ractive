@@ -2,7 +2,10 @@
 
 const path = require( 'path' );
 const fs = require( 'fs' );
-const Ractive = require( path.resolve( path.dirname( fs.realpathSync( __filename ) ), '../ractive.js' ) );
+
+const util = require( '../lib/util' );
+const parse = require( '../lib/parse' );
+const component = require( '../lib/component' );
 
 const args = process.argv.slice();
 
@@ -12,11 +15,33 @@ const cmd = args.shift();
 
 let input = process.stdin;
 let output = process.stdout;
-let parseArgs = {};
+// base path for resolving paths
+let base = process.cwd();
+
+function readFile ( name ) {
+	return Promise.resolve( fs.readFileSync( path.resolve( base, name ), { encoding: 'utf8' } ) );
+}
+
+function dirIndexOrFile ( name ) {
+	const stats = util.stat( name );
+	if ( stats && stats.isDirectory() ) {
+		base = name;
+		if ( util.stat( path.resolve( name, './index.ractive' ) ) ) {
+			input = fs.createReadStream( path.resolve( name, './index.ractive' ) );
+		} else {
+			input = fs.createReadStream( path.resolve( name, './index.html' ) );
+		}
+	} else {
+		base = path.dirname( name );
+		input = fs.createReadStream( name );
+	}
+}
+
+let arg;
+const opts = {};
 
 switch ( cmd ) {
 	case 'parse':
-		let arg;
 		while ( arg = args.shift() ) {
 			switch ( arg ) {
 				case '-i':
@@ -31,81 +56,112 @@ switch ( cmd ) {
 
 				case '-t':
 				case '--text-only':
-					parseArgs.textOnlyMode = true;
+					opts.textOnlyMode = true;
 					break;
 
 				case '-x':
 				case '--nocsp':
-					parseArgs.csp = false;
+					opts.csp = false;
 					break;
-					
+
 				case '-d':
 				case '--delimiters':
-					parseArgs.delimiters = [ args.shift(), args.shift() ];
+					opts.delimiters = [ args.shift(), args.shift() ];
 					break;
 
 				case '-s':
 				case '--static':
-					parseArgs.staticDelimiters = [ args.shift(), args.shift() ];
+					opts.staticDelimiters = [ args.shift(), args.shift() ];
 					break;
 
 				case '-r':
 				case '--triple':
-					parseArgs.tripleDelimiters = [ args.shift(), args.shift() ];
+					opts.tripleDelimiters = [ args.shift(), args.shift() ];
 					break;
 
 				case '-p':
 				case '--static-triple':
-					parseArgs.staticTripleDelimiters = [ args.shift(), args.shift() ];
+					opts.staticTripleDelimiters = [ args.shift(), args.shift() ];
 					break;
 
 				default:
-					console.error( '??? ', arg );
+					if ( !args.length && util.stat( arg ) ) { // last may be the input file
+						input = fs.createReadStream( arg );
+					} else {
+						console.error( '??? ', arg );
+					}
 					break;
 			}
 		}
-		const data = [];
-		input.on( 'data', chunk => data.push( chunk ) );
-		input.on( 'end', () => {
-			const str = Buffer.concat( data ).toString( 'utf8' );
-			const tpl = Ractive.parse( str, parseArgs );
-			output.on( 'drain', () => process.exit( 0 ) );
-			if ( tpl.e ) {
-				let str = '{';
-				let i = 0;
-				for ( const k in tpl ) {
-					if ( i++ > 0 ) str += ',';
-					if ( k === 'e' ) {
-						str += 'e:{';
-						let i = 0;
-						for ( const k in tpl.e ) {
-							if ( i++ > 0 ) str += ',';
-							str += `${JSON.stringify(k)}:${tpl.e[k].toString()}`;
-						}
-						str += '}';
+		util.readToString( input ).then( string => {
+			return parse.parse( string, opts ).
+				then( string => util.writeToStream( output, string ) );
+		}, err => {
+			console.error( err.message );
+			process.exit( 1 );
+		});
+		break;
+
+	case 'component':
+		while ( arg = args.shift() ) {
+			switch ( arg ) {
+				case '-i':
+				case '--input':
+					const file = args.shift();
+					dirIndexOrFile( file );
+					break;
+
+				case '-o':
+				case '--output':
+					output = fs.createWriteStream( args.shift() );
+					break;
+
+				case '-x':
+				case '--nocsp':
+					opts.csp = false;
+					break;
+
+				case '-d':
+				case '--delimiters':
+					opts.delimiters = [ args.shift(), args.shift() ];
+					break;
+
+				case '-s':
+				case '--static':
+					opts.staticDelimiters = [ args.shift(), args.shift() ];
+					break;
+
+				case '-r':
+				case '--triple':
+					opts.tripleDelimiters = [ args.shift(), args.shift() ];
+					break;
+
+				case '-p':
+				case '--static-triple':
+					opts.staticTripleDelimiters = [ args.shift(), args.shift() ];
+					break;
+
+				default:
+					if ( !args.length && util.stat( arg ) ) { // last may be the input file
+						dirIndexOrFile( arg );
 					} else {
-						str += `${JSON.stringify(k)}:${JSON.stringify(tpl[k])}`;
+						console.error( '??? ', arg );
 					}
-				}
-				output.write( str + '}', 'utf8' );
-			} else {
-				output.write( JSON.stringify( tpl ), 'utf8' );
+					break;
 			}
+		}
+		util.readToString( input ).then( string => {
+			return component.build( string, opts, readFile ).
+				then( string => util.writeToStream( output, string ) );
+		}).then( null, err => {
+			console.error( err.stack );
+			process.exit( 1 );
 		});
 		break;
 
 	default:
-		console.error( `Usage: ractive [command] [options]
-  Commands:
-    parse
-      -i, --input {file} - file to parse, otherwise STDIN
-      -o, --output {file} - file to write, otherwise STDOUT
-      -t, --text-only - text only
-      -x, --nocsp - don't output expression functions
-      -d, --delimiters {open} {close} - set the plain mustache delimiters (default {{ }})
-      -s, --static {open} {close} - set the static mustache delimiters (default [[ ]])
-      -r, --triple {open} {close} - set the triple mustache delimiters (default {{{ }}})
-      -p, --static-triple {open} {close} - set the static triple delimiters (default [[[ ]]])
-` );
+		console.error( `Usage: ractive [command] [options] [file]\n  Commands:` );
+		console.error( parse.help );
+		console.error( component.help );
 		process.exit( 1 );
 }

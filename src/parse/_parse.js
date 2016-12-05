@@ -25,6 +25,8 @@ const STATIC_READERS = [ readUnescaped, readSection, readInterpolator ]; // TODO
 export const READERS = [ readMustache, readHtmlComment, readElement, readText ];
 export const PARTIAL_READERS = [ readPartialDefinitionSection ];
 
+const defaultInterpolate = [ 'script', 'style', 'template' ];
+
 const StandardParser = Parser.extend({
 	init ( str, options ) {
 		const tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
@@ -47,11 +49,9 @@ const StandardParser = Parser.extend({
 		this.sectionDepth = 0;
 		this.elementStack = [];
 
-		this.interpolate = {
-			script: !options.interpolate || options.interpolate.script !== false,
-			style: !options.interpolate || options.interpolate.style !== false,
-			textarea: true
-		};
+		this.interpolate = Object.create( options.interpolate || {} );
+		this.interpolate.textarea = true;
+		defaultInterpolate.forEach( t => this.interpolate[ t ] = !options.interpolate || options.interpolate[ t ] !== false );
 
 		if ( options.sanitize === true ) {
 			options.sanitize = {
