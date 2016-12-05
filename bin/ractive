@@ -22,6 +22,21 @@ function readFile ( name ) {
 	return Promise.resolve( fs.readFileSync( path.resolve( base, name ), { encoding: 'utf8' } ) );
 }
 
+function dirIndexOrFile ( name ) {
+	const stats = util.stat( name );
+	if ( stats && stats.isDirectory() ) {
+		base = name;
+		if ( util.stat( path.resolve( name, './index.ractive' ) ) ) {
+			input = fs.createReadStream( path.resolve( name, './index.ractive' ) );
+		} else {
+			input = fs.createReadStream( path.resolve( name, './index.html' ) );
+		}
+	} else {
+		base = path.dirname( name );
+		input = fs.createReadStream( name );
+	}
+}
+
 let arg;
 const opts = {};
 
@@ -70,7 +85,11 @@ switch ( cmd ) {
 					break;
 
 				default:
-					console.error( '??? ', arg );
+					if ( !args.length && util.stat( arg ) ) { // last may be the input file
+						input = fs.createReadStream( arg );
+					} else {
+						console.error( '??? ', arg );
+					}
 					break;
 			}
 		}
@@ -89,18 +108,7 @@ switch ( cmd ) {
 				case '-i':
 				case '--input':
 					const file = args.shift();
-					const stats = util.stat( file );
-					if ( stats && stats.isDirectory() ) {
-						base = file;
-						if ( util.stat( path.resolve( file, './index.ractive' ) ) ) {
-							input = fs.createReadStream( path.resolve( file, './index.ractive' ) );
-						} else {
-							input = fs.createReadStream( path.resolve( file, './index.html' ) );
-						}
-					} else {
-						base = path.dirname( file );
-						input = fs.createReadStream( file );
-					}
+					dirIndexOrFile( file );
 					break;
 
 				case '-o':
@@ -133,22 +141,26 @@ switch ( cmd ) {
 					opts.staticTripleDelimiters = [ args.shift(), args.shift() ];
 					break;
 
-				defatult:
-					console.error( '??? ', arg );
+				default:
+					if ( !args.length && util.stat( arg ) ) { // last may be the input file
+						dirIndexOrFile( arg );
+					} else {
+						console.error( '??? ', arg );
+					}
 					break;
 			}
 		}
 		util.readToString( input ).then( string => {
 			return component.build( string, opts, readFile ).
 				then( string => util.writeToStream( output, string ) );
-		}, err => {
-			console.error( err.message );
+		}).then( null, err => {
+			console.error( err.stack );
 			process.exit( 1 );
 		});
 		break;
 
 	default:
-		console.error( `Usage: ractive [command] [options]\n  Commands:` );
+		console.error( `Usage: ractive [command] [options] [file]\n  Commands:` );
 		console.error( parse.help );
 		console.error( component.help );
 		process.exit( 1 );
