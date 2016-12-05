@@ -41,6 +41,7 @@
 	* You can now specify whether or not transitions should occur if they are on a child element of another transitioning element by using:
 		* Instance option `nestedTransitions`, which defaults to `true`, meaning that transitions will fire whether they are on elements that are children of other transitioning elements or not.
 		* The transition option `nested`, which also defaults to `true`.
+	* There's a new `ractive` command distributed with the node module that allows easy pre-parsing of templates and building of components. If you have the module installed locally, see `./node_modules/.bin/ractive` for more details.
 
 * New features (stable)
 	* `target` is now an alias for `el` when creating a Ractive instance.
