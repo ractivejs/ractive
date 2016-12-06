@@ -236,7 +236,10 @@ function updateStyleAttribute ( reset ) {
 
 	let i = 0;
 	while ( i < keys.length ) {
-		if ( keys[i] in style ) style[ keys[i] ] = props[ keys[i] ];
+		if ( keys[i] in style ) {
+			const safe = props[ keys[i] ].replace( '!important', '' );
+			style.setProperty( keys[i], safe, safe.length !== props[ keys[i] ].length ? 'important' : '' );
+		}
 		i++;
 	}
 

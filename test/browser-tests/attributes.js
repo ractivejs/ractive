@@ -47,6 +47,20 @@ export default function () {
 		t.equal( span.style.color, '' );
 	});
 
+	test( `style attributes can correctly set an inline priority (#2794)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `<span style="color: red !important" /><span style="color: green" />`,
+		});
+
+		const [ span1, span2 ] = r.findAll( 'span' );
+
+		t.equal( span1.style.getPropertyPriority( 'color' ), 'important' );
+		t.equal( span1.style.color, 'red' );
+		t.equal( span2.style.getPropertyPriority( 'color' ), '' );
+		t.equal( span2.style.color, 'green' );
+	});
+
 	test( `style attributes can be inline directives`, t => {
 		const r = new Ractive({
 			el: fixture,
