@@ -56,6 +56,13 @@
 	* You can now access decorator objects from event and node info objects using `obj.decorators.name`, where name is the decorator name as specified in the template e.g. `foo` in `<div as-foo />`.
 
 
+# 0.8.6
+
+* Bug fixes
+	* Unquoted attributes no longer consider `/` for content, fixing parse errors with unquoted attributes and self-closing elements (#2765)
+	* Inline priority on style attributes e.g. `style="display: block !important"` is no longer lost (#2794)
+
+
 # 0.8.5
 
 * Bug fixes
