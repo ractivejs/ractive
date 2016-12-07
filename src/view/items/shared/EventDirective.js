@@ -7,7 +7,7 @@ import { DOMEvent, CustomEvent } from '../element/ElementEvents';
 import RactiveEvent from '../component/RactiveEvent';
 import runloop from '../../../global/runloop';
 import { addHelpers } from '../../helpers/contextMethods';
-import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
+import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
 import { warnOnceIfDebug } from '../../../utils/log';
 import { addToArray, removeFromArray } from '../../../utils/array';
 import noop from '../../../utils/noop';
@@ -46,27 +46,7 @@ export default class EventDirective {
 	bind () {
 		addToArray( this.element.events, this );
 
-		setupArgsFn( this, this.template, this.parentFragment, {
-			specialRef ( ref ) {
-				const specialMatch = specialPattern.exec( ref );
-				if ( specialMatch ) {
-					// on-click="foo(event.node)"
-					return {
-						special: specialMatch[1],
-						keys: specialMatch[2] ? splitKeypath( specialMatch[2].substr(1) ) : []
-					};
-				}
-
-				const dollarMatch = dollarArgsPattern.exec( ref );
-				if ( dollarMatch ) {
-					// on-click="foo($1)"
-					return {
-						special: 'arguments',
-						keys: [ dollarMatch[1] - 1 ].concat( dollarMatch[2] ? splitKeypath( dollarMatch[2].substr( 1 ) ) : [] )
-					};
-				}
-			}
-		});
+		setupArgsFn( this, this.template );
 		if ( !this.fn ) this.action = this.template.f;
 	}
 
@@ -75,7 +55,6 @@ export default class EventDirective {
 	}
 
 	fire ( event, passedArgs = [] ) {
-
 		// augment event object
 		if ( event && !event.hasOwnProperty( '_element' ) ) {
 		   addHelpers( event, this.owner );
@@ -86,8 +65,30 @@ export default class EventDirective {
 
 			if ( event ) passedArgs.unshift( event );
 
-			if ( this.models ) {
-				this.models.forEach( model => {
+			const models = resolveArgs( this, this.template, this.parentFragment, {
+				specialRef ( ref ) {
+					const specialMatch = specialPattern.exec( ref );
+					if ( specialMatch ) {
+						// on-click="foo(event.node)"
+						return {
+							special: specialMatch[1],
+							keys: specialMatch[2] ? splitKeypath( specialMatch[2].substr(1) ) : []
+						};
+					}
+
+					const dollarMatch = dollarArgsPattern.exec( ref );
+					if ( dollarMatch ) {
+						// on-click="foo($1)"
+						return {
+							special: 'arguments',
+							keys: [ dollarMatch[1] - 1 ].concat( dollarMatch[2] ? splitKeypath( dollarMatch[2].substr( 1 ) ) : [] )
+						};
+					}
+				}
+			});
+
+			if ( models ) {
+				models.forEach( model => {
 					if ( !model ) return values.push( undefined );
 
 					if ( model.special ) {
@@ -141,17 +142,6 @@ export default class EventDirective {
 
 	handleChange () {}
 
-	rebind ( next, previous ) {
-		if ( !this.models ) return;
-		const idx = this.models.indexOf( previous );
-
-		if ( ~idx ) {
-			this.models.splice( idx, 1, next );
-			previous.unregister( this );
-			if ( next ) next.addShuffleTask( () => next.register( this ) );
-		}
-	}
-
 	render () {
 		// render events after everything else, so they fire after bindings
 		runloop.scheduleTask( () => this.events.forEach( e => e.listen( this ), true ) );
@@ -161,8 +151,6 @@ export default class EventDirective {
 
 	unbind () {
 		removeFromArray( this.element.events, this );
-
-		teardownArgsFn( this, this.template );
 	}
 
 	unrender () {

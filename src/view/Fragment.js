@@ -243,6 +243,7 @@ export default class Fragment {
 	}
 
 	unbind () {
+		this.context = null;
 		this.items.forEach( unbind );
 		this.bound = false;
 

@@ -10,8 +10,7 @@ import { findInViewHierarchy } from '../../../shared/registry';
 import { visible } from '../../../config/visibility';
 import createTransitions from './transitions/createTransitions';
 import resetStyle from './transitions/resetStyle';
-import { rebindMatch } from '../../../shared/rebind';
-import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
+import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
 import noop from '../../../utils/noop';
 
 const getComputedStyle = win && win.getComputedStyle;
@@ -138,7 +137,7 @@ export default class Transition {
 			warnOnceIfDebug( missingPlugin( this.name, 'transition' ), { ractive });
 		}
 
-		setupArgsFn( this, options.template, this.parentFragment );
+		setupArgsFn( this, options.template );
 	}
 
 	getParams () {
@@ -146,7 +145,7 @@ export default class Transition {
 
 		// get expression args if supplied
 		if ( this.fn ) {
-			const values = this.models.map( model => {
+			const values = resolveArgs( this, this.template, this.parentFragment ).map( model => {
 				if ( !model ) return undefined;
 
 				return model.get();
@@ -199,18 +198,6 @@ export default class Transition {
 		}
 
 		return extend( {}, defaults, params );
-	}
-
-	rebind ( next, previous ) {
-		const idx = this.models.indexOf( previous );
-		if ( !~idx ) return;
-
-		next = rebindMatch( this.template.f.r[ idx ], next, previous );
-		if ( next === previous ) return;
-
-		previous.unregister( this );
-		this.models.splice( idx, 1, next );
-		if ( next ) next.addShuffleRegister( this, 'mark' );
 	}
 
 	registerCompleteHandler ( fn ) {
@@ -286,8 +273,6 @@ export default class Transition {
 
 			this._manager.remove( this );
 
-			if ( this.shouldUnbind ) teardownArgsFn( this, this.options.template );
-
 			completed = true;
 		};
 
@@ -303,17 +288,13 @@ export default class Transition {
 
 	toString () { return ''; }
 
-	unbind () {
-		this.shouldUnbind = true;
-	}
-
 	unregisterCompleteHandler ( fn ) {
 		removeFromArray( this.onComplete, fn );
 	}
 }
 
 const proto = Transition.prototype;
-proto.destroyed = proto.render = proto.unrender = proto.update = noop;
+proto.destroyed = proto.render = proto.unbind = proto.unrender = proto.update = noop;
 
 function nearestProp ( prop, ractive, rendering ) {
 	let instance = ractive;

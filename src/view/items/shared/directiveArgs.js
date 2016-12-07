@@ -5,13 +5,24 @@ import { removeFromArray } from '../../../utils/array';
 
 export function setupArgsFn ( item, template, fragment, opts = {} ) {
 	if ( template && template.f && template.f.s ) {
+		item.fn = getFunction( template.f.s, template.f.r.length );
+		if ( opts.register === true ) {
+			item.models = resolveArgs( item, template, fragment, opts );
+		}
+	}
+}
+
+export function resolveArgs ( item, template, fragment, opts = {} ) {
+	if ( opts.register === true ) {
 		item.resolvers = [];
-		item.models = template.f.r.map( ( ref, i ) => {
-			let resolver, model;
+	}
+	return template.f.r.map( ( ref, i ) => {
+		let resolver, model;
 
-			if ( opts.specialRef && ( model = opts.specialRef( ref, i ) ) ) return model;
+		if ( opts.specialRef && ( model = opts.specialRef( ref, i ) ) ) return model;
 
-			model = resolveReference( fragment, ref );
+		model = resolveReference( fragment, ref );
+		if ( opts.register === true ) {
 			if ( !model ) {
 				resolver = fragment.resolve( ref, model => {
 					item.models[i] = model;
@@ -21,11 +32,10 @@ export function setupArgsFn ( item, template, fragment, opts = {} ) {
 
 				item.resolvers.push( resolver );
 			} else model.register( item );
+		}
 
-			return model;
-		});
-		item.fn = getFunction( template.f.s, template.f.r.length );
-	}
+		return model;
+	});
 }
 
 export function teardownArgsFn ( item, template ) {

@@ -29,7 +29,7 @@ export default class Decorator {
 	}
 
 	bind () {
-		setupArgsFn( this, this.template, this.parentFragment );
+		setupArgsFn( this, this.template, this.parentFragment, { register: true } );
 	}
 
 	bubble () {
