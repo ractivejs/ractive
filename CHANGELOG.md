@@ -1,10 +1,18 @@
 # changelog
 
+# 0.8.6
+
+* Bug fixes
+	* Unquoted attributes no longer consider `/` for content, fixing parse errors with unquoted attributes and self-closing elements (#2765)
+	* Inline priority on style attributes e.g. `style="display: block !important"` is no longer lost (#2794)
+
+
 # 0.8.5
 
 * Bug fixes
 	* Form elements nested inside yielders now correctly find their parents. This includes options finding their parent select (#2754)
 	* Number bindings now record their initial value properly (#2671)
+
 
 # 0.8.4
 
@@ -15,6 +23,7 @@
 
 * Other changes
 	* `{{#with foo}}` will now render if `foo` is an empty object or array, as it is valid context. `{{#foo}}` will _not_ render if `foo` is empty.
+
 
 # 0.8.3
 
