@@ -56,6 +56,12 @@
 	* You can now access decorator objects from event and node info objects using `obj.decorators.name`, where name is the decorator name as specified in the template e.g. `foo` in `<div as-foo />`.
 
 
+# 0.8.7
+
+* Bug fixes
+	* Regression: hyphenated inline styles are set correctly again (#2796)
+
+
 # 0.8.6
 
 * Bug fixes
