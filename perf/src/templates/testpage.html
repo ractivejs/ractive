@@ -154,7 +154,7 @@
 		</article>
 	</script>
 
-	<script src='<%= srcPrefix %>/builds/edge/ractive-legacy.js'></script>
+	<script src='<%= srcPrefix %>/builds/edge/ractive.js'></script>
 	<script src='<%= srcPrefix %>/ractive-transitions-slide.js'></script>
 	<script src='<%= srcPrefix %>/runSuite.js'></script>
 	<script>
@@ -185,11 +185,11 @@
 				start = Date.now();
 
 				if ( version === 'edge' ) {
-					url = 'http://cdn.ractivejs.org/edge/ractive-legacy.js';
+					url = 'http://cdn.ractivejs.org/edge/ractive.js';
 				} else if ( version === 'dev' ) {
-					url = '<%= srcPrefix %>/builds/edge/ractive-legacy.js';
+					url = '<%= srcPrefix %>/builds/edge/ractive.js';
 				} else {
-					url = '<%= srcPrefix %>/builds/' + version + '/ractive-legacy.js';
+					url = '<%= srcPrefix %>/builds/' + version + '/ractive.js';
 				}
 
 				this.set( 'running', true );
