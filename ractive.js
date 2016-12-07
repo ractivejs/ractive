@@ -1,6 +1,6 @@
 /*
-	Ractive.js v0.8.5
-	Sun Nov 13 2016 16:48:48 GMT-0500 (EST) - commit d533d91f155a4f042c1acc87136459141c2c8af9
+	Ractive.js v0.8.6
+	Wed Dec 07 2016 00:27:40 GMT+0000 (UTC) - commit 06109cf19c74616deca9bc322e2326c873596034
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -433,13 +433,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.5 %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.6 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.5 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.6 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -2598,7 +2598,7 @@
   	LinkModel.prototype.constructor = LinkModel;
 
   	LinkModel.prototype.animate = function animate ( from, to, options, interpolator ) {
-  		this.target.animate( from, to, options, interpolator );
+  		return this.target.animate( from, to, options, interpolator );
   	};
 
   	LinkModel.prototype.applyValue = function applyValue ( value ) {
@@ -6467,7 +6467,7 @@
   				   twoway: { t: BINDING_FLAG, v: 't' },
   				   decorator: { t: DECORATOR }
   				 };
-  var unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
+  var unquotedAttributeValueTextPattern = /^[^\s"'=<>\/`]+/;
   function readAttribute ( parser ) {
   	var attr, name, value, i, nearest, idx;
 
@@ -9722,7 +9722,10 @@
 
   	var i = 0;
   	while ( i < keys.length ) {
-  		if ( keys[i] in style ) style[ keys[i] ] = props[ keys[i] ];
+  		if ( keys[i] in style ) {
+  			var safe = props[ keys[i] ].replace( '!important', '' );
+  			style.setProperty( keys[i], safe, safe.length !== props[ keys[i] ].length ? 'important' : '' );
+  		}
   		i++;
   	}
 
@@ -11977,6 +11980,7 @@
 
   Decorator.prototype.destroyed = function destroyed () {
   	if ( this.intermediary ) this.intermediary.teardown();
+  	this.shouldDestroy = true;
   };
 
   Decorator.prototype.handleChange = function handleChange () { this.bubble(); };
@@ -12026,6 +12030,9 @@
   		if ( !this$1.intermediary || !this$1.intermediary.teardown ) {
   			throw new Error( ("The '" + (this$1.name) + "' decorator must return an object with a teardown method") );
   		}
+
+  		// watch out for decorators that cause their host element to be unrendered
+  		if ( this$1.shouldDestroy ) this$1.destroyed();
   	}, true );
   	this.rendered = true;
   };
@@ -13237,7 +13244,7 @@
   	};
 
   	Element.prototype.find = function find ( selector ) {
-  		if ( matches( this.node, selector ) ) return this.node;
+  		if ( this.node && matches( this.node, selector ) ) return this.node;
   		if ( this.fragment ) {
   			return this.fragment.find( selector );
   		}
@@ -17013,7 +17020,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.5' },
+  	VERSION:        { value: '0.8.6' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
