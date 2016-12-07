@@ -1,8 +1,6 @@
-import camelizeHyphenated from '../../utils/camelizeHyphenated.js';
 import cleanCss from '../../utils/cleanCss';
 
 const space = /\s+/;
-const specials = { float: 'cssFloat' };
 
 export function readStyle ( css ) {
 	if ( typeof css !== 'string' ) return {};
@@ -13,8 +11,8 @@ export function readStyle ( css ) {
 			.map( reconstruct )
 			.reduce(( rules, rule ) => {
 				const i = rule.indexOf(':');
-				const name = camelizeHyphenated( rule.substr( 0, i ).trim() );
-				rules[ specials[ name ] || name ] = rule.substr( i + 1 ).trim();
+				const name = rule.substr( 0, i ).trim();
+				rules[ name ] = rule.substr( i + 1 ).trim();
 				return rules;
 			}, {});
 	});
