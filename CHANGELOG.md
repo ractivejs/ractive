@@ -1,5 +1,11 @@
 # changelog
 
+# 0.8.7
+
+* Bug fixes
+	* Regression: hyphenated inline styles are set correctly again (#2796)
+
+
 # 0.8.6
 
 * Bug fixes
