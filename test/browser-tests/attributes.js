@@ -34,6 +34,16 @@ export default function () {
 		t.equal( span.style.height, '87.5%' );
 	});
 
+	test( `style attributes update hyphenated properties correctly (#2796)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `<span style="background-color: green;" />`
+		});
+		const span = r.find( 'span' );
+
+		t.equal( span.style.backgroundColor, 'green' );
+	});
+
 	test( `style attributes don't try to use a boolean value (#2522)`, t => {
 		const r = new Ractive({
 			el: fixture,
