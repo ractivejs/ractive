@@ -144,4 +144,16 @@ export default function () {
 
 		t.equal( r.toHTML(), `<span style="text-decoration: underline; color: green; font-size: 12pt;"></span><span style="text-decoration: underline; font-size: 12pt;"></span>` );
 	});
+
+	test( `nested sections in an element tag don't create phantom empty attribute nodes (#2783)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `<div\n{{#if foo}}\n{{#if bar}}\ndata-foo="yep"\n{{/if}}\n{{/if}}></div>`,
+			data: {
+				foo: true, bar: true
+			}
+		});
+
+		t.ok( r.find( 'div' ).getAttribute( 'data-foo' ) === 'yep' );
+	});
 }

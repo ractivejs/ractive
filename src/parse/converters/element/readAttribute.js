@@ -56,7 +56,7 @@ export default function readAttribute ( parser ) {
 	if ( nearest < name.length ) {
 		parser.pos -= name.length - nearest;
 		name = name.substr( 0, nearest );
-		return { n: name };
+		if ( !name ) return null;
 	}
 
 	return { n: name };
