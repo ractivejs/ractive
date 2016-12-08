@@ -6,7 +6,7 @@ import findElement from '../shared/findElement';
 import getUpdateDelegate from './attribute/getUpdateDelegate';
 import propertyNames from './attribute/propertyNames';
 import { isArray } from '../../../utils/is';
-import { safeAttributeString, camelize } from '../../../utils/dom';
+import { safeAttributeString, decamelize } from '../../../utils/dom';
 import { booleanAttributes } from '../../../utils/html';
 
 function lookupNamespace ( node, prefix ) {
@@ -139,13 +139,13 @@ export default class Attribute extends Item {
 		}
 
 		// Special case - style and class attributes and directives
-		if ( this.owner === this.element && ( this.name === 'style' || this.name === 'class' || this.styleName || this.inlineClass ) ) {
+		if ( this.owner === this.element && ( this.name === 'style' || this.name === 'class' || this.style || this.inlineClass ) ) {
 			return;
 		}
 
 		if ( !this.rendered && this.owner === this.element && ( !this.name.indexOf( 'style-' ) || !this.name.indexOf( 'class-' ) ) ) {
 			if ( !this.name.indexOf( 'style-' ) ) {
-				this.styleName = camelize( this.name.substr( 6 ) );
+				this.style = decamelize( this.name.substr( 6 ) );
 			} else {
 				this.inlineClass = this.name.substr( 6 );
 			}

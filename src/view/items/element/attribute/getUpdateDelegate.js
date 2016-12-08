@@ -1,5 +1,5 @@
 import { html } from '../../../../config/namespaces';
-import { safeToStringValue, camelize } from '../../../../utils/dom';
+import { safeToStringValue, decamelize } from '../../../../utils/dom';
 import { arrayContains } from '../../../../utils/array';
 import { isArray } from '../../../../utils/is';
 import noop from '../../../../utils/noop';
@@ -246,18 +246,20 @@ function updateStyleAttribute ( reset ) {
 	// remove now-missing attrs
 	i = prev.length;
 	while ( i-- ) {
-		if ( !~keys.indexOf( prev[i] ) && prev[i] in style ) style[ prev[i] ] = '';
+		if ( !~keys.indexOf( prev[i] ) && prev[i] in style ) style.setProperty( prev[i], '', '' );
 	}
 
 	this.previous = keys;
 }
 
 function updateInlineStyle ( reset ) {
-	if ( !this.styleName ) {
-		this.styleName = camelize( this.name.substr( 6 ) );
+	if ( !this.style ) {
+		this.style = decamelize( this.name.substr( 6 ) );
 	}
 
-	this.node.style[ this.styleName ] = reset ? '' : this.getValue();
+	const value = reset ? '' : safeToStringValue( this.getValue() );
+	const safe = value.replace( '!important', '' );
+	this.node.style.setProperty( this.style, safe, safe.length !== value.length ? 'important' : '' );
 }
 
 function updateClassName ( reset ) {

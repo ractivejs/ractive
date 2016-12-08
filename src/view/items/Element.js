@@ -7,7 +7,7 @@ import updateLiveQueries from './element/updateLiveQueries';
 import { toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
 import { bind, render, unbind, update } from '../../shared/methodCallers';
-import { createElement, detachNode, matches, safeAttributeString, decamelize } from '../../utils/dom';
+import { createElement, detachNode, matches, safeAttributeString } from '../../utils/dom';
 import createItem from './createItem';
 import { html, svg } from '../../config/namespaces';
 import findElement from './shared/findElement';
@@ -299,8 +299,8 @@ export default class Element extends Item {
 			} else if ( attr.name === 'style' ) {
 				style = ( style || '' ) + ( style ? ' ' : '' ) + safeAttributeString( attr.getString() );
 				if ( style && !endsWithSemi.test( style ) ) style += ';';
-			} else if ( attr.styleName ) {
-				style = ( style || '' ) + ( style ? ' ' : '' ) +  `${decamelize( attr.styleName )}: ${safeAttributeString( attr.getString() )};`;
+			} else if ( attr.style ) {
+				style = ( style || '' ) + ( style ? ' ' : '' ) +  `${attr.style}: ${safeAttributeString( attr.getString() )};`;
 			} else if ( attr.inlineClass && attr.getValue() ) {
 				cls = ( cls || '' ) + ( cls ? ' ' : '' ) + attr.inlineClass;
 			}

@@ -44,6 +44,37 @@ export default function () {
 		t.equal( span.style.backgroundColor, 'green' );
 	});
 
+	test( `style attributes currectly detect the removal of a hyphenated property`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `<span style="{{#if foo}}background-color: green;{{/if}}" />`,
+			data: { foo: true }
+		});
+		const span = r.find( 'span' );
+
+		t.equal( span.style.backgroundColor, 'green' );
+		r.toggle( 'foo' );
+		t.equal( span.style.backgroundColor, '' );
+	});
+
+	test( `inline styles can be set with important priority`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `<span style-background-color="{{color}}" />`,
+			data: { color: 'red !important' }
+		});
+		const span = r.find( 'span' );
+
+		t.equal( span.style.backgroundColor, 'red' );
+		t.equal( span.style.getPropertyPriority( 'background-color' ), 'important' );
+		r.set( 'color', 'green !important' );
+		t.equal( span.style.backgroundColor, 'green' );
+		t.equal( span.style.getPropertyPriority( 'background-color' ), 'important' );
+		r.set( 'color', undefined );
+		t.equal( span.style.backgroundColor, '' );
+		t.equal( span.style.getPropertyPriority( 'background-color' ), '' );
+	});
+
 	test( `style attributes don't try to use a boolean value (#2522)`, t => {
 		const r = new Ractive({
 			el: fixture,
