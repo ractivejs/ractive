@@ -7,8 +7,8 @@ import getUpdateDelegate from './attribute/getUpdateDelegate';
 import propertyNames from './attribute/propertyNames';
 import { isArray } from '../../../utils/is';
 import { safeAttributeString } from '../../../utils/dom';
-import camelizeHyphenated from '../../../utils/camelizeHyphenated.js';
 import { booleanAttributes } from '../../../utils/html';
+import hyphenateCamel from '../../../utils/hyphenateCamel';
 
 function lookupNamespace ( node, prefix ) {
 	const qualified = `xmlns:${prefix}`;
@@ -136,13 +136,13 @@ export default class Attribute extends Item {
 		}
 
 		// Special case - style and class attributes and directives
-		if ( this.owner === this.element && ( this.name === 'style' || this.name === 'class' || this.styleName || this.inlineClass ) ) {
+		if ( this.owner === this.element && ( this.name === 'style' || this.name === 'class' || this.style || this.inlineClass ) ) {
 			return;
 		}
 
 		if ( !this.rendered && this.owner === this.element && ( !this.name.indexOf( 'style-' ) || !this.name.indexOf( 'class-' ) ) ) {
 			if ( !this.name.indexOf( 'style-' ) ) {
-				this.styleName = camelizeHyphenated( this.name.substr( 6 ) );
+				this.style = hyphenateCamel( this.name.substr( 6 ) );
 			} else {
 				this.inlineClass = this.name.substr( 6 );
 			}

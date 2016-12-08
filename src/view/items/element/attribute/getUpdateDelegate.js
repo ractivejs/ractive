@@ -1,10 +1,10 @@
 import { html } from '../../../../config/namespaces';
 import { safeToStringValue} from '../../../../utils/dom';
-import camelizeHyphenated from '../../../../utils/camelizeHyphenated.js';
 import { arrayContains } from '../../../../utils/array';
 import { isArray } from '../../../../utils/is';
 import noop from '../../../../utils/noop';
 import { readStyle, readClass } from '../../../helpers/specialAttrs';
+import hyphenateCamel from '../../../../utils/hyphenateCamel';
 
 const textTypes = [ undefined, 'text', 'search', 'url', 'email', 'hidden', 'password', 'search', 'reset', 'submit' ];
 
@@ -230,18 +230,20 @@ function updateStyleAttribute ( reset ) {
 	// remove now-missing attrs
 	i = prev.length;
 	while ( i-- ) {
-		if ( !~keys.indexOf( prev[i] ) && prev[i] in style ) style[ prev[i] ] = '';
+		if ( !~keys.indexOf( prev[i] ) && prev[i] in style ) style.setProperty( prev[i], '', '' );
 	}
 
 	this.previous = keys;
 }
 
 function updateInlineStyle ( reset ) {
-	if ( !this.styleName ) {
-		this.styleName = camelizeHyphenated( this.name.substr( 6 ) );
+	if ( !this.style ) {
+		this.style = hyphenateCamel( this.name.substr( 6 ) );
 	}
 
-	this.node.style[ this.styleName ] = reset ? '' : this.getValue();
+	const value = reset ? '' : safeToStringValue( this.getValue() );
+	const safe = value.replace( '!important', '' );
+	this.node.style.setProperty( this.style, safe, safe.length !== value.length ? 'important' : '' );
 }
 
 function updateClassName ( reset ) {
