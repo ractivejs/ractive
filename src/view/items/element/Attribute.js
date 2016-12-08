@@ -73,10 +73,6 @@ export default class Attribute extends Item {
 		}
 	}
 
-	destroyed () {
-		this.updateDelegate( true );
-	}
-
 	getString () {
 		return this.fragment ?
 			this.fragment.toString() :

@@ -84,7 +84,7 @@ export default function() {
 			t.equal( parameter, 'bar' );
 		});
 
-		fire( ractive.nodes.test1, 'click' );
+		fire( ractive.find( '#test1' ), 'click' );
 	});
 
 	test( 'Attribute directives on fragments that get re-used (partials) should stick around for re-use', t => {

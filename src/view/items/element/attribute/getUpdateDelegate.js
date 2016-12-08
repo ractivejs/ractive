@@ -11,8 +11,6 @@ const textTypes = [ undefined, 'text', 'search', 'url', 'email', 'hidden', 'pass
 export default function getUpdateDelegate ( attribute ) {
 	const { element, name } = attribute;
 
-	if ( name === 'id' ) return updateId;
-
 	if ( name === 'value' ) {
 		if ( attribute.interpolator ) attribute.interpolator.bound = true;
 
@@ -68,19 +66,6 @@ export default function getUpdateDelegate ( attribute ) {
 	if ( attribute.namespace && attribute.namespace !== attribute.node.namespaceURI ) return updateNamespacedAttribute;
 
 	return updateAttribute;
-}
-
-function updateId ( reset ) {
-	const { node } = this;
-	const value = this.getValue();
-
-	// remove the mapping to this node if it hasn't already been replaced
-	if ( this.ractive.nodes[ node.id ] === node ) delete this.ractive.nodes[ node.id ];
-	if ( reset ) return node.removeAttribute( 'id' );
-
-	this.ractive.nodes[ value ] = node;
-
-	node.id = value;
 }
 
 function updateMultipleSelectValue ( reset ) {

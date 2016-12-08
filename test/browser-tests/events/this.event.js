@@ -17,7 +17,7 @@ export default function() {
 			t.equal( this.event, event );
 		});
 
-		fire( ractive.nodes.test, 'click' );
+		fire( ractive.find( '#test' ), 'click' );
 	});
 
 	test( 'this.event exists on ractive.fire()', t => {
@@ -58,6 +58,6 @@ export default function() {
 			t.equal ( this.event.name, 'yell', 'handler as own event name' );
 		});
 
-		fire( ractive.nodes.test, 'click' );
+		fire( ractive.find( '#test' ), 'click' );
 	});
 }

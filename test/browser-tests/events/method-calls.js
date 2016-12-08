@@ -151,7 +151,7 @@ export default function() {
 		});
 
 		const component = ractive.findComponent( 'Component' );
-		fire( component.nodes.test, 'click' );
+		fire( component.find( '#test' ), 'click' );
 		component.fire( 'bar', 'bar' );
 	});
 
@@ -178,7 +178,7 @@ export default function() {
 		});
 
 		const component = ractive.findComponent( 'Component' );
-		fire( component.nodes.test, 'click' );
+		fire( component.find( '#test' ), 'click' );
 		component.fire( 'bar', 'bar', 100 );
 	});
 
@@ -207,7 +207,7 @@ export default function() {
 		});
 
 		const component = ractive.findComponent( 'Component' );
-		fire( component.nodes.test, 'click' );
+		fire( component.find( '#test' ), 'click' );
 		component.fire( 'bar', 'bar', 100 );
 	});
 
@@ -234,7 +234,7 @@ export default function() {
 		});
 
 		const component = ractive.findComponent( 'Component' );
-		fire( component.nodes.test, 'click' );
+		fire( component.find( '#test' ), 'click' );
 		component.fire( 'bar', 'bar' );
 	});
 
@@ -261,7 +261,7 @@ export default function() {
 		});
 
 		const component = ractive.findComponent( 'Component' );
-		fire( component.nodes.test, 'click' );
+		fire( component.find( '#test' ), 'click' );
 		component.fire( 'bar', 'bar' );
 	});
 
@@ -303,13 +303,13 @@ export default function() {
 			original.stopPropagation = () => stoppedPropagation = true;
 		}
 
-		fire( ractive.nodes.return_false, 'click' );
+		fire( ractive.find( '#return_false' ), 'click' );
 		t.ok( preventedDefault && stoppedPropagation );
 
-		fire( ractive.nodes.return_undefined, 'click' );
+		fire( ractive.find( '#return_undefined' ), 'click' );
 		t.ok( !preventedDefault && !stoppedPropagation );
 
-		fire( ractive.nodes.return_zero, 'click' );
+		fire( ractive.find( '#return_zero' ), 'click' );
 		t.ok( !preventedDefault && !stoppedPropagation );
 	});
 }

@@ -22,6 +22,6 @@ export default function() {
 			t.ok( true );
 		});
 
-		fire( ractive.nodes.test2, 'mousedown' );
+		fire( ractive.find( '#test2' ), 'mousedown' );
 	});
 }

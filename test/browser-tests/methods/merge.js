@@ -24,9 +24,9 @@ export default function() {
 			}
 		});
 
-		const foo = ractive.nodes.foo;
-		const bar = ractive.nodes.bar;
-		const baz = ractive.nodes.baz;
+		const foo = ractive.find( '#foo' );
+		const bar = ractive.find( '#bar' );
+		const baz = ractive.find( '#baz' );
 
 		t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
 		t.equal( entered, 3 );
@@ -36,9 +36,9 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bip">bip</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
 		t.equal( entered, 1 );
 
-		t.ok( foo === ractive.nodes.foo );
-		t.ok( bar === ractive.nodes.bar );
-		t.ok( baz === ractive.nodes.baz );
+		t.ok( foo === ractive.find( '#foo ' ));
+		t.ok( bar === ractive.find( '#bar ' ));
+		t.ok( baz === ractive.find( '#baz ' ));
 	});
 
 	test( 'Merging an array of strings only removes the necessary fragments', ( t ) => {
@@ -64,9 +64,9 @@ export default function() {
 			}
 		});
 
-		const foo = ractive.nodes.foo;
-		const bar = ractive.nodes.bar;
-		const baz = ractive.nodes.baz;
+		const foo = ractive.find( '#foo' );
+		const bar = ractive.find( '#bar' );
+		const baz = ractive.find( '#baz' );
 
 		t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
 		t.equal( entered, 3 );
@@ -75,9 +75,9 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="baz">baz</li></ul>' );
 		t.equal( exited, 1 );
 
-		t.ok( foo === ractive.nodes.foo );
+		t.ok( foo === ractive.find( '#foo ' ));
 		t.ok( isOrphan( bar ) );
-		t.ok( baz === ractive.nodes.baz );
+		t.ok( baz === ractive.find( '#baz ' ));
 	});
 
 	test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is `true`', ( t ) => {
@@ -103,9 +103,9 @@ export default function() {
 			}
 		});
 
-		const foo = ractive.nodes.foo;
-		const bar = ractive.nodes.bar;
-		const baz = ractive.nodes.baz;
+		const foo = ractive.find( '#foo' );
+		const bar = ractive.find( '#bar' );
+		const baz = ractive.find( '#baz' );
 
 		t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
 		t.equal( entered, 3 );
@@ -116,9 +116,9 @@ export default function() {
 		t.equal( entered, 1 );
 		t.equal( exited, 1 );
 
-		t.ok( foo === ractive.nodes.foo );
+		t.ok( foo === ractive.find( '#foo ' ));
 		t.ok( isOrphan( bar ) );
-		t.ok( baz === ractive.nodes.baz );
+		t.ok( baz === ractive.find( '#baz ' ));
 	});
 
 	test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is a string id field', ( t ) => {
@@ -144,9 +144,9 @@ export default function() {
 			}
 		});
 
-		const foo = ractive.nodes.foo;
-		const bar = ractive.nodes.bar;
-		const baz = ractive.nodes.baz;
+		const foo = ractive.find( '#foo' );
+		const bar = ractive.find( '#bar' );
+		const baz = ractive.find( '#baz' );
 
 		t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
 		t.equal( entered, 3 );
@@ -157,9 +157,9 @@ export default function() {
 		t.equal( entered, 1 );
 		t.equal( exited, 1 );
 
-		t.ok( foo === ractive.nodes.foo );
+		t.ok( foo === ractive.find( '#foo ' ));
 		t.ok( isOrphan( bar ) );
-		t.ok( baz === ractive.nodes.baz );
+		t.ok( baz === ractive.find( '#baz ' ));
 	});
 
 	test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is a comparison function', ( t ) => {
@@ -185,9 +185,9 @@ export default function() {
 			}
 		});
 
-		const foo = ractive.nodes.foo;
-		const bar = ractive.nodes.bar;
-		const baz = ractive.nodes.baz;
+		const foo = ractive.find( '#foo' );
+		const bar = ractive.find( '#bar' );
+		const baz = ractive.find( '#baz' );
 
 		t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
 		t.equal( entered, 3 );
@@ -200,9 +200,9 @@ export default function() {
 		t.equal( entered, 1 );
 		t.equal( exited, 1 );
 
-		t.ok( foo === ractive.nodes.foo );
+		t.ok( foo === ractive.find( '#foo ' ));
 		t.ok( isOrphan( bar ) );
-		t.ok( baz === ractive.nodes.baz );
+		t.ok( baz === ractive.find( '#baz ' ));
 	});
 
 	test( 'If identity comparison fails, the resulting shape of the DOM is still correct', ( t ) => {
@@ -228,9 +228,9 @@ export default function() {
 			}
 		});
 
-		const foo = ractive.nodes.foo;
-		const bar = ractive.nodes.bar;
-		const baz = ractive.nodes.baz;
+		const foo = ractive.find( '#foo' );
+		const bar = ractive.find( '#bar' );
+		const baz = ractive.find( '#baz' );
 
 		t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
 		t.equal( entered, 3 );
@@ -241,9 +241,9 @@ export default function() {
 		t.equal( entered, 3 );
 		t.equal( exited, 3 );
 
-		t.ok( foo !== ractive.nodes.foo );
+		t.ok( foo !== ractive.find( '#foo ' ));
 		t.ok( isOrphan( bar ) );
-		t.ok( baz !== ractive.nodes.baz );
+		t.ok( baz !== ractive.find( '#baz ' ));
 	});
 
 	test( 'Merging will trigger upstream updates regardless of whether items are being added/removed', ( t ) => {

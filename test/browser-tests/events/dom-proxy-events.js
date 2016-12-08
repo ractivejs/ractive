@@ -18,7 +18,7 @@ export default function() {
 			t.equal( event.original.type, 'click' );
 		});
 
-		fire( ractive.nodes.test, 'click' );
+		fire( ractive.find( '#test' ), 'click' );
 	});
 
 	test( 'empty event on-click="" ok', t => {
@@ -29,7 +29,7 @@ export default function() {
 			template: '<span id="test" on-click="">click me</span>'
 		});
 
-		fire( ractive.nodes.test, 'click' );
+		fire( ractive.find( '#test' ), 'click' );
 	});
 
 	test( 'on-click="someEvent" does not fire event when unrendered', t => {
@@ -44,7 +44,7 @@ export default function() {
 			throw new Error( 'Event handler called after unrender' );
 		});
 
-		const node = ractive.nodes.test;
+		const node = ractive.find( '#test' );
 
 		ractive.unrender();
 		fire( node, 'click' );
@@ -59,12 +59,12 @@ export default function() {
 		});
 
 		ractive.on( 'someEvent', ( event ) => {
-			t.equal( event.node, ractive.nodes.test );
+			t.equal( event.node, ractive.find( '#test ' ));
 			t.equal( event.name, 'someEvent' );
 			t.ok( event.original );
 		});
 
-		fire( ractive.nodes.test, 'click' );
+		fire( ractive.find( '#test' ), 'click' );
 	});
 
 	test( 'preventDefault and stopPropagation if event handler returned false', t => {
@@ -117,16 +117,16 @@ export default function() {
 			return 0;
 		});
 
-		fire( ractive.nodes.return_false, 'click' );
+		fire( ractive.find( '#return_false' ), 'click' );
 		t.ok( preventedDefault && stoppedPropagation );
 
-		fire( ractive.nodes.return_undefined, 'click' );
+		fire( ractive.find( '#return_undefined' ), 'click' );
 		t.ok( !preventedDefault && !stoppedPropagation );
 
-		fire( ractive.nodes.return_zero, 'click' );
+		fire( ractive.find( '#return_zero' ), 'click' );
 		t.ok( !preventedDefault && !stoppedPropagation );
 
-		fire( ractive.nodes.multiHandler, 'click' );
+		fire( ractive.find( '#multiHandler' ), 'click' );
 		t.ok( preventedDefault && stoppedPropagation );
 	});
 
@@ -146,7 +146,7 @@ export default function() {
 			t.equal( event.get( '.bar' ), 'test' );
 		});
 
-		fire( ractive.nodes.test, 'click' );
+		fire( ractive.find( '#test' ), 'click' );
 	});
 
 	test( 'event keypath is set to the mapped keypath in a component', t => {
@@ -229,7 +229,7 @@ export default function() {
 			t.equal( event.get( 'i' ), 2 );
 		});
 
-		fire( ractive.nodes.item_2, 'click' );
+		fire( ractive.find( '#item_2' ), 'click' );
 	});
 
 	test( 'events can correctly retrieve nested index refs', t => {
@@ -245,7 +245,7 @@ export default function() {
 			}
 		});
 
-		t.equal( ractive.nodes.test_001.innerHTML, '001' );
+		t.equal( ractive.find( '#test_001' ).innerHTML, '001' );
 
 		ractive.on( 'someEvent', ( event ) => {
 			t.equal( event.get( 'x' ), 0 );
@@ -253,7 +253,7 @@ export default function() {
 			t.equal( event.get( 'z' ), 1 );
 		});
 
-		fire( ractive.nodes.test_001, 'click' );
+		fire( ractive.find( '#test_001' ), 'click' );
 	});
 
 	test( 'Splicing arrays correctly modifies two-way bindings', t => {
@@ -280,21 +280,21 @@ export default function() {
 		});
 
 		// 1-3
-		t.equal( ractive.nodes.input_0.checked, false );
-		t.equal( ractive.nodes.input_1.checked, true );
-		t.equal( ractive.nodes.input_2.checked, false );
+		t.equal( ractive.find( '#input_0' ).checked, false );
+		t.equal( ractive.find( '#input_1' ).checked, true );
+		t.equal( ractive.find( '#input_2' ).checked, false );
 
 		// 4-6
 		t.equal( !!ractive.get( 'items.0.done' ), false );
 		t.equal( !!ractive.get( 'items.1.done' ), true );
 		t.equal( !!ractive.get( 'items.2.done' ), false );
 
-		fire( ractive.nodes.input_0, 'click' );
+		fire( ractive.find( '#input_0' ), 'click' );
 
 		// 7-9
-		t.equal( ractive.nodes.input_0.checked, true );
-		t.equal( ractive.nodes.input_1.checked, true );
-		t.equal( ractive.nodes.input_2.checked, false );
+		t.equal( ractive.find( '#input_0' ).checked, true );
+		t.equal( ractive.find( '#input_1' ).checked, true );
+		t.equal( ractive.find( '#input_2' ).checked, false );
 
 		// 10-12
 		t.equal( !!ractive.get( 'items.0.done' ), true );
@@ -304,28 +304,28 @@ export default function() {
 		ractive.shift('items');
 
 		// 13-14
-		t.equal( ractive.nodes.input_0.checked, true );
-		t.equal( ractive.nodes.input_1.checked, false );
+		t.equal( ractive.find( '#input_0' ).checked, true );
+		t.equal( ractive.find( '#input_1' ).checked, false );
 
 		// 15-16
 		t.equal( !!ractive.get( 'items.0.done' ), true );
 		t.equal( !!ractive.get( 'items.1.done' ), false );
 
-		fire( ractive.nodes.input_0, 'click' );
+		fire( ractive.find( '#input_0' ), 'click' );
 
 		// 17-18
-		t.equal( ractive.nodes.input_0.checked, false );
-		t.equal( ractive.nodes.input_1.checked, false );
+		t.equal( ractive.find( '#input_0' ).checked, false );
+		t.equal( ractive.find( '#input_1' ).checked, false );
 
 		// 19-20
 		t.equal( !!ractive.get( 'items.0.done' ), false );
 		t.equal( !!ractive.get( 'items.1.done' ), false );
 
-		fire( ractive.nodes.input_1, 'click' );
+		fire( ractive.find( '#input_1' ), 'click' );
 
 		// 21-22
-		t.equal( ractive.nodes.input_0.checked, false );
-		t.equal( ractive.nodes.input_1.checked, true );
+		t.equal( ractive.find( '#input_0' ).checked, false );
+		t.equal( ractive.find( '#input_1' ).checked, true );
 
 		// 23-24
 		t.equal( !!ractive.get( 'items.0.done' ), false );
@@ -481,7 +481,7 @@ export default function() {
 		});
 
 		const component = ractive.findComponent( 'Component' );
-		fire( component.nodes.test, 'click' );
+		fire( component.find( '#test' ), 'click' );
 		component.fire( 'bar', 'bar' );
 		component.fire( 'bizz', 'buzz' );
 	});
@@ -513,7 +513,7 @@ export default function() {
 		});
 
 		const component = ractive.findComponent( 'Component' );
-		fire( component.nodes.test, 'click' );
+		fire( component.find( '#test' ), 'click' );
 		component.fire( 'bar', 'bar' );
 		component.fire( 'bizz' );
 	});
@@ -540,15 +540,15 @@ export default function() {
 	// 			t.ok( true );
 	// 		})
 	//
-	// 		fire( ractive.nodes.test, 'click' );
+	// 		fire( ractive.find( '#test' ), 'click' );
 	//
 	// 		Element.prototype.addEventListener = addEventListener;
 	// 		ractive.set( 'foo', 'bar' );
-	// 		fire( ractive.nodes.test, 'click' );
+	// 		fire( ractive.find( '#test' ), 'click' );
 	//
 	// 		Element.prototype.addEventListener = errorAdd;
 	// 		ractive.set( 'foo', ' ' );
-	// 		fire( ractive.nodes.test, 'click' );
+	// 		fire( ractive.find( '#test' ), 'click' );
 	// 	}
 	// 	finally {
 	// 		Element.prototype.addEventListener = addEventListener;

@@ -206,9 +206,9 @@ export default function() {
 		});
 
 		t.deepEqual( ractive.get( 'colors' ), [ 'blue', 'green' ] );
-		t.ok( !ractive.nodes.red.checked );
-		t.ok( ractive.nodes.blue.checked );
-		t.ok( ractive.nodes.green.checked );
+		t.ok( !ractive.find( '#red' ).checked );
+		t.ok( ractive.find( '#blue' ).checked );
+		t.ok( ractive.find( '#green' ).checked );
 
 		ractive = new Ractive({
 			el: fixture,
@@ -216,9 +216,9 @@ export default function() {
 		});
 
 		t.deepEqual( ractive.get( 'colors' ), [] );
-		t.ok( !ractive.nodes.red.checked );
-		t.ok( !ractive.nodes.blue.checked );
-		t.ok( !ractive.nodes.green.checked );
+		t.ok( !ractive.find( '#red' ).checked );
+		t.ok( !ractive.find( '#blue' ).checked );
+		t.ok( !ractive.find( '#green' ).checked );
 	});
 
 	test( 'The model overrides which checkbox inputs are checked at render time', t => {
@@ -232,9 +232,9 @@ export default function() {
 		});
 
 		t.deepEqual( ractive.get( 'colors' ), [ 'red', 'blue' ] );
-		t.ok( ractive.nodes.red.checked );
-		t.ok( ractive.nodes.blue.checked );
-		t.ok( !ractive.nodes.green.checked );
+		t.ok( ractive.find( '#red' ).checked );
+		t.ok( ractive.find( '#blue' ).checked );
+		t.ok( !ractive.find( '#green' ).checked );
 	});
 
 	test( 'Named checkbox bindings are kept in sync with data changes (#1610)', t => {
@@ -278,9 +278,9 @@ export default function() {
 		});
 
 		t.deepEqual( ractive.get( 'color' ), 'green' );
-		t.ok( !ractive.nodes.red.checked );
-		t.ok( !ractive.nodes.blue.checked );
-		t.ok( ractive.nodes.green.checked );
+		t.ok( !ractive.find( '#red' ).checked );
+		t.ok( !ractive.find( '#blue' ).checked );
+		t.ok( ractive.find( '#green' ).checked );
 	});
 
 	test( 'updateModel correctly updates the value of a text input', t => {
@@ -911,7 +911,7 @@ export default function() {
 
 		ractive.set( 'selectedColors', [ 'red' ]);
 
-		t.ok( ractive.nodes.red.checked );
+		t.ok( ractive.find( '#red' ).checked );
 	});
 
 	test( 'input type=number binds (#2082)', t => {

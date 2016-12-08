@@ -23,7 +23,7 @@ export default function() {
 		});
 
 		t.equal( ractive.get( 'selected' ), 'c' );
-		t.equal( ractive.nodes.select.value, 'c' );
+		t.equal( ractive.find( '#select' ).value, 'c' );
 	});
 
 	test( 'If a select value with two-way binding has a selected option at render time, the model updates accordingly', t => {
@@ -73,8 +73,8 @@ export default function() {
 		});
 
 		t.equal( ractive.get( 'color' ), 'blue' );
-		t.ok( ractive.nodes.blue.selected );
-		t.ok( !ractive.nodes.green.selected );
+		t.ok( ractive.find( '#blue' ).selected );
+		t.ok( !ractive.find( '#green' ).selected );
 	});
 
 	test( 'A select value with static options with numeric values will show the one determined by the model, whether a string or a number is used', t => {
@@ -89,9 +89,9 @@ export default function() {
 			data: { i: 2 }
 		});
 
-		t.ok( !ractive.nodes._1.selected );
-		t.ok(  ractive.nodes._2.selected );
-		t.ok( !ractive.nodes._3.selected );
+		t.ok( !ractive.find( '#_1' ).selected );
+		t.ok(  ractive.find( '#_2' ).selected );
+		t.ok( !ractive.find( '#_3' ).selected );
 
 		ractive = new Ractive({
 			el: fixture,
@@ -104,9 +104,9 @@ export default function() {
 			data: { i: '3' }
 		});
 
-		t.ok( !ractive.nodes._1.selected );
-		t.ok( !ractive.nodes._2.selected );
-		t.ok(  ractive.nodes._3.selected );
+		t.ok( !ractive.find( '#_1' ).selected );
+		t.ok( !ractive.find( '#_2' ).selected );
+		t.ok(  ractive.find( '#_3' ).selected );
 	});
 	/*
 	test( 'Setting the value of a select works with options added via a triple', t => {
@@ -194,9 +194,9 @@ export default function() {
 		});
 
 		t.deepEqual( ractive.get( 'colors' ), [ 'red', 'green' ] );
-		t.ok( ractive.nodes.red.selected );
-		t.ok( !ractive.nodes.blue.selected );
-		t.ok( ractive.nodes.green.selected );
+		t.ok( ractive.find( '#red' ).selected );
+		t.ok( !ractive.find( '#blue' ).selected );
+		t.ok( ractive.find( '#green' ).selected );
 	});
 
 	test( 'updateModel correctly updates the value of a multiple select', t => {
@@ -481,15 +481,15 @@ export default function() {
 			data: { i: [ 1, '2' ] }
 		});
 
-		t.ok(  ractive.nodes._1.selected );
-		t.ok(  ractive.nodes._2.selected );
-		t.ok( !ractive.nodes._3.selected );
+		t.ok(  ractive.find( '#_1' ).selected );
+		t.ok(  ractive.find( '#_2' ).selected );
+		t.ok( !ractive.find( '#_3' ).selected );
 
 		ractive.set( 'i', [ 2, '3' ] );
 
-		t.ok( !ractive.nodes._1.selected );
-		t.ok(  ractive.nodes._2.selected );
-		t.ok(  ractive.nodes._3.selected );
+		t.ok( !ractive.find( '#_1' ).selected );
+		t.ok(  ractive.find( '#_2' ).selected );
+		t.ok(  ractive.find( '#_3' ).selected );
 	});
 
 	test( 'safe to render options into select outside of ractive', t => {

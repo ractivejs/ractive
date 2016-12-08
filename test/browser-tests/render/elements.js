@@ -44,36 +44,6 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<input>bar' );
 	});
 
-	test( 'Elements with id are registered and unregistered with ractive.nodes', t => {
-		const ractive = new Ractive({
-			el: fixture,
-			template: `{{#hasP}}<p id='foo'></p>{{/}}`,
-			data: {
-				hasP: true
-			}
-		});
-
-		t.equal( ractive.nodes.foo, ractive.find('p') );
-		ractive.set( 'hasP', false );
-		t.ok( !ractive.nodes.foo );
-	});
-
-	test( 'Elements with dynamic id is unregistered with ractive.nodes on change', t => {
-		const ractive = new Ractive({
-			el: fixture,
-			template: `<p id='{{id}}'></p>`,
-			data: {
-				id: 'foo'
-			}
-		});
-
-		const p = ractive.find('p');
-		t.equal( ractive.nodes.foo, p );
-		ractive.set( 'id', 'bar' );
-		t.ok( !ractive.nodes.foo );
-		t.equal( ractive.nodes.bar, p );
-	});
-
 	test( 'Textarea is stringified correctly', t => {
 		const ractive = new Ractive({
 			template: '<textarea value="123<div></div>"></textarea>'

@@ -17,6 +17,7 @@
 		* `Promise` shim required for IE11.
 		* `requestAnimationFrame` polyfill required for IE10.
 		* es5-shim required for non-ES5 browsers.
+	* `ractive.nodes` no longer contains elements by id. The same functionality can be handled more safely and conveniently with a decorator.
 
 * New features (experimental - feedback welcome!)
 	* You can now create cross-instance links by passing an options object with a target instance e.g. `this.link('source.path', 'dest.path', { ractive: sourceInstance })`. This covers many of the cases handled by the `ractive-ractive` adaptor in a considerably more efficient manner.

@@ -73,8 +73,8 @@ export default function() {
 			data: { truthy: true, falsy: false }
 		});
 
-		t.equal( ractive.nodes.one.checked, false );
-		t.equal( ractive.nodes.two.checked, true );
+		t.equal( ractive.find( '#one' ).checked, false );
+		t.equal( ractive.find( '#two' ).checked, true );
 	});
 
 	test( 'Instances can be created without an element', t => {

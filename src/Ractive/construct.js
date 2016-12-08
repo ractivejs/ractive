@@ -117,9 +117,6 @@ function initialiseProperties ( ractive ) {
 	// like dynamic functions or original values
 	ractive._config = {};
 
-	// nodes registry
-	ractive.nodes = {};
-
 	// events
 	ractive.event = null;
 	ractive._eventQueue = [];

@@ -39,7 +39,7 @@ export default function() {
 	[
 		{
 			type: 'proxy events',
-			callback: component => fire( component.nodes.test, 'click' ),
+			callback: component => fire( component.find( '#test' ), 'click' ),
 			verify: event => event.get()
 		},
 
@@ -150,7 +150,7 @@ export default function() {
 		ractive.on( 'Component.foo', () => t.ok( true ) );
 
 		const component = ractive.findComponent( 'Component' );
-		fire( component.nodes.test, 'click' );
+		fire( component.find( '#test' ), 'click' );
 
 		// otherwise we get cross test failure due to "teardown" event
 		// because we're reusing fixture element
@@ -174,7 +174,7 @@ export default function() {
 		ractive.on( 'Component.someEvent', shouldBeNoBubbling );
 
 		const component = ractive.findComponent( 'Component' );
-		fire( component.nodes.test, 'click' );
+		fire( component.find( '#test' ), 'click' );
 	});
 
 	test( 'component "on-" wildcards match', t => {
@@ -195,7 +195,7 @@ export default function() {
 		ractive.on( 'both', () => t.ok( true ) );
 
 		const component = ractive.findComponent( 'Component' );
-		fire( component.nodes.test, 'click' );
+		fire( component.find( '#test' ), 'click' );
 	});
 
 	test( 'component "on-" do not get auto-namespaced events', t => {
@@ -214,7 +214,7 @@ export default function() {
 		ractive.on( 'foo', shouldNotFire);
 
 		const component = ractive.findComponent( 'Component' );
-		fire( component.nodes.test, 'click' );
+		fire( component.find( '#test' ), 'click' );
 		t.ok( true );
 	});
 
