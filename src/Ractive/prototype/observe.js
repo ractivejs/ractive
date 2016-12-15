@@ -202,10 +202,12 @@ class PatternObserver {
 	}
 
 	dispatch () {
-		Object.keys( this.newValues ).forEach( keypath => {
+		const newValues = this.newValues;
+		this.newValues = {};
+		Object.keys( newValues ).forEach( keypath => {
 			if ( this.newKeys && !this.newKeys[ keypath ] ) return;
 
-			const newValue = this.newValues[ keypath ];
+			const newValue = newValues[ keypath ];
 			const oldValue = this.oldValues[ keypath ];
 
 			if ( this.strict && newValue === oldValue ) return;
@@ -223,11 +225,11 @@ class PatternObserver {
 		});
 
 		if ( this.partial ) {
-			for ( const k in this.newValues ) {
-				this.oldValues[k] = this.newValues[k];
+			for ( const k in newValues ) {
+				this.oldValues[k] = newValues[k];
 			}
 		} else {
-			this.oldValues = this.newValues;
+			this.oldValues = newValues;
 		}
 
 		this.newKeys = null;

@@ -1451,4 +1451,18 @@ export default function() {
 		r.toggle( 'bar' );
 		t.equal( count, 2 );
 	});
+
+	test( `pattern observer only fire a partial update once (#2800)`, t => {
+		const counts = { a: 0, b: 0 };
+		const r = new Ractive();
+		r.observe( 'foo.*', (n, o, kp, k) => {
+			counts[k]++;
+			if ( k === 'a' ) r.set( 'foo.b', 'changed' );
+		}, { init: false });
+
+		r.set( 'foo.a', 'yep' );
+
+		t.equal( counts.a, 1 );
+		t.equal( counts.b, 1 );
+	});
 }
