@@ -1,4 +1,3 @@
-import { isArray } from '../../utils/is';
 import { splitKeypath } from '../../shared/keypaths';
 import runloop from '../../global/runloop';
 
@@ -21,7 +20,7 @@ export function merge ( ractive, model, array, options ) {
 	const value = model.get();
 	if ( array === undefined ) array = value;
 
-	if ( !isArray( value ) || !isArray( array ) ) {
+	if ( !Array.isArray( value ) || !Array.isArray( array ) ) {
 		throw new Error( 'You cannot merge an array with a non-array' );
 	}
 

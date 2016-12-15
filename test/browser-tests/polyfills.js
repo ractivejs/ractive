@@ -1,8 +1,3 @@
-import { isArray } from '../utils/is';
-
-// IE8... don't ask
-Array.isArray || ( Array.isArray = thing => isArray( thing ) );
-
 // IE only implements this for Element
 Node.prototype.contains || ( Node.prototype.contains = function ( node ) {
 	if ( !node ) {

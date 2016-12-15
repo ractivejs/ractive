@@ -1,7 +1,6 @@
 import { html } from '../../../../config/namespaces';
 import { safeToStringValue} from '../../../../utils/dom';
 import { arrayContains } from '../../../../utils/array';
-import { isArray } from '../../../../utils/is';
 import noop from '../../../../utils/noop';
 import { readStyle, readClass } from '../../../helpers/specialAttrs';
 import hyphenateCamel from '../../../../utils/hyphenateCamel';
@@ -71,7 +70,7 @@ export default function getUpdateDelegate ( attribute ) {
 function updateMultipleSelectValue ( reset ) {
 	let value = this.getValue();
 
-	if ( !isArray( value ) ) value = [ value ];
+	if ( !Array.isArray( value ) ) value = [ value ];
 
 	const options = this.node.options;
 	let i = options.length;
@@ -198,7 +197,7 @@ function updateCheckboxName ( reset ) {
 		// TODO: WAT?
 	}
 
-	if ( !isArray( value ) ) {
+	if ( !Array.isArray( value ) ) {
 		binding.isChecked = node.checked = ( value == valueAttribute );
 	} else {
 		let i = value.length;

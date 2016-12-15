@@ -3,7 +3,7 @@ import KeypathModel from './specials/KeypathModel';
 import { escapeKey, unescapeKey } from '../shared/keypaths';
 import { handleChange, notifiedUpstream } from '../shared/methodCallers';
 import { addToArray, removeFromArray } from '../utils/array';
-import { isArray, isObject } from '../utils/is';
+import { isObject } from '../utils/is';
 import bind from '../utils/bind';
 import runloop from '../global/runloop';
 
@@ -116,7 +116,7 @@ export default class ModelBase {
 
 	getValueChildren ( value ) {
 		let children;
-		if ( isArray( value ) ) {
+		if ( Array.isArray( value ) ) {
 			children = [];
 			if ( 'length' in this && this.length !== value.length ) {
 				children.push( this.joinKey( 'length' ) );
@@ -140,7 +140,7 @@ export default class ModelBase {
 	getVirtual ( shouldCapture ) {
 		const value = this.get( shouldCapture, { virtual: false } );
 		if ( isObject( value ) ) {
-			const result = isArray( value ) ? [] : {};
+			const result = Array.isArray( value ) ? [] : {};
 
 			const keys = Object.keys( value );
 			let i = keys.length;

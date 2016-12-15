@@ -1,5 +1,4 @@
 import { win } from '../../../config/environment';
-import { isArray } from '../../../utils/is';
 import { addToArray, removeFromArray } from '../../../utils/array';
 import findElement from '../shared/findElement';
 import prefix from './transitions/prefix';
@@ -162,7 +161,7 @@ export default class Transition {
 			return value === '0px' ? 0 : value;
 		}
 
-		if ( !isArray( props ) ) {
+		if ( !Array.isArray( props ) ) {
 			throw new Error( 'Transition$getStyle must be passed a string, or an array of strings representing CSS properties' );
 		}
 

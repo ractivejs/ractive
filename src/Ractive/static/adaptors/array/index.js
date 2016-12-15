@@ -1,4 +1,3 @@
-import { isArray } from '../../../../utils/is';
 import patch from './patch';
 
 const errorMessage = 'Something went wrong in a rather interesting way';
@@ -7,7 +6,7 @@ export default {
 	filter ( object ) {
 		// wrap the array if a) b) it's an array, and b) either it hasn't been wrapped already,
 		// or the array didn't trigger the get() itself
-		return isArray( object ) && ( !object._ractive || !object._ractive.setting );
+		return Array.isArray( object ) && ( !object._ractive || !object._ractive.setting );
 	},
 	wrap ( ractive, array, keypath ) {
 		return new ArrayWrapper( ractive, array, keypath );

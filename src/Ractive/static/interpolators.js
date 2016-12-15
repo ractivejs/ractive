@@ -1,4 +1,4 @@
-import { isArray, isObject, isNumeric } from '../../utils/is';
+import { isObject, isNumeric } from '../../utils/is';
 import interpolate from '../../shared/interpolate';
 
 function snap ( to ) {
@@ -28,7 +28,7 @@ const interpolators = {
 	array ( from, to ) {
 		let len, i;
 
-		if ( !isArray( from ) || !isArray( to ) ) {
+		if ( !Array.isArray( from ) || !Array.isArray( to ) ) {
 			return null;
 		}
 

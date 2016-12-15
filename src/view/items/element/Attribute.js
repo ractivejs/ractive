@@ -5,7 +5,6 @@ import Item from '../shared/Item';
 import findElement from '../shared/findElement';
 import getUpdateDelegate from './attribute/getUpdateDelegate';
 import propertyNames from './attribute/propertyNames';
-import { isArray } from '../../../utils/is';
 import { safeAttributeString } from '../../../utils/dom';
 import { booleanAttributes } from '../../../utils/html';
 import hyphenateCamel from '../../../utils/hyphenateCamel';
@@ -39,7 +38,7 @@ export default class Attribute extends Item {
 
 		this.element.attributeByName[ this.name ] = this;
 
-		if ( !isArray( options.template.f ) ) {
+		if ( !Array.isArray( options.template.f ) ) {
 			this.value = options.template.f;
 			if ( this.value === 0 ) {
 				this.value = '';

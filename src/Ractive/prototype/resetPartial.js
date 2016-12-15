@@ -1,4 +1,3 @@
-import { isArray } from '../../utils/is';
 import runloop from '../../global/runloop';
 import { PARTIAL, COMPONENT, ELEMENT } from '../../config/types';
 
@@ -17,7 +16,7 @@ function collect( source, name, attr, dest ) {
 		}
 
 		// or if it is itself a fragment, process its items
-		else if ( isArray( item.items ) ) {
+		else if ( Array.isArray( item.items ) ) {
 			collect( item.items, name, attr, dest );
 		}
 
@@ -30,7 +29,7 @@ function collect( source, name, attr, dest ) {
 
 		// if the item is an element, process its attributes too
 		if ( item.type === ELEMENT ) {
-			if ( isArray( item.attributes ) ) {
+			if ( Array.isArray( item.attributes ) ) {
 				collect( item.attributes, name, true, dest );
 			}
 		}
