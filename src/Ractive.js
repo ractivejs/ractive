@@ -2,7 +2,6 @@ import defaults from './Ractive/config/defaults';
 import easing from './Ractive/static/easing';
 import interpolators from './Ractive/static/interpolators';
 import { magic, svg, win } from './config/environment';
-import { defineProperties, extend as extendObj } from './utils/object';
 import proto from './Ractive/prototype';
 import extend from './extend/_extend';
 import parse from './parse/_parse';
@@ -34,14 +33,14 @@ if ( win && !win.Ractive ) {
 	}
 }
 
-extendObj( Ractive.prototype, proto, defaults );
+Object.assign( Ractive.prototype, proto, defaults );
 Ractive.prototype.constructor = Ractive;
 
 // alias prototype as `defaults`
 Ractive.defaults = Ractive.prototype;
 
 // static properties
-defineProperties( Ractive, {
+Object.defineProperties( Ractive, {
 
 	// debug flag
 	DEBUG:          { writable: true, value: true },

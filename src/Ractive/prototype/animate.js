@@ -1,13 +1,12 @@
 import runloop from '../../global/runloop';
 import interpolate from '../../shared/interpolate';
-import { defineProperty } from '../../utils/object';
 import { isEqual } from '../../utils/is';
 import { splitKeypath } from '../../shared/keypaths';
 import easing from '../../Ractive/static/easing';
 import noop from '../../utils/noop';
 
 const noAnimation = Promise.resolve();
-defineProperty( noAnimation, 'stop', { value: noop });
+Object.defineProperty( noAnimation, 'stop', { value: noop });
 
 const linear = easing.linear;
 

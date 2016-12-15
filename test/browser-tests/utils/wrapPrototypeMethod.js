@@ -1,6 +1,5 @@
 import { test } from 'qunit';
 import wrap from '../../Ractive/config/wrapPrototypeMethod';
-import { create } from '../../utils/object';
 import { initModule } from '../test-config';
 
 export default function() {
@@ -12,7 +11,7 @@ export default function() {
 		t.expect(1);
 
 		const parent = { talk: () => t.ok( true ) };
-		const instance = create( parent );
+		const instance = Object.create( parent );
 
 		instance.talk = wrap( parent, 'talk', callSuper );
 
@@ -28,7 +27,7 @@ export default function() {
 			}
 		};
 
-		const instance = create( parent );
+		const instance = Object.create( parent );
 
 		instance.talk = wrap( parent, 'talk', function () {
 			t.equal( this, instance, 'instance method has correct "this"' );
@@ -42,8 +41,8 @@ export default function() {
 		t.expect(1);
 
 		const grandparent = { talk: () => t.ok( true ) };
-		const parent = create( grandparent );
-		const instance = create( parent );
+		const parent = Object.create( grandparent );
+		const instance = Object.create( parent );
 
 		instance.talk = wrap( parent, 'talk', callSuper );
 		instance.talk();
@@ -53,7 +52,7 @@ export default function() {
 		t.expect( 1 );
 
 		const parent = {};
-		const instance = create( parent );
+		const instance = Object.create( parent );
 
 		instance.talk = wrap( parent, 'talk', function () {
 			this._super();
@@ -67,7 +66,7 @@ export default function() {
 		t.expect( 1 );
 
 		const parent = {};
-		const instance = create( parent );
+		const instance = Object.create( parent );
 
 		instance.talk = wrap( parent, 'talk', callSuper );
 
@@ -89,7 +88,7 @@ export default function() {
 
 		const data = { foo: 'bar' };
 		const parent = { talk: data };
-		const instance = create( parent );
+		const instance = Object.create( parent );
 		const method = function () { return this._super(); };
 
 		instance.talk = wrap( parent, 'talk', method );
@@ -102,7 +101,7 @@ export default function() {
 
 		const parent = { talk: () => false };
 		const newParent = { talk: () => t.ok( true ) };
-		const instance = create( parent );
+		const instance = Object.create( parent );
 
 		instance.talk = wrap( parent, 'talk', callSuper );
 		t.equal( instance.talk._parent, parent );

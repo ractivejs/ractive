@@ -1,4 +1,3 @@
-import { hasOwn } from '../../utils/object';
 import { isArray, isObject, isNumeric } from '../../utils/is';
 import interpolate from '../../shared/interpolate';
 
@@ -71,8 +70,8 @@ const interpolators = {
 		const interpolators = {};
 
 		for ( const prop in from ) {
-			if ( hasOwn.call( from, prop ) ) {
-				if ( hasOwn.call( to, prop ) ) {
+			if ( from.hasOwnProperty( prop ) ) {
+				if ( to.hasOwnProperty( prop ) ) {
 					properties.push( prop );
 					interpolators[ prop ] = interpolate( from[ prop ], to[ prop ] ) || snap( to[ prop ] );
 				}
@@ -84,7 +83,7 @@ const interpolators = {
 		}
 
 		for ( const prop in to ) {
-			if ( hasOwn.call( to, prop ) && !hasOwn.call( from, prop ) ) {
+			if ( to.hasOwnProperty( prop ) && !from.hasOwnProperty( prop ) ) {
 				intermediate[ prop ] = to[ prop ];
 			}
 		}

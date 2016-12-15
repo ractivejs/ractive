@@ -6,7 +6,6 @@ import { findInViewHierarchy } from '../shared/registry';
 import arrayAdaptor from './static/adaptors/array/index';
 import magicAdaptor from './static/adaptors/magic';
 import magicArrayAdaptor from './static/adaptors/magicArray';
-import { create, extend } from '../utils/object';
 import dataConfigurator from './config/custom/data';
 import RootModel from '../model/RootModel';
 import Hook from '../events/Hook';
@@ -40,7 +39,7 @@ export default function construct ( ractive, options ) {
 	let i = registryNames.length;
 	while ( i-- ) {
 		const name = registryNames[ i ];
-		ractive[ name ] = extend( create( ractive.constructor[ name ] || null ), options[ name ] );
+		ractive[ name ] = Object.assign( Object.create( ractive.constructor[ name ] || null ), options[ name ] );
 	}
 
 	// Create a viewmodel
@@ -53,7 +52,7 @@ export default function construct ( ractive, options ) {
 	ractive.viewmodel = viewmodel;
 
 	// Add computed properties
-	const computed = extend( create( ractive.constructor.prototype.computed ), options.computed );
+	const computed = Object.assign( Object.create( ractive.constructor.prototype.computed ), options.computed );
 
 	for ( const key in computed ) {
 		const signature = getComputationSignature( ractive, key, computed[ key ] );
@@ -113,7 +112,7 @@ function initialiseProperties ( ractive ) {
 	ractive._guid = 'r-' + uid++;
 
 	// events
-	ractive._subs = create( null );
+	ractive._subs = Object.create( null );
 	ractive._nsSubs = 0;
 
 	// storage for item configuration from instantiation to reset,

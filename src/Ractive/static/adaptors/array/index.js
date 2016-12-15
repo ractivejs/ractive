@@ -1,4 +1,3 @@
-import { defineProperty } from '../../../../utils/object';
 import { isArray } from '../../../../utils/is';
 import patch from './patch';
 
@@ -24,7 +23,7 @@ class ArrayWrapper {
 		// if this array hasn't already been ractified, ractify it
 		if ( !array._ractive ) {
 			// define a non-enumerable _ractive property to store the wrappers
-			defineProperty( array, '_ractive', {
+			Object.defineProperty( array, '_ractive', {
 				value: {
 					wrappers: [],
 					instances: [],

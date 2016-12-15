@@ -11,7 +11,6 @@ import { createElement, detachNode, matches, safeAttributeString } from '../../u
 import createItem from './createItem';
 import { html, svg } from '../../config/namespaces';
 import findElement from './shared/findElement';
-import { defineProperty } from '../../utils/object';
 import selectBinding from './element/binding/selectBinding';
 
 function makeDirty ( query ) {
@@ -197,7 +196,7 @@ export default class Element extends ContainerItem {
 		}
 
 		// tie the node to this vdom element
-		defineProperty( node, '_ractive', {
+		Object.defineProperty( node, '_ractive', {
 			value: {
 				proxy: this
 			}
