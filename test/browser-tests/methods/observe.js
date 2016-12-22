@@ -1394,10 +1394,10 @@ export default function() {
 		t.equal( count2, 1 )
 	});
 
-	test( `pattern observer only fire a partial update once (#2800)`, t => {
+	test( `pattern observer only fires a partial update once (#2800)`, t => {
 		const counts = { a: 0, b: 0 };
 		const r = new Ractive();
-		r.observe( 'foo.*', (n, o, kp, k) => {
+		r.observe( 'foo.*', ( n, o, kp, k ) => {
 			counts[k]++;
 			if ( k === 'a' ) r.set( 'foo.b', 'changed' );
 		}, { init: false });
@@ -1406,5 +1406,21 @@ export default function() {
 
 		t.equal( counts.a, 1 );
 		t.equal( counts.b, 1 );
+	});
+
+	test( `pattern observer only fires for an exactly matching keypath, not just a partial match (#2805)`, t => {
+		const keys = [];
+		const r = new Ractive({ data: { foo: [ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {} ] } });
+		r.observe('foo.*', ( n, o, kp, k ) => {
+			keys.unshift(k);
+		}, { init: false });
+
+		r.set( 'foo.10.bar', 'a' );
+		t.equal( keys.length, 1 );
+		t.equal( keys[0], '10' );
+
+		r.set( 'foo.20.bar', 'b' );
+		t.equal( keys.length, 2 );
+		t.equal( keys[0], '20' );
 	});
 }
