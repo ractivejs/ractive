@@ -9,7 +9,7 @@ page.onConsoleMessage = function ( msg ) {
 	}
 };
 
-page.open( 'tmp/test/index.html', function(status){
+page.open( 'build/tests/browser/index.html', function(status){
 	if ( status !== 'success' ) {
 		console.log( 'Failed to start PhantomJS' );
 		phantom.exit(1);
