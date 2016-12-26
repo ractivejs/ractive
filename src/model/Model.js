@@ -133,8 +133,13 @@ export default class Model extends ModelBase {
 		this.parent.clearUnresolveds();
 		this.clearUnresolveds();
 
-		// keep track of array length
-		if ( isArray( value ) ) this.length = value.length;
+		// keep track of array stuff
+		if ( isArray( value ) ) {
+			this.length = value.length;
+			this.isArray = true;
+		} else {
+			this.isArray = false;
+		}
 
 		// notify dependants
 		this.links.forEach( handleChange );
@@ -143,7 +148,10 @@ export default class Model extends ModelBase {
 
 		this.notifyUpstream();
 
-		if ( this.key === 'length' && isArray( this.parent.value ) ) this.parent.length = this.parent.value.length;
+		if ( this.parent.isArray ) {
+			if ( this.key === 'length' ) this.parent.length = value;
+			else this.parent.joinKey( 'length' ).mark();
+		}
 	}
 
 	createBranch ( key ) {
@@ -200,8 +208,13 @@ export default class Model extends ModelBase {
 				this.adapt();
 			}
 
-			// keep track of array lengths
-			if ( isArray( value ) ) this.length = value.length;
+			// keep track of array stuff
+			if ( isArray( value ) ) {
+				this.length = value.length;
+				this.isArray = true;
+			} else {
+				this.isArray = false;
+			}
 
 			this.children.forEach( mark );
 			this.links.forEach( marked );
