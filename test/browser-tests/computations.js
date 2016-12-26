@@ -1070,6 +1070,23 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<i>3</i><i>3</i><i>3</i>' );
 	});
 
+	test( `computations with dotted names can be accessed (#2807)`, t => {
+		const r = new Ractive({
+			computed: {
+				'foo.bar': '${baz} + 1'
+			},
+			data: { baz: 1 }
+		});
+		let val = 2;
+		r.observe( 'foo\\.bar', v => t.equal( v, val ) );
+
+		t.equal( r.get( 'foo\\.bar' ), 2 );
+
+		val = 10;
+		r.set( 'baz', 9 );
+		t.equal( r.get( 'foo\\.bar' ), 10 );
+	});
+
 	// phantom just doesn't execute this test... no error, just nothing
 	// even >>> log messages don't come out. passes chrome and ff, though
 	if ( !/phantom/i.test( navigator.userAgent ) ) {

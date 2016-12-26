@@ -4,7 +4,7 @@ import Model from './Model';
 import { handleChange, mark } from '../shared/methodCallers';
 import RactiveModel from './specials/RactiveModel';
 import SharedModel, { GlobalModel } from './specials/SharedModel';
-import { splitKeypath, unescapeKey } from '../shared/keypaths';
+import { splitKeypath, escapeKey, unescapeKey } from '../shared/keypaths';
 import resolveReference from '../view/resolvers/resolveReference';
 import noop from '../utils/noop';
 
@@ -35,7 +35,7 @@ export default class RootModel extends Model {
 
 	compute ( key, signature ) {
 		const computation = new Computation( this, signature, key );
-		this.computations[ key ] = computation;
+		this.computations[ escapeKey( key ) ] = computation;
 
 		return computation;
 	}
@@ -101,19 +101,19 @@ export default class RootModel extends Model {
 
 	has ( key ) {
 		const value = this.value;
+		let unescapedKey = unescapeKey( key );
 
-		key = unescapeKey( key );
-		if ( key === '@this' || key === '@global' || key === '@shared' ) return true;
-		if ( key[0] === '~' && key[1] === '/' ) key = key.slice( 2 );
-		if ( hasProp.call( value, key ) ) return true;
+		if ( unescapedKey === '@this' || unescapedKey === '@global' || unescapedKey === '@shared' ) return true;
+		if ( unescapedKey[0] === '~' && unescapedKey[1] === '/' ) unescapedKey = unescapedKey.slice( 2 );
+		if ( hasProp.call( value, unescapedKey ) ) return true;
 
 		// mappings/links and computations
-		if ( key in this.computations || this.childByKey[key] && this.childByKey[key]._link ) return true;
+		if ( key in this.computations || this.childByKey[unescapedKey] && this.childByKey[unescapedKey]._link ) return true;
 
-		// We climb up the constructor chain to find if one of them contains the key
+		// We climb up the constructor chain to find if one of them contains the unescapedKey
 		let constructor = value.constructor;
 		while ( constructor !== Function && constructor !== Array && constructor !== Object ) {
-			if ( hasProp.call( constructor.prototype, key ) ) return true;
+			if ( hasProp.call( constructor.prototype, unescapedKey ) ) return true;
 			constructor = constructor.constructor;
 		}
 
