@@ -1481,4 +1481,18 @@ export default function() {
 		t.equal( keys.length, 2 );
 		t.equal( keys[0], '20' );
 	});
+
+	test( `inserting array elements without using modification methods should still mark length (#2806)`, t => {
+		const r = new Ractive({
+			data: { foo: [] }
+		});
+		let val = 0;
+		r.observe( 'foo.length', v => t.equal( v, val ) );
+
+		val = 1;
+		r.set( 'foo.0', 'a' );
+
+		val = 7;
+		r.set( 'foo.6', 'b' );
+	});
 }
