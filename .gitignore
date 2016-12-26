@@ -6,9 +6,7 @@ node_modules/
 
 # Debugging directory
 sandbox/*
-!sandbox/_base.html
-!sandbox/_sandbox.css
-!sandbox/sample/
+!sandbox/index.html
 
 # Temporary directories
 tmp/
