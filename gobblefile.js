@@ -1,177 +1,239 @@
-/*global require, module, __dirname, process */
-/*eslint no-var:0, object-shorthand:0 */
-var gobble = require( 'gobble' );
-var sander = require( 'sander' );
-var path = require( 'path' );
-var junk = require( 'junk' );
-var Promise = sander.Promise;
-var rollup = require( 'rollup' );
-var rollupBuble = require( 'rollup-plugin-buble' );
+/*eslint-env node */
+/*eslint object-shorthand: 0 quote-props: 0 */
+const fs = require('fs');
+const path = require('path');
 
-var sandbox = gobble( 'sandbox' ).moveTo( 'sandbox' );
-var version = require( './package.json' ).version;
-var hash = process.env.COMMIT_HASH || 'unknown';
-var versionExt = ~version.indexOf( '-edge' ) ? '-' + hash : '';
+const fsPlus = require('fs-plus');
+const gobble = require('gobble');
+const buble = require('buble');
+const hoistProps = require('hoist-props');
 
-var bubleOptions = { target: { ie: 9 }, transforms: { modules: false } }
-var src = gobble( 'src' );
-var es5 = src.transform( 'buble', bubleOptions );
-var lib;
-var test;
+const time = new Date();
+const commitHash = process.env.COMMIT_HASH || 'unknown';
+const version = require('./package.json').version;
+const versionExt = ~version.indexOf('-edge') ? `-${commitHash}` : '';
+const banner = `/*
+	Ractive.js v${version}
+	Build: ${commitHash}
+	Date: ${time}
 
-function noop () {}
+	http://ractivejs.org
+	http://twitter.com/RactiveJS
 
-function adjustAndSkip ( pattern ) {
-	return { transform: function ( src, path ) {
-		if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
-			return src.replace( /<@version@>/g, version + versionExt );
-		}
+	Released under the MIT License.
+*/`;
 
-		if ( pattern && pattern.test( path ) ) {
-			return 'export default null;';
-		}
+// Had to use path.join because I happen to work on Windows that uses `\`.
+const runtimeModulesToIgnore = [
+	path.join('src', 'parse', '_parse.js')
+];
 
-		return src;
-	} };
-}
+// Commonly used nodes
+const src = gobble('src').moveTo('src');
+const tests = gobble('tests');
 
-function noConflict ( src ) {
-	src = src.replace( 'global.Ractive = factory()', '(function() { var current = global.Ractive; var next = factory(); next.noConflict = function() { global.Ractive = current; return next; }; return global.Ractive = next; })()' );
-	return src;
-}
+// Some tests reference back to the source. Structure is preserved so that
+// import paths reflect the actual filesystem paths.
+const browserTests = gobble([src, tests.include(['helpers/**/*', 'browser/**/*']).moveTo('tests')]);
+const nodeTests = gobble([src, tests.include(['helpers/**/*', 'node/**/*']).moveTo('tests')]);
 
-function buildLib ( dest, pattern ) {
-	return es5.transform( 'rollup', {
-		plugins: [ adjustAndSkip( pattern ) ],
+// Create, add, and select profiles based on the --env switch.
+module.exports = ({
+	'dev:browser': function () {
+		return gobble([
+			buildUmdLib('ractive.js', []).transform(noConflict),
+			gobble('sandbox').moveTo('sandbox'),
+			buildBrowserTests(),
+			// buildBrowserPerfTests(),
+		]);
+		// TODO: There should be an observe to run tests here automatically. That
+		//       way, you don't need to view the browser or run build.
+	},
+	'dev:node': function () {
+		return gobble([
+			buildUmdLib('ractive.js', []).transform(noConflict),
+			buildNodeTests(),
+			// buildNodePerfTests(),
+		]);
+		// TODO: There should be an observe to run tests here automatically. That
+		//       way, you don't need to view the browser or run build.
+	},
+	'production': function () {
+		const es = gobble([
+			buildESLib('ractive.mjs', []),
+			buildESLib('ractive.runtime.mjs', runtimeModulesToIgnore)
+		]);
+
+		const umd = gobble([
+			buildUmdLib('ractive.js', []),
+			buildUmdLib('ractive.runtime.js', runtimeModulesToIgnore)
+		]).transform(noConflict);
+
+		// Minification only makes sense on the UMD build since it's the only build
+		// that's dropped straight into the browser.
+		const umdMin = umd.transform(hoistProps).transform('uglifyjs', { ext: '.min.js', sourceMap: false });
+
+		return gobble([
+			es,
+			umd,
+			umdMin,
+			buildBrowserTests(),
+			buildNodeTests(),
+			gobble('bin').moveTo('bin'),
+			gobble('lib').moveTo('lib'),
+			gobble('typings').moveTo('typings')
+		]);
+	}
+})[gobble.env()]();
+
+/**
+ * Helper functions
+ */
+
+// Builds a UMD bundle of Ractive
+function buildUmdLib(dest, excludedModules) {
+	return src.transform('rollup', {
+		plugins: [
+			// TODO: Browser-specific options
+			transpile(),
+			interpolatePlaceholders('<@version@>', `${version}${versionExt}`),
+			skipModule(excludedModules)
+		],
 		format: 'umd',
-		entry: 'Ractive.js',
+		entry: 'src/Ractive.js',
 		moduleName: 'Ractive',
-		dest: dest,
-		banner: banner
-	}).transform( noConflict );
+		dest,
+		banner
+	});
 }
 
-function buildESLib ( dest, pattern ) {
-	return es5.transform( 'rollup', {
-		plugins: [ adjustAndSkip( pattern ) ],
+// Builds an ES bundle of Ractive
+function buildESLib(dest, excludedModules) {
+	return src.transform('rollup', {
+		plugins: [
+			// TODO: Browser-specific options
+			transpile(),
+			interpolatePlaceholders('<@version@>', `${version}${versionExt}`),
+			skipModule(excludedModules)
+		],
 		format: 'es',
-		entry: 'Ractive.js',
+		entry: 'src/Ractive.js',
 		moduleName: 'Ractive',
-		dest: dest,
-		banner: banner
+		dest,
+		banner
 	});
 }
 
-var banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
-	.replace( '${version}', version )
-	.replace( '${time}', new Date() )
-	.replace( '${commitHash}', hash );
-
-if ( gobble.env() === 'production' ) {
-	lib = gobble([
-		buildLib( 'ractive.js'),
-		buildLib( 'ractive.runtime.js', /_parse\.js/ ),
-		buildESLib( 'ractive.mjs' ),
-		buildESLib( 'ractive.runtime.mjs', /_parse\.js/ )
-	]).transform( noConflict );
-} else {
-	lib = gobble([
-		buildLib( 'ractive.js' ),
-		buildESLib( 'ractive.mjs' ),
-		sandbox
-	]);
-}
-
-test = (function () {
-	var testFiles = sander.lsrSync( 'test/browser-tests' ).filter( junk.not );
-	var globals = {
-		qunit: 'QUnit',
-		simulant: 'simulant'
-	};
-
-	var browserTests = gobble( 'test/browser-tests' ).moveTo( 'browser-tests' ).transform( function bundleTests ( inputdir, outputdir, options ) {
-		testFiles.sort();
-		var modules = [];
-
-		var files = Promise.all( testFiles.map( function( f ) {
-			f = f.replace(/\\/g, '/');
-
-			return sander.readFile( inputdir, 'browser-tests', f ).then( function( data ) {
-				data = data.toString( 'utf8' );
-				if ( f.indexOf( 'polyfills.js' ) !== -1 || data.indexOf( 'initModule(' ) !== -1 ) {
-					modules.push( f );
-					return sander.link( inputdir, 'browser-tests', f ).to( outputdir, 'browser-tests', f );
-				} else if ( path.basename( f ) !== '.eslintrc' )  {
-					console.log( 'WARNING: not including test ' + f );
-				}
-			});
-		}));
-		return files.then( function() {
-			var imprts = [], stmts = [];
-
-			modules.map( function( f ) {
-				var mod = f.replace( /[^a-z]/gi, '_' );
-				imprts.push( 'import ' + mod + ' from \'./' + f + '\';' );
-				stmts.push( mod + '();' );
-			});
-
-			return sander.writeFile( outputdir, 'browser-tests/all.js', imprts.join( '\n' ) + stmts.join( '\n' ) );
-		});
-	});
-
-	var testModules = gobble([
-		es5,
-		gobble([ browserTests, gobble( 'test/__support/js' )
-			.moveTo( 'browser-tests' ) ])
-			.transform( 'buble', bubleOptions )
-	]).transform( 'rollup', {
-		plugins: [ adjustAndSkip() ],
-		format: 'umd',
-		entry: 'browser-tests/all.js',
-		moduleName: 'tests',
-		dest: 'all.js',
+// Builds a UMD bundle for browser/PhantomJS tests.
+function buildBrowserTests() {
+	const testBundle = gobble([
+		browserTests,
+		browserTests.transform(buildTestEntryPoint, { dir: 'tests/browser' }),
+	]).transform('rollup', {
+		// TODO: Node-specific options
+		plugins: [transpile()],
+		format: 'iife',
+		entry: 'tests.js',
+		dest: 'tests.js',
+		moduleName: 'RactiveBrowserTests',
 		globals: {
 			qunit: 'QUnit',
 			simulant: 'simulant'
 		}
-	});
+	}).moveTo('tests/browser');
 
 	return gobble([
-		gobble( 'test/__support/index.html' )
-			.transform( 'replace', {
-				scriptBlock: '<script src="all.js"></script>'
-			}),
+		testBundle,
+		gobble('tests/qunit').moveTo('tests/browser')
+	]);
+}
 
-		testModules,
-		gobble( 'test/__support/files' ),
-		gobble( 'test/node-tests' ).moveTo( 'node-tests' ),
-		gobble( 'test/__support/js/samples' )
-			.include( '*.js' )
-			.transform( function bundleSamples ( inputDir, outputDir, options ) {
-				return sander.lsr(inputDir).then( function ( files ) {
-					var promises = files.map( function ( file ) {
-						return rollup.rollup({
-							entry: inputDir + '/' + file,
-							plugins: [ rollupBuble(bubleOptions) ],
-							globals: globals,
-							onwarn: noop
-						}).then( function ( bundle ) {
-							return bundle.write({
-								dest: outputDir + '/' + file,
-								format: 'cjs',
-								globals: globals,
-								moduleName: 'tests'
-							});
-						});
-					});
-					return Promise.all(promises);
-				});
-			})
-			.moveTo( 'node-tests/samples' )
-	]).moveTo( 'test' );
-})();
+// Builds a CJS bundle for node tests.
+function buildNodeTests() {
+	return gobble([
+		nodeTests,
+		nodeTests.transform(buildTestEntryPoint, { dir: 'tests/node' }),
+	]).transform('rollup', {
+		// TODO: Node-specific options
+		plugins: [transpile()],
+		format: 'cjs',
+		entry: 'tests.js',
+		dest: 'tests.js',
+		external: [
+			'cheerio',
+			'qunit'
+		]
+	}).moveTo('tests/node');
+}
 
-module.exports = gobble([
-	lib,
-	test
-]);
+/**
+ * Rollup plugins
+ */
+
+// Replaces special placeholder values with values determined on build.
+// TODO: Look for a better-looking placeholder that blends in with JS.
+// TODO: Better replace that supports sourcemap?
+function interpolatePlaceholders(placeholder, value) {
+	return {
+		name: 'interpolatePlaceholders',
+		transform: function (src, modulePath) {
+			return src.replace(new RegExp(`${placeholder}`, 'g'), value);
+		}
+	};
+}
+
+// Replaces a modules content with a null export to omit module contents.
+// TODO: Better replace that supports sourcemap?
+function skipModule(excludedModules) {
+	return {
+		name: 'skipModule',
+		transform: function (src, modulePath) {
+			const moduleRelativePath = path.relative(__dirname, modulePath);
+			return excludedModules.indexOf(moduleRelativePath) > -1 ? 'export default null;' : src;
+		}
+	};
+}
+
+// Essentially rollup-plugin-buble, except we take out the middleman and do
+// Buble directly. Easier to get Buble updates this way and less dependencies.
+function transpile() {
+	return {
+		name: 'transpile',
+		transform: function (src, modulePath) {
+			return buble.transform(src, {
+				target: { ie: 9 },
+				transforms: { modules: false }
+			});
+		}
+	};
+}
+
+/**
+ * Gobble transforms
+ */
+
+// Builds an entrypoint in the designated directory that imports all test specs
+// and calls them one after the other.
+function buildTestEntryPoint(inDir, outDir, options) {
+	const _options = Object.assign({ dir: '', entrypoint: 'tests.js' }, options);
+	const testPaths = fsPlus.listTreeSync(path.join(inDir, _options.dir)).filter(testPath => fsPlus.isFileSync(testPath) && path.extname(testPath) === '.js');
+	const testImports = testPaths.map((testPath, index) => `import test${index} from './${path.relative(inDir, testPath).replace(/\\/g, '/')}';`).join('\n');
+	const testCalls = testPaths.map((testPath, index) => `test${index}();`).join('\n');
+	fs.writeFileSync(path.join(outDir, _options.entrypoint), `${testImports}\n${testCalls}`, 'utf8');
+	return Promise.resolve();
+}
+
+// Augments the no-conflict logic.
+// TODO: This can potentially be done in source code.
+// TODO: Should be guarded when used in Node.
+function noConflict(inFile) {
+	return inFile.replace('global.Ractive = factory()', `(function() {
+		const current = global.Ractive;
+		const next = factory();
+		global.Ractive = next;
+		next.noConflict = function() {
+			global.Ractive = current;
+			return next;
+		};
+	})()`);
+}
