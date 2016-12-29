@@ -18,10 +18,12 @@ export default function Ractive$off ( eventName, callback ) {
 				// a cancelled handler - this is _slightly_ hacky
 				( callback._proxy || callback ).off = true;
 				removeFromArray( subs, callback._proxy || callback );
+				if ( event.indexOf( '.' ) ) this._nsSubs--;
 			}
 
 			// otherwise, remove all listeners for this event
 			else if ( subs ) {
+				if ( event.indexOf( '.' ) ) this._nsSubs -= subs.length;
 				subs.length = 0;
 			}
 		});

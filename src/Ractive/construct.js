@@ -37,9 +37,11 @@ export default function construct ( ractive, options ) {
 	constructHook.fire( ractive, options );
 
 	// Add registries
-	registryNames.forEach( name => {
+	let i = registryNames.length;
+	while ( i-- ) {
+		const name = registryNames[ i ];
 		ractive[ name ] = extend( create( ractive.constructor[ name ] || null ), options[ name ] );
-	});
+	}
 
 	// Create a viewmodel
 	const viewmodel = new RootModel({
@@ -112,6 +114,7 @@ function initialiseProperties ( ractive ) {
 
 	// events
 	ractive._subs = create( null );
+	ractive._nsSubs = 0;
 
 	// storage for item configuration from instantiation to reset,
 	// like dynamic functions or original values

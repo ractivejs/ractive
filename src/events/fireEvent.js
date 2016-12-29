@@ -1,12 +1,12 @@
 import { enqueue, dequeue } from './eventStack';
 
 const initStars = {};
-const bubleStars = {};
+const bubbleStars = {};
 
 // cartesian product of name parts and stars
 // adjusted appropriately for special cases
 function variants ( name, initial ) {
-	const map = initial ? initStars : bubleStars;
+	const map = initial ? initStars : bubbleStars;
 	if ( map[ name ] ) return map[ name ];
 
 	const parts = name.split( '.' );
@@ -57,26 +57,26 @@ export default function fireEvent ( ractive, eventName, options = {} ) {
 		options.event.name = eventName;
 	}
 
-	const eventNames = variants( eventName, true );
+	const eventNames = ractive._nsSubs ? variants( eventName, true ) : [ '*', eventName ];
 
 	return fireEventAs( ractive, eventNames, options.event, options.args, true );
 }
 
 function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) {
-	let subscribers, i;
 	let bubble = true;
 
-	enqueue( ractive, event );
+	if ( initialFire || ractive._nsSubs ) {
+		enqueue( ractive, event );
 
-	for ( i = eventNames.length; i >= 0; i-- ) {
-		subscribers = ractive._subs[ eventNames[ i ] ];
-
-		if ( subscribers ) {
-			bubble = notifySubscribers( ractive, subscribers, event, args ) && bubble;
+		let i = eventNames.length;
+		while ( i-- ) {
+			if ( eventNames[ i ] in ractive._subs ) {
+				bubble = notifySubscribers( ractive, ractive._subs[ eventNames[ i ] ], event, args ) && bubble;
+			}
 		}
-	}
 
-	dequeue( ractive );
+		dequeue( ractive );
+	}
 
 	if ( ractive.parent && bubble ) {
 
