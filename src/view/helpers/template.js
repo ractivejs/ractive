@@ -1,13 +1,6 @@
 import { ELEMENT, COMPONENT, PARTIAL, YIELDER, SECTION, INVERTED, INTERPOLATOR, ANCHOR, ALIAS, TRIPLE, ATTRIBUTE, EVENT, DECORATOR, BINDING_FLAG, TRANSITION } from '../../config/types';
 import { SECTION_IF, SECTION_IF_WITH, SECTION_EACH, SECTION_UNLESS } from '../../config/types';
 
-const delimiters = {
-	static:       [ '[[', ']]' ],
-	staticTriple: [ '[[[', ']]]' ],
-	plain:        [ '{{', '}}' ],
-	triple:       [ '{{{', '}}}' ]
-};
-
 class Template {
 	constructor ( fragment, owner ) {
 		if ( !fragment ) fragment = [];
@@ -56,16 +49,6 @@ class Template {
 		return this.owner.root;
 	}
 
-	// stringify a template
-	toString ( options = {} ) {
-		// some attributes have an expression as their fragment
-		if ( this.fragment.s ) {
-			const list = refToString({ x: this.fragment });
-			return list.substring( 1, list.length - 1 );
-		}
-		return this.content.map( i => i.toString( options ) ).join( '' );
-	}
-
 	// clone this bit of template as a new base template
 	toTemplate () {
 		return { e: this.root.e, t: this.item ? [ this.item ] : this.fragment };
@@ -74,10 +57,6 @@ class Template {
 
 class Text extends Template {
 	get content () { return []; }
-
-	toString () {
-		return this.fragment;
-	}
 }
 
 class Element extends Template {
@@ -118,10 +97,6 @@ class Element extends Template {
 		this.owner.fragment.splice( this.owner.fragment.indexOf( this.item ), 1 )[0];
 		return this;
 	}
-
-	toString ( options = {} ) {
-		return `<${this.item.e}${this.attributeFragment.toString(options)}>${this.item.p ? this.partials.map(p => p.toString(options)).join('') : ''}${super.toString(options)}</${this.item.e}>`;
-	}
 }
 
 class Attribute extends Template {
@@ -145,15 +120,6 @@ class Attribute extends Template {
 		owner.splice( owner.indexOf( this.item ), 1 );
 		return this;
 	}
-
-	toString ( options ) {
-		const name = this.isTransition ?
-			this.name + ( this.item.v === 't0' ? '-in-out' : this.item.v === 't1' ? '-in' : '-out' ) :
-			this.isDecorator ? `as-${this.name}` :
-			this.isEvent ? `on-${this.item.n.map(n => n.replace( /-/g, '\\-' )).join( '-' )}` :
-			this.name;
-		return ` ${name}="${this.text ? this.text : ''}${super.toString(options)}"`;
-	}
 }
 
 class Block extends Template {
@@ -170,15 +136,6 @@ class Block extends Template {
 	get isWith () { return this.item.t === SECTION && this.item.n === SECTION_IF_WITH; }
 
 	get isStatic () { return this.item.s; }
-
-	toString ( options = {} ) {
-		const delims = !this.isStatic ?
-			options.delimiters || delimiters.plain :
-			options.staticDelimiters || delimiters.static;
-		const tag = this.isIf ? ( this.item.l ? 'elseif' : 'if' ) : this.isAlias || this.isWith ? 'with' : this.isUnless ? ( this.item.l ? 'else' : 'unless' ) : this.isEach ? 'each' : '';
-
-		return `${delims[0]}${tag !== 'else' && tag !== 'elseif' ? '#' : ''}${tag ? `${tag} ` : ''}${refToString(this.item)}${this.item.z && this.item.z.length ? ( this.isAlias ? '' : ' ' ) + aliasesToString(this.item) : ''}${this.item.i ? `:${this.item.i}` : ''}${delims[1]}${super.toString(options)}${delims[0]}/${tag}${delims[1]}`;
-	}
 }
 
 class Inline extends Template {
@@ -194,18 +151,6 @@ class Inline extends Template {
 	get isStatic () { return this.item.s; }
 	get isUnescaped () { return this.item.t === TRIPLE; }
 	get isYielder () { return this.item.t === YIELDER; }
-
-	toString ( options = {} ) {
-		const delims = !this.isStatic && !this.isUnescaped ?
-			( options.delimiters || delimiters.plain ) :
-			!this.isStatic && this.isUnescaped ?
-			( options.tripleDelimiters || delimiters.triple ) :
-			this.isStatic && !this.isUnescaped ?
-			( options.staticDelimiters || delimiters.static ) :
-			( options.staticTripleDelimiters || delimiters.staticTriple );
-
-		return `${delims[0]}${this.isPartial ? '> ' : this.isYielder ? 'yield ' : ''}${refToString(this.item)}${this.isPartial && this.item.c ? ` ${refToString(this.item.c)}` : ''}${this.item.z ? ` ${this.isYielder ? ' with ' : ' '}${aliasesToString(this.item)}` : ''}${delims[1]}`;
-	}
 }
 
 class Partial extends Template {
@@ -213,23 +158,6 @@ class Partial extends Template {
 		super( fragment, owner );
 		this.name = name;
 	}
-
-	toString ( options = {} ) {
-		const delims = options.delimiters || delimiters.plain;
-		return `${delims[0]}#partial ${this.name}${delims[1]}${super.toString(options)}${delims[0]}/partial${delims[1]}`;
-	}
-}
-
-function refToString ( item ) {
-	if ( item.r ) return item.r;
-	else if ( item.rx ) return `${item.r}${item.m.map(r => `[${r}]`).join('')}`;
-	else if ( item.x ) return item.x.r.reduce( ( a, c, i ) => a.replace( `_${i}`, c ), item.x.s );
-	else return '';
-}
-
-function aliasesToString ( item ) {
-	if ( item.z ) return item.z.reduce( ( a, c ) => `${a}${a ? ', ' : ''}${refToString(c.x)} as ${c.n}`, '' );
-	else return '';
 }
 
 export default function readTemplate ( template ) {
