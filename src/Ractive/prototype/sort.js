@@ -1,2 +1,2 @@
-import makeArrayMethod from 'Ractive/prototype/shared/makeArrayMethod';
-export default makeArrayMethod( 'sort' );
+import makeArrayMethod from './shared/makeArrayMethod';
+export default makeArrayMethod( 'sort' ).path;

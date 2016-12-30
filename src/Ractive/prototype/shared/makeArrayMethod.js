@@ -1,33 +1,47 @@
-import isArray from 'utils/isArray';
-import runloop from 'global/runloop';
-import getNewIndices from 'shared/getNewIndices';
+import { isArray } from '../../../utils/is';
+import { splitKeypath } from '../../../shared/keypaths';
+import runloop from '../../../global/runloop';
+import getNewIndices from '../../../shared/getNewIndices';
 
-var arrayProto = Array.prototype;
+const arrayProto = Array.prototype;
 
 export default function ( methodName ) {
-	return function ( keypath, ...args ) {
-		var array, newIndices = [], len, promise, result;
+	function path ( keypath, ...args ) {
+		return model( this.viewmodel.joinAll( splitKeypath( keypath ) ), args );
+	}
 
-		array = this.get( keypath );
-		len = array.length;
+	function model ( mdl, args ) {
+		let array = mdl.get();
 
 		if ( !isArray( array ) ) {
-			throw new Error( 'Called ractive.' + methodName + '(\'' + keypath + '\'), but \'' + keypath + '\' does not refer to an array' );
+			if ( array === undefined ) {
+				array = [];
+				const result = arrayProto[ methodName ].apply( array, args );
+				const promise = runloop.start( this, true ).then( () => result );
+				mdl.set( array );
+				runloop.end();
+				return promise;
+			} else {
+				throw new Error( `shuffle array method ${methodName} called on non-array at ${mdl.getKeypath()}` );
+			}
 		}
 
-		newIndices = getNewIndices( array, methodName, args );
+		const newIndices = getNewIndices( array.length, methodName, args );
+		const result = arrayProto[ methodName ].apply( array, args );
 
-		result = arrayProto[ methodName ].apply( array, args );
-		promise = runloop.start( this, true ).then( () => result );
+		const promise = runloop.start( this, true ).then( () => result );
+		promise.result = result;
 
-		if ( !!newIndices ) {
-			this.viewmodel.smartUpdate( keypath, array, newIndices );
+		if ( newIndices ) {
+			mdl.shuffle( newIndices );
 		} else {
-			this.viewmodel.mark( keypath );
+			mdl.set( result );
 		}
 
 		runloop.end();
 
 		return promise;
-	};
+	}
+
+	return { path, model };
 }

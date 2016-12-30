@@ -1,20 +1,26 @@
-import normaliseKeypath from 'utils/normaliseKeypath';
-import resolveRef from 'shared/resolveRef';
+import { splitKeypath } from '../../shared/keypaths';
+import resolveReference from '../../view/resolvers/resolveReference';
 
-var options = { capture: true }; // top-level calls should be intercepted
+export default function Ractive$get ( keypath, opts ) {
+	if ( typeof keypath !== 'string' ) return this.viewmodel.get( true, keypath );
 
-export default function Ractive$get ( keypath ) {
-	var value;
+	const keys = splitKeypath( keypath );
+	const key = keys[0];
 
-	keypath = normaliseKeypath( keypath );
-	value = this.viewmodel.get( keypath, options );
+	let model;
 
-	// Create inter-component binding, if necessary
-	if ( value === undefined && this._parent && !this.isolated ) {
-		if ( resolveRef( this, keypath, this.fragment ) ) { // creates binding as side-effect, if appropriate
-			value = this.viewmodel.get( keypath );
+	if ( !this.viewmodel.has( key ) ) {
+		// if this is an inline component, we may need to create
+		// an implicit mapping
+		if ( this.component && !this.isolated ) {
+			model = resolveReference( this.component.parentFragment, key );
+
+			if ( model ) {
+				this.viewmodel.map( key, model );
+			}
 		}
 	}
 
-	return value;
+	model = this.viewmodel.joinAll( keys );
+	return model.get( true, opts );
 }

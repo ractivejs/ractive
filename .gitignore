@@ -11,7 +11,12 @@ tmp-build/
 tmp-rel/
 FIX.js
 build/*
-!build/README.md
 .amd/
 .transpiled/
 .gobble
+ractive.js
+!src/Ractive.js
+.gobble-build
+perf/control/*
+!perf/control/.empty
+npm-debug.log

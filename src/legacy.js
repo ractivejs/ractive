@@ -1,15 +1,13 @@
-var win, doc, exportedShims;
+import { win, doc } from './config/environment';
+import noop from './utils/noop';
+import { defineProperty, defineProperties } from './utils/object';
 
-if ( typeof window === 'undefined' ) {
+var exportedShims;
+
+if ( !win ) {
 	exportedShims = null;
 } else {
-	win = window;
-	doc = win.document;
 	exportedShims = {};
-
-	if ( !doc ) {
-		exportedShims = null;
-	}
 
 	// Shims for older browsers
 
@@ -21,6 +19,32 @@ if ( typeof window === 'undefined' ) {
 		String.prototype.trim = function () {
 			return this.replace(/^\s+/, '').replace(/\s+$/, '');
 		};
+	}
+
+	// Polyfill for Object.create
+	if ( !Object.create ) {
+		Object.create = (function () {
+			var Temp = function () {};
+			return function ( prototype, properties ) {
+				if ( typeof prototype !== 'object' ) {
+					throw new TypeError( 'Prototype must be an object' );
+				}
+				Temp.prototype = prototype;
+				var result = new Temp();
+				defineProperties( result, properties );
+				Temp.prototype = null;
+				return result;
+			};
+		})();
+	}
+
+	// Polyfill Object.defineProperty
+	if ( !Object.defineProperty ) {
+		Object.defineProperty = defineProperty;
+	}
+
+	if ( !Object.freeze ) {
+		Object.freeze = function () { 'LOL'; };
 	}
 
 	// Polyfill for Object.keys
@@ -203,34 +227,6 @@ if ( typeof window === 'undefined' ) {
 		};
 	}
 
-	/*
-	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
-	if (!Array.prototype.find) {
-		Array.prototype.find = function(predicate) {
-			if (this == null) {
-			throw new TypeError('Array.prototype.find called on null or undefined');
-			}
-			if (typeof predicate !== 'function') {
-			throw new TypeError('predicate must be a function');
-			}
-			var list = Object(this);
-			var length = list.length >>> 0;
-			var thisArg = arguments[1];
-			var value;
-
-			for (var i = 0; i < length; i++) {
-				if (i in list) {
-					value = list[i];
-					if (predicate.call(thisArg, value, i, list)) {
-					return value;
-					}
-				}
-			}
-			return undefined;
-		}
-	}
-	*/
-
 	if ( typeof Function.prototype.bind !== 'function' ) {
 		Function.prototype.bind = function ( context ) {
 			var args, fn, Empty, bound, slice = [].slice;
@@ -353,12 +349,10 @@ if ( typeof window === 'undefined' ) {
 		exportedShims.getComputedStyle = (function () {
 			var borderSizes = {};
 
-			function getPixelSize(element, style, property, fontSize) {
-				var
-				sizeWithSuffix = style[property],
-				size = parseFloat(sizeWithSuffix),
-				suffix = sizeWithSuffix.split(/\d/)[0],
-				rootSize;
+			function getPixelSize ( element, style, property, fontSize ) {
+				const sizeWithSuffix = style[property];
+				let size = parseFloat(sizeWithSuffix);
+				let suffix = sizeWithSuffix.split(/\d/)[0];
 
 				if ( isNaN( size ) ) {
 					if ( /^thin|medium|thick$/.test( sizeWithSuffix ) ) {
@@ -372,7 +366,7 @@ if ( typeof window === 'undefined' ) {
 				}
 
 				fontSize = fontSize != null ? fontSize : /%|em/.test(suffix) && element.parentElement ? getPixelSize(element.parentElement, element.parentElement.currentStyle, 'fontSize', null) : 16;
-				rootSize = property == 'fontSize' ? fontSize : /width/i.test(property) ? element.clientWidth : element.clientHeight;
+				const rootSize = property == 'fontSize' ? fontSize : /width/i.test(property) ? element.clientWidth : element.clientHeight;
 
 				return (suffix == 'em') ? size * fontSize : (suffix == 'in') ? size * 96 : (suffix == 'pt') ? size * 96 / 72 : (suffix == '%') ? size / 100 * rootSize : size;
 			}
@@ -382,13 +376,13 @@ if ( typeof window === 'undefined' ) {
 
 				// `thin`, `medium` and `thick` vary between browsers. (Don't ever use them.)
 				if ( !borderSizes[ size ] ) {
-					div = document.createElement( 'div' );
+					div = doc.createElement( 'div' );
 					div.style.display = 'block';
 					div.style.position = 'fixed';
 					div.style.width = div.style.height = '0';
 					div.style.borderRight = size + ' solid black';
 
-					document.getElementsByTagName( 'body' )[0].appendChild( div );
+					doc.getElementsByTagName( 'body' )[0].appendChild( div );
 					bcr = div.getBoundingClientRect();
 
 					borderSizes[ size ] = bcr.right - bcr.left;
@@ -398,18 +392,23 @@ if ( typeof window === 'undefined' ) {
 			}
 
 			function setShortStyleProperty(style, property) {
-				var
-				borderSuffix = property == 'border' ? 'Width' : '',
-				t = property + 'Top' + borderSuffix,
-				r = property + 'Right' + borderSuffix,
-				b = property + 'Bottom' + borderSuffix,
-				l = property + 'Left' + borderSuffix;
+				const borderSuffix = property == 'border' ? 'Width' : '';
+				const t = `${property}Top${borderSuffix}`;
+				const r = `${property}Right${borderSuffix}`;
+				const b = `${property}Bottom${borderSuffix}`;
+				const l = `${property}Left${borderSuffix}`;
 
 				style[property] = (style[t] == style[r] == style[b] == style[l] ? [style[t]]
 				: style[t] == style[b] && style[l] == style[r] ? [style[t], style[r]]
 				: style[l] == style[r] ? [style[t], style[r], style[b]]
 				: [style[t], style[r], style[b], style[l]]).join(' ');
 			}
+
+			var normalProps = {
+				fontWeight: 400,
+				lineHeight: 1.2, // actually varies depending on font-family, but is generally close enough...
+				letterSpacing: 0
+			};
 
 			function CSSStyleDeclaration(element) {
 				var currentStyle, style, fontSize, property;
@@ -420,7 +419,9 @@ if ( typeof window === 'undefined' ) {
 
 				// TODO tidy this up, test it, send PR to jonathantneal!
 				for (property in currentStyle) {
-					if ( /width|height|margin.|padding.|border.+W/.test(property) ) {
+					if ( currentStyle[property] === 'normal' && normalProps.hasOwnProperty( property ) ) {
+						style[ property ] = normalProps[ property ];
+					} else if ( /width|height|margin.|padding.|border.+W/.test(property) ) {
 						if ( currentStyle[ property ] === 'auto' ) {
 							if ( /^width|height/.test( property ) ) {
 								// just use clientWidth/clientHeight...
@@ -453,14 +454,14 @@ if ( typeof window === 'undefined' ) {
 
 			CSSStyleDeclaration.prototype = {
 				constructor: CSSStyleDeclaration,
-				getPropertyPriority: function () {},
+				getPropertyPriority: noop,
 				getPropertyValue: function ( prop ) {
 					return this[prop] || '';
 				},
-				item: function () {},
-				removeProperty: function () {},
-				setProperty: function () {},
-				getPropertyCSSValue: function () {}
+				item: noop,
+				removeProperty: noop,
+				setProperty: noop,
+				getPropertyCSSValue: noop
 			};
 
 			function getComputedStyle(element) {

@@ -1,6 +1,6 @@
-import Parser from 'parse/Parser/_Parser';
-import getStringLiteral from 'parse/Parser/expressions/primary/literal/stringLiteral/_stringLiteral';
-import getKey from 'parse/Parser/expressions/shared/key';
+import Parser from '../parse/Parser';
+import readStringLiteral from '../parse/converters/expressions/primary/literal/readStringLiteral';
+import readKey from '../parse/converters/expressions/shared/readKey';
 
 // simple JSON parser, without the restrictions of JSON parse
 // (i.e. having to double-quote keys).
@@ -8,28 +8,26 @@ import getKey from 'parse/Parser/expressions/shared/key';
 // If passed a hash of values as the second argument, ${placeholders}
 // will be replaced with those values
 
-var JsonParser, specials, specialsPattern, numberPattern, placeholderPattern, placeholderAtStartPattern, onlyWhitespace;
-
-specials = {
-	'true': true,
-	'false': false,
-	'undefined': undefined,
-	'null': null
+const specials = {
+	true: true,
+	false: false,
+	null: null,
+	undefined
 };
 
-specialsPattern = new RegExp( '^(?:' + Object.keys( specials ).join( '|' ) + ')' );
-numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
-placeholderPattern = /\$\{([^\}]+)\}/g;
-placeholderAtStartPattern = /^\$\{([^\}]+)\}/;
-onlyWhitespace = /^\s*$/;
+const specialsPattern = new RegExp( '^(?:' + Object.keys( specials ).join( '|' ) + ')' );
+const numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
+const placeholderPattern = /\$\{([^\}]+)\}/g;
+const placeholderAtStartPattern = /^\$\{([^\}]+)\}/;
+const onlyWhitespace = /^\s*$/;
 
-JsonParser = Parser.extend({
-	init: function ( str, options ) {
+const JsonParser = Parser.extend({
+	init ( str, options ) {
 		this.values = options.values;
 		this.allowWhitespace();
 	},
 
-	postProcess: function ( result ) {
+	postProcess ( result ) {
 		if ( result.length !== 1 || !onlyWhitespace.test( this.leftover ) ) {
 			return null;
 		}
@@ -39,13 +37,9 @@ JsonParser = Parser.extend({
 
 	converters: [
 		function getPlaceholder ( parser ) {
-			var placeholder;
+			if ( !parser.values ) return null;
 
-			if ( !parser.values ) {
-				return null;
-			}
-
-			placeholder = parser.matchPattern( placeholderAtStartPattern );
+			const placeholder = parser.matchPattern( placeholderAtStartPattern );
 
 			if ( placeholder && ( parser.values.hasOwnProperty( placeholder ) ) ) {
 				return { v: parser.values[ placeholder ] };
@@ -53,29 +47,22 @@ JsonParser = Parser.extend({
 		},
 
 		function getSpecial ( parser ) {
-			var special;
-
-			if ( special = parser.matchPattern( specialsPattern ) ) {
-				return { v: specials[ special ] };
-			}
+			const special = parser.matchPattern( specialsPattern );
+			if ( special ) return { v: specials[ special ] };
 		},
 
 		function getNumber ( parser ) {
-			var number;
-
-			if ( number = parser.matchPattern( numberPattern ) ) {
-				return { v: +number };
-			}
+			const number = parser.matchPattern( numberPattern );
+			if ( number ) return { v: +number };
 		},
 
 		function getString ( parser ) {
-			var stringLiteral = getStringLiteral( parser ), values;
+			const stringLiteral = readStringLiteral( parser );
+			const values = parser.values;
 
-			if ( stringLiteral && ( values = parser.values ) ) {
+			if ( stringLiteral && values ) {
 				return {
-					v: stringLiteral.v.replace( placeholderPattern, function ( match, $1 ) {
-						return ( $1 in values ? values[ $1 ] : $1 );
-					})
+					v: stringLiteral.v.replace( placeholderPattern, ( match, $1 ) => ( $1 in values ? values[ $1 ] : $1 ) )
 				};
 			}
 
@@ -83,13 +70,9 @@ JsonParser = Parser.extend({
 		},
 
 		function getObject ( parser ) {
-			var result, pair;
+			if ( !parser.matchString( '{' ) ) return null;
 
-			if ( !parser.matchString( '{' ) ) {
-				return null;
-			}
-
-			result = {};
+			let result = {};
 
 			parser.allowWhitespace();
 
@@ -97,6 +80,7 @@ JsonParser = Parser.extend({
 				return { v: result };
 			}
 
+			let pair;
 			while ( pair = getKeyValuePair( parser ) ) {
 				result[ pair.key ] = pair.value;
 
@@ -115,13 +99,9 @@ JsonParser = Parser.extend({
 		},
 
 		function getArray ( parser ) {
-			var result, valueToken;
+			if ( !parser.matchString( '[' ) ) return null;
 
-			if ( !parser.matchString( '[' ) ) {
-				return null;
-			}
-
-			result = [];
+			let result = [];
 
 			parser.allowWhitespace();
 
@@ -129,6 +109,7 @@ JsonParser = Parser.extend({
 				return { v: result };
 			}
 
+			let valueToken;
 			while ( valueToken = parser.read() ) {
 				result.push( valueToken.v );
 
@@ -151,17 +132,13 @@ JsonParser = Parser.extend({
 });
 
 function getKeyValuePair ( parser ) {
-	var key, valueToken, pair;
-
 	parser.allowWhitespace();
 
-	key = getKey( parser );
+	const key = readKey( parser );
 
-	if ( !key ) {
-		return null;
-	}
+	if ( !key ) return null;
 
-	pair = { key: key };
+	let pair = { key };
 
 	parser.allowWhitespace();
 	if ( !parser.matchString( ':' ) ) {
@@ -169,20 +146,15 @@ function getKeyValuePair ( parser ) {
 	}
 	parser.allowWhitespace();
 
-	valueToken = parser.read();
-	if ( !valueToken ) {
-		return null;
-	}
+	const valueToken = parser.read();
+
+	if ( !valueToken ) return null;
 
 	pair.value = valueToken.v;
-
 	return pair;
 }
 
 export default function ( str, values ) {
-	var parser = new JsonParser( str, {
-		values: values
-	});
-
+	const parser = new JsonParser( str, { values });
 	return parser.result;
 }

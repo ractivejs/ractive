@@ -1,3 +1,5 @@
+import { splitKeypath } from '../shared/keypaths';
+
 var starMaps = {};
 
 // This function takes a keypath such as 'foo.bar.baz', and returns
@@ -9,7 +11,7 @@ var starMaps = {};
 export default function getPotentialWildcardMatches ( keypath ) {
 	var keys, starMap, mapper, i, result, wildcardKeypath;
 
-	keys = keypath.split( '.' );
+	keys = splitKeypath( keypath );
 	if( !( starMap = starMaps[ keys.length ]) ) {
 		starMap = getStarMap( keys.length );
 	}
@@ -38,7 +40,7 @@ export default function getPotentialWildcardMatches ( keypath ) {
 // [ true, true ], [ true, false ], [ false, true ], [ false, false ].
 // It does so by getting all the binary values between 0 and e.g. 11
 function getStarMap ( num ) {
-	var ones = '', max, binary, starMap, mapper, i;
+	var ones = '', max, binary, starMap, mapper, i, j, l, map;
 
 	if ( !starMaps[ num ] ) {
 		starMap = [];
@@ -59,7 +61,12 @@ function getStarMap ( num ) {
 				binary = '0' + binary;
 			}
 
-			starMap[i] = Array.prototype.map.call( binary, mapper );
+			map = [];
+			l = binary.length;
+			for (j = 0; j < l; j++) {
+				map.push( mapper( binary[j] ) );
+			}
+			starMap[i] = map;
 		}
 
 		starMaps[ num ] = starMap;

@@ -1,32 +1,20 @@
-import circular from 'circular';
-import warn from 'utils/warn';
-import interpolators from 'config/defaults/interpolators';
-import config from 'config/config';
+import { fatal } from '../utils/log';
+import { missingPlugin } from '../config/errors';
+import interpolators from '../Ractive/static/interpolators';
+import { findInViewHierarchy } from './registry';
 
-var interpolate = function ( from, to, ractive, type ) {
-	if ( from === to ) {
-		return snap( to );
-	}
+export default function interpolate ( from, to, ractive, type ) {
+	if ( from === to ) return null;
 
 	if ( type ) {
+		let interpol = findInViewHierarchy( 'interpolators', ractive, type );
+		if ( interpol ) return interpol( from, to ) || null;
 
-		let interpol = config.registries.interpolators.find( ractive, type );
-		if ( interpol ) {
-			return interpol( from, to ) || snap( to );
-		}
-
-		warn( 'Missing "' + type + '" interpolator. You may need to download a plugin from [TODO]' );
+		fatal( missingPlugin( type, 'interpolator' ) );
 	}
 
 	return interpolators.number( from, to ) ||
 	       interpolators.array( from, to ) ||
 	       interpolators.object( from, to ) ||
-	       snap( to );
-};
-
-circular.interpolate = interpolate;
-export default interpolate;
-
-function snap ( to ) {
-	return () => to;
+	       null;
 }

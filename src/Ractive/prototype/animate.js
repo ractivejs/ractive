@@ -1,193 +1,71 @@
-import isEqual from 'utils/isEqual';
-import Promise from 'utils/Promise';
-import normaliseKeypath from 'utils/normaliseKeypath';
-import animations from 'shared/animations';
-import Animation from 'Ractive/prototype/animate/Animation';
+import runloop from '../../global/runloop';
+import interpolate from '../../shared/interpolate';
+import Promise from '../../utils/Promise';
+import { defineProperty } from '../../utils/object';
+import { isEqual } from '../../utils/is';
+import { splitKeypath } from '../../shared/keypaths';
+import easing from '../../Ractive/static/easing';
+import noop from '../../utils/noop';
 
-var noop = function () {}, noAnimation = {
-	stop: noop
-};
+let noAnimation = Promise.resolve();
+defineProperty( noAnimation, 'stop', { value: noop });
 
-export default function Ractive$animate ( keypath, to, options ) {
+const linear = easing.linear;
 
-	var promise,
-		fulfilPromise,
-		k,
-		animation,
-		animations,
-		easing,
-		duration,
-		step,
-		complete,
-		makeValueCollector,
-		currentValues,
-		collectValue,
-		dummy,
-		dummyOptions;
-
-	promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
-
-	// animate multiple keypaths
-	if ( typeof keypath === 'object' ) {
-		options = to || {};
-		easing = options.easing;
-		duration = options.duration;
-
-		animations = [];
-
-		// we don't want to pass the `step` and `complete` handlers, as they will
-		// run for each animation! So instead we'll store the handlers and create
-		// our own...
-		step = options.step;
-		complete = options.complete;
-
-		if ( step || complete ) {
-			currentValues = {};
-
-			options.step = null;
-			options.complete = null;
-
-			makeValueCollector = function ( keypath ) {
-				return function ( t, value ) {
-					currentValues[ keypath ] = value;
-				};
-			};
-		}
-
-
-		for ( k in keypath ) {
-			if ( keypath.hasOwnProperty( k ) ) {
-				if ( step || complete ) {
-					collectValue = makeValueCollector( k );
-					options = {
-						easing: easing,
-						duration: duration
-					};
-
-					if ( step ) {
-						options.step = collectValue;
-					}
-				}
-
-				options.complete = complete ? collectValue : noop;
-				animations.push( animate( this, k, keypath[k], options ) );
-			}
-		}
-
-		// Create a dummy animation, to facilitate step/complete
-		// callbacks, and Promise fulfilment
-		dummyOptions = {
-			easing: easing,
-			duration: duration
-		};
-
-		if ( step ) {
-			dummyOptions.step = function ( t ) {
-				step( t, currentValues );
-			};
-		}
-
-		if ( complete ) {
-			promise.then( function ( t ) {
-				complete( t, currentValues );
-			});
-		}
-
-		dummyOptions.complete = fulfilPromise;
-
-		dummy = animate( this, null, null, dummyOptions );
-		animations.push( dummy );
-
-		promise.stop = function () {
-			var animation;
-
-			while ( animation = animations.pop() ) {
-				animation.stop();
-			}
-
-			if ( dummy ) {
-				dummy.stop();
-			}
-		};
-
-		return promise;
-	}
-
-	// animate a single keypath
+function getOptions ( options, instance ) {
 	options = options || {};
 
-	if ( options.complete ) {
-		promise.then( options.complete );
+	let easing;
+	if ( options.easing ) {
+		easing = typeof options.easing === 'function' ?
+			options.easing :
+			instance.easing[ options.easing ];
 	}
 
-	options.complete = fulfilPromise;
-	animation = animate( this, keypath, to, options );
-
-	promise.stop = function () {
-		animation.stop();
+	return {
+		easing: easing || linear,
+		duration: 'duration' in options ? options.duration : 400,
+		complete: options.complete || noop,
+		step: options.step || noop
 	};
-	return promise;
 }
 
-function animate ( root, keypath, to, options ) {
-	var easing, duration, animation, from;
-
-	if ( keypath ) {
-		keypath = normaliseKeypath( keypath );
-	}
-
-	if ( keypath !== null ) {
-		from = root.viewmodel.get( keypath );
-	}
-
-	// cancel any existing animation
-	// TODO what about upstream/downstream keypaths?
-	animations.abort( keypath, root );
+export function animate ( ractive, model, to, options ) {
+	options = getOptions( options, ractive );
+	const from = model.get();
 
 	// don't bother animating values that stay the same
 	if ( isEqual( from, to ) ) {
-		if ( options.complete ) {
-			options.complete( options.to );
-		}
+		options.complete( options.to );
+		return noAnimation; // TODO should this have .then and .catch methods?
+	}
+
+	const interpolator = interpolate( from, to, ractive, options.interpolator );
+
+	// if we can't interpolate the value, set it immediately
+	if ( !interpolator ) {
+		runloop.start();
+		model.set( to );
+		runloop.end();
 
 		return noAnimation;
 	}
 
-	// easing function
-	if ( options.easing ) {
-		if ( typeof options.easing === 'function' ) {
-			easing = options.easing;
-		}
+	return model.animate( from, to, options, interpolator );
+}
 
-		else {
-			easing = root.easing[ options.easing ];
-		}
+export default function Ractive$animate ( keypath, to, options ) {
+	if ( typeof keypath === 'object' ) {
+		const keys = Object.keys( keypath );
 
-		if ( typeof easing !== 'function' ) {
-			easing = null;
-		}
+		throw new Error( `ractive.animate(...) no longer supports objects. Instead of ractive.animate({
+  ${keys.map( key => `'${key}': ${keypath[ key ]}` ).join( '\n  ' )}
+}, {...}), do
+
+${keys.map( key => `ractive.animate('${key}', ${keypath[ key ]}, {...});` ).join( '\n' )}
+` );
 	}
 
-	// duration
-	duration = ( options.duration === undefined ? 400 : options.duration );
 
-	// TODO store keys, use an internal set method
-	animation = new Animation({
-		keypath: keypath,
-		from: from,
-		to: to,
-		root: root,
-		duration: duration,
-		easing: easing,
-		interpolator: options.interpolator,
-
-		// TODO wrap callbacks if necessary, to use instance as context
-		step: options.step,
-		complete: options.complete
-	});
-
-	animations.add( animation );
-	root._animations.push( animation );
-
-	return animation;
+	return animate( this, this.viewmodel.joinAll( splitKeypath( keypath ) ), to, options );
 }

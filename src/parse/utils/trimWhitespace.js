@@ -1,13 +1,12 @@
-var leadingWhitespace = /^[ \t\f\r\n]+/,
-	trailingWhitespace = /[ \t\f\r\n]+$/;
+import { lastItem } from '../../utils/array';
 
-export default function ( items, leading, trailing ) {
+export default function ( items, leadingPattern, trailingPattern ) {
 	var item;
 
-	if ( leading ) {
+	if ( leadingPattern ) {
 		item = items[0];
 		if ( typeof item === 'string' ) {
-			item = item.replace( leadingWhitespace, '' );
+			item = item.replace( leadingPattern, '' );
 
 			if ( !item ) {
 				items.shift();
@@ -17,10 +16,10 @@ export default function ( items, leading, trailing ) {
 		}
 	}
 
-	if ( trailing ) {
-		item = items[ items.length - 1 ];
+	if ( trailingPattern ) {
+		item = lastItem( items );
 		if ( typeof item === 'string' ) {
-			item = item.replace( trailingWhitespace, '' );
+			item = item.replace( trailingPattern, '' );
 
 			if ( !item ) {
 				items.pop();

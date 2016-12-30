@@ -1,78 +1,74 @@
-import warn from 'utils/warn';
-import getTime from 'utils/getTime';
-import animations from 'shared/animations';
+import rAF from '../utils/requestAnimationFrame';
+import getTime from '../utils/getTime';
+import runloop from '../global/runloop';
 
 // TODO what happens if a transition is aborted?
-// TODO use this with Animation to dedupe some code?
 
-var Ticker = function ( options ) {
-	var easing;
+let tickers = [];
+let running = false;
 
-	this.duration = options.duration;
-	this.step = options.step;
-	this.complete = options.complete;
+function tick () {
+	runloop.start();
 
-	// easing
-	if ( typeof options.easing === 'string' ) {
-		easing = options.root.easing[ options.easing ];
+	const now = getTime();
 
-		if ( !easing ) {
-			warn( 'Missing easing function ("' + options.easing + '"). You may need to download a plugin from [TODO]' );
-			easing = linear;
+	let i;
+	let ticker;
+
+	for ( i = 0; i < tickers.length; i += 1 ) {
+		ticker = tickers[i];
+
+		if ( !ticker.tick( now ) ) {
+			// ticker is complete, remove it from the stack, and decrement i so we don't miss one
+			tickers.splice( i--, 1 );
 		}
-	} else if ( typeof options.easing === 'function' ) {
-		easing = options.easing;
-	} else {
-		easing = linear;
 	}
 
-	this.easing = easing;
+	runloop.end();
 
-	this.start = getTime();
-	this.end = this.start + this.duration;
+	if ( tickers.length ) {
+		rAF( tick );
+	} else {
+		running = false;
+	}
+}
 
-	this.running = true;
-	animations.add( this );
-};
+export default class Ticker {
+	constructor ( options ) {
+		this.duration = options.duration;
+		this.step = options.step;
+		this.complete = options.complete;
+		this.easing = options.easing;
 
-Ticker.prototype = {
-	tick: function ( now ) {
-		var elapsed, eased;
+		this.start = getTime();
+		this.end = this.start + this.duration;
 
-		if ( !this.running ) {
-			return false;
-		}
+		this.running = true;
+
+		tickers.push( this );
+		if ( !running ) rAF( tick );
+	}
+
+	tick ( now ) {
+		if ( !this.running ) return false;
 
 		if ( now > this.end ) {
-			if ( this.step ) {
-				this.step( 1 );
-			}
-
-			if ( this.complete ) {
-				this.complete( 1 );
-			}
+			if ( this.step ) this.step( 1 );
+			if ( this.complete ) this.complete( 1 );
 
 			return false;
 		}
 
-		elapsed = now - this.start;
-		eased = this.easing( elapsed / this.duration );
+		const elapsed = now - this.start;
+		const eased = this.easing( elapsed / this.duration );
 
-		if ( this.step ) {
-			this.step( eased );
-		}
+		if ( this.step ) this.step( eased );
 
 		return true;
-	},
+	}
 
-	stop: function () {
-		if ( this.abort ) {
-			this.abort();
-		}
-
+	stop () {
+		if ( this.abort ) this.abort();
 		this.running = false;
 	}
-};
-
-export default Ticker;
-function linear ( t ) { return t; }
+}

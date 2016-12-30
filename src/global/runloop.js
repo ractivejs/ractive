@@ -1,14 +1,14 @@
-import circular from 'circular';
-import Hook from 'Ractive/prototype/shared/hooks/Hook';
-import removeFromArray from 'utils/removeFromArray';
-import Promise from 'utils/Promise';
-import resolveRef from 'shared/resolveRef';
-import TransitionManager from 'global/TransitionManager';
+import Hook from '../events/Hook';
+import { addToArray, removeFromArray } from '../utils/array';
+import Promise from '../utils/Promise';
+import TransitionManager from './TransitionManager';
 
-var batch, runloop, unresolved = [], changeHook = new Hook( 'change' );
+const changeHook = new Hook( 'change' );
 
-runloop = {
-	start: function ( instance, returnPromise ) {
+let batch;
+
+const runloop = {
+	start ( instance, returnPromise ) {
 		var promise, fulfilPromise;
 
 		if ( returnPromise ) {
@@ -18,132 +18,135 @@ runloop = {
 		batch = {
 			previousBatch: batch,
 			transitionManager: new TransitionManager( fulfilPromise, batch && batch.transitionManager ),
-			views: [],
+			fragments: [],
 			tasks: [],
-			viewmodels: []
+			immediateObservers: [],
+			deferredObservers: [],
+			ractives: [],
+			instance: instance
 		};
-
-		if ( instance ) {
-			batch.viewmodels.push( instance.viewmodel );
-		}
 
 		return promise;
 	},
 
-	end: function () {
+	end () {
 		flushChanges();
 
-		batch.transitionManager.init();
+		if ( !batch.previousBatch ) batch.transitionManager.start();
+
 		batch = batch.previousBatch;
 	},
 
-	addViewmodel: function ( viewmodel ) {
-		if ( batch ) {
-			if ( batch.viewmodels.indexOf( viewmodel ) === -1 ) {
-				batch.viewmodels.push( viewmodel );
-			}
-		} else {
-			viewmodel.applyChanges();
-		}
+	addFragment ( fragment ) {
+		addToArray( batch.fragments, fragment );
 	},
 
-	registerTransition: function ( transition ) {
+	// TODO: come up with a better way to handle fragments that trigger their own update
+	addFragmentToRoot ( fragment ) {
+		if ( !batch ) return;
+
+		let b = batch;
+		while ( b.previousBatch ) {
+			b = b.previousBatch;
+		}
+
+		addToArray( b.fragments, fragment );
+	},
+
+	addInstance ( instance ) {
+		if ( batch ) addToArray( batch.ractives, instance );
+	},
+
+	addObserver ( observer, defer ) {
+		addToArray( defer ? batch.deferredObservers : batch.immediateObservers, observer );
+	},
+
+	registerTransition ( transition ) {
 		transition._manager = batch.transitionManager;
 		batch.transitionManager.add( transition );
 	},
 
-	addView: function ( view ) {
-		batch.views.push( view );
-	},
-
-	addUnresolved: function ( thing ) {
-		unresolved.push( thing );
-	},
-
-	removeUnresolved: function ( thing ) {
-		removeFromArray( unresolved, thing );
-	},
-
 	// synchronise node detachments with transition ends
-	detachWhenReady: function ( thing ) {
+	detachWhenReady ( thing ) {
 		batch.transitionManager.detachQueue.push( thing );
 	},
 
-	scheduleTask: function ( task ) {
+	scheduleTask ( task, postRender ) {
+		var _batch;
+
 		if ( !batch ) {
 			task();
 		} else {
-			batch.tasks.push( task );
+			_batch = batch;
+			while ( postRender && _batch.previousBatch ) {
+				// this can't happen until the DOM has been fully updated
+				// otherwise in some situations (with components inside elements)
+				// transitions and decorators will initialise prematurely
+				_batch = _batch.previousBatch;
+			}
+
+			_batch.tasks.push( task );
 		}
 	}
 };
 
-circular.runloop = runloop;
 export default runloop;
 
+function dispatch ( observer ) {
+	observer.dispatch();
+}
+
 function flushChanges () {
-	var i, thing, changeHash;
-
-	for ( i = 0; i < batch.viewmodels.length; i += 1 ) {
-		thing = batch.viewmodels[i];
-		changeHash = thing.applyChanges();
-
-		if ( changeHash ) {
-			changeHook.fire( thing.ractive, changeHash );
-		}
-	}
-	batch.viewmodels.length = 0;
-
-	attemptKeypathResolution();
+	let which = batch.immediateObservers;
+	batch.immediateObservers = [];
+	which.forEach( dispatch );
 
 	// Now that changes have been fully propagated, we can update the DOM
 	// and complete other tasks
-	for ( i = 0; i < batch.views.length; i += 1 ) {
-		batch.views[i].update();
-	}
-	batch.views.length = 0;
+	let i = batch.fragments.length;
+	let fragment;
 
-	for ( i = 0; i < batch.tasks.length; i += 1 ) {
-		batch.tasks[i]();
+	which = batch.fragments;
+	batch.fragments = [];
+	const ractives = batch.ractives;
+	batch.ractives = [];
+
+	while ( i-- ) {
+		fragment = which[i];
+
+		// TODO deprecate this. It's annoying and serves no useful function
+		const ractive = fragment.ractive;
+		if ( Object.keys( ractive.viewmodel.changes ).length ) {
+			changeHook.fire( ractive, ractive.viewmodel.changes );
+		}
+		ractive.viewmodel.changes = {};
+		removeFromArray( ractives, ractive );
+
+		fragment.update();
 	}
-	batch.tasks.length = 0;
+
+	i = ractives.length;
+	while ( i-- ) {
+		const ractive = ractives[i];
+		changeHook.fire( ractive, ractive.viewmodel.changes );
+		ractive.viewmodel.changes = {};
+	}
+
+	batch.transitionManager.ready();
+
+	which = batch.deferredObservers;
+	batch.deferredObservers = [];
+	which.forEach( dispatch );
+
+	const tasks = batch.tasks;
+	batch.tasks = [];
+
+	for ( i = 0; i < tasks.length; i += 1 ) {
+		tasks[i]();
+	}
 
 	// If updating the view caused some model blowback - e.g. a triple
 	// containing <option> elements caused the binding on the <select>
 	// to update - then we start over
-	if ( batch.viewmodels.length ) return flushChanges();
-}
-
-function attemptKeypathResolution () {
-	var i, item, keypath, resolved;
-
-	i = unresolved.length;
-
-	// see if we can resolve any unresolved references
-	while ( i-- ) {
-		item = unresolved[i];
-
-		if ( item.keypath ) {
-			// it resolved some other way. TODO how? two-way binding? Seems
-			// weird that we'd still end up here
-			unresolved.splice( i, 1 );
-		}
-
-		if ( keypath = resolveRef( item.root, item.ref, item.parentFragment ) ) {
-			( resolved || ( resolved = [] ) ).push({
-				item: item,
-				keypath: keypath
-			});
-
-			unresolved.splice( i, 1 );
-		}
-	}
-
-	if ( resolved ) {
-		resolved.forEach( resolve );
-	}
-}
-
-function resolve ( resolved ) {
-	resolved.item.resolve( resolved.keypath );
+	if ( batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length || batch.ractives.length || batch.tasks.length ) return flushChanges();
 }

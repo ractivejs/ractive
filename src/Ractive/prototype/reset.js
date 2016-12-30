@@ -1,40 +1,43 @@
-import Hook from 'Ractive/prototype/shared/hooks/Hook';
-import runloop from 'global/runloop';
-import Fragment from 'virtualdom/Fragment';
-import config from 'config/config';
+import config from '../config/config';
+import Hook from '../../events/Hook';
+import runloop from '../../global/runloop';
+import dataConfigurator from '../config/custom/data';
 
-var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ],
-	resetHook = new Hook( 'reset' );
+const shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ];
 
-export default function Ractive$reset ( data, callback ) {
+const completeHook = new Hook( 'complete' );
+const resetHook = new Hook( 'reset' );
+const renderHook = new Hook( 'render' );
+const unrenderHook = new Hook( 'unrender' );
 
-	var promise, wrapper, changes, i, rerender;
-
-	if ( typeof data === 'function' && !callback ) {
-		callback = data;
-		data = {};
-	} else {
-		data = data || {};
-	}
+export default function Ractive$reset ( data ) {
+	data = data || {};
 
 	if ( typeof data !== 'object' ) {
 		throw new Error( 'The reset method takes either no arguments, or an object containing new data' );
 	}
 
+	// TEMP need to tidy this up
+	data = dataConfigurator.init( this.constructor, this, { data });
+
+	let promise = runloop.start( this, true );
+
 	// If the root object is wrapped, try and use the wrapper's reset value
-	if ( ( wrapper = this.viewmodel.wrapped[ '' ] ) && wrapper.reset ) {
+	const wrapper = this.viewmodel.wrapper;
+	if ( wrapper && wrapper.reset ) {
 		if ( wrapper.reset( data ) === false ) {
 			// reset was rejected, we need to replace the object
-			this.data = data;
+			this.viewmodel.set( data );
 		}
 	} else {
-		this.data = data;
+		this.viewmodel.set( data );
 	}
 
 	// reset config items and track if need to rerender
-	changes = config.reset( this );
+	const changes = config.reset( this );
+	let rerender;
 
-	i = changes.length;
+	let i = changes.length;
 	while ( i-- ) {
 		if ( shouldRerender.indexOf( changes[i] ) > -1 ) {
 			rerender = true;
@@ -43,48 +46,15 @@ export default function Ractive$reset ( data, callback ) {
 	}
 
 	if ( rerender ) {
-		let component;
-
-		this.viewmodel.mark( '' );
-
-		// Is this is a component, we need to set the `shouldDestroy`
-	 	// flag, otherwise it will assume by default that a parent node
-	 	// will be detached, and therefore it doesn't need to bother
-	 	// detaching its own nodes
-	 	if ( component = this.component ) {
-	 		component.shouldDestroy = true;
-	 	}
-
-		this.unrender();
-
-		if ( component ) {
-			component.shouldDestroy = false;
-		}
-
-		// If the template changed, we need to destroy the parallel DOM
-		// TODO if we're here, presumably it did?
-		if ( this.fragment.template !== this.template ) {
-			this.fragment.unbind();
-
-			this.fragment = new Fragment({
-				template: this.template,
-				root: this,
-				owner: this
-			});
-		}
-
-		promise = this.render( this.el, this.anchor );
-	} else {
-		promise = runloop.start( this, true );
-		this.viewmodel.mark( '' );
-		runloop.end();
+		unrenderHook.fire( this );
+		this.fragment.resetTemplate( this.template );
+		renderHook.fire( this );
+		completeHook.fire( this );
 	}
+
+	runloop.end();
 
 	resetHook.fire( this, data );
-
-	if ( callback ) {
-		promise.then( callback );
-	}
 
 	return promise;
 }

@@ -1,2 +1,2 @@
-import makeArrayMethod from 'Ractive/prototype/shared/makeArrayMethod';
-export default makeArrayMethod( 'push' );
+import makeArrayMethod from './shared/makeArrayMethod';
+export default makeArrayMethod( 'push' ).path;

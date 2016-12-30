@@ -1,30 +1,36 @@
-import runloop from 'global/runloop';
-import isArray from 'utils/isArray';
-import normaliseKeypath from 'utils/normaliseKeypath';
+import { isArray } from '../../utils/is';
+import { splitKeypath } from '../../shared/keypaths';
+import runloop from '../../global/runloop';
 
-export default function Ractive$merge ( keypath, array, options ) {
+let comparators = {};
 
-	var currentArray,
-		promise;
+function getComparator ( option ) {
+	if ( !option ) return null; // use existing arrays
+	if ( option === true ) return JSON.stringify;
+	if ( typeof option === 'function' ) return option;
 
-	keypath = normaliseKeypath( keypath );
-	currentArray = this.viewmodel.get( keypath );
-
-	// If either the existing value or the new value isn't an
-	// array, just do a regular set
-	if ( !isArray( currentArray ) || !isArray( array ) ) {
-		return this.set( keypath, array, options && options.complete );
+	if ( typeof option === 'string' ) {
+		return comparators[ option ] || ( comparators[ option ] = thing => thing[ option ] );
 	}
 
-	// Manage transitions
-	promise = runloop.start( this, true );
-	this.viewmodel.merge( keypath, currentArray, array, options );
+	throw new Error( 'If supplied, options.compare must be a string, function, or `true`' ); // TODO link to docs
+}
+
+export function merge ( ractive, model, array, options ) {
+	const promise = runloop.start( ractive, true );
+	const value = model.get();
+
+	if ( !isArray( value ) || !isArray( array ) ) {
+		throw new Error( 'You cannot merge an array with a non-array' );
+	}
+
+	const comparator = getComparator( options && options.compare );
+	model.merge( array, comparator );
+
 	runloop.end();
-
-	// attach callback as fulfilment handler, if specified
-	if ( options && options.complete ) {
-		promise.then( options.complete );
-	}
-
 	return promise;
+}
+
+export default function thisRactive$merge ( keypath, array, options ) {
+	return merge( this, this.viewmodel.joinAll( splitKeypath( keypath ) ), array, options );
 }

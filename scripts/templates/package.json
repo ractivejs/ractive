@@ -1,7 +1,7 @@
 {
   "name": "ractive",
   "description": "Next-generation DOM manipulation",
-  "version": "${VERSION}",
+  "version": "VERSION_PLACEHOLDER",
   "keywords": [ "reactive", "templates", "templating", "ui", "mustache", "handlebars", "dom" ],
   "homepage": "http://ractivejs.org",
   "main": "ractive.js",

@@ -1,67 +1,95 @@
-import add from 'Ractive/prototype/add';
-import animate from 'Ractive/prototype/animate';
-import detach from 'Ractive/prototype/detach';
-import find from 'Ractive/prototype/find';
-import findAll from 'Ractive/prototype/findAll';
-import findAllComponents from 'Ractive/prototype/findAllComponents';
-import findComponent from 'Ractive/prototype/findComponent';
-import fire from 'Ractive/prototype/fire';
-import get from 'Ractive/prototype/get';
-import insert from 'Ractive/prototype/insert';
-import merge from 'Ractive/prototype/merge';
-import observe from 'Ractive/prototype/observe';
-import off from 'Ractive/prototype/off';
-import on from 'Ractive/prototype/on';
-import pop from 'Ractive/prototype/pop';
-import push from 'Ractive/prototype/push';
-import render from 'Ractive/prototype/render';
-import reset from 'Ractive/prototype/reset';
-import resetTemplate from 'Ractive/prototype/resetTemplate';
-import reverse from 'Ractive/prototype/reverse';
-import set from 'Ractive/prototype/set';
-import shift from 'Ractive/prototype/shift';
-import sort from 'Ractive/prototype/sort';
-import splice from 'Ractive/prototype/splice';
-import subtract from 'Ractive/prototype/subtract';
-import teardown from 'Ractive/prototype/teardown';
-import toggle from 'Ractive/prototype/toggle';
-import toHTML from 'Ractive/prototype/toHTML';
-import unrender from 'Ractive/prototype/unrender';
-import unshift from 'Ractive/prototype/unshift';
-import update from 'Ractive/prototype/update';
-import updateModel from 'Ractive/prototype/updateModel';
+import add from './prototype/add';
+import animate from './prototype/animate';
+import detach from './prototype/detach';
+import find from './prototype/find';
+import findAll from './prototype/findAll';
+import findAllComponents from './prototype/findAllComponents';
+import findComponent from './prototype/findComponent';
+import findContainer from './prototype/findContainer';
+import findParent from './prototype/findParent';
+import fire from './prototype/fire';
+import get from './prototype/get';
+import getNodeInfo from './prototype/getNodeInfo';
+import insert from './prototype/insert';
+import link from './prototype/link';
+import merge from './prototype/merge';
+import observe from './prototype/observe';
+import observeList from './prototype/observeList';
+import observeOnce from './prototype/observeOnce';
+import off from './prototype/off';
+import on from './prototype/on';
+import once from './prototype/once';
+import pop from './prototype/pop';
+import push from './prototype/push';
+import render from './prototype/render';
+import reset from './prototype/reset';
+import resetPartial from './prototype/resetPartial';
+import resetTemplate from './prototype/resetTemplate';
+import reverse from './prototype/reverse';
+import set from './prototype/set';
+import shift from './prototype/shift';
+import sort from './prototype/sort';
+import splice from './prototype/splice';
+import subtract from './prototype/subtract';
+import teardown from './prototype/teardown';
+import toggle from './prototype/toggle';
+import toCSS from './prototype/toCSS';
+import toHTML from './prototype/toHTML';
+import toText from './prototype/toText';
+import transition from './prototype/transition';
+import unlink from './prototype/unlink';
+import unrender from './prototype/unrender';
+import unshift from './prototype/unshift';
+import update from './prototype/update';
+import updateModel from './prototype/updateModel';
 
 export default {
-	add: add,
-	animate: animate,
-	detach: detach,
-	find: find,
-	findAll: findAll,
-	findAllComponents: findAllComponents,
-	findComponent: findComponent,
-	fire: fire,
-	get: get,
-	insert: insert,
-	merge: merge,
-	observe: observe,
-	off: off,
-	on: on,
-	pop: pop,
-	push: push,
-	render: render,
-	reset: reset,
-	resetTemplate: resetTemplate,
-	reverse: reverse,
-	set: set,
-	shift: shift,
-	sort: sort,
-	splice: splice,
-	subtract: subtract,
-	teardown: teardown,
-	toggle: toggle,
-	toHTML: toHTML,
-	unrender: unrender,
-	unshift: unshift,
-	update: update,
-	updateModel: updateModel
+	add,
+	animate,
+	detach,
+	find,
+	findAll,
+	findAllComponents,
+	findComponent,
+	findContainer,
+	findParent,
+	fire,
+	get,
+	getNodeInfo,
+	insert,
+	link,
+	merge,
+	observe,
+	observeList,
+	observeOnce,
+	// TODO reinstate these
+	// observeListOnce,
+	off,
+	on,
+	once,
+	pop,
+	push,
+	render,
+	reset,
+	resetPartial,
+	resetTemplate,
+	reverse,
+	set,
+	shift,
+	sort,
+	splice,
+	subtract,
+	teardown,
+	toggle,
+	toCSS,
+	toCss: toCSS,
+	toHTML,
+	toHtml: toHTML,
+	toText,
+	transition,
+	unlink,
+	unrender,
+	unshift,
+	update,
+	updateModel
 };

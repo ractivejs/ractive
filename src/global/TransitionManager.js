@@ -1,68 +1,74 @@
-import removeFromArray from 'utils/removeFromArray';
+import { removeFromArray } from '../utils/array';
 
-var TransitionManager = function ( callback, parent ) {
-	this.callback = callback;
-	this.parent = parent;
+export default class TransitionManager {
+	constructor ( callback, parent ) {
+		this.callback = callback;
+		this.parent = parent;
 
-	this.intros = [];
-	this.outros = [];
+		this.intros = [];
+		this.outros = [];
 
-	this.children = [];
-	this.totalChildren = this.outroChildren = 0;
+		this.children = [];
+		this.totalChildren = this.outroChildren = 0;
 
-	this.detachQueue = [];
-	this.outrosComplete = false;
+		this.detachQueue = [];
+		this.outrosComplete = false;
 
-	if ( parent ) {
-		parent.addChild( this );
+		if ( parent ) {
+			parent.addChild( this );
+		}
 	}
-};
 
-TransitionManager.prototype = {
-	addChild: function ( child ) {
+	add ( transition ) {
+		var list = transition.isIntro ? this.intros : this.outros;
+		list.push( transition );
+	}
+
+	addChild ( child ) {
 		this.children.push( child );
 
 		this.totalChildren += 1;
 		this.outroChildren += 1;
-	},
+	}
 
-	decrementOutros: function () {
+	decrementOutros () {
 		this.outroChildren -= 1;
 		check( this );
-	},
+	}
 
-	decrementTotal: function () {
+	decrementTotal () {
 		this.totalChildren -= 1;
 		check( this );
-	},
+	}
 
-	add: function ( transition ) {
-		var list = transition.isIntro ? this.intros : this.outros;
-		list.push( transition );
-	},
+	detachNodes () {
+		this.detachQueue.forEach( detach );
+		this.children.forEach( _detachNodes );
+	}
 
-	remove: function ( transition ) {
+	ready () {
+		detachImmediate( this );
+	}
+
+	remove ( transition ) {
 		var list = transition.isIntro ? this.intros : this.outros;
 		removeFromArray( list, transition );
 		check( this );
-	},
+	}
 
-	init: function () {
+	start () {
+		this.children.forEach( c => c.start() );
+		this.intros.concat( this.outros ).forEach( t => t.start() );
 		this.ready = true;
 		check( this );
-	},
-
-	detachNodes: function () {
-		this.detachQueue.forEach( detach );
-		this.children.forEach( detachNodes );
 	}
-};
+}
 
 function detach ( element ) {
 	element.detach();
 }
 
-function detachNodes ( tm ) {
+function _detachNodes ( tm ) { // _ to avoid transpiler quirk
 	tm.detachNodes();
 }
 
@@ -73,13 +79,13 @@ function check ( tm ) {
 	// we notify the parent if there is one, otherwise
 	// start detaching nodes
 	if ( !tm.outrosComplete ) {
-		if ( tm.parent ) {
+		tm.outrosComplete = true;
+
+		if ( tm.parent && !tm.parent.outrosComplete ) {
 			tm.parent.decrementOutros( tm );
 		} else {
 			tm.detachNodes();
 		}
-
-		tm.outrosComplete = true;
 	}
 
 	// Once everything is done, we can notify parent transition
@@ -89,10 +95,47 @@ function check ( tm ) {
 			tm.callback();
 		}
 
-		if ( tm.parent ) {
+		if ( tm.parent && !tm.notifiedTotal ) {
+			tm.notifiedTotal = true;
 			tm.parent.decrementTotal();
 		}
 	}
 }
 
-export default TransitionManager;
+// check through the detach queue to see if a node is up or downstream from a
+// transition and if not, go ahead and detach it
+function detachImmediate ( manager ) {
+	const queue = manager.detachQueue;
+	const outros = collectAllOutros( manager );
+
+	let i = queue.length, j = 0, node, trans;
+	start: while ( i-- ) {
+		node = queue[i].node;
+		j = outros.length;
+		while ( j-- ) {
+			trans = outros[j].element.node;
+			// check to see if the node is, contains, or is contained by the transitioning node
+			if ( trans === node || trans.contains( node ) || node.contains( trans ) ) continue start;
+		}
+
+		// no match, we can drop it
+		queue[i].detach();
+		queue.splice( i, 1 );
+	}
+}
+
+function collectAllOutros ( manager, list ) {
+	if ( !list ) {
+		list = [];
+		let parent = manager;
+		while ( parent.parent ) parent = parent.parent;
+		return collectAllOutros( parent, list );
+	} else {
+		let i = manager.children.length;
+		while ( i-- ) {
+			list = collectAllOutros( manager.children[i], list );
+		}
+		list = list.concat( manager.outros );
+		return list;
+	}
+}

@@ -1,2 +1,2 @@
-import makeArrayMethod from 'Ractive/prototype/shared/makeArrayMethod';
-export default makeArrayMethod( 'reverse' );
+import makeArrayMethod from './shared/makeArrayMethod';
+export default makeArrayMethod( 'reverse' ).path;

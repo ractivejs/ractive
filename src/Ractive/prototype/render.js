@@ -1,68 +1,35 @@
-import css from 'global/css';
-import Hook from 'Ractive/prototype/shared/hooks/Hook';
-import HookQueue from 'Ractive/prototype/shared/hooks/HookQueue';
-import getElement from 'utils/getElement';
-import runloop from 'global/runloop';
-
-var renderHook = new HookQueue( 'render' ),
-	completeHook = new Hook( 'complete' );
+import { getElement } from '../../utils/dom';
+import { toArray } from '../../utils/array';
+import render from '../render';
+import { teardown } from '../../shared/methodCallers';
+import { warnIfDebug } from '../../utils/log';
 
 export default function Ractive$render ( target, anchor ) {
-	var promise, instances, transitionsEnabled;
-
-	renderHook.begin( this );
-
-	// if `noIntro` is `true`, temporarily disable transitions
-	transitionsEnabled = this.transitionsEnabled;
-	if ( this.noIntro ) {
-		this.transitionsEnabled = false;
-	}
-
-	promise = runloop.start( this, true );
-
-	if ( this.fragment.rendered ) {
-		throw new Error( 'You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first' );
+	if ( this.torndown ) {
+		warnIfDebug( 'ractive.render() was called on a Ractive instance that was already torn down' );
+		return Promise.resolve();
 	}
 
 	target = getElement( target ) || this.el;
-	anchor = getElement( anchor ) || this.anchor;
 
-	this.el = target;
-	this.anchor = anchor;
+	if ( !this.append && target ) {
+		// Teardown any existing instances *before* trying to set up the new one -
+		// avoids certain weird bugs
+		let others = target.__ractive_instances__;
+		if ( others ) others.forEach( teardown );
 
-	// Add CSS, if applicable
-	if ( this.constructor.css ) {
-		css.add( this.constructor );
-	}
-
-	if ( target ) {
-		if ( !( instances = target.__ractive_instances__ ) ) {
-			target.__ractive_instances__ = [ this ];
-		} else {
-			instances.push( this );
-		}
-
-		if ( anchor ) {
-			target.insertBefore( this.fragment.render(), anchor );
-		} else {
-			target.appendChild( this.fragment.render() );
+		// make sure we are the only occupants
+		if ( !this.enhance ) {
+			target.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
 		}
 	}
 
-	renderHook.end( this );
+	let occupants = this.enhance ? toArray( target.childNodes ) : null;
+	const promise = render( this, target, anchor, occupants );
 
-	runloop.end();
-
-	this.transitionsEnabled = transitionsEnabled;
-
-	// It is now more problematic to know if the complete hook
-	// would fire. Method checking is straight-forward, but would
-	// also require preflighting event subscriptions. Which seems
-	// like more work then just letting the promise happen.
-	// But perhaps I'm wrong about that...
-	promise.then( () => completeHook.fire( this ) );
+	if ( occupants ) {
+		while ( occupants.length ) target.removeChild( occupants.pop() );
+	}
 
 	return promise;
 }
-
-

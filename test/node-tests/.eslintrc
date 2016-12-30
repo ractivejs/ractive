@@ -1,0 +1,13 @@
+{
+	"env": {
+		"node": true
+	},
+	"globals": {
+		"Ractive": true,
+		"fixture": true
+	},
+	"rules": {
+		"no-var": 0,
+		"object-shorthand": 0
+	}
+}

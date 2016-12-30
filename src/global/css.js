@@ -1,92 +1,52 @@
-import circular from 'circular';
-import isClient from 'config/isClient';
-import removeFromArray from 'utils/removeFromArray';
+import { doc } from '../config/environment';
 
-var css,
-	update,
-	runloop,
-	styleElement,
-	head,
-	styleSheet,
-	inDom,
-	prefix = '/* Ractive.js component styles */\n',
-	componentsInPage = {},
-	styles = [];
+const PREFIX = '/* Ractive.js component styles */';
 
-if ( !isClient ) {
-	css = null;
-} else {
-	circular.push( function () {
-		runloop = circular.runloop;
-	});
+// Holds current definitions of styles.
+const styleDefinitions = [];
 
-	styleElement = document.createElement( 'style' );
-	styleElement.type = 'text/css';
+// Flag to tell if we need to update the CSS
+let isDirty = false;
 
-	head = document.getElementsByTagName( 'head' )[0];
+// These only make sense on the browser. See additional setup below.
+let styleElement = null;
+let useCssText = null;
 
-	inDom = false;
-
-	// Internet Exploder won't let you use styleSheet.innerHTML - we have to
-	// use styleSheet.cssText instead
-	styleSheet = styleElement.styleSheet;
-
-	update = function () {
-		var css;
-
-		if ( styles.length ) {
-			css = prefix + styles.join( ' ' );
-
-			if ( styleSheet ) {
-				styleSheet.cssText = css;
-			} else {
-				styleElement.innerHTML = css;
-			}
-
-			if ( !inDom ) {
-				head.appendChild( styleElement );
-				inDom = true;
-			}
-		}
-
-		else if ( inDom ) {
-			head.removeChild( styleElement );
-			inDom = false;
-		}
-	};
-
-	css = {
-		add: function ( Component ) {
-			if ( !Component.css ) {
-				return;
-			}
-
-			if ( !componentsInPage[ Component._guid ] ) {
-				// we create this counter so that we can in/decrement it as
-				// instances are added and removed. When all components are
-				// removed, the style is too
-				componentsInPage[ Component._guid ] = 0;
-				styles.push( Component.css );
-
-				update(); // TODO can we only do this once for each runloop turn, but still ensure CSS is updated before onrender() methods are called?
-			}
-
-			componentsInPage[ Component._guid ] += 1;
-		},
-
-		remove: function ( Component ) {
-			if ( !Component.css ) {
-				return;
-			}
-
-			componentsInPage[ Component._guid ] -= 1;
-
-			if ( !componentsInPage[ Component._guid ] ) {
-				removeFromArray( styles, Component.css );
-				runloop.scheduleTask( update );
-			}
-		}
-	};
+export function addCSS( styleDefinition ) {
+	styleDefinitions.push( styleDefinition );
+	isDirty = true;
 }
 
-export default css;
+export function applyCSS() {
+
+	// Apply only seems to make sense when we're in the DOM. Server-side renders
+	// can call toCSS to get the updated CSS.
+	if ( !doc || !isDirty ) return;
+
+	if ( useCssText ) {
+		styleElement.styleSheet.cssText = getCSS( null );
+	} else {
+		styleElement.innerHTML = getCSS( null );
+	}
+
+	isDirty = false;
+}
+
+export function getCSS( cssIds ) {
+
+	const filteredStyleDefinitions = cssIds ? styleDefinitions.filter( style => ~cssIds.indexOf( style.id ) ) : styleDefinitions;
+
+	return filteredStyleDefinitions.reduce( ( styles, style ) => `${styles}\n\n/* {${style.id}} */\n${style.styles}`, PREFIX );
+
+}
+
+// If we're on the browser, additional setup needed.
+if ( doc && ( !styleElement || !styleElement.parentNode ) ) {
+
+	styleElement = doc.createElement( 'style' );
+	styleElement.type = 'text/css';
+
+	doc.getElementsByTagName( 'head' )[ 0 ].appendChild( styleElement );
+
+	useCssText = !!styleElement.styleSheet;
+}

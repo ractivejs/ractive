@@ -1,17 +1,18 @@
-import isNumeric from 'utils/isNumeric';
+import { isNumeric } from '../../../utils/is';
+import { build, set } from '../../../shared/set';
 
-export default function add ( root, keypath, d ) {
-	var value;
+const errorMessage = 'Cannot add to a non-numeric value';
 
+export default function add ( ractive, keypath, d ) {
 	if ( typeof keypath !== 'string' || !isNumeric( d ) ) {
 		throw new Error( 'Bad arguments' );
 	}
 
-	value = +root.get( keypath ) || 0;
+	const sets = build( ractive, keypath, d );
 
-	if ( !isNumeric( value ) ) {
-		throw new Error( 'Cannot add to a non-numeric value' );
-	}
-
-	return root.set( keypath, value + d );
+	return set( ractive, sets.map( pair => {
+		const [ model, add ] = pair, value = model.get();
+		if ( !isNumeric( add ) || !isNumeric( value ) ) throw new Error( errorMessage );
+		return [ model, value + add ];
+	}));
 }
