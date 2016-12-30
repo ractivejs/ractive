@@ -1,6 +1,6 @@
 /*
-	Ractive.js v0.8.7
-	Wed Dec 07 2016 01:37:29 GMT+0000 (UTC) - commit c734e03d202b67fc68dd27d7ae9a9c40505543f4
+	Ractive.js v0.8.8
+	Fri Dec 30 2016 06:02:32 GMT+0000 (UTC) - commit e9b26a79e22d38d682649d239a3cce52e3cd1093
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -762,11 +762,6 @@
 			.replace( /'/g, '&#39;' );
 	}
 
-	var camel = /(-.)/g;
-	function camelize ( string ) {
-		return string.replace( camel, function ( s ) { return s.charAt( 1 ).toUpperCase(); } );
-	}
-
 	var decamel = /[A-Z]/g;
 	function decamelize ( string ) {
 		return string.replace( decamel, function ( s ) { return ("-" + (s.toLowerCase())); } );
@@ -912,13 +907,13 @@
 	var welcome;
 	if ( hasConsole ) {
 		var welcomeIntro = [
-			("%cRactive.js %c0.8.7 %cin debug mode, %cmore..."),
+			("%cRactive.js %c0.8.8 %cin debug mode, %cmore..."),
 			'color: rgb(114, 157, 52); font-weight: normal;',
 			'color: rgb(85, 85, 85); font-weight: normal;',
 			'color: rgb(85, 85, 85); font-weight: normal;',
 			'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 		];
-		var welcomeMessage = "You're running Ractive 0.8.7 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+		var welcomeMessage = "You're running Ractive 0.8.8 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
 		welcome = function () {
 			if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -3549,8 +3544,13 @@
 			this.parent.clearUnresolveds();
 			this.clearUnresolveds();
 
-			// keep track of array length
-			if ( isArray( value ) ) this.length = value.length;
+			// keep track of array stuff
+			if ( isArray( value ) ) {
+				this.length = value.length;
+				this.isArray = true;
+			} else {
+				this.isArray = false;
+			}
 
 			// notify dependants
 			this.links.forEach( handleChange );
@@ -3559,7 +3559,10 @@
 
 			this.notifyUpstream();
 
-			if ( this.key === 'length' && isArray( this.parent.value ) ) this.parent.length = this.parent.value.length;
+			if ( this.parent.isArray ) {
+				if ( this.key === 'length' ) this.parent.length = value;
+				else this.parent.joinKey( 'length' ).mark();
+			}
 		};
 
 		Model.prototype.createBranch = function createBranch ( key ) {
@@ -3616,8 +3619,13 @@
 					this.adapt();
 				}
 
-				// keep track of array lengths
-				if ( isArray( value ) ) this.length = value.length;
+				// keep track of array stuff
+				if ( isArray( value ) ) {
+					this.length = value.length;
+					this.isArray = true;
+				} else {
+					this.isArray = false;
+				}
 
 				this.children.forEach( mark );
 				this.links.forEach( marked );
@@ -4709,10 +4717,12 @@
 	PatternObserver.prototype.dispatch = function dispatch () {
 		var this$1 = this;
 
-			Object.keys( this.newValues ).forEach( function ( keypath ) {
+			var newValues = this.newValues;
+		this.newValues = {};
+		Object.keys( newValues ).forEach( function ( keypath ) {
 			if ( this$1.newKeys && !this$1.newKeys[ keypath ] ) return;
 
-			var newValue = this$1.newValues[ keypath ];
+			var newValue = newValues[ keypath ];
 			var oldValue = this$1.oldValues[ keypath ];
 
 			if ( this$1.strict && newValue === oldValue ) return;
@@ -4730,11 +4740,11 @@
 		});
 
 		if ( this.partial ) {
-			for ( var k in this.newValues ) {
-				this.oldValues[k] = this.newValues[k];
+			for ( var k in newValues ) {
+				this.oldValues[k] = newValues[k];
 			}
 		} else {
-			this.oldValues = this.newValues;
+			this.oldValues = newValues;
 		}
 
 		this.newKeys = null;
@@ -4793,8 +4803,13 @@
 
 				this.baseModel.findMatches( this.keys ).forEach( function ( model ) {
 					var keypath = model.getKeypath( this$1.ractive );
+					var check = function ( k ) {
+						return ( k.indexOf( keypath ) === 0 && ( k.length === keypath.length || k[ keypath.length ] === '.' ) ) ||
+								   ( keypath.indexOf( k ) === 0 && ( k.length === keypath.length || keypath[ k.length ] === '.' ) );
+					};
+
 					// is this model on a changed keypath?
-					if ( ok.filter( function ( k ) { return keypath.indexOf( k ) === 0 || k.indexOf( keypath ) === 0; } ).length ) {
+					if ( ok.filter( check ).length ) {
 						count++;
 						this$1.newValues[ keypath ] = model.get();
 					}
@@ -6980,18 +6995,20 @@
 		// remove now-missing attrs
 		i = prev.length;
 		while ( i-- ) {
-			if ( !~keys.indexOf( prev[i] ) && prev[i] in style ) style[ prev[i] ] = '';
+			if ( !~keys.indexOf( prev[i] ) && prev[i] in style ) style.setProperty( prev[i], '', '' );
 		}
 
 		this.previous = keys;
 	}
 
 	function updateInlineStyle ( reset ) {
-		if ( !this.styleName ) {
-			this.styleName = camelize( this.name.substr( 6 ) );
+		if ( !this.style ) {
+			this.style = decamelize( this.name.substr( 6 ) );
 		}
 
-		this.node.style[ this.styleName ] = reset ? '' : this.getValue();
+		var value = reset ? '' : safeToStringValue( this.getValue() );
+		var safe = value.replace( '!important', '' );
+		this.node.style.setProperty( this.style, safe, safe.length !== value.length ? 'important' : '' );
 	}
 
 	function updateClassName ( reset ) {
@@ -7322,13 +7339,13 @@
 			}
 
 			// Special case - style and class attributes and directives
-			if ( this.owner === this.element && ( this.name === 'style' || this.name === 'class' || this.styleName || this.inlineClass ) ) {
+			if ( this.owner === this.element && ( this.name === 'style' || this.name === 'class' || this.style || this.inlineClass ) ) {
 				return;
 			}
 
 			if ( !this.rendered && this.owner === this.element && ( !this.name.indexOf( 'style-' ) || !this.name.indexOf( 'class-' ) ) ) {
 				if ( !this.name.indexOf( 'style-' ) ) {
-					this.styleName = camelize( this.name.substr( 6 ) );
+					this.style = decamelize( this.name.substr( 6 ) );
 				} else {
 					this.inlineClass = this.name.substr( 6 );
 				}
@@ -8188,7 +8205,7 @@
 
 		RootModel.prototype.compute = function compute ( key, signature ) {
 			var computation = new Computation( this, signature, key );
-			this.computations[ key ] = computation;
+			this.computations[ escapeKey( key ) ] = computation;
 
 			return computation;
 		};
@@ -8262,19 +8279,19 @@
 
 		RootModel.prototype.has = function has ( key ) {
 			var value = this.value;
+			var unescapedKey = unescapeKey( key );
 
-			key = unescapeKey( key );
-			if ( hasProp$1.call( value, key ) ) return true;
+			if ( hasProp$1.call( value, unescapedKey ) ) return true;
 
 			// mappings/links and computations
-			if ( key in this.computations || this.childByKey[key] && this.childByKey[key]._link ) return true;
+			if ( key in this.computations || this.childByKey[unescapedKey] && this.childByKey[unescapedKey]._link ) return true;
 			// TODO remove this after deprecation is done
 			if ( key in this.expressions ) return true;
 
-			// We climb up the constructor chain to find if one of them contains the key
+			// We climb up the constructor chain to find if one of them contains the unescapedKey
 			var constructor = value.constructor;
 			while ( constructor !== Function && constructor !== Array && constructor !== Object ) {
-				if ( hasProp$1.call( constructor.prototype, key ) ) return true;
+				if ( hasProp$1.call( constructor.prototype, unescapedKey ) ) return true;
 				constructor = constructor.constructor;
 			}
 
@@ -10757,8 +10774,8 @@
 				} else if ( attr.name === 'style' ) {
 					style = ( style || '' ) + ( style ? ' ' : '' ) + safeAttributeString( attr.getString() );
 					if ( style && !endsWithSemi.test( style ) ) style += ';';
-				} else if ( attr.styleName ) {
-					style = ( style || '' ) + ( style ? ' ' : '' ) +  "" + (decamelize( attr.styleName )) + ": " + (safeAttributeString( attr.getString() )) + ";";
+				} else if ( attr.style ) {
+					style = ( style || '' ) + ( style ? ' ' : '' ) +  "" + (attr.style) + ": " + (safeAttributeString( attr.getString() )) + ";";
 				} else if ( attr.inlineClass && attr.getValue() ) {
 					cls = ( cls || '' ) + ( cls ? ' ' : '' ) + attr.inlineClass;
 				}
@@ -14835,7 +14852,7 @@
 		magic:          { value: magicSupported },
 
 		// version
-		VERSION:        { value: '0.8.7' },
+		VERSION:        { value: '0.8.8' },
 
 		// plugins
 		adaptors:       { writable: true, value: {} },
