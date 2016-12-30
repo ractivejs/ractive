@@ -21,6 +21,7 @@ export default function Ractive$on ( eventName, callback ) {
 			const names = k.split( ' ' ).map( trim ).filter( notEmptyString );
 			names.forEach( n => {
 				( this._subs[ n ] || ( this._subs[ n ] = [] ) ).push( caller );
+				if ( n.indexOf( '.' ) ) this._nsSubs++;
 				events.push( [ n, caller ] );
 			});
 		}

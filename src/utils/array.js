@@ -67,15 +67,12 @@ export function removeFromArray ( array, member ) {
 	}
 }
 
-export function combine ( first, ...rest ) {
-	const res = first.slice();
-	rest = rest.concat.apply( [], rest );
-
-	const len = rest.length;
-	for ( let i = 0; i < len; i++ ) {
-		if ( !~res.indexOf( rest[i] ) ) {
-			res.push( rest[i] );
-		}
+export function combine ( ...arrays ) {
+	const res = arrays.concat.apply( [], arrays );
+	let i = res.length;
+	while ( i-- ) {
+		const idx = res.indexOf( res[i] );
+		if ( ~idx && idx < i ) res.splice( i, 1 );
 	}
 
 	return res;

@@ -48,7 +48,7 @@ export default class TransitionManager {
 	}
 
 	ready () {
-		detachImmediate( this );
+		if ( this.detachQueue.length ) detachImmediate( this );
 	}
 
 	remove ( transition ) {
@@ -127,18 +127,25 @@ function detachImmediate ( manager ) {
 	}
 }
 
-function collectAllOutros ( manager, list ) {
+function collectAllOutros ( manager, _list ) {
+	let list = _list;
+
+	// if there's no list, we're starting at the root to build one
 	if ( !list ) {
 		list = [];
 		let parent = manager;
 		while ( parent.parent ) parent = parent.parent;
 		return collectAllOutros( parent, list );
 	} else {
+		// grab all outros from child managers
 		let i = manager.children.length;
 		while ( i-- ) {
 			list = collectAllOutros( manager.children[i], list );
 		}
-		list = list.concat( manager.outros );
+
+		// grab any from this manager if there are any
+		if ( manager.outros.length ) list = list.concat( manager.outros );
+
 		return list;
 	}
 }
