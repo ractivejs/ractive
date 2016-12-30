@@ -57,6 +57,16 @@
 	* You can now access decorator objects from event and node info objects using `obj.decorators.name`, where name is the decorator name as specified in the template e.g. `foo` in `<div as-foo />`.
 
 
+# 0.8.8
+
+* Bug fixes
+	* Whitespace in conditional attributes no longer erroneously create an empty-named attribute that errors at runtime (#2783)
+	* Pattern observers that trigger an update on the same pattern no longer erroneously fire the original observation again (#2800)
+	* Pattern observers no longer erroneously fire on prefixed pattern matches e.g. `foo.bar.1` for `foo.bar.10` (#2805)
+	* Array length is now updated appropriately if the array is extended by setting an index beyond the currently allocated array (#2806)
+	* Computations with dotted keypaths can now be accessed (#2807)
+
+
 # 0.8.7
 
 * Bug fixes
