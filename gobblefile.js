@@ -1,7 +1,7 @@
 /*global require, module, __dirname, process */
 /*eslint no-var:0, object-shorthand:0 */
 var gobble = require( 'gobble' );
-var sander = require( 'sander' );
+var sander = gobble.sander;
 var path = require( 'path' );
 var junk = require( 'junk' );
 var Promise = sander.Promise;
