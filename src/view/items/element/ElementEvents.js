@@ -30,7 +30,7 @@ class DOMEvent {
 	}
 
 	unlisten () {
-		this.node.removeEventListener( this.name, this.handler, false );
+		if ( this.handler ) this.node.removeEventListener( this.name, this.handler, false );
 	}
 }
 
