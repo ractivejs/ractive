@@ -3,7 +3,8 @@ export function fillGaps ( target, ...sources ) {
 	for (let i = 0; i < sources.length; i++){
 		const source = sources[i];
 		for ( const key in source ) {
-			if ( !source.hasOwnProperty(key) || key in target ) continue;
+			// Source can be a prototype-less object.
+			if ( key in target || !Object.prototype.hasOwnProperty.call( source, key ) ) continue;
 			target[ key ] = source[ key ];
 		}
 	}
@@ -14,7 +15,8 @@ export function fillGaps ( target, ...sources ) {
 export function toPairs ( obj = {} ) {
 	const pairs = [];
 	for ( const key in obj ) {
-		if ( !obj.hasOwnProperty( key ) ) continue;
+		// Source can be a prototype-less object.
+		if ( !Object.prototype.hasOwnProperty.call( obj, key ) ) continue;
 		pairs.push( [ key, obj[ key ] ] );
 	}
 	return pairs;
