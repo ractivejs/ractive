@@ -313,7 +313,9 @@ export default class Element extends ContainerItem {
 	}
 
 	unbind () {
+		this.attributes.unbinding = true;
 		this.attributes.forEach( unbind );
+		this.attributes.unbinding = false;
 
 		if ( this.binding ) this.binding.unbind();
 		if ( this.fragment ) this.fragment.unbind();

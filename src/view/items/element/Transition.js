@@ -112,10 +112,11 @@ export default class Transition {
 
 	bind () {
 		const options = this.options;
-		if ( options.template ) {
-			if ( options.template.v === 't0' || options.template.v == 't1' ) this.element.intro = this;
-			if ( options.template.v === 't0' || options.template.v == 't2' ) this.element.outro = this;
-			this.eventName = names[ options.template.v ];
+		const type = options.template && options.template.v;
+		if ( type ) {
+			if ( type === 't0' || type === 't1' ) this.element.intro = this;
+			if ( type === 't0' || type === 't2' ) this.element.outro = this;
+			this.eventName = names[ type ];
 		}
 
 		const ractive = this.owner.ractive;
@@ -288,13 +289,21 @@ export default class Transition {
 
 	toString () { return ''; }
 
+	unbind () {
+		if ( !this.element.attributes.unbinding ) {
+			const type = this.options && this.options.template && this.options.template.v;
+			if ( type === 't0' || type === 't1' ) this.element.intro = null;
+			if ( type === 't0' || type === 't2' ) this.element.outro = null;
+		}
+	}
+
 	unregisterCompleteHandler ( fn ) {
 		removeFromArray( this.onComplete, fn );
 	}
 }
 
 const proto = Transition.prototype;
-proto.destroyed = proto.render = proto.unbind = proto.unrender = proto.update = noop;
+proto.destroyed = proto.render = proto.unrender = proto.update = noop;
 
 function nearestProp ( prop, ractive, rendering ) {
 	let instance = ractive;
