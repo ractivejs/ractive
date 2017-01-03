@@ -117,10 +117,11 @@ export default class Transition {
 
 	bind () {
 		const options = this.options;
-		if ( options.template ) {
-			if ( options.template.v === 't0' || options.template.v == 't1' ) this.element._introTransition = this;
-			if ( options.template.v === 't0' || options.template.v == 't2' ) this.element._outroTransition = this;
-			this.eventName = names[ options.template.v ];
+		const type = options.template && options.template.v;
+		if ( type ) {
+			if ( type === 't0' || type === 't1' ) this.element._introTransition = this;
+			if ( type === 't0' || type === 't2' ) this.element._outroTransition = this;
+			this.eventName = names[ type ];
 		}
 
 		const ractive = this.owner.ractive;
@@ -334,6 +335,11 @@ export default class Transition {
 
 	unbind () {
 		if ( this.resolvers ) this.resolvers.forEach( unbind );
+		if ( !this.element.attributes.unbinding ) {
+			const type = this.options && this.options.template && this.options.template.v;
+			if ( type === 't0' || type === 't1' ) this.element._introTransition = null;
+			if ( type === 't0' || type === 't2' ) this.element._outroTransition = null;
+		}
 	}
 
 	unregisterCompleteHandler ( fn ) {

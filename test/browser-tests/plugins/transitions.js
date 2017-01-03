@@ -792,13 +792,14 @@ export default function() {
 
 			trans.setStyle( 'opacity', start );
 
-			trans.animateStyle( 'opacity', end ).then( trans.complete );
+			trans.animateStyle( 'opacity', end, { duration: 20 } ).then( trans.complete );
 		}
 
 		const r = new Ractive({
 			el: fixture,
-			template: `{{#if foo}}<div class="transitioned" {{#if foo}}go-in-out{{/if}}>content</div>{{/if}}`,
-			transitions: { go }
+			template: `{{#if foo}}<div class="transitioned" {{#if bar}}go-in-out{{/if}}>content</div>{{/if}}`,
+			transitions: { go },
+			data: { bar: true }
 		});
 
 		r.toggle( 'foo' ).then( () => {
@@ -807,7 +808,19 @@ export default function() {
 			r.toggle( 'foo' ).then( () => {
 				t.equal( count, 2 );
 				t.ok( !fixture.querySelector( 'div.transitioned' ) );
-				done();
+				r.toggle( 'foo' ).then( () => {
+					r.toggle( 'bar' );
+					r.toggle( 'foo' ).then( () => {
+						t.equal( count, 3 );
+						r.toggle( 'foo' ).then( () => {
+							r.toggle( 'bar' );
+							r.toggle( 'foo' ).then( () => {
+								t.equal( count, 4 );
+								done();
+							});
+						});
+					});
+				});
 			});
 		});
 	});
