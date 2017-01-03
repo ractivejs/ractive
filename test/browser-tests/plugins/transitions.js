@@ -934,4 +934,41 @@ export default function() {
 
 		r.render( fixture ).then( done );
 	});
+
+	test( `conditional transitions find their parent element (#2815)`, t => {
+		const done = t.async();
+
+		let count = 0;
+		function go ( trans ) {
+			count++;
+			let start, end;
+			if ( trans.isIntro ) {
+				start = 0;
+				end = trans.getStyle( 'opacity' );
+			} else {
+				end = 0;
+				start = trans.getStyle( 'opacity' );
+			}
+
+			trans.setStyle( 'opacity', start );
+
+			trans.animateStyle( 'opacity', end ).then( trans.complete );
+		}
+
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#if foo}}<div class="transitioned" {{#if foo}}go-in-out{{/if}}>content</div>{{/if}}`,
+			transitions: { go }
+		});
+
+		r.toggle( 'foo' ).then( () => {
+			t.equal( count, 1 );
+			t.ok( fixture.querySelector( 'div.transitioned' ) );
+			r.toggle( 'foo' ).then( () => {
+				t.equal( count, 2 );
+				t.ok( !fixture.querySelector( 'div.transitioned' ) );
+				done();
+			});
+		});
+	});
 }
