@@ -85,7 +85,7 @@ export default class Transition {
 			let changedProperties = [];
 
 			// Store the current styles
-			const computedStyle = getComputedStyle( this.owner.node );
+			const computedStyle = getComputedStyle( this.node );
 
 			let i = propertyNames.length;
 			while ( i-- ) {
@@ -100,7 +100,7 @@ export default class Transition {
 
 					// make the computed style explicit, so we can animate where
 					// e.g. height='auto'
-					this.owner.node.style[ prefix( prop ) ] = current;
+					this.node.style[ prefix( prop ) ] = current;
 				}
 			}
 
@@ -205,7 +205,7 @@ export default class Transition {
 	destroyed () {}
 
 	getStyle ( props ) {
-		const computedStyle = getComputedStyle( this.owner.node );
+		const computedStyle = getComputedStyle( this.node );
 
 		if ( typeof props === 'string' ) {
 			let value = computedStyle[ prefix( props ) ];
@@ -270,14 +270,14 @@ export default class Transition {
 
 	setStyle ( style, value ) {
 		if ( typeof style === 'string' ) {
-			this.owner.node.style[ prefix( style ) ] = value;
+			this.node.style[ prefix( style ) ] = value;
 		}
 
 		else {
 			let prop;
 			for ( prop in style ) {
 				if ( style.hasOwnProperty( prop ) ) {
-					this.owner.node.style[ prefix( prop ) ] = style[ prop ];
+					this.node.style[ prefix( prop ) ] = style[ prop ];
 				}
 			}
 		}
