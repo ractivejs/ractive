@@ -1,6 +1,6 @@
 /*
-	Ractive.js v0.8.8
-	Fri Dec 30 2016 06:02:32 GMT+0000 (UTC) - commit e9b26a79e22d38d682649d239a3cce52e3cd1093
+	Ractive.js v0.8.9
+	Wed Jan 04 2017 06:42:26 GMT+0000 (UTC) - commit ede92044770a136fd1179bd766fec4d47063faed
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -428,13 +428,13 @@
 	var welcome;
 	if ( hasConsole ) {
 		var welcomeIntro = [
-			("%cRactive.js %c0.8.8 %cin debug mode, %cmore..."),
+			("%cRactive.js %c0.8.9 %cin debug mode, %cmore..."),
 			'color: rgb(114, 157, 52); font-weight: normal;',
 			'color: rgb(85, 85, 85); font-weight: normal;',
 			'color: rgb(85, 85, 85); font-weight: normal;',
 			'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 		];
-		var welcomeMessage = "You're running Ractive 0.8.8 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+		var welcomeMessage = "You're running Ractive 0.8.9 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
 		welcome = function () {
 			if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -9107,7 +9107,7 @@
 
 		ReferenceExpressionChild.prototype.retrieve = function retrieve () {
 			var parent = this.parent.get();
-			return parent && this.key in parent ? parent[ this.key ] : undefined;
+			return parent && parent[ this.key ];
 		};
 
 		return ReferenceExpressionChild;
@@ -11324,7 +11324,7 @@
 	};
 
 	DOMEvent.prototype.unlisten = function unlisten () {
-		this.node.removeEventListener( this.name, this.handler, false );
+		if ( this.handler ) this.node.removeEventListener( this.name, this.handler, false );
 	};
 
 	var CustomEvent = function CustomEvent ( eventPlugin, owner ) {
@@ -13454,7 +13454,9 @@
 		};
 
 		Element.prototype.unbind = function unbind$1 () {
+			this.attributes.unbinding = true;
 			this.attributes.forEach( unbind );
+			this.attributes.unbinding = false;
 
 			if ( this.binding ) this.binding.unbind();
 			if ( this.fragment ) this.fragment.unbind();
@@ -15512,7 +15514,7 @@
 			var changedProperties = [];
 
 			// Store the current styles
-			var computedStyle = getComputedStyle( this$1.owner.node );
+			var computedStyle = getComputedStyle( this$1.node );
 
 			var i = propertyNames.length;
 			while ( i-- ) {
@@ -15527,7 +15529,7 @@
 
 					// make the computed style explicit, so we can animate where
 					// e.g. height='auto'
-					this$1.owner.node.style[ prefix$1( prop ) ] = current;
+					this$1.node.style[ prefix$1( prop ) ] = current;
 				}
 			}
 
@@ -15546,10 +15548,11 @@
 		var this$1 = this;
 
 			var options = this.options;
-		if ( options.template ) {
-			if ( options.template.v === 't0' || options.template.v == 't1' ) this.element._introTransition = this;
-			if ( options.template.v === 't0' || options.template.v == 't2' ) this.element._outroTransition = this;
-			this.eventName = names[ options.template.v ];
+		var type = options.template && options.template.v;
+		if ( type ) {
+			if ( type === 't0' || type === 't1' ) this.element._introTransition = this;
+			if ( type === 't0' || type === 't2' ) this.element._outroTransition = this;
+			this.eventName = names[ type ];
 		}
 
 		var ractive = this.owner.ractive;
@@ -15634,7 +15637,7 @@
 	Transition.prototype.destroyed = function destroyed () {};
 
 	Transition.prototype.getStyle = function getStyle ( props ) {
-		var computedStyle = getComputedStyle( this.owner.node );
+		var computedStyle = getComputedStyle( this.node );
 
 		if ( typeof props === 'string' ) {
 			var value = computedStyle[ prefix$1( props ) ];
@@ -15699,14 +15702,14 @@
 
 	Transition.prototype.setStyle = function setStyle ( style, value ) {
 		if ( typeof style === 'string' ) {
-			this.owner.node.style[ prefix$1( style ) ] = value;
+			this.node.style[ prefix$1( style ) ] = value;
 		}
 
 		else {
 			var prop;
 			for ( prop in style ) {
 				if ( style.hasOwnProperty( prop ) ) {
-					this.owner.node.style[ prefix$1( prop ) ] = style[ prop ];
+					this.node.style[ prefix$1( prop ) ] = style[ prop ];
 				}
 			}
 		}
@@ -15765,6 +15768,11 @@
 
 	Transition.prototype.unbind = function unbind$1 () {
 		if ( this.resolvers ) this.resolvers.forEach( unbind );
+		if ( !this.element.attributes.unbinding ) {
+			var type = this.options && this.options.template && this.options.template.v;
+			if ( type === 't0' || type === 't1' ) this.element._introTransition = null;
+			if ( type === 't0' || type === 't2' ) this.element._outroTransition = null;
+		}
 	};
 
 	Transition.prototype.unregisterCompleteHandler = function unregisterCompleteHandler ( fn ) {
@@ -17037,7 +17045,7 @@
 		magic:          { value: magicSupported },
 
 		// version
-		VERSION:        { value: '0.8.8' },
+		VERSION:        { value: '0.8.9' },
 
 		// plugins
 		adaptors:       { writable: true, value: {} },
