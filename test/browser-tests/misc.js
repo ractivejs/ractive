@@ -1657,6 +1657,18 @@ export default function() {
 		t.deepEqual( Ractive.splitKeypath( 'foo.bar\\\\\\.baz' ), [ 'foo', 'bar\\.baz' ] );
 	});
 
+	test( `children of references that become non-objects behave correctly (#2817)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#with foo[bar]}}{{.baz.bat}}{{/with}}`,
+			data: { bar: 'bar', foo: { bar: { baz: { bat: 'yep' } } } }
+		});
+
+		t.equal( fixture.innerHTML, 'yep' );
+		r.set( 'foo.bar', true );
+		t.equal( fixture.innerHTML, '' );
+	});
+
 	// Is there a way to artificially create a FileList? Leaving this commented
 	// out until someone smarter than me figures out how
 	// test( '{{#each}} iterates over a FileList (#1220)', t => {

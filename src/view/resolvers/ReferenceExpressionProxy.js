@@ -46,7 +46,7 @@ class ReferenceExpressionChild extends Model {
 
 	retrieve () {
 		const parent = this.parent.get();
-		return parent && this.key in parent ? parent[ this.key ] : undefined;
+		return parent && parent[ this.key ];
 	}
 }
 
