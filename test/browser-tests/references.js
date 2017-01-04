@@ -377,4 +377,16 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '' );
 	});
+
+	test( `children of references that become non-objects behave correctly (#2817)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#with foo[bar]}}{{.baz.bat}}{{/with}}`,
+			data: { bar: 'bar', foo: { bar: { baz: { bat: 'yep' } } } }
+		});
+
+		t.equal( fixture.innerHTML, 'yep' );
+		r.set( 'foo.bar', true );
+		t.equal( fixture.innerHTML, '' );
+	});
 }
