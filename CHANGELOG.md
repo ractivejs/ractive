@@ -1,5 +1,13 @@
 # changelog
 
+# 0.8.9
+
+* Bug fixes
+	* Event handlers that haven't been full rendered will no longer error when being unrendered (#2814)
+	* Conditional transitions will now correctly find their parent node in all circumstances, and outros that are removed after element render but before element unrender will no longer fire (#2815)
+	* Reference expressions that morph into a primitive will no longer cause their children to throw (#2817)
+
+
 # 0.8.8
 
 * Bug fixes
