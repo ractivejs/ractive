@@ -722,6 +722,27 @@ export default function() {
 		}, 400);
 	});
 
+	test( `transition args can change (#2818)`, t => {
+		let count = 0;
+		function go ( trans ) {
+			count++;
+			trans.complete();
+		}
+
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#if foo}}<div go-in-out="someRef" />{{/if}}`,
+			data: { foo: true, someRef: 'yep' },
+			transitions: { go }
+		});
+
+		t.equal( count, 1 );
+		r.set( 'someRef', 'ok' );
+		t.equal( count, 1 );
+		r.toggle( 'foo' );
+		t.equal( count, 2 );
+	});
+
 	test( `intro transitions don't leave styles hanging around`, t => {
 		const done = t.async();
 

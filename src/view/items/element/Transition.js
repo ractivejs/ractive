@@ -231,6 +231,8 @@ export default class Transition {
 		return styles;
 	}
 
+	handleChange () {}
+
 	processParams ( params, defaults ) {
 		if ( typeof params === 'number' ) {
 			params = { duration: params };
