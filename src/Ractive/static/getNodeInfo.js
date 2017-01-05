@@ -8,7 +8,7 @@ export default function( node ) {
 		node = query.call( document, node );
 	}
 
-	if ( !node || !node._ractive ) return {};
+	if ( !node || !node._ractive ) return undefined;
 
 	const storage = node._ractive;
 
