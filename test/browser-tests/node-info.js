@@ -453,4 +453,13 @@ export default function() {
 
 		t.equal( r.getNodeInfo( '#baz' ).resolve(), 'foo.bar' );
 	});
+
+	test( `getting node info for a non-ractive element returns undefined (#2819)`, t => {
+		const r = new Ractive({
+			el: fixture
+		});
+
+		t.ok( r.getNodeInfo( fixture ) === undefined );
+		t.ok( Ractive.getNodeInfo( fixture ) === undefined );
+	});
 }
