@@ -1,45 +1,9 @@
 import { test } from 'qunit';
 import { initModule } from '../test-config';
+import { createIsolatedEnv } from '../helpers/Environment';
 
 export default function() {
 	initModule( 'methods/toCSS.js' );
-
-	function createIsolatedEnv() {
-
-		return new Promise( ( resolve, reject ) => {
-
-			const frame = document.createElement( 'iframe' );
-
-			frame.style.width = '0';
-			frame.style.height = '0';
-
-			// need to use onload in FF; http://stackoverflow.com/questions/9967478/iframe-content-disappears-on-firefox
-			frame.onload = () => {
-				const win = frame.contentWindow || frame;
-				const doc = frame.contentDocument || frame.contentWindow.document;
-				win.Promise = Promise;
-
-				const script = document.createElement( 'script' );
-				doc.body.appendChild( script );
-
-				script.onload = () => {
-					resolve( {
-						Ractive: win.Ractive,
-						env: frame,
-						body: doc.body
-					} );
-				};
-				script.onerror = () => {
-					reject();
-				};
-
-				script.src = '../ractive.js';
-			};
-
-			document.body.appendChild( frame );
-		} );
-
-	}
 
 	function createComponentDefinition( Ractive ) {
 

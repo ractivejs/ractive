@@ -87,11 +87,30 @@ Tested successfully in all modern browsers. If your experience differs [please l
 
 Ractive will require the following APIs:
 
-- ES5
-- requestAnimationFrame
-- Promise
+- `Array.isArray`
+- `Array.prototype.every`
+- `Array.prototype.filter`
+- `Array.prototype.find`
+- `Array.prototype.forEach`
+- `Array.prototype.indexOf`
+- `Array.prototype.map`
+- `Array.prototype.reduce`
+- `Function.prototype.bind`
+- `Node.prototype.contains` (only used in testing)
+- `Object.assign`
+- `Object.create`
+- `Object.defineProperty`
+- `Object.defineProperties`
+- `Object.freeze`
+- `Object.keys`
+- `performance.now`
+- `Promise`
+- `requestAnimationFrame`
+- `String.prototype.trim`
+- `window.addEventListener`
+- `window.getComputedStyle`
 
-Should your target environment lack the mentioned APIs, please shim/polyfill accordingly.
+Should your target environment lack the mentioned APIs, please shim/polyfill accordingly. Ractive ships with a separate, minimal polyfill file containing only the above APIs for older browsers. Simply load it before Ractive.
 
 ## Published versions
 
