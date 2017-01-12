@@ -61,7 +61,7 @@ export default class Select extends Element {
 
 		// If the <select> has a specified value, that should override
 		// these options
-		if ( selectValue !== undefined ) {
+		if ( selectValue !== undefined && selectValue !== null) {
 			let optionWasSelected;
 
 			options.forEach( o => {
