@@ -191,7 +191,8 @@ export default class Element extends ContainerItem {
 		}
 
 		if ( !node ) {
-			node = createElement( this.template.e, this.namespace, this.getAttribute( 'is' ) );
+			const name = this.template.e;
+			node = createElement( this.namespace === html ? name.toLowerCase() : name, this.namespace, this.getAttribute( 'is' ) );
 			this.node = node;
 		}
 
