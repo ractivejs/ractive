@@ -527,4 +527,24 @@ export default function() {
 
 		t.equal( r.findAll( 'option' ).length, 2 );
 	});
+
+	test( `check to see if a multiselect value is an array before looking for options (#2825)`, t => {
+		t.expect( 0 );
+
+		new Ractive({
+			el: fixture,
+			template: `<select multiple value="{{value}}">
+				{{#each values}}
+					<option value="{{.value}}">{{.text}}</option>
+				{{/each}}
+			</select>`,
+			data: {
+				value: null,
+				values: [
+					{ value: 'foo', text: 'a foo' },
+					{ value: 'bar', text: 'a bar' }
+				]
+			}
+		});
+	});
 }
