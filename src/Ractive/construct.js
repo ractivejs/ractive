@@ -55,6 +55,7 @@ export default function construct ( ractive, options ) {
 	const computed = Object.assign( Object.create( ractive.constructor.prototype.computed ), options.computed );
 
 	for ( const key in computed ) {
+		if ( key === '__proto__' ) continue;
 		const signature = getComputationSignature( ractive, key, computed[ key ] );
 		viewmodel.compute( key, signature );
 	}

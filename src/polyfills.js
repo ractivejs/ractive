@@ -311,7 +311,7 @@
 	// Object.keys
 	if (!Object.keys) {
 		const hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString');
-		const dontEnumProps = ['toString', 'toLocaleString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'constructor'];
+		const dontEnumProps = ['__proto__', 'toString', 'toLocaleString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'constructor'];
 		const dontEnumPropsLength = dontEnumProps.length;
 
 		Object.keys = function (obj) {
