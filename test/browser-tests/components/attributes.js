@@ -96,7 +96,7 @@ export default function() {
 			data: { bar: 21 }
 		});
 
-		new Ractive({
+		const r = new Ractive({
 			target: fixture,
 			template: `<cmp class="big" data-foo="{{bar}}" item="{{item}}" color="green" />`,
 			components: { cmp },
@@ -104,5 +104,34 @@ export default function() {
 		});
 
 		t.htmlEqual( fixture.innerHTML, '<div class="big" data-foo="yep" style="color: green;">thing</div>' );
+
+		const inst = r.findComponent( 'cmp' );
+		t.ok( inst.get( 'data-foo' ) === undefined );
+	});
+
+	test( `extra attributes may be mapped if requested and the partial will refer to the mapping`, t => {
+		const cmp = Ractive.extend({
+			attributes: {
+				optional: [ 'item' ],
+				mapAll: true
+			},
+			template: `<div {{> extra-attributes}}>{{item}}</div>`
+		});
+
+		const r = new Ractive({
+			target: fixture,
+			template: `<cmp class="big" item="{{item}}" data-foo="{{foo}}" />`,
+			components: { cmp },
+			data: { foo: 'yep', item: 'thing' }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div class="big" data-foo="yep">thing</div>' );
+
+		const inst = r.findComponent( 'cmp' );
+		t.equal( inst.get( 'class' ), 'big' );
+		t.equal( inst.get( 'data-foo' ), 'yep' );
+
+		inst.set( 'data-foo', 'still yep' );
+		t.equal( r.get( 'foo' ), 'still yep' );
 	});
 }

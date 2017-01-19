@@ -11,7 +11,7 @@ import RootModel from '../model/RootModel';
 import Hook from '../events/Hook';
 import getComputationSignature from './helpers/getComputationSignature';
 import Ractive from '../Ractive';
-import { ATTRIBUTE } from '../config/types';
+import { ATTRIBUTE, INTERPOLATOR } from '../config/types';
 
 const constructHook = new Hook( 'construct' );
 
@@ -173,7 +173,13 @@ function handleAttributes ( ractive ) {
 		while ( i-- ) {
 			const a = attrs[i];
 			if ( a.t === ATTRIBUTE && !~all.indexOf( a.n ) ) {
-				partial.unshift( attrs.splice( i, 1 )[0] );
+				if ( attributes.mapAll ) {
+					// map the attribute if requested and make the extra attribute in the partial refer to the mapping
+					partial.unshift({ t: ATTRIBUTE, n: a.n, f: [{ t: INTERPOLATOR, r: `~/${a.n}` }] });
+				} else {
+					// transfer the attribute to the extra attributes partal
+					partial.unshift( attrs.splice( i, 1 )[0] );
+				}
 			}
 		}
 
