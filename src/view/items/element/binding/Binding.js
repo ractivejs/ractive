@@ -27,17 +27,18 @@ export default class Binding {
 			warnAboutAmbiguity( `'${interpolator.template.r}' reference`, this.ractive );
 		}
 
-		else if ( model.isUnresolved ) {
-			// reference expressions (e.g. foo[bar])
-			model.forceResolution();
-			warnAboutAmbiguity( 'expression', this.ractive );
-		}
-
 		// TODO include index/key/keypath refs as read-only
 		else if ( model.isReadonly ) {
 			const keypath = model.getKeypath().replace( /^@/, '' );
 			warnOnceIfDebug( `Cannot use two-way binding on <${element.name}> element: ${keypath} is read-only. To suppress this warning use <${element.name} twoway='false'...>`, { ractive: this.ractive });
 			return false;
+		}
+
+		else if ( model.isUnresolved ) {
+			// reference expressions (e.g. foo[bar])
+			model.forceResolution();
+			const template = interpolator.template;
+			warnAboutAmbiguity( template.r ? `'${template.r}' reference` : `reference expression starting with '${template.rx.r}'`, this.ractive );
 		}
 
 		this.attribute.isTwoway = true;

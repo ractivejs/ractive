@@ -138,11 +138,11 @@ export default class ReferenceExpressionProxy extends Model {
 			return model;
 		});
 
-		this.isUnresolved = true;
 		this.bubble();
 	}
 
 	bubble () {
+		this.isUnresolved = !!this.resolvers.length;
 		if ( !this.base ) return;
 		if ( !this.dirty ) this.handleChange();
 	}

@@ -1343,6 +1343,22 @@ export default function() {
 		t.equal( input.value, 'also yep' );
 	});
 
+	test( `binding to a valid reference expression doesn't warn about unresolved paths`, t => {
+		t.expect( 1 );
+		onWarn( () => t.ok( false, 'should not warn' ) );
+		const r = new Ractive({
+			target: fixture,
+			data: { foo: {} },
+			template: `<input value="{{randomFoo132123['bar']}}" />`
+		});
+		const input = r.find( 'input' );
+
+		input.value = 'yep';
+		fire( input, 'change' );
+
+		t.equal( r.get( 'randomFoo132123.bar' ), 'yep' );
+	});
+
 	test( `binding a select with mismatched option values shouldn't break section rendering (#2424)`, t => {
 		const cmp = Ractive.extend({ template: `<div>{{yield}}</div>` });
 		const r = new Ractive({
