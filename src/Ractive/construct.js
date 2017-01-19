@@ -154,7 +154,8 @@ function handleAttributes ( ractive ) {
 	const attributes = ractive.constructor.attributes;
 
 	if ( attributes && component ) {
-		const attrs = component.template.m ? component.template.m.slice() : [];
+		const tpl = component.template;
+		const attrs = tpl.m ? tpl.m.slice() : [];
 
 		// grab all of the passed attribute names
 		const props = attrs.filter( a => a.t === ATTRIBUTE ).map( a => a.n );
@@ -183,7 +184,7 @@ function handleAttributes ( ractive ) {
 			}
 		}
 
-		if ( partial.length ) component.template.m = attrs;
+		if ( partial.length ) component.template = { t: tpl.t, e: tpl.e, f: tpl.f, m: attrs, p: tpl.p };
 		ractive._attributePartial = partial;
 	}
 }

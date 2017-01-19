@@ -134,4 +134,19 @@ export default function() {
 		inst.set( 'data-foo', 'still yep' );
 		t.equal( r.get( 'foo' ), 'still yep' );
 	});
+
+	test( `multiple component renders with attributes all start with the initial template`, t => {
+		const cmp = Ractive.extend({
+			attributes: [],
+			template: '<div {{yield extra-attributes}} />'
+		});
+
+		new Ractive({
+			target: fixture,
+			template: '{{#each [1,1,1]}}<cmp class="foo" />{{/each}}',
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div class="foo"></div><div class="foo"></div><div class="foo"></div>' );
+	});
 }
