@@ -1,6 +1,5 @@
 import Binding from './Binding';
 import { isArray } from '../../../../utils/is';
-import { arrayContains, removeFromArray } from '../../../../utils/array';
 import getBindingGroup from './getBindingGroup';
 import handleDomEvent from './handleDomEvent';
 
@@ -9,7 +8,7 @@ const push = [].push;
 function getValue() {
 	const all = this.bindings.filter(b => b.node && b.node.checked).map(b => b.element.getAttribute( 'value' ));
 	const res = [];
-	all.forEach(v => { if ( !arrayContains( res, v ) ) res.push( v ); });
+	all.forEach(v => { if ( !this.bindings[0].arrayContains( res, v ) ) res.push( v ); });
 	return res;
 }
 
@@ -35,7 +34,7 @@ export default class CheckboxNameBinding extends Binding {
 			const existingValue = this.model.get();
 			const bindingValue = this.element.getAttribute( 'value' );
 
-			if ( !arrayContains( existingValue, bindingValue ) ) {
+			if ( !this.arrayContains( existingValue, bindingValue ) ) {
 				push.call( existingValue, bindingValue ); // to avoid triggering runloop with array adaptor
 			}
 		}
@@ -67,10 +66,10 @@ export default class CheckboxNameBinding extends Binding {
 		this.isChecked = this.element.node.checked;
 		this.group.value = this.model.get();
 		const value = this.element.getAttribute( 'value' );
-		if ( this.isChecked && !arrayContains( this.group.value, value ) ) {
+		if ( this.isChecked && !this.arrayContains( this.group.value, value ) ) {
 			this.group.value.push( value );
-		} else if ( !this.isChecked && arrayContains( this.group.value, value ) ) {
-			removeFromArray( this.group.value, value );
+		} else if ( !this.isChecked && this.arrayContains( this.group.value, value ) ) {
+			this.removeFromArray( this.group.value, value );
 		}
 		// make sure super knows there's a change
 		this.lastValue = null;
@@ -86,11 +85,10 @@ export default class CheckboxNameBinding extends Binding {
 		const bindingValue = this.element.getAttribute( 'value' );
 
 		if ( isArray( existingValue ) ) {
-			this.isChecked = arrayContains( existingValue, bindingValue );
+			this.isChecked = this.arrayContains( existingValue, bindingValue );
 		} else {
-			this.isChecked = existingValue == bindingValue;
+			this.isChecked = this.element.compare( existingValue, bindingValue );
 		}
-
 		node.name = '{{' + this.model.getKeypath() + '}}';
 		node.checked = this.isChecked;
 
@@ -122,5 +120,23 @@ export default class CheckboxNameBinding extends Binding {
 
 		node.removeEventListener( 'change', handleDomEvent, false );
 		node.removeEventListener( 'click', handleDomEvent, false );
+	}
+
+	arrayContains ( selectValue, optionValue ) {
+		let i = selectValue.length;
+		while ( i-- ) {
+			if ( this.element.compare( optionValue, selectValue[i] ) ) return true;
+		}
+		return false;
+	}
+
+	removeFromArray ( array, item ) {
+		if (!array) return;
+		let i = array.length;
+		while( i-- ) {
+			if ( this.element.compare( item, array[i] ) ) {
+				array.splice( i, 1 );
+			}
+		}
 	}
 }

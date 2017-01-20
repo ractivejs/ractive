@@ -3,13 +3,6 @@ import { toArray } from '../../../../utils/array';
 import { isArray } from '../../../../utils/is';
 import getSelectedOptions from '../../../../utils/getSelectedOptions';
 
-function valueContains ( selectValue, optionValue ) {
-	let i = selectValue.length;
-	while ( i-- ) {
-		if ( selectValue[i] == optionValue ) return true;
-	}
-}
-
 export default class Select extends Element {
 	constructor ( options ) {
 		super( options );
@@ -68,7 +61,9 @@ export default class Select extends Element {
 
 			options.forEach( o => {
 				const optionValue = o._ractive ? o._ractive.value : o.value;
-				const shouldSelect = isMultiple ? array && valueContains( selectValue, optionValue ) : selectValue == optionValue;
+				const shouldSelect = isMultiple ?
+					array && this.valueContains( selectValue, optionValue ) :
+					this.compare( selectValue, optionValue );
 
 				if ( shouldSelect ) {
 					optionWasSelected = true;
@@ -90,7 +85,24 @@ export default class Select extends Element {
 			this.binding.forceUpdate();
 		}
 	}
-
+	valueContains ( selectValue, optionValue ) {
+		let i = selectValue.length;
+		while ( i-- ) {
+			if ( this.compare( optionValue, selectValue[i] ) ) return true;
+		}
+	}
+	compare (optionValue, selectValue) {
+		const comparator = this.getAttribute( 'value-comparator' );
+		if ( comparator ) {
+			if (typeof comparator === 'function') {
+				return comparator( selectValue, optionValue );
+			}
+			if ( selectValue && optionValue ) {
+				return selectValue[comparator] == optionValue[comparator];
+			}
+		}
+		return selectValue == optionValue;
+	}
 	update () {
 		super.update();
 		this.sync();
