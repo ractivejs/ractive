@@ -23,6 +23,7 @@ import on from './prototype/on';
 import once from './prototype/once';
 import pop from './prototype/pop';
 import push from './prototype/push';
+import readLink from './prototype/readLink';
 import render from './prototype/render';
 import reset from './prototype/reset';
 import resetPartial from './prototype/resetPartial';
@@ -73,6 +74,7 @@ export default {
 	once,
 	pop,
 	push,
+	readLink,
 	render,
 	reset,
 	resetPartial,

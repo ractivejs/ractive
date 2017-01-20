@@ -237,7 +237,7 @@ export default function() {
 
 	test( 'node info link', t => {
 		const r = new Ractive({
-			el:fixture,
+			el: fixture,
 			template: `{{#with foo.bar}}<span />{{/with}}`,
 			data: { foo: { bar: { baz: 'hello' } } }
 		});
@@ -250,7 +250,7 @@ export default function() {
 
 	test( 'node info unlink', t => {
 		const r = new Ractive({
-			el:fixture,
+			el: fixture,
 			template: `{{#with foo.bar}}<span />{{/with}}`,
 			data: { foo: { bar: { baz: 'hello' } } }
 		});
@@ -262,6 +262,18 @@ export default function() {
 		info.unlink( 'str' );
 		info.set( '.baz', 'yep' );
 		t.ok( r.get( 'str' ) !== 'yep' );
+	});
+
+	test( `node info readLink`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#with bip}}<span />{{/with}}`,
+			data: { bip: {} }
+		});
+		r.set( 'foo.bar.baz.bat', true );
+		r.link( 'foo.bar.baz.bat', 'bip.bop' );
+
+		t.equal( r.getNodeInfo( 'span' ).readLink( '.bop' ).keypath, 'foo.bar.baz.bat' );
 	});
 
 	test( 'node info merge', t => {
@@ -547,9 +559,9 @@ export default function() {
 			template: `<div on-foo="wat" />`
 		});
 
-		r.on( 'wat', () => t.ok( true ) );
+		r.on( 'wat', ( ev, arg ) => t.equal( arg, 'bar' ) );
 
-		r.getNodeInfo( 'div' ).raise( 'foo' );
+		r.getNodeInfo( 'div' ).raise( 'foo', {}, 'bar' );
 	});
 
 	test( `context objects can trigger events on parent elements`, t => {
