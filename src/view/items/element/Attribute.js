@@ -8,6 +8,7 @@ import propertyNames from './attribute/propertyNames';
 import { safeAttributeString } from '../../../utils/dom';
 import { booleanAttributes } from '../../../utils/html';
 import hyphenateCamel from '../../../utils/hyphenateCamel';
+import { inAttributes } from './ConditionalAttribute';
 
 function lookupNamespace ( node, prefix ) {
 	const qualified = `xmlns:${prefix}`;
@@ -122,6 +123,8 @@ export default class Attribute extends Item {
 	}
 
 	toString () {
+		if ( inAttributes() ) return '';
+
 		const value = this.getValue();
 
 		// Special case - select and textarea values (should not be stringified)

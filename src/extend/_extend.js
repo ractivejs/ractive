@@ -56,6 +56,24 @@ function extendOne ( Parent, options = {} ) {
 	Child._on = ( Parent._on || [] ).concat( toPairs( options.on ) );
 	Child._observe = ( Parent._observe || [] ).concat( toPairs( options.observe ) );
 
+	// attribute defs are not inherited, but they need to be stored
+	if ( options.attributes ) {
+		let attrs;
+
+		// allow an array of optional props or an object with arrays for optional and required props
+		if ( Array.isArray( options.attributes ) ) {
+			attrs = { optional: options.attributes, required: [] };
+		} else {
+			attrs = options.attributes;
+		}
+
+		// make sure the requisite keys actually store arrays
+		if ( !Array.isArray( attrs.required ) ) attrs.required = [];
+		if ( !Array.isArray( attrs.optional ) ) attrs.optional = [];
+
+		Child.attributes = attrs;
+	}
+
 	dataConfigurator.extend( Parent, proto, options );
 
 	if ( options.computed ) {

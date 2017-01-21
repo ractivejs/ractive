@@ -1,4 +1,4 @@
-import { fatal, welcome } from '../utils/log';
+import { fatal, warnIfDebug, welcome } from '../utils/log';
 import { missingPlugin } from '../config/errors';
 import { magic as magicSupported } from '../config/environment';
 import { ensureArray, combine } from '../utils/array';
@@ -11,6 +11,7 @@ import RootModel from '../model/RootModel';
 import Hook from '../events/Hook';
 import getComputationSignature from './helpers/getComputationSignature';
 import Ractive from '../Ractive';
+import { ATTRIBUTE, INTERPOLATOR } from '../config/types';
 
 const constructHook = new Hook( 'construct' );
 
@@ -31,6 +32,7 @@ export default function construct ( ractive, options ) {
 	if ( Ractive.DEBUG ) welcome();
 
 	initialiseProperties( ractive );
+	handleAttributes( ractive );
 
 	// TODO don't allow `onconstruct` with `new Ractive()`, there's no need for it
 	constructHook.fire( ractive, options );
@@ -40,6 +42,11 @@ export default function construct ( ractive, options ) {
 	while ( i-- ) {
 		const name = registryNames[ i ];
 		ractive[ name ] = Object.assign( Object.create( ractive.constructor[ name ] || null ), options[ name ] );
+	}
+
+	if ( ractive._attributePartial ) {
+		ractive.partials['extra-attributes'] = ractive._attributePartial;
+		delete ractive._attributePartial;
 	}
 
 	// Create a viewmodel
@@ -139,5 +146,45 @@ function initialiseProperties ( ractive ) {
 	if ( !ractive.component ) {
 		ractive.root = ractive;
 		ractive.parent = ractive.container = null; // TODO container still applicable?
+	}
+}
+
+function handleAttributes ( ractive ) {
+	const component = ractive.component;
+	const attributes = ractive.constructor.attributes;
+
+	if ( attributes && component ) {
+		const tpl = component.template;
+		const attrs = tpl.m ? tpl.m.slice() : [];
+
+		// grab all of the passed attribute names
+		const props = attrs.filter( a => a.t === ATTRIBUTE ).map( a => a.n );
+
+		// warn about missing requireds
+		attributes.required.forEach( p => {
+			if ( !~props.indexOf( p ) ) {
+				warnIfDebug( `Component '${component.name}' requires attribute '${p}' to be provided` );
+			}
+		});
+
+		// set up a partial containing non-property attributes
+		const all = attributes.optional.concat( attributes.required );
+		const partial = [];
+		let i = attrs.length;
+		while ( i-- ) {
+			const a = attrs[i];
+			if ( a.t === ATTRIBUTE && !~all.indexOf( a.n ) ) {
+				if ( attributes.mapAll ) {
+					// map the attribute if requested and make the extra attribute in the partial refer to the mapping
+					partial.unshift({ t: ATTRIBUTE, n: a.n, f: [{ t: INTERPOLATOR, r: `~/${a.n}` }] });
+				} else {
+					// transfer the attribute to the extra attributes partal
+					partial.unshift( attrs.splice( i, 1 )[0] );
+				}
+			}
+		}
+
+		if ( partial.length ) component.template = { t: tpl.t, e: tpl.e, f: tpl.f, m: attrs, p: tpl.p };
+		ractive._attributePartial = partial;
 	}
 }
