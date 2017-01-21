@@ -856,6 +856,21 @@ const parseTests = [
        ^----`
 	},
 	{
+		name: 'basic string templates',
+		template: '{{ `hello, ${name}!` }}',
+		parsed: {v:4,t:[{t:2,x:{r:['name'],s:'"hello, "+(_0)+"!"'}}]}
+	},
+	{
+		name: 'string templates with escaped chars',
+		template: '{{ `hello, ${ name }\r \n \t \b \f "\'\\`\\"` }}',
+		parsed: {v:4,t:[{t:2,x:{r:['name'],s:'"hello, "+(_0)+"\\r \\n \\t \\b \\f \\"\'`\\""'}}]}
+	},
+	{
+		name: 'string template with string template expression in interpolation',
+		template: '{{ `hello, ${names[`${name}Guy`]}!` }}',
+		parsed: {v:4,t:[{t:2,x:{r:['name','names'],s:'"hello, "+(_1[(""+(_0)+"Guy")])+"!"'}}]}
+	},
+	{
 		name: 'csp: true',
 		template: '{{x + 1}}<a {{#if x + 2}}data-id={{x + 3}}{{/if}} slide-in="x+4" on-click="proxy" on-focus="method(x + 5)">{{foo.bar[x + 6].baz}}</a>',
 		options: { csp: true },
