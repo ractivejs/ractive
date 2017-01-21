@@ -1,4 +1,4 @@
-import { create, defineProperties, extend as extendObj, toPairs } from '../utils/object';
+import { toPairs } from '../utils/object';
 import config from '../Ractive/config/config';
 import dataConfigurator from '../Ractive/config/custom/data';
 import construct from '../Ractive/construct';
@@ -34,11 +34,11 @@ function extendOne ( Parent, options = {} ) {
 		initialise( this, options || {}, {} );
 	};
 
-	const proto = create( Parent.prototype );
+	const proto = Object.create( Parent.prototype );
 	proto.constructor = Child;
 
 	// Static properties
-	defineProperties( Child, {
+	Object.defineProperties( Child, {
 		// alias prototype as defaults
 		defaults: { value: proto },
 
@@ -59,7 +59,7 @@ function extendOne ( Parent, options = {} ) {
 	dataConfigurator.extend( Parent, proto, options );
 
 	if ( options.computed ) {
-		proto.computed = extendObj( create( Parent.prototype.computed ), options.computed );
+		proto.computed = Object.assign( Object.create( Parent.prototype.computed ), options.computed );
 	}
 
 	Child.prototype = proto;

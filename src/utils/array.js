@@ -1,5 +1,3 @@
-import { isArray } from './is';
-
 export function addToArray ( array, value ) {
 	const index = array.indexOf( value );
 
@@ -21,7 +19,7 @@ export function arrayContains ( array, value ) {
 export function arrayContentsMatch ( a, b ) {
 	let i;
 
-	if ( !isArray( a ) || !isArray( b ) ) {
+	if ( !Array.isArray( a ) || !Array.isArray( b ) ) {
 		return false;
 	}
 
@@ -86,13 +84,6 @@ export function toArray ( arrayLike ) {
 	}
 
 	return array;
-}
-
-export function find ( array, fn ) {
-	const len = array.length;
-	for ( let i = 0; i < len; i++ ) {
-		if ( fn( array[i] ) ) return array[i];
-	}
 }
 
 export function findMap ( array, fn ) {

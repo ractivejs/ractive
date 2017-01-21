@@ -5,7 +5,6 @@ import Fragment from '../../Fragment';
 import findElement from '../shared/findElement';
 import parseJSON from '../../../utils/parseJSON';
 import resolve from '../../resolvers/resolve';
-import { isArray } from '../../../utils/is';
 import runloop from '../../../global/runloop';
 
 export default class Mapping extends Item {
@@ -44,7 +43,7 @@ export default class Mapping extends Item {
 			viewmodel.joinKey( this.name ).set( parsed ? parsed.value : template );
 		}
 
-		else if ( isArray( template ) ) {
+		else if ( Array.isArray( template ) ) {
 			createMapping( this, true );
 		}
 	}

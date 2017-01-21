@@ -6,7 +6,6 @@ import ConditionalAttribute from './element/ConditionalAttribute';
 import construct from '../../Ractive/construct';
 import initialise from '../../Ractive/initialise';
 import render from '../../Ractive/render';
-import { create, extend } from '../../utils/object';
 import { createDocumentFragment } from '../../utils/dom';
 import createItem from './createItem';
 import { removeFromArray } from '../../utils/array';
@@ -35,7 +34,7 @@ export default class Component extends Item {
 			this.addChild = addChild;
 			this.removeChild = removeChild;
 		} else {
-			const instance = create( ComponentConstructor.prototype );
+			const instance = Object.create( ComponentConstructor.prototype );
 
 			this.instance = instance;
 			this.name = options.template.e;
@@ -295,7 +294,7 @@ function renderItem ( anchor, meta ) {
 	}
 
 	meta.partials = meta.instance.partials;
-	meta.instance.partials = extend( {}, meta.partials, anchor._partials );
+	meta.instance.partials = Object.assign( {}, meta.partials, anchor._partials );
 
 	meta.instance.fragment.unbind();
 	meta.instance.fragment.bind( meta.instance.viewmodel );

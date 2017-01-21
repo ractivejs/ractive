@@ -1,4 +1,3 @@
-import getTime from '../utils/getTime';
 import runloop from '../global/runloop';
 
 // TODO what happens if a transition is aborted?
@@ -9,7 +8,7 @@ let running = false;
 function tick () {
 	runloop.start();
 
-	const now = getTime();
+	const now = performance.now();
 
 	let i;
 	let ticker;
@@ -39,7 +38,7 @@ export default class Ticker {
 		this.complete = options.complete;
 		this.easing = options.easing;
 
-		this.start = getTime();
+		this.start = performance.now();
 		this.end = this.start + this.duration;
 
 		this.running = true;

@@ -14,9 +14,30 @@
 	* Events now fire in an initial implicit `this.` namespace. This means that with `this.on( '*.foo', handler )`, `handler` will be called if and component fires a `foo` event or if the `this` instance fires a `foo` event. 
 	* The `noIntro` option now applies to any nested components that are also being rendered, unless they have their own explicit setting.
 	* Legacy builds removed. Only regular and runtime builds are now available.
-		* `Promise` shim required for IE11.
-		* `requestAnimationFrame` polyfill required for IE10.
-		* es5-shim required for non-ES5 browsers.
+	* Library does not contain polyfills anymore for the following APIs:
+		* `Array.isArray`
+		* `Array.prototype.every`
+		* `Array.prototype.filter`
+		* `Array.prototype.find`
+		* `Array.prototype.forEach`
+		* `Array.prototype.indexOf`
+		* `Array.prototype.map`
+		* `Array.prototype.reduce`
+		* `Function.prototype.bind`
+		* `Node.prototype.contains` (only used in testing)
+		* `Object.assign`
+		* `Object.create`
+		* `Object.defineProperty`
+		* `Object.defineProperties`
+		* `Object.freeze`
+		* `Object.keys`
+		* `performance.now`
+		* `Promise`
+		* `requestAnimationFrame`
+		* `String.prototype.trim`
+		* `window.addEventListener`
+		* `window.getComputedStyle`
+	* Ships with a separate, minimal polyfill file containing only the above APIs for older browsers.
 	* `ractive.nodes` no longer contains elements by id. The same functionality can be handled more safely and conveniently with a decorator.
 
 * New features (experimental - feedback welcome!)

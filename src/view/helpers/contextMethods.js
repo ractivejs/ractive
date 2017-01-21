@@ -1,5 +1,4 @@
 import resolveReference from '../resolvers/resolveReference';
-import { defineProperties } from '../../utils/object';
 import { set as sharedSet } from '../../shared/set';
 import { isNumeric, isObject } from '../../utils/is';
 import makeArrayMethod from '../../Ractive/prototype/shared/makeArrayMethod';
@@ -216,7 +215,7 @@ function setBinding ( value ) {
 }
 
 export function addHelpers ( obj, element ) {
-	defineProperties( obj, {
+	Object.defineProperties( obj, {
 		_element: { value: element },
 		ractive: { value: element.parentFragment.ractive },
 		resolve: { value: resolve },

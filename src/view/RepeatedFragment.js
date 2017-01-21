@@ -1,6 +1,6 @@
 import Fragment from './Fragment';
 import { createDocumentFragment } from '../utils/dom';
-import { isArray, isObject } from '../utils/is';
+import { isObject } from '../utils/is';
 import { findMap } from '../utils/array';
 import { toEscapedString, toString, destroyed, shuffled, unbind, unrender, unrenderAndDestroy, update } from '../shared/methodCallers';
 
@@ -38,7 +38,7 @@ export default class RepeatedFragment {
 		const value = context.get();
 
 		// {{#each array}}...
-		if ( this.isArray = isArray( value ) ) {
+		if ( this.isArray = Array.isArray( value ) ) {
 			// we can't use map, because of sparse arrays
 			this.iterations = [];
 			const max = value.length;
@@ -223,7 +223,7 @@ export default class RepeatedFragment {
 		let reset = true;
 		let i;
 
-		if ( this.isArray = isArray( value ) ) {
+		if ( this.isArray = Array.isArray( value ) ) {
 			if ( wasArray ) {
 				reset = false;
 				if ( this.iterations.length > value.length ) {
@@ -263,7 +263,7 @@ export default class RepeatedFragment {
 		this.iterations.forEach( update );
 
 		// add new iterations
-		const newLength = isArray( value ) ?
+		const newLength = Array.isArray( value ) ?
 			value.length :
 			isObject( value ) ?
 				Object.keys( value ).length :
@@ -276,7 +276,7 @@ export default class RepeatedFragment {
 			docFrag = this.rendered ? createDocumentFragment() : null;
 			i = this.iterations.length;
 
-			if ( isArray( value ) ) {
+			if ( Array.isArray( value ) ) {
 				while ( i < value.length ) {
 					fragment = this.createIteration( i, i );
 

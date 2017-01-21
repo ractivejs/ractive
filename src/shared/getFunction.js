@@ -1,7 +1,6 @@
-import { create } from '../utils/object';
 import { createFunction } from '../Ractive/config/runtime-parser';
 
-const functions = create( null );
+const functions = Object.create( null );
 
 export default function getFunction ( str, i ) {
 	if ( functions[ str ] ) return functions[ str ];

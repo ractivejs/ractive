@@ -1,5 +1,3 @@
-import { create, hasOwn } from '../utils/object';
-
 const leadingWhitespace = /^\s+/;
 
 const ParseError = function ( message ) {
@@ -157,10 +155,10 @@ Parser.extend = function ( proto ) {
 		Parser.call( this, str, options );
 	};
 
-	Child.prototype = create( Parent.prototype );
+	Child.prototype = Object.create( Parent.prototype );
 
 	for ( const key in proto ) {
-		if ( hasOwn.call( proto, key ) ) {
+		if ( proto.hasOwnProperty( key ) ) {
 			Child.prototype[ key ] = proto[ key ];
 		}
 	}

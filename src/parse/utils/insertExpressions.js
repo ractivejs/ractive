@@ -1,5 +1,5 @@
 import { fromExpression } from './createFunction';
-import { isArray, isObject } from '../../utils/is';
+import { isObject } from '../../utils/is';
 
 export default function insertExpressions ( obj, expr ) {
 
@@ -12,7 +12,7 @@ export default function insertExpressions ( obj, expr ) {
 }
 
 function isExpression( key, obj ) {
-	return key === 's' && isArray( obj.r );
+	return key === 's' && Array.isArray( obj.r );
 }
 
 function addTo( obj, expr ) {
@@ -21,5 +21,5 @@ function addTo( obj, expr ) {
 }
 
 function hasChildren( ref ) {
-	return isArray( ref ) || isObject( ref );
+	return Array.isArray( ref ) || isObject( ref );
 }

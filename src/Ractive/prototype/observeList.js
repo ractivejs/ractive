@@ -1,5 +1,4 @@
 import { splitKeypath } from '../../shared/keypaths';
-import { isArray } from '../../utils/is';
 
 export default function observeList ( keypath, callback, options ) {
 	if ( typeof keypath !== 'string' ) {
@@ -92,6 +91,6 @@ class ListObserver {
 
 	slice () {
 		const value = this.model.get();
-		return isArray( value ) ? value.slice() : [];
+		return Array.isArray( value ) ? value.slice() : [];
 	}
 }

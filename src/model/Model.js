@@ -2,7 +2,7 @@ import ModelBase, { maybeBind, shuffle } from './ModelBase';
 import LinkModel from './LinkModel'; // eslint-disable-line no-unused-vars
 import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
-import { isArray, isEqual, isNumeric, isObjectLike } from '../utils/is';
+import { isEqual, isNumeric, isObjectLike } from '../utils/is';
 import { handleChange, mark, marked, teardown } from '../shared/methodCallers';
 import Ticker from '../shared/Ticker';
 import getPrefixer from './helpers/getPrefixer';
@@ -21,7 +21,7 @@ export default class Model extends ModelBase {
 
 			if ( parent.value ) {
 				this.value = parent.value[ this.key ];
-				if ( isArray( this.value ) ) this.length = this.value.length;
+				if ( Array.isArray( this.value ) ) this.length = this.value.length;
 				this.adapt();
 			}
 		}
@@ -140,7 +140,7 @@ export default class Model extends ModelBase {
 		this.clearUnresolveds();
 
 		// keep track of array stuff
-		if ( isArray( value ) ) {
+		if ( Array.isArray( value ) ) {
 			this.length = value.length;
 			this.isArray = true;
 		} else {
@@ -216,7 +216,7 @@ export default class Model extends ModelBase {
 			}
 
 			// keep track of array stuff
-			if ( isArray( value ) ) {
+			if ( Array.isArray( value ) ) {
 				this.length = value.length;
 				this.isArray = true;
 			} else {

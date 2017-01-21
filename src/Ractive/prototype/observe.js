@@ -1,5 +1,5 @@
 import runloop from '../../global/runloop';
-import { isArray, isEqual, isObject } from '../../utils/is';
+import { isEqual, isObject } from '../../utils/is';
 import { splitKeypath, escapeKey } from '../../shared/keypaths';
 import { removeFromArray } from '../../utils/array';
 import resolveReference from '../../view/resolvers/resolveReference';
@@ -241,7 +241,7 @@ class PatternObserver {
 	}
 
 	shuffle ( newIndices ) {
-		if ( !isArray( this.baseModel.value ) ) return;
+		if ( !Array.isArray( this.baseModel.value ) ) return;
 
 		const base = this.baseModel.getKeypath( this.ractive );
 		const max = this.baseModel.value.length;
