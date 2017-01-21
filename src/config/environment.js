@@ -1,11 +1,7 @@
-/* global console, navigator */
 /* eslint no-console:"off" */
-
 const win = typeof window !== 'undefined' ? window : null;
 const doc = win ? document : null;
-
 const isClient = !!doc;
-const isJsdom = ( typeof navigator !== 'undefined' && /jsDom/.test( navigator.appName ) );
 const hasConsole = ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' );
 
 let magic;
@@ -22,4 +18,4 @@ const svg = doc ?
 
 const vendors = [ 'o', 'ms', 'moz', 'webkit' ];
 
-export { win, doc, isClient, isJsdom, hasConsole, magic, svg, vendors };
+export { win, doc, isClient, hasConsole, magic, svg, vendors };
