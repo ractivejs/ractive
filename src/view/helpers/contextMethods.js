@@ -127,6 +127,10 @@ function raise ( name, event, ...args ) {
 	}
 }
 
+function readLink ( keypath, options ) {
+	return this.ractive.readLink( this.resolve( keypath ), options );
+}
+
 function reverse ( keypath ) {
 	return modelReverse( findModel( this, keypath ).model, [] );
 }
@@ -230,6 +234,7 @@ export function addHelpers ( obj, element ) {
 		pop: { value: pop },
 		push: { value: push },
 		raise: { value: raise },
+		readLink: { value: readLink },
 		reverse: { value: reverse },
 		set: { value: set },
 		shift: { value: shift },
