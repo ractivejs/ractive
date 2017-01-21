@@ -3,10 +3,10 @@
 const stringMiddlePattern = /^(?=.)[^"'\\]+?(?:(?!.)|(?=["'\\]))/;
 
 // Match one escape sequence, including the backslash.
-const escapeSequencePattern = /^\\(?:['"\\bfnrt]|0(?![0-9])|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|(?=.)[^ux0-9])/;
+export const escapeSequencePattern = /^\\(?:[`'"\\bfnrt]|0(?![0-9])|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|(?=.)[^ux0-9])/;
 
 // Match one ES5 line continuation (backslash + line terminator).
-const lineContinuationPattern = /^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/;
+export const lineContinuationPattern = /^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/;
 
 // Helper for defining getDoubleQuotedString and getSingleQuotedString.
 export default function ( okQuote ) {
