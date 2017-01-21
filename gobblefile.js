@@ -88,6 +88,7 @@ test = (function () {
 		qunit: 'QUnit',
 		simulant: 'simulant'
 	};
+	var external = [ 'qunit', 'simulant' ];
 
 	var browserTests = gobble( 'test/browser-tests' ).moveTo( 'browser-tests' ).transform( function bundleTests ( inputdir, outputdir, options ) {
 		testFiles.sort();
@@ -130,10 +131,8 @@ test = (function () {
 		entry: 'browser-tests/all.js',
 		moduleName: 'tests',
 		dest: 'all.js',
-		globals: {
-			qunit: 'QUnit',
-			simulant: 'simulant'
-		}
+		globals: globals,
+		external: external
 	});
 
 	return gobble([
@@ -154,12 +153,14 @@ test = (function () {
 							entry: inputDir + '/' + file,
 							plugins: [ rollupBuble(bubleOptions) ],
 							globals: globals,
+							external: external,
 							onwarn: noop
 						}).then( function ( bundle ) {
 							return bundle.write({
 								dest: outputDir + '/' + file,
 								format: 'cjs',
 								globals: globals,
+								external: external,
 								moduleName: 'tests'
 							});
 						});
