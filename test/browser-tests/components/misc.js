@@ -1053,6 +1053,20 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<cmp>stuff</cmp>' );
 	});
 
+	test( `overriding a Ractive prototype method in extend issues a warning in debug mode (#2358)`, t => {
+		t.expect( 1 );
+
+		onWarn( msg => t.ok( /overriding.*render.*dangerous/i.test( msg ) ) );
+
+		const cmp = Ractive.extend({
+			foo() {}
+		});
+		cmp.extend({
+			render() {},
+			foo() {}
+		});
+	});
+
 	test( `returning false from a component event doesn't try to cancel something that doesn't exist (#2731)`, t => {
 		t.expect( 1 );
 
