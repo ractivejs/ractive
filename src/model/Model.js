@@ -172,7 +172,7 @@ export default class Model extends ModelBase {
 		if ( shouldCapture ) capture( this );
 		// if capturing, this value needs to be unwrapped because it's for external use
 		if ( opts && opts.virtual ) return this.getVirtual( false );
-		return maybeBind( this, ( shouldCapture || ( opts && opts.unwrap ) ) && this.wrapper ? this.wrapperValue : this.value, !opts || opts.shouldBind !== false );
+		return maybeBind( this, ( ( opts && 'unwrap' in opts ) ? opts.unwrap !== false : shouldCapture ) && this.wrapper ? this.wrapperValue : this.value, !opts || opts.shouldBind !== false );
 	}
 
 	getKeypathModel () {

@@ -612,6 +612,42 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'sup hey' );
 	});
 
+	test( 'adapted values should be unwrapped by default with get, but wrapped when unwrap === false', t => {
+		class Foo {
+			constructor () {
+				this.content = 'sup';
+			}
+
+			bar () { return 'hey'; }
+		}
+
+		const fooAdaptor = {
+			filter ( object ) {
+				return object instanceof Foo;
+			},
+			wrap ( ractive, foo ) {
+				const wrapper = {
+					get () {
+						return foo.content;
+					},
+					teardown () {
+						delete foo._wrapper;
+					}
+				};
+				foo._wrapper = wrapper;
+				return wrapper;
+			}
+		};
+
+		const r = new Ractive({
+			data: { foo: new Foo() },
+			adapt: [ fooAdaptor ]
+		});
+
+		t.ok( r.get( 'foo' ) instanceof Foo );
+		t.ok( r.get( 'foo', { unwrap: false } ) === 'sup' );
+	});
+
 	test( 'adaptors should not cause death during branching caused by two-way binding (#2467)', t => {
 		const r = new Ractive({
 			el: fixture,
