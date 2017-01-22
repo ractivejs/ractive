@@ -1039,6 +1039,20 @@ export default function() {
 		}, 200 );
 	});
 
+	test( `setting a falsey value in a component registry blocks the loading of the component (#1800)`, t => {
+		const cmp = Ractive.extend({
+			template: '<cmp>stuff</cmp>',
+			components: { cmp: false }
+		});
+		new Ractive({
+			target: fixture,
+			template: '<cmp />',
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<cmp>stuff</cmp>' );
+	});
+
 	test( `returning false from a component event doesn't try to cancel something that doesn't exist (#2731)`, t => {
 		t.expect( 1 );
 
