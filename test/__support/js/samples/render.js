@@ -270,7 +270,7 @@ const renderTests = [
 		data: {
 			numbers: [ 1, 2, 3, 4 ],
 			total ( numbers ) {
-				return numbers.reduce( function ( prev, curr ) {
+				return numbers.reduce( ( prev, curr ) => {
 					return prev + curr;
 				}, 0 );
 			}
@@ -1002,12 +1002,6 @@ const renderTests = [
 		result: `<ul><li>items.0.some - a</li><li>items.2.some - c</li></ul>`
 	},
 	{
-		name: '@keypath(...) can be used to refer to a path relative to the current context',
-		template: `<ul>{{#items}}{{#some}}<li>{{@keypath(../)}} - {{path}}</li>{{/}}{{/}}</ul>`,
-		data: { items: [ { some: { path: 'a' } }, { notsome: { path: 'b' } }, { some: { path: 'c' } } ] },
-		result: `<ul><li>items.0 - a</li><li>items.2 - c</li></ul>`
-	},
-	{
 		name: '@keypath ref followed by something with parens reads correctly',
 		template: `<ul>{{#items}}{{#some}}<li>{{@keypath}} - {{path.toLowerCase()}}</li>{{/}}{{/}}</ul>`,
 		data: { items: [ { some: { path: 'a' } }, { notsome: { path: 'b' } }, { some: { path: 'c' } } ] },
@@ -1191,7 +1185,7 @@ const renderTests = [
 			function child () {}
 			child.prototype = new parent();
 
-			let data = new child();
+			const data = new child();
 			data.items = [data];
 
 			return data;
@@ -1398,22 +1392,24 @@ if ( !phantom ) {
 		result: `<svg viewBox='0 0 10 10'><use xlink:href='/vector.svg#check'></use></svg>`
 	});*/
 
-	renderTests.push({
-		name: 'Static mustaches in attributes (#1147)',
-		template: '<img style="width: [[width]]px;">',
-		data: { width: 100 },
-		result: `<img style="width: 100px;${ phantom ? ' ' : '' }">`,
-		new_data: { width: 200 },
-		new_result: `<img style="width: 100px;${ phantom ? ' ' : '' }">`
-	},
-	{
-		name: 'Section in attribute',
-		template: '<div style="{{#red}}color: red;{{/}}">{{#red}}is red{{/red}}</div>',
-		data: { red: true },
-		result: `<div style="color: red;${ phantom ? ' ' : '' }">is red</div>`,
-		new_data: { red: false },
-		new_result: '<div style=""></div>'
-	});
+	renderTests.push(
+		{
+			name: 'Static mustaches in attributes (#1147)',
+			template: '<img style="width: [[width]]px;">',
+			data: { width: 100 },
+			result: `<img style="width: 100px;${ phantom ? ' ' : '' }">`,
+			new_data: { width: 200 },
+			new_result: `<img style="width: 100px;${ phantom ? ' ' : '' }">`
+		},
+		{
+			name: 'Section in attribute',
+			template: '<div style="{{#red}}color: red;{{/}}">{{#red}}is red{{/red}}</div>',
+			data: { red: true },
+			result: `<div style="color: red;${ phantom ? ' ' : '' }">is red</div>`,
+			new_data: { red: false },
+			new_result: '<div style=""></div>'
+		}
+	);
 }
 
 if ( ie ) {
@@ -1422,7 +1418,7 @@ if ( ie ) {
 		name: 'Section with descendant value attributes',
 		template: `{{#todos}}<li><label>{{todo}}</label><input value='{{todo}}'></li>{{/todos}}`,
 		data: {
-			todos: [{todo:"debug Ractive"},{todo:"release Ractive"}]
+			todos: [{todo:'debug Ractive'},{todo:'release Ractive'}]
 		},
 		result: `<li><label>debug Ractive</label><input></li><li><label>release Ractive</label><input></li>`
 	});

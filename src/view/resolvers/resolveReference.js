@@ -2,8 +2,6 @@ import { splitKeypath } from '../../shared/keypaths';
 import SharedModel, { GlobalModel } from '../../model/specials/SharedModel';
 import { warnIfDebug } from '../../utils/log';
 
-const keypathExpr = /^@[^\(]+\(([^\)]+)\)/;
-
 export default function resolveReference ( fragment, ref ) {
 	const initialFragment = fragment;
 	// current context ref
@@ -91,12 +89,6 @@ export default function resolveReference ( fragment, ref ) {
 			// skip over component roots, which provide no context
 			while ( root && context.isRoot && context.ractive.component ) {
 				context = context.ractive.component.parentFragment.findContext();
-			}
-
-			const match = keypathExpr.exec( ref );
-			if ( match && match[1] ) {
-				const model = resolveReference( fragment, match[1] );
-				if ( model ) return model.getKeypathModel( root );
 			}
 
 			return context.getKeypathModel( root );
