@@ -22,7 +22,8 @@ class DOMEvent {
 		node.addEventListener( name, this.handler = function( event ) {
 			directive.fire({
 				node,
-				original: event
+				original: event,
+				name
 			});
 		}, false );
 	}

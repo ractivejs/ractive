@@ -1,4 +1,4 @@
-import { ATTRIBUTE, DECORATOR, BINDING_FLAG, TRANSITION, EVENT } from '../../../config/types';
+import { ATTRIBUTE, DECORATOR, BINDING_FLAG, TRANSITION, EVENT, EVENT_DELEGATE } from '../../../config/types';
 import getLowestIndex from '../utils/getLowestIndex';
 import readMustache from '../readMustache';
 import { decodeCharacterReferences } from '../../../utils/html';
@@ -11,6 +11,7 @@ const eventPattern = /^on-([a-zA-Z\*\.$_]((?:[a-zA-Z\*\.$_0-9\-]|\\-)+))$/;
 const reservedEventNames = /^(?:change|reset|teardown|update|construct|config|init|render|complete|unrender|detach|insert|destruct|attachchild|detachchild)$/;
 const decoratorPattern = /^as-([a-z-A-Z][-a-zA-Z_0-9]*)$/;
 const transitionPattern = /^([a-zA-Z](?:(?!-in-out)[-a-zA-Z_0-9])*)-(in|out|in-out)$/;
+const delegatePattern = /^delegate-([a-zA-Z\*\.$_]((?:[a-zA-Z\*\.$_0-9\-]|\\-)+))$/;
 const directives = {
 	lazy: { t: BINDING_FLAG, v: 'l' },
 	twoway: { t: BINDING_FLAG, v: 't' }
@@ -226,15 +227,15 @@ export function readAttributeOrDirective ( parser ) {
 	}
 
 		// on-click etc
-	else if ( match = eventPattern.exec( attribute.n ) ) {
-
+	else if ( match = eventPattern.exec( attribute.n ) || delegatePattern.exec( attribute.n ) ) {
+		const delegate = attribute.n[0] === 'd';
+		attribute.t = delegate ? EVENT_DELEGATE : EVENT;
 		attribute.n = splitEvent( match[1] );
-		attribute.t = EVENT;
 
 			// check for a proxy event
 		if ( !readProxyEvent( parser, attribute ) ) {
 				// otherwise, it's an expression
-			readArguments( parser, attribute, true );
+			readArguments( parser, attribute, !delegate );
 		} else if ( reservedEventNames.test( attribute.f ) ) {
 			parser.pos -= attribute.f.length;
 			parser.error( 'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, complete, detach, insert, destruct, attachchild, detachchild)' );
@@ -259,7 +260,10 @@ export function readAttributeOrDirective ( parser ) {
 
 function readProxyEvent ( parser, attribute ) {
 	const start = parser.pos;
-	if ( !parser.matchString( '=' ) ) parser.error( `Missing required directive arguments` );
+	if ( !parser.matchString( '=' ) ) {
+		if ( attribute.t === EVENT_DELEGATE ) return;
+		parser.error( `Missing required directive arguments` );
+	}
 
 	const quote = parser.matchString( `'` ) || parser.matchString( `"` );
 	parser.allowWhitespace();

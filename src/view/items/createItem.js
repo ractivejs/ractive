@@ -1,5 +1,5 @@
 import { ALIAS, ANCHOR, COMPONENT, DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from '../../config/types';
-import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from '../../config/types';
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, EVENT_DELEGATE, TRANSITION } from '../../config/types';
 import Alias from './Alias';
 import Attribute from './element/Attribute';
 import BindingFlag from './element/BindingFlag';
@@ -38,6 +38,7 @@ constructors[ ATTRIBUTE ] = Attribute;
 constructors[ BINDING_FLAG ] = BindingFlag;
 constructors[ DECORATOR ] = Decorator;
 constructors[ EVENT ] = EventDirective;
+constructors[ EVENT_DELEGATE ] = EventDirective;
 constructors[ TRANSITION ] = Transition;
 
 const specialElements = {

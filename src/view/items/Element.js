@@ -1,4 +1,4 @@
-import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from '../../config/types';
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, EVENT_DELEGATE, TRANSITION } from '../../config/types';
 import runloop from '../../global/runloop';
 import { ContainerItem } from './shared/Item';
 import Fragment from '../Fragment';
@@ -37,6 +37,7 @@ export default class Element extends ContainerItem {
 
 		this.decorators = [];
 		this.events = [];
+		this.delegates = [];
 
 		// create attributes
 		this.attributeByName = {};
@@ -49,6 +50,7 @@ export default class Element extends ContainerItem {
 				case BINDING_FLAG:
 				case DECORATOR:
 				case EVENT:
+				case EVENT_DELEGATE:
 				case TRANSITION:
 					this.attributes.push( createItem({
 						owner: this,
