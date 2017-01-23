@@ -118,7 +118,6 @@ export default class LinkModel extends ModelBase {
 		this.links.forEach( marked );
 
 		this.deps.forEach( handleChange );
-		this.clearUnresolveds();
 	}
 
 	markedAll () {
@@ -191,9 +190,7 @@ ModelBase.prototype.link = function link ( model, keypath, options ) {
 	this.rebind( lnk, this, false );
 	fireShuffleTasks();
 
-	const unresolved = !this._link;
 	this._link = lnk;
-	if ( unresolved && this.parent ) this.parent.clearUnresolveds();
 	lnk.markedAll();
 	return lnk;
 };

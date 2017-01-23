@@ -3,10 +3,6 @@ import { warnOnceIfDebug } from '../../../../utils/log';
 import findElement from '../../shared/findElement';
 import noop from '../../../../utils/noop';
 
-function warnAboutAmbiguity ( description, ractive ) {
-	warnOnceIfDebug( `The ${description} being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity`, { ractive });
-}
-
 export default class Binding {
 	constructor ( element, name = 'value' ) {
 		this.element = element;
@@ -16,29 +12,12 @@ export default class Binding {
 		const interpolator = this.attribute.interpolator;
 		interpolator.twowayBinding = this;
 
-		let model = interpolator.model;
+		const model = interpolator.model;
 
-		// not bound?
-		if ( !model ) {
-			// try to force resolution
-			interpolator.resolver.forceResolution();
-			model = interpolator.model;
-
-			warnAboutAmbiguity( `'${interpolator.template.r}' reference`, this.ractive );
-		}
-
-		// TODO include index/key/keypath refs as read-only
-		else if ( model.isReadonly ) {
+		if ( model.isReadonly ) {
 			const keypath = model.getKeypath().replace( /^@/, '' );
 			warnOnceIfDebug( `Cannot use two-way binding on <${element.name}> element: ${keypath} is read-only. To suppress this warning use <${element.name} twoway='false'...>`, { ractive: this.ractive });
 			return false;
-		}
-
-		else if ( model.isUnresolved ) {
-			// reference expressions (e.g. foo[bar])
-			model.forceResolution();
-			const template = interpolator.template;
-			warnAboutAmbiguity( template.r ? `'${template.r}' reference` : `reference expression starting with '${template.rx.r}'`, this.ractive );
 		}
 
 		this.attribute.isTwoway = true;

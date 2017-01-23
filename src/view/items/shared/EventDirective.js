@@ -39,7 +39,6 @@ export default class EventDirective {
 		}
 
 		// method calls
-		this.resolvers = null;
 		this.models = null;
 	}
 
