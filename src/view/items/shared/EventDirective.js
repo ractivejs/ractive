@@ -64,15 +64,27 @@ export default class EventDirective {
 	}
 
 	fire ( event, passedArgs = [] ) {
+		// augment event object
+		if ( event && !event.hasOwnProperty( 'proxy' ) ) {
+			addHelpers( event, this.owner );
+		}
+
 		if ( this.delegate ) {
 			if ( event.original ) {
 				const end = this.element.node;
 				let node = event.original.target;
+				const name = event.name;
 				// starting with the event target, walk up to the delegate's node looking for delegated listeners
 				while ( node !== end ) {
 					const el = node._ractive && node._ractive.proxy;
+					if ( !el ) continue;
 					let stop = false;
+
 					event.node = el.node;
+					event.proxy = el;
+					// if the event gets proxied, the proxy name will overwrite the original name
+					event.name = name;
+
 					el.delegates.forEach( d => {
 						if ( ~d.template.n.indexOf( event.name ) ) {
 							if ( d.fire( event, passedArgs ) === false ) {
@@ -86,11 +98,6 @@ export default class EventDirective {
 				}
 			}
 		} else {
-			// augment event object
-			if ( event && !event.hasOwnProperty( '_element' ) ) {
-				addHelpers( event, this.owner );
-			}
-
 			if ( this.fn ) {
 				const values = [];
 
@@ -165,7 +172,7 @@ export default class EventDirective {
 				if ( passedArgs.length ) args = args.concat( passedArgs );
 				if ( event ) event.name = this.action;
 
-				fireEvent( this.ractive, this.action, {
+				return fireEvent( this.ractive, this.action, {
 					event,
 					args
 				});

@@ -39,6 +39,18 @@ export default function() {
 		fire( other, 'click' );
 	});
 
+	test( `delegated method event`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `<div delegate-click>{{#with foo}}<div delegate-click="event.set('.bar', 42)" />{{/with}}</div>`,
+			data: { foo: {} }
+		});
+
+		const div = r.findAll( 'div' )[1];
+		simulant.fire( div, 'click' );
+		t.equal( r.get( 'foo.bar' ), 42 );
+	});
+
 	test( `library delegated event cancellation`, t => {
 		t.expect( 1 );
 
@@ -69,5 +81,36 @@ export default function() {
 
 		const yep = r.findAll( 'div' )[1];
 		simulant.fire( yep, 'mouseenter' );
+	});
+
+	test( `delegated event context is correct`, t => {
+		t.expect( 2 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: `<div delegate-click>{{#with foo}}<div delegate-click="outer">{{#with bar}}<div delegate-click="inner" />{{/with}}</div>{{/with}}</div>`,
+			data: { foo: { bar: {} } },
+			on: {
+				outer(ev) { t.equal( ev.resolve(), 'foo' ); },
+				inner(ev) { t.equal( ev.resolve(), 'foo.bar' ); }
+			}
+		});
+
+		const inner = r.findAll( 'div' )[2];
+		fire( inner, 'click' );
+	});
+
+	test( `delegated events can also be raised`, t => {
+		t.expect( 1 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: '<div delegate-foo="yep" />',
+			on: {
+				yep() { t.ok( true, 'event should fire' ); }
+			}
+		});
+
+		r.getNodeInfo( 'div' ).raise( 'foo', {} );
 	});
 }
