@@ -56,7 +56,7 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 			}
 		}
 
-		fireEventAs( ractive.parent, eventNames, event, args );
+		bubble = fireEventAs( ractive.parent, eventNames, event, args );
 	}
 
 	return bubble;

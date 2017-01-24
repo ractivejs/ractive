@@ -218,6 +218,24 @@ export default function() {
 		t.ok( true );
 	});
 
+	test( 'cancelling an event from a bubbled handler also cancels the root event (#2844)', t => {
+		t.expect( 0 );
+
+		const cmp = Ractive.extend({
+			template: `<button on-click="@this.fire('ev')">click</button>`
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: `<div on-click="nope"><cmp /></div>`,
+			components: { cmp }
+		});
+
+		r.on( '*.ev', () => false );
+		r.on( 'nope', () => t.ok( false, 'the event kept going' ) );
+
+		fire( r.find( 'button' ), 'click' );
+	});
+
 	test( 'firing an event from an event directive cancels bubble if the sub-event also cancels', t => {
 		t.expect( 0 );
 
