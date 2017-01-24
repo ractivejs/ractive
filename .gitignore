@@ -10,16 +10,12 @@ sandbox/*
 !sandbox/_sandbox.css
 !sandbox/sample/
 
-# Temporary directories
-tmp/
-
-# Build directory
-build/
-
 # Gobble directories
 .gobble
 .gobble-build
 .gobble-watch
+.build
+.publish
 
 # Performance tests
 perf/control/*
