@@ -1,6 +1,6 @@
 /*
-	Ractive.js v0.8.9
-	Wed Jan 04 2017 06:42:26 GMT+0000 (UTC) - commit ede92044770a136fd1179bd766fec4d47063faed
+	Ractive.js v0.8.10
+	Wed Jan 25 2017 20:20:21 GMT+0000 (UTC) - commit b27c84593338c4fe29df2729d1561ed6e5f6b33c
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -428,13 +428,13 @@
 	var welcome;
 	if ( hasConsole ) {
 		var welcomeIntro = [
-			("%cRactive.js %c0.8.9 %cin debug mode, %cmore..."),
+			("%cRactive.js %c0.8.10 %cin debug mode, %cmore..."),
 			'color: rgb(114, 157, 52); font-weight: normal;',
 			'color: rgb(85, 85, 85); font-weight: normal;',
 			'color: rgb(85, 85, 85); font-weight: normal;',
 			'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 		];
-		var welcomeMessage = "You're running Ractive 0.8.9 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+		var welcomeMessage = "You're running Ractive 0.8.10 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
 		welcome = function () {
 			if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -1893,7 +1893,7 @@
 				}
 			}
 
-			fireEventAs( ractive.parent, eventNames, event, args );
+			bubble = fireEventAs( ractive.parent, eventNames, event, args );
 		}
 
 		return bubble;
@@ -3885,7 +3885,7 @@
 			node = query.call( document, node );
 		}
 
-		if ( !node || !node._ractive ) return {};
+		if ( !node || !node._ractive ) return undefined;
 
 		var storage = node._ractive;
 
@@ -14943,6 +14943,7 @@
 
 			var selectValue = this.getAttribute( 'value' );
 			var isMultiple = this.getAttribute( 'multiple' );
+			var array = isMultiple && isArray( selectValue );
 
 			// If the <select> has a specified value, that should override
 			// these options
@@ -14951,7 +14952,7 @@
 
 				options.forEach( function ( o ) {
 					var optionValue = o._ractive ? o._ractive.value : o.value;
-					var shouldSelect = isMultiple ? valueContains( selectValue, optionValue ) : selectValue == optionValue;
+					var shouldSelect = isMultiple ? array && valueContains( selectValue, optionValue ) : selectValue == optionValue;
 
 					if ( shouldSelect ) {
 						optionWasSelected = true;
@@ -15661,6 +15662,8 @@
 
 		return styles;
 	};
+
+	Transition.prototype.handleChange = function handleChange () {};
 
 	Transition.prototype.processParams = function processParams ( params, defaults ) {
 		if ( typeof params === 'number' ) {
@@ -17045,7 +17048,7 @@
 		magic:          { value: magicSupported },
 
 		// version
-		VERSION:        { value: '0.8.9' },
+		VERSION:        { value: '0.8.10' },
 
 		// plugins
 		adaptors:       { writable: true, value: {} },
