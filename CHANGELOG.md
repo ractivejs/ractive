@@ -4,6 +4,8 @@
 
 * Bug fixes
 	* Observers on uninitialized data may be added during the `config` event (#2725)
+	* The unwrap option of `ractive.get` will now properly return the wrapped object if is set to `false` (#1178)
+	* Overriding a Ractive prototype method during `Ractive.extend` without calling `_super()` will now issue a warning, as it's probably being done in error (#2358)
 
 * Breaking changes
 	* All deprecations have been removed, including proxy events with args, un-prefixed method events, decorator="...", transition="...", the ractive.data getter, partial comment definitions, and lifecycle methods like `init` and `beforeInit`.
@@ -39,6 +41,8 @@
 		* `window.getComputedStyle`
 	* Ships with a separate, minimal polyfill file containing only the above APIs for older browsers.
 	* `ractive.nodes` no longer contains elements by id. The same functionality can be handled more safely and conveniently with a decorator.
+	* HTML elements are now exclusively created with a lowercase name.
+	* Keypath expressions are no longer supported, as they are largely redundant with `getNodeInfo` functionality. (`@keypath(../some.ref)` is no longer a valid reference)
 
 * New features (experimental - feedback welcome!)
 	* You can now create cross-instance links by passing an options object with a target instance e.g. `this.link('source.path', 'dest.path', { ractive: sourceInstance })`. This covers many of the cases handled by the `ractive-ractive` adaptor in a considerably more efficient manner.
@@ -68,6 +72,9 @@
 		* Instance option `nestedTransitions`, which defaults to `true`, meaning that transitions will fire whether they are on elements that are children of other transitioning elements or not.
 		* The transition option `nested`, which also defaults to `true`.
 	* There's a new `ractive` command distributed with the node module that allows easy pre-parsing of templates and building of components. If you have the module installed locally, see `./node_modules/.bin/ractive` for more details.
+	* You can now specify required and optional attributes when creating a component with `Ractive.extend()` using the `attributes` option. The value of `attributes` may be an array of strings, specifying that all of the named attributes are optional, or an object with `required` and/or `optional` keys that each have an array of strings as their value.
+		* If `attributes` are specified for a component, then by default any additional attributes passed to the component will not be treated as mappings directly but instead, will be collected into a special partial named `extra-attributes`. You can yield this partial in an element to apply the extra attributes to it, which allows passing things like `class` and `style` along to the main element in a component easily. Note that the extra attributes will _not_ create mappings by default, and you _must_ yield the `extra-attributes` partial to put it in the scope of the containing instance. `{{yield extra-attributes}}`
+		* If the `attributes` object includes `mapAll: true` as one of its keys, then any extra attributes _will_ be mapped and the `extra-attributes` partial will contain attributes that reference the mappings, which means the partial should _not_ be yielded. `{{>extra-attributes}}`
 
 * New features (stable)
 	* `target` is now an alias for `el` when creating a Ractive instance.
@@ -76,6 +83,20 @@
 	* Lifecycle events now receive the source Ractive instance as their last argument.
 	* You can now use context-relative `observe` and `observeOnce` from event and node info objects.
 	* You can now access decorator objects from event and node info objects using `obj.decorators.name`, where name is the decorator name as specified in the template e.g. `foo` in `<div as-foo />`.
+	* You can now get the source keypath and Ractive instance for a link/mapping using `ractive.readLink( 'some.keypath' )`.
+	* You can now use non-tagged template strings in your templates, and they will be replaced with the appropriate expression during parsing.
+	* Setting a component name to a falsey value when creating or extending a Ractive instance will block use of that component e.g. `Ractive.extend({ components: { Foo: false } })` will cause `Foo` to be treated as an element.
+
+
+# 0.8.10
+
+* Bug fixes
+	* Changes to transition arguments will no longer cause an exception (#2818)
+	* Muti-select bindings now check that their target value is an array before syncing (#2825)
+	* Bubbled event cancellation now properly cancels the original event (#2844)
+
+* Other Changes
+	* `Ractive.getNodeInfo` will now return `undefined` when called with a non-Ractive node (#2819)
 
 
 # 0.8.9
