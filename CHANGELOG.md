@@ -1,5 +1,16 @@
 # changelog
 
+# 0.8.10
+
+* Bug fixes
+	* Changes to transition arguments will no longer cause an exception (#2818)
+	* Muti-select bindings now check that their target value is an array before syncing (#2825)
+	* Bubbled event cancellation now properly cancels the original event (#2844)
+
+* Other Changes
+	* `Ractive.getNodeInfo` will now return `undefined` when called with a non-Ractive node (#2819)
+
+
 # 0.8.9
 
 * Bug fixes
