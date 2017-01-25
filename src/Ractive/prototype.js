@@ -16,7 +16,6 @@ import insert from './prototype/insert';
 import link from './prototype/link';
 import merge from './prototype/merge';
 import observe from './prototype/observe';
-import observeList from './prototype/observeList';
 import observeOnce from './prototype/observeOnce';
 import off from './prototype/off';
 import on from './prototype/on';
@@ -65,10 +64,7 @@ export default {
 	link,
 	merge,
 	observe,
-	observeList,
 	observeOnce,
-	// TODO reinstate these
-	// observeListOnce,
 	off,
 	on,
 	once,
