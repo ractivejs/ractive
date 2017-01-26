@@ -6,8 +6,8 @@ function negativeOne () {
 }
 
 export default class ArrayObserver {
-	constructor ( context, model, callback, options ) {
-		this.context = context;
+	constructor ( ractive, model, callback, options ) {
+		this.ractive = ractive;
 		this.model = model;
 		this.keypath = model.getKeypath();
 		this.callback = callback;

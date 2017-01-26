@@ -1583,4 +1583,44 @@ export default function() {
 		t.equal( inserted[0], undefined );
 		t.equal( deleted[0], 'd' );
 	});
+
+	test( 'array observers can be single fire', t => {
+		let count = 0;
+		const r = new Ractive({
+			observe: {
+				list: {
+					array: true,
+					once: true,
+					handler() { count++; }
+				}
+			},
+			data: { list: [] }
+		});
+
+		r.push( 'list', 1 );
+		r.push( 'list', 1 );
+
+		t.equal( count, 1 );
+	});
+
+	test( 'array observers can be deferred', t => {
+		t.expect( 2 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: '{{#each list}}<span />{{/each}}',
+			data: { list: [] },
+			observe: {
+				list: {
+					array: true,
+					defer: true,
+					init: false,
+					handler() { t.equal( r.findAll( 'span' ).length, 1 ); }
+				}
+			}
+		});
+		r.observe( 'list', () => t.equal( r.findAll( 'span' ).length, 0 ), { init: false, array: true } );
+
+		r.push( 'list', 1 );
+	});
 }
