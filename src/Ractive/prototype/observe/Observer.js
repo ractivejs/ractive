@@ -11,16 +11,21 @@ export default class Observer {
 
 		if ( model ) this.resolved( model );
 
+		this.options = options;
+
+		if ( typeof options.old === 'function' ) {
+			this.oldContext = Object.create( ractive );
+			this.old = options.old;
+		} else {
+			this.old = old;
+		}
+
 		if ( options.init !== false ) {
 			this.dirty = true;
 			this.dispatch();
 		} else {
-			this.oldValue = this.newValue;
+			this.oldValue = this.old.call( this.oldContext, undefined, this.newValue );
 		}
-
-		this.defer = options.defer;
-		this.once = options.once;
-		this.strict = options.strict;
 
 		this.dirty = false;
 	}
@@ -38,7 +43,7 @@ export default class Observer {
 	dispatch () {
 		if ( !this.cancelled ) {
 			this.callback.call( this.context, this.newValue, this.oldValue, this.keypath );
-			this.oldValue = this.model ? this.model.get() : this.newValue;
+			this.oldValue = this.old.call( this.oldContext, this.oldValue, this.model ? this.model.get() : this.newValue );
 			this.dirty = false;
 		}
 	}
@@ -50,12 +55,12 @@ export default class Observer {
 
 			this.newValue = newValue;
 
-			if ( this.strict && this.newValue === this.oldValue ) return;
+			if ( this.options.strict && this.newValue === this.oldValue ) return;
 
-			runloop.addObserver( this, this.defer );
+			runloop.addObserver( this, this.options.defer );
 			this.dirty = true;
 
-			if ( this.once ) runloop.scheduleTask( () => this.cancel() );
+			if ( this.options.once ) runloop.scheduleTask( () => this.cancel() );
 		}
 	}
 
@@ -79,3 +84,6 @@ export default class Observer {
 	}
 }
 
+function old ( previous, next ) {
+	return next;
+}

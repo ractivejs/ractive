@@ -1591,7 +1591,7 @@ export default function() {
 				list: {
 					array: true,
 					once: true,
-					handler() { count++; }
+					handler () { count++; }
 				}
 			},
 			data: { list: [] }
@@ -1615,12 +1615,67 @@ export default function() {
 					array: true,
 					defer: true,
 					init: false,
-					handler() { t.equal( r.findAll( 'span' ).length, 1 ); }
+					handler () { t.equal( r.findAll( 'span' ).length, 1 ); }
 				}
 			}
 		});
 		r.observe( 'list', () => t.equal( r.findAll( 'span' ).length, 0 ), { init: false, array: true } );
 
 		r.push( 'list', 1 );
+	});
+
+	test( `plain observers allow a hook to set the 'old' value`, t => {
+		t.expect( 4 );
+
+		let target = 0;
+		const r = new Ractive({
+			data: { list: [] },
+			observe: {
+				list: {
+					init: false,
+					handler ( v, o ) {
+						t.equal( o.length, target );
+						t.equal( v.length, target + 1 );
+					},
+					old ( o, n ) { return n.slice(); }
+				}
+			}
+		});
+
+		r.push( 'list', 1 );
+		target = 1;
+		r.push( 'list', 1 );
+	});
+
+	test( `plain observer old value hook gets a lifelong context on top of the ractive instance`, t => {
+		t.expect( 3 );
+
+		const r = new Ractive({
+			data: { foo: '', bar: '' },
+			observe: {
+				foo: {
+					init: false,
+					handler ( v, o ) {
+						t.ok( o === '' && v !== o, 'old value is empty string and new is ' + v );
+					},
+					old ( o, n ) {
+						if ( !this.hasOwnProperty( 'old' ) ) this.old = n;
+						return this.old;
+					}
+				},
+				bar: {
+					init: false,
+					handler () {},
+					old ( o, n ) {
+						if ( n !== '' ) return;
+						t.ok( typeof this.set === 'function', 'context has a set method' );
+						this.set( 'foo', 'yep' );
+					}
+				}
+			}
+		});
+
+		r.set( 'bar', '?' );
+		r.set( 'foo', 'asdf' );
 	});
 }
