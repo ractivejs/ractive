@@ -106,7 +106,7 @@ export default class Model extends ModelBase {
 		return promise;
 	}
 
-	applyValue ( value ) {
+	applyValue ( value, notify = true ) {
 		if ( isEqual( value, this.value ) ) return;
 		if ( this.boundValue ) this.boundValue = null;
 
@@ -149,7 +149,7 @@ export default class Model extends ModelBase {
 		this.children.forEach( mark );
 		this.deps.forEach( handleChange );
 
-		this.notifyUpstream();
+		if ( notify ) this.notifyUpstream();
 
 		if ( this.parent.isArray ) {
 			if ( this.key === 'length' ) this.parent.length = value;
@@ -159,7 +159,7 @@ export default class Model extends ModelBase {
 
 	createBranch ( key ) {
 		const branch = isNumeric( key ) ? [] : {};
-		this.set( branch );
+		this.applyValue( branch, false );
 
 		return branch;
 	}

@@ -1,4 +1,5 @@
 import { isObject } from '../../utils/is';
+import { warnOnceIfDebug } from '../../utils/log';
 import { splitKeypath } from '../../shared/keypaths';
 import resolveReference from '../../view/resolvers/resolveReference';
 import Observer from './observe/Observer';
@@ -36,7 +37,8 @@ export default function observe ( keypath, callback, options ) {
 		if ( keypaths.length > 1 ) keypaths = keypaths.filter( k => k );
 
 		keypaths.forEach( keypath => {
-			observers.push( createObserver( this, keypath, caller, opts ) );
+			const observer = createObserver( this, keypath, caller, opts );
+			if ( observer ) observers.push( observer );
 		});
 	});
 
@@ -55,7 +57,8 @@ export default function observe ( keypath, callback, options ) {
 function createObserver ( ractive, keypath, callback, options ) {
 	const keys = splitKeypath( keypath );
 	let wildcardIndex = keys.indexOf( '*' );
-	options.keypath = keypath;
+	if ( !~wildcardIndex ) wildcardIndex = keys.indexOf( '**' );
+
 	options.fragment = options.fragment || ractive.fragment;
 
 	let model;
@@ -63,10 +66,10 @@ function createObserver ( ractive, keypath, callback, options ) {
 		model = ractive.viewmodel.joinKey( keys[0] );
 	} else {
 		// .*.whatever relative wildcard is a special case because splitkeypath doesn't handle the leading .
-		if ( keys[0] === '.*' ) {
+		if ( ~keys[0].indexOf( '.*' ) ) {
 			model = options.fragment.findContext();
 			wildcardIndex = 0;
-			keys[0] = '*';
+			keys[0] = keys[0].slice( 1 );
 		} else {
 			model = wildcardIndex === 0 ? options.fragment.findContext() : resolveReference( options.fragment, keys[0] );
 		}
@@ -83,7 +86,16 @@ function createObserver ( ractive, keypath, callback, options ) {
 			return new Observer( ractive, model, callback, options );
 		}
 	} else {
+		const double = keys.indexOf( '**' );
+		if ( ~double ) {
+			if ( double + 1 !== keys.length || ~keys.indexOf( '*' ) ) {
+				warnOnceIfDebug( `Recursive observers may only specify a single '**' at the end of the path.` );
+				return;
+			}
+		}
+
 		model = model.joinAll( keys.slice( 1, wildcardIndex ) );
+
 		return new PatternObserver( ractive, model, keys.slice( wildcardIndex ), callback, options );
 	}
 }

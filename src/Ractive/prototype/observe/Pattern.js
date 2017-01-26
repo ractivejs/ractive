@@ -1,7 +1,9 @@
 import { escapeKey } from '../../../shared/keypaths';
 import { removeFromArray } from '../../../utils/array';
-import { isEqual } from '../../../utils/is';
+import { isEqual, isObjectLike } from '../../../utils/is';
 import runloop from '../../../global/runloop';
+
+const star = /\*+/g;
 
 export default class PatternObserver {
 	constructor ( ractive, baseModel, keys, callback, options ) {
@@ -11,9 +13,11 @@ export default class PatternObserver {
 		this.keys = keys;
 		this.callback = callback;
 
-		const pattern = keys.join( '\\.' ).replace( /\*/g, '(.+)' );
-		const baseKeypath = baseModel.getKeypath( ractive );
+		const pattern = keys.join( '\\.' ).replace( star, '(.+)' );
+		const baseKeypath = this.baseKeypath = baseModel.getKeypath( ractive );
 		this.pattern = new RegExp( `^${baseKeypath ? baseKeypath + '\\.' : ''}${pattern}$` );
+		this.recursive = keys.length === 1 && keys[0] === '**';
+		if ( this.recursive ) this.keys = [ '*' ];
 
 		this.oldValues = {};
 		this.newValues = {};
@@ -25,6 +29,7 @@ export default class PatternObserver {
 		this.dirty = false;
 		this.changed = [];
 		this.partial = false;
+		this.links = options.links;
 
 		const models = baseModel.findMatches( this.keys );
 
@@ -71,7 +76,11 @@ export default class PatternObserver {
 
 		if ( this.partial ) {
 			for ( const k in newValues ) {
-				this.oldValues[k] = newValues[k];
+				if ( this.recursive && isObjectLike( newValues[k] ) ) {
+					populateValueMap( this.oldValues, k, newValues[k] );
+				} else {
+					this.oldValues[k] = newValues[k];
+				}
 			}
 		} else {
 			this.oldValues = newValues;
@@ -88,7 +97,7 @@ export default class PatternObserver {
 	shuffle ( newIndices ) {
 		if ( !Array.isArray( this.baseModel.value ) ) return;
 
-		const base = this.baseModel.getKeypath( this.ractive );
+		const base = this.baseKeypath = this.baseModel.getKeypath( this.ractive );
 		const max = this.baseModel.value.length;
 		const suffix = this.keys.length > 1 ? '.' + this.keys.slice( 1 ).join( '.' ) : '';
 
@@ -107,14 +116,6 @@ export default class PatternObserver {
 		if ( !this.dirty || this.changed.length ) {
 			if ( !this.dirty ) this.newValues = {};
 
-			// handle case where previously extant keypath no longer exists -
-			// observer should still fire, with undefined as new value
-			// TODO huh. according to the test suite that's not the case...
-			// NOTE: I don't think this will work with partial updates
-			// Object.keys( this.oldValues ).forEach( keypath => {
-			// 	this.newValues[ keypath ] = undefined;
-			// });
-
 			if ( !this.changed.length ) {
 				this.baseModel.findMatches( this.keys ).forEach( model => {
 					const keypath = model.getKeypath( this.ractive );
@@ -123,24 +124,34 @@ export default class PatternObserver {
 				this.partial = false;
 			} else {
 				let count = 0;
-				const ok = this.baseModel.isRoot ?
-					this.changed.map( keys => keys.map( escapeKey ).join( '.' ) ) :
-					this.changed.map( keys => this.baseModel.getKeypath( this.ractive ) + '.' + keys.map( escapeKey ).join( '.' ) );
 
-				this.baseModel.findMatches( this.keys ).forEach( model => {
-					const keypath = model.getKeypath( this.ractive );
-					const check = k => {
-						return ( k.indexOf( keypath ) === 0 && ( k.length === keypath.length || k[ keypath.length ] === '.' ) ) ||
-							   ( keypath.indexOf( k ) === 0 && ( k.length === keypath.length || keypath[ k.length ] === '.' ) );
-
-					};
-
-					// is this model on a changed keypath?
-					if ( ok.filter( check ).length ) {
+				if ( this.recursive ) {
+					this.changed.forEach( keys => {
+						const model = this.baseModel.joinAll( keys );
+						if ( model.isLink && !this.options.links ) return;
 						count++;
-						this.newValues[ keypath ] = model.get();
-					}
-				});
+						this.newValues[ model.getKeypath( this.ractive ) ] = model.get();
+					});
+				} else {
+					const ok = this.baseModel.isRoot ?
+						this.changed.map( keys => keys.map( escapeKey ).join( '.' ) ) :
+						this.changed.map( keys => this.baseKeypath + '.' + keys.map( escapeKey ).join( '.' ) );
+
+					this.baseModel.findMatches( this.keys ).forEach( model => {
+						const keypath = model.getKeypath( this.ractive );
+						const check = k => {
+							return ( k.indexOf( keypath ) === 0 && ( k.length === keypath.length || k[ keypath.length ] === '.' ) ) ||
+								( keypath.indexOf( k ) === 0 && ( k.length === keypath.length || keypath[ k.length ] === '.' ) );
+
+						};
+
+						// is this model on a changed keypath?
+						if ( ok.filter( check ).length ) {
+							count++;
+							this.newValues[ keypath ] = model.get();
+						}
+					});
+				}
 
 				// no valid change triggered, so bail to avoid breakage
 				if ( !count ) return;
@@ -154,5 +165,15 @@ export default class PatternObserver {
 
 			if ( this.once ) this.cancel();
 		}
+	}
+}
+
+// when a lower branch on a tree is set, we need to grab all of the leaves for potential old values
+function populateValueMap ( map, path, value ) {
+	for ( const key in value ) {
+		const base = `${path}.${escapeKey( key )}`;
+		const val = value[key];
+		map[base] = val;
+		if ( isObjectLike( val ) ) populateValueMap( map, base, val );
 	}
 }
