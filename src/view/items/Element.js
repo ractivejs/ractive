@@ -12,6 +12,7 @@ import createItem from './createItem';
 import { html, svg } from '../../config/namespaces';
 import findElement from './shared/findElement';
 import selectBinding from './element/binding/selectBinding';
+import { DelegateProxy } from './shared/EventDirective';
 
 function makeDirty ( query ) {
 	query.makeDirty();
@@ -108,6 +109,9 @@ export default class Element extends ContainerItem {
 
 	destroyed () {
 		this.attributes.forEach( destroyed );
+		for ( const ev in this.delegates ) {
+			this.delegates[ev].unlisten();
+		}
 		if ( this.fragment ) this.fragment.destroyed();
 	}
 
@@ -240,6 +244,9 @@ export default class Element extends ContainerItem {
 		}
 
 		this.attributes.forEach( render );
+		for ( const ev in this.delegates ) {
+			this.delegates[ev].listen( DelegateProxy );
+		}
 
 		if ( this.binding ) this.binding.render();
 

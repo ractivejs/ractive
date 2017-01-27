@@ -3,6 +3,7 @@ import { createDocumentFragment } from '../utils/dom';
 import { isObject } from '../utils/is';
 import { findMap } from '../utils/array';
 import { toEscapedString, toString, destroyed, shuffled, unbind, unrender, unrenderAndDestroy, update } from '../shared/methodCallers';
+import findElement from './items/shared/findElement';
 
 export default class RepeatedFragment {
 	constructor ( options ) {
@@ -13,6 +14,7 @@ export default class RepeatedFragment {
 		this.parentFragment = this;
 		this.owner = options.owner;
 		this.ractive = this.parent.ractive;
+		this.delegate = this.parent.delegate || findElement( options.owner );
 
 		// encapsulated styles should be inherited until they get applied by an element
 		this.cssIds = 'cssIds' in options ? options.cssIds : ( this.parent ? this.parent.cssIds : null );
@@ -76,10 +78,10 @@ export default class RepeatedFragment {
 			template: this.template
 		});
 
-		// TODO this is a bit hacky
 		fragment.key = key;
 		fragment.index = index;
 		fragment.isIteration = true;
+		fragment.delegate = this.delegate;
 
 		const model = this.context.joinKey( key );
 
