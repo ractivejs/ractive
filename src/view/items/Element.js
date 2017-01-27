@@ -239,13 +239,15 @@ export default class Element extends ContainerItem {
 			let i = node.attributes.length;
 			while ( i-- ) {
 				const name = node.attributes[i].name;
-				if ( !( name in this.attributeByName ) ) node.removeAttribute( name );
+				if ( !( name in this.attributeByName ) )node.removeAttribute( name );
 			}
 		}
 
 		this.attributes.forEach( render );
-		for ( const ev in this.delegates ) {
-			this.delegates[ev].listen( DelegateProxy );
+		if ( this.delegates ) {
+			for ( const ev in this.delegates ) {
+				this.delegates[ev].listen( DelegateProxy );
+			}
 		}
 
 		if ( this.binding ) this.binding.render();
