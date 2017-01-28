@@ -53,6 +53,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'Abel' );
 		ractive.link( 'dogs.1', 'dog' );
 		t.equal( fixture.innerHTML, 'John' );
+		t.ok( !ractive.viewmodel.childByKey.dog._link._link );
 	});
 
 	// only for non-mapped links

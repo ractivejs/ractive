@@ -194,7 +194,7 @@ ModelBase.prototype.link = function link ( model, keypath, options ) {
 	const unresolved = !this._link;
 	this._link = lnk;
 	if ( unresolved && this.parent ) this.parent.clearUnresolveds();
-	lnk.marked();
+	lnk.markedAll();
 	return lnk;
 };
 
