@@ -1,7 +1,7 @@
 import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
 import { escapeKey, unescapeKey } from '../shared/keypaths';
-import { handleChange, notifiedUpstream } from '../shared/methodCallers';
+import { handleChange } from '../shared/methodCallers';
 import { addToArray, removeFromArray } from '../utils/array';
 import { isObject } from '../utils/is';
 import bind from '../utils/bind';
@@ -156,13 +156,13 @@ export default class ModelBase {
 		return model;
 	}
 
-	notifyUpstream () {
+	notifyUpstream ( startPath ) {
 		let parent = this.parent;
-		const path = [ this.key ];
+		const path = startPath || [ this.key ];
 		while ( parent ) {
 			if ( parent.patternObservers.length ) parent.patternObservers.forEach( o => o.notify( path.slice() ) );
 			path.unshift( parent.key );
-			parent.links.forEach( notifiedUpstream );
+			parent.links.forEach( l => l.notifiedUpstream( path, this.root ) );
 			parent.deps.forEach( handleChange );
 			parent = parent.parent;
 		}
@@ -179,7 +179,7 @@ export default class ModelBase {
 		while ( i-- ) {
 			const link = this.links[i];
 			// only relink the root of the link tree
-			if ( link.owner._link ) link.relinking( next, true, safe );
+			if ( link.owner._link ) link.relinking( next, safe );
 		}
 
 		i = this.children.length;

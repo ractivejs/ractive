@@ -1678,4 +1678,68 @@ export default function() {
 		r.set( 'bar', '?' );
 		r.set( 'foo', 'asdf' );
 	});
+
+	test( `recursive observers from root`, t => {
+		const r = new Ractive();
+		const vals = [
+			[ { baz: 'yep' }, undefined, 'foo.bar' ],
+			[ 'still', undefined, 'foo.bar.baz' ],
+			[ { bar: 'yep' }, undefined, 'foo' ],
+			[ { bar: { baz: '' } }, { bar: 'yep' }, 'foo' ],
+			[ 'yep again', 'still', 'foo.bar.baz' ]
+		];
+		r.observe( '**', ( v, o, k ) => {
+			const target = vals.shift();
+			[ v, o, k ].forEach( ( p, i ) => t.deepEqual( p, target[i] ) );
+		});
+
+		r.set( 'foo.bar', { baz: 'yep' } );
+		r.set( 'foo.bar.baz', 'still' );
+		r.set( 'foo', { bar: 'yep' } );
+		r.set( 'foo', { bar: { baz: '' } } );
+		r.set( 'foo.bar.baz', 'yep again' );
+	});
+
+	test( `recursive observers from path`, t => {
+		const r = new Ractive();
+		const vals = [
+			[ { baz: 'yep' }, undefined, 'some.path.foo.bar', 'foo.bar' ],
+			[ 'still', undefined, 'some.path.foo.bar.baz', 'foo.bar.baz' ],
+			[ { bar: 'yep' }, undefined, 'some.path.foo', 'foo' ],
+			[ { bar: { baz: '' } }, { bar: 'yep' }, 'some.path.foo', 'foo' ],
+			[ 'yep again', 'still', 'some.path.foo.bar.baz', 'foo.bar.baz' ]
+		];
+		r.observe( 'some.path.**', ( v, o, k, w ) => {
+			const target = vals.shift();
+			[ v, o, k, w ].forEach( ( p, i ) => t.deepEqual( p, target[i] ) );
+		});
+
+		r.set( 'some.path.foo.bar', { baz: 'yep' } );
+		r.set( 'some.path.foo.bar.baz', 'still' );
+		r.set( 'some.path.foo', { bar: 'yep' } );
+		r.set( 'some.path.foo', { bar: { baz: '' } } );
+		r.set( 'some.path.foo.bar.baz', 'yep again' );
+		r.set( 'not.relevant', 'yep' );
+	});
+
+	test( `recursive observers and links`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '<cmp foozle="{{thing}}" />',
+			components: { cmp: Ractive.extend() },
+			data: { thing: {} }
+		});
+
+		const cmp = r.findComponent( 'cmp' );
+
+		const ob1 = cmp.observe( '**', () => t.ok( false, 'should not fire' ), { init: false, links: false } );
+		const ob2 = cmp.observe( '**', ( v, o, k ) => {
+			t.equal( v, 'yep' );
+			t.equal( k, 'foozle.foo' );
+		}, { init: false, links: true } );
+		r.set( 'thing.foo', 'yep' );
+		r.set( 'other', 'nope' );
+		ob1.cancel();
+		ob2.cancel();
+	});
 }

@@ -1,6 +1,6 @@
 import { escapeKey } from '../../../shared/keypaths';
 import { removeFromArray } from '../../../utils/array';
-import { isEqual, isObjectLike } from '../../../utils/is';
+import { isEqual } from '../../../utils/is';
 import runloop from '../../../global/runloop';
 
 const star = /\*+/g;
@@ -76,11 +76,7 @@ export default class PatternObserver {
 
 		if ( this.partial ) {
 			for ( const k in newValues ) {
-				if ( this.recursive && isObjectLike( newValues[k] ) ) {
-					populateValueMap( this.oldValues, k, newValues[k] );
-				} else {
-					this.oldValues[k] = newValues[k];
-				}
+				this.oldValues[k] = newValues[k];
 			}
 		} else {
 			this.oldValues = newValues;
@@ -128,7 +124,7 @@ export default class PatternObserver {
 				if ( this.recursive ) {
 					this.changed.forEach( keys => {
 						const model = this.baseModel.joinAll( keys );
-						if ( model.isLink && !this.options.links ) return;
+						if ( model.isLink && !this.links ) return;
 						count++;
 						this.newValues[ model.getKeypath( this.ractive ) ] = model.get();
 					});
@@ -165,15 +161,5 @@ export default class PatternObserver {
 
 			if ( this.once ) this.cancel();
 		}
-	}
-}
-
-// when a lower branch on a tree is set, we need to grab all of the leaves for potential old values
-function populateValueMap ( map, path, value ) {
-	for ( const key in value ) {
-		const base = `${path}.${escapeKey( key )}`;
-		const val = value[key];
-		map[base] = val;
-		if ( isObjectLike( val ) ) populateValueMap( map, base, val );
 	}
 }
