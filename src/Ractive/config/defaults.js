@@ -1,7 +1,8 @@
 export default {
 	// render placement:
 	el:                     void 0,
-	append:				    false,
+	append:                 false,
+	delegate:               true,
 
 	// template:
 	template:               null,
@@ -11,7 +12,7 @@ export default {
 	tripleDelimiters:       [ '{{{', '}}}' ],
 	staticDelimiters:       [ '[[', ']]' ],
 	staticTripleDelimiters: [ '[[[', ']]]' ],
-	csp: 					true,
+	csp:                    true,
 	interpolate:            false,
 	preserveWhitespace:     false,
 	sanitize:               false,

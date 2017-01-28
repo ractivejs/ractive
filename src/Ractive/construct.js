@@ -34,6 +34,11 @@ export default function construct ( ractive, options ) {
 	initialiseProperties( ractive );
 	handleAttributes( ractive );
 
+	// if there's not a delegation setting, inherit from parent if it's not default
+	if ( !options.hasOwnProperty( 'delegate' ) && ractive.parent && ractive.parent.delegate !== ractive.delegate ) {
+		ractive.delegate = false;
+	}
+
 	// TODO don't allow `onconstruct` with `new Ractive()`, there's no need for it
 	constructHook.fire( ractive, options );
 

@@ -57,7 +57,7 @@ export default class EventDirective {
 		this.template = options.template;
 		this.parentFragment = options.parentFragment;
 		this.ractive = options.parentFragment.ractive;
-		const delegate = this.delegate = options.parentFragment.delegate;
+		const delegate = this.delegate = this.ractive.delegate && options.parentFragment.delegate;
 		this.events = [];
 
 		if ( this.element.type === COMPONENT || this.element.type === ANCHOR ) {
