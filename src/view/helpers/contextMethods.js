@@ -38,9 +38,9 @@ function build ( el, keypath, value ) {
 
 // get relative keypaths and values
 function get ( keypath ) {
-	if ( !keypath ) return this._element.parentFragment.findContext().get( true );
+	if ( !keypath ) return this.proxy.parentFragment.findContext().get( true );
 
-	const model = resolveReference( this._element.parentFragment, keypath );
+	const model = resolveReference( this.proxy.parentFragment, keypath );
 
 	return model ? model.get( true ) : undefined;
 }
@@ -51,7 +51,7 @@ function resolve ( path, ractive ) {
 }
 
 function findModel ( el, path ) {
-	const frag = el._element.parentFragment;
+	const frag = el.proxy.parentFragment;
 
 	if ( typeof path !== 'string' ) {
 		return { model: frag.findContext(), instance: path };
@@ -92,13 +92,13 @@ function merge ( keypath, array, options ) {
 
 function observe ( keypath, callback, options = {} ) {
 	if ( isObject( keypath ) ) options = callback || {};
-	options.fragment = this._element.parentFragment;
+	options.fragment = this.proxy.parentFragment;
 	return this.ractive.observe( keypath, callback, options );
 }
 
 function observeOnce ( keypath, callback, options = {} ) {
 	if ( isObject( keypath ) ) options = callback || {};
-	options.fragment = this._element.parentFragment;
+	options.fragment = this.proxy.parentFragment;
 	return this.ractive.observeOnce( keypath, callback, options );
 }
 
@@ -111,10 +111,10 @@ function push ( keypath, ...values ) {
 }
 
 function raise ( name, event, ...args ) {
-	let element = this._element;
+	let element = this.proxy;
 
 	while ( element ) {
-		const events = element.events;
+		const events = element.events.concat( element.delegates );
 		for ( let i = 0; i < events.length; i++ ) {
 			const event = events[i];
 			if ( ~event.template.n.indexOf( name ) ) {
@@ -209,7 +209,7 @@ function getBinding () {
 }
 
 function getBindingModel ( ctx ) {
-	const el = ctx._element;
+	const el = ctx.proxy;
 	return { model: el.binding && el.binding.model, instance: el.parentFragment.ractive };
 }
 
@@ -220,7 +220,7 @@ function setBinding ( value ) {
 
 export function addHelpers ( obj, element ) {
 	Object.defineProperties( obj, {
-		_element: { value: element },
+		proxy: { value: element, writable: true },
 		ractive: { value: element.parentFragment.ractive },
 		resolve: { value: resolve },
 		get: { value: get },
@@ -255,7 +255,7 @@ export function addHelpers ( obj, element ) {
 		decorators: {
 			get () {
 				const items = {};
-				element.decorators.forEach( d => items[ d.name ] = d.intermediary );
+				this.proxy.decorators.forEach( d => items[ d.name ] = d.intermediary );
 				return items;
 			}
 		}
