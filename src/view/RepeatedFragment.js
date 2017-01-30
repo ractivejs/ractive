@@ -15,6 +15,8 @@ export default class RepeatedFragment {
 		this.owner = options.owner;
 		this.ractive = this.parent.ractive;
 		this.delegate = this.parent.delegate || findElement( options.owner );
+		// delegation disabled by directive
+		if ( this.delegate && this.delegate.delegate === false ) this.delegate = false;
 
 		// encapsulated styles should be inherited until they get applied by an element
 		this.cssIds = 'cssIds' in options ? options.cssIds : ( this.parent ? this.parent.cssIds : null );

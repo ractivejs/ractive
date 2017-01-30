@@ -1,4 +1,4 @@
-import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from '../../config/types';
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, DELEGATE_FLAG, EVENT, TRANSITION } from '../../config/types';
 import runloop from '../../global/runloop';
 import { ContainerItem } from './shared/Item';
 import Fragment from '../Fragment';
@@ -56,6 +56,10 @@ export default class Element extends ContainerItem {
 						parentFragment: this.parentFragment,
 						template
 					}) );
+					break;
+
+				case DELEGATE_FLAG:
+				  this.delegate = false;
 					break;
 
 				default:

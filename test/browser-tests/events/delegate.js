@@ -178,4 +178,33 @@ export default function() {
 		t.ok( ev._ractive.proxy.events[0].events.length === 1 );
 		t.ok( other._ractive.proxy.events[0].events.length === 1 );
 	});
+
+	test( `delegation can be turned off for specific elements with no-delegation`, t => {
+		const addEventListener = Element.prototype.addEventListener;
+		let count = 0;
+		Element.prototype.addEventListener = function () {
+			count++;
+			return addEventListener.apply( this, arguments );
+		};
+
+		const cmp = Ractive.extend({
+			template: `<div>{{#each [1]}}<div on-click="ev" /><div on-click="other" />{{/each}}</div>`
+		});
+		const r = new Ractive({
+			target: fixture,
+			template: `<div no-delegation>{{#each arr}}<div on-click="outer" /><cmp />{{/each}}</div>`,
+			components: { cmp },
+			data: { arr: [ 1 ] }
+		});
+
+		t.equal( count, 2 );
+		Element.prototype.addEventListener = addEventListener;
+
+		const [ top, outer, , ev, other ] = r.findAll( 'div' );
+		t.ok( top._ractive.proxy.delegate === false );
+		t.ok( !top._ractive.proxy.delegates );
+		t.ok( outer._ractive.proxy.events[0].events.length === 1 );
+		t.ok( ev._ractive.proxy.events[0].events.length === 0 );
+		t.ok( other._ractive.proxy.events[0].events.length === 0 );
+	});
 }
