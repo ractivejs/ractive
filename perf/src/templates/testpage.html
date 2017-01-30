@@ -170,7 +170,7 @@
 			template: '#template',
 			data: {
 				running: false,
-				versions: [ '0.4.0', '0.5.0', '0.5.4', '0.5.5', '0.5.6', '0.5.7', '0.5.8', '0.6.0', '0.6.1', '0.7.2', '0.7.3', 'edge', 'control', 'dev' ],
+				versions: [ '0.4.0', '0.5.0', '0.5.4', '0.5.5', '0.5.6', '0.5.7', '0.5.8', '0.6.0', '0.6.1', '0.7.2', '0.7.3', '0.8.10', 'edge', 'control', 'dev' ],
 				selectedVersion: 'dev',
 				results: [],
 				formatTime: function ( ms ) {
@@ -185,11 +185,11 @@
 				start = Date.now();
 
 				if ( version === 'edge' ) {
-					url = 'http://cdn.ractivejs.org/edge/ractive.js';
+					url = 'https://unpkg.com/ractive@edge/ractive.js';
 				} else if ( version === 'dev' ) {
 					url = '<%= srcPrefix %>/builds/edge/ractive.js';
 				} else {
-					url = '<%= srcPrefix %>/builds/' + version + '/ractive.js';
+					url = 'https://unpkg.com/ractive@' + version + '/ractive.js';
 				}
 
 				this.set( 'running', true );
