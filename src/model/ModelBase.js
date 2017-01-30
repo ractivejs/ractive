@@ -5,7 +5,6 @@ import { handleChange } from '../shared/methodCallers';
 import { addToArray, removeFromArray } from '../utils/array';
 import { isObject } from '../utils/is';
 import bind from '../utils/bind';
-import runloop from '../global/runloop';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
@@ -198,15 +197,6 @@ export default class ModelBase {
 
 	register ( dep ) {
 		this.deps.push( dep );
-	}
-
-	registerChange ( key, value ) {
-		if ( !this.isRoot ) {
-			this.root.registerChange( key, value );
-		} else {
-			this.changes[ key ] = value;
-			runloop.addInstance( this.root.ractive );
-		}
 	}
 
 	registerLink ( link ) {

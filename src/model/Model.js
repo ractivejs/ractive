@@ -110,9 +110,6 @@ export default class Model extends ModelBase {
 		if ( isEqual( value, this.value ) ) return;
 		if ( this.boundValue ) this.boundValue = null;
 
-		// TODO deprecate this nonsense
-		this.registerChange( this.getKeypath(), value );
-
 		if ( this.parent.wrapper && this.parent.wrapper.set ) {
 			this.parent.wrapper.set( this.key, value );
 			this.parent.value = this.parent.wrapper.get();

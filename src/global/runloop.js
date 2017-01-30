@@ -1,8 +1,5 @@
-import Hook from '../events/Hook';
-import { addToArray, removeFromArray } from '../utils/array';
+import { addToArray } from '../utils/array';
 import TransitionManager from './TransitionManager';
-
-const changeHook = new Hook( 'change' );
 
 let batch;
 
@@ -18,7 +15,6 @@ const runloop = {
 			tasks: [],
 			immediateObservers: [],
 			deferredObservers: [],
-			ractives: [],
 			instance,
 			promise
 		};
@@ -48,10 +44,6 @@ const runloop = {
 		}
 
 		addToArray( b.fragments, fragment );
-	},
-
-	addInstance ( instance ) {
-		if ( batch ) addToArray( batch.ractives, instance );
 	},
 
 	addObserver ( observer, defer ) {
@@ -116,28 +108,10 @@ function flushChanges () {
 
 	which = batch.fragments;
 	batch.fragments = [];
-	const ractives = batch.ractives;
-	batch.ractives = [];
 
 	while ( i-- ) {
 		fragment = which[i];
-
-		// TODO deprecate this. It's annoying and serves no useful function
-		const ractive = fragment.ractive;
-		if ( Object.keys( ractive.viewmodel.changes ).length ) {
-			changeHook.fire( ractive, ractive.viewmodel.changes );
-		}
-		ractive.viewmodel.changes = {};
-		removeFromArray( ractives, ractive );
-
 		fragment.update();
-	}
-
-	i = ractives.length;
-	while ( i-- ) {
-		const ractive = ractives[i];
-		changeHook.fire( ractive, ractive.viewmodel.changes );
-		ractive.viewmodel.changes = {};
 	}
 
 	batch.transitionManager.ready();
@@ -156,5 +130,5 @@ function flushChanges () {
 	// If updating the view caused some model blowback - e.g. a triple
 	// containing <option> elements caused the binding on the <select>
 	// to update - then we start over
-	if ( batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length || batch.ractives.length || batch.tasks.length ) return flushChanges();
+	if ( batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length || batch.tasks.length ) return flushChanges();
 }

@@ -16,9 +16,6 @@ export class SharedModel extends Model {
 	getKeypath() {
 		return this.key;
 	}
-
-	// shared model doesn't contribute changes events because it has no instance
-	registerChange () {}
 }
 
 export default new SharedModel( data, 'shared' );

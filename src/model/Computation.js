@@ -7,6 +7,7 @@ import Model from './Model';
 import { maybeBind } from './ModelBase';
 import ComputationChild from './ComputationChild';
 import { hasConsole } from '../config/environment';
+import { isEqual } from '../utils/is';
 
 export default class Computation extends Model {
 	constructor ( viewmodel, signature, key ) {
@@ -40,7 +41,9 @@ export default class Computation extends Model {
 
 		if ( this.dirty ) {
 			this.dirty = false;
+			const old = this.value;
 			this.value = this.getValue();
+			if ( !isEqual( old, this.value ) ) this.notifyUpstream();
 			if ( this.wrapper ) this.newWrapperValue = this.value;
 			this.adapt();
 		}
@@ -71,12 +74,6 @@ export default class Computation extends Model {
 
 		const dependencies = stopCapturing();
 		this.setDependencies( dependencies );
-
-		// if not the first computation and the value is not the same,
-		// register the change for change events
-		if ( 'value' in this && result !== this.value ) {
-			this.registerChange( this.getKeypath(), result );
-		}
 
 		return result;
 	}
