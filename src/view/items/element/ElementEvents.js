@@ -22,7 +22,8 @@ class DOMEvent {
 		node.addEventListener( name, this.handler = function( event ) {
 			directive.fire({
 				node,
-				original: event
+				original: event,
+				name
 			});
 		}, false );
 	}
@@ -33,9 +34,10 @@ class DOMEvent {
 }
 
 class CustomEvent {
-	constructor ( eventPlugin, owner ) {
+	constructor ( eventPlugin, owner, name ) {
 		this.eventPlugin = eventPlugin;
 		this.owner = owner;
+		this.name = name;
 		this.handler = null;
 	}
 
@@ -43,6 +45,7 @@ class CustomEvent {
 		const node = this.owner.node;
 
 		this.handler = this.eventPlugin( node, ( event = {} ) => {
+			event.name = this.name;
 			event.node = event.node || node;
 			directive.fire( event );
 		});

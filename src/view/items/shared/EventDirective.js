@@ -15,6 +15,41 @@ import noop from '../../../utils/noop';
 const specialPattern = /^(event|arguments)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
 
+export const DelegateProxy = {
+	fire ( event, passedArgs = [] ) {
+		if ( event && event.original ) {
+			const ev = event.original;
+
+			// TODO if IE<9 needs to be supported here, could probably walk to the element with a ractive proxy with a delegates property
+			const end = ev.currentTarget;
+			let node = ev.target;
+			const name = event.name;
+			let bubble = true;
+
+			// starting with the origin node, walk up the DOM looking for ractive nodes with a matching event listener
+			while ( bubble && node !== end ) {
+				const el = node._ractive && node._ractive.proxy;
+				if ( el ) {
+
+					// set up the context for the handler
+					event.node = el.node;
+					event.name = name;
+
+					el.events.forEach( ev => {
+						if ( ~ev.template.n.indexOf( name ) ) {
+							bubble = ev.fire( event, passedArgs ) !== false && bubble;
+						}
+					});
+
+					node = node.parentNode;
+				}
+			}
+
+			return bubble;
+		}
+	}
+};
+
 export default class EventDirective {
 	constructor ( options ) {
 		this.owner = options.owner || options.parentFragment.owner || findElement( options.parentFragment );
@@ -22,7 +57,7 @@ export default class EventDirective {
 		this.template = options.template;
 		this.parentFragment = options.parentFragment;
 		this.ractive = options.parentFragment.ractive;
-
+		const delegate = this.delegate = this.ractive.delegate && options.parentFragment.delegate;
 		this.events = [];
 
 		if ( this.element.type === COMPONENT || this.element.type === ANCHOR ) {
@@ -30,11 +65,25 @@ export default class EventDirective {
 				this.events.push( new RactiveEvent( this.element, n ) );
 			});
 		} else {
+			// make sure the delegate element has a storag object
+			if ( delegate && !delegate.delegates ) delegate.delegates = {};
+
 			this.template.n.forEach( n => {
 				const fn = findInViewHierarchy( 'events', this.ractive, n );
-				// we need to pass in "this" in order to get
-				// access to node when it is created.
-				this.events.push( fn ? new CustomEvent( fn, this.element ) : new DOMEvent( n, this.element ) );
+				if ( fn ) {
+					this.events.push( new CustomEvent( fn, this.element, n ) );
+				} else {
+					if ( delegate ) {
+						if ( !delegate.delegates[n] ) {
+							const ev = new DOMEvent( n, delegate );
+							delegate.delegates[n] = ev;
+							// if the element is already rendered, render the event too
+							if ( delegate.rendered ) ev.listen( DelegateProxy );
+						}
+					} else {
+						this.events.push( new DOMEvent( n, this.element ) );
+					}
+				}
 			});
 		}
 
@@ -55,8 +104,9 @@ export default class EventDirective {
 
 	fire ( event, passedArgs = [] ) {
 		// augment event object
-		if ( event && !event.hasOwnProperty( '_element' ) ) {
-		   addHelpers( event, this.owner );
+		if ( event ) {
+		   if ( !event.hasOwnProperty( 'proxy' ) ) addHelpers( event, this.owner );
+		   else event.proxy = this.owner;
 		}
 
 		if ( this.fn ) {
@@ -125,6 +175,8 @@ export default class EventDirective {
 			}
 
 			ractive.event = oldEvent;
+
+			return result;
 		}
 
 		else {
@@ -132,7 +184,7 @@ export default class EventDirective {
 			if ( passedArgs.length ) args = args.concat( passedArgs );
 			if ( event ) event.name = this.action;
 
-			fireEvent( this.ractive, this.action, {
+			return fireEvent( this.ractive, this.action, {
 				event,
 				args
 			});

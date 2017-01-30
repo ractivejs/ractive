@@ -51,3 +51,4 @@ export const EVENT             = 70;
 export const DECORATOR         = 71;
 export const TRANSITION        = 72;
 export const BINDING_FLAG      = 73;
+export const DELEGATE_FLAG     = 74;
