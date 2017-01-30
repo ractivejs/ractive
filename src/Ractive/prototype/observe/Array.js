@@ -1,34 +1,17 @@
-import { splitKeypath } from '../../shared/keypaths';
-
-export default function observeList ( keypath, callback, options ) {
-	if ( typeof keypath !== 'string' ) {
-		throw new Error( 'ractive.observeList() must be passed a string as its first argument' );
-	}
-
-	const model = this.viewmodel.joinAll( splitKeypath( keypath ) );
-	const observer = new ListObserver( this, model, callback, options || {} );
-
-	// add observer to the Ractive instance, so it can be
-	// cancelled on ractive.teardown()
-	this._observers.push( observer );
-
-	return {
-		cancel () {
-			observer.cancel();
-		}
-	};
-}
+import { removeFromArray } from '../../../utils/array';
+import runloop from '../../../global/runloop';
 
 function negativeOne () {
 	return -1;
 }
 
-class ListObserver {
-	constructor ( context, model, callback, options ) {
-		this.context = context;
+export default class ArrayObserver {
+	constructor ( ractive, model, callback, options ) {
+		this.ractive = ractive;
 		this.model = model;
 		this.keypath = model.getKeypath();
 		this.callback = callback;
+		this.options = options;
 
 		this.pending = null;
 
@@ -37,20 +20,28 @@ class ListObserver {
 		if ( options.init !== false ) {
 			this.sliced = [];
 			this.shuffle([]);
-			this.handleChange();
+			this.dispatch();
 		} else {
 			this.sliced = this.slice();
 		}
 	}
 
+	cancel () {
+		this.model.unregister( this );
+		removeFromArray( this.ractive._observers, this );
+	}
+
+	dispatch () {
+		this.callback( this.pending );
+		this.pending = null;
+		if ( this.options.once ) this.cancel();
+	}
+
 	handleChange () {
 		if ( this.pending ) {
 			// post-shuffle
-			this.callback( this.pending );
-			this.pending = null;
-		}
-
-		else {
+			runloop.addObserver( this, this.options.defer );
+		} else {
 			// entire array changed
 			this.shuffle( this.sliced.map( negativeOne ) );
 			this.handleChange();
@@ -94,3 +85,4 @@ class ListObserver {
 		return Array.isArray( value ) ? value.slice() : [];
 	}
 }
+

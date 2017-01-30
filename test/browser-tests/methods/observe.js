@@ -1495,4 +1495,251 @@ export default function() {
 		val = 7;
 		r.set( 'foo.6', 'b' );
 	});
+
+	test( 'List observers report array modifications', t => {
+		let shuffle;
+
+		const ractive = new Ractive({
+			data: { fruits: [ 'apple', 'orange', 'banana' ] },
+			oninit () {
+				this.observe( 'fruits', ( shfl ) => {
+					shuffle = shfl;
+				}, { array: true });
+			}
+		});
+
+		t.deepEqual( shuffle.inserted, [ 'apple', 'orange', 'banana' ] );
+		t.deepEqual( shuffle.deleted, [] );
+		t.ok( !shuffle.start );
+
+		ractive.splice( 'fruits', 1, 2, 'pear' );
+
+		t.deepEqual( shuffle.inserted, [ 'pear' ] );
+		t.deepEqual( shuffle.deleted, [ 'orange', 'banana' ] );
+		t.equal( shuffle.start, 1 );
+	});
+
+	test( 'List observers correctly report value change on no init', t => {
+		let shuffle;
+
+		const ractive = new Ractive({
+			data: { fruits: [ 'apple', 'orange', 'banana' ] },
+			oninit () {
+				this.observe( 'fruits', ( shfl ) => {
+					shuffle = shfl;
+				}, { init: false, array: true } );
+			}
+		});
+
+		ractive.splice( 'fruits', 1, 2, 'pear' );
+
+		t.deepEqual( shuffle.inserted, [ 'pear' ] );
+		t.deepEqual( shuffle.deleted, [ 'orange', 'banana' ] );
+		t.equal( shuffle.start, 1 );
+	});
+
+	test( 'List observers report full array value changes as inserted/deleted', t => {
+		let shuffle;
+
+		const ractive = new Ractive({
+			data: { fruits: [ 'apple', 'orange', 'banana' ] },
+			oninit () {
+				this.observe( 'fruits', ( shfl ) => {
+					shuffle = shfl;
+				}, { init: false, array: true } );
+			}
+		});
+
+		ractive.set( 'fruits', [ 'pear', 'mango' ] );
+
+		t.deepEqual( shuffle.inserted, [ 'pear', 'mango' ] );
+		t.deepEqual( shuffle.deleted, [ 'apple', 'orange', 'banana' ] );
+	});
+
+	test( 'Pattern observers on arrays fire correctly after mutations', t => {
+		const ractive = new Ractive({
+			data: {
+				items: [ 'a', 'b', 'c' ]
+			}
+		});
+
+		let index;
+		let deleted;
+		let inserted;
+
+		ractive.observe( 'items', shuffle => {
+			index = shuffle.start;
+			inserted = shuffle.inserted;
+			deleted = shuffle.deleted;
+		}, { init: false, array: true });
+
+		ractive.push( 'items', 'd' );
+		t.equal( index, '3' );
+		t.equal( deleted[0], undefined );
+		t.equal( inserted[0], 'd' );
+
+		ractive.pop( 'items' );
+		t.equal( index, '3' );
+		t.equal( inserted[0], undefined );
+		t.equal( deleted[0], 'd' );
+	});
+
+	test( 'array observers can be single fire', t => {
+		let count = 0;
+		const r = new Ractive({
+			observe: {
+				list: {
+					array: true,
+					once: true,
+					handler () { count++; }
+				}
+			},
+			data: { list: [] }
+		});
+
+		r.push( 'list', 1 );
+		r.push( 'list', 1 );
+
+		t.equal( count, 1 );
+	});
+
+	test( 'array observers can be deferred', t => {
+		t.expect( 2 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: '{{#each list}}<span />{{/each}}',
+			data: { list: [] },
+			observe: {
+				list: {
+					array: true,
+					defer: true,
+					init: false,
+					handler () { t.equal( r.findAll( 'span' ).length, 1 ); }
+				}
+			}
+		});
+		r.observe( 'list', () => t.equal( r.findAll( 'span' ).length, 0 ), { init: false, array: true } );
+
+		r.push( 'list', 1 );
+	});
+
+	test( `plain observers allow a hook to set the 'old' value`, t => {
+		t.expect( 4 );
+
+		let target = 0;
+		const r = new Ractive({
+			data: { list: [] },
+			observe: {
+				list: {
+					init: false,
+					handler ( v, o ) {
+						t.equal( o.length, target );
+						t.equal( v.length, target + 1 );
+					},
+					old ( o, n ) { return n.slice(); }
+				}
+			}
+		});
+
+		r.push( 'list', 1 );
+		target = 1;
+		r.push( 'list', 1 );
+	});
+
+	test( `plain observer old value hook gets a lifelong context on top of the ractive instance`, t => {
+		t.expect( 3 );
+
+		const r = new Ractive({
+			data: { foo: '', bar: '' },
+			observe: {
+				foo: {
+					init: false,
+					handler ( v, o ) {
+						t.ok( o === '' && v !== o, 'old value is empty string and new is ' + v );
+					},
+					old ( o, n ) {
+						if ( !this.hasOwnProperty( 'old' ) ) this.old = n;
+						return this.old;
+					}
+				},
+				bar: {
+					init: false,
+					handler () {},
+					old ( o, n ) {
+						if ( n !== '' ) return;
+						t.ok( typeof this.set === 'function', 'context has a set method' );
+						this.set( 'foo', 'yep' );
+					}
+				}
+			}
+		});
+
+		r.set( 'bar', '?' );
+		r.set( 'foo', 'asdf' );
+	});
+
+	test( `recursive observers from root`, t => {
+		const r = new Ractive();
+		const vals = [
+			[ { baz: 'yep' }, undefined, 'foo.bar' ],
+			[ 'still', undefined, 'foo.bar.baz' ],
+			[ { bar: 'yep' }, undefined, 'foo' ],
+			[ { bar: { baz: '' } }, { bar: 'yep' }, 'foo' ],
+			[ 'yep again', 'still', 'foo.bar.baz' ]
+		];
+		r.observe( '**', ( v, o, k ) => {
+			const target = vals.shift();
+			[ v, o, k ].forEach( ( p, i ) => t.deepEqual( p, target[i] ) );
+		});
+
+		r.set( 'foo.bar', { baz: 'yep' } );
+		r.set( 'foo.bar.baz', 'still' );
+		r.set( 'foo', { bar: 'yep' } );
+		r.set( 'foo', { bar: { baz: '' } } );
+		r.set( 'foo.bar.baz', 'yep again' );
+	});
+
+	test( `recursive observers from path`, t => {
+		const r = new Ractive();
+		const vals = [
+			[ { baz: 'yep' }, undefined, 'some.path.foo.bar', 'foo.bar' ],
+			[ 'still', undefined, 'some.path.foo.bar.baz', 'foo.bar.baz' ],
+			[ { bar: 'yep' }, undefined, 'some.path.foo', 'foo' ],
+			[ { bar: { baz: '' } }, { bar: 'yep' }, 'some.path.foo', 'foo' ],
+			[ 'yep again', 'still', 'some.path.foo.bar.baz', 'foo.bar.baz' ]
+		];
+		r.observe( 'some.path.**', ( v, o, k, w ) => {
+			const target = vals.shift();
+			[ v, o, k, w ].forEach( ( p, i ) => t.deepEqual( p, target[i] ) );
+		});
+
+		r.set( 'some.path.foo.bar', { baz: 'yep' } );
+		r.set( 'some.path.foo.bar.baz', 'still' );
+		r.set( 'some.path.foo', { bar: 'yep' } );
+		r.set( 'some.path.foo', { bar: { baz: '' } } );
+		r.set( 'some.path.foo.bar.baz', 'yep again' );
+		r.set( 'not.relevant', 'yep' );
+	});
+
+	test( `recursive observers and links`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '<cmp foozle="{{thing}}" />',
+			components: { cmp: Ractive.extend() },
+			data: { thing: {} }
+		});
+
+		const cmp = r.findComponent( 'cmp' );
+
+		const ob1 = cmp.observe( '**', () => t.ok( false, 'should not fire' ), { init: false, links: false } );
+		const ob2 = cmp.observe( '**', ( v, o, k ) => {
+			t.equal( v, 'yep' );
+			t.equal( k, 'foozle.foo' );
+		}, { init: false, links: true } );
+		r.set( 'thing.foo', 'yep' );
+		r.set( 'other', 'nope' );
+		ob1.cancel();
+		ob2.cancel();
+	});
 }

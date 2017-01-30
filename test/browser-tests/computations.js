@@ -987,7 +987,7 @@ export default function() {
 		r.set( 'bar', 'goof' );
 	});
 
-	test( `computation changes are included in change events`, t => {
+	test( `computation changes are included in recursive observers`, t => {
 		t.expect( 2 );
 
 		let fluff = 'bar';
@@ -1010,11 +1010,11 @@ export default function() {
 		});
 
 		let expected;
-		r.on( 'change', changes => {
-			if ( 'bar' in changes ) {
-				t.ok( changes.bar === expected, `"${changes.bar}" === "${expected}"` );
+		r.observe( '**', ( c, o, k ) => {
+			if ( k === 'bar' ) {
+				t.ok( c === expected, `"${c}" === "${expected}"` );
 			}
-		});
+		}, { init: false });
 
 		expected = 'foobar';
 		r.set( 'foo', 'foo' );
@@ -1069,6 +1069,33 @@ export default function() {
 		val = 10;
 		r.set( 'baz', 9 );
 		t.equal( r.get( 'foo\\.bar' ), 10 );
+	});
+
+	test( `computations that return objects fire with recursive observers`, t => {
+		t.expect( 2 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: '{{foo}}',
+			computed: {
+				foo() {
+					return { bar: this.get( 'bar' ), baz: this.get( 'baz' ) };
+				}
+			},
+			data: { bar: { bat: true }, baz: 42 }
+		});
+
+		const result = { bar: { bat: 'yep' }, baz: 42 };
+
+		r.observe( '**', ( n, o, k ) => {
+			if ( k === 'foo' ) t.deepEqual( n, result );
+		}, { init: false });
+
+		r.set( 'bar.bat', 'yep' );
+
+		result.baz = 999;
+
+		r.set( 'baz', 999 );
 	});
 
 	// phantom just doesn't execute this test... no error, just nothing

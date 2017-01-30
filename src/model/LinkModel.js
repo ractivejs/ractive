@@ -1,7 +1,7 @@
 import ModelBase, { fireShuffleTasks, maybeBind, shuffle } from './ModelBase';
 import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
-import { handleChange, marked, markedAll, notifiedUpstream, teardown } from '../shared/methodCallers';
+import { handleChange, marked, markedAll, teardown } from '../shared/methodCallers';
 import { rebindMatch } from '../shared/rebind';
 import resolveReference from '../view/resolvers/resolveReference';
 import noop from '../utils/noop';
@@ -51,14 +51,14 @@ export default class LinkModel extends ModelBase {
 	attach ( fragment ) {
 		const model = resolveReference( fragment, this.key );
 		if ( model ) {
-			this.relinking( model, true, false );
+			this.relinking( model, false );
 		} else { // if there is no link available, move everything here to real models
 			this.owner.unlink();
 		}
 	}
 
 	detach () {
-		this.relinking( Missing, true, false );
+		this.relinking( Missing, false );
 	}
 
 	get ( shouldCapture, opts = {} ) {
@@ -125,9 +125,14 @@ export default class LinkModel extends ModelBase {
 		this.marked();
 	}
 
-	notifiedUpstream () {
-		this.links.forEach( notifiedUpstream );
+	notifiedUpstream ( startPath, root ) {
+		this.links.forEach( l => l.notifiedUpstream( startPath, this.root ) );
 		this.deps.forEach( handleChange );
+		if ( startPath && this.rootLink && this.root !== root ) {
+			const path = startPath.slice( 1 );
+			path.unshift( this.key );
+			this.notifyUpstream( path );
+		}
 	}
 
 	relinked () {
@@ -135,8 +140,8 @@ export default class LinkModel extends ModelBase {
 		this.children.forEach( c => c.relinked() );
 	}
 
-	relinking ( target, root, safe ) {
-		if ( root && this.sourcePath ) target = rebindMatch( this.sourcePath, target, this.target );
+	relinking ( target, safe ) {
+		if ( this.rootLink && this.sourcePath ) target = rebindMatch( this.sourcePath, target, this.target );
 		if ( !target || this.target === target ) return;
 
 		this.target.unregisterLink( this );
@@ -144,10 +149,10 @@ export default class LinkModel extends ModelBase {
 
 		this.target = target;
 		this.children.forEach( c => {
-			c.relinking( target.joinKey( c.key ), false, safe );
+			c.relinking( target.joinKey( c.key ), safe );
 		});
 
-		if ( root ) this.addShuffleTask( () => {
+		if ( this.rootLink ) this.addShuffleTask( () => {
 			this.relinked();
 			if ( !safe ) this.notifyUpstream();
 		});
@@ -186,6 +191,7 @@ ModelBase.prototype.link = function link ( model, keypath, options ) {
 	const lnk = this._link || new LinkModel( this.parent, this, model, this.key );
 	lnk.implicit = options && options.implicit;
 	lnk.sourcePath = keypath;
+	lnk.rootLink = true;
 	if ( this._link ) this._link.relinking( model, true, false );
 	this.rebind( lnk, this, false );
 	fireShuffleTasks();

@@ -177,20 +177,22 @@ export default function() {
 			t.strictEqual( thisObservedInSetter, data );
 		});
 
-		test( 'Setting properties in magic mode triggers change events', t => {
-			t.expect( 1 );
+		test( 'Setting properties in magic mode triggers recursive observers', t => {
+			t.expect( 2 );
 
 			const foo = { bar: 'baz' };
 
 			const ractive = new MagicRactive({
-				el: fixture,
-				template: '{{foo.bar}}',
 				data: { foo }
 			});
 
-			ractive.on( 'change', changeHash => {
-				t.deepEqual( changeHash, { 'foo.bar': 'qux' });
-			});
+			// force the model to init
+			ractive.get( 'foo.bar' );
+
+			ractive.observe( '**', ( c, o, k ) => {
+				t.deepEqual( c, 'qux' );
+				t.equal( k, 'foo.bar' );
+			}, { init: false });
 
 			foo.bar = 'qux';
 		});

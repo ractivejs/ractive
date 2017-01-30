@@ -14,7 +14,6 @@ export function update ( ractive, model ) {
 	const promise = runloop.start( ractive, true );
 
 	model.mark();
-	model.registerChange( model.getKeypath(), model.get() );
 
 	// notify upstream of changes
 	model.notifyUpstream();

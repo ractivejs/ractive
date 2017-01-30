@@ -53,31 +53,6 @@ export default function() {
 		t.deepEqual( lis.map( getHtml ), [ 'c', 'b', 'a', 'd' ] );
 	});
 
-	test( 'ractive.find() and ractive.findAll() work inside an onchange handler (#1541)', t => {
-		t.expect( 2 );
-
-		const ractive = new Ractive({
-			el: fixture,
-			template: `
-				{{#each items}}
-					<p>{{this}}</p>
-				{{/each}}`,
-			data: {
-				items: []
-			}
-		});
-
-		ractive.on( 'change', () => {
-			const node = ractive.find( 'p' );
-			const nodes = ractive.findAll( 'p' );
-
-			t.equal( node, null );
-			t.equal( nodes.length, 0 );
-		});
-
-		ractive.set( 'items', [ 'foo', 'bar', 'baz' ] );
-	});
-
 	test( 'ractive.find() throws error if instance is unrendered (#2008)', t => {
 		const ractive = new Ractive({
 			template: '<p>unrendered</p>'
