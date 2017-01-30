@@ -61,7 +61,7 @@ export default class Fragment {
 					runloop.addFragment( this );
 				}
 			} else {
-				this.owner.bubble();
+				this.owner.bubble( this.index );
 			}
 		}
 	}
