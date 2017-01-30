@@ -526,29 +526,6 @@ export default function() {
 		t.deepEqual( ractive.get( 'selected' ), { one: 'a', two: 'b' });
 	});
 
-	test( 'Ambiguous reference expressions in two-way bindings attach to correct context', t => {
-		onWarn( () => {} ); // suppress
-
-		const ractive = new Ractive({
-			el: fixture,
-			template: `
-				<p>obj.foo[{{bar}}]: {{obj.foo[bar]}}</p>
-				{{#with obj}}
-					<input value='{{foo[bar]}}'>
-				{{/with}}`,
-			data: {
-				bar: 0,
-				obj: { x: 1 }
-			}
-		});
-
-		ractive.find( 'input' ).value = 'test';
-		ractive.updateModel();
-
-		t.deepEqual( ractive.get( 'obj.foo' ), [ 'test' ] );
-		t.htmlEqual( fixture.innerHTML, '<p>obj.foo[0]: test</p><input>' );
-	});
-
 	test( 'Static bindings can only be one-way (#1149)', t => {
 		const ractive = new Ractive({
 			el: fixture,
@@ -781,23 +758,6 @@ export default function() {
 	});
 
 	if ( hasUsableConsole ) {
-		// #1740: this test fails because {{#with ...}} now behaves as {{#if ...}}{{#with ...}}?
-		test( 'Ambiguous references trigger a warning (#1692)', t => {
-			t.expect( 1 );
-
-			onWarn( warning => {
-				t.ok( /ambiguous/.test( warning ) );
-			});
-
-			new Ractive({
-				el: fixture,
-				template: `{{#with whatever}}<input value='{{uniqueToThisTest}}'>{{/with}}`,
-				data: {
-					whatever: { x: 1 }
-				}
-			});
-		});
-
 		test( 'Using expressions in two-way bindings triggers a warning (#1399)', t => {
 			onWarn( message => {
 				t.ok( ~message.indexOf( 'Cannot use two-way binding on <input> element: foo() is read-only' ) );

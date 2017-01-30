@@ -22,9 +22,6 @@ export default class ModelBase {
 
 		this.keyModels = {};
 
-		this.unresolved = [];
-		this.unresolvedByKey = {};
-
 		this.bindings = [];
 		this.patternObservers = [];
 
@@ -34,41 +31,8 @@ export default class ModelBase {
 		}
 	}
 
-	addUnresolved ( key, resolver ) {
-		if ( !this.unresolvedByKey[ key ] ) {
-			this.unresolved.push( key );
-			this.unresolvedByKey[ key ] = [];
-		}
-
-		this.unresolvedByKey[ key ].push( resolver );
-	}
-
 	addShuffleTask ( task, stage = 'early' ) { shuffleTasks[stage].push( task ); }
 	addShuffleRegister ( item, stage = 'early' ) { registerQueue[stage].push({ model: this, item }); }
-
-	clearUnresolveds ( specificKey ) {
-		let i = this.unresolved.length;
-
-		while ( i-- ) {
-			const key = this.unresolved[i];
-
-			if ( specificKey && key !== specificKey ) continue;
-
-			const resolvers = this.unresolvedByKey[ key ];
-			const hasKey = this.has( key );
-
-			let j = resolvers.length;
-			while ( j-- ) {
-				if ( hasKey ) resolvers[j].attemptResolution();
-				if ( resolvers[j].resolved ) resolvers.splice( j, 1 );
-			}
-
-			if ( !resolvers.length ) {
-				this.unresolved.splice( i, 1 );
-				this.unresolvedByKey[ key ] = null;
-			}
-		}
-	}
 
 	findMatches ( keys ) {
 		const len = keys.length;
@@ -224,15 +188,6 @@ export default class ModelBase {
 			child.rebind( next ? next.joinKey( child.key ) : undefined, child, safe );
 		}
 
-		i = this.unresolved.length;
-		while ( i-- ) {
-			const unresolved = this.unresolvedByKey[ this.unresolved[i] ];
-			let c = unresolved.length;
-			while ( c-- ) {
-				unresolved[c].rebind( next, previous );
-			}
-		}
-
 		if ( this.keypathModel ) this.keypathModel.rebind( next, previous, false );
 
 		i = this.bindings.length;
@@ -267,16 +222,8 @@ export default class ModelBase {
 		this.bindings.push( binding );
 	}
 
-	removeUnresolved ( key, resolver ) {
-		const resolvers = this.unresolvedByKey[ key ];
-
-		if ( resolvers ) {
-			removeFromArray( resolvers, resolver );
-		}
-	}
-
-	unregister ( dependant ) {
-		removeFromArray( this.deps, dependant );
+	unregister ( dep ) {
+		removeFromArray( this.deps, dep );
 	}
 
 	unregisterLink ( link ) {

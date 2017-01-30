@@ -5,8 +5,7 @@ import ExpressionProxy from './ExpressionProxy';
 import resolveReference from './resolveReference';
 import resolve from './resolve';
 import { rebindMatch } from '../../shared/rebind';
-import { handleChange, mark, marked, unbind } from '../../shared/methodCallers';
-import { removeFromArray } from '../../utils/array';
+import { handleChange, mark, marked } from '../../shared/methodCallers';
 import { isEqual } from '../../utils/is';
 import { escapeKey } from '../../shared/keypaths';
 import noop from '../../utils/noop';
@@ -59,21 +58,7 @@ export default class ReferenceExpressionProxy extends Model {
 		this.root = fragment.ractive.viewmodel;
 		this.template = template;
 
-		this.resolvers = [];
-
 		this.base = resolve( fragment, template );
-		let baseResolver;
-
-		if ( !this.base ) {
-			baseResolver = fragment.resolve( template.r, model => {
-				this.base = model;
-				this.bubble();
-
-				removeFromArray( this.resolvers, baseResolver );
-			});
-
-			this.resolvers.push( baseResolver );
-		}
 
 		const intermediary = this.intermediary = {
 			handleChange: () => this.handleChange(),
@@ -83,7 +68,6 @@ export default class ReferenceExpressionProxy extends Model {
 					if ( next !== this.base ) {
 						this.base.unregister( intermediary );
 						this.base = next;
-						// TODO: if there is no next, set up a resolver?
 					}
 				} else {
 					const idx = this.members.indexOf( previous );
@@ -92,7 +76,6 @@ export default class ReferenceExpressionProxy extends Model {
 						next = rebindMatch( template.m[idx].n, next, previous );
 						if ( next !== this.members[idx] ) {
 							this.members.splice( idx, 1, next );
-							// TODO: if there is no next, set up a resolver?
 						}
 					}
 				}
@@ -104,31 +87,16 @@ export default class ReferenceExpressionProxy extends Model {
 			}
 		};
 
-		this.members = template.m.map( ( template, i ) => {
+		this.members = template.m.map( ( template ) => {
 			if ( typeof template === 'string' ) {
 				return { get: () => template };
 			}
 
 			let model;
-			let resolver;
 
 			if ( template.t === REFERENCE ) {
 				model = resolveReference( fragment, template.n );
-
-				if ( model ) {
-					model.register( intermediary );
-				} else {
-					resolver = fragment.resolve( template.n, model => {
-						this.members[i] = model;
-
-						model.register( intermediary );
-						this.handleChange();
-
-						removeFromArray( this.resolvers, resolver );
-					});
-
-					this.resolvers.push( resolver );
-				}
+				model.register( intermediary );
 
 				return model;
 			}
@@ -142,47 +110,32 @@ export default class ReferenceExpressionProxy extends Model {
 	}
 
 	bubble () {
-		this.isUnresolved = !!this.resolvers.length;
 		if ( !this.base ) return;
 		if ( !this.dirty ) this.handleChange();
-	}
-
-	forceResolution () {
-		this.resolvers.forEach( resolver => resolver.forceResolution() );
-		this.dirty = true;
-		this.bubble();
 	}
 
 	get ( shouldCapture ) {
 		if ( this.dirty ) {
 			this.bubble();
 
-			let i = this.members.length;
-			let resolved = true;
-			while ( resolved && i-- ) {
-				if ( !this.members[i] ) resolved = false;
-			}
+			const keys = this.members.map( m => escapeKey( String( m.get() ) ) );
+			const model = this.base.joinAll( keys );
 
-			if ( this.base && resolved ) {
-				const keys = this.members.map( m => escapeKey( String( m.get() ) ) );
-				const model = this.base.joinAll( keys );
-
-				if ( model !== this.model ) {
-					if ( this.model ) {
-						this.model.unregister( this );
-						this.model.unregisterTwowayBinding( this );
-					}
-
-					this.model = model;
-					this.parent = model.parent;
-					this.model.register( this );
-					this.model.registerTwowayBinding( this );
-
-					if ( this.keypathModel ) this.keypathModel.handleChange();
+			if ( model !== this.model ) {
+				if ( this.model ) {
+					this.model.unregister( this );
+					this.model.unregisterTwowayBinding( this );
 				}
+
+				this.model = model;
+				this.parent = model.parent;
+				this.model.register( this );
+				this.model.registerTwowayBinding( this );
+
+				if ( this.keypathModel ) this.keypathModel.handleChange();
 			}
 
-			this.value = this.model ? this.model.get( shouldCapture ) : undefined;
+			this.value = this.model.get( shouldCapture );
 			this.dirty = false;
 			this.mark();
 			return this.value;
@@ -236,7 +189,6 @@ export default class ReferenceExpressionProxy extends Model {
 
 		this.links.forEach( marked );
 		this.children.forEach( mark );
-		this.clearUnresolveds();
 	}
 
 	retrieve () {
@@ -244,12 +196,10 @@ export default class ReferenceExpressionProxy extends Model {
 	}
 
 	set ( value ) {
-		if ( !this.model ) throw new Error( 'Unresolved reference expression. This should not happen!' );
 		this.model.set( value );
 	}
 
 	unbind () {
-		this.resolvers.forEach( unbind );
 		if ( this.model ) {
 			this.model.unregister( this );
 			this.model.unregisterTwowayBinding( this );

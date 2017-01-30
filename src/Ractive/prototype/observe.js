@@ -88,7 +88,7 @@ class Observer {
 		this.callback = callback;
 		this.ractive = ractive;
 
-		if ( model ) this.resolved( model );
+		this.resolved( model );
 
 		if ( options.init !== false ) {
 			this.dirty = true;
@@ -108,8 +108,6 @@ class Observer {
 		this.cancelled = true;
 		if ( this.model ) {
 			this.model.unregister( this );
-		} else {
-			this.resolver.unbind();
 		}
 		removeFromArray( this.ractive._observers, this );
 	}
@@ -140,7 +138,6 @@ class Observer {
 
 	rebind ( next, previous ) {
 		next = rebindMatch( this.keypath, next, previous );
-		// TODO: set up a resolver if next is undefined?
 		if ( next === this.model ) return false;
 
 		if ( this.model ) this.model.unregister( this );

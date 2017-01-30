@@ -1,22 +1,12 @@
 import Model from '../../model/Model';
 import Computation from '../../model/Computation';
-import { unbind } from '../../shared/methodCallers';
 import getFunction from '../../shared/getFunction';
 import resolveReference from './resolveReference';
 import { removeFromArray } from '../../utils/array';
 import { startCapturing, stopCapturing } from '../../global/capture';
 import { warnIfDebug } from '../../utils/log';
 import { rebindMatch } from '../../shared/rebind';
-
-function createResolver ( proxy, ref, index ) {
-	const resolver = proxy.fragment.resolve( ref, model => {
-		removeFromArray( proxy.resolvers, resolver );
-		proxy.models[ index ] = model;
-		proxy.bubble();
-	});
-
-	proxy.resolvers.push( resolver );
-}
+import noop from '../../utils/noop';
 
 export default class ExpressionProxy extends Model {
 	constructor ( fragment, template ) {
@@ -30,15 +20,8 @@ export default class ExpressionProxy extends Model {
 
 		this.fn = getFunction( template.s, template.r.length );
 
-		this.resolvers = [];
-		this.models = this.template.r.map( ( ref, index ) => {
-			const model = resolveReference( this.fragment, ref );
-
-			if ( !model ) {
-				createResolver( this, ref, index );
-			}
-
-			return model;
+		this.models = this.template.r.map( ref => {
+			return resolveReference( this.fragment, ref );
 		});
 		this.dependencies = [];
 
@@ -104,7 +87,6 @@ export default class ExpressionProxy extends Model {
 			if ( next !== previous ) {
 				previous.unregister( this );
 				this.models.splice( idx, 1, next );
-				// TODO: set up a resolver if there is no next?
 				if ( next ) next.addShuffleRegister( this, 'mark' );
 			}
 		}
@@ -126,10 +108,6 @@ export default class ExpressionProxy extends Model {
 		super.unregister( dep );
 		if ( !this.deps.length ) this.teardown();
 	}
-
-	unbind () {
-		this.resolvers.forEach( unbind );
-	}
 }
 
 const prototype = ExpressionProxy.prototype;
@@ -138,3 +116,4 @@ prototype.get = computation.get;
 prototype.handleChange = computation.handleChange;
 prototype.joinKey = computation.joinKey;
 prototype.mark = computation.mark;
+prototype.unbind = noop;

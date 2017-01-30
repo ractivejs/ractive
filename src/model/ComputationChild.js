@@ -46,7 +46,6 @@ export default class ComputationChild extends Model {
 		this.links.forEach( marked );
 		this.deps.forEach( handleChange );
 		this.children.forEach( handleChange );
-		this.clearUnresolveds(); // TODO is this necessary?
 	}
 
 	joinKey ( key ) {
