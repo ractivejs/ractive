@@ -1,5 +1,9 @@
-QUnit.module( 'Ractive' );
+export default function(){
 
-QUnit.test( 'should be a function', function ( assert ) {
-	assert.equal( typeof Ractive, 'function' );
-});
+	QUnit.module( 'Ractive' );
+
+	QUnit.test( 'should be a function', t => {
+		t.equal( typeof Ractive, 'function' );
+	});
+
+}
