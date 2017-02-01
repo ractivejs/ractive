@@ -1,11 +1,10 @@
-import { test } from 'qunit';
 import { initModule } from '../../helpers/test-config';
 import { fire } from 'simulant';
 
 export default function() {
 	initModule( 'events/delegate.js' );
 
-	test( `basic delegation`, t => {
+	QUnit.test( `basic delegation`, t => {
 		t.expect( 6 );
 
 		const addEventListener = Element.prototype.addEventListener;
@@ -39,7 +38,7 @@ export default function() {
 		fire( other, 'click' );
 	});
 
-	test( `delegated method event`, t => {
+	QUnit.test( `delegated method event`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `<div>{{#each [1]}}{{#with ~/foo}}<div on-click="event.set('.bar', 42)" />{{/with}}{{/each}}</div>`,
@@ -51,7 +50,7 @@ export default function() {
 		t.equal( r.get( 'foo.bar' ), 42 );
 	});
 
-	test( `library delegated event cancellation`, t => {
+	QUnit.test( `library delegated event cancellation`, t => {
 		t.expect( 1 );
 
 		const r = new Ractive({
@@ -67,7 +66,7 @@ export default function() {
 		fire( yep, 'click' );
 	});
 
-	test( `multiple delegated events don't interfere with each other`, t => {
+	QUnit.test( `multiple delegated events don't interfere with each other`, t => {
 		t.expect( 1 );
 
 		const r = new Ractive({
@@ -83,7 +82,7 @@ export default function() {
 		simulant.fire( yep, 'mouseenter' );
 	});
 
-	test( `delegated event context is correct`, t => {
+	QUnit.test( `delegated event context is correct`, t => {
 		t.expect( 2 );
 
 		const r = new Ractive({
@@ -100,7 +99,7 @@ export default function() {
 		fire( inner, 'click' );
 	});
 
-	test( `delegated events can also be raised`, t => {
+	QUnit.test( `delegated events can also be raised`, t => {
 		t.expect( 1 );
 
 		const r = new Ractive({
@@ -114,7 +113,7 @@ export default function() {
 		r.getNodeInfo( r.findAll( 'div' )[1] ).raise( 'click', {} );
 	});
 
-	test( `dom events within components can also be delegated`, t => {
+	QUnit.test( `dom events within components can also be delegated`, t => {
 		const addEventListener = Element.prototype.addEventListener;
 		let count = 0;
 		Element.prototype.addEventListener = function () {
@@ -150,7 +149,7 @@ export default function() {
 		fire( other, 'click' );
 	});
 
-	test( `delegation can be turned off`, t => {
+	QUnit.test( `delegation can be turned off`, t => {
 		const addEventListener = Element.prototype.addEventListener;
 		let count = 0;
 		Element.prototype.addEventListener = function () {
@@ -179,7 +178,7 @@ export default function() {
 		t.ok( other._ractive.proxy.events[0].events.length === 1 );
 	});
 
-	test( `delegation can be turned off for specific elements with no-delegation`, t => {
+	QUnit.test( `delegation can be turned off for specific elements with no-delegation`, t => {
 		const addEventListener = Element.prototype.addEventListener;
 		let count = 0;
 		Element.prototype.addEventListener = function () {
@@ -208,7 +207,7 @@ export default function() {
 		t.ok( other._ractive.proxy.events[0].events.length === 0 );
 	});
 
-	test( `delegated events work with non-ractive nodes (#2871)`, t => {
+	QUnit.test( `delegated events work with non-ractive nodes (#2871)`, t => {
 		let div;
 		const r = new Ractive({
 			target: fixture,
@@ -231,7 +230,7 @@ export default function() {
 		t.equal( r.get( 'foo.bar' ), 42 );
 	});
 
-	test( `delegation in a yielder`, t => {
+	QUnit.test( `delegation in a yielder`, t => {
 		t.expect( 1 );
 
 		const cmp = Ractive.extend({

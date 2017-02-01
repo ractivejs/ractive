@@ -1,6 +1,7 @@
 {
 	"env": {
-		"browser": true
+		"browser": true,
+		"qunit": true
 	},
 	"globals": {
 		"Ractive": true,

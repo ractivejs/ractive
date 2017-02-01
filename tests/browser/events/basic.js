@@ -1,10 +1,9 @@
-import { test } from 'qunit';
 import { initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'events/basic.js' );
 
-	test( 'sharing names with array mutator functions doesn\'t break events', t => {
+	QUnit.test( 'sharing names with array mutator functions doesn\'t break events', t => {
 		const eventNames = ['sort', 'reverse', 'push', 'pop', 'shift', 'unshift', 'fhtagn']; // the last one just tests the test
 		const results = new Object( null );
 
@@ -22,7 +21,7 @@ export default function() {
 		});
 	});
 
-	test( 'Empty event names are safe, though do not fire', t => {
+	QUnit.test( 'Empty event names are safe, though do not fire', t => {
 		const ractive = new Ractive();
 
 		t.expect( 1 );
@@ -33,7 +32,7 @@ export default function() {
 		t.ok( true );
 	});
 
-	test( 'Calling ractive.off() without a keypath removes all handlers', t => {
+	QUnit.test( 'Calling ractive.off() without a keypath removes all handlers', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: 'doesn\'t matter'
@@ -60,7 +59,7 @@ export default function() {
 		ractive.fire( 'baz' );
 	});
 
-	test( 'Multiple space-separated events can be handled with a single callback (#731)', t => {
+	QUnit.test( 'Multiple space-separated events can be handled with a single callback (#731)', t => {
 		const ractive = new Ractive({});
 		let count = 0;
 
@@ -87,7 +86,7 @@ export default function() {
 		t.equal( count, 4 );
 	});
 
-	test( `events also initially fire in the implicit this namespace`, t => {
+	QUnit.test( `events also initially fire in the implicit this namespace`, t => {
 		let thisFoo = 0;
 		let starFoo = 0;
 		let justFoo = 0;
@@ -112,7 +111,7 @@ export default function() {
 		t.equal( star, 1 );
 	});
 
-	test( `events that bubble drop the this namespace on their way up`, t => {
+	QUnit.test( `events that bubble drop the this namespace on their way up`, t => {
 		const cmp = Ractive.extend();
 		const r = new Ractive({
 			target: fixture,
@@ -132,14 +131,14 @@ export default function() {
 		t.equal( starStarFoo, 0 );
 	});
 
-	test( 'ractive.off() is chainable (#677)', t => {
+	QUnit.test( 'ractive.off() is chainable (#677)', t => {
 		const ractive = new Ractive();
 		const returnedValue = ractive.off( 'foo' );
 
 		t.equal( returnedValue, ractive );
 	});
 
-	test( 'handlers can use pattern matching', t => {
+	QUnit.test( 'handlers can use pattern matching', t => {
 		t.expect( 4 );
 
 		const ractive = new Ractive();
@@ -152,7 +151,7 @@ export default function() {
 		ractive.fire( 'some.event' );
 	});
 
-	test( '.once() event functionality', t => {
+	QUnit.test( '.once() event functionality', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive( {} );
@@ -166,7 +165,7 @@ export default function() {
 		ractive.fire( 'bar' );
 	});
 
-	test( 'wildcard and multi-part listeners have correct event name', t => {
+	QUnit.test( 'wildcard and multi-part listeners have correct event name', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<span id="test" on-click="foo"/>'
@@ -184,7 +183,7 @@ export default function() {
 		t.deepEqual( fired, events );
 	});
 
-	test( 'Inflight unsubscribe works (#1504)', t => {
+	QUnit.test( 'Inflight unsubscribe works (#1504)', t => {
 		t.expect( 3 );
 
 		const ractive = new Ractive( {} );
@@ -204,7 +203,7 @@ export default function() {
 		ractive.fire( 'foo' );
 	});
 
-	test( `hyphens in event names can be escaped`, t => {
+	QUnit.test( `hyphens in event names can be escaped`, t => {
 		const cmp = Ractive.extend();
 		const r = new Ractive({
 			target: fixture,
@@ -220,7 +219,7 @@ export default function() {
 		t.equal( r.get( 'foo' ), 'yep' );
 	});
 
-	test( `events can be silenced and resumed`, t => {
+	QUnit.test( `events can be silenced and resumed`, t => {
 		let count = 0;
 		const r = new Ractive();
 		const handle = r.on( 'foo', function ( ctx, num ) {
@@ -243,7 +242,7 @@ export default function() {
 		t.equal( handle.isSilenced(), false );
 	});
 
-	test( `event handle cancels all events when multiple events are subscribed`, t => {
+	QUnit.test( `event handle cancels all events when multiple events are subscribed`, t => {
 		let count = 0;
 		const r = new Ractive();
 		const obj = r.on({

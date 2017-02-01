@@ -1,10 +1,9 @@
-import { test } from 'qunit';
 import { initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'render/enhance.js' );
 
-	test( 'Cannot use append and enhance at the same time', t => {
+	QUnit.test( 'Cannot use append and enhance at the same time', t => {
 		t.throws( () => {
 			new Ractive({
 				enhance: true,
@@ -13,7 +12,7 @@ export default function() {
 		}, /Cannot use append and enhance at the same time/ );
 	});
 
-	test( 'basic progressive enhancement', t => {
+	QUnit.test( 'basic progressive enhancement', t => {
 		fixture.innerHTML = '<p></p>';
 		const p = fixture.querySelector( 'p' );
 
@@ -27,7 +26,7 @@ export default function() {
 		t.strictEqual( p, ractive.find( 'p' ) );
 	});
 
-	test( 'progressive enhancement for svg elements', t => {
+	QUnit.test( 'progressive enhancement for svg elements', t => {
 		/*
 		 * list is grabbed from https://developer.mozilla.org/en-US/docs/Web/SVG/Element using the following code:
 		 *
@@ -49,7 +48,7 @@ export default function() {
 		t.strictEqual( svg, ractive.find( 'svg' ) );
 	});
 
-	test( 'missing nodes are added', t => {
+	QUnit.test( 'missing nodes are added', t => {
 		fixture.innerHTML = '<p></p>';
 		const p = fixture.querySelector( 'p' );
 
@@ -63,7 +62,7 @@ export default function() {
 		t.strictEqual( p, ractive.find( 'p' ) );
 	});
 
-	test( 'excess nodes are removed', t => {
+	QUnit.test( 'excess nodes are removed', t => {
 		fixture.innerHTML = '<p></p><p></p>';
 		const ps = fixture.querySelectorAll( 'p' );
 
@@ -78,7 +77,7 @@ export default function() {
 		t.ok( ps[1].parentNode !== fixture );
 	});
 
-	test( 'nested elements', t => {
+	QUnit.test( 'nested elements', t => {
 		const html = '<div><p><strong>it works!</strong></p></div>';
 		fixture.innerHTML = html;
 
@@ -98,7 +97,7 @@ export default function() {
 		t.strictEqual( strong, ractive.find( 'strong' ) );
 	});
 
-	test( 'attributes are added/removed as appropriate', t => {
+	QUnit.test( 'attributes are added/removed as appropriate', t => {
 		fixture.innerHTML = '<button disabled data-live="false"></button>';
 		const button = fixture.querySelector( 'button' );
 
@@ -113,7 +112,7 @@ export default function() {
 		t.ok( !button.disabled );
 	});
 
-	test( 'attributes are removed if none exist in template', t => {
+	QUnit.test( 'attributes are removed if none exist in template', t => {
 		fixture.innerHTML = `<button disabled>don't click me</button>`;
 		const button = fixture.querySelector( 'button' );
 
@@ -128,7 +127,7 @@ export default function() {
 		t.ok( !button.disabled );
 	});
 
-	test( 'redundant classes are removed', t => {
+	QUnit.test( 'redundant classes are removed', t => {
 		fixture.innerHTML = '<div class="someCls someClsToRemove">foo</div>';
 		const div = fixture.querySelector( 'div' );
 
@@ -142,7 +141,7 @@ export default function() {
 		t.strictEqual( div, ractive.find( 'div' ) );
 	});
 
-	test( 'conditional sections inherit existing DOM', t => {
+	QUnit.test( 'conditional sections inherit existing DOM', t => {
 		fixture.innerHTML = '<p></p>';
 		const p = fixture.querySelector( 'p' );
 
@@ -157,7 +156,7 @@ export default function() {
 		t.strictEqual( p, ractive.find( 'p' ) );
 	});
 
-	test( 'list sections inherit existing DOM', t => {
+	QUnit.test( 'list sections inherit existing DOM', t => {
 		fixture.innerHTML = '<ul><li>a</li><li>b</li><li>c</li></ul>';
 		const lis = fixture.querySelectorAll( 'li' );
 
@@ -176,7 +175,7 @@ export default function() {
 		t.deepEqual( ractive.findAll( 'li' ), [].slice.call( lis ) );
 	});
 
-	test( 'interpolator in text sandwich', t => {
+	QUnit.test( 'interpolator in text sandwich', t => {
 		fixture.innerHTML = '<p>before</p> hello, world! <p>after</p>';
 		const ps = fixture.querySelectorAll( 'p' );
 
@@ -191,7 +190,7 @@ export default function() {
 		t.deepEqual( ractive.findAll( 'p' ), [].slice.call( ps ) );
 	});
 
-	test( 'mismatched interpolator in text sandwich', t => {
+	QUnit.test( 'mismatched interpolator in text sandwich', t => {
 		fixture.innerHTML = '<p>before</p> hello, world! <p>after</p>';
 		const ps = fixture.querySelectorAll( 'p' );
 
@@ -206,7 +205,7 @@ export default function() {
 		t.deepEqual( ractive.findAll( 'p' ), [].slice.call( ps ) );
 	});
 
-	test( 'partials', t => {
+	QUnit.test( 'partials', t => {
 		fixture.innerHTML = '<p>I am a partial</p>';
 		const p = fixture.querySelector( 'p' );
 
@@ -223,7 +222,7 @@ export default function() {
 		t.strictEqual( ractive.find( 'p' ), p );
 	});
 
-	test( 'components', t => {
+	QUnit.test( 'components', t => {
 		fixture.innerHTML = '<ul><li>apples</li><li>oranges</li></ul>';
 		const lis = fixture.querySelectorAll( 'li' );
 
@@ -246,7 +245,7 @@ export default function() {
 		t.deepEqual( ractive.findAll( 'li' ), [].slice.call( lis ) );
 	});
 
-	test( 'two-way binding is initialised from DOM', t => {
+	QUnit.test( 'two-way binding is initialised from DOM', t => {
 		fixture.innerHTML = '<input value="it works"/>';
 		const input = fixture.querySelector( 'input' );
 
@@ -260,7 +259,7 @@ export default function() {
 		t.strictEqual( ractive.find( 'input' ), input );
 	});
 
-	test( 'two-way binding with number input', t => {
+	QUnit.test( 'two-way binding with number input', t => {
 		fixture.innerHTML = '<input type="number" value="42"/>';
 		const input = fixture.querySelector( 'input' );
 
@@ -274,7 +273,7 @@ export default function() {
 		t.strictEqual( ractive.find( 'input' ), input );
 	});
 
-	test( 'two-way binding with range input', t => {
+	QUnit.test( 'two-way binding with range input', t => {
 		fixture.innerHTML = '<input type="range" value="42"/>';
 		const input = fixture.querySelector( 'input' );
 
@@ -289,7 +288,7 @@ export default function() {
 	});
 
 	if ( !/phantomjs/i.test( navigator.userAgent ) ) { // gah
-		test( 'two-way binding with single select', t => {
+		QUnit.test( 'two-way binding with single select', t => {
 			fixture.innerHTML = `
 				<select>
 					<option>isomorphic</option>
@@ -318,7 +317,7 @@ export default function() {
 			t.equal( ractive.get( 'selected.desc' ), 'universal' );
 		});
 
-		test( 'two-way binding with multiple select', t => {
+		QUnit.test( 'two-way binding with multiple select', t => {
 			fixture.innerHTML = `
 				<select multiple>
 					<option>isomorphic</option>
@@ -351,7 +350,7 @@ export default function() {
 		});
 	}
 
-	test( 'two-way binding with checkbox input', t => {
+	QUnit.test( 'two-way binding with checkbox input', t => {
 		fixture.innerHTML = `
 			<input type='checkbox'>
 			<input type='checkbox' checked>`;
@@ -369,7 +368,7 @@ export default function() {
 		t.ok(  inputs[1].checked );
 	});
 
-	test( 'two-way binding with checkbox name input', t => {
+	QUnit.test( 'two-way binding with checkbox name input', t => {
 		fixture.innerHTML = `
 			<input type='checkbox' value='foo' checked>
 			<input type='checkbox' value='bar'>
@@ -392,7 +391,7 @@ export default function() {
 		t.deepEqual( ractive.get( 'selected' ), [ 'foo', 'baz' ]);
 	});
 
-	test( 'two-way binding with radio inputs', t => {
+	QUnit.test( 'two-way binding with radio inputs', t => {
 		fixture.innerHTML = `
 			<input type='radio'>
 			<input type='radio' checked>
@@ -413,7 +412,7 @@ export default function() {
 		t.ok( !ractive.get( 'c' ) );
 	});
 
-	test( 'two-way binding with radio name inputs', t => {
+	QUnit.test( 'two-way binding with radio name inputs', t => {
 		fixture.innerHTML = `
 			<input type='radio' value='isomorphic'>
 			<input type='radio' value='universal' checked>
@@ -432,7 +431,7 @@ export default function() {
 		t.equal( ractive.get( 'selected' ), 'universal' );
 	});
 
-	test( 'two-way binding with contenteditable', t => {
+	QUnit.test( 'two-way binding with contenteditable', t => {
 		fixture.innerHTML = `<div contenteditable='true'><p>hello</p></div>`;
 
 		const ractive = new Ractive({
@@ -444,7 +443,7 @@ export default function() {
 		t.equal( ractive.get( 'value' ), '<p>hello</p>' );
 	});
 
-	test( 'standard namespaced attributes without namespace declaration (#2623)', t => {
+	QUnit.test( 'standard namespaced attributes without namespace declaration (#2623)', t => {
 		fixture.innerHTML = '<svg><use xlink:href="#foo" /></svg>';
 		const svg = fixture.querySelector( 'svg' );
 		const use = fixture.querySelector( 'use' );
@@ -458,7 +457,7 @@ export default function() {
 		t.strictEqual( r.find( 'use' ), use );
 	});
 
-	test( `enhancing sibling text nodes and interpolators`, t => {
+	QUnit.test( `enhancing sibling text nodes and interpolators`, t => {
 		fixture.innerHTML = 'foo bar baz';
 		new Ractive({
 			target: fixture,
@@ -470,7 +469,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foo bar baz' );
 	});
 
-	test( `triples reuse existing content if it matches (#2403)`, t => {
+	QUnit.test( `triples reuse existing content if it matches (#2403)`, t => {
 		fixture.innerHTML = '<div>foo bar</div><span><i>guts</i></span>&amp; why not?<!-- yep -->?sure';
 		const div = fixture.childNodes[0];
 		const text = div.childNodes[0];
@@ -503,7 +502,7 @@ export default function() {
 		t.ok( comment === _comment );
 	});
 
-	test( `triples that don't match existing content are still rendered correctly`, t => {
+	QUnit.test( `triples that don't match existing content are still rendered correctly`, t => {
 		fixture.innerHTML = '<div>nope</div>sure';
 
 		new Ractive({
@@ -518,7 +517,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div>yep</div>still yep' );
 	});
 
-	test( `enhancement works with anchors`, t => {
+	QUnit.test( `enhancement works with anchors`, t => {
 		fixture.innerHTML = '<div>foo</div>';
 		const div = fixture.childNodes[0];
 		const text = div.childNodes[0];

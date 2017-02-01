@@ -1,10 +1,9 @@
-import { test } from 'qunit';
 import { initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'render/components.js' );
 
-	test( 'Components are rendered in the correct place', t => {
+	QUnit.test( 'Components are rendered in the correct place', t => {
 		const Component = Ractive.extend({
 			template: '<p>this is a component!</p>'
 		});
@@ -18,7 +17,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<h2>Here is a component:</h2><p>this is a component!</p><p>(that was a component)</p>' );
 	});
 
-	test( 'Top-level sections in components are updated correctly', t => {
+	QUnit.test( 'Top-level sections in components are updated correctly', t => {
 		const Component = Ractive.extend({
 			template: '{{#foo}}foo is truthy{{/foo}}{{^foo}}foo is falsy{{/foo}}'
 		});
@@ -35,7 +34,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foo is truthy' );
 	});
 
-	test( 'Element order is maintained correctly with components with multiple top-level elements', t => {
+	QUnit.test( 'Element order is maintained correctly with components with multiple top-level elements', t => {
 		const Test = Ractive.extend({
 			template: '{{#bool}}TRUE{{/bool}}{{^bool}}FALSE{{/bool}}'
 		});
@@ -55,7 +54,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>before</p> FALSE <p>after</p>' );
 	});
 
-	test( 'Top-level list sections in components do not cause elements to be out of order (#412 regression)', t => {
+	QUnit.test( 'Top-level list sections in components do not cause elements to be out of order (#412 regression)', t => {
 		const Widget = Ractive.extend({
 			template: '{{#numbers:o}}<p>{{.}}</p>{{/numbers}}'
 		});
@@ -73,7 +72,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<h1>Names</h1><p>one</p><p>two</p><p>three</p><p>four</p>' );
 	});
 
-	test( 'An unless section in a component should still work with an ambiguous condition should still update (#2165)', t => {
+	QUnit.test( 'An unless section in a component should still work with an ambiguous condition should still update (#2165)', t => {
 		const cmp = Ractive.extend({
 			template: '{{#unless nope}}{{foo}}{{/unless}}'
 		});
@@ -89,7 +88,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'still' );
 	});
 
-	test( 'components should be able to resolve @index refs from their context', t => {
+	QUnit.test( 'components should be able to resolve @index refs from their context', t => {
 		const cmp = Ractive.extend({
 			template: '{{@index}}'
 		});
@@ -105,7 +104,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '012' );
 	});
 
-	test( 'resetting a nested component should find the correct anchor when rendering (#2695)', t => {
+	QUnit.test( 'resetting a nested component should find the correct anchor when rendering (#2695)', t => {
 		const cmp1 = Ractive.extend({
 			template: '<cmp/>',
 			components: {
@@ -128,7 +127,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'the second place' );
 	});
 
-	test( `decorators, transitions, and binding flags are ignored on components`, t => {
+	QUnit.test( `decorators, transitions, and binding flags are ignored on components`, t => {
 		const cmp = Ractive.extend({
 			template: 'yep'
 		});

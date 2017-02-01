@@ -1,11 +1,10 @@
-import { test } from 'qunit';
 import { fire } from 'simulant';
 import { initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'methods/transition.js' );
 
-	test( 'Transitions method', t => {
+	QUnit.test( 'Transitions method', t => {
 		const done = t.async();
 		t.expect(3);
 
@@ -38,7 +37,7 @@ export default function() {
 
 	// this test really likes to randomly fail on phantom
 	if ( !/phantom/i.test( navigator.userAgent ) ) {
-		test( 'Use transitions from event with implicit node', t => {
+		QUnit.test( 'Use transitions from event with implicit node', t => {
 			const done = t.async();
 			t.expect(2);
 

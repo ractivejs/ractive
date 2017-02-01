@@ -1,11 +1,10 @@
 /*global document, HTMLParagraphElement */
-import { test } from 'qunit';
 import { initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'render/elements.js' );
 
-	test( 'option element with custom selected logic works without error and correctly', t => {
+	QUnit.test( 'option element with custom selected logic works without error and correctly', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -23,7 +22,7 @@ export default function() {
 		t.equal( ractive.find('select').value , 2 );
 	});
 
-	test( 'element inside option is an error', t => {
+	QUnit.test( 'element inside option is an error', t => {
 		t.throws( () => {
 			new Ractive({
 				el: fixture,
@@ -32,7 +31,7 @@ export default function() {
 		}, /An <option> element cannot contain other elements \(encountered <blink>\)/ );
 	});
 
-	test( 'Input with uppercase tag name binds correctly', t => {
+	QUnit.test( 'Input with uppercase tag name binds correctly', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `<INPUT value='{{val}}'>{{val}}`,
@@ -44,7 +43,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<input>bar' );
 	});
 
-	test( 'Textarea is stringified correctly', t => {
+	QUnit.test( 'Textarea is stringified correctly', t => {
 		const ractive = new Ractive({
 			template: '<textarea value="123<div></div>"></textarea>'
 		});
@@ -52,7 +51,7 @@ export default function() {
 		t.equal( ractive.toHTML(), '<textarea>123&lt;div&gt;&lt;/div&gt;</textarea>' );
 	});
 
-	test( 'Wildcard proxy-events invalid on elements', t => {
+	QUnit.test( 'Wildcard proxy-events invalid on elements', t => {
 		t.expect( 1 );
 
 		t.throws( () => {
@@ -65,7 +64,7 @@ export default function() {
 	});
 
 	if ( 'draggable' in document.createElement( 'div' ) ) {
-		test( 'draggable attribute is handled correctly (#1780)', t => {
+		QUnit.test( 'draggable attribute is handled correctly (#1780)', t => {
 			const ractive = new Ractive({
 				el: fixture,
 				template: '<div draggable="true" /><div draggable="false" /><div draggable="" /><div draggable /><div draggable="{{true}}" /><div draggable="{{false}}" /><div draggable="{{empty}}" />'
@@ -88,7 +87,7 @@ export default function() {
 	}
 
 	if ( 'registerElement' in document ) {
-		test( '"is" attribute is handled correctly for custom elements (#2043)', t => {
+		QUnit.test( '"is" attribute is handled correctly for custom elements (#2043)', t => {
 			document.registerElement( 'x-foo', {
 				prototype: Object.create( HTMLParagraphElement.prototype, {
 					testMember: { value: true }
@@ -106,7 +105,7 @@ export default function() {
 		});
 	}
 
-	test( 'svg elements contributed by a component should have the correct namespace - #2621', t => {
+	QUnit.test( 'svg elements contributed by a component should have the correct namespace - #2621', t => {
 		t.expect( 7 );
 		const svg = 'http://www.w3.org/2000/svg';
 		const point = Ractive.extend({

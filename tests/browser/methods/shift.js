@@ -1,11 +1,10 @@
-import { test } from 'qunit';
 import { initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'methods/shift.js' );
 
 	[ true, false ].forEach( modifyArrays => {
-		test( `ractive.shift() (modifyArrays: ${modifyArrays})`, t => {
+		QUnit.test( `ractive.shift() (modifyArrays: ${modifyArrays})`, t => {
 			t.expect( 2 );
 
 			const done = t.async();
@@ -32,7 +31,7 @@ export default function() {
 		});
 	});
 
-	test( 'shifting an empty array', t => {
+	QUnit.test( 'shifting an empty array', t => {
 		t.expect( 0 );
 
 		const ractive = new Ractive({

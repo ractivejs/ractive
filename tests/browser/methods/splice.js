@@ -1,4 +1,3 @@
-import { test } from 'qunit';
 import { fire } from 'simulant';
 import { initModule } from '../../helpers/test-config';
 
@@ -6,7 +5,7 @@ export default function() {
 	initModule( 'methods/splice.js' );
 
 	[ true, false ].forEach( modifyArrays => {
-		test( `ractive.splice() (modifyArrays: ${modifyArrays})`, t => {
+		QUnit.test( `ractive.splice() (modifyArrays: ${modifyArrays})`, t => {
 			t.expect( 5 );
 
 			const done = t.async();
@@ -44,7 +43,7 @@ export default function() {
 		});
 	});
 
-	test( 'Unbound sections disregard splice instructions (#967)', t => {
+	QUnit.test( 'Unbound sections disregard splice instructions (#967)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -62,7 +61,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<ul><li>a: ac</li><li>c: ac</li></ul>' );
 	});
 
-	test( 'splice with net additions should make all indices greater than start update', t => {
+	QUnit.test( 'splice with net additions should make all indices greater than start update', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{foo.2}}',
@@ -75,7 +74,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '1' );
 	});
 
-	test( 'splice with one argument (#1943)', t => {
+	QUnit.test( 'splice with one argument (#1943)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items}}{{this}}{{/}}',
@@ -89,7 +88,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '1' );
 	});
 
-	test( 'a nested object iteration should rebind with an outer array iteration when it is spliced (#2321)', t => {
+	QUnit.test( 'a nested object iteration should rebind with an outer array iteration when it is spliced (#2321)', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each arr}}{{#each .obj:k}}{{k}}-{{.}}{{/each}}{{/each}}`,
@@ -103,7 +102,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'name-Marty' );
 	});
 
-	test( 'splicing should not make node index info get out of sync (#2400)', t => {
+	QUnit.test( 'splicing should not make node index info get out of sync (#2400)', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each arr:i}}<span>{{.}}</span>{{/each}}`,
@@ -115,7 +114,7 @@ export default function() {
 		t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[1] ).get( 'i' ), 1 );
 	});
 
-	test( 'splicing should not make event index info get out of sync (#2399)', t => {
+	QUnit.test( 'splicing should not make event index info get out of sync (#2399)', t => {
 		t.expect( 2 );
 
 		const r = new Ractive({
@@ -134,7 +133,7 @@ export default function() {
 		fire( r.findAll( 'span' )[1], 'click' );
 	});
 
-	test( 'splicing with an undefined index should be equivalent to 0', t => {
+	QUnit.test( 'splicing with an undefined index should be equivalent to 0', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each arr}}{{.}}{{/each}}`,
@@ -147,7 +146,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '654' );
 	});
 
-	test( 'splicing arrays that have been updated out of band doesn\'t create duplicates', t => {
+	QUnit.test( 'splicing arrays that have been updated out of band doesn\'t create duplicates', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each list}}{{.name}}{{/each}}`,
@@ -161,7 +160,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'cab' );
 	});
 
-	test( 'splicing a mapped array properly shuffles the mapped model (#2659)', t => {
+	QUnit.test( 'splicing a mapped array properly shuffles the mapped model (#2659)', t => {
 		const cmp = Ractive.extend({
 			template: '{{#each list}}<p>{{.name}} {{.sel ? "[x]" : "[ ]"}}</p>{{/each}}',
 			onrender () {

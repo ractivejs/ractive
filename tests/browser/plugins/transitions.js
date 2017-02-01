@@ -1,4 +1,3 @@
-import { test } from 'qunit';
 import { afterEach, beforeEach, hasUsableConsole, onWarn, initModule } from '../../helpers/test-config';
 
 export default function() {
@@ -34,7 +33,7 @@ export default function() {
 
 	initModule( 'plugins/transitions.js' );
 
-	test( 'Animated style', t => {
+	QUnit.test( 'Animated style', t => {
 		t.expect( 2 );
 
 		const done = t.async();
@@ -66,7 +65,7 @@ export default function() {
 		});
 	});
 
-	test( 'Elements containing components with outroing elements do not detach until transitions are complete', t => {
+	QUnit.test( 'Elements containing components with outroing elements do not detach until transitions are complete', t => {
 		const done = t.async();
 
 		let shouldHaveCompleted;
@@ -97,7 +96,7 @@ export default function() {
 		});
 	});
 
-	test( 'noIntro option prevents intro transition', t => {
+	QUnit.test( 'noIntro option prevents intro transition', t => {
 		const done = t.async();
 
 		t.expect( 1 );
@@ -118,7 +117,7 @@ export default function() {
 		});
 	});
 
-	test( 'noOutro option prevents outro transition', t => {
+	QUnit.test( 'noOutro option prevents outro transition', t => {
 		const done = t.async();
 
 		t.expect( 1 );
@@ -140,7 +139,7 @@ export default function() {
 		r.teardown();
 	});
 
-	test( 'noIntro option prevents intro transition when el is initially undefined', t => {
+	QUnit.test( 'noIntro option prevents intro transition when el is initially undefined', t => {
 		t.expect( 1 );
 
 		const done = t.async();
@@ -162,7 +161,7 @@ export default function() {
 		ractive.render( fixture );
 	});
 
-	test( 'noIntro on a rendering parent instance prevents intro transition on component', t => {
+	QUnit.test( 'noIntro on a rendering parent instance prevents intro transition on component', t => {
 		t.expect( 1 );
 		const done = t.async();
 
@@ -188,7 +187,7 @@ export default function() {
 		});
 	});
 
-	test( `noIntro on already rendered parent instance doesn't affect components`, t => {
+	QUnit.test( `noIntro on already rendered parent instance doesn't affect components`, t => {
 		t.expect( 2 );
 		const done = t.async();
 
@@ -215,7 +214,7 @@ export default function() {
 		});
 	});
 
-	test( `noOutro on still rendered parent instance doesn't affect components`, t => {
+	QUnit.test( `noOutro on still rendered parent instance doesn't affect components`, t => {
 		t.expect( 2 );
 		const done = t.async();
 
@@ -242,7 +241,7 @@ export default function() {
 		});
 	});
 
-	test( 'ractive.transitionsEnabled false prevents all transitions', t => {
+	QUnit.test( 'ractive.transitionsEnabled false prevents all transitions', t => {
 		t.expect( 1 );
 
 		const done = t.async();
@@ -273,7 +272,7 @@ export default function() {
 	});
 
 	if ( hasUsableConsole ) {
-		test( 'Missing transition functions do not cause errors, but do console.warn', t => {
+		QUnit.test( 'Missing transition functions do not cause errors, but do console.warn', t => {
 			t.expect( 1 );
 
 			const done = t.async();
@@ -292,7 +291,7 @@ export default function() {
 		});
 	}
 
-	test( 'Transitions work the first time (#916)', t => {
+	QUnit.test( 'Transitions work the first time (#916)', t => {
 		// we're using line height for testing because it's a numerical CSS property that IE8 supports
 		const done = t.async();
 
@@ -323,7 +322,7 @@ export default function() {
 		t.equal( div.style.lineHeight, 0 );
 	});
 
-	test( 'Nodes are detached synchronously if there are no outro transitions (#856)', t => {
+	QUnit.test( 'Nodes are detached synchronously if there are no outro transitions (#856)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#if foo}}<div test-in>intro</div>{{else}}<div class="target">no outro</div>{{/if}}'
@@ -336,7 +335,7 @@ export default function() {
 		t.ok( !fixture.contains( target ) );
 	});
 
-	test( 'Regression test for #1157', t => {
+	QUnit.test( 'Regression test for #1157', t => {
 		const done = t.async();
 
 		new Ractive({
@@ -351,7 +350,7 @@ export default function() {
 		});
 	});
 
-	test( 'Parameter objects are not polluted (#1239)', t => {
+	QUnit.test( 'Parameter objects are not polluted (#1239)', t => {
 		const done = t.async();
 
 		t.expect(3);
@@ -382,7 +381,7 @@ export default function() {
 		t.notEqual( objects[0], objects[1] );
 	});
 
-	test( 'processParams extends correctly if no default provided (#2446)', t => {
+	QUnit.test( 'processParams extends correctly if no default provided (#2446)', t => {
 		new Ractive({
 			el: fixture,
 			template: '<p foo-in="{ duration: 1000 }"></p>',
@@ -397,7 +396,7 @@ export default function() {
 		});
 	});
 
-	test( 'An intro will be aborted if a corresponding outro begins before it completes', t => {
+	QUnit.test( 'An intro will be aborted if a corresponding outro begins before it completes', t => {
 		let tooLate;
 
 		const done = t.async();
@@ -428,7 +427,7 @@ export default function() {
 		}, 200 );
 	});
 
-	test( 'processParams extends correctly if no default provided (#2446)', t => {
+	QUnit.test( 'processParams extends correctly if no default provided (#2446)', t => {
 		new Ractive({
 			el: fixture,
 			template: '<p foo-in="{ duration: 1000 }"></p>',
@@ -443,7 +442,7 @@ export default function() {
 		});
 	});
 
-	test( 'Conditional sections that become truthy are not rendered if a parent simultaneously becomes falsy (#1483)', t => {
+	QUnit.test( 'Conditional sections that become truthy are not rendered if a parent simultaneously becomes falsy (#1483)', t => {
 		let transitionRan = false;
 		const done = t.async();
 		t.expect(1);
@@ -475,7 +474,7 @@ export default function() {
 		t.ok( !transitionRan );
 	});
 
-	test( 'Nodes that are affected by deferred observers should actually get dettached (#2310)', t => {
+	QUnit.test( 'Nodes that are affected by deferred observers should actually get dettached (#2310)', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#if bar}}<span>baz</span>{{/if}}`,
@@ -492,7 +491,7 @@ export default function() {
 	});
 
 	if ( !/phantom/i.test( navigator.userAgent ) ) {
-		test( 'Nodes not affected by a transition should be immediately handled (#2027)', t => {
+		QUnit.test( 'Nodes not affected by a transition should be immediately handled (#2027)', t => {
 			const done = t.async();
 			t.expect( 3 );
 
@@ -513,7 +512,7 @@ export default function() {
 		});
 	}
 
-	test( 'Context of transition function is current instance', t => {
+	QUnit.test( 'Context of transition function is current instance', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive({
@@ -531,7 +530,7 @@ export default function() {
 		ractive.set( 'visible', true );
 	});
 
-	test( 'intro transitions can be conditional', t => {
+	QUnit.test( 'intro transitions can be conditional', t => {
 		let count = 0;
 		const r = new Ractive({
 			el: fixture,
@@ -554,7 +553,7 @@ export default function() {
 		t.equal( count, 2 );
 	});
 
-	test( 'outro transitions can be conditional', t => {
+	QUnit.test( 'outro transitions can be conditional', t => {
 		let count = 0;
 		const r = new Ractive({
 			el: fixture,
@@ -580,7 +579,7 @@ export default function() {
 		t.equal( count, 2 );
 	});
 
-	test( 'intro-outro transitions can be conditional', t => {
+	QUnit.test( 'intro-outro transitions can be conditional', t => {
 		let count = 0;
 		const r = new Ractive({
 			el: fixture,
@@ -606,7 +605,7 @@ export default function() {
 		t.equal( count, 4 );
 	});
 
-	test( 'intros can be named attributes', t => {
+	QUnit.test( 'intros can be named attributes', t => {
 		let count = 0;
 		const r = new Ractive({
 			el: fixture,
@@ -626,7 +625,7 @@ export default function() {
 		t.equal( count, 2 );
 	});
 
-	test( 'outros can be named attributes', t => {
+	QUnit.test( 'outros can be named attributes', t => {
 		let count = 0;
 		const r = new Ractive({
 			el: fixture,
@@ -647,7 +646,7 @@ export default function() {
 		t.equal( count, 2 );
 	});
 
-	test( 'intro-outros can be named attributes', t => {
+	QUnit.test( 'intro-outros can be named attributes', t => {
 		let count = 0;
 		const r = new Ractive({
 			el: fixture,
@@ -671,7 +670,7 @@ export default function() {
 	});
 
 
-	test( 'named attribute transitions can have normal expression args', t => {
+	QUnit.test( 'named attribute transitions can have normal expression args', t => {
 		let count = 0;
 		new Ractive({
 			el: fixture,
@@ -690,7 +689,7 @@ export default function() {
 		t.equal( count, 1 );
 	});
 
-	test( `transitions have a timeout safety net (#2463)`, t => {
+	QUnit.test( `transitions have a timeout safety net (#2463)`, t => {
 		const done = t.async();
 		t.expect( 1 );
 
@@ -725,7 +724,7 @@ export default function() {
 		});
 	});
 
-	test( `transition safety net doesn't break with manual render/unrender`, t => {
+	QUnit.test( `transition safety net doesn't break with manual render/unrender`, t => {
 		const done = t.async();
 		let count = 0;
 		let r;
@@ -773,7 +772,7 @@ export default function() {
 		}, 400);
 	});
 
-	test( `transition args can change (#2818)`, t => {
+	QUnit.test( `transition args can change (#2818)`, t => {
 		let count = 0;
 		function go ( trans ) {
 			count++;
@@ -794,7 +793,7 @@ export default function() {
 		t.equal( count, 2 );
 	});
 
-	test( `intro transitions don't leave styles hanging around`, t => {
+	QUnit.test( `intro transitions don't leave styles hanging around`, t => {
 		const done = t.async();
 
 		function go ( trans ) {
@@ -822,7 +821,7 @@ export default function() {
 		});
 	});
 
-	test( `transitions that are nested: false and at root fire`, t => {
+	QUnit.test( `transitions that are nested: false and at root fire`, t => {
 		const done = t.async();
 		let count = 0;
 
@@ -842,7 +841,7 @@ export default function() {
 		});
 	});
 
-	test( `transitions that are nested: false don't fire when they aren't the root`, t => {
+	QUnit.test( `transitions that are nested: false don't fire when they aren't the root`, t => {
 		const done = t.async();
 		let count = 0;
 
@@ -862,7 +861,7 @@ export default function() {
 		});
 	});
 
-	test( `transitions can be defaulted to nested: false at the instance level with nestedTransitions`, t => {
+	QUnit.test( `transitions can be defaulted to nested: false at the instance level with nestedTransitions`, t => {
 		const done = t.async();
 		let count = 0;
 
@@ -883,7 +882,7 @@ export default function() {
 		});
 	});
 
-	test( `transitions that are nested: true override their instance nestedTransitions setting`, t => {
+	QUnit.test( `transitions that are nested: true override their instance nestedTransitions setting`, t => {
 		const done = t.async();
 		let count = 0;
 
@@ -904,7 +903,7 @@ export default function() {
 		});
 	});
 
-	test( `transitions look to the nearest set nested setting if neither they nor their instance have an explicit setting`, t => {
+	QUnit.test( `transitions look to the nearest set nested setting if neither they nor their instance have an explicit setting`, t => {
 		const done = t.async();
 		let count = 0;
 
@@ -930,7 +929,7 @@ export default function() {
 		});
 	});
 
-	test( `transition params normalization`, t => {
+	QUnit.test( `transition params normalization`, t => {
 		const done = t.async();
 		const r = new Ractive({
 			template: '<div go-in />',
@@ -955,7 +954,7 @@ export default function() {
 		r.render( fixture ).then( done );
 	});
 
-	test( `outro transitions isOutro === false (#2852)`, t => {
+	QUnit.test( `outro transitions isOutro === false (#2852)`, t => {
 		const done = t.async();
 		t.expect( 2 );
 
@@ -974,7 +973,7 @@ export default function() {
 		r.toggle( 'foo' ).then( done );
 	});
 
-	test( `conditional transitions find their parent element (#2815)`, t => {
+	QUnit.test( `conditional transitions find their parent element (#2815)`, t => {
 		const done = t.async();
 
 		let count = 0;
@@ -1024,7 +1023,7 @@ export default function() {
 		});
 	});
 
-	test( `js timing functions can be used with css transitionable properties (#2152)`, t => {
+	QUnit.test( `js timing functions can be used with css transitionable properties (#2152)`, t => {
 		const done = t.async();
 
 		let called = false;

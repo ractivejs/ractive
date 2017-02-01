@@ -1,11 +1,10 @@
-import { test } from 'qunit';
 import Model from '../../helpers/Model';
 import { initModule, onWarn } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'components/data-and-mappings.js' );
 
-	test( 'Static data is propagated from parent to child', t => {
+	QUnit.test( 'Static data is propagated from parent to child', t => {
 		const Widget = Ractive.extend({
 			template: '<p>{{foo}}</p>'
 		});
@@ -22,7 +21,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>blah</p>' );
 	});
 
-	test( 'Static object data is propagated from parent to child', t => {
+	QUnit.test( 'Static object data is propagated from parent to child', t => {
 		const Widget = Ractive.extend({
 			template: '<p>{{foo.bar}}</p>'
 		});
@@ -42,7 +41,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>bah</p>' );
 	});
 
-	test( 'Dynamic data is propagated from parent to child, and (two-way) bindings are created', t => {
+	QUnit.test( 'Dynamic data is propagated from parent to child, and (two-way) bindings are created', t => {
 		const Widget = Ractive.extend({
 			template: '<p>{{foo}}</p>'
 		});
@@ -70,7 +69,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>shmup</p>' );
 	});
 
-	test( 'Missing data on the parent is added when set', t => {
+	QUnit.test( 'Missing data on the parent is added when set', t => {
 		const Widget = Ractive.extend({
 			template: '<p>{{foo}}</p>'
 		});
@@ -88,7 +87,7 @@ export default function() {
 
 	});
 
-	test( 'Data is synced as soon as an unresolved mapping is resolved', t => {
+	QUnit.test( 'Data is synced as soon as an unresolved mapping is resolved', t => {
 		onWarn( () => {} ); // suppress
 
 		const ractive = new Ractive({
@@ -118,7 +117,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>foo: false</p>' );
 	});
 
-	test( 'Data on the child is propagated to the parent, if it is not missing', t => {
+	QUnit.test( 'Data on the child is propagated to the parent, if it is not missing', t => {
 		const Widget = Ractive.extend({
 			template: '<p>{{foo}}{{bar}}</p>',
 			data: {
@@ -137,7 +136,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>yes</p>' );
 	});
 
-	test( 'Parent data overrides child data during child model creation', t => {
+	QUnit.test( 'Parent data overrides child data during child model creation', t => {
 		const Widget = Ractive.extend({
 			template: '<p>{{foo}}{{bar}}</p>',
 			data: {
@@ -166,7 +165,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>unodos</p>' );
 	});
 
-	test( 'Regression test for #317', t => {
+	QUnit.test( 'Regression test for #317', t => {
 		const Widget = Ractive.extend({
 			template: '<ul>{{#items:i}}<li>{{i}}: {{.}}</li>{{/items}}</ul>'
 		});
@@ -209,7 +208,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<ul><li>0: h</li><li>1: d</li></ul><p>h d</p>' );
 	});
 
-	test( 'Components can access outer data context, in the same way JavaScript functions can access outer lexical scope', t => {
+	QUnit.test( 'Components can access outer data context, in the same way JavaScript functions can access outer lexical scope', t => {
 		const Widget = Ractive.extend({
 			template: '<p>{{foo || "missing"}}</p>',
 			isolated: false
@@ -237,7 +236,7 @@ export default function() {
 	});
 
 
-	test( 'Nested components can access outer-most data context', t => {
+	QUnit.test( 'Nested components can access outer-most data context', t => {
 		const GrandWidget = Ractive.extend({
 			template: 'hello {{world}}',
 			isolated: false
@@ -261,7 +260,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'hello venus' );
 	});
 
-	test( 'Nested components registered at global Ractive can access outer-most data context', t => {
+	QUnit.test( 'Nested components registered at global Ractive can access outer-most data context', t => {
 		Ractive.components.Widget = Ractive.extend({
 			template: '<GrandWidget/>',
 			isolated: false
@@ -285,7 +284,7 @@ export default function() {
 		delete Ractive.components.GrandWidget;
 	});
 
-	test( 'mixed use of same component parameters across different instances', t => {
+	QUnit.test( 'mixed use of same component parameters across different instances', t => {
 		const Widget = Ractive.extend({
 			template: '{{foo}}'
 		});
@@ -312,7 +311,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'one one' );
 	});
 
-	test( 'Component data passed but non-existent on parent data', t => {
+	QUnit.test( 'Component data passed but non-existent on parent data', t => {
 		const Widget = Ractive.extend({
 			template: '{{exists}}{{missing}}'
 		});
@@ -327,7 +326,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'exists' );
 	});
 
-	test( 'Some component data not included in invocation parameters', t => {
+	QUnit.test( 'Some component data not included in invocation parameters', t => {
 		const Widget = Ractive.extend({
 			template: '{{exists}}{{missing}}'
 		});
@@ -342,7 +341,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'exists' );
 	});
 
-	test( 'Some component data not included, with implicit sibling', t => {
+	QUnit.test( 'Some component data not included, with implicit sibling', t => {
 		const Widget = Ractive.extend({
 			template: '{{exists}}{{also}}{{missing}}'
 		});
@@ -361,7 +360,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'existsalso' );
 	});
 
-	test( 'Isolated components do not interact with ancestor viewmodels', t => {
+	QUnit.test( 'Isolated components do not interact with ancestor viewmodels', t => {
 		const Widget = Ractive.extend({
 			template: '{{foo}}.{{bar}}',
 			isolated: true
@@ -380,7 +379,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'you should see me.' );
 	});
 
-	test( 'isolated components do not interact with ancestor viewmodels via API (#2335)', t => {
+	QUnit.test( 'isolated components do not interact with ancestor viewmodels via API (#2335)', t => {
 		const cmp = Ractive.extend({
 			template: '{{foo}}',
 			oninit() {
@@ -399,7 +398,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
 
-	test( 'Children do not nuke parent data when inheriting from ancestors', t => {
+	QUnit.test( 'Children do not nuke parent data when inheriting from ancestors', t => {
 		const Widget = Ractive.extend({
 			template: '<p>value: {{thing.value}}</p>'
 		});
@@ -425,7 +424,7 @@ export default function() {
 		t.deepEqual( ractive.get( 'things' ), { one: { value: 1 }, two: { value: 2 }, three: { value: 3 } } );
 	});
 
-	test( 'Uninitialised implicit dependencies of evaluators that use inherited functions are handled', t => {
+	QUnit.test( 'Uninitialised implicit dependencies of evaluators that use inherited functions are handled', t => {
 		const Widget = Ractive.extend({
 			template: '{{status()}}',
 			isolated: false
@@ -451,7 +450,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'bar-bar' );
 	});
 
-	test( 'foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{foo}}"/>', t => {
+	QUnit.test( 'foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{foo}}"/>', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<One foo="{{foo}}"/><Two foo="{{foo}}"/>',
@@ -472,7 +471,7 @@ export default function() {
 	});
 
 
-	test( 'qux.foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{foo}}"/>', t => {
+	QUnit.test( 'qux.foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{foo}}"/>', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			data: { qux: { foo: {} } },
@@ -496,7 +495,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>qux</p><p>qux</p>' );
 	});
 
-	test( 'Index references propagate down to non-isolated components', t => {
+	QUnit.test( 'Index references propagate down to non-isolated components', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -518,7 +517,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
 	});
 
-	test( 'Index references passed via @index propagate down to non-isolated components', t => {
+	QUnit.test( 'Index references passed via @index propagate down to non-isolated components', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -539,7 +538,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
 	});
 
-	test( 'Reference based fragment parameters update components', t => {
+	QUnit.test( 'Reference based fragment parameters update components', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<Widget answer="{{foo}} and {{bar}}"/>',
@@ -557,7 +556,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'rice and more rice' );
 	});
 
-	test( 'Data will propagate up through multiple component boundaries (#520)', t => {
+	QUnit.test( 'Data will propagate up through multiple component boundaries (#520)', t => {
 		const Inner = Ractive.extend({
 			template: '{{input.value}}',
 			update ( val ) {
@@ -588,7 +587,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '2' );
 	});
 
-	test( 'Component in template has data function called on initialize', t => {
+	QUnit.test( 'Component in template has data function called on initialize', t => {
 		const data = { foo: 'bar' } ;
 
 		const Widget = Ractive.extend({
@@ -627,7 +626,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'barbam' );
 	});*/
 
-	test( 'Component in template with dynamic template function', t => {
+	QUnit.test( 'Component in template with dynamic template function', t => {
 		const Widget = Ractive.extend({
 			template () {
 				return this.get( 'useFoo' ) ? '{{foo}}' : '{{fizz}}';
@@ -644,7 +643,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'bar' );
 	});
 
-	test( 'Inline component attributes are passed through correctly', t => {
+	QUnit.test( 'Inline component attributes are passed through correctly', t => {
 		const Widget = Ractive.extend({
 			template: '<p>{{foo.bar}}</p><p>{{typeof answer}}: {{answer}}</p><p>I got {{string}} but type coercion ain\'t one</p><p>{{dynamic.yes}}</p>'
 		});
@@ -662,7 +661,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>10</p><p>number: 42</p><p>I got 99 problems but type coercion ain\'t one</p><p>maybe</p>' );
 	});
 
-	test( 'Inline component attributes update the value of bindings pointing to them even if they are old values (#681)', t => {
+	QUnit.test( 'Inline component attributes update the value of bindings pointing to them even if they are old values (#681)', t => {
 		const Widget = Ractive.extend({
 			template: '{{childdata}}'
 		});
@@ -683,7 +682,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'old - old' );
 	});
 
-	test( 'Insane variable shadowing bug doesn\'t appear (#710)', t => {
+	QUnit.test( 'Insane variable shadowing bug doesn\'t appear (#710)', t => {
 		const List = Ractive.extend({
 			template: `
 				{{#each items:i}}
@@ -712,7 +711,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>0:</p><p>1:0</p><p>2:0</p>' );
 	});
 
-	test( 'Component bindings propagate the underlying value in the case of adaptors (#945)', t => {
+	QUnit.test( 'Component bindings propagate the underlying value in the case of adaptors (#945)', t => {
 		const Widget = Ractive.extend({
 			adapt: [ Model.adaptor ],
 			template: '{{#model}}Title: {{title}}{{/model}}'
@@ -731,7 +730,7 @@ export default function() {
 		t.ok( ractive.get( 'model' ) instanceof Model );
 	});
 
-	test( 'Implicit bindings are created at the highest level possible (#960)', t => {
+	QUnit.test( 'Implicit bindings are created at the highest level possible (#960)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<Widget/>',
@@ -754,7 +753,7 @@ export default function() {
 		t.equal( ractive.get( 'person' ), widget.get( 'person' ) );
 	});
 
-	test( 'Implicit bindings involving context (#975)', t => {
+	QUnit.test( 'Implicit bindings involving context (#975)', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{#context}}<Widget/>{{/}}',
@@ -774,7 +773,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'works? yes' );
 	});
 
-	test( 'Reference expressions default to two-way binding (#996)', t => {
+	QUnit.test( 'Reference expressions default to two-way binding (#996)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -813,7 +812,7 @@ export default function() {
 		t.deepEqual( JSON.parse( output.innerHTML ), [{ name: 'Brian', age: 54 }, { name: 'Angela', age: 30 }] );
 	});
 
-	test( 'Data that does not exist in a parent context binds to the current instance on set (#1205)', t => {
+	QUnit.test( 'Data that does not exist in a parent context binds to the current instance on set (#1205)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<Widget/><Widget/>',
@@ -829,7 +828,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>title:foo</p><p>title:</p>' );
 	});
 
-	test( 'Inter-component bindings can be created via this.get() and this.observe(), not just through templates', t => {
+	QUnit.test( 'Inter-component bindings can be created via this.get() and this.observe(), not just through templates', t => {
 		const Widget = Ractive.extend({
 			template: '<p>message: {{proxy}}</p>',
 			oninit () {
@@ -854,7 +853,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>message: goodbye</p>' );
 	});
 
-	test( 'Sibling components do not unnessarily update on refinement update of data. (#1293)', t => {
+	QUnit.test( 'Sibling components do not unnessarily update on refinement update of data. (#1293)', t => {
 		let noCall = false;
 		let errored = false;
 
@@ -905,7 +904,7 @@ export default function() {
 		t.ok( !errored );
 	});
 
-	test( 'Component bindings respect smart updates (#1209)', t => {
+	QUnit.test( 'Component bindings respect smart updates (#1209)', t => {
 		const intros = {};
 		const outros = {};
 
@@ -941,7 +940,7 @@ export default function() {
 		t.deepEqual( outros, { a: 1, b: 1 });
 	});
 
-	test( 'Multiple related values propagate across component boundaries (#1373)', t => {
+	QUnit.test( 'Multiple related values propagate across component boundaries (#1373)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<Tweedle dee="{{dee}}" dum="{{dum}}"/>',
@@ -964,7 +963,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'forget quarrel' );
 	});
 
-	test( 'Components unbind their resolvers while they are unbinding (#1428)', t => {
+	QUnit.test( 'Components unbind their resolvers while they are unbinding (#1428)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -991,7 +990,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'john jacob jingleheimerschmidt' );
 	});
 
-	test( 'Components may bind to the parent root (#1442)', t => {
+	QUnit.test( 'Components may bind to the parent root (#1442)', t => {
 		new Ractive({
 			el: fixture,
 			template: '<Foo data="{{.}}" />',
@@ -1006,7 +1005,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foo!' );
 	});
 
-	test( 'Mappings with reference expressions that change bind correctly', t => {
+	QUnit.test( 'Mappings with reference expressions that change bind correctly', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<Widget foo="{{a[p]}}"/>',
@@ -1026,7 +1025,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'c' );
 	});
 
-	test( 'Mappings with upstream reference expressions that change bind correctly', t => {
+	QUnit.test( 'Mappings with upstream reference expressions that change bind correctly', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#a[p]}}<Widget foo="{{bar}}"/>{{/a}}',
@@ -1093,7 +1092,7 @@ export default function() {
 		t.ok( 'bat' in cmp );
 	});*/
 
-	test( 'Multiple levels of mappings work', t => {
+	QUnit.test( 'Multiple levels of mappings work', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{a}}-{{b}}-{{c}}:<C1 d="{{a}}" e="{{b}}" f="{{c}}"/>',
@@ -1118,7 +1117,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foo-bar-qux:foo-bar-qux:foo-bar-qux' );
 	});
 
-	test( 'Bindings, mappings, and upstream computations should not cause infinite mark recursion (#1526)', t => {
+	QUnit.test( 'Bindings, mappings, and upstream computations should not cause infinite mark recursion (#1526)', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{JSON.stringify(.)}}<widget foo="{{bar}}" /><input value="{{bar}}" />',
@@ -1128,7 +1127,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '{"bar":""}<input />' );
 	});
 
-	test( 'components should update their mappings on rebind to prevent weirdness with shuffling (#2147)', t => {
+	QUnit.test( 'components should update their mappings on rebind to prevent weirdness with shuffling (#2147)', t => {
 		const Item = Ractive.extend({
 			template: '{{value}}',
 			isolated: false
@@ -1165,7 +1164,7 @@ export default function() {
 		t.htmlEqual( ractive.find( '#s3' ).innerHTML, '12' );
 	});
 
-	test( 'updates to children of mappings update correctly in the parent (#2469)', t => {
+	QUnit.test( 'updates to children of mappings update correctly in the parent (#2469)', t => {
 		const cmp = Ractive.extend({
 			template: '{{#each foo.baz}}{{@key}}{{/each}}'
 		});
@@ -1189,7 +1188,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'b-' );
 	});
 
-	test( 'Interpolators based on computed mappings update correctly #2261)', t => {
+	QUnit.test( 'Interpolators based on computed mappings update correctly #2261)', t => {
 		const Component = Ractive.extend({
 			template: `{{active ? "active" : "inactive"}}`
 		});
@@ -1210,7 +1209,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'inactive active' );
 	});
 
-	test( 'conditional mapping updates correctly', t => {
+	QUnit.test( 'conditional mapping updates correctly', t => {
 		const cmp = Ractive.extend({
 			template: '{{foo}}'
 		});
@@ -1229,7 +1228,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'bar' );
 	});
 
-	test( 'conditional mappings unmap correctly', t => {
+	QUnit.test( 'conditional mappings unmap correctly', t => {
 		const cmp = Ractive.extend({
 			template: '{{foo}}'
 		});
@@ -1249,7 +1248,7 @@ export default function() {
 	});
 
 
-	test( 'root references inside a component should resolve to the component', t => {
+	QUnit.test( 'root references inside a component should resolve to the component', t => {
 		const cmp = Ractive.extend({
 			template: '{{#with foo.bar}}{{~/test}}{{/with}}',
 			data() {
@@ -1269,7 +1268,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
 
-	test( 'complex mappings continue to update with their dependencies', t => {
+	QUnit.test( 'complex mappings continue to update with their dependencies', t => {
 		const cmp = Ractive.extend({
 			template: '{{foo}}',
 			isolated: false
@@ -1290,7 +1289,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foo? yes' );
 	});
 
-	test( `complex mappings work with a single section (#2444)`, t => {
+	QUnit.test( `complex mappings work with a single section (#2444)`, t => {
 		const cmp = Ractive.extend({
 			template: '{{foo}}'
 		});
@@ -1305,7 +1304,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'hey is yep' );
 	});
 
-	test( 'complex mapped reference expressions update correctly', t => {
+	QUnit.test( 'complex mapped reference expressions update correctly', t => {
 		const cmp = Ractive.extend({
 			template: '<input value="{{foo[wat][yep + \'z\']}}" />',
 			data: {
@@ -1338,7 +1337,7 @@ export default function() {
 		t.equal( info.getBinding(), 'yep' );
 	});
 
-	test( `shuffling a link to a link to a list doesn't blow the stack (#2699)`, t => {
+	QUnit.test( `shuffling a link to a link to a list doesn't blow the stack (#2699)`, t => {
 		t.expect( 0 );
 
 		const cmp1 = Ractive.extend({ template: '<cmp2 list="{{list}}" />', isolated: false });
@@ -1354,7 +1353,7 @@ export default function() {
 		r.findComponent( 'cmp3' ).push( 'list', 1 );
 	});
 
-	test( `shuffling a link to a link to a list updates correctly`, t => {
+	QUnit.test( `shuffling a link to a link to a list updates correctly`, t => {
 		t.expect( 2 );
 
 		const cmp1 = Ractive.extend({ template: '<cmp2 list="{{list}}" />', isolated: false });
@@ -1373,7 +1372,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '21' );
 	});
 
-	test( `computed properties can be mapped`, t => {
+	QUnit.test( `computed properties can be mapped`, t => {
 		const cmp = Ractive.extend({ template: '{{foo.0}} {{foo.length}}' });
 		const r = new Ractive({
 			el: fixture,
@@ -1396,7 +1395,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '4 4' );
 	});
 
-	test( `parent data can be referenced via special model to avoid computations with get`, t => {
+	QUnit.test( `parent data can be referenced via special model to avoid computations with get`, t => {
 		const cmp = Ractive.extend({ template: '{{@.parent.data.foo}}' });
 		const r = new Ractive({
 			target: fixture,
@@ -1410,7 +1409,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'baz' );
 	});
 
-	test( `mapped functions are bound to the right root context (#2552)`, t => {
+	QUnit.test( `mapped functions are bound to the right root context (#2552)`, t => {
 		const cmp = Ractive.extend({
 			template: '{{foo()}}',
 			data: {
@@ -1430,7 +1429,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'baz' );
 	});
 
-	test( `component attributes can contain stringified jsonish values`, t => {
+	QUnit.test( `component attributes can contain stringified jsonish values`, t => {
 		const cmp = Ractive.extend();
 		const r = new Ractive({
 			target: fixture,

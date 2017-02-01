@@ -1,11 +1,10 @@
-import { test } from 'qunit';
 import { initModule } from '../helpers/test-config';
 import { fire } from 'simulant';
 
 export default function () {
 	initModule( 'attributes.js' );
 
-	test( `class attributes only update the classes in their content`, t => {
+	QUnit.test( `class attributes only update the classes in their content`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<span class="{{classes}}" />`,
@@ -19,7 +18,7 @@ export default function () {
 		t.equal( span.className, 'foo yep baz' );
 	});
 
-	test( `style attributes only update the styles in their content`, t => {
+	QUnit.test( `style attributes only update the styles in their content`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<span style="{{styles}}" />`,
@@ -35,7 +34,7 @@ export default function () {
 		t.equal( span.style.height, '87.5%' );
 	});
 
-	test( `style attributes update hyphenated properties correctly (#2796)`, t => {
+	QUnit.test( `style attributes update hyphenated properties correctly (#2796)`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<span style="background-color: green;" />`
@@ -45,7 +44,7 @@ export default function () {
 		t.equal( span.style.backgroundColor, 'green' );
 	});
 
-	test( `style attributes currectly detect the removal of a hyphenated property`, t => {
+	QUnit.test( `style attributes currectly detect the removal of a hyphenated property`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<span style="{{#if foo}}background-color: green;{{/if}}" />`,
@@ -58,7 +57,7 @@ export default function () {
 		t.equal( span.style.backgroundColor, '' );
 	});
 
-	test( `inline styles can be set with important priority`, t => {
+	QUnit.test( `inline styles can be set with important priority`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<span style-background-color="{{color}}" />`,
@@ -76,7 +75,7 @@ export default function () {
 		t.equal( span.style.getPropertyPriority( 'background-color' ), '' );
 	});
 
-	test( `style attributes don't try to use a boolean value (#2522)`, t => {
+	QUnit.test( `style attributes don't try to use a boolean value (#2522)`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<span style="{{#if foo}}{{else}}color: red{{/if}}" />`,
@@ -89,7 +88,7 @@ export default function () {
 		t.equal( span.style.color, '' );
 	});
 
-	test( `style attributes can correctly set an inline priority (#2794)`, t => {
+	QUnit.test( `style attributes can correctly set an inline priority (#2794)`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<span style="color: red !important" /><span style="color: green" />`,
@@ -103,7 +102,7 @@ export default function () {
 		t.equal( span2.style.color, 'green' );
 	});
 
-	test( `style attributes can be inline directives`, t => {
+	QUnit.test( `style attributes can be inline directives`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<span style-color="{{color}}" />`,
@@ -116,7 +115,7 @@ export default function () {
 		t.equal( span.style.color, 'green' );
 	});
 
-	test( `class attributes can be inline directives`, t => {
+	QUnit.test( `class attributes can be inline directives`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<span class-foo-bar="foo" class-fooBar="bar" />`
@@ -134,7 +133,7 @@ export default function () {
 		t.equal( span.className, '' );
 	});
 
-	test( `class attributes don't try to remove missing attributes (#2510)`, t => {
+	QUnit.test( `class attributes don't try to remove missing attributes (#2510)`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<span class="bar{{#if foo}} foo{{/if}}" />`,
@@ -150,7 +149,7 @@ export default function () {
 		t.equal( span.className, 'bar baz foo' );
 	});
 
-	test( `class attributes don't override class directives at render (#2565)`, t => {
+	QUnit.test( `class attributes don't override class directives at render (#2565)`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<span class-foo="true" class="bar" />`
@@ -159,7 +158,7 @@ export default function () {
 		t.equal( r.find( 'span' ).className, 'bar foo' );
 	});
 
-	test( `class directives and class attributes both contribute to toHTML (#2537)`, t => {
+	QUnit.test( `class directives and class attributes both contribute to toHTML (#2537)`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<span class-bip="true" class-nope="false" class="foo bar" class-bop="true" /><span class-foo="true" class-bar-baz="true" />`
@@ -168,7 +167,7 @@ export default function () {
 		t.equal( r.toHTML(), `<span class="foo bar bip bop"></span><span class="foo bar-baz"></span>` );
 	});
 
-	test( `style directives and style attributes both contribute to toHTML (#2537)`, t => {
+	QUnit.test( `style directives and style attributes both contribute to toHTML (#2537)`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<span style-text-decoration="underline" style="color: green" style-fontSize="12pt" /><span style-text-decoration="underline" style-fontSize="12pt" />`
@@ -177,7 +176,7 @@ export default function () {
 		t.equal( r.toHTML(), `<span style="text-decoration: underline; color: green; font-size: 12pt;"></span><span style="text-decoration: underline; font-size: 12pt;"></span>` );
 	});
 
-	test( `nested sections in an element tag don't create phantom empty attribute nodes (#2783)`, t => {
+	QUnit.test( `nested sections in an element tag don't create phantom empty attribute nodes (#2783)`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<div\n{{#if foo}}\n{{#if bar}}\ndata-foo="yep"\n{{/if}}\n{{/if}}></div>`,
@@ -189,7 +188,7 @@ export default function () {
 		t.ok( r.find( 'div' ).getAttribute( 'data-foo' ) === 'yep' );
 	});
 
-	test( `class directives may be boolean`, t => {
+	QUnit.test( `class directives may be boolean`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `<div class-foo class-bar />`
@@ -199,7 +198,7 @@ export default function () {
 		t.ok( div.getAttribute( 'class' ) === 'foo bar' );
 	});
 
-	test( `bind directives create the appropriate attribute binding`, t => {
+	QUnit.test( `bind directives create the appropriate attribute binding`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `<div bind-data-foo="bar" /><input bind-value="foo" />`,
@@ -223,7 +222,7 @@ export default function () {
 		t.equal( div.getAttribute( 'data-foo' ), 'sure' );
 	});
 
-	test( `bind directives as boolean use their name as the reference`, t => {
+	QUnit.test( `bind directives as boolean use their name as the reference`, t => {
 		const cmp = Ractive.extend({
 			template: '<span>{{foo}}</span>'
 		});

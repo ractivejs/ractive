@@ -1,11 +1,10 @@
-import { test } from 'qunit';
 import { fire } from 'simulant';
 import { initModule } from '../helpers/test-config';
 
 export default function() {
 	initModule( 'shuffling.js' );
 
-	test( 'Pattern observers on arrays fire correctly after mutations (mirror of test in observe.js)', t => {
+	QUnit.test( 'Pattern observers on arrays fire correctly after mutations (mirror of test in observe.js)', t => {
 		const ractive = new Ractive({
 			data: {
 				items: [ 'a', 'b', 'c' ]
@@ -40,7 +39,7 @@ export default function() {
 		t.ok( observedLengthChange );
 	});
 
-	test( '#if sections only render once when arrays are mutated', t => {
+	QUnit.test( '#if sections only render once when arrays are mutated', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#if list}}yes{{else}}no{{/if}}',
@@ -58,7 +57,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yes' );
 	});
 
-	test( 'an appropriate error is thrown when shuffling a non-array keypath', t => {
+	QUnit.test( 'an appropriate error is thrown when shuffling a non-array keypath', t => {
 		const r = new Ractive({
 			data: { foo: null }
 		});
@@ -68,7 +67,7 @@ export default function() {
 		}, /.*push.*non-array.*foo.*/i);
 	});
 
-	test( 'conditional attributes shuffle correctly', t => {
+	QUnit.test( 'conditional attributes shuffle correctly', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{#each items}}<div {{#if .cond}}foo="{{.bar}}"{{/if}}>yep</div>{{/each}}',
@@ -82,7 +81,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div foo="bat">yep</div><div foo="baz">yep</div>' );
 	});
 
-	test( 'yielders shuffle correctly', t => {
+	QUnit.test( 'yielders shuffle correctly', t => {
 		const cmp = Ractive.extend({
 			template: '{{yield}}'
 		});
@@ -101,7 +100,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'batbaz' );
 	});
 
-	test( 'event directives should shuffle correctly', t => {
+	QUnit.test( 'event directives should shuffle correctly', t => {
 		t.expect( 5 );
 
 		const r = new Ractive({
@@ -135,7 +134,7 @@ export default function() {
 		fire( r.find( '#div1' ), 'click' );
 	});
 
-	test( 'method event directives should shuffle correctly', t => {
+	QUnit.test( 'method event directives should shuffle correctly', t => {
 		t.expect( 9 );
 
 		let group = 0;
@@ -178,7 +177,7 @@ export default function() {
 		fire( r.find( '#div1' ), 'click' );
 	});
 
-	test( 'method event directives with no args should shuffle without throwing', t => {
+	QUnit.test( 'method event directives with no args should shuffle without throwing', t => {
 		t.expect( 0 );
 
 		const r = new Ractive({
@@ -190,7 +189,7 @@ export default function() {
 		r.unshift( 'items', 2 );
 	});
 
-	test( 'shuffling around a computation with an index ref', t => {
+	QUnit.test( 'shuffling around a computation with an index ref', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each items.slice(1)}}{{2 * @index}} {{@index * .}}|{{/each}}`,
@@ -206,7 +205,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '0 0|2 2|' );
 	});
 
-	test( 'shuffling a computation should not cause the computation to shuffle (#2267 #2269)', t => {
+	QUnit.test( 'shuffling a computation should not cause the computation to shuffle (#2267 #2269)', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each items.slice(1)}}{{.}}{{/each}}`,
@@ -220,7 +219,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '' );
 	});
 
-	test( 'shuffled sections that unrender at the same time should not leave orphans (#2277)', t => {
+	QUnit.test( 'shuffled sections that unrender at the same time should not leave orphans (#2277)', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#if items.length}}{{#each items}}{{.}}{{/each}}{{/if}}`,
@@ -234,7 +233,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '' );
 	});
 
-	test( `shuffled elements with attributes depending on template context (@index, etc) should have appropriately updated attributes (#2422)`, t => {
+	QUnit.test( `shuffled elements with attributes depending on template context (@index, etc) should have appropriately updated attributes (#2422)`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each foo}}<span data-wat="{{50 * @index}}">{{50 * @index}}</span>{{/each}}`,
@@ -254,7 +253,7 @@ export default function() {
 		for ( let i = 0; i < spans.length; i++ ) t.equal( spans[i].getAttribute( 'data-wat' ), spans[i].innerHTML );
 	});
 
-	test( 'computations with reference expressions that resolve to an array length should be marked on shuffle (#2541)', t => {
+	QUnit.test( 'computations with reference expressions that resolve to an array length should be marked on shuffle (#2541)', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{foo[v].length + 1}}',
@@ -269,7 +268,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '4' );
 	});
 
-	test( 'shuffled computations are updated with their shuffled member', t => {
+	QUnit.test( 'shuffled computations are updated with their shuffled member', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each list as item:i}}{{item + i}}{{/each}}`,
@@ -285,7 +284,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '211' );
 	});
 
-	test( 'children of shuffled reference expressions survive the shuffle', t => {
+	QUnit.test( 'children of shuffled reference expressions survive the shuffle', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{#each lists[name]}}{{.foo}}{{/each}}',
@@ -304,7 +303,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foobaz' );
 	});
 
-	test( 'reference expression members shuffle safely', t => {
+	QUnit.test( 'reference expression members shuffle safely', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{#each lists[name.0]}}{{.foo}}{{/each}}',
@@ -325,7 +324,7 @@ export default function() {
 	});
 
 	// TODO reinstate this in some form. Commented out for purposes of #1740
-	// test( `Array shuffling only adjusts context and doesn't tear stuff down to rebuild it`, t => {
+	//QUnit.test( `Array shuffling only adjusts context and doesn't tear stuff down to rebuild it`, t => {
 	// 	let ractive = new Ractive({
 	// 		el: fixture,
 	// 		template: '{{#each items}}{{.name}}{{.name + "_expr"}}{{.[~/name]}}<span {{#.name}}ok{{/}} class="{{.name}}">{{.name}}</span>{{/each}}',
@@ -358,7 +357,7 @@ export default function() {
 	// });
 
 	function removedElementsTest ( action, fn ) {
-		test( `Array elements removed via ${action} do not trigger updates in removed sections`, t => {
+		QUnit.test( `Array elements removed via ${action} do not trigger updates in removed sections`, t => {
 			let observed = false;
 			let errored = false;
 
@@ -395,7 +394,7 @@ export default function() {
 	removedElementsTest( 'splice', ractive => ractive.splice( 'options', 1, 1 ) );
 	removedElementsTest( 'merge', ractive => ractive.set( 'options', [ 'a', 'c' ], { shuffle: true } ) );
 
-	test( `mapped unresolved computations should shuffle correctly (#2602)`, t => {
+	QUnit.test( `mapped unresolved computations should shuffle correctly (#2602)`, t => {
 		const cmp = Ractive.extend({
 			template: '{{foo.baz || 1}}-{{foo.bar}}|'
 		});
@@ -414,7 +413,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '1-3|10-1|1-2|' );
 	});
 
-	test( 'pattern observers should shuffle correctly (#2601)', t => {
+	QUnit.test( 'pattern observers should shuffle correctly (#2601)', t => {
 		let count = 0;
 		const cmp = Ractive.extend({
 			template: '{{foo.bar}}',
@@ -447,7 +446,7 @@ export default function() {
 		t.equal( count, 1 );
 	});
 
-	test( 'components that are spliced out should not fire observers - #2604', t => {
+	QUnit.test( 'components that are spliced out should not fire observers - #2604', t => {
 		const cmp = Ractive.extend({
 			template: '<div />',
 			onconfig () {
@@ -471,7 +470,7 @@ export default function() {
 		t.equal( r.findAll( 'div' ).length, 3 );
 	});
 
-	test( 'components that are spliced out should not fire pattern observers - #2604', t => {
+	QUnit.test( 'components that are spliced out should not fire pattern observers - #2604', t => {
 		let count = 0;
 		const cmp = Ractive.extend({
 			template: '<div />',
@@ -497,7 +496,7 @@ export default function() {
 		t.equal( count, 4 );
 	});
 
-	test( 'shuffling around nested lists', t => {
+	QUnit.test( 'shuffling around nested lists', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{#each outer}}{{#each inner}}{{.foo}}{{../0.foo}}{{~/outer.0.inner.0.foo}}{{/each}}{{.inner.0.foo}}{{/each}}',
@@ -516,7 +515,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '999559911921913394393' );
 	});
 
-	test( 'observers shuffle correctly', t => {
+	QUnit.test( 'observers shuffle correctly', t => {
 		let val;
 		const r = new Ractive({
 			el: fixture,
@@ -535,7 +534,7 @@ export default function() {
 		t.equal( val, 4 );
 	});
 
-	test( 'pattern observers shuffle correctly', t => {
+	QUnit.test( 'pattern observers shuffle correctly', t => {
 		let val;
 		const r = new Ractive({
 			el: fixture,
@@ -554,7 +553,7 @@ export default function() {
 		t.equal( val, 4 );
 	});
 
-	test( 'mapped observers shuffle correctly', t => {
+	QUnit.test( 'mapped observers shuffle correctly', t => {
 		let rel;
 		let stat;
 		let relKey;
@@ -595,7 +594,7 @@ export default function() {
 		t.equal( stat, 4 );
 	});
 
-	test( 'mapped pattern observers shuffle correctly', t => {
+	QUnit.test( 'mapped pattern observers shuffle correctly', t => {
 		let rel;
 		let stat;
 		let relKey;
@@ -644,7 +643,7 @@ export default function() {
 		t.equal( stat, 4 );
 	});
 
-	test( 'decorators shuffle correctly', t => {
+	QUnit.test( 'decorators shuffle correctly', t => {
 		let inits = 0;
 		let upds = 0;
 		let tears = 0;
@@ -679,7 +678,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<span>7</span><span>3</span>' );
 	});
 
-	test( 'transitions shuffle correctly', t => {
+	QUnit.test( 'transitions shuffle correctly', t => {
 		const map = { 1: 0, 2: 0, undefined: 0 };
 		const r = new Ractive({
 			el: fixture,

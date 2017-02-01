@@ -1,12 +1,11 @@
 /*global window */
-import { test } from 'qunit';
 import { fire } from 'simulant';
 import { initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'events/method-calls.js' );
 
-	test( 'Calling a builtin method', t => {
+	QUnit.test( 'Calling a builtin method', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `<button on-click='@this.set("foo",foo+1)'>{{foo}}</button>`,
@@ -18,7 +17,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<button>1</button>' );
 	});
 
-	test( 'Calling a custom method', t => {
+	QUnit.test( 'Calling a custom method', t => {
 		t.expect( 2 );
 
 		const Widget = Ractive.extend({
@@ -36,7 +35,7 @@ export default function() {
 		fire( ractive.find( 'button' ), 'click' );
 	});
 
-	test( 'Calling an unknown method', t => {
+	QUnit.test( 'Calling an unknown method', t => {
 		t.expect( 1 );
 
 		const Widget = Ractive.extend({
@@ -61,7 +60,7 @@ export default function() {
 		window.onerror = onerror;
 	});
 
-	test( 'Passing the event object to a method', t => {
+	QUnit.test( 'Passing the event object to a method', t => {
 		t.expect( 1 );
 
 		const Widget = Ractive.extend({
@@ -78,7 +77,7 @@ export default function() {
 		fire( ractive.find( 'button' ), 'click' );
 	});
 
-	test( 'Passing a child of the event object to a method', t => {
+	QUnit.test( 'Passing a child of the event object to a method', t => {
 		t.expect( 1 );
 
 		const Widget = Ractive.extend({
@@ -96,7 +95,7 @@ export default function() {
 	});
 
 	// Bit of a cheeky workaround...
-	test( 'Passing a reference to this.event', t => {
+	QUnit.test( 'Passing a reference to this.event', t => {
 		t.expect( 1 );
 
 		const Widget = Ractive.extend({
@@ -116,7 +115,7 @@ export default function() {
 		fire( ractive.find( 'button' ), 'click' );
 	});
 
-	test( 'Current event is available to method handler as this.event (#1403)', t => {
+	QUnit.test( 'Current event is available to method handler as this.event (#1403)', t => {
 		t.expect( 2 );
 
 		const ractive = new Ractive({
@@ -131,7 +130,7 @@ export default function() {
 		fire( ractive.find( 'button' ), 'click' );
 	});
 
-	test( 'component "on-" can call methods', t => {
+	QUnit.test( 'component "on-" can call methods', t => {
 		t.expect( 2 );
 
 		const Component = Ractive.extend({
@@ -155,7 +154,7 @@ export default function() {
 		component.fire( 'bar', 'bar' );
 	});
 
-	test( 'component "on-" with ...arguments', t => {
+	QUnit.test( 'component "on-" with ...arguments', t => {
 		t.expect( 4 );
 
 		const Component = Ractive.extend({
@@ -181,7 +180,7 @@ export default function() {
 		component.fire( 'bar', 'bar', 100 );
 	});
 
-	test( 'component "on-" with additive ...arguments', t => {
+	QUnit.test( 'component "on-" with additive ...arguments', t => {
 		t.expect( 6 );
 
 		const Component = Ractive.extend({
@@ -209,7 +208,7 @@ export default function() {
 		component.fire( 'bar', 'bar', 100 );
 	});
 
-	test( 'component "on-" with arguments[n]', t => {
+	QUnit.test( 'component "on-" with arguments[n]', t => {
 		t.expect( 4 );
 
 		const Component = Ractive.extend({
@@ -235,7 +234,7 @@ export default function() {
 		component.fire( 'bar', 'bar' );
 	});
 
-	test( 'component "on-" with $n', t => {
+	QUnit.test( 'component "on-" with $n', t => {
 		t.expect( 4 );
 
 		const Component = Ractive.extend({
@@ -262,7 +261,7 @@ export default function() {
 	});
 
 
-	test( 'preventDefault and stopPropagation if method returns false', t => {
+	QUnit.test( 'preventDefault and stopPropagation if method returns false', t => {
 		t.expect( 6 );
 
 		const ractive = new Ractive({

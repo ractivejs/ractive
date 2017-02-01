@@ -1,10 +1,9 @@
-import { test } from 'qunit';
 import { initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'methods/updateModel.js' );
 
-	test( 'Works across component boundary', t => {
+	QUnit.test( 'Works across component boundary', t => {
 		const widget = Ractive.extend({
 			template: '{{bar}}'
 		});
@@ -30,7 +29,7 @@ export default function() {
 		t.equal( ractive.findComponent( 'widget' ).get( 'bar' ), 'changed' );
 	});
 
-	test( 'one-way bindings can be used to update the model (#1963)', t => {
+	QUnit.test( 'one-way bindings can be used to update the model (#1963)', t => {
 		const cmp = Ractive.extend({
 			twoway: false,
 			template: '<input value="{{obj.foo}}" /><input value="{{obj[obj.key]}}" /><input type="checkbox" checked="{{obj.bar.baz}}" />'

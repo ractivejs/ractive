@@ -1,11 +1,10 @@
-import { test } from 'qunit';
 import { fire } from 'simulant';
 import { initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'events/dom-proxy-events.js' );
 
-	test( 'on-click="someEvent" fires an event when user clicks the element', t => {
+	QUnit.test( 'on-click="someEvent" fires an event when user clicks the element', t => {
 		t.expect( 2 );
 
 		const ractive = new Ractive({
@@ -21,7 +20,7 @@ export default function() {
 		fire( ractive.find( '#test' ), 'click' );
 	});
 
-	test( 'empty event on-click="" ok', t => {
+	QUnit.test( 'empty event on-click="" ok', t => {
 		t.expect( 0 );
 
 		const ractive = new Ractive({
@@ -32,7 +31,7 @@ export default function() {
 		fire( ractive.find( '#test' ), 'click' );
 	});
 
-	test( 'on-click="someEvent" does not fire event when unrendered', t => {
+	QUnit.test( 'on-click="someEvent" does not fire event when unrendered', t => {
 		t.expect( 0 );
 
 		const ractive = new Ractive({
@@ -50,7 +49,7 @@ export default function() {
 		fire( node, 'click' );
 	});
 
-	test( 'Standard events have correct properties: node, original, name', t => {
+	QUnit.test( 'Standard events have correct properties: node, original, name', t => {
 		t.expect( 3 );
 
 		const ractive = new Ractive({
@@ -67,7 +66,7 @@ export default function() {
 		fire( ractive.find( '#test' ), 'click' );
 	});
 
-	test( 'preventDefault and stopPropagation if event handler returned false', t => {
+	QUnit.test( 'preventDefault and stopPropagation if event handler returned false', t => {
 		t.expect( 9 );
 
 		const ractive = new Ractive({
@@ -130,7 +129,7 @@ export default function() {
 		t.ok( preventedDefault && stoppedPropagation );
 	});
 
-	test( 'event keypath is set to the innermost context', t => {
+	QUnit.test( 'event keypath is set to the innermost context', t => {
 		t.expect( 2 );
 
 		const ractive = new Ractive({
@@ -149,7 +148,7 @@ export default function() {
 		fire( ractive.find( '#test' ), 'click' );
 	});
 
-	test( 'event keypath is set to the mapped keypath in a component', t => {
+	QUnit.test( 'event keypath is set to the mapped keypath in a component', t => {
 		t.expect( 4 );
 
 		const cmp = Ractive.extend({
@@ -182,7 +181,7 @@ export default function() {
 		fire( ractive.find( '#test2' ), 'click' );
 	});
 
-	test( 'event rootpath is set to the non-mapped keypath in a component', t => {
+	QUnit.test( 'event rootpath is set to the non-mapped keypath in a component', t => {
 		t.expect( 4 );
 
 		const cmp = Ractive.extend({
@@ -215,7 +214,7 @@ export default function() {
 		fire( ractive.find( '#test2' ), 'click' );
 	});
 
-	test( 'events can correctly retrieve index refs', t => {
+	QUnit.test( 'events can correctly retrieve index refs', t => {
 		t.expect( 4 );
 
 		const ractive = new Ractive({
@@ -236,7 +235,7 @@ export default function() {
 		fire( ractive.find( '#item_2' ), 'click' );
 	});
 
-	test( 'events can correctly retrieve nested index refs', t => {
+	QUnit.test( 'events can correctly retrieve nested index refs', t => {
 		t.expect( 4 );
 
 		const ractive = new Ractive({
@@ -260,7 +259,7 @@ export default function() {
 		fire( ractive.find( '#test_001' ), 'click' );
 	});
 
-	test( 'Splicing arrays correctly modifies two-way bindings', t => {
+	QUnit.test( 'Splicing arrays correctly modifies two-way bindings', t => {
 		t.expect( 25 );
 
 		const items = [
@@ -339,7 +338,7 @@ export default function() {
 		t.equal( ractive.findAll( 'input' ).length, 2 );
 	});
 
-	test( 'Changes triggered by two-way bindings propagate properly (#460)', t => {
+	QUnit.test( 'Changes triggered by two-way bindings propagate properly (#460)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -386,7 +385,7 @@ export default function() {
 		t.htmlEqual( ractive.find( '.result' ).innerHTML, '0' );
 	});
 
-	test( 'Multiple events can share the same directive', t => {
+	QUnit.test( 'Multiple events can share the same directive', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div on-click-mouseover="foo"></div>'
@@ -405,7 +404,7 @@ export default function() {
 		t.equal( count, 2 );
 	});
 
-	test( 'Superfluous whitespace is ignored', t => {
+	QUnit.test( 'Superfluous whitespace is ignored', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div class="one" on-click=" foo "></div><div class="two" {{#bar}}on-click=" bar "{{/}}></div>'
@@ -434,7 +433,7 @@ export default function() {
 		t.equal( barCount, 1 );
 	});
 
-	test( '@index can be used in proxy event directives', t => {
+	QUnit.test( '@index can be used in proxy event directives', t => {
 		t.expect( 2 );
 
 		const ractive = new Ractive({
@@ -455,7 +454,7 @@ export default function() {
 		fire( ractive.findAll( 'button[class=method]' )[1], 'click' );
 	});
 
-	test( 'component "on-" supply own event proxy arguments (but original args are tacked on)', t => {
+	QUnit.test( 'component "on-" supply own event proxy arguments (but original args are tacked on)', t => {
 		t.expect( 5 );
 
 		const Component = Ractive.extend({
@@ -490,7 +489,7 @@ export default function() {
 		component.fire( 'bizz', 'buzz' );
 	});
 
-	test( 'component "on-" handles reproxy of arguments correctly', t => {
+	QUnit.test( 'component "on-" handles reproxy of arguments correctly', t => {
 		t.expect( 5 );
 
 		const Component = Ractive.extend({
@@ -522,7 +521,7 @@ export default function() {
 		component.fire( 'bizz' );
 	});
 
-	test( `event expressions that return an appropriately formed array fire a proxy event`, t => {
+	QUnit.test( `event expressions that return an appropriately formed array fire a proxy event`, t => {
 		t.expect( 2 );
 
 		const r = new Ractive({
@@ -540,7 +539,7 @@ export default function() {
 	});
 
 	// This fails as of 0.8.0... does that matter? Seems unnecessary to support
-	// test( 'Events really do not call addEventListener when no proxy name', t => {
+	//QUnit.test( 'Events really do not call addEventListener when no proxy name', t => {
 	// 	var ractive,
 	// 		addEventListener = Element.prototype.addEventListener,
 	// 		errorAdd = function(){

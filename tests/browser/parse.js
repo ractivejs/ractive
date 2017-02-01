@@ -1,4 +1,3 @@
-import { test } from 'qunit';
 import tests from '../helpers/samples/parse';
 import { initModule } from '../helpers/test-config';
 
@@ -9,7 +8,7 @@ export default function() {
 
 	const phantom = /phantomjs/i.test( navigator.userAgent );
 
-	test( 'Mismatched template version causes error', ( t ) => {
+	QUnit.test( 'Mismatched template version causes error', ( t ) => {
 		t.throws( () => {
 			new Ractive({
 				template: {v:'nope',t:[]}
@@ -20,7 +19,7 @@ export default function() {
 	tests.forEach( theTest => {
 		if ( theTest.skipPhantom && phantom ) return;
 
-		test( theTest.name, ( t ) => {
+		QUnit.test( theTest.name, ( t ) => {
 			// disable for tests unless explicitly specified
 			// we can just test the signatures, so set false
 			theTest.options = theTest.options || { csp: false };

@@ -1,4 +1,3 @@
-import { test } from 'qunit';
 import { svg } from '../../../src/config/environment';
 import { initModule } from '../../helpers/test-config';
 
@@ -8,7 +7,7 @@ export default function() {
 	initModule( 'render/misc' );
 
 	if ( svg ) {
-		test( 'Style elements have content inserted that becomes .textContent gh #569', t => {
+		QUnit.test( 'Style elements have content inserted that becomes .textContent gh #569', t => {
 			new Ractive({
 				el: fixture,
 				template: '<svg><style id="style">text { font-size: 40px }</style></svg>'
@@ -21,7 +20,7 @@ export default function() {
 		});
 	}
 
-	test( 'Nested reference expression updates when array index member changes', t => {
+	QUnit.test( 'Nested reference expression updates when array index member changes', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#item}}{{foo[bar]}}{{/}}',
@@ -34,7 +33,7 @@ export default function() {
 
 	});
 
-	test( 'Conditional section with reference expression updates when keypath changes', t => {
+	QUnit.test( 'Conditional section with reference expression updates when keypath changes', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#foo[bar]}}buzz{{/}}',
@@ -50,7 +49,7 @@ export default function() {
 
 	});
 
-	test( 'Input with reference expression updates target when keypath changes', t => {
+	QUnit.test( 'Input with reference expression updates target when keypath changes', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input value="{{foo[bar]}}"/>',
@@ -67,7 +66,7 @@ export default function() {
 
 	});
 
-	test( 'List of inputs with referenceExpression name update correctly', t => {
+	QUnit.test( 'List of inputs with referenceExpression name update correctly', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `<input type='radio' name='{{responses[topic]}}'/>`,
@@ -83,7 +82,7 @@ export default function() {
 		t.equal( input.name, '{{responses.Color}}' );
 	});
 
-	test( 'List of inputs with nested referenceExpression name updates correctly', t => {
+	QUnit.test( 'List of inputs with nested referenceExpression name updates correctly', t => {
 		t.expect(3);
 
 		const ractive = new Ractive({
@@ -113,7 +112,7 @@ export default function() {
 		});
 	});
 
-	test( 'Rendering a non-append instance into an already-occupied element removes the other instance (#1430)', t => {
+	QUnit.test( 'Rendering a non-append instance into an already-occupied element removes the other instance (#1430)', t => {
 		let ractive = new Ractive({
 			template: 'instance1'
 		});
@@ -129,7 +128,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'instance2' );
 	});
 
-	test( 'Render may be called with a selector (#1430)', t => {
+	QUnit.test( 'Render may be called with a selector (#1430)', t => {
 		const ractive = new Ractive({
 			template: 'foo'
 		});
@@ -141,7 +140,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="foo">foo</div>' );
 	});
 
-	test( 'Value changes in object iteration should cause updates (#1476)', t => {
+	QUnit.test( 'Value changes in object iteration should cause updates (#1476)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#obj[sel]:sk}}{{sk}} {{@key}} {{.}}{{/}}',
@@ -167,7 +166,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'a a a1b b b1' );
 	});
 
-	test( 'Sections survive unrender-render (#1553)', t => {
+	QUnit.test( 'Sections survive unrender-render (#1553)', t => {
 		window.renderedFragments = 0;
 
 		const ractive = new Ractive({
@@ -182,7 +181,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>1</p><p>2</p><p>3</p>' );
 	});
 
-	test( 'Multi switch each block object -> array -> object -> array (#2054)', t => {
+	QUnit.test( 'Multi switch each block object -> array -> object -> array (#2054)', t => {
 		const arrayData = ['a', 'b', 'c'];
 		const objectData = { a: 'a', b: 'b', c: 'c' };
 		const expected = 'abc';
@@ -204,7 +203,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, expected );
 	});
 
-	test( 'iteration special refs outside of an iteration should not error', t => {
+	QUnit.test( 'iteration special refs outside of an iteration should not error', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{@index}}{{@key}}'
@@ -213,7 +212,7 @@ export default function() {
 		t.ok( true, 'hey, it didn\'t throw' );
 	});
 
-	test( 'static delimiters should be configurable (#2240)', t => {
+	QUnit.test( 'static delimiters should be configurable (#2240)', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{one}} {{{two}}} [[three]] [[[four]]]',
@@ -226,7 +225,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '{{one}} {{{two}}} [[three]] [[[four]]]');
 	});
 
-	test( 'a repeated section should skip empty iterations when looking for a next node for insertion (#2234)', t => {
+	QUnit.test( 'a repeated section should skip empty iterations when looking for a next node for insertion (#2234)', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{#each items}}{{#if .bool}}{{.val}}{{/if}}{{/each}}',
@@ -243,7 +242,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '13' );
 	});
 
-	test( 'fragment should skip non-rendered items when searching for its next node (#2317)', t => {
+	QUnit.test( 'fragment should skip non-rendered items when searching for its next node (#2317)', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{#if step === 3}}3{{/if}}{{#if step === 1}}1{{/if}}{{#if step === 2}}2{{/if}}text',
@@ -257,7 +256,7 @@ export default function() {
 	});
 
 	if ( typeof Object.create === 'function' ) {
-		test( 'data of type Object.create(null) (#1825)', t => {
+		QUnit.test( 'data of type Object.create(null) (#1825)', t => {
 			const ractive = new Ractive({
 				el: fixture,
 				template: '<hr class="{{ noproto }}">{{ noproto }}',
@@ -271,7 +270,7 @@ export default function() {
 		});
 	}
 
-	test( 'unresolveds that go out of scope should be unregistered', t => {
+	QUnit.test( 'unresolveds that go out of scope should be unregistered', t => {
 		t.expect( 0 );
 
 		const r = new Ractive({
@@ -284,7 +283,7 @@ export default function() {
 		r.set( 'foo', 2 );
 	});
 
-	test( 'instances that are made dirty while updating should not get stuck (#2554)', t => {
+	QUnit.test( 'instances that are made dirty while updating should not get stuck (#2554)', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<span>{{bar}}</span>{{#if foo}}<input type="checkbox" checked="{{baf}}" />{{bar}}{{/if}}`,
@@ -312,7 +311,7 @@ export default function() {
 		t.htmlEqual( span.innerHTML, 'y' );
 	});
 
-	test( 'space entity refs should not be consumed during trimming (#2327)', t => {
+	QUnit.test( 'space entity refs should not be consumed during trimming (#2327)', t => {
 		new Ractive({
 			el: fixture,
 			template: '\n  {{#if check}}\n    &nbsp;\n    {{first}}\n    &nbsp;\n    {{second}}\n    &nbsp;\n  {{/if}}\n',
@@ -322,7 +321,7 @@ export default function() {
 		t.equal( fixture.innerHTML, '&nbsp; 1 &nbsp; 2 &nbsp;' );
 	});
 
-	test( `rendering a textOnlyMode template renders text only`, t => {
+	QUnit.test( `rendering a textOnlyMode template renders text only`, t => {
 		const r = new Ractive({
 			template: Ractive.parse( `no <elements or="attributes" /> or &amp; & entities <{{any}} foo="bar"> {{just}} text, [[refs]], and {{#if foo}}sections{{/if}}`, { textOnlyMode: true } ),
 			data: {

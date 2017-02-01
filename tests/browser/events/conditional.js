@@ -1,11 +1,10 @@
-import { test } from 'qunit';
 import { fire } from 'simulant';
 import { initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'events/conditional.js' );
 
-	test( 'event is added and removed with conditional', t => {
+	QUnit.test( 'event is added and removed with conditional', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<a {{#if foo}}on-click="@this.add('count')"{{/if}}>click me</a>`,
@@ -26,7 +25,7 @@ export default function() {
 		t.equal( r.get( 'count' ), 2 );
 	});
 
-	test( 'events work with else', t => {
+	QUnit.test( 'events work with else', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<a {{#if foo}}on-click="@this.add('count1')"{{else}}on-click="@this.add('count2')"{{/if}}>click me</a>`,
@@ -50,7 +49,7 @@ export default function() {
 		t.equal( r.get( 'count2' ), 2 );
 	});
 
-	test( `conditional event listeners work with components`, t => {
+	QUnit.test( `conditional event listeners work with components`, t => {
 		let count = 0;
 		const r1 = Ractive.extend({
 			template: ''
@@ -70,7 +69,7 @@ export default function() {
 		t.equal( count, 1 );
 	});
 
-	test( `conditional event listeners work with anchors`, t => {
+	QUnit.test( `conditional event listeners work with anchors`, t => {
 		let count = 0;
 		const r1 = new Ractive({
 			template: ''

@@ -1,10 +1,9 @@
-import { test } from 'qunit';
 import { initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'methods/toggle.js' );
 
-	test( 'ractive.toggle("foo") toggles the value of foo', t => {
+	QUnit.test( 'ractive.toggle("foo") toggles the value of foo', t => {
 		const ractive = new Ractive({
 			data: { foo: false }
 		});
@@ -16,7 +15,7 @@ export default function() {
 		t.ok( !ractive.get( 'foo' ) );
 	});
 
-	test( 'non-boolean values are effectively coerced', t => {
+	QUnit.test( 'non-boolean values are effectively coerced', t => {
 		const ractive = new Ractive({
 			data: {
 				foo: null,
@@ -36,7 +35,7 @@ export default function() {
 		t.ok(  ractive.get( 'qux' ) );
 	});
 
-	test( 'each keypath that matches a wildcard is toggled individually (#1604)', t => {
+	QUnit.test( 'each keypath that matches a wildcard is toggled individually (#1604)', t => {
 		const items = [
 			{ active: true },
 			{ active: false },

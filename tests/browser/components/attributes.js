@@ -1,10 +1,9 @@
-import { test } from 'qunit';
 import { onWarn, initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'components/attributes.js' );
 
-	test( `by default all attributes are mapped`, t => {
+	QUnit.test( `by default all attributes are mapped`, t => {
 		const cmp = Ractive.extend({
 			template: '{{foo}} {{bar}}'
 		});
@@ -24,7 +23,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '1 2' );
 	});
 
-	test( `attributes as an array of strings are all optional`, t => {
+	QUnit.test( `attributes as an array of strings are all optional`, t => {
 		const cmp = Ractive.extend({
 			attributes: [ 'foo', 'bar' ]
 		});
@@ -32,7 +31,7 @@ export default function() {
 		t.deepEqual( cmp.attributes, { optional: [ 'foo', 'bar' ], required: [] } );
 	});
 
-	test( `attributes may contain optional, required, neither, or both`, t => {
+	QUnit.test( `attributes may contain optional, required, neither, or both`, t => {
 		const optional = Ractive.extend({
 			attributes: { optional: [ 'foo' ] }
 		});
@@ -52,7 +51,7 @@ export default function() {
 		t.deepEqual( neither.attributes, { optional: [], required: [] } );
 	});
 
-	test( `only named attributes are mapped into component`, t => {
+	QUnit.test( `only named attributes are mapped into component`, t => {
 		const cmp = Ractive.extend({
 			attributes: [ 'foo', 'bar' ],
 			template: '{{foo}} {{bar}} {{baz}}',
@@ -70,7 +69,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foo bar' );
 	});
 
-	test( `leaving off a required attribute issues a warning`, t => {
+	QUnit.test( `leaving off a required attribute issues a warning`, t => {
 		t.expect( 2 );
 		onWarn( msg => t.ok( /.*cmp.*requires attribute.*foo.*/.test( msg ) ) );
 		const cmp = Ractive.extend({
@@ -88,7 +87,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
 
-	test( `extra attributes are collected into a partial and attached to the instance`, t => {
+	QUnit.test( `extra attributes are collected into a partial and attached to the instance`, t => {
 		const cmp = Ractive.extend({
 			attributes: [ 'item', 'color' ],
 			template: `<div {{yield extra-attributes}} style-color="{{color}}">{{item}}</div>`,
@@ -108,7 +107,7 @@ export default function() {
 		t.ok( inst.get( 'data-foo' ) === undefined );
 	});
 
-	test( `extra attributes may be mapped if requested and the partial will refer to the mapping`, t => {
+	QUnit.test( `extra attributes may be mapped if requested and the partial will refer to the mapping`, t => {
 		const cmp = Ractive.extend({
 			attributes: {
 				optional: [ 'item' ],
@@ -134,7 +133,7 @@ export default function() {
 		t.equal( r.get( 'foo' ), 'still yep' );
 	});
 
-	test( `multiple component renders with attributes all start with the initial template`, t => {
+	QUnit.test( `multiple component renders with attributes all start with the initial template`, t => {
 		const cmp = Ractive.extend({
 			attributes: [],
 			template: '<div {{yield extra-attributes}} />'

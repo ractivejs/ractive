@@ -1,11 +1,10 @@
-import { test } from 'qunit';
 import { fire } from 'simulant';
 import { onWarn, initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'events/touch-events.js' );
 
-	test( 'touch events safe to include when they don\'t exist in browser', t => {
+	QUnit.test( 'touch events safe to include when they don\'t exist in browser', t => {
 		t.expect( 1 );
 
 		onWarn( () => {} ); // suppress

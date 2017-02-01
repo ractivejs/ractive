@@ -1,10 +1,9 @@
-import { test } from 'qunit';
 import { initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'methods/link.js' );
 
-	test( 'Keypaths can be linked', t => {
+	QUnit.test( 'Keypaths can be linked', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{ foo }} {{ bar.baz.bat }}',
@@ -20,7 +19,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'bip bip' );
 	});
 
-	test( 'Deep references on links should work as expected', t => {
+	QUnit.test( 'Deep references on links should work as expected', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{ person.name }} is {{ person.status }}',
@@ -41,7 +40,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'Marty is Awesome&tm;' );
 	});
 
-	test( 'Re-linking overwrites the existing link', t => {
+	QUnit.test( 'Re-linking overwrites the existing link', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{ dog.name }}',
@@ -57,7 +56,7 @@ export default function() {
 	});
 
 	// only for non-mapped links
-	test( 'Links can be set to nested paths', t => {
+	QUnit.test( 'Links can be set to nested paths', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{ foo.baz.bar }}',
@@ -69,7 +68,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '1' );
 	});
 
-	test( 'Links cannot have overlapping paths', t => {
+	QUnit.test( 'Links cannot have overlapping paths', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '',
@@ -84,7 +83,7 @@ export default function() {
 		}, /to itself/ );
 	});
 
-	test( 'Links should not outlive their instance', t => {
+	QUnit.test( 'Links should not outlive their instance', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{#if foo}}<bar />{{/if}}',
@@ -111,7 +110,7 @@ export default function() {
 		t.ok(r.viewmodel.joinAll(['bip', 'bop']).deps.length === 0);
 	});
 
-	test( 'deeply nested links can be retrieved', t => {
+	QUnit.test( 'deeply nested links can be retrieved', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{ bat.bop.bip }}',
@@ -128,7 +127,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '' );
 	});
 
-	test( 'links work with root paths too', t => {
+	QUnit.test( 'links work with root paths too', t => {
 		t.expect(2);
 
 		const parent = new Ractive();

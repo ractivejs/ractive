@@ -1,11 +1,10 @@
-import { test } from 'qunit';
 import registries from '../../../src/Ractive/config/registries';
 import { initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'init/registries.js' );
 
-	test( 'has globally registered', t => {
+	QUnit.test( 'has globally registered', t => {
 		const foo = {};
 
 		registries.forEach( r => {

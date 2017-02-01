@@ -1,10 +1,9 @@
-import { test } from 'qunit';
 import { onWarn, initModule } from '../helpers/test-config';
 
 export default function() {
 	initModule( 'rebind.js' );
 
-	test('Section with item that has expression only called once when created', t => {
+	QUnit.test('Section with item that has expression only called once when created', t => {
 		let called = 0;
 
 		const ractive = new Ractive({
@@ -22,7 +21,7 @@ export default function() {
 		t.equal( called, 1 );
 	});
 
-	test( 'Section with item index ref expression changes correctly', t => {
+	QUnit.test( 'Section with item index ref expression changes correctly', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items:i}}{{format(.,i)}},{{/items}}',
@@ -42,7 +41,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '1,11,6,8,');
 	});
 
-	test( 'Section updates child keypath expression', t => {
+	QUnit.test( 'Section updates child keypath expression', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#each items:i}}{{foo[bar]}},{{/each}}',
@@ -62,7 +61,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'bob,jill,');
 	});
 
-	test('Section with nested sections and inner context does splice()', t => {
+	QUnit.test('Section with nested sections and inner context does splice()', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -84,7 +83,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>1,2</p><p>3,4</p>');
 	});
 
-	test( 'Components in a list can be rebound', ( t ) => {
+	QUnit.test( 'Components in a list can be rebound', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items}}<widget letter="{{.}}"/>{{/items}}',
@@ -106,7 +105,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>d</p><p>e</p>' );
 	});
 
-	test( 'Index references can be used as key attributes on components, and rebinding works', ( t ) => {
+	QUnit.test( 'Index references can be used as key attributes on components, and rebinding works', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items:i}}<widget index="{{i}}" letter="{{.}}"/>{{/items}}',
@@ -124,7 +123,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
 	});
 
-	test('Section with partials that use indexRef update correctly', t => {
+	QUnit.test('Section with partials that use indexRef update correctly', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items:i}}{{>partial}},{{/items}}',
@@ -141,7 +140,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '0,1,2,3,');
 	});
 
-	test( 'Expressions with unresolved references can be rebound (#630)', ( t ) => {
+	QUnit.test( 'Expressions with unresolved references can be rebound (#630)', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#list}}{{#check > length}}true{{/test}}{{/list}}',
@@ -152,7 +151,7 @@ export default function() {
 		t.ok( true );
 	});
 
-	test( 'Regression test for #697', ( t ) => {
+	QUnit.test( 'Regression test for #697', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#model}}{{#thing}}{{# foo && bar }}<p>works</p>{{/inner}}{{/thing}}{{/model}}',
@@ -172,7 +171,7 @@ export default function() {
 		t.ok( true );
 	});
 
-	test( 'Regression test for #715', ( t ) => {
+	QUnit.test( 'Regression test for #715', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items}}{{#test}}{{# .entries > 1 }}{{{ foo }}}{{/ .entries }}{{/test}}{{/items}}',
@@ -190,7 +189,7 @@ export default function() {
 		t.ok( true );
 	});
 
-	test( 'Items are not unrendered and rerendered unnecessarily in cases like #715', ( t ) => {
+	QUnit.test( 'Items are not unrendered and rerendered unnecessarily in cases like #715', ( t ) => {
 		let renderCount = 0;
 		let unrenderCount = 0;
 
@@ -222,7 +221,7 @@ export default function() {
 		t.equal( unrenderCount, 0 );
 	});
 
-	test( 'Regression test for #729 (part one) - rebinding silently-created elements', ( t ) => {
+	QUnit.test( 'Regression test for #729 (part one) - rebinding silently-created elements', ( t ) => {
 		const items = [{test: { bool: false }}];
 
 		const ractive = new Ractive({
@@ -237,7 +236,7 @@ export default function() {
 		t.ok( true );
 	});
 
-	test( 'Regression test for #729 (part two) - inserting before silently-created elements', ( t ) => {
+	QUnit.test( 'Regression test for #729 (part two) - inserting before silently-created elements', ( t ) => {
 		const items = [];
 
 		const ractive = new Ractive({
@@ -253,7 +252,7 @@ export default function() {
 		t.ok( true );
 	});
 
-	test( 'Regression test for #756 - fragment contexts are not rebound to undefined', ( t ) => {
+	QUnit.test( 'Regression test for #756 - fragment contexts are not rebound to undefined', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -278,7 +277,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div class></div><div class>[ Z ]</div>' );
 	});
 
-	test( '@index rebinds correctly', ( t ) => {
+	QUnit.test( '@index rebinds correctly', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#each items}}<p>{{@index}}:{{this}}</p>{{/each}}',
@@ -289,7 +288,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>0:a</p><p>1:b</p><p>2:c</p><p>3:d</p>' );
 	});
 
-	test( 'index rebinds do not go past new index providers (#1457)', ( t ) => {
+	QUnit.test( 'index rebinds do not go past new index providers (#1457)', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#each foo}}{{@index}}{{#each .bar}}{{@index}}{{/each}}<br/>{{/each}}',
@@ -309,7 +308,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '001<br/>10123<br/>' );
 	});
 
-	test( 'index rebinds get passed through conditional sections correctly', t => {
+	QUnit.test( 'index rebinds get passed through conditional sections correctly', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#each foo}}{{@index}}{{#.bar}}{{@index}}{{/}}<br/>{{/each}}',
@@ -330,7 +329,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '00<br/>1<br/>22<br/>' );
 	});
 
-	test( 'Computations are not triggered prematurely on rebind (#2259)', t => {
+	QUnit.test( 'Computations are not triggered prematurely on rebind (#2259)', t => {
 		t.expect( 0 );
 
 		onWarn( () => {
@@ -351,7 +350,7 @@ export default function() {
 		ractive.splice( 'items', 0, 1 );
 	});
 
-	test( 'rebinds of IF sections do not add new context (#2454)', ( t ) => {
+	QUnit.test( 'rebinds of IF sections do not add new context (#2454)', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -376,7 +375,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'bar' );
 	});
 
-	test( 'rebinds of if/else sections do not add new context (#2454)', ( t ) => {
+	QUnit.test( 'rebinds of if/else sections do not add new context (#2454)', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -403,7 +402,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'bar' );
 	});
 
-	test( 'rebinds of UNLESS sections do not add new context (#2454)', ( t ) => {
+	QUnit.test( 'rebinds of UNLESS sections do not add new context (#2454)', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `

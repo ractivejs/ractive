@@ -1,4 +1,3 @@
-import { test } from 'qunit';
 import { initModule } from '../../../helpers/test-config';
 
 export default function() {
@@ -12,7 +11,7 @@ export default function() {
 		'onteardown'
 	];
 
-	test( 'basic order', t => {
+	QUnit.test( 'basic order', t => {
 		const options = {
 			el: fixture,
 			template: 'foo'
@@ -41,7 +40,7 @@ export default function() {
 		t.deepEqual( fired, [ 'onconstruct' ].concat( hooks ) );
 	});
 
-	test( 'hooks call _super', t => {
+	QUnit.test( 'hooks call _super', t => {
 		const superOptions = {};
 		let options = {};
 
@@ -76,7 +75,7 @@ export default function() {
 		});
 	});
 
-	test( 'Component hooks called in consistent order (gh #589)', t => {
+	QUnit.test( 'Component hooks called in consistent order (gh #589)', t => {
 		const done = t.async();
 
 		// construct and config temporarily commented out, see #1381
@@ -161,7 +160,7 @@ export default function() {
 	});
 
 	function testHierarchy ( hook, expected ) {
-		test( hook, t => {
+		QUnit.test( hook, t => {
 			const done = t.async();
 
 			const fired = [];
@@ -212,7 +211,7 @@ export default function() {
 	testHierarchy( 'onunrender', bottomUp );
 	testHierarchy( 'onteardown', bottomUp );
 
-	test( 'destruct hook fires after everything is completely torn down, including element removal after transitions', t => {
+	QUnit.test( 'destruct hook fires after everything is completely torn down, including element removal after transitions', t => {
 		const done = t.async();
 
 		let finish;

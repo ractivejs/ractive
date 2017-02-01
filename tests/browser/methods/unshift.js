@@ -1,4 +1,3 @@
-import { test } from 'qunit';
 import { initModule } from '../../helpers/test-config';
 import { fire } from 'simulant';
 
@@ -6,7 +5,7 @@ export default function() {
 	initModule( 'methods/unshift.js' );
 
 	[ true, false ].forEach( modifyArrays => {
-		test( `ractive.unshift() (modifyArrays: ${modifyArrays})`, t => {
+		QUnit.test( `ractive.unshift() (modifyArrays: ${modifyArrays})`, t => {
 			const items = [ 'alice', 'bob', 'charles' ];
 
 			const ractive = new Ractive({
@@ -25,7 +24,7 @@ export default function() {
 		});
 	});
 
-	test( 'unshift should make all indices update (#1729)', t => {
+	QUnit.test( 'unshift should make all indices update (#1729)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{foo.0}}',
@@ -37,7 +36,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'second' );
 	});
 
-	test( 'array modification with non-shuffle-able deps should update correctly', t => {
+	QUnit.test( 'array modification with non-shuffle-able deps should update correctly', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#foo}}{{.}}{{/}}{{foo.0}}',
@@ -49,7 +48,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '0120' );
 	});
 
-	test( 'Check for this.model existence when rebinding (#2114)', t => {
+	QUnit.test( 'Check for this.model existence when rebinding (#2114)', t => {
 		const list = [ {} ];
 
 		const ractive = new Ractive({
@@ -65,7 +64,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'yepnope' );
 	});
 
-	test( 'Nested sections don\'t grow a context on rebind during smart updates #1737', t => {
+	QUnit.test( 'Nested sections don\'t grow a context on rebind during smart updates #1737', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -95,7 +94,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'outer.0.inner.0 <span>outer.0.inner.0</span><br/>outer.1.inner.0 <span>outer.1.inner.0</span><br/>outer.1.inner.1 <span>outer.1.inner.1</span><br/>' );
 	});
 
-	test( 'Array updates cause sections to shuffle with correct results', t => {
+	QUnit.test( 'Array updates cause sections to shuffle with correct results', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#each items}}{{.title}}{{#each .tags}}{{.}}{{/each}}{{/each}}',
@@ -112,7 +111,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'threeoneAtwoBC' );
 	});
 
-	test( 'nested contexts in iterative sections update correctly (#2660)', t => {
+	QUnit.test( 'nested contexts in iterative sections update correctly (#2660)', t => {
 		t.expect( 1 );
 
 		const r = new Ractive({

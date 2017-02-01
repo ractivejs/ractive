@@ -1,10 +1,9 @@
-import { test } from 'qunit';
 import { initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'methods/findParent.js' );
 
-	test( '.findParent() finds parent', t => {
+	QUnit.test( '.findParent() finds parent', t => {
 		const C4 = Ractive.extend({
 			template: 'this space for rent'
 		});

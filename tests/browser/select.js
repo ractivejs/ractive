@@ -1,10 +1,9 @@
-import { test } from 'qunit';
 import { initModule } from '../helpers/test-config';
 
 export default function() {
 	initModule( 'select.js' );
 
-	test( 'Use as a string to compare', t => {
+	QUnit.test( 'Use as a string to compare', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			comparatorFn( option, value ) {
@@ -27,7 +26,7 @@ export default function() {
 		t.equal( ractive.find( 'select' ).value, { id: 2 } );
 	});
 
-	test( 'Use as a function to compare', t => {
+	QUnit.test( 'Use as a function to compare', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			comparatorFn( option, value ) {
@@ -50,7 +49,7 @@ export default function() {
 		t.equal( ractive.find( 'select' ).value, { id: 2 } );
 	});
 
-	test( 'If a select\'s value attribute is updated at the same time as the available options, the correct option will be selected', t => {
+	QUnit.test( 'If a select\'s value attribute is updated at the same time as the available options, the correct option will be selected', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -72,7 +71,7 @@ export default function() {
 		t.equal( ractive.find( '#select' ).value, 'c' );
 	});
 
-	test( 'If a select value with two-way binding has a selected option at render time, the model updates accordingly', t => {
+	QUnit.test( 'If a select value with two-way binding has a selected option at render time, the model updates accordingly', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -89,7 +88,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<select><option value="red">red</option><option value="blue">blue</option><option value="green">green</option></select> <p>selected green</p>' );
 	});
 
-	test( 'If a select value with two-way binding has no selected option at render time, the model defaults to the top value', t => {
+	QUnit.test( 'If a select value with two-way binding has no selected option at render time, the model defaults to the top value', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -106,7 +105,7 @@ export default function() {
 	});
 
 
-	test( 'If the value of a select is specified in the model, it overrides the markup', t => {
+	QUnit.test( 'If the value of a select is specified in the model, it overrides the markup', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -123,7 +122,7 @@ export default function() {
 		t.ok( !ractive.find( '#green' ).selected );
 	});
 
-	test( 'A select value with static options with numeric values will show the one determined by the model, whether a string or a number is used', t => {
+	QUnit.test( 'A select value with static options with numeric values will show the one determined by the model, whether a string or a number is used', t => {
 		let ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -155,7 +154,7 @@ export default function() {
 		t.ok(  ractive.find( '#_3' ).selected );
 	});
 	/*
-	test( 'Setting the value of a select works with options added via a triple', t => {
+QUnit.test( 'Setting the value of a select works with options added via a triple', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<select value="{{value}}">{{{triple}}}</select>',
@@ -173,7 +172,7 @@ export default function() {
 		t.equal( ractive.get( 'value' ), 1 );
 	});
 	*/
-	test( 'A two-way select updates to the actual value of its selected option, not the stringified value', t => {
+	QUnit.test( 'A two-way select updates to the actual value of its selected option, not the stringified value', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -203,7 +202,7 @@ export default function() {
 	});
 
 	/*
-	test( 'If a multiple select value with two-way binding has a selected option at render time, the model updates accordingly', t => {
+QUnit.test( 'If a multiple select value with two-way binding has a selected option at render time, the model updates accordingly', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<select value="{{colors}}" multiple><option value="red">red</option><option value="blue" selected>blue</option><option value="green" selected>green</option></select>'
@@ -213,7 +212,7 @@ export default function() {
 	});
 	*/
 
-	test( 'If a multiple select value with two-way binding has no selected option at render time, the model defaults to an empty array', t => {
+	QUnit.test( 'If a multiple select value with two-way binding has no selected option at render time, the model defaults to an empty array', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -227,7 +226,7 @@ export default function() {
 		t.deepEqual( ractive.get( 'colors' ), [] );
 	});
 
-	test( 'If the value of a multiple select is specified in the model, it overrides the markup', t => {
+	QUnit.test( 'If the value of a multiple select is specified in the model, it overrides the markup', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -245,7 +244,7 @@ export default function() {
 		t.ok( ractive.find( '#green' ).selected );
 	});
 
-	test( 'updateModel correctly updates the value of a multiple select', t => {
+	QUnit.test( 'updateModel correctly updates the value of a multiple select', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -264,7 +263,7 @@ export default function() {
 		t.deepEqual( ractive.get( 'selected' ), [ 'red', 'blue' ] );
 	});
 
-	test( 'Options added to a select after the initial render will be selected if the value matches', t => {
+	QUnit.test( 'Options added to a select after the initial render will be selected if the value matches', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -293,7 +292,7 @@ export default function() {
 		t.ok( options[1].selected );
 	});
 
-	test( 'If an empty select with a binding has options added to it, the model should update', t => {
+	QUnit.test( 'If an empty select with a binding has options added to it, the model should update', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -310,7 +309,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<select><option value="1">one</option><option value="2">two</option></select><strong>Selected: 1</strong>' );
 	});
 
-	test( 'Regression test for #339', t => {
+	QUnit.test( 'Regression test for #339', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -334,7 +333,7 @@ export default function() {
 		t.deepEqual( ractive.get(), { items: [ {color: 'red'}, {color: 'red'} ] } );
 	});
 
-	test( 'Regression test for #351', t => {
+	QUnit.test( 'Regression test for #351', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -350,7 +349,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<select multiple><option value="1">one</option><option value="2">two</option></select>' );
 	});
 
-	test( '<option>{{foo}}</option> behaves the same as <option value="{{foo}}">{{foo}}</option>', t => {
+	QUnit.test( '<option>{{foo}}</option> behaves the same as <option value="{{foo}}">{{foo}}</option>', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -381,7 +380,7 @@ export default function() {
 		t.equal( ractive.get( 'test2' ), 'c' );
 	});
 
-	test( 'A select whose options are re-rendered will update its binding', t => {
+	QUnit.test( 'A select whose options are re-rendered will update its binding', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -404,7 +403,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<select><option value="d">d</option><option value="e">e</option><option value="f">f</option></select><p>selected: d</p>' );
 	});
 
-	test( 'Options can be inside a partial (#707)', t => {
+	QUnit.test( 'Options can be inside a partial (#707)', t => {
 		new Ractive({
 			el: fixture,
 			template: `
@@ -418,7 +417,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<select><option value="a">a</option><option value="b">b</option></select>' );
 	});
 
-	test( 'Disabled options have no implicit value (#786)', t => {
+	QUnit.test( 'Disabled options have no implicit value (#786)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -438,7 +437,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p></p><select><option disabled>Select a letter</option><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>' );
 	});
 
-	test( 'Uninitialised <select> elements will use the first *non-disabled* option', t => {
+	QUnit.test( 'Uninitialised <select> elements will use the first *non-disabled* option', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -459,7 +458,7 @@ export default function() {
 		t.equal( ractive.find( 'select' ).value, 'a' );
 	});
 
-	test( 'Removing selected options from a list causes the select element\'s binding to update (#776)', t => {
+	QUnit.test( 'Removing selected options from a list causes the select element\'s binding to update (#776)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -481,7 +480,7 @@ export default function() {
 		t.equal( ractive.get( 'value' ), '999' );
 	});
 
-	test( 'Select bindings work even if there is only a disabled option', t => {
+	QUnit.test( 'Select bindings work even if there is only a disabled option', t => {
 		t.expect( 0 );
 
 		new Ractive({
@@ -493,7 +492,7 @@ export default function() {
 		});
 	});
 
-	test( 'Model -> view binding works with <select multiple> (#1009)', t => {
+	QUnit.test( 'Model -> view binding works with <select multiple> (#1009)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -516,7 +515,7 @@ export default function() {
 		t.ok( options[3].selected );
 	});
 
-	test( 'A multiple select uses non-strict comparison', t => {
+	QUnit.test( 'A multiple select uses non-strict comparison', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -539,7 +538,7 @@ export default function() {
 		t.ok(  ractive.find( '#_3' ).selected );
 	});
 
-	test( 'safe to render options into select outside of ractive', t => {
+	QUnit.test( 'safe to render options into select outside of ractive', t => {
 		const select = document.createElement( 'SELECT' );
 		fixture.appendChild( select );
 
@@ -557,7 +556,7 @@ export default function() {
 		t.htmlEqual( select.innerHTML, '<option>a</option>' );
 	});
 
-	test( `select options fragment should update correctly (#2428)`, t => {
+	QUnit.test( `select options fragment should update correctly (#2428)`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `
@@ -575,7 +574,7 @@ export default function() {
 		t.equal( r.findAll( 'option' ).length, 2 );
 	});
 
-	test( `check to see if a multiselect value is an array before looking for options (#2825)`, t => {
+	QUnit.test( `check to see if a multiselect value is an array before looking for options (#2825)`, t => {
 		t.expect( 0 );
 
 		new Ractive({

@@ -1,11 +1,10 @@
-import { test } from 'qunit';
 import { hasUsableConsole, onWarn, initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'plugins/decorators.js' );
 
 
-	test( 'Basic decorator', t => {
+	QUnit.test( 'Basic decorator', t => {
 		new Ractive({
 			el: fixture,
 			template: '<div as-foo>this text will be overwritten</div>',
@@ -27,7 +26,7 @@ export default function() {
 	});
 
 	if ( hasUsableConsole ) {
-		test( 'Missing decorator', t => {
+		QUnit.test( 'Missing decorator', t => {
 			t.expect( 1 );
 
 			onWarn( msg => {
@@ -41,7 +40,7 @@ export default function() {
 		});
 	}
 
-	test( 'Decorator with a static argument', t => {
+	QUnit.test( 'Decorator with a static argument', t => {
 		new Ractive({
 			el: fixture,
 			template: '<div as-foo=""bar"">this text will be overwritten</div>',
@@ -62,7 +61,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
 	});
 
-	test( 'Decorator with a dynamic argument', t => {
+	QUnit.test( 'Decorator with a dynamic argument', t => {
 		new Ractive({
 			el: fixture,
 			template: '<div as-foo="foo">this text will be overwritten</div>',
@@ -86,7 +85,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
 	});
 
-	test( 'Decorator with a dynamic argument that changes, without update() method', t => {
+	QUnit.test( 'Decorator with a dynamic argument that changes, without update() method', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div as-foo="foo">this text will be overwritten</div>',
@@ -114,7 +113,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
 	});
 
-	test( 'Decorator with a dynamic argument that changes, with update() method', t => {
+	QUnit.test( 'Decorator with a dynamic argument that changes, with update() method', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div as-foo="foo">this text will be overwritten</div>',
@@ -145,7 +144,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
 	});
 
-	test( 'Decorator without arguments can be torn down (#453)', t => {
+	QUnit.test( 'Decorator without arguments can be torn down (#453)', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive({
@@ -163,7 +162,7 @@ export default function() {
 		t.ok( true );
 	});
 
-	test( 'Unnecessary whitespace is trimmed (#810)', t => {
+	QUnit.test( 'Unnecessary whitespace is trimmed (#810)', t => {
 		new Ractive({
 			el: fixture,
 			template: '<pre as-show=""blue is the moon""/><pre as-show="" blue is the moon   ""/>',
@@ -178,7 +177,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<pre>|blue is the moon|</pre><pre>| blue is the moon   |</pre>' );
 	});
 
-	test( 'Rebinding causes decorators to update, if arguments are index references', t => {
+	QUnit.test( 'Rebinding causes decorators to update, if arguments are index references', t => {
 		t.expect(1);
 
 		const ractive = new Ractive({
@@ -203,7 +202,7 @@ export default function() {
 		ractive.shift( 'letters' );
 	});
 
-	test( 'Rebinding safe if decorators have no arguments', t => {
+	QUnit.test( 'Rebinding safe if decorators have no arguments', t => {
 		// second time is for teardown
 		t.expect(2);
 
@@ -228,7 +227,7 @@ export default function() {
 		ractive.shift( 'letters' );
 	});
 
-	test( 'Teardown before init should work', t => {
+	QUnit.test( 'Teardown before init should work', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{# count > 0}}<span as-whatever>foo</span>{{/0}}',
@@ -252,7 +251,7 @@ export default function() {
 	});
 
 
-	test( 'Decorator teardown should happen after outros have completed (#1481)', t => {
+	QUnit.test( 'Decorator teardown should happen after outros have completed (#1481)', t => {
 		const done = t.async();
 
 		let decoratorTorndown;
@@ -301,7 +300,7 @@ export default function() {
 		t.equal( div.style.color, 'red' );
 	});
 
-	test( 'Decorators can have their parameters change before they are rendered (#2278)', t => {
+	QUnit.test( 'Decorators can have their parameters change before they are rendered (#2278)', t => {
 		t.expect( 0 );
 
 		const dec = () => ({ teardown() {} });
@@ -319,7 +318,7 @@ export default function() {
 		});
 	});
 
-	test( 'basic conditional decorator', t => {
+	QUnit.test( 'basic conditional decorator', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '<div {{#if foo}}as-foo{{/if}}>bar</div>',
@@ -345,7 +344,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
 	});
 
-	test( 'conditional decorator with else', t => {
+	QUnit.test( 'conditional decorator with else', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '<div {{#if foo}}as-foo{{else}}as-baz{{/if}}>bar</div>',
@@ -383,7 +382,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
 	});
 
-	test( 'decorators can be named with as-${name}', t => {
+	QUnit.test( 'decorators can be named with as-${name}', t => {
 		new Ractive({
 			el: fixture,
 			template: '<div as-foo>this text will be overwritten</div>',
@@ -404,7 +403,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
 	});
 
-	test( 'decorators can be named with as-${name} with args', t => {
+	QUnit.test( 'decorators can be named with as-${name} with args', t => {
 		new Ractive({
 			el: fixture,
 			template: `<div as-foo="bar, 'baz'">this text will be overwritten</div>`,
@@ -426,7 +425,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div>foo baz</div>' );
 	});
 
-	test( 'named decorators update with their args (#2590)', t => {
+	QUnit.test( 'named decorators update with their args (#2590)', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<div as-foo="bar">bar here</div>`,
@@ -453,7 +452,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
 	});
 
-	test( 'decorators in nested elements are torn down (#2608)', t => {
+	QUnit.test( 'decorators in nested elements are torn down (#2608)', t => {
 		let count = 0;
 		const r = new Ractive({
 			el: fixture,
@@ -483,7 +482,7 @@ export default function() {
 		t.equal( count, 0 );
 	});
 
-	test( 'decorators in nested components are torn down (#2608)', t => {
+	QUnit.test( 'decorators in nested components are torn down (#2608)', t => {
 		let count = 0;
 		const cmp = Ractive.extend({
 			template: '<div as-foo />',
@@ -515,7 +514,7 @@ export default function() {
 		t.equal( count, 0 );
 	});
 
-	test( 'decorators get applied if the element rendered during onrender (#2697)', t => {
+	QUnit.test( 'decorators get applied if the element rendered during onrender (#2697)', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{#if show}}<p as-foo>nope</p>{{/if}}',
@@ -533,7 +532,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>yep</p>' );
 	});
 
-	test( 'decorators within a nested alias block are torn down appropriately (#2735)', t => {
+	QUnit.test( 'decorators within a nested alias block are torn down appropriately (#2735)', t => {
 		let count = 0;
 
 		function foo () {
@@ -558,7 +557,7 @@ export default function() {
 		t.equal( count, 1 );
 	});
 
-	test( `decorators that cause themselves to be torn down during their init are torn down properly (#2412)`, t => {
+	QUnit.test( `decorators that cause themselves to be torn down during their init are torn down properly (#2412)`, t => {
 		let go = true;
 		let setup = 0;
 		let teardown = 0;

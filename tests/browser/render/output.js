@@ -1,4 +1,3 @@
-import { test } from 'qunit';
 import { svg } from '../../../src/config/environment';
 import tests from '../../helpers/samples/render';
 import { onWarn, initModule } from '../../helpers/test-config';
@@ -14,7 +13,7 @@ export default function() {
 		if ( !svg && theTest.svg ) return;
 		if ( theTest.nodeOnly ) return;
 
-		test( theTest.name, t => {
+		QUnit.test( theTest.name, t => {
 
 			// suppress warnings about non-POJOs and failed computations
 			onWarn( msg => t.ok( /plain JavaScript object|Failed to compute/.test( msg ) ) );

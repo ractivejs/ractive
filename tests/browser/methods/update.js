@@ -1,10 +1,9 @@
-import { test } from 'qunit';
 import { initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'methods/update.js' );
 
-	test( 'resolves any unresolved references from parent contexts (#2141)', t => {
+	QUnit.test( 'resolves any unresolved references from parent contexts (#2141)', t => {
 		const foo = {};
 		const r = new Ractive({
 			el: fixture,
@@ -18,7 +17,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
 
-	test( 'mappings are also marked along with the rest of the model (#2574)', t => {
+	QUnit.test( 'mappings are also marked along with the rest of the model (#2574)', t => {
 		const cmp = Ractive.extend({
 			template: '{{foo.bar}}'
 		});
@@ -37,7 +36,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'still yep' );
 	});
 
-	test( `an update can be forced on a keypath by passing force: true (#1671)`, t => {
+	QUnit.test( `an update can be forced on a keypath by passing force: true (#1671)`, t => {
 		let msg = 'one';
 		const r = new Ractive({
 			target: fixture,

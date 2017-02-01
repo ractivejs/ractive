@@ -1,13 +1,11 @@
 /* global document */
-
-import { test } from 'qunit';
 import { fire } from 'simulant';
 import { hasUsableConsole, onWarn, initModule } from '../helpers/test-config';
 
 export default function() {
 	initModule( 'twoway.js' );
 
-	test( 'Two-way bindings work with index references', t => {
+	QUnit.test( 'Two-way bindings work with index references', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items:i}}<label><input value="{{items[i].name}}"> {{name}}</label>{{/items}}',
@@ -22,7 +20,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<label><input> baz</label><label><input> bar</label>' );
 	});
 
-	test( 'Two-way bindings work with foo["bar"] type notation', t => {
+	QUnit.test( 'Two-way bindings work with foo["bar"] type notation', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<label><input value={{foo["bar"]["baz"]}}> {{foo.bar.baz}}</label>',
@@ -38,7 +36,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<label><input> 2</label>' );
 	});
 
-	test( 'Two-way bindings work with arbitrary expressions that resolve to keypaths', t => {
+	QUnit.test( 'Two-way bindings work with arbitrary expressions that resolve to keypaths', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<label><input value={{foo["bar"][ a+1 ].baz[ b ][ 1 ] }}> {{ foo.bar[1].baz.qux[1] }}</label>',
@@ -63,7 +61,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<label><input> it works</label>' );
 	});
 
-	test( 'An input whose value is updated programmatically will update the model on blur (#644)', t => {
+	QUnit.test( 'An input whose value is updated programmatically will update the model on blur (#644)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input value="{{foo}}">',
@@ -80,7 +78,7 @@ export default function() {
 		}
 	});
 
-	test( 'Model is validated on blur, and the view reflects the validate model (#644)', t => {
+	QUnit.test( 'Model is validated on blur, and the view reflects the validate model (#644)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input value="{{foo}}">',
@@ -101,7 +99,7 @@ export default function() {
 		}
 	});
 
-	test( 'Two-way data binding is not attempted on elements with no mustache binding', t => {
+	QUnit.test( 'Two-way data binding is not attempted on elements with no mustache binding', t => {
 		t.expect( 0 );
 
 		// This will throw an error if the binding is attempted (Issue #750)
@@ -111,7 +109,7 @@ export default function() {
 		});
 	});
 
-	test( 'Uninitialised values should be initialised with whatever the \'empty\' value is (#775)', t => {
+	QUnit.test( 'Uninitialised values should be initialised with whatever the \'empty\' value is (#775)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input value="{{foo}}">'
@@ -120,7 +118,7 @@ export default function() {
 		t.equal( ractive.get( 'foo' ), '' );
 	});
 
-	test( 'Contenteditable elements can be bound via the value attribute', t => {
+	QUnit.test( 'Contenteditable elements can be bound via the value attribute', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div contenteditable="true" value="{{content}}"><strong>some content</strong></div>'
@@ -136,7 +134,7 @@ export default function() {
 	try {
 		fire( document.createElement( 'div' ), 'change' );
 
-		test( 'Contenteditable elements can be bound with a bindable contenteditable attribute.', ( t ) => {
+		QUnit.test( 'Contenteditable elements can be bound with a bindable contenteditable attribute.', ( t ) => {
 			const ractive = new Ractive({
 				el: fixture,
 				template: '<div contenteditable="{{editable}}" value="{{content}}"><strong>some content</strong></div>',
@@ -154,7 +152,7 @@ export default function() {
 		// do nothing
 	}
 
-	test( 'Existing model data overrides contents of contenteditable elements', t => {
+	QUnit.test( 'Existing model data overrides contents of contenteditable elements', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div contenteditable="true" value="{{content}}"><strong>some content</strong></div>',
@@ -165,7 +163,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div contenteditable="true">overridden</div>' );
 	});
 
-	test( 'The order of attributes does not affect contenteditable (#1134)', t => {
+	QUnit.test( 'The order of attributes does not affect contenteditable (#1134)', t => {
 		new Ractive({
 			el: fixture,
 			template: `
@@ -181,7 +179,7 @@ export default function() {
 	});
 
 	[ 'number', 'range' ].forEach( ( type ) => {
-		test( 'input type=' + type + ' values are coerced', t => {
+		QUnit.test( 'input type=' + type + ' values are coerced', t => {
 			const ractive = new Ractive({
 				el: fixture,
 				template: '<input value="{{a}}" type="' + type + '"><input value="{{b}}" type="' + type + '">{{a}}+{{b}}={{a+b}}'
@@ -198,7 +196,7 @@ export default function() {
 		});
 	});
 
-	test( 'The model updates to reflect which checkbox inputs are checked at render time', t => {
+	QUnit.test( 'The model updates to reflect which checkbox inputs are checked at render time', t => {
 		let ractive = new Ractive({
 			el: fixture,
 			template: '<input id="red" type="checkbox" name="{{colors}}" value="red"><input id="green" type="checkbox" name="{{colors}}" value="blue" checked><input id="blue" type="checkbox" name="{{colors}}" value="green" checked>'
@@ -220,7 +218,7 @@ export default function() {
 		t.ok( !ractive.find( '#green' ).checked );
 	});
 
-	test( 'Checkbox Name bindings use property attributes to determined if checked or not', t => {
+	QUnit.test( 'Checkbox Name bindings use property attributes to determined if checked or not', t => {
 		let ractive = new Ractive({
 			el: fixture,
 			data: {
@@ -286,7 +284,7 @@ export default function() {
 		t.deepEqual( ractive.get( 'selected' ), [ { id: 'blue', name: 'Blue' }, { id: 'green', name: 'Green'} ] );
 	});
 
-	test( 'Radio Name bindings use value-comparator to determined if checked or not', t => {
+	QUnit.test( 'Radio Name bindings use value-comparator to determined if checked or not', t => {
 		let ractive = new Ractive({
 			el: fixture,
 			data: {
@@ -339,7 +337,7 @@ export default function() {
 		t.deepEqual( ractive.get( 'selected' ), { id: 'green', name: 'Green'} );
 	});
 
-	test( 'The model overrides which checkbox inputs are checked at render time', t => {
+	QUnit.test( 'The model overrides which checkbox inputs are checked at render time', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -355,7 +353,7 @@ export default function() {
 		t.ok( !ractive.find( '#green' ).checked );
 	});
 
-	test( 'Named checkbox bindings are kept in sync with data changes (#1610)', t => {
+	QUnit.test( 'Named checkbox bindings are kept in sync with data changes (#1610)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -372,7 +370,7 @@ export default function() {
 		t.deepEqual( ractive.get( 'colors' ), [ 'green', 'red' ]);
 	});
 
-	test( 'The model updates to reflect which radio input is checked at render time', t => {
+	QUnit.test( 'The model updates to reflect which radio input is checked at render time', t => {
 		let ractive = new Ractive({
 			el: fixture,
 			template: '<input type="radio" name="{{color}}" value="red"><input type="radio" name="{{color}}" value="blue" checked><input type="radio" name="{{color}}" value="green">'
@@ -388,7 +386,7 @@ export default function() {
 		t.deepEqual( ractive.get( 'color' ), undefined );
 	});
 
-	test( 'The model overrides which radio input is checked at render time', t => {
+	QUnit.test( 'The model overrides which radio input is checked at render time', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input id="red" type="radio" name="{{color}}" value="red"><input id="blue" type="radio" name="{{color}}" value="blue" checked><input id="green" type="radio" name="{{color}}" value="green">',
@@ -401,7 +399,7 @@ export default function() {
 		t.ok( ractive.find( '#green' ).checked );
 	});
 
-	test( 'updateModel correctly updates the value of a text input', t => {
+	QUnit.test( 'updateModel correctly updates the value of a text input', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input value="{{name}}">',
@@ -414,7 +412,7 @@ export default function() {
 		t.equal( ractive.get( 'name' ), 'Jim' );
 	});
 
-	test( 'updateModel correctly updates the value of a select', t => {
+	QUnit.test( 'updateModel correctly updates the value of a select', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<select value="{{selected}}"><option selected value="red">red</option><option value="blue">blue</option><option value="green">green</option></select>'
@@ -428,7 +426,7 @@ export default function() {
 		t.equal( ractive.get( 'selected' ), 'blue' );
 	});
 
-	test( 'updateModel correctly updates the value of a textarea', t => {
+	QUnit.test( 'updateModel correctly updates the value of a textarea', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<textarea value="{{name}}"></textarea>',
@@ -441,7 +439,7 @@ export default function() {
 		t.equal( ractive.get( 'name' ), 'Jim' );
 	});
 
-	test( 'updateModel correctly updates the value of a checkbox', t => {
+	QUnit.test( 'updateModel correctly updates the value of a checkbox', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input type="checkbox" checked="{{active}}">',
@@ -454,7 +452,7 @@ export default function() {
 		t.equal( ractive.get( 'active' ), false );
 	});
 
-	test( 'updateModel correctly updates the value of a radio', t => {
+	QUnit.test( 'updateModel correctly updates the value of a radio', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input type="radio" checked="{{active}}">',
@@ -467,7 +465,7 @@ export default function() {
 		t.equal( ractive.get( 'active' ), false );
 	});
 
-	test( 'updateModel correctly updates the value of an indirect (name-value) checkbox', t => {
+	QUnit.test( 'updateModel correctly updates the value of an indirect (name-value) checkbox', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input type="checkbox" name="{{colour}}" value="red"><input type="checkbox" name="{{colour}}" value="blue" checked><input type="checkbox" name="{{colour}}" value="green">'
@@ -481,7 +479,7 @@ export default function() {
 		t.deepEqual( ractive.get( 'colour' ), [ 'blue', 'green' ] );
 	});
 
-	test( 'updateModel correctly updates the value of an indirect (name-value) radio', t => {
+	QUnit.test( 'updateModel correctly updates the value of an indirect (name-value) radio', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input type="radio" name="{{colour}}" value="red"><input type="radio" name="{{colour}}" value="blue" checked><input type="radio" name="{{colour}}" value="green">'
@@ -495,7 +493,7 @@ export default function() {
 		t.deepEqual( ractive.get( 'colour' ), 'green' );
 	});
 
-	test( 'Radio inputs will update the model if another input in their group is checked', t => {
+	QUnit.test( 'Radio inputs will update the model if another input in their group is checked', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items}}<input type="radio" name="plan" checked="{{ checked }}"/>{{/items}}',
@@ -517,7 +515,7 @@ export default function() {
 		t.equal( ractive.get( 'items[1].checked' ), true );
 	});
 
-	test( "Radio name inputs don't get stuck after one pass on each value (#2638)", t => {
+	QUnit.test( "Radio name inputs don't get stuck after one pass on each value (#2638)", t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{#items}}<input type="radio" name="{{~/color}}" value="{{.}}" />{{/items}}',
@@ -547,7 +545,7 @@ export default function() {
 		t.equal( r.get( 'color' ), 'red' );
 	});
 
-	test( 'Radio name inputs respond to model changes (regression, see #783)', t => {
+	QUnit.test( 'Radio name inputs respond to model changes (regression, see #783)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items}}<input type="radio" name="{{foo}}" value="{{this}}"/>{{/items}}',
@@ -570,7 +568,7 @@ export default function() {
 	});
 
 
-	test (`bindings that trigger their own immediate update via computation should not get stuck (#2427)`, t => {
+	QUnit.test(`bindings that trigger their own immediate update via computation should not get stuck (#2427)`, t => {
 		const r = new Ractive({
 			el: fixture,
 			data: {
@@ -594,7 +592,7 @@ export default function() {
 		t.equal( inputs[3].value, 'z' );
 	});
 
-	test( 'Post-blur validation works (#771)', t => {
+	QUnit.test( 'Post-blur validation works (#771)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input value="{{foo}}">{{foo}}'
@@ -624,7 +622,7 @@ export default function() {
 		}
 	});
 
-	test( 'Reference expression radio bindings rebind correctly inside reference expression sections (#904)', t => {
+	QUnit.test( 'Reference expression radio bindings rebind correctly inside reference expression sections (#904)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#with steps[current] }}<input type="radio" name="{{~/selected[name]}}" value="{{value}}">{{/with}}',
@@ -644,7 +642,7 @@ export default function() {
 		t.deepEqual( ractive.get( 'selected' ), { one: 'a', two: 'b' });
 	});
 
-	test( 'Static bindings can only be one-way (#1149)', t => {
+	QUnit.test( 'Static bindings can only be one-way (#1149)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input value="[[foo]]">{{foo}}',
@@ -659,7 +657,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<input>static' );
 	});
 
-	test( 'input[type="checkbox"] with bound checked and name attributes, updates as expected (#1749)', t => {
+	QUnit.test( 'input[type="checkbox"] with bound checked and name attributes, updates as expected (#1749)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input type="checkbox" name="{{name}}" checked="{{on}}">',
@@ -688,7 +686,7 @@ export default function() {
 		t.equal( checkbox.name, 'bar' );
 	});
 
-	test( 'input[type="checkbox"] with bound name updates as expected (#1305)', t => {
+	QUnit.test( 'input[type="checkbox"] with bound name updates as expected (#1305)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input type="checkbox" name="{{ch}}" value="foo">',
@@ -699,7 +697,7 @@ export default function() {
 		t.ok( ractive.find( 'input' ).checked );
 	});
 
-	test( 'input[type="checkbox"] with bound name updates as expected, with array mutations (#1305)', t => {
+	QUnit.test( 'input[type="checkbox"] with bound name updates as expected, with array mutations (#1305)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -728,7 +726,7 @@ export default function() {
 		t.ok( checkboxes[1].checked );
 	});
 
-	test( 'input[type="checkbox"] works with array of numeric values (#1305)', t => {
+	QUnit.test( 'input[type="checkbox"] works with array of numeric values (#1305)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -752,7 +750,7 @@ export default function() {
 		t.ok( checkboxes[2].checked );
 	});
 
-	test( 'input[type="checkbox"] works with array mutated on init (#1305)', t => {
+	QUnit.test( 'input[type="checkbox"] works with array mutated on init (#1305)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -774,7 +772,7 @@ export default function() {
 		t.ok( checkboxes[2].checked );
 	});
 
-	test( 'Downstream expression objects in two-way bindings do not trigger a warning (#1421)', t => {
+	QUnit.test( 'Downstream expression objects in two-way bindings do not trigger a warning (#1421)', t => {
 		// TODO what exactly is being tested here...?
 		onWarn( () => {} ); // suppress
 
@@ -787,7 +785,7 @@ export default function() {
 		t.equal( ractive.find('input').value, 'bar' );
 	});
 
-	test( 'Changes made in oninit are reflected on render (#1390)', t => {
+	QUnit.test( 'Changes made in oninit are reflected on render (#1390)', t => {
 		let inputs;
 
 		new Ractive({
@@ -811,7 +809,7 @@ export default function() {
 		t.ok( !inputs[2].checked );
 	});
 
-	test( 'Changes made after render to unresolved', t => {
+	QUnit.test( 'Changes made after render to unresolved', t => {
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -832,7 +830,7 @@ export default function() {
 		t.ok( !inputs[2].checked );
 	});
 
-	test( 'If there happen to be unresolved references next to binding resolved references, the unresolveds should not be evicted by mistake (#1608)', t => {
+	QUnit.test( 'If there happen to be unresolved references next to binding resolved references, the unresolveds should not be evicted by mistake (#1608)', t => {
 		onWarn( () => {} ); // suppress
 
 		const ractive = new Ractive({
@@ -856,7 +854,7 @@ export default function() {
 		t.htmlEqual( div.innerHTML, 'true: true' );
 	});
 
-	test( 'Change events propagate after the model has been updated (#1371)', t => {
+	QUnit.test( 'Change events propagate after the model has been updated (#1371)', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive({
@@ -876,7 +874,7 @@ export default function() {
 	});
 
 	if ( hasUsableConsole ) {
-		test( 'Using expressions in two-way bindings triggers a warning (#1399)', t => {
+		QUnit.test( 'Using expressions in two-way bindings triggers a warning (#1399)', t => {
 			onWarn( message => {
 				t.ok( ~message.indexOf( 'Cannot use two-way binding on <input> element: foo() is read-only' ) );
 			});
@@ -888,7 +886,7 @@ export default function() {
 			});
 		});
 
-		test( 'Using expressions with keypath in two-way bindings triggers a warning (#1399/#1421)', t => {
+		QUnit.test( 'Using expressions with keypath in two-way bindings triggers a warning (#1399/#1421)', t => {
 			onWarn( () => {
 				t.ok( true );
 			});
@@ -900,7 +898,7 @@ export default function() {
 			});
 		});
 
-		test( '@key cannot be used for two-way binding', t => {
+		QUnit.test( '@key cannot be used for two-way binding', t => {
 			t.expect( 3 );
 
 			onWarn( msg => {
@@ -917,7 +915,7 @@ export default function() {
 		});
 	}
 
-	test( 'Radio input can have name/checked attributes without two-way binding (#783)', t => {
+	QUnit.test( 'Radio input can have name/checked attributes without two-way binding (#783)', t => {
 		t.expect( 0 );
 
 		new Ractive({
@@ -926,7 +924,7 @@ export default function() {
 		});
 	});
 
-	test( 'Two-way binding can be set up against expressions that resolve to regular keypaths', t => {
+	QUnit.test( 'Two-way binding can be set up against expressions that resolve to regular keypaths', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items:i}}<label><input value="{{ proxies[i].name }}"> name: {{ proxies[i].name }}</label>{{/items}}',
@@ -944,7 +942,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<label><input> name: foo</label>' );
 	});
 
-	test( 'Contenteditable works with lazy: true (#1933)', t => {
+	QUnit.test( 'Contenteditable works with lazy: true (#1933)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div contenteditable="true" value="{{value}}"></div>',
@@ -962,7 +960,7 @@ export default function() {
 		}
 	});
 
-	test( 'select with no matching value option selects none (#2494)', t => {
+	QUnit.test( 'select with no matching value option selects none (#2494)', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '<select value="{{foo}}">{{#if opt1}}<option>1</option>{{/if}}<option>2</option></select>',
@@ -981,7 +979,7 @@ export default function() {
 		t.equal( r.find( 'select' ).selectedIndex, 0 );
 	});
 
-	test( 'type attribute does not have to be first (#1968)', t => {
+	QUnit.test( 'type attribute does not have to be first (#1968)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input id="red" name="{{selectedColors}}" value="red" type="checkbox">'
@@ -992,7 +990,7 @@ export default function() {
 		t.ok( ractive.find( '#red' ).checked );
 	});
 
-	test( 'input type=number binds (#2082)', t => {
+	QUnit.test( 'input type=number binds (#2082)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `{{number}} <input type="number" value="{{number}}">`,
@@ -1005,7 +1003,7 @@ export default function() {
 		t.equal( ractive.get( 'number' ), 20 );
 	});
 
-	test( 'twoway may be overridden on a per-element basis', t => {
+	QUnit.test( 'twoway may be overridden on a per-element basis', t => {
 		let ractive = new Ractive({
 			el: fixture,
 			template: '<input value="{{foo}}" twoway="true" />',
@@ -1031,7 +1029,7 @@ export default function() {
 		t.equal( ractive.get( 'foo' ), 'test' );
 	});
 
-	test( 'Presence of lazy or twoway without value is considered true', t => {
+	QUnit.test( 'Presence of lazy or twoway without value is considered true', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input value="{{foo}}" twoway lazy/>',
@@ -1051,7 +1049,7 @@ export default function() {
 		t.equal( ractive.get( 'foo' ), 'changed' );
 	});
 
-	test( '`lazy=0` is not mistaken for `lazy`', t => {
+	QUnit.test( '`lazy=0` is not mistaken for `lazy`', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input value="{{foo}}" lazy="0"/>'
@@ -1066,7 +1064,7 @@ export default function() {
 		t.equal( ractive.get( 'foo' ), 'changed' );
 	});
 
-	test( '`twoway=0` is not mistaken for `twoway`', t => {
+	QUnit.test( '`twoway=0` is not mistaken for `twoway`', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input value="{{foo}}" twoway="0"/>'
@@ -1083,7 +1081,7 @@ export default function() {
 		t.equal( ractive.get( 'foo' ), undefined );
 	});
 
-	test( 'checkbox name binding with the same value on multiple boxes still works (#2163)', t => {
+	QUnit.test( 'checkbox name binding with the same value on multiple boxes still works (#2163)', t => {
 		const common = {};
 		const r = new Ractive({
 			el: fixture,
@@ -1104,7 +1102,7 @@ export default function() {
 		t.ok( inputs[0].checked && inputs[1].checked && inputs[2].checked );
 	});
 
-	test( 'checkbox name bindings work across component boundaries (#2163)', t => {
+	QUnit.test( 'checkbox name bindings work across component boundaries (#2163)', t => {
 		const things = [
 			{id: 1, color: '#cc8'},
 			{id: 2, color: '#c88'},
@@ -1147,7 +1145,7 @@ export default function() {
 		t.deepEqual( checked(), [ true, false, true, false ]);
 	});
 
-	test( 'textarea with a single interpolator as content should set up a twoway binding (#2197)', t => {
+	QUnit.test( 'textarea with a single interpolator as content should set up a twoway binding (#2197)', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '<textarea>{{foo}}</textarea>',
@@ -1162,7 +1160,7 @@ export default function() {
 		t.equal( r.get( 'foo' ), 'bop' );
 	});
 
-	test( 'conditional twoway should apply/unapply correctly', t => {
+	QUnit.test( 'conditional twoway should apply/unapply correctly', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<input value="{{foo}}" {{#if twoway}}twoway{{/if}} /><span>{{foo}}</span>`,
@@ -1185,7 +1183,7 @@ export default function() {
 		t.equal( span.innerHTML, 'bar' );
 	});
 
-	test( 'bound twoway should apply/unapply correctly', t => {
+	QUnit.test( 'bound twoway should apply/unapply correctly', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<input value="{{foo}}" twoway="{{#if twoway}}true{{else}}false{{/if}}" /><span>{{foo}}</span>`,
@@ -1208,7 +1206,7 @@ export default function() {
 		t.equal( span.innerHTML, 'bar' );
 	});
 
-	test( 'conditional lazy should apply/unapply correctly', t => {
+	QUnit.test( 'conditional lazy should apply/unapply correctly', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<input value="{{foo}}" {{#if lazy}}lazy{{/if}} /><span>{{foo}}</span>`,
@@ -1238,7 +1236,7 @@ export default function() {
 		}
 	});
 
-	test( 'bound lazy should apply/unapply correctly', t => {
+	QUnit.test( 'bound lazy should apply/unapply correctly', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<input value="{{foo}}" lazy="{{#if lazy}}true{{else}}false{{/if}}" /><span>{{foo}}</span>`,
@@ -1268,7 +1266,7 @@ export default function() {
 		}
 	});
 
-	test( 'textarea with a single static interpolator as content should not set up a twoway binding', t => {
+	QUnit.test( 'textarea with a single static interpolator as content should not set up a twoway binding', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '<textarea>[[foo]]</textarea>',
@@ -1283,7 +1281,7 @@ export default function() {
 		t.equal( r.get( 'foo' ), 'baz' );
 	});
 
-	test( 'ComputationChild will allow bindings if requested', t => {
+	QUnit.test( 'ComputationChild will allow bindings if requested', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each some.expr()}}<div>{{.val}}</div><input value="{{.val}}" />{{/each}}`,
@@ -1303,7 +1301,7 @@ export default function() {
 		t.equal( label.innerHTML, 'test1' );
 	});
 
-	test( 'ComputationChild bindings also notify other interested parties when changed', t => {
+	QUnit.test( 'ComputationChild bindings also notify other interested parties when changed', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each some.expr()}}<input value="{{.val}}" />{{/each}}<div>{{'yep' + JSON.stringify(some.expr())}}</div>`,
@@ -1323,7 +1321,7 @@ export default function() {
 		t.equal( label.innerHTML, 'yep[{"val":"test1"}]' );
 	});
 
-	test( 'ComputationChild name bindings work for checkboxes', t => {
+	QUnit.test( 'ComputationChild name bindings work for checkboxes', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foos()}}<input type="checkbox" name="{{.array}}" value="{{+1}}" /><input type="checkbox" name="{{.array}}" value="{{+2}}" />{{/with}}`,
@@ -1352,7 +1350,7 @@ export default function() {
 		t.equal( r.get( 'foo.array.1' ), 2 );
 	});
 
-	test( 'ComputationChild name bindings work for radio buttons', t => {
+	QUnit.test( 'ComputationChild name bindings work for radio buttons', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foos()}}<input type="radio" name="{{.value}}" value="{{+1}}" /><input type="radio" name="{{.value}}" value="{{+2}}" />{{/with}}`,
@@ -1380,7 +1378,7 @@ export default function() {
 		t.equal( r.get( 'foo.value' ), 2 );
 	});
 
-	test( 'textareas with non-model context should still bind correctly (#2099)', t => {
+	QUnit.test( 'textareas with non-model context should still bind correctly (#2099)', t => {
 		onWarn( () => {} ); // suppress
 
 		const r = new Ractive({
@@ -1393,7 +1391,7 @@ export default function() {
 		t.equal( r.find( 'textarea' ).value, 'baz' );
 	});
 
-	test( 'binding to an reference proxy does not cause out-of-syncitude with the actual model', t => {
+	QUnit.test( 'binding to an reference proxy does not cause out-of-syncitude with the actual model', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '<span>{{foo.bar.baz}}</span>{{#with foo[what]}}<input value="{{.baz}}" />{{/with}}',
@@ -1422,7 +1420,7 @@ export default function() {
 		t.equal( input.value, 'also yep' );
 	});
 
-	test( `binding to a valid reference expression doesn't warn about unresolved paths`, t => {
+	QUnit.test( `binding to a valid reference expression doesn't warn about unresolved paths`, t => {
 		t.expect( 1 );
 		onWarn( () => t.ok( false, 'should not warn' ) );
 		const r = new Ractive({
@@ -1438,7 +1436,7 @@ export default function() {
 		t.equal( r.get( 'randomFoo132123.bar' ), 'yep' );
 	});
 
-	test( `binding a select with mismatched option values shouldn't break section rendering (#2424)`, t => {
+	QUnit.test( `binding a select with mismatched option values shouldn't break section rendering (#2424)`, t => {
 		const cmp = Ractive.extend({ template: `<div>{{yield}}</div>` });
 		const r = new Ractive({
 			el: fixture,
@@ -1462,7 +1460,7 @@ export default function() {
 		t.equal( fixture.querySelectorAll( 'div' ).length, 3 );
 	});
 
-	test( 'bindings stay up to date when updated from the model (#2643)', t => {
+	QUnit.test( 'bindings stay up to date when updated from the model (#2643)', t => {
 		t.expect( 5 );
 
 		const r = new Ractive({
@@ -1485,7 +1483,7 @@ export default function() {
 		t.ok( input.checked, 'input checked by click' );
 	});
 
-	test( `numeric bindings update correctly if set to undefined from initial value (#2761)`, t => {
+	QUnit.test( `numeric bindings update correctly if set to undefined from initial value (#2761)`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '<input type="number" value="{{x}}" />',
@@ -1502,7 +1500,7 @@ export default function() {
 		t.ok( hit );
 	});
 
-	test( `options that exist across a component boundary register with their parent select correctly`, t => {
+	QUnit.test( `options that exist across a component boundary register with their parent select correctly`, t => {
 		const cmp = Ractive.extend({ template: '<select value="{{foo}}">{{yield}}</select>' });
 		const r = new Ractive({
 			el: fixture,
@@ -1513,7 +1511,7 @@ export default function() {
 		t.equal( r.get( 'foo' ), 'a' );
 	});
 
-	test( `multi select binding`, t => {
+	QUnit.test( `multi select binding`, t => {
 		fixture.innerHTML = '<select multiple><option value="1">one</option><option value="2">two</option><option value="3">three</option></select>';
 		const r = new Ractive({
 			target: fixture,

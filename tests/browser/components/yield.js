@@ -1,11 +1,10 @@
-import { test } from 'qunit';
 import { fire } from 'simulant';
 import { hasUsableConsole, onWarn, initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'components/yield.js' );
 
-	test( 'Basic yield', t => {
+	QUnit.test( 'Basic yield', t => {
 		const Widget = Ractive.extend({
 			template: '<p>{{yield}}</p>'
 		});
@@ -19,7 +18,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>yeah!</p>' );
 	});
 
-	test( 'References are resolved in parent context', t => {
+	QUnit.test( 'References are resolved in parent context', t => {
 		const Widget = Ractive.extend({
 			template: '<p>{{yield}}</p>',
 			isolated: true
@@ -35,7 +34,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>yeah!</p>' );
 	});
 
-	test( 'References are resolved in parent context through multiple layers', t => {
+	QUnit.test( 'References are resolved in parent context through multiple layers', t => {
 		const WidgetInner = Ractive.extend({
 			template: '<p>{{yield}}</p>',
 			isolated: true
@@ -61,7 +60,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p><strong>yeah!</strong></p>' );
 	});
 
-	test( 'Events fire in parent context', t => {
+	QUnit.test( 'Events fire in parent context', t => {
 		t.expect( 1 );
 
 		const WidgetInner = Ractive.extend({
@@ -93,7 +92,7 @@ export default function() {
 		fire( ractive.find( 'button' ), 'click' );
 	});
 
-	test( 'A component {{yield}} can be rerendered in conditional section block', t => {
+	QUnit.test( 'A component {{yield}} can be rerendered in conditional section block', t => {
 		const Widget = Ractive.extend({
 			template: '<p>{{#foo}}{{yield}}{{/}}</p>',
 			isolated: false
@@ -112,7 +111,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>yield</p>' );
 	});
 
-	test( 'A component {{yield}} can be rerendered in list section block', t => {
+	QUnit.test( 'A component {{yield}} can be rerendered in list section block', t => {
 		const Widget = Ractive.extend({
 			template: `
 				{{#each items:i}}
@@ -135,7 +134,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'ca:YIELDED:' );
 	});
 
-	test( 'A component {{yield}} should be parented by the fragment holding the yield and not the fragment holding the component', t => {
+	QUnit.test( 'A component {{yield}} should be parented by the fragment holding the yield and not the fragment holding the component', t => {
 		const Widget = Ractive.extend({
 			template: '<div>{{yield}}</div>',
 			data: {
@@ -156,7 +155,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div>foo! foo!</div>' );
 	});
 
-	test( 'Named yield with a hyphenated name (#1681)', t => {
+	QUnit.test( 'Named yield with a hyphenated name (#1681)', t => {
 		const template = `
 			<Widget>
 				{{#partial foo-bar}}
@@ -177,7 +176,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>this is foo-bar</p>' );
 	});
 
-	test( 'yield can yield an expression', t => {
+	QUnit.test( 'yield can yield an expression', t => {
 		const cmp = Ractive.extend({
 			template: '{{yield { template: "<p>yep</p>" } }}'
 		});
@@ -190,7 +189,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>yep</p>' );
 	});
 
-	test( 'Named yield with Ractive.extend() works as with new Ractive() (#1680)', t => {
+	QUnit.test( 'Named yield with Ractive.extend() works as with new Ractive() (#1680)', t => {
 		const Widget = Ractive.extend({
 			template: '{{yield foo}}'
 		});
@@ -222,7 +221,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>this is foo</p>' );
 	});
 
-	test( 'yielded fragments that are updated from an observer should actually update (#2225)', t => {
+	QUnit.test( 'yielded fragments that are updated from an observer should actually update (#2225)', t => {
 		const cmp = Ractive.extend({
 			template: '{{yield}}',
 			onrender() {
@@ -244,7 +243,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '-2 yep' );
 	});
 
-	test( 'Components inherited from more than one generation off work with named yields', t => {
+	QUnit.test( 'Components inherited from more than one generation off work with named yields', t => {
 		const widget = Ractive.extend({
 			template: '{{yield foo}}'
 		});
@@ -271,7 +270,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>this is foo</p>' );
 	});
 
-	test( 'yielders should properly update with their container instance (#2235)', t => {
+	QUnit.test( 'yielders should properly update with their container instance (#2235)', t => {
 		const Foo = Ractive.extend({
 			template: '{{yield}}'
 		});
@@ -290,7 +289,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'bar' );
 	});
 
-	test( 'yielders should search the container for their anchor (#2235)', t => {
+	QUnit.test( 'yielders should search the container for their anchor (#2235)', t => {
 		const Foo = Ractive.extend({
 			template: '<div>{{yield}}</div>'
 		});
@@ -310,7 +309,7 @@ export default function() {
 	});
 
 	if ( hasUsableConsole ) {
-		test( 'Yield with missing partial (#1681)', t => {
+		QUnit.test( 'Yield with missing partial (#1681)', t => {
 			onWarn( msg => {
 				t.ok( /Could not find template for partial 'missing'/.test( msg ) );
 			});
@@ -326,7 +325,7 @@ export default function() {
 		});
 	}
 
-	test( 'a plain content yielder may provide context via aliases', t => {
+	QUnit.test( 'a plain content yielder may provide context via aliases', t => {
 		const cmp = Ractive.extend({
 			template: `<ul>{{#each items}}<li>{{yield with . as item}}</li>{{/each}}</ul>`
 		});
@@ -343,7 +342,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<ul><li>hello 1</li><li>hello 2</li><li>hello 3</li></ul>' );
 	});
 
-	test( 'a specific content yielder may provide context via aliases', t => {
+	QUnit.test( 'a specific content yielder may provide context via aliases', t => {
 		const cmp = Ractive.extend({
 			template: `<ul>{{#each items}}<li>{{yield foo with . as item}}</li>{{/each}}</ul>`
 		});
@@ -360,7 +359,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<ul><li>hello 1</li><li>hello 2</li><li>hello 3</li></ul>' );
 	});
 
-	test( 'partial expression is evaluated outside of the partial context', t => {
+	QUnit.test( 'partial expression is evaluated outside of the partial context', t => {
 		new Ractive({
 			el: fixture,
 			template: `{{>foo { foo: 'nope' } }}`,
@@ -376,7 +375,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
 
-	test( 'yield resolves its expression in the correct context', t => {
+	QUnit.test( 'yield resolves its expression in the correct context', t => {
 		const cmp = Ractive.extend({
 			template: '{{yield foo.bar}}',
 			data: {

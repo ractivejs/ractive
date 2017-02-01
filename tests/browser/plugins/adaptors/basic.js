@@ -1,4 +1,3 @@
-import { test } from 'qunit';
 import { fire } from 'simulant';
 import Model from '../../../helpers/Model';
 import { onWarn, initModule } from '../../../helpers/test-config';
@@ -30,7 +29,7 @@ export default function() {
 		}
 	};
 
-	test( 'Adaptors can change data as it is .set() (#442)', t => {
+	QUnit.test( 'Adaptors can change data as it is .set() (#442)', t => {
 		const model = new Model({
 			foo: 'BAR',
 			percent: 150
@@ -64,7 +63,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>qux</p><p>50</p>' );
 	});
 
-	test( 'ractive.reset() calls are forwarded to wrappers if the root data object is wrapped', t => {
+	QUnit.test( 'ractive.reset() calls are forwarded to wrappers if the root data object is wrapped', t => {
 		onWarn( msg => t.ok( /plain JavaScript object/.test( msg ) ) );
 
 		let model = new Model({
@@ -96,7 +95,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>qux</p>' );
 	});
 
-	test( 'If a wrapper\'s reset() method returns false, it should be torn down (#467)', t => {
+	QUnit.test( 'If a wrapper\'s reset() method returns false, it should be torn down (#467)', t => {
 		const model1 = new Model({
 			foo: 'bar'
 		});
@@ -118,7 +117,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>baz</p>' );
 	});
 
-	test( 'A string can be supplied instead of an array for the `adapt` option (if there\'s only one adaptor listed', t => {
+	QUnit.test( 'A string can be supplied instead of an array for the `adapt` option (if there\'s only one adaptor listed', t => {
 		const FooAdaptor = {
 			filter () {},
 			wrap () {}
@@ -130,7 +129,7 @@ export default function() {
 		t.deepEqual( instance.viewmodel.adaptors, [FooAdaptor] );
 	});
 
-	test( 'Original values are passed to event handlers (#945)', t => {
+	QUnit.test( 'Original values are passed to event handlers (#945)', t => {
 		t.expect( 2 );
 
 		const ractive = new Ractive({
@@ -151,7 +150,7 @@ export default function() {
 		fire( ractive.find( 'button' ), 'click' );
 	});
 
-	test( 'Adaptor teardown is called when used in a component (#1190)', t => {
+	QUnit.test( 'Adaptor teardown is called when used in a component (#1190)', t => {
 		function Wrapped () {}
 
 		let torndown = 0;
@@ -188,7 +187,7 @@ export default function() {
 	});
 
 
-	test( 'Adaptor called on data provided in initial options when no template (#1285)', t => {
+	QUnit.test( 'Adaptor called on data provided in initial options when no template (#1285)', t => {
 		function Wrapped () {}
 
 		const obj = new Wrapped();
@@ -218,7 +217,7 @@ export default function() {
 		t.ok( !obj.enabled, 'object property should not have been set, adaptor should have been used'	);
 	});
 
-	test( 'Components inherit modifyArrays option from environment (#1297)', t => {
+	QUnit.test( 'Components inherit modifyArrays option from environment (#1297)', t => {
 		const Widget = Ractive.extend({
 			template: '{{#each items}}{{this}}{{/each}}',
 			isolated: false
@@ -239,7 +238,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'abc' );
 	});
 
-	test( 'Computed properties are adapted', t => {
+	QUnit.test( 'Computed properties are adapted', t => {
 		function Value ( value ) {
 			this._ = value;
 		}
@@ -271,7 +270,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '4' );
 	});
 
-	test( 'display a collection from a model', t => {
+	QUnit.test( 'display a collection from a model', t => {
 		function extend ( parent, child ) {
 			function Surrogate () {
 				this.constructor = child;
@@ -340,7 +339,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '-duck-chicken' );
 	});
 
-	test( 'A component inherits adaptor config from its parent class', t => {
+	QUnit.test( 'A component inherits adaptor config from its parent class', t => {
 		function Wrapped () {}
 
 		const adaptor = {
@@ -369,7 +368,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'bar' );
 	});
 
-	test( 'Components inherit adaptors from their parent', t => {
+	QUnit.test( 'Components inherit adaptors from their parent', t => {
 		Ractive.adaptors.foo = fooAdaptor;
 
 		Ractive.components.Widget = Ractive.extend({
@@ -395,7 +394,7 @@ export default function() {
 		delete Ractive.adaptors.foo;
 	});
 
-	test( 'isolated components do not inherit adaptors from their parents', t => {
+	QUnit.test( 'isolated components do not inherit adaptors from their parents', t => {
 		const adaptor = {
 			filter ( value ) { return typeof value === 'string'; },
 			wrap ( ractive, value ) {
@@ -426,7 +425,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'bar!baz' );
 	});
 
-	test( 'adaptors should work with update (#2493)', t => {
+	QUnit.test( 'adaptors should work with update (#2493)', t => {
 		const thing = new Foo( 'one' );
 		const r = new Ractive({
 			adapt: [ 'foo' ],
@@ -442,7 +441,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'two' );
 	});
 
-	test( 'extra case for #2493', t => {
+	QUnit.test( 'extra case for #2493', t => {
 		const thing = { thing: 'one' };
 		const adaptor = {
 			filter ( child, parent, keypath ) {
@@ -476,7 +475,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'two' );
 	});
 
-	test( 'adaptors with deeper keypaths should also work with update (#2500)', t => {
+	QUnit.test( 'adaptors with deeper keypaths should also work with update (#2500)', t => {
 		const thing = { thing: { a: 1, b: 4 } };
 		const adaptor = {
 			filter ( child, keypath, parent ) {
@@ -537,7 +536,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '2 5' );
 	});
 
-	test( 'adaptors that adapt whilst marking should tear down old instances', t => {
+	QUnit.test( 'adaptors that adapt whilst marking should tear down old instances', t => {
 		const obj = { foo: new Foo( 'one' ) };
 		const r = new Ractive({
 			adapt: [ 'foo' ],
@@ -554,7 +553,7 @@ export default function() {
 		t.ok( !foo._wrapper );
 	});
 
-	test( 'Components made with Ractive.extend() can include adaptors', t => {
+	QUnit.test( 'Components made with Ractive.extend() can include adaptors', t => {
 		Ractive.adaptors.foo = fooAdaptor;
 
 		const Widget = Ractive.extend({
@@ -576,7 +575,7 @@ export default function() {
 		delete Ractive.adaptors.foo;
 	});
 
-	test( 'adapted values passed to expressions should be unwrapped (#2513)', t => {
+	QUnit.test( 'adapted values passed to expressions should be unwrapped (#2513)', t => {
 		class Foo {
 			constructor () {
 				this.content = 'sup';
@@ -613,7 +612,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'sup hey' );
 	});
 
-	test( 'adapted values should be unwrapped by default with get, but wrapped when unwrap === false', t => {
+	QUnit.test( 'adapted values should be unwrapped by default with get, but wrapped when unwrap === false', t => {
 		class Foo {
 			constructor () {
 				this.content = 'sup';
@@ -649,7 +648,7 @@ export default function() {
 		t.ok( r.get( 'foo', { unwrap: false } ) === 'sup' );
 	});
 
-	test( 'adaptors should not cause death during branching caused by two-way binding (#2467)', t => {
+	QUnit.test( 'adaptors should not cause death during branching caused by two-way binding (#2467)', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<select value="{{foo.0.bar.0}}"><option>yep</option><option value="{{42}}">answer</option></select>`,
@@ -662,7 +661,7 @@ export default function() {
 		t.equal( r.get( 'foo.0.bar.0' ), undefined );
 	});
 
-	test( 'adapted values that are mapped should be unwrapped on the mapped side (#2513 part 2)', t => {
+	QUnit.test( 'adapted values that are mapped should be unwrapped on the mapped side (#2513 part 2)', t => {
 		class Foo {
 			constructor () {
 				this.content = 'sup';
@@ -702,7 +701,7 @@ export default function() {
 		t.ok( c.get( 'it' ) instanceof Foo, 'value is unwrapped' );
 	});
 
-	test( `updating the child of an adapted value only updates the child (#2693)`, t => {
+	QUnit.test( `updating the child of an adapted value only updates the child (#2693)`, t => {
 		class Wrap {
 			constructor (obj) {
 				this.obj = obj;

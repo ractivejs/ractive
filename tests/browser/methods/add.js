@@ -1,10 +1,9 @@
-import { test } from 'qunit';
 import { initModule } from '../../helpers/test-config';
 
 export default function() {
 	initModule( 'methods/add.js' );
 
-	test( 'ractive.add("foo") adds 1 to the value of foo', t => {
+	QUnit.test( 'ractive.add("foo") adds 1 to the value of foo', t => {
 		const ractive = new Ractive({
 			data: { foo: 0 }
 		});
@@ -16,7 +15,7 @@ export default function() {
 		t.equal( ractive.get( 'foo' ), 2 );
 	});
 
-	test( 'ractive.add("foo",x) adds x to the value of foo', t => {
+	QUnit.test( 'ractive.add("foo",x) adds x to the value of foo', t => {
 		const ractive = new Ractive({
 			data: { foo: 0 }
 		});
@@ -28,7 +27,7 @@ export default function() {
 		t.equal( ractive.get( 'foo' ), 5 );
 	});
 
-	test( 'non-numeric values are an error', t => {
+	QUnit.test( 'non-numeric values are an error', t => {
 		const ractive = new Ractive({
 			data: { foo: 'potato' }
 		});
@@ -36,7 +35,7 @@ export default function() {
 		t.throws( () => ractive.add( 'foo' ), /Cannot add to a non-numeric value/ );
 	});
 
-	test( 'each keypath that matches a wildcard is added to individually (#1604)', t => {
+	QUnit.test( 'each keypath that matches a wildcard is added to individually (#1604)', t => {
 		const items = [
 			{ count: 1 },
 			{ count: 2 },

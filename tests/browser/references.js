@@ -1,11 +1,10 @@
-import { test } from 'qunit';
 import { initModule, onWarn } from '../helpers/test-config';
 import { fire } from 'simulant';
 
 export default function() {
 	initModule( 'references.js' );
 
-	test( '@index special ref finds the nearest index', t => {
+	QUnit.test( '@index special ref finds the nearest index', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{#each outer}}{{#each .list}}{{@index}}{{/each}}{{/each}}',
@@ -17,7 +16,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '012' );
 	});
 
-	test( '@key special ref finds the nearest key', t => {
+	QUnit.test( '@key special ref finds the nearest key', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{#each outer}}{{#each .list}}{{@key}}{{/each}}{{/each}}',
@@ -29,7 +28,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'abc' );
 	});
 
-	test( 'component @keypath references should be relative to the component', t => {
+	QUnit.test( 'component @keypath references should be relative to the component', t => {
 		const cmp = Ractive.extend({
 			template: '{{#with foo.bar}}{{@keypath}}{{/with}}'
 		});
@@ -46,7 +45,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foo.bar' );
 	});
 
-	test( 'nested component @keypath references should be relative to the nested component', t => {
+	QUnit.test( 'nested component @keypath references should be relative to the nested component', t => {
 		const cmp1 = Ractive.extend({
 			template: '{{#with foo.bar}}{{@keypath}}{{/with}}'
 		});
@@ -67,7 +66,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foo.bar' );
 	});
 
-	test( 'component @rootpath references should be relative to the root', t => {
+	QUnit.test( 'component @rootpath references should be relative to the root', t => {
 		const cmp = Ractive.extend({
 			template: '{{#with foo.bar}}{{@rootpath}}{{/with}}'
 		});
@@ -84,7 +83,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'baz.bat.bar' );
 	});
 
-	test( '@global special ref gives access to the vm global object', t => {
+	QUnit.test( '@global special ref gives access to the vm global object', t => {
 		/* global global, window */
 		const target = typeof global !== 'undefined' ? global : window;
 		const r = new Ractive({
@@ -110,7 +109,7 @@ export default function() {
 		t.equal( target.foo.bar, 10 );
 	});
 
-	test( 'instance property shortcut @.foo === @this.foo', t => {
+	QUnit.test( 'instance property shortcut @.foo === @this.foo', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{@.foo}} {{@.bar.baz}}',
@@ -121,7 +120,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foo baz' );
 	});
 
-	test( 'instance shortcut in event handlers', t => {
+	QUnit.test( 'instance shortcut in event handlers', t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `<button on-click="@.set('foo', 'yep')">click me</button>`
@@ -132,7 +131,7 @@ export default function() {
 		t.equal( r.get( 'foo' ), 'yep' );
 	});
 
-	test( 'calling set with an instance property shortcut', t => {
+	QUnit.test( 'calling set with an instance property shortcut', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{@.foo}} {{@.bar.baz}}',
@@ -147,7 +146,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foo baz' );
 	});
 
-	test( `can't set with one of the reserved read-only special refs`, t => {
+	QUnit.test( `can't set with one of the reserved read-only special refs`, t => {
 		const r = new Ractive({});
 		t.throws( () => r.set( '@index', true ), /invalid keypath/ );
 		t.throws( () => r.set( '@key', true ), /invalid keypath/ );
@@ -155,7 +154,7 @@ export default function() {
 		t.throws( () => r.set( '@rootpath', true ), /invalid keypath/ );
 	});
 
-	test( 'context popping with ^^/', t => {
+	QUnit.test( 'context popping with ^^/', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{#with some.path}}{{#with ~/other}}{{^^/foo}}{{#with .foo}}{{" " + ^^/^^/foo}}{{/with}}{{/with}}{{/with}}',
@@ -172,7 +171,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yep yep' );
 	});
 
-	test( 'context popping with path popping ^^/../', t => {
+	QUnit.test( 'context popping with path popping ^^/../', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{#with some.path}}{{#with ~/other}}{{^^/../up.foo}}{{#with .foo}}{{" " + ^^/^^/../up.foo}}{{/with}}{{/with}}{{/with}}',
@@ -190,7 +189,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yep yep' );
 	});
 
-	test( 'direct ancestor reference to a context', t => {
+	QUnit.test( 'direct ancestor reference to a context', t => {
 		const bar = { baz: 'yep' };
 		new Ractive({
 			el: fixture,
@@ -201,7 +200,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, JSON.stringify( bar ) );
 	});
 
-	test( 'direct context pop reference to a context', t => {
+	QUnit.test( 'direct context pop reference to a context', t => {
 		const bar = { baz: 'yep' };
 		new Ractive({
 			el: fixture,
@@ -212,7 +211,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, JSON.stringify( bar ) );
 	});
 
-	test( 'direct context pop and ancestor reference to a context', t => {
+	QUnit.test( 'direct context pop and ancestor reference to a context', t => {
 		const bar = { baz: 'yep' };
 		new Ractive({
 			el: fixture,
@@ -223,7 +222,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, JSON.stringify( bar ) );
 	});
 
-	test( '@shared special refers to ractive-only global state', t => {
+	QUnit.test( '@shared special refers to ractive-only global state', t => {
 		const r1 = new Ractive({
 			target: fixture,
 			template: `{{#with @shared.foo}}{{@keypath}} {{.}}{{/with}}`
@@ -236,7 +235,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '@shared.foo bar' );
 	});
 
-	test( 'by default instance members resolve after ambiguous context', t => {
+	QUnit.test( 'by default instance members resolve after ambiguous context', t => {
 		new Ractive({
 			target: fixture,
 			template: '{{foo}} {{#with 1 as foo}}{{foo}}{{/with}} {{#with bar}}{{#with ~/other}}{{foo}}{{/with}}{{/with}}',
@@ -250,7 +249,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'hey 1 yep' );
 	});
 
-	test( 'instance members are not resolved if resolveInstanceMembers is false', t => {
+	QUnit.test( 'instance members are not resolved if resolveInstanceMembers is false', t => {
 		new Ractive({
 			target: fixture,
 			template: '{{foo}}?',
@@ -261,7 +260,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '?' );
 	});
 
-	test( 'if asked, ractive will issue warnings about ambiguous references', t => {
+	QUnit.test( 'if asked, ractive will issue warnings about ambiguous references', t => {
 		t.expect( 4 );
 
 		onWarn( w => {
@@ -294,7 +293,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yepyep' );
 	});
 
-	test( 'component tree root data can be accessed with @.root.data (#2432)', t => {
+	QUnit.test( 'component tree root data can be accessed with @.root.data (#2432)', t => {
 		const cmp = Ractive.extend({
 			template: '{{#with some.path}}{{~/foo}} {{@.root.data.foo}}{{/with}}',
 			data: {
@@ -315,7 +314,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'cmp root' );
 	});
 
-	test( 'root model will deal with ~/ references (#2432)', t => {
+	QUnit.test( 'root model will deal with ~/ references (#2432)', t => {
 		const cmp = Ractive.extend({
 			data: { foo: { bar: 'cmp' } }
 		});
@@ -332,7 +331,7 @@ export default function() {
 		t.equal( c.get( '@.root.data.foo.bar' ), 'root' );
 	});
 
-	test( `trying to set a relative keypath from instance set warns and doesn't do unexpected things`, t => {
+	QUnit.test( `trying to set a relative keypath from instance set warns and doesn't do unexpected things`, t => {
 		onWarn( w => {
 			t.ok( /relative keypath.*non-relative.*getNodeInfo.*event object/.test( w ) );
 		});
@@ -344,7 +343,7 @@ export default function() {
 		t.ok( !( '' in r.get() ) );
 	});
 
-	test( `instance methods are bound properly when used with resolveInstanceMembers (#2757)`, t => {
+	QUnit.test( `instance methods are bound properly when used with resolveInstanceMembers (#2757)`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `<button on-click="set('foo', 'bar')">click me</button>`
@@ -355,7 +354,7 @@ export default function() {
 		t.equal( r.get( 'foo' ), 'bar' );
 	});
 
-	test( `context takes precedent over instance methods`, t => {
+	QUnit.test( `context takes precedent over instance methods`, t => {
 		new Ractive({
 			target: fixture,
 			template: '{{foo()}}',
@@ -368,7 +367,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foo' );
 	});
 
-	test( `instance methods aren't resolved if resolveInstanceMembers is false`, t => {
+	QUnit.test( `instance methods aren't resolved if resolveInstanceMembers is false`, t => {
 		new Ractive({
 			target: fixture,
 			template: '{{foo()}}',
@@ -379,7 +378,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '' );
 	});
 
-	test( `children of references that become non-objects behave correctly (#2817)`, t => {
+	QUnit.test( `children of references that become non-objects behave correctly (#2817)`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo[bar]}}{{.baz.bat}}{{/with}}`,
@@ -391,19 +390,19 @@ export default function() {
 		t.equal( fixture.innerHTML, '' );
 	});
 
-	test( `@event cannot be used outside of an event directive`, t => {
+	QUnit.test( `@event cannot be used outside of an event directive`, t => {
 		t.throws( () => {
 			Ractive.parse( '{{@event}}' );
 		}, /are only valid references within an event directive/ );
 	});
 
-	test( `@node cannot be used outside of an event directive`, t => {
+	QUnit.test( `@node cannot be used outside of an event directive`, t => {
 		t.throws( () => {
 			Ractive.parse( '{{@node}}' );
 		}, /are only valid references within an event directive/ );
 	});
 
-	test( `@context expression can be used to get reference to any template context`, t => {
+	QUnit.test( `@context expression can be used to get reference to any template context`, t => {
 		t.expect( 3 );
 
 		new Ractive({

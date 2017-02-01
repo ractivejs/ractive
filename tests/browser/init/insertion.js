@@ -1,4 +1,3 @@
-import { test } from 'qunit';
 import { beforeEach, initModule } from '../../helpers/test-config';
 
 export default function() {
@@ -19,7 +18,7 @@ export default function() {
 
 	initModule( 'init/insertion.js' );
 
-	test( 'Element by id selector', t => {
+	QUnit.test( 'Element by id selector', t => {
 		new Ractive({
 			el: '#target',
 			template: '<div>foo</div>'
@@ -28,7 +27,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 	});
 
-	test( 'Element by id (hashless)', t => {
+	QUnit.test( 'Element by id (hashless)', t => {
 		new Ractive({
 			el: 'target',
 			template: '<div>foo</div>'
@@ -37,7 +36,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 	});
 
-	test( 'Element by query selector', t => {
+	QUnit.test( 'Element by query selector', t => {
 		new Ractive({
 			el: 'div[id=target]',
 			template: '<div>foo</div>'
@@ -46,7 +45,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 	});
 
-	test( 'Element by node', t => {
+	QUnit.test( 'Element by node', t => {
 		new Ractive({
 			el: target,
 			template: '<div>foo</div>'
@@ -55,7 +54,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 	});
 
-	test( 'Element by nodelist', t => {
+	QUnit.test( 'Element by nodelist', t => {
 		new Ractive({
 			el: fixture.querySelectorAll('div'),
 			template: '<div>foo</div>'
@@ -64,7 +63,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 	});
 
-	test( 'Element by any array-like', t => {
+	QUnit.test( 'Element by any array-like', t => {
 		new Ractive({
 			el: [target],
 			template: '<div>foo</div>'
@@ -73,7 +72,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 	});
 
-	test( 'Default replaces content', t => {
+	QUnit.test( 'Default replaces content', t => {
 		new Ractive({
 			el: target,
 			template: '<div>foo</div>'
@@ -82,7 +81,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 	});
 
-	test( 'Default replaces content', t => {
+	QUnit.test( 'Default replaces content', t => {
 		new Ractive({
 			el: target,
 			template: '<div>foo</div>'
@@ -91,7 +90,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 	});
 
-	test( 'Append false (normal default) replaces content', t => {
+	QUnit.test( 'Append false (normal default) replaces content', t => {
 		new Ractive({
 			el: target,
 			template: '<div>foo</div>',
@@ -101,7 +100,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 	});
 
-	test( 'Append true option inserts as last child node', t => {
+	QUnit.test( 'Append true option inserts as last child node', t => {
 		new Ractive({
 			el: target,
 			template: '<div>foo</div>',
@@ -111,7 +110,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>bar</div><div>foo</div></div>' );
 	});
 
-	test( 'Append with anchor inserts before anchor', t => {
+	QUnit.test( 'Append with anchor inserts before anchor', t => {
 		new Ractive({
 			el: target,
 			template: '<div>foo</div>',

@@ -1,4 +1,3 @@
-import { test } from 'qunit';
 import { initModule } from '../../helpers/test-config';
 
 export default function() {
@@ -34,7 +33,7 @@ export default function() {
 		return hex.toUpperCase();
 	}
 
-	test( 'CSS is applied to components', t => {
+	QUnit.test( 'CSS is applied to components', t => {
 		const Widget = Ractive.extend({
 			template: '<p>foo</p>',
 			css: 'p { color: red; }'
@@ -47,7 +46,7 @@ export default function() {
 		t.equal( getHexColor( ractive.find( 'p' ) ), hexCodes.red );
 	});
 
-	test( 'CSS is encapsulated', t => {
+	QUnit.test( 'CSS is encapsulated', t => {
 		const Widget = Ractive.extend({
 			template: '<p>red</p>',
 			css: 'p { color: red; }'
@@ -65,7 +64,7 @@ export default function() {
 		t.equal( getHexColor( paragraphs[1] ), hexCodes.red );
 	});
 
-	test( 'CSS encapsulation transformation is optional', t => {
+	QUnit.test( 'CSS encapsulation transformation is optional', t => {
 		const done = t.async();
 
 		const Widget = Ractive.extend({
@@ -89,7 +88,7 @@ export default function() {
 		ractive.teardown().then( done );
 	});
 
-	test( 'Comments do not break transformed CSS', t => {
+	QUnit.test( 'Comments do not break transformed CSS', t => {
 		const Widget = Ractive.extend({
 			template: '<p>foo</p>',
 			css: '/*p { color: red; }*/ p { color: blue; }'
@@ -102,7 +101,7 @@ export default function() {
 		t.equal( getHexColor( ractive.find( 'p' ) ), hexCodes.blue );
 	});
 
-	test( 'Multiple pseudo-selectors work', t => {
+	QUnit.test( 'Multiple pseudo-selectors work', t => {
 		const Widget = Ractive.extend({
 			template: '<div><p>blue</p><p>black</p></div>',
 			css: 'p:first-child:nth-child(1) { color: blue; }'
@@ -122,7 +121,7 @@ export default function() {
 		t.equal( getHexColor( paragraphs[3] ), hexCodes.black );
 	});
 
-	test( 'Combinators work', t => {
+	QUnit.test( 'Combinators work', t => {
 		const Widget = Ractive.extend({
 			template: '<div><p>black</p><p>green</p></div>',
 			css: 'p + p { color: green; }'
@@ -142,7 +141,7 @@ export default function() {
 		t.equal( getHexColor( paragraphs[3] ), hexCodes.green );
 	});
 
-	test( 'Media queries work', t => {
+	QUnit.test( 'Media queries work', t => {
 		const Widget = Ractive.extend({
 			template: '<p>red</p>',
 			css: 'p { color: blue } @media screen and (max-width: 99999px) { p { color: red; } }'
@@ -160,7 +159,7 @@ export default function() {
 		t.equal( getHexColor( paragraphs[1] ), hexCodes.red );
 	});
 
-	test( 'Multiple inheritance doesn\'t break css', t => {
+	QUnit.test( 'Multiple inheritance doesn\'t break css', t => {
 		const C = Ractive.extend({
 			css: 'p { color: red; }',
 			template: '<p>Hi!</p>'
@@ -177,7 +176,7 @@ export default function() {
 		t.equal( getHexColor( paragraph ), hexCodes.red );
 	});
 
-	test( 'nth-child selectors work', t => {
+	QUnit.test( 'nth-child selectors work', t => {
 		const ZebraList = Ractive.extend({
 			css: 'li { color: green; } li:nth-child(2n+1) { color: red; }',
 			template: `
@@ -202,7 +201,7 @@ export default function() {
 		t.equal( getHexColor( lis[4] ), hexCodes.red );
 	});
 
-	test( 'Components forward encapsulation instructions to top-level components in their own templates', t => {
+	QUnit.test( 'Components forward encapsulation instructions to top-level components in their own templates', t => {
 		const Inner = Ractive.extend({
 			template: '<p>red, bold, italic</p>',
 			css: 'p { color: red; }'
@@ -232,7 +231,7 @@ export default function() {
 		t.equal( style.fontStyle, 'italic' );
 	});
 
-	test( 'Yielded content gets encapsulated styles', t => {
+	QUnit.test( 'Yielded content gets encapsulated styles', t => {
 		const Wrapper = Ractive.extend({
 			template: `<div class='blue'>{{yield}}</div>`,
 			css: '.blue { color: blue; }'
@@ -253,7 +252,7 @@ export default function() {
 		t.ok( /Comic Sans MS/.test( style.fontFamily ) );
 	});
 
-	test( 'Components retain their encapsulated CSS until they are detached', t => {
+	QUnit.test( 'Components retain their encapsulated CSS until they are detached', t => {
 		const done = t.async();
 
 		const Widget = Ractive.extend({
@@ -290,7 +289,7 @@ export default function() {
 		});
 	});
 
-	test( 'data-ractive-css only gets applied to one level of elements', t => {
+	QUnit.test( 'data-ractive-css only gets applied to one level of elements', t => {
 		const Widget = Ractive.extend({
 			template: '<div><p></p></div>',
 			css: 'div {}'
@@ -302,7 +301,7 @@ export default function() {
 		t.ok( !ractive.find( 'p' ).hasAttribute( 'data-ractive-css' ) );
 	});
 
-	test( 'top-level elements inside each blocks get encapsulated styles', t => {
+	QUnit.test( 'top-level elements inside each blocks get encapsulated styles', t => {
 		const Widget = Ractive.extend({
 			template: `
 				<div class='one'>a</div>
@@ -333,7 +332,7 @@ export default function() {
 		t.equal( getHexColor( two ), hexCodes.blue );
 	});
 
-	test( 'Multiline comments are removed (#2683)', t => {
+	QUnit.test( 'Multiline comments are removed (#2683)', t => {
 		const Widget = Ractive.extend({
 			template: '<p>foo</p>',
 			css: '/*p \n{ color: red; }*/ p { color: blue; }'
@@ -346,7 +345,7 @@ export default function() {
 		t.equal( getHexColor( ractive.find( 'p' ) ), hexCodes.blue );
 	});
 
-	test( 'Attribute selectors are handled correctly (#2778)', t => {
+	QUnit.test( 'Attribute selectors are handled correctly (#2778)', t => {
 		const Widget = Ractive.extend({
 			template: '<p data-foo="https://\'\']:">foo</p>',
 			css: 'p[data-foo=\'https://\\\'\\\']:\'] { color: blue; }'
@@ -359,7 +358,7 @@ export default function() {
 		t.equal( getHexColor( ractive.find( 'p' ) ), hexCodes.blue );
 	});
 
-	test( `components should output css scoping ids with toHTML (#2709)`, t => {
+	QUnit.test( `components should output css scoping ids with toHTML (#2709)`, t => {
 		const cmp = new (Ractive.extend({
 			template: '<div />',
 			cssId: 'my-nifty-cmp',
@@ -370,7 +369,7 @@ export default function() {
 		t.ok( ~cmp.toCSS().indexOf( 'my-nifty-cmp' ) );
 	});
 
-	test( `using 'from' and 'to' in keyframe declarations works (#2854)`, t => {
+	QUnit.test( `using 'from' and 'to' in keyframe declarations works (#2854)`, t => {
 		const cmp = new (Ractive.extend({
 			el: fixture,
 			template: '<p class="blue">foo</p><p class="red">bar</p>',
@@ -382,7 +381,7 @@ export default function() {
 		t.ok( ~cmp.toCSS().indexOf( 'someAnimation { from { transform: scale3d(1.5,1.5,1) rotate(0deg); } }' ) );
 	});
 
-	test( `css can be loaded from an element, and id, or a selector too (#2511)`, t => {
+	QUnit.test( `css can be loaded from an element, and id, or a selector too (#2511)`, t => {
 		const script = document.createElement( 'script' );
 		script.setAttribute( 'type', 'text/css' );
 		script.setAttribute( 'id', 'foo-css' );
