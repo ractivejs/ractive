@@ -956,6 +956,25 @@ export default function() {
 		r.render( fixture ).then( done );
 	});
 
+	test( `outro transitions isOutro === false (#2852)`, t => {
+		const done = t.async();
+		t.expect( 2 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#if !foo}}<div foo-out />{{/if}}`,
+			transitions: {
+				foo( trans ) {
+					t.ok( trans.isOutro );
+					t.ok( !trans.isIntro );
+					trans.complete();
+				}
+			}
+		});
+
+		r.toggle( 'foo' ).then( done );
+	});
+
 	test( `conditional transitions find their parent element (#2815)`, t => {
 		const done = t.async();
 

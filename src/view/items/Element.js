@@ -222,6 +222,7 @@ export default class Element extends ContainerItem {
 		const intro = this.intro;
 		if ( intro && intro.shouldFire( 'intro' ) ) {
 			intro.isIntro = true;
+			intro.isOutro = false;
 			runloop.registerTransition( intro );
 		}
 
@@ -357,6 +358,7 @@ export default class Element extends ContainerItem {
 		const outro = this.outro;
 		if ( outro && outro.shouldFire( 'outro' ) ) {
 			outro.isIntro = false;
+			outro.isOutro = true;
 			runloop.registerTransition( outro );
 		}
 
