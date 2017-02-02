@@ -12,7 +12,7 @@ import { addToArray, removeFromArray } from '../../../utils/array';
 import noop from '../../../utils/noop';
 import Item from './Item';
 
-const specialPattern = /^(event|arguments|@event|@context)(\..+)?$/;
+const specialPattern = /^(event|arguments|@event|@context|@node)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
 
 export const DelegateProxy = {
@@ -151,6 +151,9 @@ export default class EventDirective {
 								break;
 							case '@event':
 								obj = event && event.event;
+								break;
+							case '@node':
+								obj = this.element.node;
 								break;
 							default:
 								obj = passedArgs;

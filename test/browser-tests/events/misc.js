@@ -348,4 +348,18 @@ export default function() {
 
 		fire( r.find( 'div' ), 'click' );
 	});
+
+	test( `the event directive's node is exposed as @node`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#with foo}}<input twoway=false on-change="@context.set('.bar', @node.value)" />{{/with}}`,
+			data: { foo: {} }
+		});
+
+		const input = r.find( 'input' );
+		input.value = 'yep';
+		fire( input, 'change' );
+
+		t.equal( r.get( 'foo.bar' ), 'yep' );
+	});
 }

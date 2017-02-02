@@ -393,7 +393,13 @@ export default function() {
 	test( `@event cannot be used outside of an event directive`, t => {
 		t.throws( () => {
 			Ractive.parse( '{{@event}}' );
-		}, /is only a valid reference within an event directive/ );
+		}, /are only valid references within an event directive/ );
+	});
+
+	test( `@node cannot be used outside of an event directive`, t => {
+		t.throws( () => {
+			Ractive.parse( '{{@node}}' );
+		}, /are only valid references within an event directive/ );
 	});
 
 	test( `@context expression can be used to get reference to any template context`, t => {

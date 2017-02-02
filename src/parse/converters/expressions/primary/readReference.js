@@ -9,7 +9,7 @@ const globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|enco
 const keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
 
 const prefixPattern = /^(?:\@\.|\@|~\/|(?:\^\^\/(?:\^\^\/)*(?:\.\.\/)*)|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/;
-const specials = /^(key|index|keypath|rootpath|this|global|shared|context|event)(?=\b)/;
+const specials = /^(key|index|keypath|rootpath|this|global|shared|context|event|node)(?=\b)/;
 
 export default function readReference ( parser ) {
 	let prefix, name, global, reference, lastDotIndex;
@@ -39,8 +39,8 @@ export default function readReference ( parser ) {
 	if ( prefix === '@' ) {
 		if ( !specials.test( name ) ) {
 			parser.error( `Unrecognized special reference @${name}` );
-		} else if ( ~name.indexOf( 'event' ) && !parser.inEvent ) {
-			parser.error( `@event is only a valid reference within an event directive` );
+		} else if ( ( ~name.indexOf( 'event' ) || ~name.indexOf( 'node' ) ) && !parser.inEvent ) {
+			parser.error( `@event and @node are only valid references within an event directive` );
 		} else if ( ~name.indexOf( 'context' ) ) {
 			parser.pos = parser.pos - ( name.length - 7 );
 			return {
