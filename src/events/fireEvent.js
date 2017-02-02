@@ -48,11 +48,16 @@ export default function fireEvent ( ractive, eventName, options = {} ) {
 	if ( !eventName ) { return; }
 
 	if ( !options.event ) {
-		options.event = {
-			name: eventName,
-			// until event not included as argument default
-			_noArg: true
-		};
+		if ( options.args && options.args[0] === ractive.event ) {
+			options.event = options.args.shift();
+			options.event.name = eventName;
+		} else {
+			options.event = {
+				name: eventName,
+				// until event not included as argument default
+				_noArg: true
+			};
+		}
 	} else {
 		options.event.name = eventName;
 	}

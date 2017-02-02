@@ -10,7 +10,11 @@ export default function refineExpression ( expression, mustache ) {
 		}
 
 		if ( expression.t === REFERENCE ) {
-			mustache.r = expression.n;
+			if ( !~expression.n.indexOf( '@context' ) ) {
+				mustache.r = expression.n;
+			} else {
+				mustache.x = flattenExpression( expression );
+			}
 		} else {
 			if ( referenceExpression = getReferenceExpression( expression ) ) {
 				mustache.rx = referenceExpression;

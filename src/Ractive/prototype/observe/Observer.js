@@ -34,8 +34,6 @@ export default class Observer {
 		this.cancelled = true;
 		if ( this.model ) {
 			this.model.unregister( this );
-		} else {
-			this.resolver.unbind();
 		}
 		removeFromArray( this.ractive._observers, this );
 	}
@@ -66,7 +64,6 @@ export default class Observer {
 
 	rebind ( next, previous ) {
 		next = rebindMatch( this.keypath, next, previous );
-		// TODO: set up a resolver if next is undefined?
 		if ( next === this.model ) return false;
 
 		if ( this.model ) this.model.unregister( this );

@@ -6,6 +6,7 @@ import { animate as protoAnimate } from '../../Ractive/prototype/animate';
 import { merge as protoMerge } from '../../Ractive/prototype/merge';
 import { update as protoUpdate } from '../../Ractive/prototype/update';
 import runloop from '../../global/runloop';
+import findElement from '../items/shared/findElement';
 
 const modelPush = makeArrayMethod( 'push' ).model;
 const modelPop = makeArrayMethod( 'pop' ).model;
@@ -38,9 +39,9 @@ function build ( el, keypath, value ) {
 
 // get relative keypaths and values
 function get ( keypath ) {
-	if ( !keypath ) return this.proxy.parentFragment.findContext().get( true );
+	if ( !keypath ) return this.proxy.fragment.findContext().get( true );
 
-	const model = resolveReference( this.proxy.parentFragment, keypath );
+	const model = resolveReference( this.proxy.fragment, keypath );
 
 	return model ? model.get( true ) : undefined;
 }
@@ -51,7 +52,7 @@ function resolve ( path, ractive ) {
 }
 
 function findModel ( el, path ) {
-	const frag = el.proxy.parentFragment;
+	const frag = el.proxy.fragment;
 
 	if ( typeof path !== 'string' ) {
 		return { model: frag.findContext(), instance: path };
@@ -92,13 +93,13 @@ function merge ( keypath, array, options ) {
 
 function observe ( keypath, callback, options = {} ) {
 	if ( isObject( keypath ) ) options = callback || {};
-	options.fragment = this.proxy.parentFragment;
+	options.fragment = this.proxy.fragment;
 	return this.ractive.observe( keypath, callback, options );
 }
 
 function observeOnce ( keypath, callback, options = {} ) {
 	if ( isObject( keypath ) ) options = callback || {};
-	options.fragment = this.proxy.parentFragment;
+	options.fragment = this.proxy.fragment;
 	return this.ractive.observeOnce( keypath, callback, options );
 }
 
@@ -111,14 +112,14 @@ function push ( keypath, ...values ) {
 }
 
 function raise ( name, event, ...args ) {
-	let element = this.proxy;
+	let element = this.proxy.element;
 
 	while ( element ) {
 		const events = element.events;
 		for ( let i = 0; i < events.length; i++ ) {
-			const event = events[i];
-			if ( ~event.template.n.indexOf( name ) ) {
-				event.fire( event, args );
+			const ev = events[i];
+			if ( ~ev.template.n.indexOf( name ) ) {
+				ev.fire( event, args );
 				return;
 			}
 		}
@@ -209,8 +210,9 @@ function getBinding () {
 }
 
 function getBindingModel ( ctx ) {
-	const el = ctx.proxy;
-	return { model: el.binding && el.binding.model, instance: el.parentFragment.ractive };
+	const el = ctx.proxy.element;
+	if ( !el ) return;
+	return { model: el.binding && el.binding.model, instance: ctx.proxy.ractive };
 }
 
 function setBinding ( value ) {
@@ -218,10 +220,13 @@ function setBinding ( value ) {
 	return sharedSet( this.ractive, [ [ model, value ] ] );
 }
 
-export function addHelpers ( obj, element ) {
+export function addHelpers ( obj, fragment, element ) {
+	const proxy = { fragment, element };
+	if ( !element ) proxy.element = findElement( fragment );
+
 	Object.defineProperties( obj, {
-		proxy: { value: element, writable: true },
-		ractive: { value: element.parentFragment.ractive },
+		proxy: { value: proxy, writable: true },
+		ractive: { value: fragment.ractive },
 		resolve: { value: resolve },
 		get: { value: get },
 
@@ -255,7 +260,8 @@ export function addHelpers ( obj, element ) {
 		decorators: {
 			get () {
 				const items = {};
-				element.decorators.forEach( d => items[ d.name ] = d.intermediary );
+				if ( !this.proxy.element ) return items;
+				this.proxy.element.decorators.forEach( d => items[ d.name ] = d.intermediary );
 				return items;
 			}
 		}

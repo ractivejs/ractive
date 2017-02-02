@@ -1,4 +1,4 @@
-import { GLOBAL, REFERENCE } from '../../../../config/types';
+import { GLOBAL, REFERENCE, BRACKETED } from '../../../../config/types';
 import { normalise } from '../../../../shared/keypaths';
 import { legalReference, relaxedName } from '../shared/patterns';
 
@@ -9,7 +9,7 @@ const globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|enco
 const keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
 
 const prefixPattern = /^(?:\@\.|\@|~\/|(?:\^\^\/(?:\^\^\/)*(?:\.\.\/)*)|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/;
-const specials = /^(key|index|keypath|rootpath|this|global|shared)/;
+const specials = /^(key|index|keypath|rootpath|this|global|shared|context|event)(?=\b)/;
 
 export default function readReference ( parser ) {
 	let prefix, name, global, reference, lastDotIndex;
@@ -36,8 +36,21 @@ export default function readReference ( parser ) {
 		return null;
 	}
 
-	if ( prefix === '@' && !specials.test( name ) ) {
-		parser.error( `Unrecognized special reference @${name}` );
+	if ( prefix === '@' ) {
+		if ( !specials.test( name ) ) {
+			parser.error( `Unrecognized special reference @${name}` );
+		} else if ( ~name.indexOf( 'event' ) && !parser.inEvent ) {
+			parser.error( `@event is only a valid reference within an event directive` );
+		} else if ( ~name.indexOf( 'context' ) ) {
+			parser.pos = parser.pos - ( name.length - 7 );
+			return {
+				t: BRACKETED,
+				x: {
+					t: REFERENCE,
+					n: '@context'
+				}
+			};
+		}
 	}
 
 	// bug out if it's a keyword (exception for ancestor/restricted refs - see https://github.com/ractivejs/ractive/issues/1497)

@@ -389,4 +389,28 @@ export default function() {
 		r.set( 'foo.bar', true );
 		t.equal( fixture.innerHTML, '' );
 	});
+
+	test( `@event cannot be used outside of an event directive`, t => {
+		t.throws( () => {
+			Ractive.parse( '{{@event}}' );
+		}, /is only a valid reference within an event directive/ );
+	});
+
+	test( `@context expression can be used to get reference to any template context`, t => {
+		t.expect( 3 );
+
+		new Ractive({
+			target: fixture,
+			template: `{{#with foo}}<div>{{#with bar}}{{@.check(@context)}}{{/with}}</div>{{/with}}`,
+			data: { foo: { bar: {} } },
+			check ( ctx ) {
+				ctx.set( 'baz', 'bat' );
+				t.ok( ctx.get( 'baz' ) === 'bat' && this.get( 'foo.bar.baz' ) === 'bat' );
+				t.ok( this.getNodeInfo( 'div' ).resolve( '.bar' ) === ctx.resolve() );
+				return 'yep';
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div>yep</div>' );
+	});
 }
