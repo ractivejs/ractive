@@ -120,8 +120,8 @@ export default class Element extends ContainerItem {
 	}
 
 	detach () {
-		// if this element is no longer rendered, the transitions are complete and the attributes can be torn down
-		if ( !this.rendered ) this.destroyed();
+		// if this element is no longer viable, the transitions are complete and the attributes can be torn down
+		if ( this.destroy ) this.destroyed();
 
 		return detachNode( this.node );
 	}
@@ -355,6 +355,7 @@ export default class Element extends ContainerItem {
 			// since option elements can't have transitions anyway
 			this.detach();
 		} else if ( shouldDestroy ) {
+			this.destroy = true;
 			runloop.detachWhenReady( this );
 		}
 

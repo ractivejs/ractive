@@ -4,6 +4,8 @@ import { isObject } from '../../utils/is';
 import Fragment from '../Fragment';
 import RepeatedFragment from '../RepeatedFragment';
 import { MustacheContainer } from './shared/Mustache';
+import { keep } from '../../shared/set';
+import runloop from '../../global/runloop';
 
 function isEmpty ( value ) {
 	return !value ||
@@ -114,9 +116,26 @@ export default class Section extends MustacheContainer {
 		                            this.sectionType === SECTION_WITH || // with (partial context) always gets a fragment
 		                            ( siblingFalsey && ( this.sectionType === SECTION_UNLESS ? !this.isTruthy() : this.isTruthy() ) ); // if, unless, and if-with depend on siblings and the condition
 
-		if ( fragmentShouldExist ) {
+		if ( fragmentShouldExist || this.detached ) {
 			if ( this.fragment ) {
 				this.fragment.update();
+				if ( fragmentShouldExist && !this.rendered && this.detached ) {
+					const parentNode = this.parentFragment.findParentNode();
+					const anchor = this.parentFragment.findNextNode( this );
+
+					if ( anchor ) {
+						// we use anchor.parentNode, not parentNode, because the sibling
+						// may be temporarily detached as a result of a shuffle
+						const docFrag = createDocumentFragment();
+						this.fragment.render( docFrag );
+						anchor.parentNode.insertBefore( docFrag, anchor );
+					} else {
+						this.fragment.render( parentNode );
+					}
+
+					this.detached = false;
+					this.rendered = true;
+				}
 			} else {
 				if ( this.sectionType === SECTION_EACH ) {
 					newFragment = new RepeatedFragment({
@@ -135,10 +154,17 @@ export default class Section extends MustacheContainer {
 			}
 		} else {
 			if ( this.fragment && this.rendered ) {
-				this.fragment.unbind().unrender( true );
+				if ( keep !== true ) {
+					this.fragment.unbind().unrender( true );
+					this.fragment = null;
+				} else {
+					this.unrender( false );
+					this.detached = true;
+					runloop.detachWhenReady( this );
+				}
+			} else {
+				this.fragment = null;
 			}
-
-			this.fragment = null;
 		}
 
 		if ( newFragment ) {

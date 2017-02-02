@@ -81,7 +81,11 @@ export default class Fragment {
 
 	detach () {
 		const docFrag = createDocumentFragment();
-		this.items.forEach( item => docFrag.appendChild( item.detach() ) );
+		const items = this.items;
+		const len = items.length;
+		for ( let i = 0; i < len; i++ ) {
+			docFrag.appendChild( items[i].detach() );
+		}
 		return docFrag;
 	}
 
