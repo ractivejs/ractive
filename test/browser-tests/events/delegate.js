@@ -91,8 +91,8 @@ export default function() {
 			template: `<div>{{#each [1]}}{{#with ~/foo}}<div on-click="outer">{{#with bar}}<div on-click="inner" />{{/with}}</div>{{/with}}{{/each}}</div>`,
 			data: { foo: { bar: {} } },
 			on: {
-				outer(ev) { t.equal( ev.resolve(), 'foo' ); },
-				inner(ev) { t.equal( ev.resolve(), 'foo.bar' ); }
+				outer() { t.equal( this.resolve(), 'foo' ); },
+				inner() { t.equal( this.resolve(), 'foo.bar' ); }
 			}
 		});
 

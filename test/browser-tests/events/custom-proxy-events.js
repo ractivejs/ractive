@@ -35,9 +35,9 @@ export default function() {
 			template: '<span id="test" on-custom="someEvent">click me</span>'
 		});
 
-		ractive.on( 'someEvent', ( event ) => {
+		ractive.on( 'someEvent', function () {
 			t.ok( true );
-			t.equal( event.original.type, 'click' );
+			t.equal( this.event.type, 'click' );
 		});
 
 		const span = ractive.find( 'span' );

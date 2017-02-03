@@ -286,7 +286,7 @@ export default function() {
 			target: fixture,
 			template: `<div on-click="@.fire('foo', @context)" />`,
 			on: {
-				foo ( ev ) { t.equal( ev.name, 'foo' ); }
+				foo () { t.equal( this.name, 'foo' ); }
 			}
 		});
 

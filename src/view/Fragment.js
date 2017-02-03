@@ -6,7 +6,7 @@ import processItems from './helpers/processItems';
 import parseJSON from '../utils/parseJSON';
 import { createDocumentFragment } from '../utils/dom';
 import { findMap } from '../utils/array';
-import { addHelpers } from './helpers/contextMethods';
+import { getContextObject } from '../shared/extendContext';
 
 function unrenderAndDestroy ( item ) {
 	item.unrender( true );
@@ -179,11 +179,6 @@ export default class Fragment {
 		return this.parent.findNextNode( this.owner );
 	}
 
-	getContextObject () {
-		if ( !this.ctx ) this.ctx = addHelpers( {}, this );
-		return this.ctx;
-	}
-
 	rebinding ( next ) {
 		this.context = next;
 	}
@@ -281,3 +276,5 @@ export default class Fragment {
 		return this.value;
 	}
 }
+
+Fragment.prototype.getContextObject = getContextObject;

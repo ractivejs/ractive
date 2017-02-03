@@ -559,7 +559,7 @@ export default function() {
 			template: `<div on-foo="wat" />`
 		});
 
-		r.on( 'wat', ( ev, arg ) => t.equal( arg, 'bar' ) );
+		r.on( 'wat', ( arg ) => t.equal( arg, 'bar' ) );
 
 		r.getNodeInfo( 'div' ).raise( 'foo', {}, 'bar' );
 	});

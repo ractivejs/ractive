@@ -13,9 +13,9 @@ export default function() {
 			template: '<span id="test" on-click="someEvent">click me</span>'
 		});
 
-		ractive.on( 'someEvent', ( event ) => {
+		ractive.on( 'someEvent', function () {
 			t.ok( true );
-			t.equal( event.original.type, 'click' );
+			t.equal( this.event.type, 'click' );
 		});
 
 		fire( ractive.find( '#test' ), 'click' );
@@ -50,18 +50,19 @@ export default function() {
 		fire( node, 'click' );
 	});
 
-	test( 'Standard events have correct properties: node, original, name', t => {
-		t.expect( 3 );
+	test( 'Standard events have correct properties: node, original, name, event', t => {
+		t.expect( 4 );
 
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<span id="test" on-click="someEvent">click me</span>'
 		});
 
-		ractive.on( 'someEvent', ( event ) => {
-			t.equal( event.node, ractive.find( '#test ' ));
-			t.equal( event.name, 'someEvent' );
-			t.ok( event.original );
+		ractive.on( 'someEvent', function () {
+			t.equal( this.node, ractive.find( '#test ' ));
+			t.equal( this.name, 'someEvent' );
+			t.ok( this.original );
+			t.ok( this.event );
 		});
 
 		fire( ractive.find( '#test' ), 'click' );
@@ -88,32 +89,32 @@ export default function() {
 			original.stopPropagation = () => stoppedPropagation = true;
 		}
 
-		ractive.on( 'returnFalse', event => {
+		ractive.on( 'returnFalse', function () {
 			t.ok( true );
-			mockOriginalEvent( event.original );
+			mockOriginalEvent( this.original );
 			return false;
 		});
 
-		ractive.on( 'returnUndefined', event => {
+		ractive.on( 'returnUndefined', function () {
 			t.ok( true );
-			mockOriginalEvent( event.original );
+			mockOriginalEvent( this.original );
 		});
 
-		ractive.on( 'returnZero', event => {
+		ractive.on( 'returnZero', function () {
 			t.ok( true );
-			mockOriginalEvent( event.original );
+			mockOriginalEvent( this.original );
 			return 0;
 		});
 
-		ractive.on( 'multiHandler', event => {
+		ractive.on( 'multiHandler', function () {
 			t.ok( true );
-			mockOriginalEvent( event.original );
+			mockOriginalEvent( this.original );
 			return false;
 		});
 
-		ractive.on( 'multiHandler', event => {
+		ractive.on( 'multiHandler', function () {
 			t.ok( true );
-			mockOriginalEvent( event.original );
+			mockOriginalEvent( this.original );
 			return 0;
 		});
 
@@ -141,9 +142,9 @@ export default function() {
 			}
 		});
 
-		ractive.on( 'someEvent', ( event ) => {
-			t.equal( event.resolve(), 'foo' );
-			t.equal( event.get( '.bar' ), 'test' );
+		ractive.on( 'someEvent', function () {
+			t.equal( this.resolve(), 'foo' );
+			t.equal( this.get( '.bar' ), 'test' );
 		});
 
 		fire( ractive.find( '#test' ), 'click' );
@@ -167,13 +168,13 @@ export default function() {
 			components: { cmp, cmp2 }
 		});
 
-		ractive.on( 'cmp.someEvent', ( event ) => {
-			t.equal( event.resolve(), 'baz' );
-			t.equal( event.get( '.bar' ), 'test' );
+		ractive.on( 'cmp.someEvent', function () {
+			t.equal( this.resolve(), 'baz' );
+			t.equal( this.get( '.bar' ), 'test' );
 		});
-		ractive.on( 'cmp2.someEvent', ( event ) => {
-			t.equal( event.resolve(), 'oof' );
-			t.equal( event.get( '.bar' ), 'test' );
+		ractive.on( 'cmp2.someEvent', function () {
+			t.equal( this.resolve(), 'oof' );
+			t.equal( this.get( '.bar' ), 'test' );
 		});
 
 		fire( ractive.find( '#test' ), 'click' );
@@ -198,13 +199,13 @@ export default function() {
 			components: { cmp, cmp2 }
 		});
 
-		ractive.on( 'cmp.someEvent', function ( event ) {
-			t.equal( event.resolve( this ), 'foo' );
-			t.equal( event.get( '.bar' ), 'test' );
+		ractive.on( 'cmp.someEvent', function () {
+			t.equal( this.resolve( this.ractive ), 'foo' );
+			t.equal( this.get( '.bar' ), 'test' );
 		});
-		ractive.on( 'cmp2.someEvent', function ( event ) {
-			t.equal( event.resolve( this ), 'foo' );
-			t.equal( event.get( '.bar' ), 'test' );
+		ractive.on( 'cmp2.someEvent', function () {
+			t.equal( this.resolve( this.ractive ), 'foo' );
+			t.equal( this.get( '.bar' ), 'test' );
 		});
 
 		fire( ractive.find( '#test' ), 'click' );
@@ -222,11 +223,11 @@ export default function() {
 			}
 		});
 
-		ractive.on( 'someEvent', ( event ) => {
-			t.equal( event.node.innerHTML, '2: c' );
-			t.equal( event.resolve(), 'array.2' );
-			t.equal( event.get(), 'c' );
-			t.equal( event.get( 'i' ), 2 );
+		ractive.on( 'someEvent', function () {
+			t.equal( this.node.innerHTML, '2: c' );
+			t.equal( this.resolve(), 'array.2' );
+			t.equal( this.get(), 'c' );
+			t.equal( this.get( 'i' ), 2 );
 		});
 
 		fire( ractive.find( '#item_2' ), 'click' );
@@ -247,10 +248,10 @@ export default function() {
 
 		t.equal( ractive.find( '#test_001' ).innerHTML, '001' );
 
-		ractive.on( 'someEvent', ( event ) => {
-			t.equal( event.get( 'x' ), 0 );
-			t.equal( event.get( 'y' ), 0 );
-			t.equal( event.get( 'z' ), 1 );
+		ractive.on( 'someEvent', function () {
+			t.equal( this.get( 'x' ), 0 );
+			t.equal( this.get( 'y' ), 0 );
+			t.equal( this.get( 'z' ), 1 );
 		});
 
 		fire( ractive.find( '#test_001' ), 'click' );
@@ -490,7 +491,7 @@ export default function() {
 		t.expect( 5 );
 
 		const Component = Ractive.extend({
-			template: '<span id="test" on-click="@this.fire("foo", event, "foo")">click me</span>'
+			template: '<span id="test" on-click="@this.fire("foo", "foo")">click me</span>'
 		});
 
 		const ractive = new Ractive({
@@ -499,8 +500,8 @@ export default function() {
 			components: { Component }
 		});
 
-		ractive.on( 'foo-reproxy', ( e, ...args ) => {
-			t.equal( e.original.type, 'click' );
+		ractive.on( 'foo-reproxy', function ( ...args ) {
+			t.equal( this.original.type, 'click' );
 			t.equal( args.length, 1 );
 		});
 		ractive.on( 'bar-reproxy', function () {

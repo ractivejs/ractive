@@ -40,7 +40,7 @@ export default function() {
 		{
 			type: 'proxy events',
 			callback: component => fire( component.find( '#test' ), 'click' ),
-			verify: event => event.get()
+			verify () { return this.get(); }
 		},
 
 		{
@@ -56,14 +56,14 @@ export default function() {
 			const middle = ractive.findComponent( 'Middle' );
 			const component = ractive.findComponent( 'Component' );
 
-			component.on( 'someEvent', arg => t.ok( verify( arg ) ) );
+			component.on( 'someEvent', function ( arg ) { t.ok( verify.call( this, arg ) ); } );
 			component.on( 'Component.someEvent', notOnOriginating );
 
 			middle.on( 'someEvent', shouldNotFire );
-			middle.on( 'Component.someEvent', arg => t.ok( verify( arg ) ) );
+			middle.on( 'Component.someEvent', function ( arg ) { t.ok( verify.call( this, arg ) ); } );
 
 			ractive.on( 'someEvent', shouldNotFire );
-			ractive.on( 'Component.someEvent', arg => t.ok( verify( arg ) ) );
+			ractive.on( 'Component.someEvent', function ( arg ) { t.ok( verify.call( this, arg ) ); } );
 
 			callback( ractive.findComponent( 'Component' ) );
 		});
@@ -77,14 +77,14 @@ export default function() {
 			const middle = ractive.findComponent( 'Middle' );
 			const component = ractive.findComponent( 'Component' );
 
-			component.on( 'someEvent', arg => t.ok( verify( arg ) ) );
+			component.on( 'someEvent', function ( arg ) { t.ok( verify.call( this, arg ) ); } );
 			component.on( 'Component.someEvent', notOnOriginating );
 
 			middle.on( 'someEvent', shouldNotFire );
-			middle.on( 'Component.someEvent', arg => t.ok( verify( arg ) ) );
+			middle.on( 'Component.someEvent', function ( arg ) { t.ok( verify.call( this, arg ) ); } );
 
 			ractive.on( 'someEvent', shouldNotFire );
-			ractive.on( 'Component.someEvent', arg => t.ok( verify( arg ) ) );
+			ractive.on( 'Component.someEvent', function ( arg ) { t.ok( verify.call( this, arg ) ); } );
 
 			callback( ractive.findComponent( 'Component' ) );
 		});
@@ -96,12 +96,12 @@ export default function() {
 			const middle = ractive.findComponent( 'Middle' );
 			const component = ractive.findComponent( 'Component' );
 
-			component.on( 'someEvent', event => t.ok( verify( event ) ) );
+			component.on( 'someEvent', function ( arg ) { t.ok( verify.call( this, arg ) ); } );
 			component.on( 'Component.someEvent', notOnOriginating );
 
 			middle.on( 'Component.someEvent', () => false );
 			// still fires on same level
-			middle.on( 'Component.someEvent', event => t.ok( verify( event ) ) );
+			middle.on( 'Component.someEvent', function ( arg ) { t.ok( verify.call( this, arg ) ); } );
 
 			ractive.on( 'Component.someEvent', () => {
 				throw new Error( 'Event bubbling should not have happened' );
@@ -117,12 +117,12 @@ export default function() {
 			const middle = ractive.findComponent( 'Middle' );
 			const component = ractive.findComponent( 'Component' );
 
-			function hasComponentRef ( event ) {
-				event.original ? t.equal( event.component, component ) : t.ok( true );
+			function hasComponentRef () {
+				this.event ? t.equal( this.component, component ) : t.ok( true );
 			}
 
-			component.on( 'someEvent', event => {
-				t.ok( !event.component );
+			component.on( 'someEvent', function () {
+				t.ok( !this.component );
 			});
 			middle.on( 'Component.someEvent', hasComponentRef );
 			ractive.on( 'Component.someEvent', hasComponentRef );

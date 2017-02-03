@@ -169,8 +169,9 @@ export default class Model extends ModelBase {
 		return maybeBind( this, ( ( opts && 'unwrap' in opts ) ? opts.unwrap !== false : shouldCapture ) && this.wrapper ? this.wrapperValue : this.value, !opts || opts.shouldBind !== false );
 	}
 
-	getKeypathModel () {
+	getKeypathModel ( ractive ) {
 		if ( !this.keypathModel ) this.keypathModel = new KeypathModel( this );
+		if ( ractive && ractive !== this.root.ractive ) return this.keypathModel.getChild( ractive );
 		return this.keypathModel;
 	}
 

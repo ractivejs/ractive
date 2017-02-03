@@ -106,12 +106,9 @@ export default class EventDirective {
 		const context = Object.create( this.getContextObject() );
 
 		if ( event ) Object.assign( context, event );
-		else context._noArg = true;
 
 		if ( this.fn ) {
 			const values = [];
-
-			if ( event ) passedArgs.unshift( context );
 
 			const models = resolveArgs( this, this.template, this.parentFragment, {
 				specialRef ( ref ) {
@@ -179,10 +176,11 @@ export default class EventDirective {
 			const oldEvent = ractive.event;
 
 			ractive.event = context;
-			const result = this.fn.apply( ractive, values ).pop();
+			let result = this.fn.apply( ractive, values );
+			const last = result.pop();
 
 			// Auto prevent and stop if return is explicitly false
-			if ( result === false ) {
+			if ( last === false ) {
 				const original = event ? event.event : undefined;
 				if ( original ) {
 					original.preventDefault && original.preventDefault();
@@ -190,6 +188,8 @@ export default class EventDirective {
 				} else {
 					warnOnceIfDebug( `handler '${this.template.n.join( ' ' )}' returned false, but there is no event available to cancel` );
 				}
+			} else if ( !result.length && Array.isArray( last ) && typeof last[0] === 'string' ) {
+				result = fireEvent( context, last.shift(), last );
 			}
 
 			ractive.event = oldEvent;
@@ -198,13 +198,7 @@ export default class EventDirective {
 		}
 
 		else {
-			let args = [];
-			if ( passedArgs.length ) args = args.concat( passedArgs );
-
-			return fireEvent( this.ractive, this.action, {
-				event: context,
-				args
-			});
+			return fireEvent( context, this.action, passedArgs );
 		}
 	}
 

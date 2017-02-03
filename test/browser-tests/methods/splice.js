@@ -125,8 +125,8 @@ export default function() {
 		});
 
 
-		r.on( 'go', ev => {
-			t.equal( ev.get( 'i' ), 1 );
+		r.on( 'go', function () {
+			t.equal( this.get( 'i' ), 1 );
 		});
 
 		fire( r.findAll( 'span' )[1], 'click' );

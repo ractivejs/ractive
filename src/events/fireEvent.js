@@ -44,39 +44,27 @@ function variants ( name, initial ) {
 	return result;
 }
 
-export default function fireEvent ( ractive, eventName, options = {} ) {
+export default function fireEvent ( context, eventName, args = [] ) {
 	if ( !eventName ) { return; }
 
-	if ( !options.event ) {
-		if ( options.args && options.args[0] === ractive.event ) {
-			options.event = options.args.shift();
-			options.event.name = eventName;
-		} else {
-			options.event = {
-				name: eventName,
-				// until event not included as argument default
-				_noArg: true
-			};
-		}
-	} else {
-		options.event.name = eventName;
-	}
+	context.name = eventName;
 
-	const eventNames = ractive._nsSubs ? variants( eventName, true ) : [ '*', eventName ];
+	const eventNames = context.ractive._nsSubs ? variants( eventName, true ) : [ '*', eventName ];
 
-	return fireEventAs( ractive, eventNames, options.event, options.args, true );
+	return fireEventAs( context, eventNames, args, true );
 }
 
-function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) {
+function fireEventAs ( context, eventNames, args, initialFire = false ) {
 	let bubble = true;
+	const { ractive } = context;
 
 	if ( initialFire || ractive._nsSubs ) {
-		enqueue( ractive, event );
+		enqueue( ractive, context );
 
 		let i = eventNames.length;
 		while ( i-- ) {
 			if ( eventNames[ i ] in ractive._subs ) {
-				bubble = notifySubscribers( ractive, ractive._subs[ eventNames[ i ] ], event, args ) && bubble;
+				bubble = notifySubscribers( context, ractive._subs[ eventNames[ i ] ], args ) && bubble;
 			}
 		}
 
@@ -84,43 +72,40 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 	}
 
 	if ( ractive.parent && bubble ) {
-
 		if ( initialFire && ractive.component ) {
 			const fullName = ractive.component.name + '.' + eventNames[ eventNames.length - 1 ];
 			eventNames = variants( fullName, false );
 
-			if ( event && !event.component ) {
-				event.component = ractive;
+			if ( !context.component ) {
+				context.component = ractive;
 			}
+
 		}
 
-		bubble = fireEventAs( ractive.parent, eventNames, event, args );
+		context.ractive = ractive.parent;
+
+		bubble = fireEventAs( context, eventNames, args );
 	}
 
 	return bubble;
 }
 
-function notifySubscribers ( ractive, subscribers, event, args ) {
-	let originalEvent = null;
+function notifySubscribers ( context, subscribers, args ) {
 	let stopEvent = false;
-
-	if ( event && !event._noArg ) {
-		args = [ event ].concat( args );
-	}
 
 	// subscribers can be modified inflight, e.g. "once" functionality
 	// so we need to copy to make sure everyone gets called
 	subscribers = subscribers.slice();
 
 	for ( let i = 0, len = subscribers.length; i < len; i += 1 ) {
-		if ( !subscribers[ i ].off && subscribers[ i ].apply( ractive, args ) === false ) {
+		if ( !subscribers[ i ].off && subscribers[ i ].apply( context, args ) === false ) {
 			stopEvent = true;
 		}
 	}
 
-	if ( event && !event._noArg && stopEvent && ( originalEvent = event.original ) ) {
-		originalEvent.preventDefault && originalEvent.preventDefault();
-		originalEvent.stopPropagation && originalEvent.stopPropagation();
+	if ( context.event && stopEvent ) {
+		context.event.preventDefault && context.event.preventDefault();
+		context.event.stopPropagation && context.event.stopPropagation();
 	}
 
 	return !stopEvent;
