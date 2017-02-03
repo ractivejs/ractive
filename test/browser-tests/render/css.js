@@ -367,5 +367,6 @@ export default function() {
 		}));
 
 		t.equal( cmp.toHTML(), '<div data-ractive-css="{my-nifty-cmp}"></div>' );
+		t.ok( ~cmp.toCSS().indexOf( 'my-nifty-cmp' ) );
 	});
 }
