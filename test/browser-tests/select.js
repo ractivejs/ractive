@@ -236,10 +236,11 @@ export default function() {
 			}
 		});
 
-		const options = ractive.findAll( 'option', { live: true });
+		let options = ractive.findAll( 'option' );
 		t.ok( !options.length );
 
 		ractive.set('post_values', ractive.get('values'));
+		options = ractive.findAll( 'option' );
 
 		t.equal( options.length, 2 );
 		t.ok( !options[0].selected );

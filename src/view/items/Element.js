@@ -3,8 +3,7 @@ import runloop from '../../global/runloop';
 import { ContainerItem } from './shared/Item';
 import Fragment from '../Fragment';
 import ConditionalAttribute from './element/ConditionalAttribute';
-import updateLiveQueries from './element/updateLiveQueries';
-import { removeFromArray, toArray } from '../../utils/array';
+import { toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
 import { bind, destroyed, render, unbind, update } from '../../shared/methodCallers';
 import { createElement, detachNode, matches, safeAttributeString } from '../../utils/dom';
@@ -14,17 +13,11 @@ import findElement from './shared/findElement';
 import selectBinding from './element/binding/selectBinding';
 import { DelegateProxy } from './shared/EventDirective';
 
-function makeDirty ( query ) {
-	query.makeDirty();
-}
-
 const endsWithSemi = /;\s*$/;
 
 export default class Element extends ContainerItem {
 	constructor ( options ) {
 		super( options );
-
-		this.liveQueries = []; // TODO rare case. can we handle differently?
 
 		this.name = options.template.e.toLowerCase();
 		this.isVoid = voidElementNames.test( this.name );
@@ -133,17 +126,15 @@ export default class Element extends ContainerItem {
 		}
 	}
 
-	findAll ( selector, query ) {
-		// Add this node to the query, if applicable, and register the
-		// query on this element
-		const matches = query.test( this.node );
-		if ( matches ) {
-			query.add( this.node );
-			if ( query.live ) this.liveQueries.push( query );
+	findAll ( selector, options ) {
+		const { result } = options;
+
+		if ( matches( this.node, selector ) ) {
+			result.push( this.node );
 		}
 
 		if ( this.fragment ) {
-			this.fragment.findAll( selector, query );
+			this.fragment.findAll( selector, options );
 		}
 	}
 
@@ -170,11 +161,6 @@ export default class Element extends ContainerItem {
 			this.binding.bind();
 			if ( this.rendered ) this.binding.render();
 		}
-	}
-
-	removeFromQuery ( query ) {
-		query.remove( this.node );
-		removeFromArray( this.liveQueries, query );
 	}
 
 	render ( target, occupants ) {
@@ -257,18 +243,11 @@ export default class Element extends ContainerItem {
 
 		if ( this.binding ) this.binding.render();
 
-		updateLiveQueries( this );
-
 		if ( !existing ) {
 			target.appendChild( node );
 		}
 
 		this.rendered = true;
-	}
-
-	shuffled () {
-		this.liveQueries.forEach( makeDirty );
-		super.shuffled();
 	}
 
 	toString () {
@@ -369,10 +348,6 @@ export default class Element extends ContainerItem {
 		if ( this.fragment ) this.fragment.unrender();
 
 		if ( this.binding ) this.binding.unrender();
-
-		this.liveQueries.forEach( query => query.remove( this.node ) );
-		this.liveQueries = [];
-		// TODO forms are a special case
 	}
 
 	update () {

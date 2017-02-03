@@ -8,15 +8,9 @@ import initialise from '../../Ractive/initialise';
 import render from '../../Ractive/render';
 import { createDocumentFragment } from '../../utils/dom';
 import createItem from './createItem';
-import { removeFromArray } from '../../utils/array';
 import { bind, render as callRender, unbind, unrender, update } from '../../shared/methodCallers';
-import updateLiveQueries from './component/updateLiveQueries';
 import { updateAnchors } from '../../shared/anchors';
 import { teardown } from '../../Ractive/prototype/teardown';
-
-function makeDirty ( query ) {
-	query.makeDirty();
-}
 
 export default class Component extends Item {
 	constructor ( options, ComponentConstructor ) {
@@ -42,8 +36,6 @@ export default class Component extends Item {
 			if ( instance.el ) {
 				warnIfDebug( `The <${this.name}> component has a default 'el' property; it has been disregarded` );
 			}
-
-			this.liveQueries = [];
 
 			// find container
 			let fragment = options.parentFragment;
@@ -149,8 +141,8 @@ export default class Component extends Item {
 		if ( this.instance ) return this.instance.fragment.find( selector, options );
 	}
 
-	findAll ( selector, query ) {
-		if ( this.instance ) this.instance.fragment.findAll( selector, query );
+	findAll ( selector, options ) {
+		if ( this.instance ) this.instance.fragment.findAll( selector, options );
 	}
 
 	findComponent ( name, options ) {
@@ -161,25 +153,18 @@ export default class Component extends Item {
 		}
 	}
 
-	findAllComponents ( name, query ) {
-		if ( this.instance && query.test( this ) ) {
-			query.add( this.instance );
+	findAllComponents ( name, options ) {
+		const { result } = options;
 
-			if ( query.live ) {
-				this.liveQueries.push( query );
-			}
+		if ( this.instance && ( !name || this.name === name ) ) {
+			result.push( this.instance );
 		}
 
-		if ( this.instance ) this.instance.findAllComponents( name, { _query: query } );
+		if ( this.instance ) this.instance.findAllComponents( name, options );
 	}
 
 	firstNode ( skipParent ) {
 		if ( this.instance ) return this.instance.fragment.firstNode( skipParent );
-	}
-
-	removeFromQuery ( query ) {
-		if ( this.instance ) query.remove( this.instance );
-		removeFromArray( this.liveQueries, query );
 	}
 
 	render ( target, occupants ) {
@@ -194,14 +179,8 @@ export default class Component extends Item {
 
 			this.attributes.forEach( callRender );
 			this.eventHandlers.forEach( callRender );
-			updateLiveQueries( this );
 		}
 		this.rendered = true;
-	}
-
-	shuffled () {
-		if ( this.instance ) this.liveQueries.forEach( makeDirty );
-		super.shuffled();
 	}
 
 	toString () {
@@ -233,9 +212,6 @@ export default class Component extends Item {
 			this.instance.el = this.instance.target = null;
 			this.attributes.forEach( unrender );
 			this.eventHandlers.forEach( unrender );
-
-			this.liveQueries.forEach( query => query.remove( this.instance ) );
-			this.liveQueries = [];
 		}
 
 		this.rendered = false;
@@ -286,7 +262,6 @@ function renderItem ( anchor, meta ) {
 
 	anchor.item = meta;
 	anchor.instance = meta.instance;
-	anchor.liveQueries = meta.liveQueries;
 	const nextNode = anchor.parentFragment.findNextNode( anchor );
 
 	if ( meta.instance.fragment.rendered ) {
@@ -310,8 +285,6 @@ function renderItem ( anchor, meta ) {
 	if ( meta.lastBound !== anchor ) {
 		meta.lastBound = anchor;
 	}
-
-	updateLiveQueries( meta );
 }
 
 function unrenderItem ( anchor, meta ) {
@@ -330,10 +303,6 @@ function unrenderItem ( anchor, meta ) {
 	meta.anchor = null;
 	anchor.item = null;
 	anchor.instance = null;
-
-	meta.liveQueries.forEach( q => q.remove( meta.instance ) );
-	meta.liveQueries = [];
-	anchor.liveQueries = null;
 }
 
 let checking = [];

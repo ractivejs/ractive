@@ -41,41 +41,6 @@ export default function() {
 		t.ok( widgets[0] instanceof Widget && widgets[1] instanceof Widget );
 	});
 
-	test( 'ractive.findAllComponents(selector, {live: true}) returns a live query that maintains sort order', ( t ) => {
-		const ractive = new MockRactive({
-			el: fixture,
-			template: '{{#widgets}}<div><Widget content="{{this}}"/></div>{{/widgets}}',
-			data: {
-				widgets: [ 'a', 'b', 'c' ]
-			}
-		});
-
-		const widgets = ractive.findAllComponents( 'Widget', { live: true });
-
-		t.equal( widgets.length, 3 );
-		t.ok( widgets[0] instanceof Widget && widgets[1] instanceof Widget && widgets[2] instanceof Widget );
-		t.equal( widgets[0].get( 'content' ), 'a' );
-		t.equal( widgets[1].get( 'content' ), 'b' );
-		t.equal( widgets[2].get( 'content' ), 'c' );
-
-		ractive.push( 'widgets', 'd' );
-		t.equal( widgets.length, 4 );
-		t.ok( widgets[3] instanceof Widget );
-		t.equal( widgets[3].get( 'content' ), 'd' );
-
-		const widgetA = widgets[0];
-		const widgetB = widgets[1];
-		const widgetC = widgets[2];
-		const widgetD = widgets[3];
-
-		ractive.merge( 'widgets', [ 'c', 'a', 'd', 'b' ]);
-
-		t.ok( widgets[0] === widgetC );
-		t.ok( widgets[1] === widgetA );
-		t.ok( widgets[2] === widgetD );
-		t.ok( widgets[3] === widgetB );
-	});
-
 	test( 'Components containing other components work as expected with ractive.findAllComponents()', ( t ) => {
 		const Compound = MockRactive.extend({
 			template: '<Widget content="foo"/><div><Widget content="bar"/></div>'
@@ -87,14 +52,16 @@ export default function() {
 			components: { Compound }
 		});
 
-		const widgets = ractive.findAllComponents( 'Widget', { live: true });
+		let widgets = ractive.findAllComponents( 'Widget' );
 
 		t.equal( widgets.length, 0 );
 
 		ractive.set( 'shown', true );
+		widgets = ractive.findAllComponents( 'Widget' );
 		t.equal( widgets.length, 3 );
 
 		ractive.set( 'shown', false );
+		widgets = ractive.findAllComponents( 'Widget' );
 		t.equal( widgets.length, 0 );
 	});
 
@@ -137,124 +104,6 @@ export default function() {
 		t.ok( all[0] === r2 );
 	});
 
-	test( 'live findAllComponents searches with attached children stay up to date', t => {
-		fixture.innerHTML = '<div></div><div></div>';
-		const r1 = new Ractive({
-			el: fixture.children[0],
-			template: '<#anchor /><cmp/>',
-			components: {
-				cmp: Ractive.extend({})
-			}
-		});
-		const r2 = new Ractive({});
-		const r3 = new Ractive({
-			el: fixture.children[1],
-		});
-
-		r1.attachChild( r2, { target: 'anchor' } );
-		r1.attachChild( r3 );
-
-		const all = r1.findAllComponents( { live: true } );
-
-		t.equal( all.length, 2 );
-		t.ok( all[0] === r2 );
-
-		r1.detachChild( r3 );
-		t.equal( all.length, 2 );
-		t.ok( all[0] === r2 );
-
-		r1.detachChild( r2 );
-		t.equal( all.length, 1 );
-
-		r1.attachChild( r3 );
-		t.equal( all.length, 1 );
-
-		r1.attachChild( r2, { target: 'anchor' } );
-		t.equal( all.length, 2 );
-		t.ok( all[0] === r2 );
-	});
-
-	test( 'live findAllComponents searches with attached children and remotes stay up to date', t => {
-		fixture.innerHTML = '<div></div><div></div>';
-		const r1 = new Ractive({
-			el: fixture.children[0],
-			template: '<#anchor /><cmp/>',
-			components: {
-				cmp: Ractive.extend({})
-			}
-		});
-		const r2 = new Ractive({});
-		const r3 = new Ractive({
-			el: fixture.children[1],
-		});
-
-		r1.attachChild( r2, { target: 'anchor' } );
-		r1.attachChild( r3 );
-
-		const all = r1.findAllComponents( { live: true, remote: true } );
-
-		t.equal( all.length, 3 );
-		t.ok( all[0] === r2 );
-		t.ok( all[2] === r3 );
-
-		r1.detachChild( r3 );
-		t.equal( all.length, 2 );
-		t.ok( all[0] === r2 );
-
-		r1.detachChild( r2 );
-		t.equal( all.length, 1 );
-
-		r1.attachChild( r3 );
-		t.equal( all.length, 2 );
-		t.ok( all[1] === r3 );
-
-		r1.attachChild( r2, { target: 'anchor' } );
-		t.equal( all.length, 3 );
-		t.ok( all[0] === r2 );
-		t.ok( all[2] === r3 );
-	});
-
-	test( 'live queries update with deeply nested attached components correctly', t => {
-		fixture.innerHTML = '<div></div><div></div>';
-		const cmp = Ractive.extend({
-			template: '<div class="cmp" />'
-		});
-		const r1 = new Ractive({
-			el: fixture.children[0],
-			template: '<#anchor /><div id="r1" />'
-		});
-		const r2 = new Ractive({
-			template: '<div id="r2" /><cmp />',
-			components: { cmp }
-		});
-		const r3 = new Ractive({
-			el: fixture.children[1],
-			template: '<div id="r3" /><cmp />',
-			components: { cmp }
-		});
-
-		r1.attachChild( r2, { target: 'anchor' } );
-		r1.attachChild( r3 );
-
-		const q1 = r1.findAllComponents( { live: true } );
-		const q2 = r1.findAllComponents( { live: true, remote: true } );
-
-		t.equal( q1.length, 2 );
-		t.equal( q2.length, 4 );
-
-		r1.detachChild( r2 );
-		r1.detachChild( r3 );
-
-		t.equal( q1.length, 0 );
-		t.equal( q2.length, 0 );
-
-		r1.attachChild( r2, { target: 'anchor' } );
-		r1.attachChild( r3 );
-
-		t.equal( q1.length, 2 );
-		t.equal( q2.length, 4 );
-	});
-
 	test( 'findAllComponents finds anchored components by anchor name when there is no instance name', t => {
 		const cmp1 = new Ractive();
 		const cmp2 = new Ractive();
@@ -283,16 +132,5 @@ export default function() {
 		t.ok( r.findAllComponents( 'bar' )[0] === undefined, 'no instance' );
 		t.ok( r.findAllComponents( 'baz' )[0] === cmp2, 'same instance' );
 		t.ok( r.findAllComponents( 'bat' )[0] === cmp1, 'same instance' );
-	});
-
-	test( `the same findAllComponents live query is returned for a given string`, t => {
-		const r = new Ractive({
-			target: fixture,
-			template: ''
-		});
-
-		const q = r.findAllComponents( 'nerp', { live: true } );
-		t.strictEqual( q, r.findAllComponents( 'nerp', { live: true } ) );
-		t.deepEqual( r.findAllComponents( 'nerp' ), q );
 	});
 }

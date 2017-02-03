@@ -89,9 +89,9 @@ export default class Fragment {
 		return findMap( this.items, i => i.find( selector, options ) );
 	}
 
-	findAll ( selector, query ) {
+	findAll ( selector, options ) {
 		if ( this.items ) {
-			this.items.forEach( i => i.findAll && i.findAll( selector, query ) );
+			this.items.forEach( i => i.findAll && i.findAll( selector, options ) );
 		}
 	}
 
@@ -99,9 +99,9 @@ export default class Fragment {
 		return findMap( this.items, i => i.findComponent( name, options ) );
 	}
 
-	findAllComponents ( name, query ) {
+	findAllComponents ( name, options ) {
 		if ( this.items ) {
-			this.items.forEach( i => i.findAllComponents && i.findAllComponents( name, query ) );
+			this.items.forEach( i => i.findAllComponents && i.findAllComponents( name, options ) );
 		}
 	}
 

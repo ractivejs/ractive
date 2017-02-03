@@ -33,7 +33,8 @@ export default class Triple extends Mustache {
 		return null;
 	}
 
-	findAll ( selector, query ) {
+	findAll ( selector, options ) {
+		const { result } = options;
 		const len = this.nodes.length;
 		let i;
 
@@ -42,16 +43,11 @@ export default class Triple extends Mustache {
 
 			if ( node.nodeType !== 1 ) continue;
 
-			if ( query.test( node ) ) query.add( node );
+			if ( matches( node, selector ) ) result.push( node );
 
 			const queryAllResult = node.querySelectorAll( selector );
 			if ( queryAllResult ) {
-				const numNodes = queryAllResult.length;
-				let j;
-
-				for ( j = 0; j < numNodes; j += 1 ) {
-					query.add( queryAllResult[j] );
-				}
+				result.push.apply( result, queryAllResult );
 			}
 		}
 	}

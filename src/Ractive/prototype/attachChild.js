@@ -1,8 +1,5 @@
 import Hook from '../../events/Hook';
 import runloop from '../../global/runloop';
-import updateLiveQueries from '../../view/items/element/updateLiveQueries';
-import updateLiveComponentQueries from '../../view/items/component/updateLiveQueries';
-import { removeFromArray } from '../../utils/array';
 import { unrenderChild, updateAnchors } from '../../shared/anchors';
 
 const attachHook = new Hook( 'attachchild' );
@@ -17,11 +14,9 @@ export default function attachChild ( child, options = {} ) {
 		instance: child,
 		ractive: this,
 		name: options.name || child.constructor.name || 'Ractive',
-		liveQueries: [],
 		target: options.target || false,
 		bubble,
-		findNextNode,
-		removeFromQuery
+		findNextNode
 	};
 	meta.nameOption = options.name;
 
@@ -56,11 +51,6 @@ export default function attachChild ( child, options = {} ) {
 		updateAnchors( this, meta.target );
 	} else {
 		if ( !child.isolated ) child.viewmodel.attached( this.fragment );
-		if ( child.fragment.rendered ) {
-			child.findAll( '*' ).forEach( el => updateLiveQueries( el._ractive.proxy ) );
-			child.findAllComponents().forEach( cmp => updateLiveComponentQueries( cmp.component ) );
-			updateLiveComponentQueries( meta );
-		}
 	}
 
 	runloop.end();
@@ -70,11 +60,6 @@ export default function attachChild ( child, options = {} ) {
 }
 
 function bubble () { runloop.addFragment( this.instance.fragment ); }
-
-function removeFromQuery ( query ) {
-	query.remove( this.instance );
-	removeFromArray( this.liveQueries, query );
-}
 
 function findNextNode () {
 	if ( this.anchor ) return this.anchor.findNextNode();

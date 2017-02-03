@@ -63,9 +63,9 @@ export class ContainerItem extends Item {
 		}
 	}
 
-	findAll ( selector, query ) {
+	findAll ( selector, options ) {
 		if ( this.fragment ) {
-			this.fragment.findAll( selector, query );
+			this.fragment.findAll( selector, options );
 		}
 	}
 
@@ -75,9 +75,9 @@ export class ContainerItem extends Item {
 		}
 	}
 
-	findAllComponents ( name, query ) {
+	findAllComponents ( name, options ) {
 		if ( this.fragment ) {
-			this.fragment.findAllComponents( name, query );
+			this.fragment.findAllComponents( name, options );
 		}
 	}
 

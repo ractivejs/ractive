@@ -33,26 +33,6 @@ export default function() {
 		t.ok( ractive.find( 'p' ).innerHTML === 'one' );
 	});
 
-	test( 'A live query maintains the correct sort order after a merge operation', t => {
-		const ractive = new Ractive({
-			el: fixture,
-			template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>',
-			data: {
-				items: [ 'a', 'b', 'c', 'd' ]
-			}
-		});
-
-		function getHtml ( node ) {
-			return node.innerHTML;
-		}
-
-		const lis = ractive.findAll( 'li', { live: true });
-		t.deepEqual( lis.map( getHtml ), [ 'a', 'b', 'c', 'd' ] );
-
-		ractive.merge( 'items', [ 'c', 'b', 'a', 'd' ] );
-		t.deepEqual( lis.map( getHtml ), [ 'c', 'b', 'a', 'd' ] );
-	});
-
 	test( 'ractive.find() throws error if instance is unrendered (#2008)', t => {
 		const ractive = new Ractive({
 			template: '<p>unrendered</p>'
@@ -137,9 +117,4 @@ export default function() {
 
 		t.ok( r.find( 'a' ) );
 	});
-
-	// TODO add tests (and add the functionality)...
-	// * cancelling a live query (also, followed by teardown)
-	// * components
-	// * a load of other stuff
 }

@@ -113,16 +113,16 @@ export default class RepeatedFragment {
 		return findMap( this.iterations, i => i.find( selector, options ) );
 	}
 
-	findAll ( selector, query ) {
-		return this.iterations.forEach( i => i.findAll( selector, query ) );
+	findAll ( selector, options ) {
+		return this.iterations.forEach( i => i.findAll( selector, options ) );
 	}
 
 	findComponent ( name, options ) {
 		return findMap( this.iterations, i => i.findComponent( name, options ) );
 	}
 
-	findAllComponents ( name, query ) {
-		return this.iterations.forEach( i => i.findAllComponents( name, query ) );
+	findAllComponents ( name, options ) {
+		return this.iterations.forEach( i => i.findAllComponents( name, options ) );
 	}
 
 	findNextNode ( iteration ) {
