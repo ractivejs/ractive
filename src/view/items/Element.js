@@ -304,6 +304,10 @@ export default class Element extends ContainerItem {
 		if ( style !== undefined ) attrs = ' style' + ( style ? `="${style}"` : '' ) + attrs;
 		if ( cls !== undefined ) attrs = ' class' + (cls ? `="${cls}"` : '') + attrs;
 
+		if ( this.parentFragment.cssIds ) {
+			attrs += ` data-ractive-css="${this.parentFragment.cssIds.map( x => `{${x}}` ).join( ' ' )}"`;
+		}
+
 		let str = `<${tagName}${attrs}>`;
 
 		if ( this.isVoid ) return str;
