@@ -79,7 +79,9 @@ if ( !isClient ) {
 			};
 
 			style[ TRANSITION_PROPERTY ] = changedProperties.map( prefix ).map( hyphenate ).join( ',' );
-			style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( options.easing || 'linear' );
+			const easingName = hyphenate( options.easing || 'linear' );
+			style[ TRANSITION_TIMING_FUNCTION ] = easingName;
+			const cssTiming = style[ TRANSITION_TIMING_FUNCTION ] === easingName;
 			style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
 
 			function transitionEndHandler ( event ) {
@@ -132,7 +134,7 @@ if ( !isClient ) {
 					prop = changedProperties[i];
 					hash = hashPrefix + prop;
 
-					if ( CSS_TRANSITIONS_ENABLED && !cannotUseCssTransitions[ hash ] ) {
+					if ( cssTiming && CSS_TRANSITIONS_ENABLED && !cannotUseCssTransitions[ hash ] ) {
 						style[ prefix( prop ) ] = to[ prop ];
 
 						// If we're not sure if CSS transitions are supported for
@@ -152,7 +154,7 @@ if ( !isClient ) {
 						}
 					}
 
-					if ( !CSS_TRANSITIONS_ENABLED || cannotUseCssTransitions[ hash ] ) {
+					if ( !cssTiming || !CSS_TRANSITIONS_ENABLED || cannotUseCssTransitions[ hash ] ) {
 						// we need to fall back to timer-based stuff
 						if ( originalValue === undefined ) {
 							originalValue = t.getStyle( prop );

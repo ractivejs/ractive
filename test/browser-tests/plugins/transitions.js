@@ -1024,4 +1024,31 @@ export default function() {
 			});
 		});
 	});
+
+	test( `js timing functions can be used with css transitionable properties (#2152)`, t => {
+		const done = t.async();
+
+		let called = false;
+		const r = new Ractive({
+			target: fixture,
+			template: '{{#if show}}<div go-in />{{/if}}',
+			transitions: {
+				go ( trans ) {
+					trans.setStyle( 'height', 0 );
+					trans.animateStyle( 'height', 20, { duration: 20, easing: 'go' } ).then( trans.complete );
+				}
+			},
+			easing: {
+				go ( x ) {
+					called = true;
+					return x;
+				}
+			}
+		});
+
+		r.toggle( 'show' ).then( () => {
+			t.ok( called );
+			done();
+		});
+	});
 }
