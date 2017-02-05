@@ -9,7 +9,6 @@ export default class RactiveModel extends Model {
 		this.root = this;
 		this.adaptors = [];
 		this.ractive = ractive;
-		this.changes = {};
 	}
 
 	joinKey ( key ) {

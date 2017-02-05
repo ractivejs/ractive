@@ -13,7 +13,7 @@ var version = require( './package.json' ).version;
 var hash = process.env.COMMIT_HASH || 'unknown';
 var versionExt = ~version.indexOf( '-edge' ) ? '-' + hash : '';
 
-var bubleOptions = { target: { ie: 9 }, transforms: { modules: false } }
+var bubleOptions = { target: { ie: 8 }, transforms: { modules: false } };
 var src = gobble( 'src' );
 var es5 = src.transform( 'buble', bubleOptions );
 var lib;
@@ -88,6 +88,7 @@ test = (function () {
 		qunit: 'QUnit',
 		simulant: 'simulant'
 	};
+	var external = [ 'qunit', 'simulant' ];
 
 	var browserTests = gobble( 'test/browser-tests' ).moveTo( 'browser-tests' ).transform( function bundleTests ( inputdir, outputdir, options ) {
 		testFiles.sort();
@@ -130,10 +131,8 @@ test = (function () {
 		entry: 'browser-tests/all.js',
 		moduleName: 'tests',
 		dest: 'all.js',
-		globals: {
-			qunit: 'QUnit',
-			simulant: 'simulant'
-		}
+		globals: globals,
+		external: external
 	});
 
 	return gobble([
@@ -154,12 +153,14 @@ test = (function () {
 							entry: inputDir + '/' + file,
 							plugins: [ rollupBuble(bubleOptions) ],
 							globals: globals,
+							external: external,
 							onwarn: noop
 						}).then( function ( bundle ) {
 							return bundle.write({
 								dest: outputDir + '/' + file,
 								format: 'cjs',
 								globals: globals,
+								external: external,
 								moduleName: 'tests'
 							});
 						});
@@ -171,7 +172,10 @@ test = (function () {
 	]).moveTo( 'test' );
 })();
 
+var polyfill = es5.include('polyfills.js');
+
 module.exports = gobble([
 	lib,
-	test
+	test,
+	polyfill
 ]);

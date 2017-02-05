@@ -1,4 +1,4 @@
-import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from '../../config/types';
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, DELEGATE_FLAG, EVENT, TRANSITION } from '../../config/types';
 import runloop from '../../global/runloop';
 import { ContainerItem } from './shared/Item';
 import Fragment from '../Fragment';
@@ -11,8 +11,8 @@ import { createElement, detachNode, matches, safeAttributeString } from '../../u
 import createItem from './createItem';
 import { html, svg } from '../../config/namespaces';
 import findElement from './shared/findElement';
-import { defineProperty } from '../../utils/object';
 import selectBinding from './element/binding/selectBinding';
+import { DelegateProxy } from './shared/EventDirective';
 
 function makeDirty ( query ) {
 	query.makeDirty();
@@ -56,6 +56,10 @@ export default class Element extends ContainerItem {
 						parentFragment: this.parentFragment,
 						template
 					}) );
+					break;
+
+				case DELEGATE_FLAG:
+				  this.delegate = false;
 					break;
 
 				default:
@@ -109,6 +113,9 @@ export default class Element extends ContainerItem {
 
 	destroyed () {
 		this.attributes.forEach( destroyed );
+		for ( const ev in this.delegates ) {
+			this.delegates[ev].unlisten();
+		}
 		if ( this.fragment ) this.fragment.destroyed();
 	}
 
@@ -197,7 +204,7 @@ export default class Element extends ContainerItem {
 		}
 
 		// tie the node to this vdom element
-		defineProperty( node, '_ractive', {
+		Object.defineProperty( node, '_ractive', {
 			value: {
 				proxy: this
 			}
@@ -215,6 +222,7 @@ export default class Element extends ContainerItem {
 		const intro = this.intro;
 		if ( intro && intro.shouldFire( 'intro' ) ) {
 			intro.isIntro = true;
+			intro.isOutro = false;
 			runloop.registerTransition( intro );
 		}
 
@@ -236,11 +244,16 @@ export default class Element extends ContainerItem {
 			let i = node.attributes.length;
 			while ( i-- ) {
 				const name = node.attributes[i].name;
-				if ( !( name in this.attributeByName ) ) node.removeAttribute( name );
+				if ( !( name in this.attributeByName ) )node.removeAttribute( name );
 			}
 		}
 
 		this.attributes.forEach( render );
+		if ( this.delegates ) {
+			for ( const ev in this.delegates ) {
+				this.delegates[ev].listen( DelegateProxy );
+			}
+		}
 
 		if ( this.binding ) this.binding.render();
 
@@ -290,6 +303,10 @@ export default class Element extends ContainerItem {
 		// put classes first, then inline style
 		if ( style !== undefined ) attrs = ' style' + ( style ? `="${style}"` : '' ) + attrs;
 		if ( cls !== undefined ) attrs = ' class' + (cls ? `="${cls}"` : '') + attrs;
+
+		if ( this.parentFragment.cssIds ) {
+			attrs += ` data-ractive-css="${this.parentFragment.cssIds.map( x => `{${x}}` ).join( ' ' )}"`;
+		}
 
 		let str = `<${tagName}${attrs}>`;
 
@@ -345,6 +362,7 @@ export default class Element extends ContainerItem {
 		const outro = this.outro;
 		if ( outro && outro.shouldFire( 'outro' ) ) {
 			outro.isIntro = false;
+			outro.isOutro = true;
 			runloop.registerTransition( outro );
 		}
 

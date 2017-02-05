@@ -1,8 +1,9 @@
 import Fragment from './Fragment';
 import { createDocumentFragment } from '../utils/dom';
-import { isArray, isObject } from '../utils/is';
+import { isObject } from '../utils/is';
 import { findMap } from '../utils/array';
 import { toEscapedString, toString, destroyed, shuffled, unbind, unrender, unrenderAndDestroy, update } from '../shared/methodCallers';
+import findElement from './items/shared/findElement';
 
 export default class RepeatedFragment {
 	constructor ( options ) {
@@ -13,6 +14,9 @@ export default class RepeatedFragment {
 		this.parentFragment = this;
 		this.owner = options.owner;
 		this.ractive = this.parent.ractive;
+		this.delegate = this.parent.delegate || findElement( options.owner );
+		// delegation disabled by directive
+		if ( this.delegate && this.delegate.delegate === false ) this.delegate = false;
 
 		// encapsulated styles should be inherited until they get applied by an element
 		this.cssIds = 'cssIds' in options ? options.cssIds : ( this.parent ? this.parent.cssIds : null );
@@ -38,7 +42,7 @@ export default class RepeatedFragment {
 		const value = context.get();
 
 		// {{#each array}}...
-		if ( this.isArray = isArray( value ) ) {
+		if ( this.isArray = Array.isArray( value ) ) {
 			// we can't use map, because of sparse arrays
 			this.iterations = [];
 			const max = value.length;
@@ -66,7 +70,10 @@ export default class RepeatedFragment {
 		return this;
 	}
 
-	bubble () {
+	bubble ( index ) {
+		if  ( !this.bubbled ) this.bubbled = [];
+		this.bubbled.push( index );
+
 		this.owner.bubble();
 	}
 
@@ -76,10 +83,10 @@ export default class RepeatedFragment {
 			template: this.template
 		});
 
-		// TODO this is a bit hacky
 		fragment.key = key;
 		fragment.index = index;
 		fragment.isIteration = true;
+		fragment.delegate = this.delegate;
 
 		const model = this.context.joinKey( key );
 
@@ -208,6 +215,7 @@ export default class RepeatedFragment {
 		// skip dirty check, since this is basically just a facade
 
 		if ( this.pendingNewIndices ) {
+			this.bubbled.length = 0;
 			this.updatePostShuffle();
 			return;
 		}
@@ -223,7 +231,7 @@ export default class RepeatedFragment {
 		let reset = true;
 		let i;
 
-		if ( this.isArray = isArray( value ) ) {
+		if ( this.isArray = Array.isArray( value ) ) {
 			if ( wasArray ) {
 				reset = false;
 				if ( this.iterations.length > value.length ) {
@@ -260,10 +268,16 @@ export default class RepeatedFragment {
 		}
 
 		// update the remaining ones
-		this.iterations.forEach( update );
+		if ( !reset && this.isArray && this.bubbled && this.bubbled.length ) {
+			this.bubbled.forEach( i => this.iterations[i] && this.iterations[i].update() );
+		} else {
+			this.iterations.forEach( update );
+		}
+
+		if ( this.bubbled ) this.bubbled.length = 0;
 
 		// add new iterations
-		const newLength = isArray( value ) ?
+		const newLength = Array.isArray( value ) ?
 			value.length :
 			isObject( value ) ?
 				Object.keys( value ).length :
@@ -276,7 +290,7 @@ export default class RepeatedFragment {
 			docFrag = this.rendered ? createDocumentFragment() : null;
 			i = this.iterations.length;
 
-			if ( isArray( value ) ) {
+			if ( Array.isArray( value ) ) {
 				while ( i < value.length ) {
 					fragment = this.createIteration( i, i );
 

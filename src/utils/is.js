@@ -1,11 +1,6 @@
 const toString = Object.prototype.toString;
 const arrayLikePattern = /^\[object (?:Array|FileList)\]$/;
 
-// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
-export function isArray ( thing ) {
-	return toString.call( thing ) === '[object Array]';
-}
-
 export function isArrayLike ( obj ) {
 	return arrayLikePattern.test( toString.call( obj ) );
 }

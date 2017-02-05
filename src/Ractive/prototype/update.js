@@ -14,18 +14,6 @@ export function update ( ractive, model ) {
 	const promise = runloop.start( ractive, true );
 
 	model.mark();
-	model.registerChange( model.getKeypath(), model.get() );
-
-	if ( !model.isRoot ) {
-		// there may be unresolved refs that are now resolvable up the context tree
-		let parent = model.parent;
-		let key = model.key;
-		while ( parent && !parent.isRoot ) {
-			if ( parent.clearUnresolveds ) parent.clearUnresolveds( key );
-			key = parent.key;
-			parent = parent.parent;
-		}
-	}
 
 	// notify upstream of changes
 	model.notifyUpstream();

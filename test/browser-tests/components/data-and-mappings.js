@@ -1,6 +1,6 @@
 import { test } from 'qunit';
 import Model from '../helpers/Model';
-import { initModule } from '../test-config';
+import { initModule, onWarn } from '../test-config';
 
 export default function() {
 	initModule( 'components/data-and-mappings.js' );
@@ -86,6 +86,34 @@ export default function() {
 		ractive.set( 'missing', 'found' );
 		t.htmlEqual( fixture.innerHTML, '<p>found</p>' );
 
+	});
+
+	test( 'Data is synced as soon as an unresolved mapping is resolved', t => {
+		onWarn( () => {} ); // suppress
+
+		const ractive = new Ractive({
+			el: fixture,
+			template: '<Outer/>',
+			data: {
+				item: { x: 1 }
+			},
+			components: {
+				Outer: Ractive.extend({
+					template: '{{#with item}}<Inner foo="{{foo}}"/>{{/with}}'
+				}),
+				Inner: Ractive.extend({
+					template: '<p>foo: {{foo}}</p>'
+				})
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<p>foo: </p>' );
+
+		ractive.toggle( 'item.foo' );
+		t.htmlEqual( fixture.innerHTML, '<p>foo: true</p>' );
+
+		ractive.toggle( 'item.foo' );
+		t.htmlEqual( fixture.innerHTML, '<p>foo: false</p>' );
 	});
 
 	test( 'Data on the child is propagated to the parent, if it is not missing', t => {
@@ -1259,27 +1287,6 @@ export default function() {
 
 		r.set( 'thing', 'hey' );
 		t.htmlEqual( fixture.innerHTML, 'hey is yep' );
-	});
-
-	test( `observers and ambiguous mappings play nicely together (#2142)`, t => {
-		t.expect( 3 );
-
-		const cmp = Ractive.extend({
-			template: '{{test}}',
-			onrender () {
-				this.observe( 'test', ( n, o ) => t.equal( n, 'foo' ) || t.equal( o, undefined ), { init: false } );
-			}
-		});
-
-		const r = new Ractive({
-			el: fixture,
-			template: '{{#with dummy}}<cmp />{{/with}}',
-			data: { dummy: { x: 1 } },
-			components: { cmp }
-		});
-
-		r.set( 'test', 'foo' );
-		t.htmlEqual( fixture.innerHTML, 'foo' );
 	});
 
 	test( 'complex mapped reference expressions update correctly', t => {

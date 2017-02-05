@@ -1,11 +1,10 @@
 import { TEMPLATE_VERSION } from '../../config/template';
-import { create } from '../../utils/object';
 import { READERS, PARTIAL_READERS } from '../_parse';
 import cleanup from '../utils/cleanup';
 
 export default function readTemplate ( parser ) {
 	const fragment = [];
-	const partials = create( null );
+	const partials = Object.create( null );
 	let hasPartials = false;
 
 	const preserveWhitespace = parser.preserveWhitespace;

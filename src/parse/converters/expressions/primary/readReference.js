@@ -10,7 +10,6 @@ const keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|
 
 const prefixPattern = /^(?:\@\.|\@|~\/|(?:\^\^\/(?:\^\^\/)*(?:\.\.\/)*)|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/;
 const specials = /^(key|index|keypath|rootpath|this|global|shared)/;
-const specialCall = /^\s*\(/;
 
 export default function readReference ( parser ) {
 	let prefix, name, global, reference, lastDotIndex;
@@ -37,20 +36,8 @@ export default function readReference ( parser ) {
 		return null;
 	}
 
-	if ( prefix === '@' ) {
-		if ( name === 'keypath' || name === 'rootpath' ) {
-			if ( parser.matchPattern( specialCall ) ) {
-				const ref = readReference( parser );
-				if ( !ref ) parser.error( `Expected a valid reference for a keypath expression` );
-
-				parser.allowWhitespace();
-
-				if ( !parser.matchString( ')' ) ) parser.error( `Unclosed keypath expression` );
-				name += `(${ref.n})`;
-			}
-		} else if ( !specials.test( name ) ) {
-			parser.error( `Unrecognized special reference @${name}` );
-		}
+	if ( prefix === '@' && !specials.test( name ) ) {
+		parser.error( `Unrecognized special reference @${name}` );
 	}
 
 	// bug out if it's a keyword (exception for ancestor/restricted refs - see https://github.com/ractivejs/ractive/issues/1497)

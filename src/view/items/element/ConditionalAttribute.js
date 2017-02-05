@@ -54,11 +54,11 @@ export default class ConditionalAttribute extends Item {
 
 		attributes = true;
 		if ( !this.rendered ) this.fragment.render();
-		attributes = false;
 
 		this.rendered = true;
 		this.dirty = true; // TODO this seems hacky, but necessary for tests to pass in browser AND node.js
 		this.update();
+		attributes = false;
 	}
 
 	toString () {
@@ -81,9 +81,10 @@ export default class ConditionalAttribute extends Item {
 		if ( this.dirty ) {
 			this.dirty = false;
 
+			const current = attributes;
 			attributes = true;
 			this.fragment.update();
-			attributes = false;
+			attributes = current || false;
 
 			if ( this.rendered && this.node ) {
 				str = this.fragment.toString();

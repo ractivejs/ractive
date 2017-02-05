@@ -1,5 +1,4 @@
 import Binding from './Binding';
-import { isArray } from '../../../../utils/is';
 import getBindingGroup from './getBindingGroup';
 import handleDomEvent from './handleDomEvent';
 
@@ -84,7 +83,7 @@ export default class CheckboxNameBinding extends Binding {
 		const existingValue = this.model.get();
 		const bindingValue = this.element.getAttribute( 'value' );
 
-		if ( isArray( existingValue ) ) {
+		if ( Array.isArray( existingValue ) ) {
 			this.isChecked = this.arrayContains( existingValue, bindingValue );
 		} else {
 			this.isChecked = this.element.compare( existingValue, bindingValue );

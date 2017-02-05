@@ -1,11 +1,10 @@
 import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
 import { escapeKey, unescapeKey } from '../shared/keypaths';
-import { handleChange, notifiedUpstream } from '../shared/methodCallers';
+import { handleChange } from '../shared/methodCallers';
 import { addToArray, removeFromArray } from '../utils/array';
-import { isArray, isObject } from '../utils/is';
+import { isObject } from '../utils/is';
 import bind from '../utils/bind';
-import runloop from '../global/runloop';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
@@ -22,9 +21,6 @@ export default class ModelBase {
 
 		this.keyModels = {};
 
-		this.unresolved = [];
-		this.unresolvedByKey = {};
-
 		this.bindings = [];
 		this.patternObservers = [];
 
@@ -34,41 +30,8 @@ export default class ModelBase {
 		}
 	}
 
-	addUnresolved ( key, resolver ) {
-		if ( !this.unresolvedByKey[ key ] ) {
-			this.unresolved.push( key );
-			this.unresolvedByKey[ key ] = [];
-		}
-
-		this.unresolvedByKey[ key ].push( resolver );
-	}
-
 	addShuffleTask ( task, stage = 'early' ) { shuffleTasks[stage].push( task ); }
 	addShuffleRegister ( item, stage = 'early' ) { registerQueue[stage].push({ model: this, item }); }
-
-	clearUnresolveds ( specificKey ) {
-		let i = this.unresolved.length;
-
-		while ( i-- ) {
-			const key = this.unresolved[i];
-
-			if ( specificKey && key !== specificKey ) continue;
-
-			const resolvers = this.unresolvedByKey[ key ];
-			const hasKey = this.has( key );
-
-			let j = resolvers.length;
-			while ( j-- ) {
-				if ( hasKey ) resolvers[j].attemptResolution();
-				if ( resolvers[j].resolved ) resolvers.splice( j, 1 );
-			}
-
-			if ( !resolvers.length ) {
-				this.unresolved.splice( i, 1 );
-				this.unresolvedByKey[ key ] = null;
-			}
-		}
-	}
 
 	findMatches ( keys ) {
 		const len = keys.length;
@@ -116,7 +79,7 @@ export default class ModelBase {
 
 	getValueChildren ( value ) {
 		let children;
-		if ( isArray( value ) ) {
+		if ( Array.isArray( value ) ) {
 			children = [];
 			if ( 'length' in this && this.length !== value.length ) {
 				children.push( this.joinKey( 'length' ) );
@@ -140,7 +103,7 @@ export default class ModelBase {
 	getVirtual ( shouldCapture ) {
 		const value = this.get( shouldCapture, { virtual: false } );
 		if ( isObject( value ) ) {
-			const result = isArray( value ) ? [] : {};
+			const result = Array.isArray( value ) ? [] : {};
 
 			const keys = Object.keys( value );
 			let i = keys.length;
@@ -192,13 +155,13 @@ export default class ModelBase {
 		return model;
 	}
 
-	notifyUpstream () {
+	notifyUpstream ( startPath ) {
 		let parent = this.parent;
-		const path = [ this.key ];
+		const path = startPath || [ this.key ];
 		while ( parent ) {
 			if ( parent.patternObservers.length ) parent.patternObservers.forEach( o => o.notify( path.slice() ) );
 			path.unshift( parent.key );
-			parent.links.forEach( notifiedUpstream );
+			parent.links.forEach( l => l.notifiedUpstream( path, this.root ) );
 			parent.deps.forEach( handleChange );
 			parent = parent.parent;
 		}
@@ -215,22 +178,13 @@ export default class ModelBase {
 		while ( i-- ) {
 			const link = this.links[i];
 			// only relink the root of the link tree
-			if ( link.owner._link ) link.relinking( next, true, safe );
+			if ( link.owner._link ) link.relinking( next, safe );
 		}
 
 		i = this.children.length;
 		while ( i-- ) {
 			const child = this.children[i];
 			child.rebind( next ? next.joinKey( child.key ) : undefined, child, safe );
-		}
-
-		i = this.unresolved.length;
-		while ( i-- ) {
-			const unresolved = this.unresolvedByKey[ this.unresolved[i] ];
-			let c = unresolved.length;
-			while ( c-- ) {
-				unresolved[c].rebind( next, previous );
-			}
 		}
 
 		if ( this.keypathModel ) this.keypathModel.rebind( next, previous, false );
@@ -243,15 +197,6 @@ export default class ModelBase {
 
 	register ( dep ) {
 		this.deps.push( dep );
-	}
-
-	registerChange ( key, value ) {
-		if ( !this.isRoot ) {
-			this.root.registerChange( key, value );
-		} else {
-			this.changes[ key ] = value;
-			runloop.addInstance( this.root.ractive );
-		}
 	}
 
 	registerLink ( link ) {
@@ -267,16 +212,8 @@ export default class ModelBase {
 		this.bindings.push( binding );
 	}
 
-	removeUnresolved ( key, resolver ) {
-		const resolvers = this.unresolvedByKey[ key ];
-
-		if ( resolvers ) {
-			removeFromArray( resolvers, resolver );
-		}
-	}
-
-	unregister ( dependant ) {
-		removeFromArray( this.deps, dependant );
+	unregister ( dep ) {
+		removeFromArray( this.deps, dep );
 	}
 
 	unregisterLink ( link ) {

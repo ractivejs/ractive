@@ -7,6 +7,7 @@ import defaults from './defaults';
 import registries from './registries';
 import wrapPrototype from './wrapPrototypeMethod';
 import deprecate from './deprecate';
+import RactiveProto from '../prototype';
 
 const custom = {
 	adapt: adaptConfigurator,
@@ -20,7 +21,7 @@ const defaultKeys = Object.keys( defaults );
 const isStandardKey = makeObj( defaultKeys.filter( key => !custom[ key ] ) );
 
 // blacklisted keys that we don't double extend
-const isBlacklisted = makeObj( defaultKeys.concat( registries.map( r => r.name ), [ 'on', 'observe' ] ) );
+const isBlacklisted = makeObj( defaultKeys.concat( registries.map( r => r.name ), [ 'on', 'observe', 'attributes' ] ) );
 
 const order = [].concat(
 	defaultKeys.filter( key => !registries[ key ] && !custom[ key ] ),
@@ -84,6 +85,7 @@ function configure ( method, Parent, target, options ) {
 	extendOtherMethods( Parent.prototype, target, options );
 }
 
+const _super = /\b_super\b/;
 function extendOtherMethods ( parent, target, options ) {
 	for ( const key in options ) {
 		if ( !isBlacklisted[ key ] && options.hasOwnProperty( key ) ) {
@@ -91,6 +93,9 @@ function extendOtherMethods ( parent, target, options ) {
 
 			// if this is a method that overwrites a method, wrap it:
 			if ( typeof member === 'function' ) {
+				if ( key in RactiveProto && !_super.test( member.toString() ) ) {
+					warnIfDebug( `Overriding Ractive prototype function '${key}' without calling the '${_super}' method can be very dangerous.` );
+				}
 				member = wrapPrototype( parent, key, member );
 			}
 

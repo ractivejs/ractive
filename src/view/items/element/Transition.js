@@ -1,10 +1,8 @@
 import { win } from '../../../config/environment';
-import { isArray } from '../../../utils/is';
 import { addToArray, removeFromArray } from '../../../utils/array';
 import findElement from '../shared/findElement';
 import prefix from './transitions/prefix';
 import { warnOnceIfDebug } from '../../../utils/log';
-import { extend } from '../../../utils/object';
 import { missingPlugin } from '../../../config/errors';
 import { findInViewHierarchy } from '../../../shared/registry';
 import { visible } from '../../../config/visibility';
@@ -163,7 +161,7 @@ export default class Transition {
 			return value === '0px' ? 0 : value;
 		}
 
-		if ( !isArray( props ) ) {
+		if ( !Array.isArray( props ) ) {
 			throw new Error( 'Transition$getStyle must be passed a string, or an array of strings representing CSS properties' );
 		}
 
@@ -198,7 +196,7 @@ export default class Transition {
 			params = {};
 		}
 
-		return extend( {}, defaults, params );
+		return Object.assign( {}, defaults, params );
 	}
 
 	registerCompleteHandler ( fn ) {

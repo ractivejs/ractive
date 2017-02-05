@@ -1,4 +1,4 @@
-import { fatal, welcome } from '../utils/log';
+import { fatal, warnIfDebug, welcome } from '../utils/log';
 import { missingPlugin } from '../config/errors';
 import { magic as magicSupported } from '../config/environment';
 import { ensureArray, combine } from '../utils/array';
@@ -6,12 +6,12 @@ import { findInViewHierarchy } from '../shared/registry';
 import arrayAdaptor from './static/adaptors/array/index';
 import magicAdaptor from './static/adaptors/magic';
 import magicArrayAdaptor from './static/adaptors/magicArray';
-import { create, extend } from '../utils/object';
 import dataConfigurator from './config/custom/data';
 import RootModel from '../model/RootModel';
 import Hook from '../events/Hook';
 import getComputationSignature from './helpers/getComputationSignature';
 import Ractive from '../Ractive';
+import { ATTRIBUTE, INTERPOLATOR } from '../config/types';
 
 const constructHook = new Hook( 'construct' );
 
@@ -32,6 +32,12 @@ export default function construct ( ractive, options ) {
 	if ( Ractive.DEBUG ) welcome();
 
 	initialiseProperties( ractive );
+	handleAttributes( ractive );
+
+	// if there's not a delegation setting, inherit from parent if it's not default
+	if ( !options.hasOwnProperty( 'delegate' ) && ractive.parent && ractive.parent.delegate !== ractive.delegate ) {
+		ractive.delegate = false;
+	}
 
 	// TODO don't allow `onconstruct` with `new Ractive()`, there's no need for it
 	constructHook.fire( ractive, options );
@@ -40,7 +46,12 @@ export default function construct ( ractive, options ) {
 	let i = registryNames.length;
 	while ( i-- ) {
 		const name = registryNames[ i ];
-		ractive[ name ] = extend( create( ractive.constructor[ name ] || null ), options[ name ] );
+		ractive[ name ] = Object.assign( Object.create( ractive.constructor[ name ] || null ), options[ name ] );
+	}
+
+	if ( ractive._attributePartial ) {
+		ractive.partials['extra-attributes'] = ractive._attributePartial;
+		delete ractive._attributePartial;
 	}
 
 	// Create a viewmodel
@@ -53,9 +64,10 @@ export default function construct ( ractive, options ) {
 	ractive.viewmodel = viewmodel;
 
 	// Add computed properties
-	const computed = extend( create( ractive.constructor.prototype.computed ), options.computed );
+	const computed = Object.assign( Object.create( ractive.constructor.prototype.computed ), options.computed );
 
 	for ( const key in computed ) {
+		if ( key === '__proto__' ) continue;
 		const signature = getComputationSignature( ractive, key, computed[ key ] );
 		viewmodel.compute( key, signature );
 	}
@@ -113,7 +125,7 @@ function initialiseProperties ( ractive ) {
 	ractive._guid = 'r-' + uid++;
 
 	// events
-	ractive._subs = create( null );
+	ractive._subs = Object.create( null );
 	ractive._nsSubs = 0;
 
 	// storage for item configuration from instantiation to reset,
@@ -139,5 +151,45 @@ function initialiseProperties ( ractive ) {
 	if ( !ractive.component ) {
 		ractive.root = ractive;
 		ractive.parent = ractive.container = null; // TODO container still applicable?
+	}
+}
+
+function handleAttributes ( ractive ) {
+	const component = ractive.component;
+	const attributes = ractive.constructor.attributes;
+
+	if ( attributes && component ) {
+		const tpl = component.template;
+		const attrs = tpl.m ? tpl.m.slice() : [];
+
+		// grab all of the passed attribute names
+		const props = attrs.filter( a => a.t === ATTRIBUTE ).map( a => a.n );
+
+		// warn about missing requireds
+		attributes.required.forEach( p => {
+			if ( !~props.indexOf( p ) ) {
+				warnIfDebug( `Component '${component.name}' requires attribute '${p}' to be provided` );
+			}
+		});
+
+		// set up a partial containing non-property attributes
+		const all = attributes.optional.concat( attributes.required );
+		const partial = [];
+		let i = attrs.length;
+		while ( i-- ) {
+			const a = attrs[i];
+			if ( a.t === ATTRIBUTE && !~all.indexOf( a.n ) ) {
+				if ( attributes.mapAll ) {
+					// map the attribute if requested and make the extra attribute in the partial refer to the mapping
+					partial.unshift({ t: ATTRIBUTE, n: a.n, f: [{ t: INTERPOLATOR, r: `~/${a.n}` }] });
+				} else {
+					// transfer the attribute to the extra attributes partal
+					partial.unshift( attrs.splice( i, 1 )[0] );
+				}
+			}
+		}
+
+		if ( partial.length ) component.template = { t: tpl.t, e: tpl.e, f: tpl.f, m: attrs, p: tpl.p };
+		ractive._attributePartial = partial;
 	}
 }

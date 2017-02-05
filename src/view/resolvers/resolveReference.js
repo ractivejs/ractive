@@ -2,8 +2,6 @@ import { splitKeypath } from '../../shared/keypaths';
 import SharedModel, { GlobalModel } from '../../model/specials/SharedModel';
 import { warnIfDebug } from '../../utils/log';
 
-const keypathExpr = /^@[^\(]+\(([^\)]+)\)/;
-
 export default function resolveReference ( fragment, ref ) {
 	const initialFragment = fragment;
 	// current context ref
@@ -93,12 +91,6 @@ export default function resolveReference ( fragment, ref ) {
 				context = context.ractive.component.parentFragment.findContext();
 			}
 
-			const match = keypathExpr.exec( ref );
-			if ( match && match[1] ) {
-				const model = resolveReference( fragment, match[1] );
-				if ( model ) return model.getKeypathModel( root );
-			}
-
 			return context.getKeypathModel( root );
 		}
 
@@ -116,7 +108,6 @@ export default function resolveReference ( fragment, ref ) {
 	}
 
 	// walk up the fragment hierarchy looking for a matching ref, alias, or key in a context
-	let hasContextChain;
 	let crossedComponentBoundary;
 	const shouldWarn = fragment.ractive.warnAboutAmbiguity;
 
@@ -145,19 +136,15 @@ export default function resolveReference ( fragment, ref ) {
 		}
 
 		// check fragment context to see if it has the key we need
-		if ( fragment.context ) {
-			if ( !fragment.isRoot || fragment.ractive.component ) hasContextChain = true;
-
-			if ( fragment.context.has( base ) ) {
-				// this is an implicit mapping
-				if ( crossedComponentBoundary ) {
-					if ( shouldWarn ) warnIfDebug( `'${ref}' resolved but is ambiguous and will create a mapping to a parent component.` );
-					return context.root.createLink( base, fragment.context.joinKey( base ), base, { implicit: true } ).joinAll( keys );
-				}
-
-				if ( shouldWarn ) warnIfDebug( `'${ref}' resolved but is ambiguous.` );
-				return fragment.context.joinKey( base ).joinAll( keys );
+		if ( fragment.context && fragment.context.has( base ) ) {
+			// this is an implicit mapping
+			if ( crossedComponentBoundary ) {
+				if ( shouldWarn ) warnIfDebug( `'${ref}' resolved but is ambiguous and will create a mapping to a parent component.` );
+				return context.root.createLink( base, fragment.context.joinKey( base ), base, { implicit: true } ).joinAll( keys );
 			}
+
+			if ( shouldWarn ) warnIfDebug( `'${ref}' resolved but is ambiguous.` );
+			return fragment.context.joinKey( base ).joinAll( keys );
 		}
 
 		if ( ( fragment.componentParent || ( !fragment.parent && fragment.ractive.component ) ) && !fragment.ractive.isolated ) {
@@ -182,9 +169,7 @@ export default function resolveReference ( fragment, ref ) {
 	}
 
 	// didn't find anything, so go ahead and create the key on the local model
-	if ( !hasContextChain ) {
-		return context.root.joinKey( base ).joinAll( keys );
-	}
+	return context.joinKey( base ).joinAll( keys );
 }
 
 function badReference ( key ) {

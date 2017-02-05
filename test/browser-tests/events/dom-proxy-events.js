@@ -364,10 +364,10 @@ export default function() {
 			}
 		});
 
-		let changes;
+		const changes = {};
 
-		ractive.on( 'change', ( c ) => {
-			changes = c;
+		ractive.observeOnce( '**', ( c, o, k ) => {
+			changes[k] = c;
 		});
 
 		t.htmlEqual( ractive.find( '.result' ).innerHTML, '1' );

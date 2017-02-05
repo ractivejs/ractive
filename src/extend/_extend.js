@@ -1,4 +1,4 @@
-import { create, defineProperties, extend as extendObj, toPairs } from '../utils/object';
+import { toPairs } from '../utils/object';
 import config from '../Ractive/config/config';
 import dataConfigurator from '../Ractive/config/custom/data';
 import construct from '../Ractive/construct';
@@ -34,11 +34,11 @@ function extendOne ( Parent, options = {} ) {
 		initialise( this, options || {}, {} );
 	};
 
-	const proto = create( Parent.prototype );
+	const proto = Object.create( Parent.prototype );
 	proto.constructor = Child;
 
 	// Static properties
-	defineProperties( Child, {
+	Object.defineProperties( Child, {
 		// alias prototype as defaults
 		defaults: { value: proto },
 
@@ -56,10 +56,28 @@ function extendOne ( Parent, options = {} ) {
 	Child._on = ( Parent._on || [] ).concat( toPairs( options.on ) );
 	Child._observe = ( Parent._observe || [] ).concat( toPairs( options.observe ) );
 
+	// attribute defs are not inherited, but they need to be stored
+	if ( options.attributes ) {
+		let attrs;
+
+		// allow an array of optional props or an object with arrays for optional and required props
+		if ( Array.isArray( options.attributes ) ) {
+			attrs = { optional: options.attributes, required: [] };
+		} else {
+			attrs = options.attributes;
+		}
+
+		// make sure the requisite keys actually store arrays
+		if ( !Array.isArray( attrs.required ) ) attrs.required = [];
+		if ( !Array.isArray( attrs.optional ) ) attrs.optional = [];
+
+		Child.attributes = attrs;
+	}
+
 	dataConfigurator.extend( Parent, proto, options );
 
 	if ( options.computed ) {
-		proto.computed = extendObj( create( Parent.prototype.computed ), options.computed );
+		proto.computed = Object.assign( Object.create( Parent.prototype.computed ), options.computed );
 	}
 
 	Child.prototype = proto;

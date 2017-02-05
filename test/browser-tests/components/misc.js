@@ -574,34 +574,6 @@ export default function() {
 		t.deepEqual( inDom, { div: true, widget: true, p: true });
 	});
 
-	test( 'Data is synced as soon as an unresolved mapping is resolved', t => {
-		onWarn( () => {} ); // suppress
-
-		const ractive = new Ractive({
-			el: fixture,
-			template: '<Outer/>',
-			data: {
-				item: { x: 1 }
-			},
-			components: {
-				Outer: Ractive.extend({
-					template: '{{#with item}}<Inner foo="{{foo}}"/>{{/with}}'
-				}),
-				Inner: Ractive.extend({
-					template: '<p>foo: {{foo}}</p>'
-				})
-			}
-		});
-
-		t.htmlEqual( fixture.innerHTML, '<p>foo: </p>' );
-
-		ractive.toggle( 'item.foo' );
-		t.htmlEqual( fixture.innerHTML, '<p>foo: true</p>' );
-
-		ractive.toggle( 'item.foo' );
-		t.htmlEqual( fixture.innerHTML, '<p>foo: false</p>' );
-	});
-
 	// TODO: revist how we should handle this before finishing keypath-ftw
 	/*
 	test( 'Mapping to a computed property is an error', t => {
@@ -703,7 +675,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<Foo/>',
+			template: '<Foo message="{{message}}"/>',
 			components: {
 				Foo: Ractive.extend({ template: '<Bar message="{{message}}"/>' }),
 				Bar: Ractive.extend({ template: '<Baz message="{{message}}"/>' }),
@@ -1037,6 +1009,34 @@ export default function() {
 			t.equal( count2, 3 );
 			done();
 		}, 200 );
+	});
+
+	test( `setting a falsey value in a component registry blocks the loading of the component (#1800)`, t => {
+		const cmp = Ractive.extend({
+			template: '<cmp>stuff</cmp>',
+			components: { cmp: false }
+		});
+		new Ractive({
+			target: fixture,
+			template: '<cmp />',
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<cmp>stuff</cmp>' );
+	});
+
+	test( `overriding a Ractive prototype method in extend issues a warning in debug mode (#2358)`, t => {
+		t.expect( 1 );
+
+		onWarn( msg => t.ok( /overriding.*render.*dangerous/i.test( msg ) ) );
+
+		const cmp = Ractive.extend({
+			foo() {}
+		});
+		cmp.extend({
+			render() {},
+			foo() {}
+		});
 	});
 
 	test( `returning false from a component event doesn't try to cancel something that doesn't exist (#2731)`, t => {

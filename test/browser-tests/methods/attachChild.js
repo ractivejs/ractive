@@ -4,27 +4,6 @@ import { initModule } from '../test-config';
 export default function() {
 	initModule( 'methods/attachChild.js' );
 
-	test( 'child instances can be attached to parents to inherit data implicitly', t => {
-		const r1 = new Ractive({
-			data: {
-				foo: 'bar'
-			}
-		});
-		const r2 = new Ractive({
-			template: '{{#with empty}}{{#with other}}{{foo}}{{/with}}{{/with}}',
-			data: { empty: {} }
-		});
-
-		t.equal( r2.toHTML(), '' );
-		r1.attachChild( r2 );
-		r2.set( 'other', {} );
-		t.equal( r2.toHTML(), 'bar' );
-		r1.detachChild( r2 );
-		t.equal( r2.toHTML(), '' );
-		r1.attachChild( r2 );
-		t.equal( r2.toHTML(), 'bar' );
-	});
-
 	test( 'child instances can be attached to an anchor', t => {
 		const r1 = new Ractive({
 			template: '<#foo />',

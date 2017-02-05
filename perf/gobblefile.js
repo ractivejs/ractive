@@ -8,9 +8,6 @@ var path = require( 'path' ),
 module.exports = gobble([
 	gobble( 'src/vendor' ),
 
-	// old versions
-	gobble( 'old-versions' ).moveTo( 'builds' ),
-
 	// control build
 	gobble( 'control' ).moveTo( 'builds/control' ),
 

@@ -1,7 +1,6 @@
 import { ELEMENT, YIELDER } from '../config/types';
 import runloop from '../global/runloop';
 import createItem from './items/createItem';
-import ReferenceResolver from './resolvers/ReferenceResolver';
 import { bind, destroyed, shuffled, toEscapedString, toString, unbind, unrender, update } from '../shared/methodCallers';
 import processItems from './helpers/processItems';
 import parseJSON from '../utils/parseJSON';
@@ -21,14 +20,13 @@ export default class Fragment {
 		this.ractive = options.ractive || ( this.isRoot ? options.owner : this.parent.ractive );
 
 		this.componentParent = ( this.isRoot && this.ractive.component ) ? this.ractive.component.parentFragment : null;
+		this.delegate = this.parent ? this.parent.delegate : ( this.componentParent && this.componentParent.delegate );
 
 		this.context = null;
 		this.rendered = false;
 
 		// encapsulated styles should be inherited until they get applied by an element
 		this.cssIds = 'cssIds' in options ? options.cssIds : ( this.parent ? this.parent.cssIds : null );
-
-		this.resolvers = [];
 
 		this.dirty = false;
 		this.dirtyValue = true; // used for attribute values
@@ -63,7 +61,7 @@ export default class Fragment {
 					runloop.addFragment( this );
 				}
 			} else {
-				this.owner.bubble();
+				this.owner.bubble( this.index );
 			}
 		}
 	}
@@ -221,17 +219,6 @@ export default class Fragment {
 				}
 			}
 		}
-	}
-
-	resolve ( template, callback ) {
-		if ( !this.context && this.parent.resolve ) {
-			return this.parent.resolve( template, callback );
-		}
-
-		const resolver = new ReferenceResolver( this, template, callback );
-		this.resolvers.push( resolver );
-
-		return resolver; // so we can e.g. force resolution
 	}
 
 	shuffled () {

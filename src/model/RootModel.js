@@ -14,9 +14,6 @@ export default class RootModel extends Model {
 	constructor ( options ) {
 		super( null, null );
 
-		// TODO deprecate this
-		this.changes = {};
-
 		this.isRoot = true;
 		this.root = this;
 		this.ractive = options.ractive; // TODO sever this link
@@ -159,7 +156,6 @@ export default class RootModel extends Model {
 
 		this.deps.forEach( handleChange );
 		this.children.forEach( mark );
-		this.clearUnresolveds(); // TODO do we need to do this with primitive values? if not, what about e.g. unresolved `length` property of null -> string?
 	}
 
 	retrieve () {
@@ -178,15 +174,6 @@ RootModel.prototype.update = noop;
 function attachImplicits ( model, fragment ) {
 	if ( model._link && model._link.implicit && model._link.isDetached() ) {
 		model.attach( fragment );
-	}
-
-	// look for unresolveds
-	let i = model.unresolved.length;
-	while ( i-- ) {
-		const mdl = resolveReference( fragment, model.unresolved[i] );
-		if ( mdl ) {
-			model.joinKey( mdl.key ).link( mdl, mdl.key, { implicit: true } );
-		}
 	}
 
 	// look for virtual children to relink and cascade

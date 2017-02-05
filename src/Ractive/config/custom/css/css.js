@@ -10,7 +10,7 @@ export default {
 	extend: ( Parent, proto, options ) => {
 		if ( !options.css ) return;
 
-		const id = uuid();
+		const id = options.cssId || uuid();
 		const styles = options.noCssTransform ? options.css : transformCss( options.css, id );
 
 		proto.cssId = id;

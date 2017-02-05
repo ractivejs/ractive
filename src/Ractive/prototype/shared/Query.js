@@ -1,5 +1,5 @@
 import runloop from '../../../global/runloop';
-import { find, lastItem } from '../../../utils/array';
+import { lastItem } from '../../../utils/array';
 import { matches } from '../../../utils/dom';
 
 function sortByDocumentPosition ( node, otherNode ) {
@@ -174,7 +174,7 @@ export function getQuery ( ractive, selector, options, component ) {
 
 	// Shortcut: if we're maintaining a live query with this
 	// selector, we don't need to traverse the parallel DOM
-	query = find( liveQueries, q => q.selector === selector && q.remote === options.remote );
+	query = liveQueries.find( q => q.selector === selector && q.remote === options.remote );
 	if ( query ) {
 		if ( options.live ) query.refs++;
 		// Either return the exact same query, or (if not live) a snapshot

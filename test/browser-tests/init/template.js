@@ -3,7 +3,6 @@ import { beforeEach } from '../test-config';
 import { TEMPLATE_VERSION } from '../../config/template';
 import config from '../../Ractive/config/custom/template';
 import { isObject } from '../../utils/is';
-import { create } from '../../utils/object';
 import { initModule } from '../test-config';
 
 export default function() {
@@ -24,7 +23,7 @@ export default function() {
 		MockRactive.defaults = MockRactive.prototype;
 
 		Component = function() {};
-		Component.prototype = create( MockRactive.prototype );
+		Component.prototype = Object.create( MockRactive.prototype );
 		Component.prototype.constructor = Component;
 		Component.defaults = Component.prototype;
 	});
@@ -63,7 +62,7 @@ export default function() {
 
 	test( 'Extend twice with different templates', t => {
 		config.extend( MockRactive, Component.prototype, templateOpt1 );
-		const Child = create( Component );
+		const Child = Object.create( Component );
 		config.extend( Component, Child.prototype, templateOpt2 );
 
 		t.deepEqual( Child.prototype.template, { v: TEMPLATE_VERSION, t: [{ r: 'bar', t: 2 }] } );

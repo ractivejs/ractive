@@ -3,7 +3,6 @@ import { warnOnceIfDebug, warnIfDebug } from '../../utils/log';
 import { MustacheContainer } from './shared/Mustache';
 import Fragment from '../Fragment';
 import getPartialTemplate from './partial/getPartialTemplate';
-import { isArray } from '../../utils/is';
 import parser from '../../Ractive/config/runtime-parser';
 import { doInAttributes } from './element/ConditionalAttribute';
 import { resolveAliases } from './Alias';
@@ -41,7 +40,7 @@ export default class Partial extends MustacheContainer {
 
 		if ( !template ) {
 			super.bind();
-			if ( this.model && ( templateObj = this.model.get() ) && typeof templateObj === 'object' && ( typeof templateObj.template === 'string' || isArray( templateObj.t ) ) ) {
+			if ( this.model && ( templateObj = this.model.get() ) && typeof templateObj === 'object' && ( typeof templateObj.template === 'string' || Array.isArray( templateObj.t ) ) ) {
 				if ( templateObj.template ) {
 					this.source = templateObj.template;
 					templateObj = parsePartial( this.template.r, templateObj.template, this.ractive );
@@ -159,7 +158,7 @@ export default class Partial extends MustacheContainer {
 				if ( template && typeof template === 'string' && template !== this.name ) {
 					this.setTemplate( template );
 					this.fragment.resetTemplate( this.partialTemplate );
-				} else if ( template && typeof template === 'object' && ( typeof template.template === 'string' || isArray( template.t ) ) ) {
+				} else if ( template && typeof template === 'object' && ( typeof template.template === 'string' || Array.isArray( template.t ) ) ) {
 					if ( template.t !== this.source && template.template !== this.source ) {
 						if ( template.template ) {
 							this.source = template.template;

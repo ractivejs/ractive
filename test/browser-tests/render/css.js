@@ -358,4 +358,15 @@ export default function() {
 
 		t.equal( getHexColor( ractive.find( 'p' ) ), hexCodes.blue );
 	});
+
+	test( `components should output css scoping ids with toHTML (#2709)`, t => {
+		const cmp = new (Ractive.extend({
+			template: '<div />',
+			cssId: 'my-nifty-cmp',
+			css: 'div { color: red }'
+		}));
+
+		t.equal( cmp.toHTML(), '<div data-ractive-css="{my-nifty-cmp}"></div>' );
+		t.ok( ~cmp.toCSS().indexOf( 'my-nifty-cmp' ) );
+	});
 }
