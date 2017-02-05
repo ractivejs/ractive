@@ -3,7 +3,8 @@ import { splitKeypath } from './keypaths';
 import { isObject } from '../utils/is';
 import { warnIfDebug } from '../utils/log';
 
-export function set ( ractive, pairs ) {
+export function set ( ractive, pairs, options ) {
+	const deep = options && options.deep;
 	const promise = runloop.start( ractive, true );
 
 	let i = pairs.length;
@@ -17,7 +18,8 @@ export function set ( ractive, pairs ) {
 			throw new Error( `Failed to set invalid keypath '${ keypath }'` );
 		}
 
-		model.set( value );
+		if ( deep ) deepSet( model, value );
+		else model.set( value );
 	}
 
 	runloop.end();
@@ -58,4 +60,19 @@ export function build ( ractive, keypath, value ) {
 	}
 
 	return sets;
+}
+
+const deepOpts = { virtual: false };
+function deepSet( model, value ) {
+	const dest = model.get( false, deepOpts );
+
+	// if dest doesn't exist, just set it
+	if ( dest == null || typeof value !== 'object' ) return model.set( value );
+	if ( typeof dest !== 'object' ) return model.set( value );
+
+	for ( const k in value ) {
+		if ( value.hasOwnProperty( k ) ) {
+			deepSet( model.joinKey( k ), value[k] );
+		}
+	}
 }
