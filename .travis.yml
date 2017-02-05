@@ -6,7 +6,7 @@ node_js:
 - '4'
 script: set -e; mkdir -p build; npm run build; if [[ $(node --version) == v6* ]];
   then npm run coveralls; chmod u+x scripts/travis-deploy.sh; ./scripts/travis-deploy.sh;
-  fi
+  fi; set +e
 env:
   global:
   - GH_REF: github.com/ractivejs/ractive.git
