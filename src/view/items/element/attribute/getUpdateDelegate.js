@@ -140,7 +140,7 @@ function updateRadioValue ( reset ) {
 
 	//node.value = this.element.getAttribute( 'value' );
 	node.value = this.node._ractive.value = value;
-	node.checked = value === this.element.getAttribute( 'name' );
+	node.checked = this.element.compare( value, this.element.getAttribute( 'name' ) );
 
 	// This is a special case - if the input was checked, and the value
 	// changed so that it's no longer checked, the twoway binding is
@@ -183,7 +183,7 @@ function updateStringValue ( reset ) {
 
 function updateRadioName ( reset ) {
 	if ( reset ) this.node.checked = false;
-	else this.node.checked = ( this.getValue() == this.node._ractive.value );
+	else this.node.checked = this.element.compare( this.getValue(), this.element.binding.getValue() );
 }
 
 function updateCheckboxName ( reset ) {
@@ -198,11 +198,11 @@ function updateCheckboxName ( reset ) {
 	}
 
 	if ( !Array.isArray( value ) ) {
-		binding.isChecked = node.checked = ( value == valueAttribute );
+		binding.isChecked = node.checked = element.compare( value, valueAttribute );
 	} else {
 		let i = value.length;
 		while ( i-- ) {
-			if ( valueAttribute == value[i] ) {
+			if ( element.compare ( valueAttribute, value[i] ) ) {
 				binding.isChecked = node.checked = true;
 				return;
 			}
