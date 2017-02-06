@@ -190,7 +190,10 @@ export default class Fragment {
 		if ( this.rendered ) throw new Error( 'Fragment is already rendered!' );
 		this.rendered = true;
 
-		this.items.forEach( item => item.render( target, occupants ) );
+		const len = this.items.length;
+		for ( let i = 0; i < len; i++ ) {
+			this.items[i].render( target, occupants );
+		}
 	}
 
 	resetTemplate ( template ) {
