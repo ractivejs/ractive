@@ -157,6 +157,7 @@ function runTest ( context, test, version, ractiveUrl, callback ) {
 function runStep ( context, test, callback ) {
 	let start = now(), count = 0, runStart;
 	let duration = 0, totalDuration = 0;
+	const times = [];
 
 	console.group( test.name );
 
@@ -170,17 +171,24 @@ function runStep ( context, test, callback ) {
 			return callback( e, { name: test.name } );
 		}
 
-		duration += now() - runStart;
-		totalDuration = now() - start;
+		const end = now();
+		duration += end - runStart;
+		totalDuration = end - start;
+		times.push( end - runStart );
 
 		if ( test.maxCount && count >= test.maxCount ) break;
 	}
 
+	const avg = times.reduce( ( a, c ) => a + c, 0 ) / times.length;
 	callback(null, {
 		name: test.name,
 		duration,
 		count,
-		average: duration / count
+		first: times[0],
+		average: avg,
+		variation: times.reduce( ( a, c ) => a + Math.abs( avg - c ), 0 ) / times.length,
+		minimum: Math.min.apply( null, times ),
+		maximum: Math.max.apply( null, times )
 	});
 
 	console.groupEnd( test.name );

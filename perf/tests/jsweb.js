@@ -135,7 +135,7 @@ var tests = [
 			},
 
 			{
-				name: 'hide rows',
+				name: 'hide rows (keep)',
 				test() {
 					/* global ractive */
 					ractive.set( 'show', false, { keep: true } );
@@ -153,10 +153,46 @@ var tests = [
 			},
 
 			{
-				name: 'hide rows again',
+				name: 'hide rows again (keep)',
 				test() {
 					/* global ractive */
 					ractive.set( 'show', false, { keep: true } );
+				},
+				maxCount: 1
+			},
+
+			{
+				name: 'show rows again',
+				test() {
+					/* global ractive */
+					ractive.set( 'show', true );
+				},
+				maxCount: 1
+			},
+
+			{
+				name: 'hide rows (nokeep)',
+				test() {
+					/* global ractive */
+					ractive.set( 'show', false, { keep: false } );
+				},
+				maxCount: 1
+			},
+
+			{
+				name: 'show rows',
+				test() {
+					/* global ractive */
+					ractive.set( 'show', true );
+				},
+				maxCount: 1
+			},
+
+			{
+				name: 'hide rows again (nokeep)',
+				test() {
+					/* global ractive */
+					ractive.set( 'show', false, { keep: false } );
 				},
 				maxCount: 1
 			},

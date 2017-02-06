@@ -135,16 +135,16 @@
 			{{/if}}
 			{{#if results}}
 				<table>
-					<thead><tr><th>test name</th><th>iterations</th><th>avg. duration</th></tr></thead>
+					<thead><tr><th>test name</th><th>iterations</th><th>first duration</th><th>avg</th><th>variation</th><th>min</th><th>max</th></tr></thead>
 
 					<tbody>
 						{{#each tests}}
 							<tr>
-								<td on-click='runInNewWindow(test,version,ractiveUrl)'>{{name}}</td><td>{{count}}</td><td>{{formatTime(average)}}</td>
+								<td on-click='runInNewWindow(test,version,ractiveUrl)'>{{name}}</td><td>{{count}}</td><td /><td>{{formatTime(average)}}</td><td /><td /><td />
 							</tr>
 							{{#each .steps}}
 								<tr>
-									<td {{#if .error}}class='error'{{/if}}>&gt;&gt;&gt; {{.name}}{{#if .error}}<br />{{.error.message}}{{/if}}</td><td>{{.count}}</td><td>{{formatTime(.average)}}</td>
+									<td {{#if .error}}class='error'{{/if}}>&gt;&gt;&gt; {{.name}}{{#if .error}}<br />{{.error.message}}{{/if}}</td><td>{{.count}}</td><td>{{formatTime(.first)}}</td><td>{{formatTime(.average)}}</td><td>{{formatTime(.variation)}}</td><td>{{formatTime(.minimum)}}</td><td>{{formatTime(.maximum)}}</td>
 								</tr>
 							{{/each}}
 						{{/each}}
