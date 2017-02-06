@@ -178,45 +178,46 @@ export default class Element extends ContainerItem {
 	}
 
 	render ( target, occupants ) {
-		// TODO determine correct namespace
-		this.namespace = getNamespace( this );
-
-		let node;
+		let node = this.node;
 		let existing = false;
 
-		if ( occupants ) {
-			let n;
-			while ( ( n = occupants.shift() ) ) {
-				if ( n.nodeName.toUpperCase() === this.template.e.toUpperCase() && n.namespaceURI === this.namespace ) {
-					this.node = node = n;
-					existing = true;
-					break;
-				} else {
-					detachNode( n );
+		if ( !node ) {
+			this.namespace = getNamespace( this );
+
+			if ( !node && occupants ) {
+				let n;
+				while ( ( n = occupants.shift() ) ) {
+					if ( n.nodeName.toUpperCase() === this.template.e.toUpperCase() && n.namespaceURI === this.namespace ) {
+						this.node = node = n;
+						existing = true;
+						break;
+					} else {
+						detachNode( n );
+					}
 				}
 			}
-		}
 
-		if ( !node ) {
-			const name = this.template.e;
-			node = createElement( this.namespace === html ? name.toLowerCase() : name, this.namespace, this.getAttribute( 'is' ) );
-			this.node = node;
-		}
-
-		// tie the node to this vdom element
-		Object.defineProperty( node, '_ractive', {
-			value: {
-				proxy: this
+			if ( !node ) {
+				const name = this.template.e;
+				node = createElement( this.namespace === html ? name.toLowerCase() : name, this.namespace, this.getAttribute( 'is' ) );
+				this.node = node;
 			}
-		});
 
-		// Is this a top-level node of a component? If so, we may need to add
-		// a data-ractive-css attribute, for CSS encapsulation
-		if ( this.parentFragment.cssIds ) {
-			node.setAttribute( 'data-ractive-css', this.parentFragment.cssIds.map( x => `{${x}}` ).join( ' ' ) );
+			// tie the node to this vdom element
+			Object.defineProperty( node, '_ractive', {
+				value: {
+					proxy: this
+				}
+			});
+
+			// Is this a top-level node of a component? If so, we may need to add
+			// a data-ractive-css attribute, for CSS encapsulation
+			if ( this.parentFragment.cssIds ) {
+				node.setAttribute( 'data-ractive-css', this.parentFragment.cssIds.map( x => `{${x}}` ).join( ' ' ) );
+			}
+
+			if ( existing && this.foundNode ) this.foundNode( node );
 		}
-
-		if ( existing && this.foundNode ) this.foundNode( node );
 
 		// register intro before rendering content so children can find the intro
 		const intro = this.intro;

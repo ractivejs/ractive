@@ -61,12 +61,60 @@ export default class Triple extends Mustache {
 	}
 
 	firstNode () {
-		return this.nodes[0];
+		return this.rendered && this.nodes[0];
 	}
 
-	render ( target ) {
-		const html = this.model ? this.model.get() : '';
-		this.nodes = insertHtml( html, this.parentFragment.findParentNode(), target );
+	render ( target, occupants ) {
+		const parentNode = this.parentFragment.findParentNode();
+
+		if ( !this.nodes ) {
+			const html = this.model ? this.model.get() : '';
+			this.nodes = insertHtml( html, parentNode );
+		}
+
+		let nodes = this.nodes;
+		let anchor = this.parentFragment.findNextNode( this );
+
+		// progressive enhancement
+		if ( occupants ) {
+			let i = -1;
+			let next;
+			while ( occupants.length && ( next = this.nodes[ i + 1 ] ) ) {
+				let n;
+				while ( n = occupants.shift () ) {
+					if ( n.nodeType === next.nodeType ) {
+						if (
+							( n.nodeType === 1 && n.outerHTML === next.outerHTML ) ||
+							( n.nodeType === 3 && n.textContent === next.textContent ) ||
+							( n.nodeType === 8 && n.textContent === next.textContent )
+						) {
+							this.nodes.splice( ++i, 1, n );
+							break;
+						} else {
+							target.removeChild( n );
+						}
+					} else {
+						target.removeChild( n );
+					}
+				}
+			}
+
+			if ( i >= 0 ) {
+				nodes = this.nodes.slice( i );
+			}
+
+			if ( occupants.length ) anchor = occupants[0];
+		}
+
+		const frag = createDocumentFragment();
+		nodes.forEach( n => frag.appendChild( n ) );
+
+		if ( anchor ) {
+			anchor.parentNode.insertBefore( frag, anchor );
+		} else {
+			this.parentFragment.findParentNode().appendChild( frag );
+		}
+
 		this.rendered = true;
 	}
 
@@ -74,8 +122,9 @@ export default class Triple extends Mustache {
 		return this.model && this.model.get() != null ? decodeCharacterReferences( '' + this.model.get() ) : '';
 	}
 
-	unrender () {
+	unrender ( shouldDestroy ) {
 		if ( this.nodes ) this.nodes.forEach( node => detachNode( node ) );
+		if ( shouldDestroy ) this.nodes = null;
 		this.rendered = false;
 	}
 
@@ -83,17 +132,12 @@ export default class Triple extends Mustache {
 		if ( this.rendered && this.dirty ) {
 			this.dirty = false;
 
-			this.unrender();
-			const docFrag = createDocumentFragment();
-			this.render( docFrag );
-
-			const parentNode = this.parentFragment.findParentNode();
-			const anchor = this.parentFragment.findNextNode( this );
-
-			parentNode.insertBefore( docFrag, anchor );
+			this.unrender( true );
+			this.render();
 		} else {
 			// make sure to reset the dirty flag even if not rendered
 			this.dirty = false;
+			if ( this.nodes ) this.nodes = null;
 		}
 	}
 }

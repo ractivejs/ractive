@@ -1,4 +1,4 @@
-import { doc } from '../../config/environment';
+import progressiveText from './shared/progressiveText';
 import { TEXT } from '../../config/types';
 import { escapeHtml } from '../../utils/html';
 import Item from './shared/Item';
@@ -24,27 +24,7 @@ export default class Text extends Item {
 		if ( inAttributes() ) return;
 		this.rendered = true;
 
-		if ( occupants ) {
-			let n = occupants[0];
-			if ( n && n.nodeType === 3 ) {
-				occupants.shift();
-				if ( n.nodeValue !== this.template ) {
-					n.nodeValue = this.template;
-				}
-			} else {
-				n = this.node = doc.createTextNode( this.template );
-				if ( occupants[0] ) {
-					target.insertBefore( n, occupants[0] );
-				} else {
-					target.appendChild( n );
-				}
-			}
-
-			this.node = n;
-		} else {
-			this.node = doc.createTextNode( this.template );
-			target.appendChild( this.node );
-		}
+		progressiveText( this, target, occupants, this.template );
 	}
 
 	toString ( escape ) {
