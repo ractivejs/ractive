@@ -1742,4 +1742,55 @@ export default function() {
 		ob1.cancel();
 		ob2.cancel();
 	});
+
+	test( `recursive observers catch changes on a root of link (#2862)`, t => {
+		t.expect( 12 );
+
+		const src = new Ractive({
+			data: { bar: 'yep' }
+		});
+		const dest = new Ractive({});
+
+		let vv, oo;
+		let kk = 'other.bar';
+		let count = 0;
+		dest.observe( '**', ( v, o, k ) => {
+			t.ok( v === vv, o === oo, k === kk );
+			count++;
+		}, { init: false, links: true });
+
+		dest.observe( 'other.**', ( v, o, k ) => {
+			t.ok( v === 'yep' && o === undefined && k === 'other.bar' );
+		}, { init: false, links: true });
+		vv = 'yep';
+		oo = undefined;
+		dest.link( 'bar', 'other.bar', { ractive: src } );
+
+		kk = 'link.foo';
+		vv = undefined;
+		oo = undefined;
+		dest.link( 'foo', 'link.foo', { ractive: src } );
+		t.equal( dest.get( 'link.foo' ), vv );
+
+		vv = 'a';
+		src.set( 'foo', 'a' );
+		t.equal( dest.get( 'link.foo' ), vv );
+
+		vv = 'c';
+		oo = 'a';
+		dest.set( 'link.foo', 'c' );
+		t.equal( src.get( 'foo' ), 'c' );
+
+		oo = 'c';
+		vv = 'b';
+		src.set( 'foo', 'b' );
+		t.equal( dest.get( 'link.foo' ), vv );
+
+		oo = 'b';
+		vv = undefined;
+		dest.unlink( 'link.foo' );
+		t.equal( dest.get( 'link.foo' ), vv );
+
+		t.equal( count, 5 );
+	});
 }
