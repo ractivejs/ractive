@@ -25,7 +25,7 @@ page.open( 'tmp/test/index.html', function(status){
 
 	function waitForTestResults () {
 		console.log( 'phantomjs is ready. running tests...' );
-		waitFor( testsComplete, evaluateResults, 30000 );
+		waitFor( testsComplete, evaluateResults, 60000 );
 	}
 
 	function testsComplete () {
