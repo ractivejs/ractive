@@ -292,7 +292,9 @@ function readArguments ( parser, attribute, required = false ) {
 	const quote = parser.matchString( '"' ) || parser.matchString( "'" );
 	const spread = parser.spreadArgs;
 	parser.spreadArgs = true;
+	parser.inUnquotedAttribute = !quote;
 	const exprs = readExpressionList( parser );
+	parser.inUnquotedAttribute = false;
 	parser.spreadArgs = spread;
 
 	if ( quote ) {

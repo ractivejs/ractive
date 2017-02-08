@@ -939,6 +939,11 @@ const parseTests = [
 		name: `components with unquoted attributes don't eat closing solidii (#2765)`,
 		template: `<a b={{b}}/><a b=1/>`,
 		parsed: {v:4,t:[{t:7,e:'a',m:[{t:13,n:'b',f:[{t:2,r:'b'}]}]},{t:7,e:'a',m:[{t:13,n:'b',f:'1'}]}]}
+	},
+	{
+		name: `unquoted directive values don't get turned into > or / operations if they happen to be the last attribute`,
+		template: `<a on-click=foo()>...</a><div on-click=bar() + baz !== 10 />`,
+		parsed: {v:4,t:[{t:7,e:'a',m:[{t:70,n:['click'],f:{s:'[_0()]',r:['foo']}}], f:['...']},{t:7,e:'div',m:[{t:70,n:['click'],f:{s:'[_0()+_1!==10]',r:['bar','baz']}}]}]}
 	}
 ];
 

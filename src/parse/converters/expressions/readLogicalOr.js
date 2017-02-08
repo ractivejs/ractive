@@ -5,6 +5,9 @@ let readLogicalOr;
 
 const makeInfixSequenceMatcher = function ( symbol, fallthrough ) {
 	return function ( parser ) {
+		// > and / have to be quoted
+		if ( parser.inUnquotedAttribute && ( symbol === '>' || symbol === '/' ) ) return fallthrough( parser );
+
 		let start, left, right;
 
 		left = fallthrough( parser );
