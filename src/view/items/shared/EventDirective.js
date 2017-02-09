@@ -11,7 +11,7 @@ import { warnOnceIfDebug } from '../../../utils/log';
 import { addToArray, removeFromArray } from '../../../utils/array';
 import noop from '../../../utils/noop';
 
-const specialPattern = /^(event|arguments)(\..+)?$/;
+const specialPattern = /^(event|arguments|@node|@event|@context)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
 
 export const DelegateProxy = {
@@ -134,10 +134,25 @@ export default class EventDirective {
 					if ( !model ) return values.push( undefined );
 
 					if ( model.special ) {
-						let obj = model.special === 'event' ? context : args;
+						const which = model.special;
+						let obj;
+
+						if ( which === '@node' ) {
+							obj = this.element.node;
+						} else if ( which === '@event' ) {
+							obj = event && event.event;
+						} else if ( which === 'event' ) {
+							warnOnceIfDebug( `The event reference available to event directives is deprecated and should be replaced with @context and @event` );
+							obj = context;
+						} else if ( which === '@context' ) {
+							obj = context;
+						} else {
+							obj = args;
+						}
+
 						const keys = model.keys.slice();
 
-						while ( keys.length ) obj = obj[ keys.shift() ];
+						while ( obj && keys.length ) obj = obj[ keys.shift() ];
 						return values.push( obj );
 					}
 

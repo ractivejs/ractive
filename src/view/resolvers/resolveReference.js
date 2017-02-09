@@ -81,8 +81,8 @@ export default function resolveReference ( fragment, ref ) {
 			return SharedModel.joinAll( keys );
 		}
 
-		// @keypath or @rootpath, the current keypath string, which may also be used to resolve relative keypaths
-		else if ( base.indexOf( '@keypath' ) === 0 || base.indexOf( '@rootpath' ) === 0 ) {
+		// @keypath or @rootpath, the current keypath string
+		else if ( base === '@keypath' || base === '@rootpath' ) {
 			const root = ref[1] === 'r' ? fragment.ractive.root : null;
 			let context = fragment.findContext();
 
@@ -92,6 +92,10 @@ export default function resolveReference ( fragment, ref ) {
 			}
 
 			return context.getKeypathModel( root );
+		}
+
+		else if ( base === '@context' ) {
+			return new ContextModel( fragment.getContext() );
 		}
 
 		// nope
@@ -174,4 +178,12 @@ export default function resolveReference ( fragment, ref ) {
 
 function badReference ( key ) {
 	throw new Error( `An index or key reference (${key}) cannot have child properties` );
+}
+
+class ContextModel {
+	constructor ( context ) {
+		this.context = context;
+	}
+
+	get () { return this.context; }
 }
