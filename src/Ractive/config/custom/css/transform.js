@@ -1,6 +1,8 @@
-const selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g;
-const commentsPattern = /\/\*[\s\S]*?\*\//g;
-const selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>~:]))+)((?:::?[^\s\+\>\~\(:]+(?:\([^\)]+\))?)*\s*[\s\+\>\~]?)\s*/g;
+import cleanCss from '../../../../utils/cleanCss';
+
+const selectorsPattern = /(?:^|\}|\{)\s*([^\{\}\0]+)\s*(?=\{)/g;
+const keyframesDeclarationPattern = /@keyframes\s+[^\{\}]+\s*\{(?:[^{}]+|\{[^{}]+})*}/gi;
+const selectorUnitPattern = /((?:(?:\[[^\]]+\])|(?:[^\s\+\>~:]))+)((?:::?[^\s\+\>\~\(:]+(?:\([^\)]+\))?)*\s*[\s\+\>\~]?)\s*/g;
 const excludePattern = /^(?:@|\d+%)/;
 const dataRvcGuidPattern = /\[data-ractive-css~="\{[a-z0-9-]+\}"]/g;
 
@@ -55,19 +57,21 @@ export default function transformCss ( css, id ) {
 	if ( dataRvcGuidPattern.test( css ) ) {
 		transformed = css.replace( dataRvcGuidPattern, dataAttr );
 	} else {
-		transformed = css
-		.replace( commentsPattern, '' )
-		.replace( selectorsPattern, ( match, $1 ) => {
-			// don't transform at-rules and keyframe declarations
-			if ( excludePattern.test( $1 ) ) return match;
+		transformed = cleanCss( css, ( css, reconstruct ) => {
+			css = css.replace( selectorsPattern, ( match, $1 ) => {
+				// don't transform at-rules and keyframe declarations
+				if ( excludePattern.test( $1 ) ) return match;
 
-			const selectors = $1.split( ',' ).map( trim );
-			const transformed = selectors
-				.map( selector => transformSelector( selector, dataAttr ) )
-				.join( ', ' ) + ' ';
+				const selectors = $1.split( ',' ).map( trim );
+				const transformed = selectors
+					.map( selector => transformSelector( selector, dataAttr ) )
+					.join( ', ' ) + ' ';
 
-			return match.replace( $1, transformed );
-		});
+				return match.replace( $1, transformed );
+			});
+
+			return reconstruct( css );
+		}, [ keyframesDeclarationPattern ]);
 	}
 
 	return transformed;

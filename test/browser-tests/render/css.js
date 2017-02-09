@@ -333,4 +333,42 @@ export default function() {
 		t.equal( getHexColor( one ), hexCodes.red );
 		t.equal( getHexColor( two ), hexCodes.blue );
 	});
+
+	test( 'Multiline comments are removed (#2683)', t => {
+		const Widget = Ractive.extend({
+			template: '<p>foo</p>',
+			css: '/*p \n{ color: red; }*/ p { color: blue; }'
+		});
+
+		const ractive = new Widget({
+			el: fixture
+		});
+
+		t.equal( getHexColor( ractive.find( 'p' ) ), hexCodes.blue );
+	});
+
+	test( 'Attribute selectors are handled correctly (#2778)', t => {
+		const Widget = Ractive.extend({
+			template: '<p data-foo="https://\'\']:">foo</p>',
+			css: 'p[data-foo=\'https://\\\'\\\']:\'] { color: blue; }'
+		});
+
+		const ractive = new Widget({
+			el: fixture
+		});
+
+		t.equal( getHexColor( ractive.find( 'p' ) ), hexCodes.blue );
+	});
+
+	test( `using 'from' and 'to' in keyframe declarations works (#2854)`, t => {
+		const cmp = new (Ractive.extend({
+			el: fixture,
+			template: '<p class="blue">foo</p><p class="red">bar</p>',
+			css: '.blue { color: blue } @keyframes someAnimation { from { transform: scale3d(1.5,1.5,1) rotate(0deg); } } .red { color: red }'
+		}));
+
+		t.equal( getHexColor( cmp.find( '.blue' ) ), hexCodes.blue );
+		t.equal( getHexColor( cmp.find( '.red' ) ), hexCodes.red );
+		t.ok( ~cmp.toCSS().indexOf( 'someAnimation { from { transform: scale3d(1.5,1.5,1) rotate(0deg); } }' ) );
+	});
 }
