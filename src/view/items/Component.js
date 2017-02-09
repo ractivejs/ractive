@@ -13,6 +13,7 @@ import { bind, render as callRender, unbind, unrender, update } from '../../shar
 import updateLiveQueries from './component/updateLiveQueries';
 import { updateAnchors } from '../../shared/anchors';
 import { teardown } from '../../Ractive/prototype/teardown';
+import getRactiveContext from '../../shared/getRactiveContext';
 
 function makeDirty ( query ) {
 	query.makeDirty();
@@ -175,6 +176,11 @@ export default class Component extends Item {
 
 	firstNode ( skipParent ) {
 		if ( this.instance ) return this.instance.fragment.firstNode( skipParent );
+	}
+
+	getContext ( ...assigns ) {
+		assigns.unshift( this );
+		return getRactiveContext.apply( null, assigns );
 	}
 
 	removeFromQuery ( query ) {

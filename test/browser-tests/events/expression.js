@@ -25,11 +25,11 @@ export default function() {
 			el: fixture,
 			template: `<button on-click=".check(arguments[0])">click me</button>`,
 			data: {
-				check( arg ) { t.ok( this.event === arg ); }
+				check( arg ) { t.ok( 'foo' === arg ); }
 			}
 		});
 
-		fire( r.find( 'button' ), 'click' );
+		r.getNodeInfo( 'button' ).raise( 'click', {}, 'foo' );
 	});
 
 	test( 'expression events can handle dollar refs', t => {
@@ -39,11 +39,11 @@ export default function() {
 			el: fixture,
 			template: `<button on-click=".check($1)">click me</button>`,
 			data: {
-				check( arg ) { t.ok( this.event === arg ); }
+				check( arg ) { t.ok( 'foo' === arg ); }
 			}
 		});
 
-		fire( r.find( 'button' ), 'click' );
+		r.getNodeInfo( 'button' ).raise( 'click', {}, 'foo' );
 	});
 
 	test( 'expression events can handle spread args', t => {
@@ -53,11 +53,11 @@ export default function() {
 			el: fixture,
 			template: `<button on-click=".check(...arguments)">click me</button>`,
 			data: {
-				check( arg ) { t.ok( this.event === arg ); }
+				check( arg ) { t.ok( 'foo' === arg ); }
 			}
 		});
 
-		fire( r.find( 'button' ), 'click' );
+		r.getNodeInfo( 'button' ).raise( 'click', {}, 'foo' );
 	});
 
 	test( 'expression events can handle argument keypath access', t => {
@@ -65,13 +65,13 @@ export default function() {
 
 		const r = new Ractive({
 			el: fixture,
-			template: `<button on-click=".check(arguments[0].original)">click me</button>`,
+			template: `<button on-click=".check(arguments[0].length)">click me</button>`,
 			data: {
-				check( arg ) { t.ok( this.event.original === arg ); }
+				check( arg ) { t.ok( 3 === arg ); }
 			}
 		});
 
-		fire( r.find( 'button' ), 'click' );
+		r.getNodeInfo( 'button' ).raise( 'click', {}, 'foo' );
 	});
 
 	test( 'expression events can handle dollar arg keypath access', t => {
@@ -79,13 +79,13 @@ export default function() {
 
 		const r = new Ractive({
 			el: fixture,
-			template: `<button on-click=".check($1.original)">click me</button>`,
+			template: `<button on-click=".check($1.length)">click me</button>`,
 			data: {
-				check( arg ) { t.ok( this.event.original === arg ); }
+				check( arg ) { t.ok( 3 === arg ); }
 			}
 		});
 
-		fire( r.find( 'button' ), 'click' );
+		r.getNodeInfo( 'button' ).raise( 'click', {}, 'foo' );
 	});
 
 	test( 'expression events work with complex expressions', t => {

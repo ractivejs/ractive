@@ -223,7 +223,7 @@ export default function() {
 	test( `events can be silenced and resumed`, t => {
 		let count = 0;
 		const r = new Ractive();
-		const handle = r.on( 'foo', function ( num ) {
+		const handle = r.on( 'foo', function ( ctx, num ) {
 			t.equal( num, 1 );
 			t.ok( this === r );
 			count++;

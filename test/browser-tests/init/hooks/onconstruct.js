@@ -6,7 +6,7 @@ export default function() {
 
 	test( 'has access to options', t => {
 		const View = Ractive.extend({
-			onconstruct ( options ){
+			onconstruct ( ctx, options ){
 				options.template = '{{foo}}';
 				options.data = { foo: 'bar' };
 			}

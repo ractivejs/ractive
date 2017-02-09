@@ -467,17 +467,17 @@ export default function() {
 			components: { Component }
 		});
 
-		ractive.on( 'foo-reproxy', ( arg1, arg2 ) => {
-			t.equal( arg1.original.type, 'click' );
-			t.equal( arg2, 1 );
+		ractive.on( 'foo-reproxy', ( ctx, arg1 ) => {
+			t.equal( ctx.original.type, 'click' );
+			t.equal( arg1, 1 );
 		});
-		ractive.on( 'bar-reproxy', ( arg1 ) => {
+		ractive.on( 'bar-reproxy', ( ctx, arg1 ) => {
 			t.equal( arg1, 'qux' );
 		});
 		ractive.on( 'bizz-reproxy', function () {
 			// original args are implicitly included...
-			t.equal( arguments.length, 1 );
-			t.equal( arguments[0], 'buzz' );
+			t.equal( arguments.length, 2 );
+			t.equal( arguments[1], 'buzz' );
 		});
 
 		const component = ractive.findComponent( 'Component' );
@@ -504,12 +504,12 @@ export default function() {
 			t.equal( args.length, 1 );
 		});
 		ractive.on( 'bar-reproxy', function () {
-			t.equal( arguments.length, 1 );
+			t.equal( arguments.length, 2 );
 			// implicitly included
-			t.equal( arguments[0], 'bar' );
+			t.equal( arguments[1], 'bar' );
 		});
 		ractive.on( 'bizz-reproxy', function () {
-			t.equal( arguments.length, 0 );
+			t.equal( arguments.length, 1 );
 		});
 
 		const component = ractive.findComponent( 'Component' );

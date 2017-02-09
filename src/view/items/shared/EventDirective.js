@@ -6,7 +6,6 @@ import { findInViewHierarchy } from '../../../shared/registry';
 import { DOMEvent, CustomEvent } from '../element/ElementEvents';
 import RactiveEvent from '../component/RactiveEvent';
 import runloop from '../../../global/runloop';
-import { addHelpers } from '../../helpers/contextMethods';
 import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
 import { warnOnceIfDebug } from '../../../utils/log';
 import { addToArray, removeFromArray } from '../../../utils/array';
@@ -16,9 +15,9 @@ const specialPattern = /^(event|arguments)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
 
 export const DelegateProxy = {
-	fire ( event, passedArgs = [] ) {
-		if ( event && event.original ) {
-			const ev = event.original;
+	fire ( event, args = [] ) {
+		if ( event && event.event ) {
+			const ev = event.event;
 
 			// TODO if IE<9 needs to be supported here, could probably walk to the element with a ractive proxy with a delegates property
 			const end = ev.currentTarget;
@@ -37,7 +36,7 @@ export const DelegateProxy = {
 
 					el.events.forEach( ev => {
 						if ( ~ev.template.n.indexOf( name ) ) {
-							bubble = ev.fire( event, passedArgs ) !== false && bubble;
+							bubble = ev.fire( event, args ) !== false && bubble;
 						}
 					});
 
@@ -102,17 +101,11 @@ export default class EventDirective {
 		this.events.forEach( e => e.unlisten() );
 	}
 
-	fire ( event, passedArgs = [] ) {
-		// augment event object
-		if ( event ) {
-		   if ( !event.hasOwnProperty( 'proxy' ) ) addHelpers( event, this.owner );
-		   else event.proxy = this.owner;
-		}
+	fire ( event, args = [] ) {
+		const context = this.element.getContext( event );
 
 		if ( this.fn ) {
 			const values = [];
-
-			if ( event ) passedArgs.unshift( event );
 
 			const models = resolveArgs( this, this.template, this.parentFragment, {
 				specialRef ( ref ) {
@@ -141,7 +134,7 @@ export default class EventDirective {
 					if ( !model ) return values.push( undefined );
 
 					if ( model.special ) {
-						let obj = model.special === 'event' ? event : passedArgs;
+						let obj = model.special === 'event' ? context : args;
 						const keys = model.keys.slice();
 
 						while ( keys.length ) obj = obj[ keys.shift() ];
@@ -160,7 +153,7 @@ export default class EventDirective {
 			const ractive = this.ractive;
 			const oldEvent = ractive.event;
 
-			ractive.event = event;
+			ractive.event = context;
 			const result = this.fn.apply( ractive, values ).pop();
 
 			// Auto prevent and stop if return is explicitly false
@@ -180,14 +173,7 @@ export default class EventDirective {
 		}
 
 		else {
-			let args = [];
-			if ( passedArgs.length ) args = args.concat( passedArgs );
-			if ( event ) event.name = this.action;
-
-			return fireEvent( this.ractive, this.action, {
-				event,
-				args
-			});
+			return fireEvent( this.ractive, this.action, context, args);
 		}
 	}
 
