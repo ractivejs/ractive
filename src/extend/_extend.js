@@ -6,6 +6,8 @@ import initialise from '../Ractive/initialise';
 import Ractive from '../Ractive';
 import unwrapExtended from './unwrapExtended';
 
+const callsSuper = /super\s\(|\.call\s*\(\s*this/;
+
 export default extend;
 
 function extend ( ...options ) {
@@ -27,15 +29,33 @@ function extendOne ( Parent, options = {} ) {
 		options = unwrapExtended( options );
 	}
 
-	const Child = function ( options ) {
-		if ( !( this instanceof Child ) ) return new Child( options );
+	let Child, proto;
 
-		construct( this, options || {} );
-		initialise( this, options || {}, {} );
-	};
+	if ( typeof options.class === 'function' ) {
+		Child = options.class;
+		delete options.class;
 
-	const proto = Object.create( Parent.prototype );
-	proto.constructor = Child;
+		if ( !( Child.prototype instanceof Parent ) ) {
+			throw new Error( `Only classes that inherit the appropriate prototype may be used with extend` );
+		}
+		if ( !callsSuper.test( Child.toString() ) ) {
+			throw new Error( `Only classes that call super in their constructor may be used with extend` );
+		}
+
+		proto = Child.prototype;
+	} else {
+		Child = function ( options ) {
+			if ( !( this instanceof Child ) ) return new Child( options );
+
+			construct( this, options || {} );
+			initialise( this, options || {}, {} );
+		};
+
+		proto = Object.create( Parent.prototype );
+		proto.constructor = Child;
+
+		Child.prototype = proto;
+	}
 
 	// Static properties
 	Object.defineProperties( Child, {
@@ -79,8 +99,6 @@ function extendOne ( Parent, options = {} ) {
 	if ( options.computed ) {
 		proto.computed = Object.assign( Object.create( Parent.prototype.computed ), options.computed );
 	}
-
-	Child.prototype = proto;
 
 	return Child;
 }
