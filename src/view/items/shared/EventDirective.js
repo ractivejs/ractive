@@ -154,7 +154,8 @@ export default class EventDirective {
 			const oldEvent = ractive.event;
 
 			ractive.event = context;
-			const result = this.fn.apply( ractive, values ).pop();
+			const returned = this.fn.apply( ractive, values );
+			let result = returned.pop();
 
 			// Auto prevent and stop if return is explicitly false
 			if ( result === false ) {
@@ -165,6 +166,11 @@ export default class EventDirective {
 				} else {
 					warnOnceIfDebug( `handler '${this.template.n.join( ' ' )}' returned false, but there is no event available to cancel` );
 				}
+			}
+
+			// watch for proxy events
+			else if ( !returned.length && Array.isArray( result ) && typeof result[0] === 'string' ) {
+				result = fireEvent( this.ractive, result.shift(), context, result );
 			}
 
 			ractive.event = oldEvent;

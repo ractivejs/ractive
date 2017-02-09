@@ -518,6 +518,23 @@ export default function() {
 		component.fire( 'bizz' );
 	});
 
+	test( `event expressions that return an appropriately formed array fire a proxy event`, t => {
+		t.expect( 2 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: `<button on-click=['foo', 'bar', 42] />`,
+			on: {
+				foo( ctx, bar, num ) {
+					t.equal( bar, 'bar' );
+					t.equal( num, 42 );
+				}
+			}
+		});
+
+		fire( r.find( 'button' ), 'click' );
+	});
+
 	// This fails as of 0.8.0... does that matter? Seems unnecessary to support
 	// test( 'Events really do not call addEventListener when no proxy name', t => {
 	// 	var ractive,
