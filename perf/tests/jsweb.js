@@ -135,10 +135,10 @@ var tests = [
 			},
 
 			{
-				name: 'hide rows',
+				name: 'hide rows (keep)',
 				test() {
 					/* global ractive */
-					ractive.set( 'show', false );
+					ractive.set( 'show', false, { keep: true } );
 				},
 				maxCount: 1
 			},
@@ -153,10 +153,10 @@ var tests = [
 			},
 
 			{
-				name: 'hide rows again',
+				name: 'hide rows again (keep)',
 				test() {
 					/* global ractive */
-					ractive.set( 'show', false );
+					ractive.set( 'show', false, { keep: true } );
 				},
 				maxCount: 1
 			},
@@ -166,6 +166,61 @@ var tests = [
 				test() {
 					/* global ractive */
 					ractive.set( 'show', true );
+				},
+				maxCount: 1
+			},
+
+			{
+				name: 'hide rows (nokeep)',
+				test() {
+					/* global ractive */
+					ractive.set( 'show', false, { keep: false } );
+				},
+				maxCount: 1
+			},
+
+			{
+				name: 'show rows',
+				test() {
+					/* global ractive */
+					ractive.set( 'show', true );
+				},
+				maxCount: 1
+			},
+
+			{
+				name: 'hide rows again (nokeep)',
+				test() {
+					/* global ractive */
+					ractive.set( 'show', false, { keep: false } );
+				},
+				maxCount: 1
+			},
+
+			{
+				name: 'show rows again',
+				test() {
+					/* global ractive */
+					ractive.set( 'show', true );
+				},
+				maxCount: 1
+			},
+
+			{
+				name: 'set hide',
+				test() {
+					/* global ractive */
+					ractive.set( 'tmp', ractive.get( 'rows' ) );
+					ractive.set( 'rows', [] );
+				},
+				maxCount: 1
+			},
+
+			{
+				name: 'set show',
+				test() {
+					/* global ractive */
+					ractive.set( 'rows', ractive.get( 'tmp' ) );
 				},
 				maxCount: 1
 			},

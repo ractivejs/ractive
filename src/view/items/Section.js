@@ -4,6 +4,8 @@ import { isObject } from '../../utils/is';
 import Fragment from '../Fragment';
 import RepeatedFragment from '../RepeatedFragment';
 import { MustacheContainer } from './shared/Mustache';
+import { keep } from '../../shared/set';
+import runloop from '../../global/runloop';
 
 function isEmpty ( value ) {
 	return !value ||
@@ -46,6 +48,11 @@ export default class Section extends MustacheContainer {
 				template: this.template.f
 			}).bind();
 		}
+	}
+
+	detach () {
+		const frag = this.fragment || this.detached;
+		return frag ? frag.detach() : super.detach();
 	}
 
 	isTruthy () {
@@ -115,7 +122,17 @@ export default class Section extends MustacheContainer {
 		                            ( siblingFalsey && ( this.sectionType === SECTION_UNLESS ? !this.isTruthy() : this.isTruthy() ) ); // if, unless, and if-with depend on siblings and the condition
 
 		if ( fragmentShouldExist ) {
+			if ( !this.fragment ) this.fragment = this.detached;
+
 			if ( this.fragment ) {
+				// check for a detached fragment that needs to rerender
+				if ( this.detached ) {
+					attach( this, this.fragment );
+
+					this.detached = false;
+					this.rendered = true;
+				}
+
 				this.fragment.update();
 			} else {
 				if ( this.sectionType === SECTION_EACH ) {
@@ -133,9 +150,15 @@ export default class Section extends MustacheContainer {
 					}).bind( context );
 				}
 			}
-		} else {
+		} else { // fragment should not exist
 			if ( this.fragment && this.rendered ) {
-				this.fragment.unbind().unrender( true );
+				if ( keep !== true ) {
+					this.fragment.unbind().unrender( true );
+				} else {
+					this.unrender( false );
+					this.detached = this.fragment;
+					runloop.scheduleTask( () => this.detach() );
+				}
 			}
 
 			this.fragment = null;
@@ -143,19 +166,7 @@ export default class Section extends MustacheContainer {
 
 		if ( newFragment ) {
 			if ( this.rendered ) {
-				const parentNode = this.parentFragment.findParentNode();
-				const anchor = this.parentFragment.findNextNode( this );
-
-				if ( anchor ) {
-					const docFrag = createDocumentFragment();
-					newFragment.render( docFrag );
-
-					// we use anchor.parentNode, not parentNode, because the sibling
-					// may be temporarily detached as a result of a shuffle
-					anchor.parentNode.insertBefore( docFrag, anchor );
-				} else {
-					newFragment.render( parentNode );
-				}
+				attach( this, newFragment );
 			}
 
 			this.fragment = newFragment;
@@ -165,5 +176,21 @@ export default class Section extends MustacheContainer {
 			this.nextSibling.dirty = true;
 			this.nextSibling.update();
 		}
+	}
+}
+
+function attach ( section, fragment ) {
+	const parentNode = section.parentFragment.findParentNode();
+	const anchor = section.parentFragment.findNextNode( section );
+
+	if ( anchor ) {
+		const docFrag = createDocumentFragment();
+		fragment.render( docFrag );
+
+		// we use anchor.parentNode, not parentNode, because the sibling
+		// may be temporarily detached as a result of a shuffle
+		anchor.parentNode.insertBefore( docFrag, anchor );
+	} else {
+		fragment.render( parentNode );
 	}
 }
