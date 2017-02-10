@@ -585,7 +585,28 @@ export default function() {
 			el: fixture
 		});
 
-		t.ok( r.getNodeInfo( fixture ) === undefined );
+		t.ok( r.getNodeInfo( document.body ) === undefined );
+		t.ok( Ractive.getNodeInfo( document.body ) === undefined );
+	});
+
+	test( `getting node info for a host element returns the context of the hosted instance if there is only one (#2865)`, t => {
+		const r1 = new Ractive({
+			target: fixture,
+			template: 'a'
+		});
+
+		t.ok( Ractive.getNodeInfo( fixture ).ractive === r1 );
+
+		const r2 = new Ractive({
+			target: fixture,
+			append: true,
+			template: 'b'
+		});
+
 		t.ok( Ractive.getNodeInfo( fixture ) === undefined );
+
+		r1.teardown();
+
+		t.ok( Ractive.getNodeInfo( fixture ).ractive === r2 );
 	});
 }
