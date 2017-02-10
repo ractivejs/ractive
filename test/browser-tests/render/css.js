@@ -369,4 +369,16 @@ export default function() {
 		t.equal( cmp.toHTML(), '<div data-ractive-css="{my-nifty-cmp}"></div>' );
 		t.ok( ~cmp.toCSS().indexOf( 'my-nifty-cmp' ) );
 	});
+
+	test( `using 'from' and 'to' in keyframe declarations works (#2854)`, t => {
+		const cmp = new (Ractive.extend({
+			el: fixture,
+			template: '<p class="blue">foo</p><p class="red">bar</p>',
+			css: '.blue { color: blue } @keyframes someAnimation { from { transform: scale3d(1.5,1.5,1) rotate(0deg); } } .red { color: red }'
+		}));
+
+		t.equal( getHexColor( cmp.find( '.blue' ) ), hexCodes.blue );
+		t.equal( getHexColor( cmp.find( '.red' ) ), hexCodes.red );
+		t.ok( ~cmp.toCSS().indexOf( 'someAnimation { from { transform: scale3d(1.5,1.5,1) rotate(0deg); } }' ) );
+	});
 }
