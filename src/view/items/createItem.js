@@ -23,6 +23,8 @@ import Triple from './Triple';
 //import Yielder from './Yielder';
 import getComponentConstructor from './component/getComponentConstructor';
 import findElement from './shared/findElement';
+import { warnOnceIfDebug } from '../../utils/log';
+import { isNotAnElement } from '../../utils/is';
 
 const constructors = {};
 constructors[ ALIAS ] = Alias;
@@ -62,6 +64,10 @@ export default function createItem ( options ) {
 		}
 
 		const tagName = options.template.e.toLowerCase();
+
+		if ( isNotAnElement( tagName ) ) {
+			warnOnceIfDebug(`<${ tagName }> is not a component nor an element the browser knows of. Ractive will treat it as an element and leave it to the browser to decide.`);
+		}
 
 		const ElementConstructor = specialElements[ tagName ] || Element;
 		return new ElementConstructor( options );
