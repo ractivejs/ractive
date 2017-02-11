@@ -32,7 +32,7 @@ export default function() {
 		t.equal( entered, 3 );
 
 		entered = 0; // reset
-		ractive.merge( 'items', [ 'foo', 'bip', 'bar', 'baz' ] );
+		ractive.set( 'items', [ 'foo', 'bip', 'bar', 'baz' ], { shuffle: true } );
 		t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bip">bip</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
 		t.equal( entered, 1 );
 
@@ -71,7 +71,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
 		t.equal( entered, 3 );
 
-		ractive.merge( 'items', [ 'foo', 'baz' ] );
+		ractive.set( 'items', [ 'foo', 'baz' ], { shuffle: true } );
 		t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="baz">baz</li></ul>' );
 		t.equal( exited, 1 );
 
@@ -80,7 +80,7 @@ export default function() {
 		t.ok( baz === ractive.find( '#baz ' ));
 	});
 
-	test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is `true`', ( t ) => {
+	test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is `JSON.stringify`', ( t ) => {
 		let entered = 0;
 		let exited = 0;
 
@@ -111,7 +111,7 @@ export default function() {
 		t.equal( entered, 3 );
 
 		entered = 0;
-		ractive.merge( 'items', [{ name: 'foo' }, { name: 'baz' }, { name: 'bip' }], { compare: true });
+		ractive.set( 'items', [{ name: 'foo' }, { name: 'baz' }, { name: 'bip' }], { shuffle: JSON.stringify });
 		t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="baz">baz</li><li id="bip">bip</li></ul>' );
 		t.equal( entered, 1 );
 		t.equal( exited, 1 );
@@ -152,7 +152,7 @@ export default function() {
 		t.equal( entered, 3 );
 
 		entered = 0;
-		ractive.merge( 'items', [{ name: 'foo' }, { name: 'baz' }, { name: 'bip' }], { compare: 'name' });
+		ractive.set( 'items', [{ name: 'foo' }, { name: 'baz' }, { name: 'bip' }], { shuffle: 'name' });
 		t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="baz">baz</li><li id="bip">bip</li></ul>' );
 		t.equal( entered, 1 );
 		t.equal( exited, 1 );
@@ -193,8 +193,8 @@ export default function() {
 		t.equal( entered, 3 );
 
 		entered = 0;
-		ractive.merge( 'items', [{ name: 'foo' }, { name: 'baz' }, { name: 'bip' }], {
-			compare: item => item.name
+		ractive.set( 'items', [{ name: 'foo' }, { name: 'baz' }, { name: 'bip' }], {
+			shuffle: item => item.name
 		});
 		t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="baz">baz</li><li id="bip">bip</li></ul>' );
 		t.equal( entered, 1 );
@@ -236,7 +236,7 @@ export default function() {
 		t.equal( entered, 3 );
 
 		entered = 0;
-		ractive.merge( 'items', [{ name: 'foo' }, { name: 'baz' }, { name: 'bip' }] );
+		ractive.set( 'items', [{ name: 'foo' }, { name: 'baz' }, { name: 'bip' }], { shuffle: true } );
 		t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="baz">baz</li><li id="bip">bip</li></ul>' );
 		t.equal( entered, 3 );
 		t.equal( exited, 3 );
@@ -255,7 +255,7 @@ export default function() {
 			}
 		});
 
-		ractive.merge( 'items', [ 'b', 'a', 'c' ]);
+		ractive.set( 'items', [ 'b', 'a', 'c' ], { shuffle: true } );
 
 		t.htmlEqual( fixture.innerHTML, 'b,a,c ["b","a","c"]' );
 	});
@@ -271,7 +271,7 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'yes' );
 
-		ractive.merge( 'list', [ 'a', 'b', 'c', 'd' ] );
+		ractive.set( 'list', [ 'a', 'b', 'c', 'd' ], { shuffle: true } );
 		t.htmlEqual( fixture.innerHTML, 'yes' );
 	});
 
@@ -289,7 +289,7 @@ export default function() {
 			}
 		});
 
-		ractive.merge( 'list', [ 'a', 'c' ] );
+		ractive.set( 'list', [ 'a', 'c' ], { shuffle: true } );
 		t.htmlEqual( fixture.innerHTML, '<ul><li>a: ac</li><li>c: ac</li></ul>' );
 	});
 
@@ -302,7 +302,7 @@ export default function() {
 			}
 		});
 
-		ractive.merge( 'items', [ 'c', 'b', 'd', 'a' ]);
+		ractive.set( 'items', [ 'c', 'b', 'd', 'a' ], { shuffle: true } );
 		t.htmlEqual( fixture.innerHTML, '<ul><li>c</li><li>b</li><li>d</li><li>a</li></ul>' );
 	});
 
@@ -314,7 +314,7 @@ export default function() {
 			}
 		});
 
-		ractive.merge( 'items', [ 'b', 'a' ]);
+		ractive.set( 'items', [ 'b', 'a' ], { shuffle: true } );
 		t.htmlEqual( ractive.toHTML(), 'ba' );
 	});
 
@@ -330,7 +330,7 @@ export default function() {
 			}
 		});
 
-		ractive.merge( 'items', [ 'c', 'a' ]);
+		ractive.set( 'items', [ 'c', 'a' ], { shuffle: true } );
 
 		t.htmlEqual( fixture.innerHTML, '<p>1 (0): C (c)</p><p>2 (1): A (a)</p>' );
 	});
@@ -360,7 +360,7 @@ export default function() {
 		const tmp = list[1];
 		list[1] = list[2];
 		list[2] = tmp;
-		r.merge( 'list', list );
+		r.set( 'list', list, { shuffle: true } );
 		t.htmlEqual( fixture.innerHTML, 'c<span>c</span><span>b</span><span>a</span>' );
 
 		/*eslint-disable no-unused-vars*/
@@ -383,7 +383,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '123' );
 		list.shift();
 		list.splice( 1, 0, 4 );
-		r.merge( 'list' );
+		r.set( 'list', null, { shuffle: true } );
 		t.htmlEqual( fixture.innerHTML, '243' );
 	});
 
@@ -403,7 +403,7 @@ export default function() {
 		const tmp = list[1];
 		list[1] = list[2];
 		list[2] = tmp;
-		r.merge( 'list', list );
+		r.set( 'list', list, { shuffle: true } );
 		t.htmlEqual( fixture.innerHTML, 'c' );
 	});
 }

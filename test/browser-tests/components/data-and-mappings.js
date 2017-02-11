@@ -920,7 +920,7 @@ export default function() {
 
 		t.deepEqual( intros, { a: 1, b: 1, c: 1 });
 
-		ractive.merge( 'items', [ 'a', 'c' ]);
+		ractive.set( 'items', [ 'a', 'c' ], { shuffle: true } );
 		t.deepEqual( outros, { b: 1 });
 
 		ractive.shift( 'items' );

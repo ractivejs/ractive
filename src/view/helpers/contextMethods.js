@@ -3,7 +3,6 @@ import { set as sharedSet } from '../../shared/set';
 import { isNumeric, isObject } from '../../utils/is';
 import makeArrayMethod from '../../Ractive/prototype/shared/makeArrayMethod';
 import { animate as protoAnimate } from '../../Ractive/prototype/animate';
-import { merge as protoMerge } from '../../Ractive/prototype/merge';
 import { update as protoUpdate } from '../../Ractive/prototype/update';
 import runloop from '../../global/runloop';
 
@@ -84,10 +83,6 @@ function link ( source, dest ) {
 	here.link( there, source );
 	runloop.end();
 	return promise;
-}
-
-function merge ( keypath, array, options ) {
-	return protoMerge( this.ractive, findModel( this, keypath ).model, array, options );
 }
 
 function observe ( keypath, callback, options = {} ) {
@@ -228,7 +223,6 @@ export function addHelpers ( obj, element ) {
 		add: { value: add },
 		animate: { value: animate },
 		link: { value: link },
-		merge: { value: merge },
 		observe: { value: observe },
 		observeOnce: { value: observeOnce },
 		pop: { value: pop },

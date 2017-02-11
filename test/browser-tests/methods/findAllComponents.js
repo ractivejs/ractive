@@ -68,7 +68,7 @@ export default function() {
 		const widgetC = widgets[2];
 		const widgetD = widgets[3];
 
-		ractive.merge( 'widgets', [ 'c', 'a', 'd', 'b' ]);
+		ractive.set( 'widgets', [ 'c', 'a', 'd', 'b' ], { shuffle: true } );
 
 		t.ok( widgets[0] === widgetC );
 		t.ok( widgets[1] === widgetA );
