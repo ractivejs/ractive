@@ -110,10 +110,11 @@ export default function() {
 			template: '<cmp/>',
 			components: {
 				cmp () { return this.get('cmp') || 'cmp2'; }
-			}
+			},
+			isolated: false
 		});
-		const cmp2 = Ractive.extend({ template: 'first' });
-		const cmp3 = Ractive.extend({ template: 'second' });
+		const cmp2 = Ractive.extend({ template: 'first', isolated: false });
+		const cmp3 = Ractive.extend({ template: 'second', isolated: false });
 		const r = new Ractive({
 			el: fixture,
 			template: 'the <cmp1/> place',

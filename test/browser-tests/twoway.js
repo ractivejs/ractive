@@ -1118,7 +1118,8 @@ export default function() {
 				<label class='switcher'>
 					<input type='checkbox' value='{{id}}' name='{{name}}'>
 					{{yield}}
-				</label>`
+				</label>`,
+			isolated: false
 		});
 
 		const ractive = new Ractive({

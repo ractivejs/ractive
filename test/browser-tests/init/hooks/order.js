@@ -229,7 +229,8 @@ export default function() {
 			ondestruct () {
 				t.ok( finished );
 				t.ok( !fixture.querySelector( '*' ) );
-			}
+			},
+			isolated: false
 		});
 
 		const r = new Ractive({

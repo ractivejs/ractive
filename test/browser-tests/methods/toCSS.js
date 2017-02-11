@@ -13,7 +13,8 @@ export default function() {
 				.green {
 					color: green
 				}
-			`
+			`,
+			isolated: false
 		} );
 
 	}

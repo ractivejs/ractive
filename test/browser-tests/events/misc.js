@@ -19,14 +19,16 @@ export default function() {
 				</div>`,
 			onteardown () {
 				torndown.push( this );
-			}
+			},
+			isolated: false
 		});
 
 		const Grandchild = Ractive.extend({
 			template: '{{title}}',
 			onteardown () {
 				torndown.push( this );
-			}
+			},
+			isolated: false
 		});
 
 		const ractive = new Ractive({

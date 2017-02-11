@@ -276,7 +276,8 @@ export default function() {
 
 		const cmp = Ractive.extend({
 			template: '{{foo}}',
-			warnAboutAmbiguity: true
+			warnAboutAmbiguity: true,
+			isolated: false
 		});
 		new Ractive({
 			target: fixture,

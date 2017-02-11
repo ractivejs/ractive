@@ -87,7 +87,8 @@ export default function() {
 			data: { foo: true },
 			components: {
 				widget: Ractive.extend({
-					template: '{{>bar}}'
+					template: '{{>bar}}',
+					isolated: false
 				})
 			},
 			partials: {
@@ -189,7 +190,8 @@ export default function() {
 
 	test( 'partials functions can be found on view heirarchy', t => {
 		const Widget = Ractive.extend({
-			template: '{{>foo}}'
+			template: '{{>foo}}',
+			isolated: false
 		});
 
 		const ractive = new Ractive({
@@ -452,7 +454,8 @@ export default function() {
 					template: '{{>foo}} {{>bar}}',
 					partials: {
 						bar: 'cbar'
-					}
+					},
+					isolated: false
 				})
 			}
 		});
@@ -605,7 +608,8 @@ export default function() {
 				</Widget>`,
 			components: {
 				Widget: Ractive.extend({
-					template: '{{>foo}}'
+					template: '{{>foo}}',
+					isolated: false
 				})
 			}
 		});

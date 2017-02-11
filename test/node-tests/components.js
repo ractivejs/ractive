@@ -2,7 +2,8 @@ QUnit.module( 'Components' );
 
 QUnit.test( 'should render in a non-DOM environment', function ( assert ) {
 	var Widget = Ractive.extend({
-		template: '<p>foo-{{bar}}</p>'
+		template: '<p>foo-{{bar}}</p>',
+		isolated: false
 	});
 
 	var ractive = new Ractive({

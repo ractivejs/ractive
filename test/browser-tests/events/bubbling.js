@@ -9,11 +9,13 @@ export default function() {
 
 	beforeEach( () => {
 		Component = Ractive.extend({
-			template: '<span id="test" on-click="someEvent">click me</span>'
+			template: '<span id="test" on-click="someEvent">click me</span>',
+			isolated: false
 		});
 
 		Middle = Ractive.extend({
-			template: '<Component/>'
+			template: '<Component/>',
+			isolated: false
 		});
 
 		Subclass = Ractive.extend({

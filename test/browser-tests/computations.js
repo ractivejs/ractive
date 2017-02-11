@@ -370,7 +370,8 @@ export default function() {
 				BAR () {
 					return this.get( 'bar' ).toUpperCase();
 				}
-			}
+			},
+			isolated: false
 		});
 
 		new Ractive({

@@ -153,10 +153,12 @@ export default function() {
 		t.expect( 4 );
 
 		const cmp = Ractive.extend({
-			template: '{{#with baz}}<span id="test" on-click="someEvent">click me</span>{{/with}}<cmp2 oof="{{baz}}" />'
+			template: '{{#with baz}}<span id="test" on-click="someEvent">click me</span>{{/with}}<cmp2 oof="{{baz}}" />',
+			isolated: false
 		});
 		const cmp2 = Ractive.extend({
-			template: '{{#with oof}}<span id="test2" on-click="someEvent">click me</span>{{/with}}'
+			template: '{{#with oof}}<span id="test2" on-click="someEvent">click me</span>{{/with}}',
+			isolated: false
 		});
 		const ractive = new Ractive({
 			el: fixture,
@@ -184,10 +186,12 @@ export default function() {
 		t.expect( 4 );
 
 		const cmp = Ractive.extend({
-			template: '{{#with baz}}<span id="test" on-click="someEvent">click me</span>{{/with}}<cmp2 oof="{{baz}}" />'
+			template: '{{#with baz}}<span id="test" on-click="someEvent">click me</span>{{/with}}<cmp2 oof="{{baz}}" />',
+			isolated: false
 		});
 		const cmp2 = Ractive.extend({
-			template: '{{#with oof}}<span id="test2" on-click="someEvent">click me</span>{{/with}}'
+			template: '{{#with oof}}<span id="test2" on-click="someEvent">click me</span>{{/with}}',
+			isolated: false
 		});
 		const ractive = new Ractive({
 			el: fixture,

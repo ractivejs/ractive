@@ -211,7 +211,8 @@ export default function() {
 		});
 
 		const Bar = Ractive.extend({
-			template: '<Foo/>'
+			template: '<Foo/>',
+			isolated: false
 		});
 
 		new Ractive({
@@ -287,7 +288,8 @@ export default function() {
 
 	test( 'Regression test for #871', t => {
 		const Widget = Ractive.extend({
-			template: '<p>inside component: {{i}}-{{text}}</p>'
+			template: '<p>inside component: {{i}}-{{text}}</p>',
+			isolated: false
 		});
 
 		const ractive = new Ractive({
@@ -436,7 +438,8 @@ export default function() {
 			data: { foo: true },
 			components: {
 				Widget: Ractive.extend({
-					template: '<Bar/>'
+					template: '<Bar/>',
+					isolated: false
 				}),
 				Foo () {
 					thisForFoo = this;
@@ -449,8 +452,8 @@ export default function() {
 			}
 		});
 
-		t.equal( thisForFoo, ractive );
-		t.equal( thisForBar, ractive );
+		t.ok( thisForFoo === ractive );
+		t.ok( thisForBar === ractive );
 	});
 
 	test( 'oninit() only fires once on a component (#943 #927), oncomplete fires each render', t => {
@@ -557,7 +560,8 @@ export default function() {
 		const inDom = {};
 
 		const Widget = Ractive.extend({
-			template: '<div as-check=""widget"">{{yield}}</div>'
+			template: '<div as-check=""widget"">{{yield}}</div>',
+			isolated: false
 		});
 
 		new Ractive({
@@ -678,9 +682,9 @@ export default function() {
 			el: fixture,
 			template: '<Foo message="{{message}}"/>',
 			components: {
-				Foo: Ractive.extend({ template: '<Bar message="{{message}}"/>' }),
-				Bar: Ractive.extend({ template: '<Baz message="{{message}}"/>' }),
-				Baz: Ractive.extend({ template: '{{message}}' })
+				Foo: Ractive.extend({ template: '<Bar message="{{message}}"/>', isolated: false }),
+				Bar: Ractive.extend({ template: '<Baz message="{{message}}"/>', isolated: false }),
+				Baz: Ractive.extend({ template: '{{message}}', isolated: false })
 			}
 		});
 
@@ -693,9 +697,9 @@ export default function() {
 			el: fixture,
 			template: '<Foo message="{{message}}"/>',
 			components: {
-				Foo: Ractive.extend({ template: '<Bar/>' }),
-				Bar: Ractive.extend({ template: '<Baz/>' }),
-				Baz: Ractive.extend({ template: '{{message}}' })
+				Foo: Ractive.extend({ template: '<Bar/>', isolated: false }),
+				Bar: Ractive.extend({ template: '<Baz/>', isolated: false }),
+				Baz: Ractive.extend({ template: '{{message}}', isolated: false })
 			}
 		});
 
@@ -915,10 +919,12 @@ export default function() {
 
 	test( 'component @rootpaths should skip root contexts (#2026)', t => {
 		const end = Ractive.extend({
-			template: '{{@rootpath}}'
+			template: '{{@rootpath}}',
+			isolated: false
 		});
 		const middle = Ractive.extend({
-			template: '{{#if middle}}{{#with middle}}<middle middle="{{.next}}" />{{/with}}{{else}}<end />{{/if}}'
+			template: '{{#if middle}}{{#with middle}}<middle middle="{{.next}}" />{{/with}}{{else}}<end />{{/if}}',
+			isolated: false
 		});
 		new Ractive({
 			el: fixture,
@@ -934,10 +940,12 @@ export default function() {
 
 	test( '@rootpath should be accurate in events fired from within components (#2026)', t => {
 		const end = Ractive.extend({
-			template: '<button on-click="go">click me</button>'
+			template: '<button on-click="go">click me</button>',
+			isolated: false
 		});
 		const middle = Ractive.extend({
-			template: '{{#if middle}}{{#with middle}}<middle middle="{{.next}}" />{{/with}}{{else}}<end />{{/if}}'
+			template: '{{#if middle}}{{#with middle}}<middle middle="{{.next}}" />{{/with}}{{else}}<end />{{/if}}',
+			isolated: false
 		});
 		const r = new Ractive({
 			el: fixture,

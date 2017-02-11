@@ -28,7 +28,7 @@ export default {
 	magic:                  false,
 	modifyArrays:           false,
 	adapt:                  [],
-	isolated:               false,
+	isolated:               true,
 	twoway:                 true,
 	lazy:                   false,
 

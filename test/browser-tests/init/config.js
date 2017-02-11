@@ -37,7 +37,7 @@ export default function() {
 		const adaptor1 = {};
 		const adaptor2 = {};
 		const parent = new Ractive( { adaptors: { foo: adaptor1 } } );
-		const ractive = new Ractive( { adaptors: { bar: adaptor2 } } );
+		const ractive = new Ractive( { adaptors: { bar: adaptor2 }, isolated: false } );
 
 		ractive.parent = parent;
 
