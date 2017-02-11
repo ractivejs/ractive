@@ -181,9 +181,9 @@ export default function() {
 		});
 		const c = r.findComponent( 'cmp' );
 
-		r.on( 'cmp.render', inst => t.ok( c === inst ) );
-		r.on( 'cmp.complete', inst => { t.ok( c === inst ); done(); } );
-		r.on( 'cmp.teardown', inst => t.ok( c === inst ) );
+		r.on( 'cmp.render', ( ctx, inst ) => t.ok( c === inst ) );
+		r.on( 'cmp.complete', ( ctx, inst ) => { t.ok( c === inst ); done(); } );
+		r.on( 'cmp.teardown', ( ctx, inst ) => t.ok( c === inst ) );
 
 		r.render( fixture );
 		r.teardown();

@@ -156,7 +156,7 @@ export default function() {
 	});
 
 	test( 'component "on-" with ...arguments', t => {
-		t.expect( 5 );
+		t.expect( 4 );
 
 		const Component = Ractive.extend({
 			template: `<span id="test" on-click="@this.fire('foo', event, "foo", 42)">click me</span>`
@@ -166,8 +166,7 @@ export default function() {
 			el: fixture,
 			template: '<Component on-foo="@this.foo(...arguments)" on-bar="@this.bar(...arguments)"/>',
 			components: { Component },
-			foo ( e, arg1, arg2 ) {
-				t.equal( e.original.type, 'click' );
+			foo ( arg1, arg2 ) {
 				t.equal( arg1, 'foo' );
 				t.equal( arg2, 42 );
 			},
@@ -183,7 +182,7 @@ export default function() {
 	});
 
 	test( 'component "on-" with additive ...arguments', t => {
-		t.expect( 7 );
+		t.expect( 6 );
 
 		const Component = Ractive.extend({
 			template: `<span id="test" on-click="@this.fire('foo', event, 'foo', 42)">click me</span>`
@@ -193,9 +192,8 @@ export default function() {
 			el: fixture,
 			template: `<Component on-foo="@this.foo('fooarg', ...arguments)" on-bar="@this.bar('bararg', ...arguments)"/>`,
 			components: { Component },
-			foo ( arg1, e, arg2, arg3 ) {
+			foo ( arg1, arg2, arg3 ) {
 				t.equal( arg1, 'fooarg' );
-				t.equal( e.original.type, 'click' );
 				t.equal( arg2, 'foo' );
 				t.equal( arg3, 42 );
 			},
@@ -212,7 +210,7 @@ export default function() {
 	});
 
 	test( 'component "on-" with arguments[n]', t => {
-		t.expect( 5 );
+		t.expect( 4 );
 
 		const Component = Ractive.extend({
 			template: `<span id="test" on-click="@this.fire('foo', event, 'foo', 42)">click me</span>`
@@ -220,12 +218,11 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: `<Component on-foo="@this.foo(arguments[2], 'qux', arguments[0])" on-bar="@this.bar(arguments[0], 100)"/>`,
+			template: `<Component on-foo="@this.foo(arguments[1], 'qux', arguments[0])" on-bar="@this.bar(arguments[0], 100)"/>`,
 			components: { Component },
-			foo ( arg1, arg2, arg3 ) {
+			foo ( arg1, arg2 ) {
 				t.equal( arg1, 42 );
 				t.equal( arg2, 'qux' );
-				t.equal( arg3.original.type, 'click' );
 			},
 			bar ( arg1, arg2 ) {
 				t.equal( arg1, 'bar' );
@@ -239,7 +236,7 @@ export default function() {
 	});
 
 	test( 'component "on-" with $n', t => {
-		t.expect( 5 );
+		t.expect( 4 );
 
 		const Component = Ractive.extend({
 			template: '<span id="test" on-click="@this.fire("foo", event, "foo", 42)">click me</span>'
@@ -247,12 +244,11 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<Component on-foo="@this.foo($3, \'qux\', $1)" on-bar="@this.bar($1, 100)"/>',
+			template: '<Component on-foo="@this.foo($2, \'qux\', $1)" on-bar="@this.bar($1, 100)"/>',
 			components: { Component },
-			foo ( arg1, arg2, arg3 ) {
+			foo ( arg1, arg2 ) {
 				t.equal( arg1, 42 );
 				t.equal( arg2, 'qux' );
-				t.equal( arg3.original.type, 'click' );
 			},
 			bar ( arg1, arg2 ) {
 				t.equal( arg1, 'bar' );
