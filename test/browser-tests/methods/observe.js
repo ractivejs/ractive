@@ -350,7 +350,7 @@ export default function() {
 			}
 		});
 
-		ractive.merge( 'items', [ 1 ] );
+		ractive.set( 'items', [ 1 ], { shuffle: true } );
 
 		t.equal( count, 1 );
 	});

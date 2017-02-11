@@ -393,7 +393,7 @@ export default function() {
 	}
 
 	removedElementsTest( 'splice', ractive => ractive.splice( 'options', 1, 1 ) );
-	removedElementsTest( 'merge', ractive => ractive.merge( 'options', [ 'a', 'c' ] ) );
+	removedElementsTest( 'merge', ractive => ractive.set( 'options', [ 'a', 'c' ], { shuffle: true } ) );
 
 	test( `mapped unresolved computations should shuffle correctly (#2602)`, t => {
 		const cmp = Ractive.extend({

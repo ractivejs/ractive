@@ -33,7 +33,7 @@ export default function() {
 		t.ok( ractive.find( 'p' ).innerHTML === 'one' );
 	});
 
-	test( 'A live query maintains the correct sort order after a merge operation', t => {
+	test( 'A live query maintains the correct sort order after a shuffle operation', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>',
@@ -49,7 +49,7 @@ export default function() {
 		const lis = ractive.findAll( 'li', { live: true });
 		t.deepEqual( lis.map( getHtml ), [ 'a', 'b', 'c', 'd' ] );
 
-		ractive.merge( 'items', [ 'c', 'b', 'a', 'd' ] );
+		ractive.set( 'items', [ 'c', 'b', 'a', 'd' ], { shuffle: true } );
 		t.deepEqual( lis.map( getHtml ), [ 'c', 'b', 'a', 'd' ] );
 	});
 
