@@ -47,7 +47,7 @@ export default function() {
 		});
 
 		const div = r.findAll( 'div' )[1];
-		simulant.fire( div, 'click' );
+		fire( div, 'click' );
 		t.equal( r.get( 'foo.bar' ), 42 );
 	});
 
@@ -206,5 +206,28 @@ export default function() {
 		t.ok( outer._ractive.proxy.events[0].events.length === 1 );
 		t.ok( ev._ractive.proxy.events[0].events.length === 0 );
 		t.ok( other._ractive.proxy.events[0].events.length === 0 );
+	});
+
+	test( `delegated events work with non-ractive nodes (#2871)`, t => {
+		let div;
+		const r = new Ractive({
+			target: fixture,
+			template: `<div>{{#each [1]}}{{#with ~/foo}}<div on-click="event.set('.bar', 42)" as-foo />{{/with}}{{/each}}</div>`,
+			data: { foo: {} },
+			decorators: {
+				foo ( node ) {
+					div = document.createElement( 'div' );
+					node.appendChild( div );
+					return {
+						teardown () {
+							node.removeChild( div );
+						}
+					};
+				}
+			}
+		});
+
+		fire( div, 'click' );
+		t.equal( r.get( 'foo.bar' ), 42 );
 	});
 }
