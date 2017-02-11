@@ -184,10 +184,18 @@ export default class Component extends Item {
 
 	render ( target, occupants ) {
 		if ( this.isAnchor ) {
+			this.rendered = true;
 			this.target = target;
+
 			if ( !checking.length ) {
 				checking.push( this.ractive );
-				runloop.scheduleTask( checkAnchors, true );
+				if ( occupants ) {
+					this.occupants = occupants;
+					checkAnchors();
+					this.occupants = null;
+				} else {
+					runloop.scheduleTask( checkAnchors, true );
+				}
 			}
 		} else {
 			render( this.instance, target, null, occupants );
@@ -195,8 +203,9 @@ export default class Component extends Item {
 			this.attributes.forEach( callRender );
 			this.eventHandlers.forEach( callRender );
 			updateLiveQueries( this );
+
+			this.rendered = true;
 		}
-		this.rendered = true;
 	}
 
 	shuffled () {
@@ -305,7 +314,7 @@ function renderItem ( anchor, meta ) {
 	anchor.eventHandlers.forEach( callRender );
 
 	const target = anchor.parentFragment.findParentNode();
-	render( meta.instance, target, target.contains( nextNode ) ? nextNode : null );
+	render( meta.instance, target, target.contains( nextNode ) ? nextNode : null, anchor.occupants );
 
 	if ( meta.lastBound !== anchor ) {
 		meta.lastBound = anchor;
