@@ -517,4 +517,26 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '<div>yep</div>still yep' );
 	});
+
+	test( `enhancement works with anchors`, t => {
+		fixture.innerHTML = '<div>foo</div>';
+		const div = fixture.childNodes[0];
+		const text = div.childNodes[0];
+
+		const foo = new Ractive({
+			template: '<div>{{bar}}</div>',
+			data: { bar: 'foo' }
+		});
+
+		const host = new Ractive({
+			template: '<#foo />',
+			enhance: true
+		});
+
+		host.attachChild( foo, { target: 'foo' } );
+		host.render( fixture );
+
+		t.ok( host.find( 'div' ) === div );
+		t.ok( host.find( 'div' ).childNodes[0] === text );
+	});
 }
