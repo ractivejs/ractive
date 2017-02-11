@@ -5,6 +5,7 @@ import { warnIfDebug } from '../utils/log';
 
 export function set ( ractive, pairs, options ) {
 	const deep = options && options.deep;
+	const shuffle = options && options.shuffle;
 	const promise = runloop.start( ractive, true );
 
 	let i = pairs.length;
@@ -19,7 +20,19 @@ export function set ( ractive, pairs, options ) {
 		}
 
 		if ( deep ) deepSet( model, value );
-		else model.set( value );
+		else if ( shuffle ) {
+			let array = value;
+			const target = model.get();
+			// shuffle target array with itself
+			if ( !array ) array = target;
+
+			if ( !Array.isArray( target ) || !Array.isArray( array ) ) {
+				throw new Error( 'You cannot merge an array with a non-array' );
+			}
+
+			const comparator = getComparator( shuffle );
+			model.merge( array, comparator );
+		} else model.set( value );
 	}
 
 	runloop.end();
@@ -75,4 +88,16 @@ function deepSet( model, value ) {
 			deepSet( model.joinKey( k ), value[k] );
 		}
 	}
+}
+
+const comparators = {};
+function getComparator ( option ) {
+	if ( option === true ) return null; // use existing arrays
+	if ( typeof option === 'function' ) return option;
+
+	if ( typeof option === 'string' ) {
+		return comparators[ option ] || ( comparators[ option ] = thing => thing[ option ] );
+	}
+
+	throw new Error( 'If supplied, options.compare must be a string, function, `1`, or `true`' ); // TODO link to docs
 }

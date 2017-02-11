@@ -129,7 +129,7 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'ab:YIELDED:c' );
 
-		ractive.merge('items', [ 'c', 'a' ] );
+		ractive.set( 'items', [ 'c', 'a' ], { shuffle: true } );
 
 		t.htmlEqual( fixture.innerHTML, 'ca:YIELDED:' );
 	});

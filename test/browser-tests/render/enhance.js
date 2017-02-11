@@ -457,4 +457,86 @@ export default function() {
 		t.strictEqual( r.find( 'svg' ), svg );
 		t.strictEqual( r.find( 'use' ), use );
 	});
+
+	test( `enhancing sibling text nodes and interpolators`, t => {
+		fixture.innerHTML = 'foo bar baz';
+		new Ractive({
+			target: fixture,
+			template: 'foo {{bar}} baz',
+			enhance: true,
+			data: { bar: 'bar' }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'foo bar baz' );
+	});
+
+	test( `triples reuse existing content if it matches (#2403)`, t => {
+		fixture.innerHTML = '<div>foo bar</div><span><i>guts</i></span>&amp; why not?<!-- yep -->?sure';
+		const div = fixture.childNodes[0];
+		const text = div.childNodes[0];
+		const span = fixture.childNodes[1];
+		const text2 = fixture.childNodes[2];
+		const comment = span.childNodes[3];
+
+		new Ractive({
+			target: fixture,
+			template: '{{{html}}}?{{str}}',
+			data: {
+				html: '<div>foo bar</div><span><i>guts</i></span>&amp; why not?<!-- yep -->',
+				str: 'sure'
+			},
+			enhance: true
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div>foo bar</div><span><i>guts</i></span>&amp; why not?<!-- yep -->?sure' );
+
+		const _div = fixture.childNodes[0];
+		const _text = div.childNodes[0];
+		const _span = fixture.childNodes[1];
+		const _text2 = fixture.childNodes[2];
+		const _comment = span.childNodes[3];
+
+		t.ok( div === _div );
+		t.ok( text === _text );
+		t.ok( span === _span );
+		t.ok( text2 === _text2 );
+		t.ok( comment === _comment );
+	});
+
+	test( `triples that don't match existing content are still rendered correctly`, t => {
+		fixture.innerHTML = '<div>nope</div>sure';
+
+		new Ractive({
+			target: fixture,
+			template: '{{{html}}}',
+			data: {
+				html: '<div>yep</div>still yep'
+			},
+			enhance: true
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div>yep</div>still yep' );
+	});
+
+	test( `enhancement works with anchors`, t => {
+		fixture.innerHTML = '<div>foo</div>';
+		const div = fixture.childNodes[0];
+		const text = div.childNodes[0];
+
+		const foo = new Ractive({
+			template: '<div>{{bar}}</div>',
+			data: { bar: 'foo' }
+		});
+
+		const host = new Ractive({
+			template: '<#foo />',
+			enhance: true
+		});
+
+		host.attachChild( foo, { target: 'foo' } );
+		host.render( fixture );
+
+		t.ok( host.find( 'div' ) === div );
+		t.ok( host.find( 'div' ).childNodes[0] === text );
+	});
 }

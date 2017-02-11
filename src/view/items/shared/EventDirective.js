@@ -28,8 +28,8 @@ export const DelegateProxy = {
 			// starting with the origin node, walk up the DOM looking for ractive nodes with a matching event listener
 			while ( bubble && node !== end ) {
 				const el = node._ractive && node._ractive.proxy;
-				if ( el ) {
 
+				if ( el ) {
 					// set up the context for the handler
 					event.node = el.node;
 					event.name = name;
@@ -39,9 +39,9 @@ export const DelegateProxy = {
 							bubble = ev.fire( event, args ) !== false && bubble;
 						}
 					});
-
-					node = node.parentNode;
 				}
+
+				node = node.parentNode;
 			}
 
 			return bubble;

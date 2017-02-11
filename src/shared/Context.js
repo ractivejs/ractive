@@ -3,7 +3,6 @@ import { set as sharedSet } from './set';
 import { isNumeric, isObject } from '../utils/is';
 import makeArrayMethod from '../Ractive/prototype/shared/makeArrayMethod';
 import { animate as protoAnimate } from '../Ractive/prototype/animate';
-import { merge as protoMerge } from '../Ractive/prototype/merge';
 import { update as protoUpdate } from '../Ractive/prototype/update';
 import runloop from '../global/runloop';
 import findElement from '../view/items/shared/findElement';
@@ -66,10 +65,6 @@ export default class Context {
 		return promise;
 	}
 
-	merge ( keypath, array, options ) {
-		return protoMerge( this.ractive, findModel( this, keypath ).model, array, options );
-	}
-
 	observe ( keypath, callback, options = {} ) {
 		if ( isObject( keypath ) ) options = callback || {};
 		options.fragment = this.fragment;
@@ -120,8 +115,8 @@ export default class Context {
 		return modelReverse( findModel( this, keypath ).model, [] );
 	}
 
-	set ( keypath, value ) {
-		return sharedSet( this.ractive, build( this, keypath, value ) );
+	set ( keypath, value, options ) {
+		return sharedSet( this.ractive, build( this, keypath, value ), options );
 	}
 
 	shift ( keypath ) {

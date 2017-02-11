@@ -276,18 +276,22 @@ export default function() {
 		t.equal( r.getNodeInfo( 'span' ).readLink( '.bop' ).keypath, 'foo.bar.baz.bat' );
 	});
 
-	test( 'node info merge', t => {
+	test( 'node info shuffle set', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each items}}<span />{{/each}}`,
-			data: { items: [ 0 ] }
+			data: { items: [ 2, 1, 0 ] }
 		});
 
 		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const spans = r.findAll( 'span' );
 
-		info.merge( '../', [ 1, 2 ] );
+		info.set( '../', [ 1, 2 ], { shuffle: true } );
 
-		t.equal( r.findAll( 'span' ).length, 2 );
+		const postSpans = r.findAll( 'span' );
+
+		t.equal( postSpans.length, 2 );
+		t.ok( postSpans[0] === spans[1] && postSpans[1] === spans[0] );
 	});
 
 	test( 'node info push', t => {
