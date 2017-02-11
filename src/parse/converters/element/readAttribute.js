@@ -232,6 +232,8 @@ export function readAttributeOrDirective ( parser ) {
 		attribute.n = splitEvent( match[1] );
 		attribute.t = EVENT;
 
+		parser.inEvent = true;
+
 			// check for a proxy event
 		if ( !readProxyEvent( parser, attribute ) ) {
 				// otherwise, it's an expression
@@ -240,6 +242,8 @@ export function readAttributeOrDirective ( parser ) {
 			parser.pos -= attribute.f.length;
 			parser.error( 'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, complete, detach, insert, destruct, attachchild, detachchild)' );
 		}
+
+		parser.inEvent = false;
 	}
 
 	else {
@@ -292,7 +296,9 @@ function readArguments ( parser, attribute, required = false ) {
 	const quote = parser.matchString( '"' ) || parser.matchString( "'" );
 	const spread = parser.spreadArgs;
 	parser.spreadArgs = true;
+	parser.inUnquotedAttribute = !quote;
 	const exprs = readExpressionList( parser );
+	parser.inUnquotedAttribute = false;
 	parser.spreadArgs = spread;
 
 	if ( quote ) {

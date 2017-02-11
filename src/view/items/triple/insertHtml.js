@@ -20,7 +20,7 @@ try {
 	};
 }
 
-export default function ( html, node, docFrag ) {
+export default function ( html, node ) {
 	const nodes = [];
 
 	// render 0 and false
@@ -68,7 +68,7 @@ export default function ( html, node, docFrag ) {
 	let child;
 	while ( child = container.firstChild ) {
 		nodes.push( child );
-		docFrag.appendChild( child );
+		container.removeChild( child );
 	}
 
 	// This is really annoying. Extracting <option> nodes from the

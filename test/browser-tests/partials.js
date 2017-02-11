@@ -333,7 +333,7 @@ export default function() {
 		t.htmlEqual( ractive.toHTML(), '<div>Foo ...</div>' );
 	});
 
-	test( 'Dynamic partial works with merge (#1313)', t => {
+	test( 'Dynamic partial works with shuffle set (#1313)', t => {
 		let fields = [
 			{ type: 'text', value: 'hello' },
 			{ type: 'number', value: 123 }
@@ -352,7 +352,7 @@ export default function() {
 		t.htmlEqual( ractive.toHTML(), 'texthellonumber123' );
 
 		fields = [ fields[1], fields[0] ];
-		ractive.merge( 'fields', fields );
+		ractive.set( 'fields', fields, { shuffle: true } );
 
 		t.htmlEqual( ractive.toHTML(), 'number123texthello' );
 	});

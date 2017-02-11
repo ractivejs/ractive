@@ -198,6 +198,8 @@ ModelBase.prototype.link = function link ( model, keypath, options ) {
 
 	this._link = lnk;
 	lnk.markedAll();
+
+	this.notifyUpstream();
 	return lnk;
 };
 
@@ -208,5 +210,6 @@ ModelBase.prototype.unlink = function unlink () {
 		ln.rebind( this, this._link );
 		fireShuffleTasks();
 		ln.teardown();
+		this.notifyUpstream();
 	}
 };

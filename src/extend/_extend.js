@@ -6,9 +6,9 @@ import initialise from '../Ractive/initialise';
 import Ractive from '../Ractive';
 import unwrapExtended from './unwrapExtended';
 
-export default extend;
+const callsSuper = /super\s\(|\.call\s*\(\s*this/;
 
-function extend ( ...options ) {
+export function extend ( ...options ) {
 	if( !options.length ) {
 		return extendOne( this );
 	} else {
@@ -16,7 +16,11 @@ function extend ( ...options ) {
 	}
 }
 
-function extendOne ( Parent, options = {} ) {
+export function extendWith ( Class, options = {} ) {
+	return extendOne( this, options, Class );
+}
+
+function extendOne ( Parent, options = {}, Target ) {
 	// if we're extending with another Ractive instance...
 	//
 	//   var Human = Ractive.extend(...), Spider = Ractive.extend(...);
@@ -27,15 +31,31 @@ function extendOne ( Parent, options = {} ) {
 		options = unwrapExtended( options );
 	}
 
-	const Child = function ( options ) {
-		if ( !( this instanceof Child ) ) return new Child( options );
+	let proto;
+	let Child = typeof Target === 'function' && Target;
 
-		construct( this, options || {} );
-		initialise( this, options || {}, {} );
-	};
+	if ( Child ) {
+		if ( !( Child.prototype instanceof Parent ) ) {
+			throw new Error( `Only classes that inherit the appropriate prototype may be used with extend` );
+		}
+		if ( !callsSuper.test( Child.toString() ) ) {
+			throw new Error( `Only classes that call super in their constructor may be used with extend` );
+		}
 
-	const proto = Object.create( Parent.prototype );
-	proto.constructor = Child;
+		proto = Child.prototype;
+	} else {
+		Child = function ( options ) {
+			if ( !( this instanceof Child ) ) return new Child( options );
+
+			construct( this, options || {} );
+			initialise( this, options || {}, {} );
+		};
+
+		proto = Object.create( Parent.prototype );
+		proto.constructor = Child;
+
+		Child.prototype = proto;
+	}
 
 	// Static properties
 	Object.defineProperties( Child, {
@@ -44,6 +64,7 @@ function extendOne ( Parent, options = {} ) {
 
 		// extendable
 		extend: { value: extend, writable: true, configurable: true },
+		extendClass: { value: extendWith, writable: true, configurable: true },
 
 		// Parent - for IE8, can't use Object.getPrototypeOf
 		_Parent: { value: Parent }
@@ -79,8 +100,6 @@ function extendOne ( Parent, options = {} ) {
 	if ( options.computed ) {
 		proto.computed = Object.assign( Object.create( Parent.prototype.computed ), options.computed );
 	}
-
-	Child.prototype = proto;
 
 	return Child;
 }

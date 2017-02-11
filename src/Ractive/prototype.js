@@ -14,7 +14,6 @@ import get from './prototype/get';
 import getNodeInfo from './prototype/getNodeInfo';
 import insert from './prototype/insert';
 import link from './prototype/link';
-import merge from './prototype/merge';
 import observe from './prototype/observe';
 import observeOnce from './prototype/observeOnce';
 import off from './prototype/off';
@@ -62,7 +61,6 @@ export default {
 	getNodeInfo,
 	insert,
 	link,
-	merge,
 	observe,
 	observeOnce,
 	off,

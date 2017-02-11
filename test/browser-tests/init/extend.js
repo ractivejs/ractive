@@ -236,4 +236,47 @@ export default function() {
 		r.toggle( 'foo' );
 		r.toggle( 'bar' );
 	});
+
+	test( `an existing constructor can be specified using the class option`, t => {
+		class Foo extends Ractive {
+			constructor ( opts ) {
+				super( opts );
+			}
+
+			go () {
+				this.set( 'name', 'classy' );
+			}
+		}
+
+		Ractive.extendWith( Foo, {
+			template: 'hello, {{name}}'
+		});
+
+		const f = new Foo({
+			target: fixture
+		});
+
+		f.go();
+		t.htmlEqual( fixture.innerHTML, 'hello, classy' );
+	});
+
+	test( `existing constructors supplied to extend should inherit from Ractive`, t => {
+		t.expect( 1 );
+
+		class Foo {}
+
+		t.throws( () => {
+			Ractive.extendWith( Foo );
+		}, /inherit the appropriate prototype/ );
+	});
+
+	test( `existing constructors supploed to extend should call super`, t => {
+		t.expect( 1 );
+
+		class Foo extends Ractive {}
+
+		t.throws( () => {
+			Ractive.extendWith( Foo );
+		}, /call super/ );
+	});
 }

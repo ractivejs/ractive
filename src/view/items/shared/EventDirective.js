@@ -6,19 +6,18 @@ import { findInViewHierarchy } from '../../../shared/registry';
 import { DOMEvent, CustomEvent } from '../element/ElementEvents';
 import RactiveEvent from '../component/RactiveEvent';
 import runloop from '../../../global/runloop';
-import { addHelpers } from '../../helpers/contextMethods';
 import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
 import { warnOnceIfDebug } from '../../../utils/log';
 import { addToArray, removeFromArray } from '../../../utils/array';
 import noop from '../../../utils/noop';
 
-const specialPattern = /^(event|arguments)(\..+)?$/;
+const specialPattern = /^(event|arguments|@node|@event|@context)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
 
 export const DelegateProxy = {
-	fire ( event, passedArgs = [] ) {
-		if ( event && event.original ) {
-			const ev = event.original;
+	fire ( event, args = [] ) {
+		if ( event && event.event ) {
+			const ev = event.event;
 
 			// TODO if IE<9 needs to be supported here, could probably walk to the element with a ractive proxy with a delegates property
 			const end = ev.currentTarget;
@@ -29,20 +28,20 @@ export const DelegateProxy = {
 			// starting with the origin node, walk up the DOM looking for ractive nodes with a matching event listener
 			while ( bubble && node !== end ) {
 				const el = node._ractive && node._ractive.proxy;
-				if ( el ) {
 
+				if ( el ) {
 					// set up the context for the handler
 					event.node = el.node;
 					event.name = name;
 
 					el.events.forEach( ev => {
 						if ( ~ev.template.n.indexOf( name ) ) {
-							bubble = ev.fire( event, passedArgs ) !== false && bubble;
+							bubble = ev.fire( event, args ) !== false && bubble;
 						}
 					});
-
-					node = node.parentNode;
 				}
+
+				node = node.parentNode;
 			}
 
 			return bubble;
@@ -102,17 +101,11 @@ export default class EventDirective {
 		this.events.forEach( e => e.unlisten() );
 	}
 
-	fire ( event, passedArgs = [] ) {
-		// augment event object
-		if ( event ) {
-		   if ( !event.hasOwnProperty( 'proxy' ) ) addHelpers( event, this.owner );
-		   else event.proxy = this.owner;
-		}
+	fire ( event, args = [] ) {
+		const context = this.element.getContext( event );
 
 		if ( this.fn ) {
 			const values = [];
-
-			if ( event ) passedArgs.unshift( event );
 
 			const models = resolveArgs( this, this.template, this.parentFragment, {
 				specialRef ( ref ) {
@@ -141,10 +134,25 @@ export default class EventDirective {
 					if ( !model ) return values.push( undefined );
 
 					if ( model.special ) {
-						let obj = model.special === 'event' ? event : passedArgs;
+						const which = model.special;
+						let obj;
+
+						if ( which === '@node' ) {
+							obj = this.element.node;
+						} else if ( which === '@event' ) {
+							obj = event && event.event;
+						} else if ( which === 'event' ) {
+							warnOnceIfDebug( `The event reference available to event directives is deprecated and should be replaced with @context and @event` );
+							obj = context;
+						} else if ( which === '@context' ) {
+							obj = context;
+						} else {
+							obj = args;
+						}
+
 						const keys = model.keys.slice();
 
-						while ( keys.length ) obj = obj[ keys.shift() ];
+						while ( obj && keys.length ) obj = obj[ keys.shift() ];
 						return values.push( obj );
 					}
 
@@ -160,8 +168,9 @@ export default class EventDirective {
 			const ractive = this.ractive;
 			const oldEvent = ractive.event;
 
-			ractive.event = event;
-			const result = this.fn.apply( ractive, values ).pop();
+			ractive.event = context;
+			const returned = this.fn.apply( ractive, values );
+			let result = returned.pop();
 
 			// Auto prevent and stop if return is explicitly false
 			if ( result === false ) {
@@ -174,20 +183,18 @@ export default class EventDirective {
 				}
 			}
 
+			// watch for proxy events
+			else if ( !returned.length && Array.isArray( result ) && typeof result[0] === 'string' ) {
+				result = fireEvent( this.ractive, result.shift(), context, result );
+			}
+
 			ractive.event = oldEvent;
 
 			return result;
 		}
 
 		else {
-			let args = [];
-			if ( passedArgs.length ) args = args.concat( passedArgs );
-			if ( event ) event.name = this.action;
-
-			return fireEvent( this.ractive, this.action, {
-				event,
-				args
-			});
+			return fireEvent( this.ractive, this.action, context, args);
 		}
 	}
 

@@ -23,6 +23,7 @@ class DOMEvent {
 			directive.fire({
 				node,
 				original: event,
+				event,
 				name
 			});
 		}, false );
@@ -45,6 +46,9 @@ class CustomEvent {
 		const node = this.owner.node;
 
 		this.handler = this.eventPlugin( node, ( event = {} ) => {
+			if ( event.original ) event.event = event.original;
+			else event.original = event.event;
+
 			event.name = this.name;
 			event.node = event.node || node;
 			directive.fire( event );

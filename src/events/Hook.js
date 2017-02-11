@@ -1,4 +1,5 @@
 import fireEvent from './fireEvent';
+import getRactiveContext from '../shared/getRactiveContext';
 
 export default class Hook {
 	constructor ( event ) {
@@ -7,13 +8,12 @@ export default class Hook {
 	}
 
 	fire ( ractive, arg ) {
+		const context = getRactiveContext( ractive );
+
 		if ( ractive[ this.method ] ) {
-			arg ? ractive[ this.method ]( arg ) : ractive[ this.method ]();
+			arg ? ractive[ this.method ]( context, arg ) : ractive[ this.method ]( context );
 		}
 
-		const options = { args: [] };
-		if ( arg ) options.args.push( arg );
-		options.args.push( ractive );
-		fireEvent( ractive, this.event, options );
+		fireEvent( ractive, this.event, context, arg ? [ arg, ractive ] : [ ractive ] );
 	}
 }

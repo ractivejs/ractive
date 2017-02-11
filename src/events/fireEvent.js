@@ -44,34 +44,27 @@ function variants ( name, initial ) {
 	return result;
 }
 
-export default function fireEvent ( ractive, eventName, options = {} ) {
+export default function fireEvent ( ractive, eventName, context, args = [] ) {
 	if ( !eventName ) { return; }
 
-	if ( !options.event ) {
-		options.event = {
-			name: eventName,
-			// until event not included as argument default
-			_noArg: true
-		};
-	} else {
-		options.event.name = eventName;
-	}
+	context.name = eventName;
+	args.unshift( context );
 
 	const eventNames = ractive._nsSubs ? variants( eventName, true ) : [ '*', eventName ];
 
-	return fireEventAs( ractive, eventNames, options.event, options.args, true );
+	return fireEventAs( ractive, eventNames, context, args, true );
 }
 
-function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) {
+function fireEventAs  ( ractive, eventNames, context, args, initialFire = false ) {
 	let bubble = true;
 
 	if ( initialFire || ractive._nsSubs ) {
-		enqueue( ractive, event );
+		enqueue( ractive, context );
 
 		let i = eventNames.length;
 		while ( i-- ) {
 			if ( eventNames[ i ] in ractive._subs ) {
-				bubble = notifySubscribers( ractive, ractive._subs[ eventNames[ i ] ], event, args ) && bubble;
+				bubble = notifySubscribers( ractive, ractive._subs[ eventNames[ i ] ], context, args ) && bubble;
 			}
 		}
 
@@ -79,29 +72,24 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 	}
 
 	if ( ractive.parent && bubble ) {
-
 		if ( initialFire && ractive.component ) {
 			const fullName = ractive.component.name + '.' + eventNames[ eventNames.length - 1 ];
 			eventNames = variants( fullName, false );
 
-			if ( event && !event.component ) {
-				event.component = ractive;
+			if ( context && !context.component ) {
+				context.component = ractive;
 			}
 		}
 
-		bubble = fireEventAs( ractive.parent, eventNames, event, args );
+		bubble = fireEventAs( ractive.parent, eventNames, context, args );
 	}
 
 	return bubble;
 }
 
-function notifySubscribers ( ractive, subscribers, event, args ) {
+function notifySubscribers ( ractive, subscribers, context, args ) {
 	let originalEvent = null;
 	let stopEvent = false;
-
-	if ( event && !event._noArg ) {
-		args = [ event ].concat( args );
-	}
 
 	// subscribers can be modified inflight, e.g. "once" functionality
 	// so we need to copy to make sure everyone gets called
@@ -113,7 +101,7 @@ function notifySubscribers ( ractive, subscribers, event, args ) {
 		}
 	}
 
-	if ( event && !event._noArg && stopEvent && ( originalEvent = event.original ) ) {
+	if ( context && stopEvent && ( originalEvent = context.event ) ) {
 		originalEvent.preventDefault && originalEvent.preventDefault();
 		originalEvent.stopPropagation && originalEvent.stopPropagation();
 	}

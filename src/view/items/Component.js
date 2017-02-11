@@ -11,6 +11,7 @@ import createItem from './createItem';
 import { bind, render as callRender, unbind, unrender, update } from '../../shared/methodCallers';
 import { updateAnchors } from '../../shared/anchors';
 import { teardown } from '../../Ractive/prototype/teardown';
+import getRactiveContext from '../../shared/getRactiveContext';
 
 export default class Component extends Item {
 	constructor ( options, ComponentConstructor ) {
@@ -167,20 +168,34 @@ export default class Component extends Item {
 		if ( this.instance ) return this.instance.fragment.firstNode( skipParent );
 	}
 
+	getContext ( ...assigns ) {
+		assigns.unshift( this );
+		return getRactiveContext.apply( null, assigns );
+	}
+
 	render ( target, occupants ) {
 		if ( this.isAnchor ) {
+			this.rendered = true;
 			this.target = target;
+
 			if ( !checking.length ) {
 				checking.push( this.ractive );
-				runloop.scheduleTask( checkAnchors, true );
+				if ( occupants ) {
+					this.occupants = occupants;
+					checkAnchors();
+					this.occupants = null;
+				} else {
+					runloop.scheduleTask( checkAnchors, true );
+				}
 			}
 		} else {
 			render( this.instance, target, null, occupants );
 
 			this.attributes.forEach( callRender );
 			this.eventHandlers.forEach( callRender );
+
+			this.rendered = true;
 		}
-		this.rendered = true;
 	}
 
 	toString () {
@@ -280,7 +295,7 @@ function renderItem ( anchor, meta ) {
 	anchor.eventHandlers.forEach( callRender );
 
 	const target = anchor.parentFragment.findParentNode();
-	render( meta.instance, target, target.contains( nextNode ) ? nextNode : null );
+	render( meta.instance, target, target.contains( nextNode ) ? nextNode : null, anchor.occupants );
 
 	if ( meta.lastBound !== anchor ) {
 		meta.lastBound = anchor;
