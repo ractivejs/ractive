@@ -457,4 +457,16 @@ export default function() {
 		t.strictEqual( r.find( 'svg' ), svg );
 		t.strictEqual( r.find( 'use' ), use );
 	});
+
+	test( `enhancing sibling text nodes and interpolators`, t => {
+		fixture.innerHTML = 'foo bar baz';
+		new Ractive({
+			target: fixture,
+			template: 'foo {{bar}} baz',
+			enhance: true,
+			data: { bar: 'bar' }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'foo bar baz' );
+	});
 }
