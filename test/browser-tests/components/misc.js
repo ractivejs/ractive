@@ -180,13 +180,14 @@ export default function() {
 			template: '<ul>{{#visibleItems}}<li>{{this}}</li>{{/visibleItems}}</ul>',
 			onrender () {
 				const ul = this.find( 'ul' );
-				const lis = this.findAll( 'li', { live: true });
+				let lis;
 
 				const items = this.get( 'items' );
 
 				for ( let i = 0; i < items.length; i += 1 ) {
 					this.set( 'visibleItems', items.slice( 0, i ) );
 
+					lis = this.findAll( 'li' );
 					t.equal( lis.length, i );
 
 					const height = ul.offsetHeight;

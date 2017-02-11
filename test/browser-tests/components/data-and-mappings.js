@@ -787,13 +787,14 @@ export default function() {
 		});
 
 		const output = ractive.find( 'pre' );
-		const widgets = ractive.findAllComponents( 'Widget', { live: true });
+		let widgets = ractive.findAllComponents( 'Widget' );
 
 		widgets[0].find( 'input' ).value = 'Angela';
 		widgets[0].updateModel();
 		t.deepEqual( JSON.parse( output.innerHTML ), [{ name: 'Angela', age: 30 }] );
 
 		ractive.unshift( 'rows', { name: 'Bob', age: 54 });
+		widgets = ractive.findAllComponents( 'Widget' );
 
 		widgets[0].find( 'input' ).value = 'Brian';
 		widgets[0].updateModel();

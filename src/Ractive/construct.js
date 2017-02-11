@@ -136,10 +136,6 @@ function initialiseProperties ( ractive ) {
 	ractive.event = null;
 	ractive._eventQueue = [];
 
-	// live queries
-	ractive._liveQueries = [];
-	ractive._liveComponentQueries = [];
-
 	// observers
 	ractive._observers = [];
 
