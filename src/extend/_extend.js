@@ -16,7 +16,7 @@ export function extend ( ...options ) {
 	}
 }
 
-export function initClass ( Class, options = {} ) {
+export function extendWith ( Class, options = {} ) {
 	return extendOne( this, options, Class );
 }
 
@@ -64,7 +64,7 @@ function extendOne ( Parent, options = {}, Target ) {
 
 		// extendable
 		extend: { value: extend, writable: true, configurable: true },
-		extendClass: { value: initClass, writable: true, configurable: true },
+		extendClass: { value: extendWith, writable: true, configurable: true },
 
 		// Parent - for IE8, can't use Object.getPrototypeOf
 		_Parent: { value: Parent }

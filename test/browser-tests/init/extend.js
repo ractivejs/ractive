@@ -248,7 +248,7 @@ export default function() {
 			}
 		}
 
-		Ractive.initClass( Foo, {
+		Ractive.extendWith( Foo, {
 			template: 'hello, {{name}}'
 		});
 
@@ -266,7 +266,7 @@ export default function() {
 		class Foo {}
 
 		t.throws( () => {
-			Ractive.initClass( Foo );
+			Ractive.extendWith( Foo );
 		}, /inherit the appropriate prototype/ );
 	});
 
@@ -276,7 +276,7 @@ export default function() {
 		class Foo extends Ractive {}
 
 		t.throws( () => {
-			Ractive.initClass( Foo );
+			Ractive.extendWith( Foo );
 		}, /call super/ );
 	});
 }

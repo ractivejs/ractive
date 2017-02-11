@@ -3,7 +3,7 @@ import easing from './Ractive/static/easing';
 import interpolators from './Ractive/static/interpolators';
 import { magic, svg, win } from './config/environment';
 import proto from './Ractive/prototype';
-import { extend, initClass } from './extend/_extend';
+import { extend, extendWith } from './extend/_extend';
 import parse from './parse/_parse';
 import getNodeInfo from './Ractive/static/getNodeInfo';
 import construct from './Ractive/construct';
@@ -48,7 +48,7 @@ Object.defineProperties( Ractive, {
 
 	// static methods:
 	extend:         { value: extend },
-	initClass:      { value: initClass },
+	extendWith:     { value: extendWith },
 	escapeKey:      { value: escapeKey },
 	getNodeInfo:    { value: getNodeInfo },
 	joinKeys:       { value: joinKeys },
