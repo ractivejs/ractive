@@ -8,9 +8,7 @@ import unwrapExtended from './unwrapExtended';
 
 const callsSuper = /super\s\(|\.call\s*\(\s*this/;
 
-export default extend;
-
-function extend ( ...options ) {
+export function extend ( ...options ) {
 	if( !options.length ) {
 		return extendOne( this );
 	} else {
@@ -18,7 +16,11 @@ function extend ( ...options ) {
 	}
 }
 
-function extendOne ( Parent, options = {} ) {
+export function initClass ( Class, options = {} ) {
+	return extendOne( this, options, Class );
+}
+
+function extendOne ( Parent, options = {}, Target ) {
 	// if we're extending with another Ractive instance...
 	//
 	//   var Human = Ractive.extend(...), Spider = Ractive.extend(...);
@@ -29,12 +31,10 @@ function extendOne ( Parent, options = {} ) {
 		options = unwrapExtended( options );
 	}
 
-	let Child, proto;
+	let proto;
+	let Child = typeof Target === 'function' && Target;
 
-	if ( typeof options.class === 'function' ) {
-		Child = options.class;
-		delete options.class;
-
+	if ( Child ) {
 		if ( !( Child.prototype instanceof Parent ) ) {
 			throw new Error( `Only classes that inherit the appropriate prototype may be used with extend` );
 		}
@@ -64,6 +64,7 @@ function extendOne ( Parent, options = {} ) {
 
 		// extendable
 		extend: { value: extend, writable: true, configurable: true },
+		extendClass: { value: initClass, writable: true, configurable: true },
 
 		// Parent - for IE8, can't use Object.getPrototypeOf
 		_Parent: { value: Parent }
