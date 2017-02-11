@@ -6,13 +6,13 @@ import { findInViewHierarchy } from '../../../shared/registry';
 import { DOMEvent, CustomEvent } from '../element/ElementEvents';
 import RactiveEvent from '../component/RactiveEvent';
 import runloop from '../../../global/runloop';
-import { addHelpers } from '../../helpers/contextMethods';
 import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
 import { warnOnceIfDebug } from '../../../utils/log';
 import { addToArray, removeFromArray } from '../../../utils/array';
 import noop from '../../../utils/noop';
+import Item from './Item';
 
-const specialPattern = /^(event|arguments)(\..+)?$/;
+const specialPattern = /^(event|arguments|@event|@context|@node)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
 
 export const DelegateProxy = {
@@ -103,16 +103,12 @@ export default class EventDirective {
 	}
 
 	fire ( event, passedArgs = [] ) {
-		// augment event object
-		if ( event ) {
-		   if ( !event.hasOwnProperty( 'proxy' ) ) addHelpers( event, this.owner );
-		   else event.proxy = this.owner;
-		}
+		const context = Object.create( this.getContextObject() );
+
+		if ( event ) Object.assign( context, event );
 
 		if ( this.fn ) {
 			const values = [];
-
-			if ( event ) passedArgs.unshift( event );
 
 			const models = resolveArgs( this, this.template, this.parentFragment, {
 				specialRef ( ref ) {
@@ -139,12 +135,31 @@ export default class EventDirective {
 			if ( models ) {
 				models.forEach( model => {
 					if ( !model ) return values.push( undefined );
+					let obj;
 
 					if ( model.special ) {
-						let obj = model.special === 'event' ? event : passedArgs;
+						switch ( model.special ) {
+							case 'event':
+								warnOnceIfDebug( `The special 'event' reference has been deprecated and replaced with '@context' and '@event'` );
+								obj = context;
+								break;
+							case '@context':
+								obj = context;
+								break;
+							case '@event':
+								obj = event && event.event;
+								break;
+							case '@node':
+								obj = this.element.node;
+								break;
+							default:
+								obj = passedArgs;
+								break;
+						}
+
 						const keys = model.keys.slice();
 
-						while ( keys.length ) obj = obj[ keys.shift() ];
+						while ( obj != null && keys.length ) obj = obj[ keys.shift() ];
 						return values.push( obj );
 					}
 
@@ -160,18 +175,21 @@ export default class EventDirective {
 			const ractive = this.ractive;
 			const oldEvent = ractive.event;
 
-			ractive.event = event;
-			const result = this.fn.apply( ractive, values ).pop();
+			ractive.event = context;
+			let result = this.fn.apply( ractive, values );
+			const last = result.pop();
 
 			// Auto prevent and stop if return is explicitly false
-			if ( result === false ) {
-				const original = event ? event.original : undefined;
+			if ( last === false ) {
+				const original = event ? event.event : undefined;
 				if ( original ) {
 					original.preventDefault && original.preventDefault();
 					original.stopPropagation && original.stopPropagation();
 				} else {
 					warnOnceIfDebug( `handler '${this.template.n.join( ' ' )}' returned false, but there is no event available to cancel` );
 				}
+			} else if ( !result.length && Array.isArray( last ) && typeof last[0] === 'string' ) {
+				result = fireEvent( context, last.shift(), last );
 			}
 
 			ractive.event = oldEvent;
@@ -180,18 +198,9 @@ export default class EventDirective {
 		}
 
 		else {
-			let args = [];
-			if ( passedArgs.length ) args = args.concat( passedArgs );
-			if ( event ) event.name = this.action;
-
-			return fireEvent( this.ractive, this.action, {
-				event,
-				args
-			});
+			return fireEvent( context, this.action, passedArgs );
 		}
 	}
-
-	handleChange () {}
 
 	render () {
 		// render events after everything else, so they fire after bindings
@@ -210,3 +219,4 @@ export default class EventDirective {
 }
 
 EventDirective.prototype.update = noop;
+EventDirective.prototype.getContextObject = Item.prototype.getContextObject;

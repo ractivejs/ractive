@@ -24,9 +24,8 @@ export default class Mustache extends Item {
 		const model = resolve( start, this.template );
 
 		if ( model ) {
-			const value = model.get();
-
 			if ( this.isStatic ) {
+				const value = model.get();
 				this.model = { get: () => value };
 				return;
 			}

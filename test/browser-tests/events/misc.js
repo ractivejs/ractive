@@ -278,4 +278,88 @@ export default function() {
 
 		r.fire( 'foo' );
 	});
+
+	test( `re-fired event names get the new name`, t => {
+		t.expect( 1 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: `<div on-click="@.fire('foo', @context)" />`,
+			on: {
+				foo () { t.equal( this.name, 'foo' ); }
+			}
+		});
+
+		fire( r.find( 'div' ), 'click' );
+	});
+
+	test( `special ref @context is available to events and replaces event`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `<div on-click="@.check(@context)" />`,
+			check ( ctx ) {
+				t.ok( ctx.node === this.find( 'div' ) );
+				t.equal( ctx.name, 'click' );
+				t.ok( ctx.ractive === this );
+				t.ok( 'set' in ctx );
+			}
+		});
+
+		fire( r.find( 'div' ), 'click' );
+	});
+
+	test( `the actual dom event is available as @event and event and original in @context`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '<div on-click="@.check(@event, @context)" />',
+			check ( ev, ctx ) {
+				t.ok( ev.target === r.find( 'div' ) );
+				t.ok( ev === ctx.event );
+				t.ok( ev === ctx.original );
+			}
+		});
+
+		fire( r.find( 'div' ), 'click' );
+	});
+
+	test( `custom event plugins can pass along a source dom event`, t => {
+		t.expect( 4 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: `<div on-foo="@.check(@event, @context)" on-bar="@.check(@event, @context)" />`,
+			events: {
+				foo ( node, fire ) {
+					const listener = ev => fire({ node, original: ev });
+					node.addEventListener( 'click', listener );
+					return { teardown () { node.removeEventListener( 'click', listener ); } };
+				},
+				bar ( node, fire ) {
+					const listener = ev => fire({ node, event: ev });
+					node.addEventListener( 'click', listener );
+					return { teardown () { node.removeEventListener( 'click', listener ); } };
+				}
+			},
+			check ( ev, ctx ) {
+				t.ok( ev === ctx.event && ev  === ctx.original );
+				t.ok( ev.target === ctx.node && ev.target === this.find( 'div' ) );
+			}
+		});
+
+		fire( r.find( 'div' ), 'click' );
+	});
+
+	test( `the event directive's node is exposed as @node`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#with foo}}<input twoway=false on-change="@context.set('.bar', @node.value)" />{{/with}}`,
+			data: { foo: {} }
+		});
+
+		const input = r.find( 'input' );
+		input.value = 'yep';
+		fire( input, 'change' );
+
+		t.equal( r.get( 'foo.bar' ), 'yep' );
+	});
 }

@@ -232,6 +232,8 @@ export function readAttributeOrDirective ( parser ) {
 		attribute.n = splitEvent( match[1] );
 		attribute.t = EVENT;
 
+		parser.inEvent = true;
+
 			// check for a proxy event
 		if ( !readProxyEvent( parser, attribute ) ) {
 				// otherwise, it's an expression
@@ -240,6 +242,8 @@ export function readAttributeOrDirective ( parser ) {
 			parser.pos -= attribute.f.length;
 			parser.error( 'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, complete, detach, insert, destruct, attachchild, detachchild)' );
 		}
+
+		parser.inEvent = false;
 	}
 
 	else {

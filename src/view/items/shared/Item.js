@@ -36,6 +36,10 @@ export default class Item {
 		return this.parentFragment.findNextNode( this );
 	}
 
+	getContextObject () {
+		return this.element ? this.element.getContextObject() : this.parentFragment.getContextObject();
+	}
+
 	shuffled () {
 		if ( this.fragment ) this.fragment.shuffled();
 	}

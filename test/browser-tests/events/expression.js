@@ -25,11 +25,11 @@ export default function() {
 			el: fixture,
 			template: `<button on-click=".check(arguments[0])">click me</button>`,
 			data: {
-				check( arg ) { t.ok( this.event === arg ); }
+				check( arg ) { t.ok( 123 === arg ); }
 			}
 		});
 
-		fire( r.find( 'button' ), 'click' );
+		r.getNodeInfo( 'button' ).raise( 'click', {}, 123 );
 	});
 
 	test( 'expression events can handle dollar refs', t => {
@@ -39,11 +39,11 @@ export default function() {
 			el: fixture,
 			template: `<button on-click=".check($1)">click me</button>`,
 			data: {
-				check( arg ) { t.ok( this.event === arg ); }
+				check( arg ) { t.ok( 123 === arg ); }
 			}
 		});
 
-		fire( r.find( 'button' ), 'click' );
+		r.getNodeInfo( 'button' ).raise( 'click', {}, 123 );
 	});
 
 	test( 'expression events can handle spread args', t => {
@@ -53,11 +53,11 @@ export default function() {
 			el: fixture,
 			template: `<button on-click=".check(...arguments)">click me</button>`,
 			data: {
-				check( arg ) { t.ok( this.event === arg ); }
+				check( arg ) { t.ok( 123 === arg ); }
 			}
 		});
 
-		fire( r.find( 'button' ), 'click' );
+		r.getNodeInfo( 'button' ).raise( 'click', {}, 123 );
 	});
 
 	test( 'expression events can handle argument keypath access', t => {
@@ -67,11 +67,11 @@ export default function() {
 			el: fixture,
 			template: `<button on-click=".check(arguments[0].original)">click me</button>`,
 			data: {
-				check( arg ) { t.ok( this.event.original === arg ); }
+				check( arg ) { t.ok( 123 === arg ); }
 			}
 		});
 
-		fire( r.find( 'button' ), 'click' );
+		r.getNodeInfo( 'button' ).raise( 'click', {}, { original: 123 } );
 	});
 
 	test( 'expression events can handle dollar arg keypath access', t => {
@@ -81,11 +81,11 @@ export default function() {
 			el: fixture,
 			template: `<button on-click=".check($1.original)">click me</button>`,
 			data: {
-				check( arg ) { t.ok( this.event.original === arg ); }
+				check( arg ) { t.ok( 123 === arg ); }
 			}
 		});
 
-		fire( r.find( 'button' ), 'click' );
+		r.getNodeInfo( 'button' ).raise( 'click', {}, { original: 123 } );
 	});
 
 	test( 'expression events work with complex expressions', t => {
@@ -110,5 +110,24 @@ export default function() {
 
 		t.equal( r.get( 'foo' ), 42 );
 		t.equal( r.get( 'bar' ), true );
+	});
+
+	test( `expression events can be used to fire by returning a single array with a string first element`, t => {
+		t.expect( 4 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: `<button on-click="['foo', @event, 'yep', 123]">click me</button>`,
+			on: {
+				foo ( ev, str, num ) {
+					t.equal( ev.type, 'click' );
+					t.equal( this.name, 'foo' );
+					t.equal( str, 'yep' );
+					t.equal( num, 123 );
+				}
+			}
+		});
+
+		fire( r.find( 'button' ), 'click' );
 	});
 }

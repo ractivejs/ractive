@@ -13,6 +13,7 @@ import { html, svg } from '../../config/namespaces';
 import findElement from './shared/findElement';
 import selectBinding from './element/binding/selectBinding';
 import { DelegateProxy } from './shared/EventDirective';
+import { Context } from '../helpers/contextMethods';
 
 function makeDirty ( query ) {
 	query.makeDirty();
@@ -158,6 +159,11 @@ export default class Element extends ContainerItem {
 	getAttribute ( name ) {
 		const attribute = this.attributeByName[ name ];
 		return attribute ? attribute.getValue() : undefined;
+	}
+
+	getContextObject () {
+		if ( !this.ctx ) this.ctx = new Context( this.parentFragment, this );
+		return this.ctx;
 	}
 
 	recreateTwowayBinding () {

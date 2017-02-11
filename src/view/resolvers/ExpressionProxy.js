@@ -116,4 +116,5 @@ prototype.get = computation.get;
 prototype.handleChange = computation.handleChange;
 prototype.joinKey = computation.joinKey;
 prototype.mark = computation.mark;
+prototype.notifyUpstream = noop;
 prototype.unbind = noop;

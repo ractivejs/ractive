@@ -1,4 +1,5 @@
 import fireEvent from './fireEvent';
+import extendContext from '../shared/extendContext';
 
 export default class Hook {
 	constructor ( event ) {
@@ -11,9 +12,9 @@ export default class Hook {
 			arg ? ractive[ this.method ]( arg ) : ractive[ this.method ]();
 		}
 
-		const options = { args: [] };
-		if ( arg ) options.args.push( arg );
-		options.args.push( ractive );
-		fireEvent( ractive, this.event, options );
+		const args = [];
+		if ( arg ) args.push( arg );
+		args.push( ractive );
+		fireEvent( extendContext( ractive ), this.event, args );
 	}
 }

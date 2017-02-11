@@ -1,9 +1,43 @@
 import { splitKeypath } from '../../shared/keypaths';
 import SharedModel, { GlobalModel } from '../../model/specials/SharedModel';
 import { warnIfDebug } from '../../utils/log';
+import noop from '../../utils/noop';
 
 export default function resolveReference ( fragment, ref ) {
-	const initialFragment = fragment;
+	let reference;
+
+	if ( ( ref[0] === '.' || ref[0] === '~' || ref[0] === '^' ) && ( reference = resolveRelative( fragment, ref ) ) ) return reference;
+
+	const keys = splitKeypath( ref );
+	if ( !keys.length ) return;
+	const base = keys.shift();
+
+	// resolve special references
+	if ( base[0] === '@' && ( reference = resolveSpecial( fragment, base, keys ) ) ) {
+		// if the special reference is not in the right context, we should bail now without a model
+		if ( reference === true ) return;
+		return reference;
+	}
+
+	const context = fragment.findContext();
+
+	// check immediate context for a match
+	if ( context.has( base ) ) {
+		return context.joinKey( base ).joinAll( keys );
+	}
+
+	// walk up the fragment hierarchy looking for a matching ref, alias, or key in a context
+	if ( reference = resolveUpstream( fragment, context, ref, base, keys ) ) return reference;
+
+	// didn't find anything, so go ahead and create the key on the local model
+	return context.joinKey( base ).joinAll( keys );
+}
+
+function badReference ( key ) {
+	throw new Error( `An index or key reference (${key}) cannot have child properties` );
+}
+
+function resolveRelative ( fragment, ref ) {
 	// current context ref
 	if ( ref === '.' ) return fragment.findContext();
 
@@ -49,65 +83,70 @@ export default function resolveReference ( fragment, ref ) {
 		if ( ref[0] === '.' ) ref = ref.slice( 1 );
 		return context.joinAll( splitKeypath( ref ) );
 	}
+}
 
-	const keys = splitKeypath( ref );
-	if ( !keys.length ) return;
-	const base = keys.shift();
-
-	// special refs
-	if ( base[0] === '@' ) {
-		// shorthand from outside the template
-		// @this referring to local ractive instance
-		if ( base === '@this' || base === '@' ) {
-			return fragment.ractive.viewmodel.getRactiveModel().joinAll( keys );
-		}
-
-		// @index or @key referring to the nearest repeating index or key
-		else if ( base === '@index' || base === '@key' ) {
-			if ( keys.length ) badReference( base );
-			const repeater = fragment.findRepeatingFragment();
-			// make sure the found fragment is actually an iteration
-			if ( !repeater.isIteration ) return;
-			return repeater.context.getKeyModel( repeater[ ref[1] === 'i' ? 'index' : 'key' ] );
-		}
-
-		// @global referring to window or global
-		else if ( base === '@global' ) {
-			return GlobalModel.joinAll( keys );
-		}
-
-		// @global referring to window or global
-		else if ( base === '@shared' ) {
-			return SharedModel.joinAll( keys );
-		}
-
-		// @keypath or @rootpath, the current keypath string, which may also be used to resolve relative keypaths
-		else if ( base.indexOf( '@keypath' ) === 0 || base.indexOf( '@rootpath' ) === 0 ) {
-			const root = ref[1] === 'r' ? fragment.ractive.root : null;
-			let context = fragment.findContext();
-
-			// skip over component roots, which provide no context
-			while ( root && context.isRoot && context.ractive.component ) {
-				context = context.ractive.component.parentFragment.findContext();
-			}
-
-			return context.getKeypathModel( root );
-		}
-
-		// nope
-		else {
-			throw new Error( `Invalid special reference '${base}'` );
-		}
+function resolveSpecial ( fragment, base, keys ) {
+	// shorthand from outside the template
+	// @this referring to local ractive instance
+	if ( base === '@this' || base === '@' ) {
+		return fragment.ractive.viewmodel.getRactiveModel().joinAll( keys );
 	}
 
-	const context = fragment.findContext();
-
-	// check immediate context for a match
-	if ( context.has( base ) ) {
-		return context.joinKey( base ).joinAll( keys );
+	// @index or @key referring to the nearest repeating index or key
+	else if ( base === '@index' || base === '@key' ) {
+		if ( keys.length ) badReference( base );
+		const repeater = fragment.findRepeatingFragment();
+		// make sure the found fragment is actually an iteration
+		if ( !repeater.isIteration ) return true;
+		return repeater.context.getKeyModel( repeater[ base[1] === 'i' ? 'index' : 'key' ] );
 	}
 
-	// walk up the fragment hierarchy looking for a matching ref, alias, or key in a context
+	// @global referring to window or global
+	else if ( base === '@global' ) {
+		return GlobalModel.joinAll( keys );
+	}
+
+	// @global referring to window or global
+	else if ( base === '@shared' ) {
+		return SharedModel.joinAll( keys );
+	}
+
+	// @keypath or @rootpath, the current keypath string, which may also be used to resolve relative keypaths
+	else if ( base === '@keypath' || base === '@rootpath' ) {
+		const root = base[1] === 'r' ? fragment.ractive.root : null;
+		let context = fragment.findContext();
+
+		// skip over component roots, which provide no context
+		while ( root && context.isRoot && context.ractive.component ) {
+			context = context.ractive.component.parentFragment.findContext();
+		}
+
+		return context.getKeypathModel( root );
+	}
+
+	// @context only occurs in expressions, which have special handling
+	else if ( base === '@context' ) {
+		return new ContextModel( fragment.getContextObject() );
+	}
+
+	// nope
+	else {
+		throw new Error( `Invalid special reference '${base}'` );
+	}
+}
+
+class ContextModel {
+	constructor ( context ) {
+		this.context = context;
+	}
+
+	get () { return this.context; }
+}
+ContextModel.prototype.register = noop;
+ContextModel.prototype.unregister = noop;
+
+function resolveUpstream ( initialFragment, context, ref, base, keys ) {
+	let fragment = initialFragment;
 	let crossedComponentBoundary;
 	const shouldWarn = fragment.ractive.warnAboutAmbiguity;
 
@@ -167,11 +206,4 @@ export default function resolveReference ( fragment, ref ) {
 	if ( shouldWarn ) {
 		warnIfDebug( `'${ref}' is ambiguous and did not resolve.` );
 	}
-
-	// didn't find anything, so go ahead and create the key on the local model
-	return context.joinKey( base ).joinAll( keys );
-}
-
-function badReference ( key ) {
-	throw new Error( `An index or key reference (${key}) cannot have child properties` );
 }

@@ -947,8 +947,8 @@ export default function() {
 			components: { middle, end }
 		});
 
-		r.on( '*.go', ev => {
-			t.ok( ev.resolve( '@rootpath' ), 'root.next.next.next.next' );
+		r.on( '*.go', function () {
+			t.ok( this.resolve( '@rootpath' ) === 'root.next.next.next.next' );
 		});
 
 		fire( r.find( 'button' ), 'click' );
@@ -1037,29 +1037,5 @@ export default function() {
 			render() {},
 			foo() {}
 		});
-	});
-
-	test( `returning false from a component event doesn't try to cancel something that doesn't exist (#2731)`, t => {
-		t.expect( 1 );
-
-		onWarn( msg => {
-			t.ok( msg );
-		});
-
-		const cmp = Ractive.extend({
-			template: '<button on-click="@this.asplode()">click me</button>',
-			asplode () {
-				this.fire('boom');
-			}
-		});
-
-		const r = new Ractive({
-			el: fixture,
-			components: { cmp },
-			template: '<cmp on-boom="@this.pow()" />',
-			pow () { return false; }
-		});
-
-		fire( r.find( 'button' ), 'click' );
 	});
 }

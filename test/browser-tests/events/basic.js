@@ -175,7 +175,7 @@ export default function() {
 		const fired = [];
 
 		ractive.on( 'foo.* fuzzy *.bop', function () {
-			fired.push( this.event.name );
+			fired.push( this.name );
 		});
 
 		const events = [ 'foo.bar', 'fuzzy', 'foo.fizz', 'bip.bop' ];
@@ -225,7 +225,7 @@ export default function() {
 		const r = new Ractive();
 		const handle = r.on( 'foo', function ( num ) {
 			t.equal( num, 1 );
-			t.ok( this === r );
+			t.ok( this.ractive === r );
 			count++;
 		});
 

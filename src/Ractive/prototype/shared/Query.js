@@ -174,7 +174,7 @@ export function getQuery ( ractive, selector, options, component ) {
 
 	// Shortcut: if we're maintaining a live query with this
 	// selector, we don't need to traverse the parallel DOM
-	query = liveQueries.find( q => q.selector === selector && q.remote === options.remote );
+	query = options.cached !== false && liveQueries.find( q => q.selector === selector && q.remote === options.remote );
 	if ( query ) {
 		if ( options.live ) query.refs++;
 		// Either return the exact same query, or (if not live) a snapshot

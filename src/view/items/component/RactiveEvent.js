@@ -8,17 +8,10 @@ export default class RactiveEvent {
 	listen ( directive ) {
 		const ractive = this.component.instance;
 
-		this.handler = ractive.on( this.name, function () {
-			let event;
+		this.handler = ractive.on( this.name, function ( ...args ) {
+			this.component = ractive;
 
-			// semi-weak test, but what else? tag the event obj ._isEvent ?
-			if ( arguments.length && arguments[0] && arguments[0].node ) {
-				event = Array.prototype.shift.call( arguments );
-				event.component = ractive;
-			}
-
-			const args = Array.prototype.slice.call( arguments );
-			directive.fire( event, args );
+			directive.fire( this, args );
 
 			// cancel bubbling
 			return false;

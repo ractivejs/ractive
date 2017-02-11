@@ -13,8 +13,8 @@ export default function() {
 			template: '<span id="test" on-click="foo"/>'
 		});
 
-		ractive.on( 'foo', function ( event ) {
-			t.equal( this.event, event );
+		ractive.on( 'foo', function () {
+			t.equal( this.ractive.event, this );
 		});
 
 		fire( ractive.find( '#test' ), 'click' );
@@ -30,7 +30,7 @@ export default function() {
 		});
 
 		ractive.on( 'foo', function () {
-			const e = this.event;
+			const e = this.ractive.event;
 			t.ok( e );
 			t.equal( e.name, 'foo' );
 		});
@@ -54,8 +54,8 @@ export default function() {
 		});
 
 		ractive.on( 'yell', function () {
-			t.notEqual( this.event, methodEvent, 'handler does not have method event' );
-			t.equal ( this.event.name, 'yell', 'handler as own event name' );
+			t.notEqual( this.ractive.event, methodEvent, 'handler does not have method event' );
+			t.equal ( this.name, 'yell', 'handler as own event name' );
 		});
 
 		fire( ractive.find( '#test' ), 'click' );
