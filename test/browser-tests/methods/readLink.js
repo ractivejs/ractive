@@ -43,9 +43,10 @@ export default function() {
 
 	test( `readLink is canonical by default`, t => {
 		const cmp1 = Ractive.extend({
-			template: '<cmp2 fizz="{{bop}}" />'
+			template: '<cmp2 fizz="{{bop}}" />',
+			isolated: false
 		});
-		const cmp2 = Ractive.extend();
+		const cmp2 = Ractive.extend({ isolated: false });
 		const r = new Ractive({
 			on: { init() { this.set( 'foo.bar.baz.bat', true ); } },
 			target: fixture,
@@ -60,9 +61,10 @@ export default function() {
 
 	test( `readLink can optionally be uncanonical`, t => {
 		const cmp1 = Ractive.extend({
-			template: '<cmp2 fizz="{{bop}}" />'
+			template: '<cmp2 fizz="{{bop}}" />',
+			isolated: false
 		});
-		const cmp2 = Ractive.extend();
+		const cmp2 = Ractive.extend({ isolated: false });
 		const r = new Ractive({
 			on: { init() { this.set( 'foo.bar.baz.bat', true ); } },
 			target: fixture,

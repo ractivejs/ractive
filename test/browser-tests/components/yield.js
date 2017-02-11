@@ -96,7 +96,8 @@ export default function() {
 
 	test( 'A component {{yield}} can be rerendered in conditional section block', t => {
 		const Widget = Ractive.extend({
-			template: '<p>{{#foo}}{{yield}}{{/}}</p>'
+			template: '<p>{{#foo}}{{yield}}{{/}}</p>',
+			isolated: false
 		});
 
 		const ractive = new Ractive({
@@ -117,7 +118,8 @@ export default function() {
 			template: `
 				{{#each items:i}}
 					{{this}}{{#if i===1}}:{{yield}}:{{/if}}
-				{{/each}}`
+				{{/each}}`,
+			isolated: false
 		});
 
 		const ractive = new Ractive({

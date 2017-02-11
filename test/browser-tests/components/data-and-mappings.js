@@ -99,10 +99,12 @@ export default function() {
 			},
 			components: {
 				Outer: Ractive.extend({
-					template: '{{#with item}}<Inner foo="{{foo}}"/>{{/with}}'
+					template: '{{#with item}}<Inner foo="{{foo}}"/>{{/with}}',
+					isolated: false
 				}),
 				Inner: Ractive.extend({
-					template: '<p>foo: {{foo}}</p>'
+					template: '<p>foo: {{foo}}</p>',
+					isolated: false
 				})
 			}
 		});
@@ -209,7 +211,8 @@ export default function() {
 
 	test( 'Components can access outer data context, in the same way JavaScript functions can access outer lexical scope', t => {
 		const Widget = Ractive.extend({
-			template: '<p>{{foo || "missing"}}</p>'
+			template: '<p>{{foo || "missing"}}</p>',
+			isolated: false
 		});
 
 		const ractive = new Ractive({
@@ -236,12 +239,14 @@ export default function() {
 
 	test( 'Nested components can access outer-most data context', t => {
 		const GrandWidget = Ractive.extend({
-			template: 'hello {{world}}'
+			template: 'hello {{world}}',
+			isolated: false
 		});
 
 		const Widget = Ractive.extend({
 			template: '<GrandWidget/>',
-			components: { GrandWidget }
+			components: { GrandWidget },
+			isolated: false
 		});
 
 		const ractive = new Ractive({
@@ -258,10 +263,12 @@ export default function() {
 
 	test( 'Nested components registered at global Ractive can access outer-most data context', t => {
 		Ractive.components.Widget = Ractive.extend({
-			template: '<GrandWidget/>'
+			template: '<GrandWidget/>',
+			isolated: false
 		});
 		Ractive.components.GrandWidget = Ractive.extend({
-			template: 'hello {{world}}'
+			template: 'hello {{world}}',
+			isolated: false
 		});
 
 		const ractive = new Ractive({
@@ -420,7 +427,8 @@ export default function() {
 
 	test( 'Uninitialised implicit dependencies of evaluators that use inherited functions are handled', t => {
 		const Widget = Ractive.extend({
-			template: '{{status()}}'
+			template: '{{status()}}',
+			isolated: false
 		});
 
 		const ractive = new Ractive({
@@ -498,7 +506,8 @@ export default function() {
 			data: { items: [ 'a', 'b', 'c' ] },
 			components: {
 				Widget: Ractive.extend({
-					template: '<p>{{i}}: {{letter}}</p>'
+					template: '<p>{{i}}: {{letter}}</p>',
+					isolated: false
 				})
 			}
 		});
@@ -729,7 +738,8 @@ export default function() {
 			data: { person: {} },
 			components: {
 				Widget: Ractive.extend({
-					template: '<input value="{{person.first}}"/><input value="{{person.last}}"/>'
+					template: '<input value="{{person.first}}"/><input value="{{person.last}}"/>',
+					isolated: false
 				})
 			}
 		});
@@ -750,7 +760,8 @@ export default function() {
 			template: '{{#context}}<Widget/>{{/}}',
 			components: {
 				Widget: Ractive.extend({
-					template: 'works? {{works}}'
+					template: 'works? {{works}}',
+					isolated: false
 				})
 			},
 			data: {
@@ -824,7 +835,8 @@ export default function() {
 			oninit () {
 				this.observe( 'message', message => this.set( 'proxy', message ) );
 				t.equal( this.get( 'answer' ), 42 );
-			}
+			},
+			isolated: false
 		});
 
 		const ractive = new Ractive({
@@ -909,7 +921,8 @@ export default function() {
 
 					t.complete();
 				}
-			}
+			},
+			isolated: false
 		});
 
 		const ractive = new Ractive({
@@ -1117,7 +1130,8 @@ export default function() {
 
 	test( 'components should update their mappings on rebind to prevent weirdness with shuffling (#2147)', t => {
 		const Item = Ractive.extend({
-			template: '{{value}}'
+			template: '{{value}}',
+			isolated: false
 		});
 
 		const ractive = new Ractive({
@@ -1257,7 +1271,8 @@ export default function() {
 
 	test( 'complex mappings continue to update with their dependencies', t => {
 		const cmp = Ractive.extend({
-			template: '{{foo}}'
+			template: '{{foo}}',
+			isolated: false
 		});
 		const r = new Ractive({
 			el: fixture,
@@ -1326,9 +1341,9 @@ export default function() {
 	test( `shuffling a link to a link to a list doesn't blow the stack (#2699)`, t => {
 		t.expect( 0 );
 
-		const cmp1 = Ractive.extend({ template: '<cmp2 list="{{list}}" />' });
-		const cmp2 = Ractive.extend({ template: '<cmp3 list="{{list}}" />' });
-		const cmp3 = Ractive.extend();
+		const cmp1 = Ractive.extend({ template: '<cmp2 list="{{list}}" />', isolated: false });
+		const cmp2 = Ractive.extend({ template: '<cmp3 list="{{list}}" />', isolated: false });
+		const cmp3 = Ractive.extend({ isolated: false });
 		const r = new Ractive({
 			el: fixture,
 			template: '<cmp1 list="{{items}}" />',
@@ -1342,9 +1357,9 @@ export default function() {
 	test( `shuffling a link to a link to a list updates correctly`, t => {
 		t.expect( 2 );
 
-		const cmp1 = Ractive.extend({ template: '<cmp2 list="{{list}}" />' });
-		const cmp2 = Ractive.extend({ template: '{{#each list}}{{.}}{{/each}}<cmp3 list="{{list}}" />' });
-		const cmp3 = Ractive.extend();
+		const cmp1 = Ractive.extend({ template: '<cmp2 list="{{list}}" />', isolated: false });
+		const cmp2 = Ractive.extend({ template: '{{#each list}}{{.}}{{/each}}<cmp3 list="{{list}}" />', isolated: false });
+		const cmp3 = Ractive.extend({ isolated: false });
 		const r = new Ractive({
 			el: fixture,
 			template: '<cmp1 list="{{items}}" />',

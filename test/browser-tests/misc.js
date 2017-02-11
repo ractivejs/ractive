@@ -1359,7 +1359,8 @@ export default function() {
 			template: '<div><foo /></div>{{#bars:i}}<b>b</b><foo />{{/}}{{#baz}}{{#bat}}<p>hello</p>{{/}}{{/}}',
 			components: {
 				foo: Ractive.extend({
-					template: '<span>foo</span>'
+					template: '<span>foo</span>',
+					isolated: false
 				})
 			},
 			data: {

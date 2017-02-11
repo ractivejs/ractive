@@ -221,7 +221,8 @@ export default function() {
 
 	test( 'Components inherit modifyArrays option from environment (#1297)', t => {
 		const Widget = Ractive.extend({
-			template: '{{#each items}}{{this}}{{/each}}'
+			template: '{{#each items}}{{this}}{{/each}}',
+			isolated: false
 		});
 
 		// YOUR CODE GOES HERE
@@ -373,7 +374,8 @@ export default function() {
 		Ractive.adaptors.foo = fooAdaptor;
 
 		Ractive.components.Widget = Ractive.extend({
-			template: '<p>{{wrappedThing}}{{otherThing}}</p>'
+			template: '<p>{{wrappedThing}}{{otherThing}}</p>',
+			isolated: false
 		});
 
 		const r = new Ractive({

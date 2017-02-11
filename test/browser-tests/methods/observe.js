@@ -1104,7 +1104,8 @@ export default function() {
 						t.equal( n, 0 );
 					}
 				});
-			}
+			},
+			isolated: false
 		});
 
 		const r = new Ractive({

@@ -513,7 +513,8 @@ export default function() {
 	test( 'decorators in nested components are torn down (#2608)', t => {
 		let count = 0;
 		const cmp = Ractive.extend({
-			template: '<div as-foo />'
+			template: '<div as-foo />',
+			isolated: false
 		});
 		const r = new Ractive({
 			el: fixture,
