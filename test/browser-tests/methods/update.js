@@ -36,4 +36,23 @@ export default function() {
 		r.findComponent().update();
 		t.htmlEqual( fixture.innerHTML, 'still yep' );
 	});
+
+	test( `an update can be forced on a keypath by passing force: true (#1671)`, t => {
+		let msg = 'one';
+		const r = new Ractive({
+			target: fixture,
+			template: '{{fn()}} {{#with foo}}{{fn()}}{{/with}}',
+			data: {
+				fn () { return msg; },
+				foo: {}
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'one one' );
+
+		msg = 'two';
+		r.update( 'fn', { force: true } );
+
+		t.htmlEqual( fixture.innerHTML, 'two two' );
+	});
 }

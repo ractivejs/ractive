@@ -4,7 +4,7 @@ import { splitKeypath } from '../../shared/keypaths';
 
 const updateHook = new Hook( 'update' );
 
-export function update ( ractive, model ) {
+export function update ( ractive, model, options ) {
 	// if the parent is wrapped, the adaptor will need to be updated before
 	// updating on this keypath
 	if ( model.parent && model.parent.wrapper ) {
@@ -13,7 +13,7 @@ export function update ( ractive, model ) {
 
 	const promise = runloop.start( ractive, true );
 
-	model.mark();
+	model.mark( options && options.force );
 
 	// notify upstream of changes
 	model.notifyUpstream();
@@ -25,8 +25,8 @@ export function update ( ractive, model ) {
 	return promise;
 }
 
-export default function Ractive$update ( keypath ) {
+export default function Ractive$update ( keypath, options ) {
 	if ( keypath ) keypath = splitKeypath( keypath );
 
-	return update( this, keypath ? this.viewmodel.joinAll( keypath ) : this.viewmodel );
+	return update( this, keypath ? this.viewmodel.joinAll( keypath ) : this.viewmodel, options );
 }
