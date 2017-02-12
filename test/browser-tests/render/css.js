@@ -381,4 +381,29 @@ export default function() {
 		t.equal( getHexColor( cmp.find( '.red' ) ), hexCodes.red );
 		t.ok( ~cmp.toCSS().indexOf( 'someAnimation { from { transform: scale3d(1.5,1.5,1) rotate(0deg); } }' ) );
 	});
+
+	test( `css can be loaded from an element, and id, or a selector too (#2511)`, t => {
+		const script = document.createElement( 'script' );
+		script.setAttribute( 'type', 'text/css' );
+		script.setAttribute( 'id', 'foo-css' );
+		const prop = 'textContent' in script ? 'textContent' : 'innerHTML';
+		script[prop] = '.blue { color: blue; }';
+		document.head.appendChild( script );
+
+		const cmp1 = Ractive.extend({
+			css: script
+		});
+		const cmp2 = Ractive.extend({
+			css: 'foo-css'
+		});
+		const cmp3 = Ractive.extend({
+			css: '#foo-css'
+		});
+
+		document.head.removeChild( script );
+
+		t.ok( cmp1.prototype.cssId );
+		t.ok( cmp2.prototype.cssId );
+		t.ok( cmp3.prototype.cssId );
+	});
 }
