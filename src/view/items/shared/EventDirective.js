@@ -35,7 +35,7 @@ export const DelegateProxy = {
 					event.name = name;
 
 					el.events.forEach( ev => {
-						if ( ~ev.template.n.indexOf( name ) ) {
+						if ( ev.delegate && ~ev.template.n.indexOf( name ) ) {
 							bubble = ev.fire( event, args ) !== false && bubble;
 						}
 					});

@@ -21,7 +21,8 @@ export default class Fragment {
 		this.ractive = options.ractive || ( this.isRoot ? options.owner : this.parent.ractive );
 
 		this.componentParent = ( this.isRoot && this.ractive.component ) ? this.ractive.component.parentFragment : null;
-		this.delegate = this.parent ? this.parent.delegate : ( this.componentParent && this.componentParent.delegate );
+		this.delegate = ( this.parent ? this.parent.delegate : ( this.componentParent && this.componentParent.delegate ) ) ||
+			( this.owner.containerFragment && this.owner.containerFragment.delegate );
 
 		this.context = null;
 		this.rendered = false;

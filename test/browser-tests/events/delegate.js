@@ -230,4 +230,22 @@ export default function() {
 		fire( div, 'click' );
 		t.equal( r.get( 'foo.bar' ), 42 );
 	});
+
+	test( `delegation in a yielder`, t => {
+		t.expect( 1 );
+
+		const cmp = Ractive.extend({
+			template: `<div>{{#each list}}{{yield content}}{{/each}}</div>`
+		});
+		const r = new Ractive({
+			target: fixture,
+			template: '<cmp list="{{ [1] }}"><span on-click="foo" /></cmp>',
+			components: { cmp },
+			on: {
+				foo() { t.ok( this.event.event.currentTarget === r.find( 'div' ) ); }
+			}
+		});
+
+		fire( r.find( 'span' ), 'click' );
+	});
 }
