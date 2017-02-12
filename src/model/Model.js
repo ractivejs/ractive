@@ -193,12 +193,12 @@ export default class Model extends ModelBase {
 		return this.childByKey[ key ];
 	}
 
-	mark () {
+	mark ( force ) {
 		if ( this._link ) return this._link.mark();
 
 		const value = this.retrieve();
 
-		if ( !isEqual( value, this.value ) ) {
+		if ( force || !isEqual( value, this.value ) ) {
 			const old = this.value;
 			this.value = value;
 			if ( this.boundValue ) this.boundValue = null;

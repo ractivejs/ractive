@@ -613,4 +613,24 @@ export default function() {
 
 		t.ok( Ractive.getNodeInfo( fixture ).ractive === r2 );
 	});
+
+	test( `force update works from a context object`, t => {
+		let msg = 'one';
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#with foo.bar}}{{#with baz}}<div>{{fn()}}</div>{{/with}}{{/with}}`,
+			data: {
+				foo: { bar: {
+					fn () { return msg; },
+					baz: {}
+				} }
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div>one</div>' );
+
+		msg = 'two';
+		r.getNodeInfo( 'div' ).update( '../fn', { force: true } );
+		t.htmlEqual( fixture.innerHTML, '<div>two</div>' );
+	});
 }

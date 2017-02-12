@@ -108,8 +108,8 @@ export default class LinkModel extends ModelBase {
 		return this.childByKey[ key ];
 	}
 
-	mark () {
-		this.target.mark();
+	mark ( force ) {
+		this.target.mark( force );
 	}
 
 	marked () {

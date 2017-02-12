@@ -160,8 +160,8 @@ export default class Context {
 		return modelUnshift( findModel( this, keypath ).model, add );
 	}
 
-	update ( keypath ) {
-		return protoUpdate( this.ractive, findModel( this, keypath ).model );
+	update ( keypath, options ) {
+		return protoUpdate( this.ractive, findModel( this, keypath ).model, options );
 	}
 
 	updateModel ( keypath, cascade ) {
