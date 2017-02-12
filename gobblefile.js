@@ -70,9 +70,9 @@ var banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
 if ( gobble.env() === 'production' ) {
 	lib = gobble([
 		buildLib( 'ractive.js'),
-		buildLib( 'ractive.runtime.js', /_parse\.js/ ),
+		buildLib( 'runtime.js', /_parse\.js/ ),
 		buildESLib( 'ractive.mjs' ),
-		buildESLib( 'ractive.runtime.mjs', /_parse\.js/ )
+		buildESLib( 'runtime.mjs', /_parse\.js/ )
 	]).transform( noConflict );
 } else {
 	lib = gobble([
