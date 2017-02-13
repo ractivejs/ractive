@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-env node */
 
 const path = require( 'path' );
 const fs = require( 'fs' );
@@ -84,6 +85,11 @@ switch ( cmd ) {
 					opts.staticTripleDelimiters = [ args.shift(), args.shift() ];
 					break;
 
+				case '-u':
+				case '--escape-unicode':
+					opts.escapeUnicode = true;
+					break;
+
 				default:
 					if ( !args.length && util.stat( arg ) ) { // last may be the input file
 						input = fs.createReadStream( arg );
@@ -139,6 +145,11 @@ switch ( cmd ) {
 				case '-p':
 				case '--static-triple':
 					opts.staticTripleDelimiters = [ args.shift(), args.shift() ];
+					break;
+
+				case '-u':
+				case '--escape-unicode':
+					opts.escapeUnicode = true;
 					break;
 
 				default:
