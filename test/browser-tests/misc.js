@@ -1874,4 +1874,15 @@ export default function() {
 
 		t.equal( fixture.innerHTML, '😀𠀀'  );
 	});
+
+	test( `entities in triples survive toHTML (#2882)`, t => {
+		const r = new Ractive({
+			template: '{{{html}}}',
+			data: {
+				html: '<b>&amp; &lt;</b>'
+			}
+		});
+
+		t.equal( r.toHTML(), '<b>&amp; &lt;</b>' );
+	});
 }
