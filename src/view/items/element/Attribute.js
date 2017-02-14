@@ -20,6 +20,9 @@ function lookupNamespace ( node, prefix ) {
 	return namespaces[ prefix ];
 }
 
+let attribute = false;
+export function inAttribute () { return attribute; }
+
 export default class Attribute extends Item {
 	constructor ( options ) {
 		super( options );
@@ -77,15 +80,21 @@ export default class Attribute extends Item {
 	}
 
 	getString () {
-		return this.fragment ?
+		attribute = true;
+		const value = this.fragment ?
 			this.fragment.toString() :
 			this.value != null ? '' + this.value : '';
+		attribute = false;
+		return value;
 	}
 
 	// TODO could getValue ever be called for a static attribute,
 	// or can we assume that this.fragment exists?
 	getValue () {
-		return this.fragment ? this.fragment.valueOf() : booleanAttributes.test( this.name ) ? true : this.value;
+		attribute = true;
+		const value = this.fragment ? this.fragment.valueOf() : booleanAttributes.test( this.name ) ? true : this.value;
+		attribute = false;
+		return value;
 	}
 
 	render () {
@@ -126,6 +135,8 @@ export default class Attribute extends Item {
 	}
 
 	toString () {
+		attribute = true;
+
 		const value = this.getValue();
 
 		// Special case - select and textarea values (should not be stringified)
@@ -157,6 +168,8 @@ export default class Attribute extends Item {
 		if ( value == null ) return '';
 
 		const str = safeAttributeString( this.getString() );
+		attribute = false;
+
 		return str ?
 			`${this.name}="${str}"` :
 			this.name;

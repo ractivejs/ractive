@@ -1840,4 +1840,15 @@ export default function() {
 			t.htmlEqual( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
 		});
 	}
+
+	test( `entities in triples survive toHTML (#2882)`, t => {
+		const r = new Ractive({
+			template: '{{{html}}}',
+			data: {
+				html: '<b>&amp; &lt;</b>'
+			}
+		});
+
+		t.equal( r.toHTML(), '<b>&amp; &lt;</b>' );
+	});
 }

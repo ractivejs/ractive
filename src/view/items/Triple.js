@@ -3,6 +3,7 @@ import Mustache from './shared/Mustache';
 import insertHtml from './triple/insertHtml';
 import { decodeCharacterReferences } from '../../utils/html';
 import { detachNode } from '../../utils/dom';
+import { inAttribute } from './element/Attribute';
 
 export default class Triple extends Mustache {
 	constructor ( options ) {
@@ -71,7 +72,10 @@ export default class Triple extends Mustache {
 	}
 
 	toString () {
-		return this.model && this.model.get() != null ? decodeCharacterReferences( '' + this.model.get() ) : '';
+		let value = this.model && this.model.get();
+		value = value != null ? '' + value : '';
+
+		return inAttribute() ? decodeCharacterReferences( value ) : value;
 	}
 
 	unrender () {
