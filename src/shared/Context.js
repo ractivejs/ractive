@@ -31,15 +31,15 @@ export default class Context {
 	}
 
 	// the usual mutation suspects
-	add ( keypath, value ) {
-		if ( value === undefined ) value = 1;
-		if ( !isNumeric( value ) ) throw new Error( 'Bad arguments' );
-		return sharedSet( this.ractive, build( this, keypath, value ).map( pair => {
+	add ( keypath, d, options ) {
+		const num = typeof d === 'number' ? +d : 1;
+		const opts = typeof d === 'object' ? d : options;
+		return sharedSet( this.ractive, build( this, keypath, num ).map( pair => {
 			const [ model, val ] = pair;
 			const value = model.get();
 			if ( !isNumeric( val ) || !isNumeric( value ) ) throw new Error( 'Cannot add non-numeric value' );
 			return [ model, value + val ];
-		}) );
+		}), opts );
 	}
 
 	animate ( keypath, value, options ) {
@@ -132,20 +132,20 @@ export default class Context {
 		return modelSort( findModel( this, keypath ).model, [] );
 	}
 
-	subtract ( keypath, value ) {
-		if ( value === undefined ) value = 1;
-		if ( !isNumeric( value ) ) throw new Error( 'Bad arguments' );
-		return sharedSet( this.ractive, build( this, keypath, value ).map( pair => {
+	subtract ( keypath, d, options ) {
+		const num = typeof d === 'number' ? d : 1;
+		const opts = typeof d === 'object' ? d : options;
+		return sharedSet( this.ractive, build( this, keypath, num ).map( pair => {
 			const [ model, val ] = pair;
 			const value = model.get();
 			if ( !isNumeric( val ) || !isNumeric( value ) ) throw new Error( 'Cannot add non-numeric value' );
 			return [ model, value - val ];
-		}) );
+		}), opts );
 	}
 
-	toggle ( keypath ) {
+	toggle ( keypath, options ) {
 		const { model } = findModel( this, keypath );
-		return sharedSet( this.ractive, [ [ model, !model.get() ] ] );
+		return sharedSet( this.ractive, [ [ model, !model.get() ] ], options );
 	}
 
 	unlink ( dest ) {

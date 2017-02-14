@@ -12,7 +12,7 @@ export default class Triple extends Mustache {
 
 	detach () {
 		const docFrag = createDocumentFragment();
-		this.nodes.forEach( node => docFrag.appendChild( node ) );
+		if ( this.nodes ) this.nodes.forEach( node => docFrag.appendChild( node ) );
 		return docFrag;
 	}
 

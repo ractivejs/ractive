@@ -83,7 +83,11 @@ export default class Fragment {
 
 	detach () {
 		const docFrag = createDocumentFragment();
-		this.items.forEach( item => docFrag.appendChild( item.detach() ) );
+		const xs = this.items;
+		const len = xs.length;
+		for ( let i = 0; i < len; i++ ) {
+			docFrag.appendChild( xs[i].detach() );
+		}
 		return docFrag;
 	}
 
@@ -188,7 +192,11 @@ export default class Fragment {
 		if ( this.rendered ) throw new Error( 'Fragment is already rendered!' );
 		this.rendered = true;
 
-		this.items.forEach( item => item.render( target, occupants ) );
+		const xs = this.items;
+		const len = xs.length;
+		for ( let i = 0; i < len; i++ ) {
+			xs[i].render( target, occupants );
+		}
 	}
 
 	resetTemplate ( template ) {
