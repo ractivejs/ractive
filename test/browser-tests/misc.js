@@ -586,47 +586,6 @@ export default function() {
 		// do nothing
 	}
 
-	test( 'Foo.extend(Bar), where both Foo and Bar are Ractive instances, returns on object that inherits from Foo and Bar', t => {
-		const Human = Ractive.extend({
-			template: '<p>type: {{type}}</p>',
-
-			talk () {
-				return 'hello';
-			}
-		});
-
-		const Spider = Ractive.extend({
-			// registries
-			data: {
-				type: 'arachnid'
-			},
-
-			// defaults
-			lazy: true,
-
-			// methods
-			climb () {
-				return 'climbing';
-			},
-
-			talk () {
-				return this._super() + ' my name is Peter Parker';
-			}
-		});
-
-		const Spiderman = Human.extend( Spider );
-
-		const spiderman = new Spiderman({
-			el: fixture
-		});
-
-		t.htmlEqual( fixture.innerHTML, '<p>type: arachnid</p>' );
-		t.ok( spiderman.lazy );
-		t.equal( spiderman.climb(), 'climbing' );
-		t.equal( spiderman.talk(), 'hello my name is Peter Parker' );
-	});
-
-
 	test( 'Regression test for #460', t => {
 		const done = t.async();
 		const items = [

@@ -99,5 +99,5 @@ function getComparator ( option ) {
 		return comparators[ option ] || ( comparators[ option ] = thing => thing[ option ] );
 	}
 
-	throw new Error( 'If supplied, options.compare must be a string, function, `1`, or `true`' ); // TODO link to docs
+	throw new Error( 'If supplied, options.compare must be a string, function, or true' ); // TODO link to docs
 }

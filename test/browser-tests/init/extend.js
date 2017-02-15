@@ -270,7 +270,7 @@ export default function() {
 		}, /inherit the appropriate prototype/ );
 	});
 
-	test( `existing constructors supploed to extend should call super`, t => {
+	test( `existing constructors supplied to extend should call super`, t => {
 		t.expect( 1 );
 
 		class Foo extends Ractive {}
@@ -278,5 +278,50 @@ export default function() {
 		t.throws( () => {
 			Ractive.extendWith( Foo );
 		}, /call super/ );
+	});
+
+	test( `multiple construction objects with functions passed to extend are layered correctly`, t => {
+		t.expect( 5 );
+
+		let count = 0;
+		const c1 = {
+			data () {
+				t.equal( count, 1 ); //child data fn has been called
+				count++;
+				return { foo: 1 };
+			},
+			onrender () {
+				t.equal( count, 3 ); //all other fns have been called
+				count++;
+			}
+		};
+		const c2 = {
+			data () {
+				t.equal( count, 0 ); //first to be called
+				count++;
+				return { bar: 2 };
+			},
+			onrender () {
+				t.equal( count, 2 ); //first render called
+				count++;
+				this._super();
+			}
+		};
+
+		const cmp = Ractive.extend( c1, c2 );
+
+		new cmp({
+			target: fixture,
+			template: '{{foo}} {{bar}}'
+		});
+
+		t.htmlEqual( fixture.innerHTML, '1 2' );
+	});
+
+	test( `trying to extend with a component  arg throws`, t => {
+		const cmp = Ractive.extend();
+		t.throws( () => {
+			Ractive.extend( cmp );
+		}, /no longer supports multiple inheritance/ );
 	});
 }
