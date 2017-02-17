@@ -25,15 +25,11 @@ echo
 # if anything fails, abort (errexit)
 set -e
 
-# STEP 1 - BUILD LIBRARY
-#############################
-./scripts/build.sh
-
-# STEP 2 - PUBLISH TO NPM
+# STEP 1 - PUBLISH TO NPM
 #############################
 echo '> publishing to npm...'
 
-( cd build
+( cd .release
 	# set the correct package version
 	node -e "var package = JSON.parse(fs.readFileSync('./package.json')); package.version = '${TARGET}'; fs.writeFileSync('./package.json', JSON.stringify(package, null, '  '));"
 	# ...and to npm
@@ -45,4 +41,4 @@ echo '> publishing to npm...'
 	fi
 )
 
-echo '> release complete'
+echo 'release complete'

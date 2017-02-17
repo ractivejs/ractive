@@ -32,24 +32,24 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 
 	# is this a major branch, not an edge build, and not published?
 	if [[ $MAJOR == 0 && $EDGE == 1 && $PUBLISHED == 0 ]]; then
-		echo '> publishing as stable to npm...'
+		echo 'publishing as stable to npm...'
 
-		( cd build
+		( cd .release
 			npm publish
 			npm dist-tag add ractive@$TARGET $TAG
 		)
 
-		echo '> updating tags...'
+		echo 'updating tags...'
 
 		git config --global user.email "richard.a.harris+travis@gmail.com"
 		git config --global user.name "Travis-CI"
-		rm -rf build-branch
-		git clone https://Rich-Harris:${GH_TOKEN}@${GH_REF} -b build --depth 2 build-branch
+		rm -rf release-branch
+		git clone https://Rich-Harris:${GH_TOKEN}@${GH_REF} -b release --depth 2 release-branch
 
-		rm -r build-branch/*
-		cp -r build/* build-branch
+		rm -r release-branch/*
+		cp -r .release/* release-branch
 
-		( cd build-branch
+		( cd release-branch
 			echo "Setting credentials..."
 			git remote rm origin
 			git remote add origin https://Rich-Harris:${GH_TOKEN}@${GH_REF}
@@ -66,30 +66,30 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 			git push origin v$VERSION --quiet 2> /dev/null
 		)
 
-		rm -rf build-branch
+		rm -rf release-branch
 
-		echo '> stable release complete'
+		echo 'stable release complete'
 	fi
 
 	# is this a major edge build?
 	if [[ $MAJOR == 0 && $EDGE == 0 ]]; then
-		echo '> publishing as major edge build to npm...'
+		echo 'publishing as major edge build to npm...'
 
-		( cd build
+		( cd .release
 			# set the correct package version
 			node -e "var package = JSON.parse(fs.readFileSync('./package.json')); package.version = '${TARGET}'; fs.writeFileSync('./package.json', JSON.stringify(package, null, '  '));"
 			# ...and to npm
 			npm publish --tag $TAG
 		)
 
-		echo '> release complete'
+		echo 'release complete'
 	fi
 
 	# is this the dev branch?
 	if [[ "$TRAVIS_BRANCH" == "dev" ]]; then
-		echo '> publishing as unstable edge build to npm...'
+		echo 'publishing as unstable edge build to npm...'
 
-		( cd build
+		( cd .release
 			# set the correct package version
 			node -e "var package = JSON.parse(fs.readFileSync('./package.json')); package.version = '${TARGET}'; fs.writeFileSync('./package.json', JSON.stringify(package, null, '  '));"
 			# ...and to npm
@@ -97,7 +97,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 			npm dist-tag add ractive@$TARGET edge
 		)
 
-		echo '> release complete'
+		echo 'release complete'
 	fi
 fi
 

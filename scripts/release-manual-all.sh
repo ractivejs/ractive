@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# if anything fails, abort (errexit)
 set -e
+
 VERSION=$(cat package.json | grep "version" | sed 's/"version": "\(.*\)",/\1/' | sed 's/[[:space:]]//g')
 TAG="v$(cat package.json | grep "version" | sed 's/"version": "\([0-9]*\.[0-9]\).*",/\1/' | sed 's/[[:space:]]//g')-dev"
 REV=$(git rev-parse --abbrev-ref HEAD)
@@ -9,15 +9,11 @@ if [ "$REV" = "dev" ]; then
 	EDGE_TAG="edge"
 fi
 
-# STEP 1 - BUILD LIBRARY
+# STEP 1 - PUBLISH TO NPM
 #############################
-./scripts/build.sh
+echo 'publishing to npm...'
 
-# STEP 2 - PUBLISH TO NPM
-#############################
-echo '> publishing to npm...'
-
-( cd build
+( cd .release
 	# ...and to npm
 	npm publish
 	npm dist-tag add ractive@target $TAG
@@ -28,17 +24,17 @@ echo '> publishing to npm...'
 	fi
 )
 
-# STEP 3 - UPDATE TAGS
+# STEP 2 - UPDATE TAGS
 #############################
-echo '> updating tags...'
+echo 'updating tags...'
 
-rm -rf build-branch
-git clone https://github.com/ractivejs/ractive -b build --depth 2 build-branch
+rm -rf release-branch
+git clone https://github.com/ractivejs/ractive -b release --depth 2 release-branch
 
-rm -r build-branch/*
-cp -r build/* build-branch
+rm -r release-branch/*
+cp -r .release/* release-branch
 
-( cd build-branch
+( cd release-branch
 	git add -A
 	git commit -m "${VERSION} release"
 	git push
@@ -48,6 +44,6 @@ cp -r build/* build-branch
 	git push origin v$VERSION
 )
 
-rm -rf build-branch
+rm -rf release-branch
 
-echo '> release complete'
+echo 'release complete'
