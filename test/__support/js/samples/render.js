@@ -1325,7 +1325,7 @@ const renderTests = [
 	},
 	{
 		name: 'class directives',
-		template: '<span class-foo-bar="{{foo}}" class-otherBaz="{{bat === 0}}"></span>',
+		template: '<span class-foo-bar="foo" class-otherBaz="bat === 0"></span>',
 		result: '<span></span>',
 		new_data: { foo: true, bat: 0 },
 		new_result: '<span class="foo-bar otherBaz"></span>'
