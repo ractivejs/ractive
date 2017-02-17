@@ -1,9 +1,11 @@
-import { ATTRIBUTE, DECORATOR, DELEGATE_FLAG, BINDING_FLAG, TRANSITION, EVENT } from '../../../config/types';
+import { ARRAY_LITERAL, ATTRIBUTE, DECORATOR, DELEGATE_FLAG, BINDING_FLAG, INTERPOLATOR, TRANSITION, EVENT } from '../../../config/types';
 import getLowestIndex from '../utils/getLowestIndex';
 import readMustache from '../readMustache';
 import { decodeCharacterReferences } from '../../../utils/html';
 import readExpressionList from '../expressions/shared/readExpressionList';
+import readExpressionOrReference from '../readExpressionOrReference';
 import flattenExpression from '../../utils/flattenExpression';
+import refineExpression from '../../utils/refineExpression';
 
 const attributeNamePattern = /^[^\s"'>\/=]+/;
 const onPattern = /^on/;
@@ -11,6 +13,7 @@ const eventPattern = /^on-([a-zA-Z\*\.$_]((?:[a-zA-Z\*\.$_0-9\-]|\\-)+))$/;
 const reservedEventNames = /^(?:change|reset|teardown|update|construct|config|init|render|complete|unrender|detach|insert|destruct|attachchild|detachchild)$/;
 const decoratorPattern = /^as-([a-z-A-Z][-a-zA-Z_0-9]*)$/;
 const transitionPattern = /^([a-zA-Z](?:(?!-in-out)[-a-zA-Z_0-9])*)-(in|out|in-out)$/;
+const boundPattern = /^((bind|class)-(([-a-zA-Z0-9_])+))$/;
 const directives = {
 	lazy: { t: BINDING_FLAG, v: 'l' },
 	twoway: { t: BINDING_FLAG, v: 't' },
@@ -228,7 +231,6 @@ export function readAttributeOrDirective ( parser ) {
 
 		// on-click etc
 	else if ( match = eventPattern.exec( attribute.n ) ) {
-
 		attribute.n = splitEvent( match[1] );
 		attribute.t = EVENT;
 
@@ -244,6 +246,22 @@ export function readAttributeOrDirective ( parser ) {
 		}
 
 		parser.inEvent = false;
+	}
+
+		// bound directives
+	else if ( match = boundPattern.exec( attribute.n ) ){
+		const bind = match[2] === 'bind';
+		attribute.n = bind ? match[3] : match[1];
+		attribute.t = ATTRIBUTE;
+		readArguments( parser, attribute, false, true );
+
+		if ( !attribute.f ) {
+			if ( !bind ) {
+				attribute.f = [{ t: INTERPOLATOR, x: { r: [], s: 'true' } }];
+			} else {
+				attribute.f = [{ t: INTERPOLATOR, r: match[3] }];
+			}
+		}
 	}
 
 	else {
@@ -285,7 +303,7 @@ function readProxyEvent ( parser, attribute ) {
 	}
 }
 
-function readArguments ( parser, attribute, required = false ) {
+function readArguments ( parser, attribute, required = false, single = false ) {
 	parser.allowWhitespace();
 	if ( !parser.matchString( '=' ) ) {
 		if ( required ) parser.error( `Missing required directive arguments` );
@@ -297,7 +315,7 @@ function readArguments ( parser, attribute, required = false ) {
 	const spread = parser.spreadArgs;
 	parser.spreadArgs = true;
 	parser.inUnquotedAttribute = !quote;
-	const exprs = readExpressionList( parser );
+	const expr = single ? readExpressionOrReference( parser, [ quote || ' ', '/', '>' ] ) : { m: readExpressionList( parser ), t: ARRAY_LITERAL };
 	parser.inUnquotedAttribute = false;
 	parser.spreadArgs = spread;
 
@@ -306,5 +324,11 @@ function readArguments ( parser, attribute, required = false ) {
 		if ( parser.matchString( quote ) !== quote ) parser.error( `Expected matching quote '${quote}'` );
 	}
 
-	attribute.f = flattenExpression({ m: exprs, t: 22 });
+	if ( single ) {
+		const interpolator = { t: INTERPOLATOR };
+		refineExpression( expr, interpolator );
+		attribute.f = [interpolator];
+	} else {
+		attribute.f = flattenExpression( expr );
+	}
 }

@@ -1,5 +1,6 @@
 import { test } from 'qunit';
 import { initModule } from './test-config';
+import { fire } from 'simulant';
 
 export default function () {
 	initModule( 'attributes.js' );
@@ -118,7 +119,7 @@ export default function () {
 	test( `class attributes can be inline directives`, t => {
 		const r = new Ractive({
 			el: fixture,
-			template: `<span class-foo-bar="{{foo}}" class-fooBar="{{bar}}" />`
+			template: `<span class-foo-bar="foo" class-fooBar="bar" />`
 		});
 		const span = r.find( 'span' );
 
@@ -152,7 +153,7 @@ export default function () {
 	test( `class attributes don't override class directives at render (#2565)`, t => {
 		const r = new Ractive({
 			el: fixture,
-			template: `<span class-foo="{{true}}" class="bar" />`
+			template: `<span class-foo="true" class="bar" />`
 		});
 
 		t.equal( r.find( 'span' ).className, 'bar foo' );
@@ -161,7 +162,7 @@ export default function () {
 	test( `class directives and class attributes both contribute to toHTML (#2537)`, t => {
 		const r = new Ractive({
 			el: fixture,
-			template: `<span class-bip="{{true}}" class-nope="{{false}}" class="foo bar" class-bop="{{true}}" /><span class-foo="{{true}}" class-bar-baz="{{true}}" />`
+			template: `<span class-bip="true" class-nope="false" class="foo bar" class-bop="true" /><span class-foo="true" class-bar-baz="true" />`
 		});
 
 		t.equal( r.toHTML(), `<span class="foo bar bip bop"></span><span class="foo bar-baz"></span>` );
@@ -186,5 +187,59 @@ export default function () {
 		});
 
 		t.ok( r.find( 'div' ).getAttribute( 'data-foo' ) === 'yep' );
+	});
+
+	test( `class directives may be boolean`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `<div class-foo class-bar />`
+		});
+
+		const div = r.find( 'div' );
+		t.ok( div.getAttribute( 'class' ) === 'foo bar' );
+	});
+
+	test( `bind directives create the appropriate attribute binding`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `<div bind-data-foo="bar" /><input bind-value="foo" />`,
+			data: {
+				bar: 'yep',
+				foo: 'sure'
+			}
+		});
+
+		const [ div, input ] = r.findAll( '*' );
+
+		t.equal( div.getAttribute( 'data-foo' ), 'yep' );
+		t.equal( input.value, 'sure' );
+
+		input.value = 'ok';
+		fire( input, 'change' );
+
+		t.equal( r.get( 'foo' ), 'ok' );
+
+		r.set( 'bar', 'sure' );
+		t.equal( div.getAttribute( 'data-foo' ), 'sure' );
+	});
+
+	test( `bind directives as boolean use their name as the reference`, t => {
+		const cmp = Ractive.extend({
+			template: '<span>{{foo}}</span>'
+		});
+		const r = new Ractive({
+			target: fixture,
+			template: '<cmp bind-foo /><input bind-value />',
+			data: {
+				value: 'yep',
+				foo: 'sure'
+			},
+			components: { cmp }
+		});
+
+		const [ span, input ] = r.findAll( '*' );
+
+		t.equal( span.innerHTML, 'sure' );
+		t.equal( input.value, 'yep' );
 	});
 }
