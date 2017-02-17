@@ -6,6 +6,8 @@
 	* Observers on uninitialized data may be added during the `config` event (#2725)
 	* The unwrap option of `ractive.get` will now properly return the wrapped object if is set to `false` (#1178)
 	* Overriding a Ractive prototype method during `Ractive.extend` without calling `_super()` will now issue a warning, as it's probably being done in error (#2358)
+	* `toHTML` will output CSS scoping ids for components that have a `css` option specified (#2709)
+	* `easing` functions that can't be run using CSS transitions will now cause the transition to be run as JS (#2152)
 
 * Breaking changes
 	* All deprecations have been removed, including proxy events with args, un-prefixed method events, decorator="...", transition="...", the ractive.data getter, partial comment definitions, and lifecycle methods like `init` and `beforeInit`.
@@ -43,6 +45,17 @@
 	* `ractive.nodes` no longer contains elements by id. The same functionality can be handled more safely and conveniently with a decorator.
 	* HTML elements are now exclusively created with a lowercase name.
 	* Keypath expressions are no longer supported, as they are largely redundant with `getNodeInfo` functionality. (`@keypath(../some.ref)` is no longer a valid reference)
+	* Unresolved references will now resolve to the immediate context rather than registering with every available context to be resolved when one of the contexts grows a matching base key.
+	* Event delegates within iterative sections will automatically use delegation (see below).
+	* The undocumented `observeList` function has been moved to an option of `observe` (see below).
+	* The `change` lifecycle event has been removed and replaced with recursive observers (see below).
+	* Live element and component queries e.g. `ractive.findAll( 'some selector', { live: true } )` are no longer supported. If you need similar functionality, you can use a specialized decorator for elements or lifecycle events for components.
+	* Linking a keypath that happens to be observed will now cause any observers to fire.
+	* The `event` reference in event directives is deprecated, and all event handlers will now receive a context as their first parameter regardless of whether or not they originated with a DOM event (see below).
+	* `ractive.merge` has been moved to an option of `set` to better reflect what it actually does (hint: it doesn't actulla merge - see below).
+	* Components are now isolated by default. You can change the global default by setting `Ractive.defaults.isolated` if you need the old behavior to be the default.
+	* `ractive.runtime.js` is now named `runtime.js`, so if you require it, it is `require('ractive/runtime.js')`.
+	* You can no longer create a component using another component as the options argument to `extend` e.g. `MyComponent.extend(OtherComponent)`. You can still extend a component with one or more options objects e.g. `MyComponent.extend({ ...options }, { ...other }).extend({ ..more })`.
 
 * New features (experimental - feedback welcome!)
 	* You can now create cross-instance links by passing an options object with a target instance e.g. `this.link('source.path', 'dest.path', { ractive: sourceInstance })`. This covers many of the cases handled by the `ractive-ractive` adaptor in a considerably more efficient manner.
@@ -75,6 +88,22 @@
 	* You can now specify required and optional attributes when creating a component with `Ractive.extend()` using the `attributes` option. The value of `attributes` may be an array of strings, specifying that all of the named attributes are optional, or an object with `required` and/or `optional` keys that each have an array of strings as their value.
 		* If `attributes` are specified for a component, then by default any additional attributes passed to the component will not be treated as mappings directly but instead, will be collected into a special partial named `extra-attributes`. You can yield this partial in an element to apply the extra attributes to it, which allows passing things like `class` and `style` along to the main element in a component easily. Note that the extra attributes will _not_ create mappings by default, and you _must_ yield the `extra-attributes` partial to put it in the scope of the containing instance. `{{yield extra-attributes}}`
 		* If the `attributes` object includes `mapAll: true` as one of its keys, then any extra attributes _will_ be mapped and the `extra-attributes` partial will contain attributes that reference the mappings, which means the partial should _not_ be yielded. `{{>extra-attributes}}`
+	* Event delegation is now enabled by default for iterative sections. If the iterative section is contained within an element, then any event directives in the iterations will use a shared DOM listener on the element containing the section. You can disabled delegation globally with `Ractive.defaults.delegation = false` or at the element level with the directive (attribute) `no-delegation` on the element containing the section.
+	* Observers have been refactored with the following new options:
+		* `array: true` will cause the observer to fire with an object containing lists of the added and removed elements. This option replaces `ractive.observeList`.
+		* `old: function() { ... }` is a hook that allows you to set the `old` value that the observer passes to your callback. You can use this to freeze the old value, provide a deep clone, etc.
+		* Using recursive path notation e.g. `some.path.**` or `**`, you can observe any changes to the data in a way that gives you the actual value and keypath that changed e.g. with `some.path.foo.bar.baz` changing to `42`, the observer callback would get `42` and the full keypath `some.path.foo.bar.baz` rather than the object at `some.path`, as with a regular or wildcard observer.
+	* `ractive.set` now has the following new options:
+		* `{ deep: true }` will cause the given value to merge into the target keypath e.g. with `foo` as `{ a: 1, b: { c: 2 } }`, `ractive.set( `foo`, { d: 3, b: { e: 4 } }, { deep: true } )` will result in `{ a: 1, b: { c: 2, e: 4 }, d: 3 }`.
+		* `{ keep: true }` will cause any VDOM fragments that _would_ be torn down as the result of the `set` (or `add`, `subtract`, or `toggle`) to be retained. This makes it possible to have components in conditional sections not be destroyed and recreated as the section toggles.
+		* `{ shuffle: true }` when used with an array will move any existing DOM corresponding to elements in both the new and old array to their new indices. The corresponds to the removed `merge` method. If you want to shuffle the array against itself, you can pass `null` as the new value e.g. `ractive.set( 'some.array', null, { shuffle: true } )`.
+	* The first argument to the callback supplied to `ractive.on` will be a context object regardless of whether or not the event originated as a DOM event. This means that all event listeners share the same base callback signature. Any additional arguments to `fire` will follow the context argument.
+	* The `event` reference for event directives has been deprecated and replaced by `@context`, `@event`, and `@node`:
+		* `@context` is a Ractive context object that also has an `event` property continaing the original event and a `name` that is the name of the fired event.
+		* `@event` is the original event object, so a `MouseEvent` for an `on-click` delegate.
+		* `@node` is the DOM node to which the event directive is attached.
+	* You can now re-proxy an event from an event directive expression by returning a single array with a `string` first element e.g. `<button on-click="['foo', arg1, arg2]">`, which is the equivalent of `@this.fire('foo', @context, arg1, arg2)`.
+	* You can now use an existing class, be it ES5, ES6, or any other conforming implementation, using `Ractive.extendWith( MyClass, { ...extendOpts } )`. This allows `class Foo { constructor( opts ) { super( opts ); /* other init */ }, someMethod () { ... }, ... }` to be turned into a Ractive component.
 
 * New features (stable)
 	* `target` is now an alias for `el` when creating a Ractive instance.
@@ -86,6 +115,11 @@
 	* You can now get the source keypath and Ractive instance for a link/mapping using `ractive.readLink( 'some.keypath' )`.
 	* You can now use non-tagged template strings in your templates, and they will be replaced with the appropriate expression during parsing.
 	* Setting a component name to a falsey value when creating or extending a Ractive instance will block use of that component e.g. `Ractive.extend({ components: { Foo: false } })` will cause `Foo` to be treated as an element.
+	* The object passed to transition functions now has an `isOutro` property, which you can use to detect `ractive.transition`, wherein `t.isIntro` and `t.isOutro` will both be `false`.
+	* Text nodes and interpolators will now use `splitText` for progressive enhancement, which should reduce or eliminate any flash during initial enhanced rendering.
+	* Triples now support progressive enhancement, mostly using `outerHTML` to compare the target nodes to what should be rendered.
+	* The `css` option for components can now specify an element or selector, and the `textContent` of the element will supply the value.
+	* You can specify `{ force: true }` to `ractive.update` to force the target keypath to update event if internal checks determine that the value has not changed. This is useful for causing re-evaluation of all references to a function.
 
 
 # 0.8.10
