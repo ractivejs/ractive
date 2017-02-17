@@ -10,13 +10,13 @@ let log, printWarning, welcome;
 
 if ( hasConsole ) {
 	const welcomeIntro = [
-		`%cRactive.js %c<@version@> %cin debug mode, %cmore...`,
+		`%cRactive.js %cBUILD_PLACEHOLDER_VERSION %cin debug mode, %cmore...`,
 		'color: rgb(114, 157, 52); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 	];
-	const welcomeMessage = `You're running Ractive <@version@> in debug mode - messages will be printed to the console to help you fix problems and optimise your application.
+	const welcomeMessage = `You're running Ractive BUILD_PLACEHOLDER_VERSION in debug mode - messages will be printed to the console to help you fix problems and optimise your application.
 
 To disable debug mode, add this line at the start of your app:
   Ractive.DEBUG = false;
