@@ -32,30 +32,27 @@ function deepClone ( source ) {
 QUnit.module( 'ractive.toHTML()' );
 
 renderTests.forEach( function ( theTest ) {
-	[ false, true ].forEach( function ( magic ) {
-		QUnit.test( theTest.name + ' (magic: ' + magic + ')', function ( assert ) {
-			var data = getData( theTest.data );
+	QUnit.test( theTest.name, function ( assert ) {
+		var data = getData( theTest.data );
 
-			var ractive = new Ractive({
-				template: theTest.template,
-				data: data,
-				partials: theTest.partials,
-				magic: magic
-			});
-
-			assert.equal( normaliseHTML( ractive.toHTML() ), normaliseHTML( theTest.result ) );
-
-			if ( theTest.new_data ) {
-				data = getData( theTest.new_data );
-
-				ractive.set( data );
-				assert.equal( normaliseHTML( ractive.toHTML() ), normaliseHTML( theTest.new_result ) );
-			}
-
-			// TODO array of data/expected
-
-			ractive.teardown();
+		var ractive = new Ractive({
+			template: theTest.template,
+			data: data,
+			partials: theTest.partials
 		});
+
+		assert.equal( normaliseHTML( ractive.toHTML() ), normaliseHTML( theTest.result ) );
+
+		if ( theTest.new_data ) {
+			data = getData( theTest.new_data );
+
+			ractive.set( data );
+			assert.equal( normaliseHTML( ractive.toHTML() ), normaliseHTML( theTest.new_result ) );
+		}
+
+		// TODO array of data/expected
+
+		ractive.teardown();
 	});
 });
 

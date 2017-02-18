@@ -146,32 +146,6 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
 	});
 
-	if ( Ractive.magic ) {
-		test( 'Referencing parent data context in magic mode does not break decorators', t => {
-			const data = {
-				item: { name: 'one' },
-				foo: {
-					bar: 'biz'
-				}
-			};
-
-			new Ractive({
-				el: fixture,
-				template: '{{#item}}{{foo.bar}}{{name}}<span as-decorateme="foo"></span>{{/item}}',
-				magic: true,
-				data,
-				decorators: {
-					decorateme ( node, foo ) {
-						node.innerHTML = foo ? foo.bar || 'fail' : 'fail';
-						return { teardown () {} };
-					}
-				}
-			});
-
-			t.htmlEqual( fixture.innerHTML, 'bizone<span>biz</span>' );
-		});
-	}
-
 	test( 'Decorator without arguments can be torn down (#453)', t => {
 		t.expect( 1 );
 

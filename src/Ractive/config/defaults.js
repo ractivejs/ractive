@@ -25,8 +25,6 @@ export default {
 	syncComputedChildren:   false,
 	resolveInstanceMembers: true,
 	warnAboutAmbiguity:     false,
-	magic:                  false,
-	modifyArrays:           false,
 	adapt:                  [],
 	isolated:               true,
 	twoway:                 true,

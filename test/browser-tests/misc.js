@@ -528,64 +528,6 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, ' you are <i>very puzzled now</i>' );
 	});
 
-	// only run these tests if magic mode is supported
-	try {
-		const obj = {};
-		let _foo;
-		Object.defineProperty( obj, 'foo', {
-			get () {
-				return _foo;
-			},
-			set ( value ) {
-				_foo = value;
-			}
-		});
-
-		test( 'Array mutators work when `magic` is `true` (#376)', t => {
-			const items = [
-				{ name: 'one' },
-				{ name: 'two' },
-				{ name: 'three' }
-			];
-
-			const r = new Ractive({
-				el: fixture,
-				template: '{{#items}}{{name}}{{/items}}',
-				magic: true,
-				data: { items }
-			});
-
-			r.push( 'items', { name: 'four' } );
-			t.htmlEqual( fixture.innerHTML, 'onetwothreefour' );
-		});
-
-		test( 'Implicit iterators work in magic mode', t => {
-			onWarn( msg => t.ok( /should be a plain JavaScript object/.test( msg ) ) );
-
-			const items = [
-				{ name: 'one' },
-				{ name: 'two' },
-				{ name: 'three' }
-			];
-
-			new Ractive({
-				el: fixture,
-				template: '{{#.}}{{name}}{{/.}}',
-				magic: true,
-				data: items
-			});
-
-			t.htmlEqual( fixture.innerHTML, 'onetwothree' );
-
-			items[2].name = 'threefourfive';
-			t.htmlEqual( fixture.innerHTML, 'onetwothreefourfive' );
-		});
-
-		obj.foo = 'bar';
-	} catch ( err ) {
-		// do nothing
-	}
-
 	test( 'Regression test for #460', t => {
 		const done = t.async();
 		const items = [

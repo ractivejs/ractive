@@ -1,7 +1,7 @@
 import defaults from './Ractive/config/defaults';
 import easing from './Ractive/static/easing';
 import interpolators from './Ractive/static/interpolators';
-import { magic, svg, win } from './config/environment';
+import { svg, win } from './config/environment';
 import proto from './Ractive/prototype';
 import { extend, extendWith } from './extend/_extend';
 import parse from './parse/_parse';
@@ -60,7 +60,6 @@ Object.defineProperties( Ractive, {
 	// support
 	enhance:        { writable: true, value: false },
 	svg:            { value: svg },
-	magic:          { value: magic },
 
 	// version
 	VERSION:        { value: '<@version@>' },
