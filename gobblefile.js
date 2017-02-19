@@ -155,7 +155,7 @@ function skipModule(excludedModules) {
 			// Gobble has a predictable directory structure of gobble/transform/number
 			// so we slice at 3 to slice relative to project root.
 			const moduleRelativePath = path.relative(__dirname, modulePath).split(path.sep).slice(3).join(path.sep);
-			return excludedModules.indexOf(moduleRelativePath) > -1 ? 'export default null;' : src;
+			return excludedModules.indexOf(moduleRelativePath) > -1 ? 'export default null; export const shared = {};' : src;
 		}
 	};
 }

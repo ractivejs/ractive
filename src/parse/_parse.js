@@ -14,6 +14,7 @@ import readPartialDefinitionSection from './converters/readPartialDefinitionSect
 import readTemplate from './converters/readTemplate';
 import cleanup from './utils/cleanup';
 import insertExpressions from './utils/insertExpressions';
+import shared from '../Ractive/shared';
 
 // See https://github.com/ractivejs/template-spec for information
 // about the Ractive template specification
@@ -29,11 +30,11 @@ const defaultInterpolate = [ 'script', 'style', 'template' ];
 
 const StandardParser = Parser.extend({
 	init ( str, options ) {
-		const tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
-		const staticDelimiters = options.staticDelimiters || [ '[[', ']]' ];
-		const staticTripleDelimiters = options.staticTripleDelimiters || [ '[[[', ']]]' ];
+		const tripleDelimiters = options.tripleDelimiters || shared.defaults.tripleDelimiters;
+		const staticDelimiters = options.staticDelimiters || shared.defaults.staticDelimiters;
+		const staticTripleDelimiters = options.staticTripleDelimiters || shared.defaults.staticTripleDelimiters;
 
-		this.standardDelimiters = options.delimiters || [ '{{', '}}' ];
+		this.standardDelimiters = options.delimiters || shared.defaults.delimiters;
 
 		this.tags = [
 			{ isStatic: false, isTriple: false, open: this.standardDelimiters[0], close: this.standardDelimiters[1], readers: STANDARD_READERS },
@@ -42,14 +43,14 @@ const StandardParser = Parser.extend({
 			{ isStatic: true,  isTriple: true,  open: staticTripleDelimiters[0],  close: staticTripleDelimiters[1],  readers: TRIPLE_READERS }
 		];
 
-		this.contextLines = options.contextLines || 0;
+		this.contextLines = options.contextLines || shared.defaults.contextLines;
 
 		this.sortMustacheTags();
 
 		this.sectionDepth = 0;
 		this.elementStack = [];
 
-		this.interpolate = Object.create( options.interpolate || {} );
+		this.interpolate = Object.create( options.interpolate || shared.defaults.interpolate || {} );
 		this.interpolate.textarea = true;
 		defaultInterpolate.forEach( t => this.interpolate[ t ] = !options.interpolate || options.interpolate[ t ] !== false );
 

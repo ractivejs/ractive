@@ -1785,4 +1785,12 @@ export default function() {
 
 		t.equal( r.toHTML(), '<b>&amp; &lt;</b>' );
 	});
+
+	test( `global defaults apply to parsing even with no instance`, t => {
+		const delimiters = Ractive.defaults.delimiters;
+		Ractive.defaults.delimiters = [ '<%', '%>' ];
+		const parsed = Ractive.parse( '<% foo %>' );
+		t.deepEqual( parsed, { v: 4, t: [{ t: 2, r: 'foo' }] } );
+		Ractive.defaults.delimiters = delimiters;
+	});
 }
