@@ -1,5 +1,12 @@
 # changelog
 
+# 0.8.11
+
+* Bug fixes
+	* Component CSS now handles keyframes more gracefully (#2854)
+	* Triples won't decode their entity refs unless they're in an attribute (#2882)
+
+
 # 0.8.10
 
 * Bug fixes
