@@ -24,13 +24,9 @@ if ( win && !win.Ractive ) {
 	let opts = '';
 	const script = document.currentScript || document.querySelector( 'script[data-ractive-options]' );
 
-	if ( script ) {
-		opts = script.getAttribute( 'data-ractive-options' ) || '';
-	}
+	if ( script ) opts = script.getAttribute( 'data-ractive-options' ) || '';
 
-	if ( ~opts.indexOf( 'ForceGlobal' ) ) {
-		win.Ractive = Ractive;
-	}
+	if ( ~opts.indexOf( 'ForceGlobal' ) ) win.Ractive = Ractive;
 }
 
 Object.assign( Ractive.prototype, proto, defaults );
@@ -62,7 +58,7 @@ Object.defineProperties( Ractive, {
 	svg:            { value: svg },
 
 	// version
-	VERSION:        { value: '<@version@>' },
+	VERSION:        { value: 'BUILD_PLACEHOLDER_VERSION' },
 
 	// plugins
 	adaptors:       { writable: true, value: {} },

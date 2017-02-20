@@ -2,7 +2,7 @@
 
 # Ractive.js - Next-generation DOM manipulation
 [![npm version](https://img.shields.io/npm/v/ractive.svg?style=flat-square)](https://www.npmjs.com/package/ractive) [![devDependency Status](https://img.shields.io/david/dev/ractivejs/ractive.svg?style=flat-square)](https://david-dm.org/RactiveJS/Ractive#info=devDependencies) [![Build Status](https://img.shields.io/travis/ractivejs/ractive/dev.svg?style=flat-square)](https://travis-ci.org/ractivejs/ractive) [![Coverage Status](https://img.shields.io/coveralls/ractivejs/ractive/dev.svg?style=flat-square)](https://coveralls.io/github/ractivejs/ractive?branch=dev) [![npm downloads](https://img.shields.io/npm/dm/ractive.svg?style=flat-square)](https://www.npmjs.com/package/ractive) [![Twitter Follow](https://img.shields.io/twitter/follow/ractivejs.svg?style=flat-square)](https://twitter.com/ractivejs)
- 
+
 
 ## What is Ractive.js?
 
@@ -15,116 +15,15 @@ Features include...
 - Flexible and performant animations and transitions.
 - And much more!
 
-To get a feel for how it will make your life as a web developer easier, visit [ractivejs.org](http://ractivejs.org), follow the [interactive tutorials](http://learn.ractivejs.org), or try the [60 second setup](http://ractivejs.org/60-second-setup).
+## Getting started
 
-
-## Documentation and Help
-
-If you don't find what you're looking for in the [docs](http://docs.ractivejs.org), here are other channels you can ask:
-
-- [Create a new issue](https://github.com/ractivejs/ractive/issues/new) on Github.
-- Ask a question on [Google Groups](https://groups.google.com/forum/#!forum/ractive-js).
-- Ask a question on [Stack Overflow](https://stackoverflow.com/questions/ask) with the [`ractivejs`](http://stackoverflow.com/questions/tagged/ractivejs) tag.
-- Send us a tweet via [@RactiveJS](http://twitter.com/RactiveJS).
-
-If you'd like to include an example in your issue, [this fiddle](https://jsfiddle.net/evschris/swkz9n7n/) has a convenient minimal setup that has easily switchable Ractive versions.
-
+To get a feel for how it will make your life as a web developer easier, head over to the documentation at [ractive.js.org](https://ractive.js.org/) or get a quick hands-on with [interactive tutorials](http://learn.ractivejs.org).
 
 ## Contributing
 
-Pull requests and issues are always welcome! Please read [CONTRIBUTING.md](.github/CONTRIBUTING.md) to learn how to contribute.
-
-
-## Development
-
-If you want to hack on Ractive, the first step is to fork the repo. Then do the following commands.
-
-```bash
-# Clone your fork of the repo
-git clone https://github.com/YOUR_USERNAME/ractive
-
-# Move into the repo directory
-cd ractive
-
-# Install the dependencies
-npm install
-
-# Run a server for development
-npm start
-```
-
-Navigate to [localhost:4567](http://localhost:4567). You'll see:
-
-- `ractive.js` - A build of Ractive.
-
-- `sandbox` - Contains some template files to help with debugging.
-
-- `test` - The test suite.
-
-To start development, copy the `sandbox/sample`, following the instructions therein. After the initial build, any subsequent changes will result in fast incremental rebuilds. If you're using Chrome, you can use the [LiveReload](https://chrome.google.com/webstore/detail/livereload/jnihajbhpnppcggbcgedagnkighmdlei) plugin.
-
-*The development server is served by [gobble](https://github.com/gobblejs/gobble) and is still in development. Please report any Gobble-related bugs to [Gobble's issue tracker](https://github.com/gobblejs/gobble/issues). Thanks!*
-
-
-## Build
-
-To build, the following must be met:
-
-- A *real* shell. Linux and OS X should be good. Windows needs [MSYS](http://www.mingw.org/wiki/msys) or something similar at least on the path.
-
-- On Windows, if you get an `EINVAL` when running the tests, you may need to update the `phantomjs` script in the `node_modules/.bin` to use `{ stdio: 'inherit' }` when spawning the child process instead of manually piping afterwards.
-
-To run a complete build including linting, testing and minification:
-
-```bash
-npm run build
-```
-
-
-## Browser support
-
-Tested successfully in all modern browsers. If your experience differs [please let us know](https://github.com/ractivejs/ractive/issues/new)!
-
-Ractive will require the following APIs:
-
-- `Array.isArray`
-- `Array.prototype.every`
-- `Array.prototype.filter`
-- `Array.prototype.find`
-- `Array.prototype.forEach`
-- `Array.prototype.indexOf`
-- `Array.prototype.map`
-- `Array.prototype.reduce`
-- `Function.prototype.bind`
-- `Node.prototype.contains` (only used in testing)
-- `Object.assign`
-- `Object.create`
-- `Object.defineProperty`
-- `Object.defineProperties`
-- `Object.freeze`
-- `Object.keys`
-- `performance.now`
-- `Promise`
-- `requestAnimationFrame`
-- `String.prototype.trim`
-- `window.addEventListener`
-- `window.getComputedStyle`
-
-Should your target environment lack the mentioned APIs, please shim/polyfill accordingly. Ractive ships with a separate, minimal polyfill file containing only the above APIs for older browsers. Simply load it before Ractive.
-
-## Published versions
-
-All builds are published to the default npm registry and can thus be accessed from the lovely unpkg CDN:
-
-- https://unpkg.com/ractive is the latest stable unminified version of Ractive.
-- https://unpkg.com/ractive/ractive.min.js is the latest stable minified version of Ractive.
-- The rest of the builds play out as you would expect too: ractive.runtime.js, ractive.runtime.min.js
-- https://unpkg.com/ractive@0.7.3 is the unminified build of Ractive v0.7.3
-- You can also pull specific builds for specific versions e.g. https://unpkg.com/ractive@0.7.3/ractive.min.js
-- The latest pre-release build in a series is tagged e.g. `v0.8-dev` or `v0.9-dev`, starting with `v0.8`. This dev tag will point to the latest released version in a series if there is no dev build e.g. immediately after a release.
-- `dev` builds are periodically published to npm with a pre-release version like `0.8.1-build-1`, and the latest dev build is tagged `edge`.
+All forms of help are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) to learn how to contribute.
 
 ## License
 
-Copyright (c) 2012-16 Rich Harris and contributors. Released under an [MIT license](LICENSE.md).
+Copyright (c) 2012-17 Rich Harris and contributors. Released under an [MIT license](LICENSE.md).
 

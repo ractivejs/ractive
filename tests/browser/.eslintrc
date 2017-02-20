@@ -1,0 +1,11 @@
+{
+	"env": {
+		"browser": true,
+		"qunit": true
+	},
+	"globals": {
+		"Ractive": true,
+		"fixture": true,
+		"simulant": true
+	}
+}

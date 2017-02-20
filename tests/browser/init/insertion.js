@@ -1,0 +1,122 @@
+import { beforeEach, initModule } from '../../helpers/test-config';
+
+export default function() {
+	let target;
+	let child;
+
+	beforeEach( () => {
+		target = document.createElement( 'div' );
+		child = document.createElement( 'div' );
+
+		target.id = 'target';
+
+		child.innerHTML = 'bar';
+		target.appendChild( child );
+
+		fixture.appendChild( target );
+	});
+
+	initModule( 'init/insertion.js' );
+
+	QUnit.test( 'Element by id selector', t => {
+		new Ractive({
+			el: '#target',
+			template: '<div>foo</div>'
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+	});
+
+	QUnit.test( 'Element by id (hashless)', t => {
+		new Ractive({
+			el: 'target',
+			template: '<div>foo</div>'
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+	});
+
+	QUnit.test( 'Element by query selector', t => {
+		new Ractive({
+			el: 'div[id=target]',
+			template: '<div>foo</div>'
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+	});
+
+	QUnit.test( 'Element by node', t => {
+		new Ractive({
+			el: target,
+			template: '<div>foo</div>'
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+	});
+
+	QUnit.test( 'Element by nodelist', t => {
+		new Ractive({
+			el: fixture.querySelectorAll('div'),
+			template: '<div>foo</div>'
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+	});
+
+	QUnit.test( 'Element by any array-like', t => {
+		new Ractive({
+			el: [target],
+			template: '<div>foo</div>'
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+	});
+
+	QUnit.test( 'Default replaces content', t => {
+		new Ractive({
+			el: target,
+			template: '<div>foo</div>'
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+	});
+
+	QUnit.test( 'Default replaces content', t => {
+		new Ractive({
+			el: target,
+			template: '<div>foo</div>'
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+	});
+
+	QUnit.test( 'Append false (normal default) replaces content', t => {
+		new Ractive({
+			el: target,
+			template: '<div>foo</div>',
+			append: false
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+	});
+
+	QUnit.test( 'Append true option inserts as last child node', t => {
+		new Ractive({
+			el: target,
+			template: '<div>foo</div>',
+			append: true
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>bar</div><div>foo</div></div>' );
+	});
+
+	QUnit.test( 'Append with anchor inserts before anchor', t => {
+		new Ractive({
+			el: target,
+			template: '<div>foo</div>',
+			append: child
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div><div>bar</div></div>' );
+	});
+}

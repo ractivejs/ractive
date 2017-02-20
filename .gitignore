@@ -6,20 +6,16 @@ node_modules/
 
 # Debugging directory
 sandbox/*
-!sandbox/_base.html
-!sandbox/_sandbox.css
-!sandbox/sample/
-
-# Temporary directories
-tmp/
-
-# Build directory
-build/
+!sandbox/index.html
 
 # Gobble directories
 .gobble
 .gobble-build
 .gobble-watch
+.build
+.publish
+build
+tmp
 
 # Performance tests
 perf/control/*

@@ -1,0 +1,10 @@
+{
+	"env": {
+		"node": true,
+		"qunit": true
+	},
+	"globals": {
+		"Ractive": true,
+		"fixture": true
+	}
+}
