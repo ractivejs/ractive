@@ -40,7 +40,7 @@ export default class Partial extends MustacheContainer {
 
 		if ( !template ) {
 			super.bind();
-			if ( this.model && ( templateObj = this.model.get() ) && typeof templateObj === 'object' && ( typeof templateObj.template === 'string' || Array.isArray( templateObj.t ) ) ) {
+			if ( ( templateObj = this.model.get() ) && typeof templateObj === 'object' && ( typeof templateObj.template === 'string' || Array.isArray( templateObj.t ) ) ) {
 				if ( templateObj.template ) {
 					this.source = templateObj.template;
 					templateObj = parsePartial( this.template.r, templateObj.template, this.ractive );
@@ -48,7 +48,7 @@ export default class Partial extends MustacheContainer {
 					this.source = templateObj.t;
 				}
 				this.setTemplate( this.template.r, templateObj.t );
-			} else if ( ( !this.model || typeof this.model.get() !== 'string' ) && this.refName ) {
+			} else if ( typeof this.model.get() !== 'string' && this.refName ) {
 				this.setTemplate( this.refName, template );
 			} else {
 				this.setTemplate( this.model.get() );
