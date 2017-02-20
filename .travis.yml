@@ -1,7 +1,7 @@
 sudo: false
 language: node_js
 node_js:
-- node
+- '6'
 cache:
   directories:
   - node_modules
@@ -19,8 +19,7 @@ branches:
   - 0.8
   - dev
 script:
-- npm run build:ci
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then npm run release:ci; fi
+  - set -e; npm i; npm run build:ci; if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then chmod u+x ./scripts/release-ci.sh; ./scripts/release-ci.sh; fi; set +e
 env:
   global:
   - GH_REF: github.com/ractivejs/ractive.git

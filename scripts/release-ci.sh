@@ -1,15 +1,15 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 	echo "$TRAVIS_BRANCH" | grep "^[0-9]\{1,3\}\.[0-9]\{1,3\}$" > /dev/null
 	MAJOR=$?
 	VERSION=$(cat package.json | grep "version" | sed 's/"version": "\(.*\)",/\1/' | sed 's/[[:space:]]//g')
 	VERSION_NUM=$(echo $VERSION | sed 's/[^0-9\./\]//g')
 	echo "$VERSION" | grep "^[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}$" > /dev/null
-	if [ $? == 1 ]; then EDGE=0; else EDGE=1; fi
+	if [ "$?" = "1" ]; then EDGE=0; else EDGE=1; fi
 	TAG="v$(cat package.json | grep "version" | sed 's/"version": "\([0-9]*\.[0-9]\).*",/\1/' | sed 's/[[:space:]]//g')-dev"
 
-	if [[ $EDGE == 0 ]]; then
+	if [ "$EDGE" = "0" ]; then
 		# find the last published build number for this series
 		LAST=$(npm show ractive versions --json | grep "${VERSION_NUM}-build-" | sed -re 's/.*-([0-9]+).*/\1/g' | sort -n | tail -n 1 | grep -v '^$')
 		if [ $? -ne 0 ]; then
@@ -21,7 +21,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 	else
 		TARGET=$VERSION_NUM
 		npm show ractive versions --json | grep "\"$VERSION_NUM\"" > /dev/null
-		if [ $? == 1 ]; then PUBLISHED=0; else PUBLISHED=1; fi
+		if [ "$?" = "1" ]; then PUBLISHED=0; else PUBLISHED=1; fi
 	fi
 
 	echo major:$MAJOR version:$VERSION_NUM tag:$TAG edge:$EDGE last:$LAST target:$TARGET published:$PUBLISHED
@@ -31,7 +31,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 	set -e
 
 	# is this a major branch, not an edge build, and not published?
-	if [[ $MAJOR == 0 && $EDGE == 1 && $PUBLISHED == 0 ]]; then
+	if [ "$MAJOR" = "0" -a "$EDGE" = "1" -a "$PUBLISHED" = "0" ]; then
 		echo 'publishing as stable to npm...'
 
 		( cd .release
@@ -72,7 +72,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 	fi
 
 	# is this a major edge build?
-	if [[ $MAJOR == 0 && $EDGE == 0 ]]; then
+	if [ "$MAJOR" = "0" -a "$EDGE" = "0" ]; then
 		echo 'publishing as major edge build to npm...'
 
 		( cd .release
@@ -86,7 +86,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 	fi
 
 	# is this the dev branch?
-	if [[ "$TRAVIS_BRANCH" == "dev" ]]; then
+	if [ "$TRAVIS_BRANCH" = "dev" ]; then
 		echo 'publishing as unstable edge build to npm...'
 
 		( cd .release
