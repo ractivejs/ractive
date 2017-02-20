@@ -1440,4 +1440,21 @@ export default function() {
 
 		t.equal( JSON.stringify( r.findComponent().get( 'json' ) ), JSON.stringify( { foo: [1,2,3], bar: { baz: true }, bat: 'yep' } ) );
 	});
+
+	test( `mappings don't try to initial a parent computed property that is readonly (#2888)`, t => {
+		const cmp = Ractive.extend({
+			data: { foo: 1 },
+			template: `{{'' + foo}}`
+		});
+		new Ractive({
+			el: fixture,
+			template: '<cmp foo="{{foo}}" />',
+			components: { cmp },
+			computed: {
+				foo () {}
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'undefined' );
+	});
 }
