@@ -1,6 +1,6 @@
 # changelog
 
-# 0.9.0 (unreleased)
+# 0.9.0 (alpha)
 
 * Bug fixes
 	* Observers on uninitialized data may be added during the `config` event (#2725)
@@ -11,7 +11,7 @@
 
 * Breaking changes
 	* All deprecations have been removed, including proxy events with args, un-prefixed method events, decorator="...", transition="...", the ractive.data getter, partial comment definitions, and lifecycle methods like `init` and `beforeInit`.
-	* The template spec is now a bit simpler after the removal of deprecations, and templates parsed with previous versions of Ractive are no longer compatible.
+	* The template spec is now a bit simpler after the removal of deprecations, and **templates parsed with previous versions of Ractive are no longer compatible**.
 	* Partial context (`{{>foo thisIsTheContext}}`) now only applies inside the partial template, meaning it is no longer equivalent to `{{#with thisIsTheContext}}{{>foo}}{{/with}}`. The with is wrapped around the content of `foo`, so that the context doesn't interfere with the partial expression.
 	* Any partial may be yielded, so yielding non-inline partials will no longer warn.
 	* The same partial may be yielded multiple times.
@@ -46,16 +46,18 @@
 	* HTML elements are now exclusively created with a lowercase name.
 	* Keypath expressions are no longer supported, as they are largely redundant with `getNodeInfo` functionality. (`@keypath(../some.ref)` is no longer a valid reference)
 	* Unresolved references will now resolve to the immediate context rather than registering with every available context to be resolved when one of the contexts grows a matching base key.
-	* Event delegates within iterative sections will automatically use delegation (see below).
+	* Event directives within iterative sections will automatically use delegation (see below).
 	* The undocumented `observeList` function has been moved to an option of `observe` (see below).
 	* The `change` lifecycle event has been removed and replaced with recursive observers (see below).
 	* Live element and component queries e.g. `ractive.findAll( 'some selector', { live: true } )` are no longer supported. If you need similar functionality, you can use a specialized decorator for elements or lifecycle events for components.
 	* Linking a keypath that happens to be observed will now cause any observers to fire.
 	* The `event` reference in event directives is deprecated, and all event handlers will now receive a context as their first parameter regardless of whether or not they originated with a DOM event (see below).
-	* `ractive.merge` has been moved to an option of `set` to better reflect what it actually does (hint: it doesn't actulla merge - see below).
+	* `ractive.merge` has been moved to an option of `set` to better reflect what it actually does (hint: it doesn't actually merge - see below).
 	* Components are now isolated by default. You can change the global default by setting `Ractive.defaults.isolated` if you need the old behavior to be the default.
 	* `ractive.runtime.js` is now named `runtime.js`, so if you require it, it is `require('ractive/runtime.js')`.
-	* You can no longer create a component using another component as the options argument to `extend` e.g. `MyComponent.extend(OtherComponent)`. You can still extend a component with one or more options objects e.g. `MyComponent.extend({ ...options }, { ...other }).extend({ ..more })`.
+	* You can no longer create a component using another component as the options argument to `extend` e.g. `MyComponent.extend(OtherComponent)`. You can still extend a component with one or more options objects e.g. `MyComponent.extend({ ...options }, { ...other }).extend({ ...more })`.
+	* `class-` directives are now parsed in an expression context, meaning that mustaches are no longer required. This normalizes templates into two categories: stringy things that require mustaches, and value things that don't. The `style-` directive remains in the stringy category.
+	* The **magic** and **array** adaptors have been removed from core, though they may reappear as plugins.
 
 * New features (experimental - feedback welcome!)
 	* You can now create cross-instance links by passing an options object with a target instance e.g. `this.link('source.path', 'dest.path', { ractive: sourceInstance })`. This covers many of the cases handled by the `ractive-ractive` adaptor in a considerably more efficient manner.
@@ -69,7 +71,7 @@
 	* There is now a special key `data` on special keypaths that resolve to Ractive instances that resolves to the instance's root model. This allows things like `@.root.data.foo` to keep the root instance `foo` reference in sync throughout the component tree.
 	* There is a new Ractive-private shared store, `@shared`. This is roughly the same as `@global`, but it is not susceptible to interference from the global scope.
 	* There is a new option, `resolveInstanceMembers`, which defaults to `true`, and when enabled, it adds the instance scope `@this` to the end of the reference resolution process. This means that as long as there are no conflicting members in the context hierarchy, things like `<button on-click="set('foo', 'bar')">yep</button>` work as expected. Note that if the resolved function will only be bound to the instance if it contains a `this` reference, which can be a little strange if you're debugging.
-	* There is a new option, `warnAboutAmbiguity`, which defaults to `false`, and when set, it will issue a warning any time a reference fails to resolve at all or fails to resolve to a member in the immediate context.
+	* There is a new option, `warnAboutAmbiguity`, which defaults to `false`, and when set, it will issue a warning any time a reference fails to resolve to a member in the immediate context.
 	* API methods can now handle things like `ractive.set('~/foo', 'bar')`, mirroring how context methods for `getNodeInfo` and `event`s are handled. Things like `ractive.set('.foo', 'bar')` will now issue a warning and do nothing rather than creating an incorrect keypath (`<empty string>.foo`).
 	* You can now trigger event listeners in the VDOM from event and node info objects e.g. with `<div on-foo="@global.alert('hello')" >` with `ractive.getNodeInfo('div').raise('foo');` will trigger an alert.
 	* There are two new options available for subscribing events and observers when an instance is created using two new options.
@@ -78,7 +80,7 @@
 		* Both of these options are additive, so any subscriptions defined in component super classes are applied first in sequence from the root of the component class hierarchy down to the options of the instance being created.
 		* The hashes can contain keys that could be passed directly to the matching method e.g. `ractive.on( key, ... )` or `ractive.observe( key, ... )`.
 		* The hashes can contain values that are either a callback function or an object that has a `handler` property that is a callback function. If the object form is used, any additional keys are passed to the method. If a `once` property is supplied and is truthy, then the appropriate single-fire method will be used to subscribe. For instance `observe: { 'foo.* bar': { handler() { ... }, strict: true, once: true, defer: true } }` passed in an options object is equivalent to calling `ractive.observeOnce( 'foo.* bar', function() { ... }, { strict: true, defer: true } )` during the `init` phase of instantiation.
-	* Event listener handles return from `ractive.on( ... )` now have methods to silence and resume the listener. The existing `cancel()` method now has siblings `isSilenced()`, `silence()`, and `resume()`. When a listener is silenced, it will not call its callback.
+	* Event listener handles returned from `ractive.on( ... )` now have methods to silence and resume the listener. The existing `cancel()` method now has siblings `isSilenced()`, `silence()`, and `resume()`. When a listener is silenced, it will not call its callback.
 	* Like event listeners, observer listener handles also have methods to silence and resume the listener. While an observer is silenced, it will still track state changes internally, meaning the old value on the next call after being resumed will be the last value it observed, including those observed while it was silenced. It simply won't fire its callback while it is silenced.
 	* You can now stop component outros from firing while a component is being unrendered by specifying `noOutro: true`, which mirrors the behavior of `noIntro`.
 	* You can now specify whether or not transitions should occur if they are on a child element of another transitioning element by using:
@@ -104,6 +106,7 @@
 		* `@node` is the DOM node to which the event directive is attached.
 	* You can now re-proxy an event from an event directive expression by returning a single array with a `string` first element e.g. `<button on-click="['foo', arg1, arg2]">`, which is the equivalent of `@this.fire('foo', @context, arg1, arg2)`.
 	* You can now use an existing class, be it ES5, ES6, or any other conforming implementation, using `Ractive.extendWith( MyClass, { ...extendOpts } )`. This allows `class Foo { constructor( opts ) { super( opts ); /* other init */ }, someMethod () { ... }, ... }` to be turned into a Ractive component.
+	* To complete the split of template handling in to stringy mustaches and non-stringy expression values, the `bind-` directive has been introduced to bind an attribute value without mustaches e.g. `<input value="{{foo}}" />` is the same as `<input bind-value="foo" />`. This can be used with components to create mappings to same-named values in the current context e.g. `<component bind-item />`.
 
 * New features (stable)
 	* `target` is now an alias for `el` when creating a Ractive instance.
@@ -120,6 +123,13 @@
 	* Triples now support progressive enhancement, mostly using `outerHTML` to compare the target nodes to what should be rendered.
 	* The `css` option for components can now specify an element or selector, and the `textContent` of the element will supply the value.
 	* You can specify `{ force: true }` to `ractive.update` to force the target keypath to update event if internal checks determine that the value has not changed. This is useful for causing re-evaluation of all references to a function.
+
+
+# 0.8.11
+
+* Bug fixes
+	* Component CSS now handles keyframes more gracefully (#2854)
+	* Triples won't decode their entity refs unless they're in an attribute (#2882)
 
 
 # 0.8.10
