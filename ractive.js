@@ -1,6 +1,6 @@
 /*
-	Ractive.js v0.8.10
-	Wed Jan 25 2017 20:20:21 GMT+0000 (UTC) - commit b27c84593338c4fe29df2729d1561ed6e5f6b33c
+	Ractive.js v0.8.11
+	Mon Feb 20 2017 08:44:41 GMT+0000 (UTC) - commit 2220e19d2fdfd5d046ef146496322c5c6df663c9
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -428,13 +428,13 @@
 	var welcome;
 	if ( hasConsole ) {
 		var welcomeIntro = [
-			("%cRactive.js %c0.8.10 %cin debug mode, %cmore..."),
+			("%cRactive.js %c0.8.11 %cin debug mode, %cmore..."),
 			'color: rgb(114, 157, 52); font-weight: normal;',
 			'color: rgb(85, 85, 85); font-weight: normal;',
 			'color: rgb(85, 85, 85); font-weight: normal;',
 			'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 		];
-		var welcomeMessage = "You're running Ractive 0.8.10 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+		var welcomeMessage = "You're running Ractive 0.8.11 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
 		welcome = function () {
 			if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -4697,9 +4697,30 @@
 		return c;
 	}
 
-	var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g;
-	var commentsPattern = /\/\*[\s\S]*?\*\//g;
-	var selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>~:]))+)((?:::?[^\s\+\>\~\(:]+(?:\([^\)]+\))?)*\s*[\s\+\>\~]?)\s*/g;
+	var remove = /\/\*(?:[\s\S]*?)\*\//g;
+	var escape = /url\(\s*(['"])(?:\\[\s\S]|(?!\1).)*\1\s*\)|url\((?:\\[\s\S]|[^)])*\)|(['"])(?:\\[\s\S]|(?!\2).)*\2/gi;
+	var value = /\0(\d+)/g;
+
+	// Removes comments and strings from the given CSS to make it easier to parse.
+	// Callback receives the cleaned CSS and a function which can be used to put
+	// the removed strings back in place after parsing is done.
+	function cleanCss ( css, callback, additionalReplaceRules ) {
+		if ( additionalReplaceRules === void 0 ) additionalReplaceRules = [];
+
+		var values = [];
+		var reconstruct = function ( css ) { return css.replace( value, function ( match, n ) { return values[ n ]; } ); };
+		css = css.replace( escape, function ( match ) { return ("\u0000" + (values.push( match ) - 1)); }).replace( remove, '' );
+
+		additionalReplaceRules.forEach( function ( pattern ) {
+			css = css.replace( pattern, function ( match ) { return ("\u0000" + (values.push( match ) - 1)); } );
+		});
+
+		return callback( css, reconstruct );
+	}
+
+	var selectorsPattern = /(?:^|\}|\{)\s*([^\{\}\0]+)\s*(?=\{)/g;
+	var keyframesDeclarationPattern = /@keyframes\s+[^\{\}]+\s*\{(?:[^{}]+|\{[^{}]+})*}/gi;
+	var selectorUnitPattern = /((?:(?:\[[^\]]+\])|(?:[^\s\+\>~:]))+)((?:::?[^\s\+\>\~\(:]+(?:\([^\)]+\))?)*\s*[\s\+\>\~]?)\s*/g;
 	var excludePattern = /^(?:@|\d+%)/;
 	var dataRvcGuidPattern = /\[data-ractive-css~="\{[a-z0-9-]+\}"]/g;
 
@@ -4754,19 +4775,21 @@
 		if ( dataRvcGuidPattern.test( css ) ) {
 			transformed = css.replace( dataRvcGuidPattern, dataAttr );
 		} else {
-			transformed = css
-			.replace( commentsPattern, '' )
-			.replace( selectorsPattern, function ( match, $1 ) {
-				// don't transform at-rules and keyframe declarations
-				if ( excludePattern.test( $1 ) ) return match;
+			transformed = cleanCss( css, function ( css, reconstruct ) {
+				css = css.replace( selectorsPattern, function ( match, $1 ) {
+					// don't transform at-rules and keyframe declarations
+					if ( excludePattern.test( $1 ) ) return match;
 
-				var selectors = $1.split( ',' ).map( trim$1 );
-				var transformed = selectors
-					.map( function ( selector ) { return transformSelector( selector, dataAttr ); } )
-					.join( ', ' ) + ' ';
+					var selectors = $1.split( ',' ).map( trim$1 );
+					var transformed = selectors
+						.map( function ( selector ) { return transformSelector( selector, dataAttr ); } )
+						.join( ', ' ) + ' ';
 
-				return match.replace( $1, transformed );
-			});
+					return match.replace( $1, transformed );
+				});
+
+				return reconstruct( css );
+			}, [ keyframesDeclarationPattern ]);
 		}
 
 		return transformed;
@@ -9466,20 +9489,20 @@
 	}
 
 	var space = /\s+/;
-	var remove = /\/\*(?:[\s\S]*?)\*\//g;
-	var escape = /url\(\s*(['"])(?:\\[\s\S]|(?!\1).)*\1\s*\)|url\((?:\\[\s\S]|[^)])*\)|(['"])(?:\\[\s\S]|(?!\1).)*\2/gi;
-	var value = /\0(\d+)/g;
+	var remove$1 = /\/\*(?:[\s\S]*?)\*\//g;
+	var escape$1 = /url\(\s*(['"])(?:\\[\s\S]|(?!\1).)*\1\s*\)|url\((?:\\[\s\S]|[^)])*\)|(['"])(?:\\[\s\S]|(?!\1).)*\2/gi;
+	var value$1 = /\0(\d+)/g;
 
 	function readStyle ( css ) {
 		var values = [];
 
 		if ( typeof css !== 'string' ) return {};
 
-		return css.replace( escape, function ( match ) { return ("\u0000" + (values.push( match ) - 1)); })
-			.replace( remove, '' )
+		return css.replace( escape$1, function ( match ) { return ("\u0000" + (values.push( match ) - 1)); })
+			.replace( remove$1, '' )
 			.split( ';' )
 			.filter( function ( rule ) { return !!rule.trim(); } )
-			.map( function ( rule ) { return rule.replace( value, function ( match, n ) { return values[ n ]; } ); } )
+			.map( function ( rule ) { return rule.replace( value$1, function ( match, n ) { return values[ n ]; } ); } )
 			.reduce(function ( rules, rule ) {
 				var i = rule.indexOf(':');
 				var name = rule.substr( 0, i ).trim();
@@ -9864,6 +9887,9 @@
 		return namespaces[ prefix ];
 	}
 
+	var attribute = false;
+	function inAttribute () { return attribute; }
+
 	var Attribute = (function (Item) {
 		function Attribute ( options ) {
 			Item.call( this, options );
@@ -9924,15 +9950,21 @@
 		};
 
 		Attribute.prototype.getString = function getString () {
-			return this.fragment ?
+			attribute = true;
+			var value = this.fragment ?
 				this.fragment.toString() :
 				this.value != null ? '' + this.value : '';
+			attribute = false;
+			return value;
 		};
 
 		// TODO could getValue ever be called for a static attribute,
 		// or can we assume that this.fragment exists?
 		Attribute.prototype.getValue = function getValue () {
-			return this.fragment ? this.fragment.valueOf() : booleanAttributes.test( this.name ) ? true : this.value;
+			attribute = true;
+			var value = this.fragment ? this.fragment.valueOf() : booleanAttributes.test( this.name ) ? true : this.value;
+			attribute = false;
+			return value;
 		};
 
 		Attribute.prototype.render = function render () {
@@ -9973,6 +10005,8 @@
 		};
 
 		Attribute.prototype.toString = function toString () {
+			attribute = true;
+
 			var value = this.getValue();
 
 			// Special case - select and textarea values (should not be stringified)
@@ -10004,6 +10038,8 @@
 			if ( value == null ) return '';
 
 			var str = safeAttributeString( this.getString() );
+			attribute = false;
+
 			return str ?
 				("" + (this.name) + "=\"" + str + "\"") :
 				this.name;
@@ -15952,7 +15988,10 @@
 		};
 
 		Triple.prototype.toString = function toString () {
-			return this.model && this.model.get() != null ? decodeCharacterReferences( '' + this.model.get() ) : '';
+			var value = this.model && this.model.get();
+			value = value != null ? '' + value : '';
+
+			return inAttribute() ? decodeCharacterReferences( value ) : value;
 		};
 
 		Triple.prototype.unrender = function unrender () {
@@ -17048,7 +17087,7 @@
 		magic:          { value: magicSupported },
 
 		// version
-		VERSION:        { value: '0.8.10' },
+		VERSION:        { value: '0.8.11' },
 
 		// plugins
 		adaptors:       { writable: true, value: {} },
