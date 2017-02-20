@@ -1,6 +1,5 @@
 import { INTERPOLATOR } from '../../../config/types';
 import Item from '../shared/Item';
-import { warnOnceIfDebug } from '../../../utils/log';
 import Fragment from '../../Fragment';
 import findElement from '../shared/findElement';
 import parseJSON from '../../../utils/parseJSON';
@@ -78,12 +77,6 @@ function createMapping ( item ) {
 
 	if ( template.length === 1 && template[0].t === INTERPOLATOR ) {
 		item.model = resolve( item.parentFragment, template[0] );
-
-		if ( !item.model ) {
-			warnOnceIfDebug( `The ${item.name}='{{${template[0].r}}}' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity`, { ractive: item.element.instance }); // TODO add docs page explaining item
-			item.parentFragment.ractive.get( item.name ); // side-effect: create mappings as necessary
-			item.model = item.parentFragment.findContext().joinKey( item.name );
-		}
 
 		item.link = viewmodel.createLink( item.name, item.model, template[0].r );
 
