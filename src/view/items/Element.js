@@ -153,8 +153,10 @@ export default class Element extends ContainerItem {
 	}
 
 	getContext ( ...assigns ) {
+		if ( this.fragment ) return this.fragment.getContext( ...assigns );
+
 		if ( !this.ctx ) this.ctx = new Context( this.parentFragment, this );
-		assigns.unshift( this.ctx );
+		assigns.unshift( Object.create( this.ctx ) );
 		return Object.assign.apply( null, assigns );
 	}
 

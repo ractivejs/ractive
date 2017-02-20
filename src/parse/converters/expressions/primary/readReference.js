@@ -9,7 +9,7 @@ const globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|enco
 const keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
 
 const prefixPattern = /^(?:\@\.|\@|~\/|(?:\^\^\/(?:\^\^\/)*(?:\.\.\/)*)|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/;
-const specials = /^(key|index|keypath|rootpath|this|global|shared|context|event|node)/;
+const specials = /^(key|index|keypath|rootpath|this|global|shared|context|event|node|data)/;
 
 export default function readReference ( parser ) {
 	let prefix, name, global, reference, lastDotIndex;
