@@ -38,6 +38,7 @@ Ractive.defaults = Ractive.prototype;
 
 // share defaults with the parser
 shared.defaults = Ractive.defaults;
+shared.Ractive = Ractive;
 
 // static properties
 Object.defineProperties( Ractive, {

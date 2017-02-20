@@ -1,4 +1,5 @@
 import { TEMPLATE_VERSION } from '../config/template';
+import { ELEMENT } from '../config/types';
 import Parser from './Parser';
 import readMustache from './converters/readMustache';
 import readTriple from './converters/mustache/readTriple';
@@ -69,6 +70,8 @@ const StandardParser = Parser.extend({
 		this.includeLinePositions = options.includeLinePositions;
 		this.textOnlyMode = options.textOnlyMode;
 		this.csp = options.csp;
+
+		this.transforms = options.transforms || options.parserTransforms || shared.defaults.parserTransforms;
 	},
 
 	postProcess ( result ) {
@@ -87,6 +90,42 @@ const StandardParser = Parser.extend({
 			const expr = {};
 			insertExpressions( result[0].t, expr );
 			if ( Object.keys( expr ).length ) result[0].e = expr;
+		}
+
+		const transforms = this.transforms;
+		if ( transforms && transforms.length ) {
+			const tlen = transforms.length;
+			const walk = function ( fragment ) {
+				let len = fragment.length;
+
+				for ( let i = 0; i < len; i++ ) {
+					let node = fragment[i];
+
+					if ( node.t === ELEMENT ) {
+						for ( let j = 0; j < tlen; j++ ) {
+							const res = transforms[j].call( shared.Ractive, node );
+							if ( !res ) {
+								continue;
+							} else if ( res.remove ) {
+								fragment.splice( i--, 1 );
+								len--;
+								break;
+							} else if ( res.replace ) {
+								if ( Array.isArray( res.replace ) ) {
+									fragment.splice( i--, 1, ...res.replace );
+									len += res.replace.length - 1;
+									break;
+								} else {
+									fragment[i] = node = res.replace;
+								}
+							}
+						}
+					}
+
+					if ( node.f ) walk( node.f );
+				}
+			};
+			walk( result[0].t );
 		}
 
 		return result[0];
