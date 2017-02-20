@@ -88,7 +88,7 @@ function createMapping ( item ) {
 
 		item.link = viewmodel.createLink( item.name, item.model, template[0].r );
 
-		if ( item.model.get() === undefined && item.name in childData ) {
+		if ( item.model.get() === undefined && !item.model.isReadonly && item.name in childData ) {
 			item.model.set( childData[ item.name ] );
 		}
 	}
