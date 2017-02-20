@@ -40,24 +40,28 @@ module.exports = ({
 	'dev:browser'() {
 		const lib = buildUmdLib('ractive.js', []);
 		const tests = buildBrowserTests();
+		const polyfills = buildUmdPolyfill();
 		return gobble([lib, polyfills, tests, sandbox, qunit]);
 	},
 	'production'() {
-		// Build the bundles
 		const libEsFull = buildESLib('ractive.mjs', []);
 		const libEsRuntime = buildESLib('runtime.mjs', runtimeModulesToIgnore);
+
 		const libUmdFull = buildUmdLib('ractive.js', []);
 		const libUmdRuntime = buildUmdLib('runtime.js', runtimeModulesToIgnore);
 
-		// Grouping and optimizations
 		const libEs = gobble([libEsFull, libEsRuntime]);
 		const libUmd = gobble([libUmdFull, libUmdRuntime]);
 		const libUmdMin = libUmd.transform(hoistProps).transform('uglifyjs', { ext: '.min.js', preamble: banner });
 
+		const polyfillEs = buildESPolyfill();
+		const polyfillUmd = buildUmdPolyfill();
+		const polyfillUmdMin = polyfillUmd.transform(hoistProps).transform('uglifyjs', { ext: '.min.js' });
+
 		const browserTests = buildBrowserTests();
 		const nodeTests = buildNodeTests();
 
-		return gobble([libEs, libUmd, libUmdMin, qunit, browserTests, nodeTests, bin, lib, typings, manifest, polyfills]);
+		return gobble([libEs, libUmd, libUmdMin, polyfillEs, polyfillUmd, polyfillUmdMin, qunit, browserTests, nodeTests, bin, lib, typings, manifest]);
 	}
 })[gobble.env()]();
 
@@ -69,9 +73,9 @@ module.exports = ({
 function buildUmdLib(dest, excludedModules) {
 	return src.transform('rollup', {
 		plugins: [skipModule(excludedModules)],
+		moduleName: 'Ractive',
 		format: 'umd',
 		entry: 'src/Ractive.js',
-		moduleName: 'Ractive',
 		dest: dest,
 		banner: banner,
 		noConflict: true
@@ -84,7 +88,6 @@ function buildESLib(dest, excludedModules) {
 		plugins: [skipModule(excludedModules)],
 		format: 'es',
 		entry: 'src/Ractive.js',
-		moduleName: 'Ractive',
 		dest: dest,
 		banner: banner
 	});
@@ -98,10 +101,10 @@ function buildBrowserTests() {
 	])
 		.transform(copy)
 		.transform('rollup', {
+			moduleName: 'RactiveBrowserTests',
 			format: 'iife',
 			entry: 'tests.js',
 			dest: 'browser.js',
-			moduleName: 'RactiveBrowserTests',
 			globals: {
 				qunit: 'QUnit',
 				simulant: 'simulant'
@@ -123,6 +126,23 @@ function buildNodeTests() {
 			dest: 'node.js',
 			external: ['qunitjs', 'cheerio']
 		}).moveTo('tests');
+}
+
+function buildUmdPolyfill() {
+	return polyfills.transform('rollup', {
+		moduleName: 'RactivePolyfills',
+		format: 'umd',
+		entry: 'polyfills.js',
+		dest: 'polyfills.js'
+	});
+}
+
+function buildESPolyfill() {
+	return polyfills.transform('rollup', {
+		format: 'es',
+		entry: 'polyfills.js',
+		dest: 'polyfills.mjs'
+	});
 }
 
 /* Rollup plugins */
