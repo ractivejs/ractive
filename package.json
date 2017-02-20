@@ -30,6 +30,7 @@
     "qunitjs": "^2.1.1"
   },
   "scripts": {
+    "start": "gobble --env=dev:browser serve",
     "dev:browser": "gobble --env=dev:browser serve",
     "dev:node": "",
     "dev:bin": "",

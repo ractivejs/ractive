@@ -36,6 +36,10 @@ const typings = gobble('typings').moveTo('typings');
 const sandbox = gobble('sandbox');
 const polyfills = src.transform(copy, { dir: 'src' }).include(['polyfills.js']);
 
+const hoistOpts = { whitelist: [ 'prototype' ], replace: Object.create( null ) };
+hoistOpts.replace.parentFragment = 'pf';
+hoistOpts.replace.allowWhitespace = 'sp';
+
 module.exports = ({
 	'dev:browser'() {
 		const lib = buildUmdLib('ractive.js', []);
@@ -52,11 +56,11 @@ module.exports = ({
 
 		const libEs = gobble([libEsFull, libEsRuntime]);
 		const libUmd = gobble([libUmdFull, libUmdRuntime]);
-		const libUmdMin = libUmd.transform(hoistProps).transform('uglifyjs', { ext: '.min.js', preamble: banner });
+		const libUmdMin = libUmd.transform(hoistProps, hoistOpts).transform('uglifyjs', { ext: '.min.js', preamble: banner });
 
 		const polyfillEs = buildESPolyfill();
 		const polyfillUmd = buildUmdPolyfill();
-		const polyfillUmdMin = polyfillUmd.transform(hoistProps).transform('uglifyjs', { ext: '.min.js' });
+		const polyfillUmdMin = polyfillUmd.transform(hoistProps, hoistOpts).transform('uglifyjs', { ext: '.min.js' });
 
 		const browserTests = buildBrowserTests();
 		const nodeTests = buildNodeTests();
@@ -155,7 +159,7 @@ function skipModule(excludedModules) {
 		transform: function (src, modulePath) {
 			// Gobble has a predictable directory structure of gobble/transform/number
 			// so we slice at 3 to slice relative to project root.
-			const moduleRelativePath = path.relative(__dirname, modulePath).split('\\').slice(3).join('/');
+			const moduleRelativePath = path.relative(__dirname, modulePath).split(path.sep).slice(3).join(path.sep);
 			return excludedModules.indexOf(moduleRelativePath) > -1 ? 'export default null;' : src;
 		}
 	};
