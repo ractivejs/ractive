@@ -1,53 +1,54 @@
+const { module, test } = QUnit;
 import parseTests from '../helpers/samples/parse';
 
 export default function(){
 
-	QUnit.module( 'Ractive.parse()' );
+	module( 'Ractive.parse()' );
 
-	parseTests.forEach( test => {
+	parseTests.forEach( parseTest => {
 
 		// disable for tests unless explicitly specified
 		// we can just test the signatures, so set csp false
-		test.options = test.options || { csp: false };
-		if ( !test.options.hasOwnProperty( 'csp' ) ) {
-			test.options.csp = false;
+		parseTest.options = parseTest.options || { csp: false };
+		if ( !parseTest.options.hasOwnProperty( 'csp' ) ) {
+			parseTest.options.csp = false;
 		}
 
-		QUnit.test( test.name, t => {
-			if (test.error) {
+		test( parseTest.name, t => {
+			if ( parseTest.error ) {
 				t.throws( () => {
-					Ractive.parse( test.template, test.options );
+					Ractive.parse( parseTest.template, parseTest.options );
 				}, error => {
-					if (error.name !== 'ParseError') {
+					if ( error.name !== 'ParseError' ) {
 						throw error;
 					}
-					if ( test.error.test ) {
-						t.ok( test.error.test( error.message ) );
+					if ( parseTest.error.test ) {
+						t.ok( parseTest.error.test( error.message ) );
 					} else {
-						t.equal( error.message, test.error );
+						t.equal( error.message, parseTest.error );
 					}
 					return true;
 				}, 'Expected ParseError');
 			} else {
-				const parsed = Ractive.parse( test.template, test.options );
+				const parsed = Ractive.parse( parseTest.template, parseTest.options );
 
-				if (parsed.e && test.parsed.e) {
-					const expectedKeys = Object.keys(test.parsed.e);
-					const parsedKeys = Object.keys(parsed.e);
+				if ( parsed.e && parseTest.parsed.e ) {
+					const expectedKeys = Object.keys( parseTest.parsed.e) ;
+					const parsedKeys = Object.keys( parsed.e );
 
 					t.deepEqual(parsedKeys, expectedKeys);
 
 					expectedKeys.forEach(key => {
 						// normalize function whitepace for browser vs phantomjs
-						const actual = parsed.e[key].toString().replace(') \{', ')\{');
-						t.equal(actual, test.parsed.e[key]);
+						const actual = parsed.e[key].toString().replace( ') \{', ')\{' );
+						t.equal( actual, parseTest.parsed.e[key] );
 					});
 
 					delete parsed.e;
-					delete test.parsed.e;
+					delete parseTest.parsed.e;
 				}
 
-				t.deepEqual( parsed, test.parsed );
+				t.deepEqual( parsed, parseTest.parsed );
 			}
 		});
 	});

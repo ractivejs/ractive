@@ -1,10 +1,11 @@
 import { fire } from 'simulant';
 import { initModule } from '../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'forms.js' );
 
-	QUnit.test( 'Resetting a form resets an input with two-way binding', t => {
+	test( 'Resetting a form resets an input with two-way binding', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -27,7 +28,7 @@ export default function() {
 		t.equal( ractive.get( 'value' ), 'foo' );
 	});
 
-	QUnit.test( 'Resetting a form resets widgets with one-way bindings', t => {
+	test( 'Resetting a form resets widgets with one-way bindings', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -66,7 +67,7 @@ export default function() {
 		t.equal( nodes.textarea.value, 'qwert' );
 	});
 
-	QUnit.test( 'Resetting a form resets widgets with no bindings', t => {
+	test( 'Resetting a form resets widgets with no bindings', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -104,7 +105,7 @@ export default function() {
 		t.equal( nodes.textarea.value, 'qwert' );
 	});
 
-	QUnit.test( 'textarea with html content and no bindings should render the html text as a normal textarea would (#2198)', t => {
+	test( 'textarea with html content and no bindings should render the html text as a normal textarea would (#2198)', t => {
 		new Ractive({
 			el: fixture,
 			template: '<textarea><div class="foo"><strong>bar</strong></div><p>WAT</p></textarea>'
@@ -113,7 +114,7 @@ export default function() {
 		t.equal( fixture.querySelector( 'textarea' ).value, '<div class="foo"><strong>bar</strong></div><p>WAT</p>' );
 	});
 
-	QUnit.test( 'textareas without binding allow any template content (#2063)', t => {
+	test( 'textareas without binding allow any template content (#2063)', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '<textarea><i>{{foo}}</i>{{bar}} {{{baz}}}</textarea>',
@@ -129,7 +130,7 @@ export default function() {
 		t.equal( fixture.querySelector( 'textarea' ).value, '<i>change1</i>change2 <strong>change3</strong>' );
 	});
 
-	QUnit.test( 'input that has binding change to undefined should be blank (#2279)', t => {
+	test( 'input that has binding change to undefined should be blank (#2279)', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '<input value="{{foo}}" />'
@@ -140,7 +141,7 @@ export default function() {
 		t.equal( r.find( 'input' ).value, '' );
 	});
 
-	QUnit.test( 'forms should unrender properly #2352', t => {
+	test( 'forms should unrender properly #2352', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: 'foo: {{#if foo}}<form>Yep</form>{{/if}}',

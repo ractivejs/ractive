@@ -1,9 +1,10 @@
 import { hasUsableConsole, onWarn, onLog, initModule } from '../../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'init/hooks/misc.js' );
 
-	QUnit.test( 'detach and insert hooks fire', t => {
+	test( 'detach and insert hooks fire', t => {
 		const fired = [];
 
 		const ractive = new Ractive({
@@ -23,7 +24,7 @@ export default function() {
 		t.deepEqual( fired, [ 'ondetach', 'oninsert' ] );
 	});
 
-	QUnit.test( 'late-comer components on render still fire init', t => {
+	test( 'late-comer components on render still fire init', t => {
 		const Widget = Ractive.extend({
 			template: '{{~/init}}',
 			oninit () {
@@ -47,7 +48,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'yes' );
 	});
 
-	QUnit.test( 'component with data dependency can be found in oninit', t => {
+	test( 'component with data dependency can be found in oninit', t => {
 		const Component = Ractive.extend();
 		let component = null;
 
@@ -62,7 +63,7 @@ export default function() {
 		t.ok( component );
 	});
 
-	QUnit.test( 'render hooks are not fired until after DOM updates (#1367)', t => {
+	test( 'render hooks are not fired until after DOM updates (#1367)', t => {
 		t.expect( 0 );
 
 		const ractive = new Ractive({
@@ -92,7 +93,7 @@ export default function() {
 		ractive.set( 'bool', true );
 	});
 
-	QUnit.test( 'correct behaviour of deprecated beforeInit hook (#1395)', t => {
+	test( 'correct behaviour of deprecated beforeInit hook (#1395)', t => {
 		t.expect( 6 );
 
 		let count;
@@ -136,7 +137,7 @@ export default function() {
 	});
 
 	if ( hasUsableConsole ) {
-		QUnit.test( 'error in oncomplete sent to console', t => {
+		test( 'error in oncomplete sent to console', t => {
 			t.expect( 2 );
 
 			const done = t.async();
@@ -168,7 +169,7 @@ export default function() {
 		});
 	}
 
-	QUnit.test( 'hooks include the source ractive instance as the last argument', t => {
+	test( 'hooks include the source ractive instance as the last argument', t => {
 		const done = t.async();
 		t.expect( 3 );
 

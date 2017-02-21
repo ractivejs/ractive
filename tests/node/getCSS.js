@@ -1,3 +1,5 @@
+const { module, test } = QUnit;
+
 function createComponentDefinition( Ractive ) {
 
 	return Ractive.extend( {
@@ -7,9 +9,9 @@ function createComponentDefinition( Ractive ) {
 
 export default function(){
 
-	QUnit.module( 'ractive.toCSS()' );
+	module( 'ractive.toCSS()' );
 
-	QUnit.test( 'should render CSS with a single component definition', t => {
+	test( 'should render CSS with a single component definition', t => {
 
 		const Component = createComponentDefinition( Ractive );
 
@@ -19,7 +21,7 @@ export default function(){
 		t.ok( !!~css.indexOf( '.green[data-ractive-css~="{' + cssId + '}"], [data-ractive-css~="{' + cssId + '}"] .green', '.green selector for ' + cssId + ' should exist' ) );
 	} );
 
-	QUnit.test( 'should render CSS with multiple components definition', t => {
+	test( 'should render CSS with multiple components definition', t => {
 
 		const ComponentA = createComponentDefinition( Ractive );
 

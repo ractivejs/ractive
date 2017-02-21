@@ -1,9 +1,10 @@
 import { hasUsableConsole, onWarn, initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'init/extend.js' );
 
-	QUnit.test( 'multiple options arguments applied left to right', t => {
+	test( 'multiple options arguments applied left to right', t => {
 		const X = Ractive.extend({
 			template: 'ignore',
 			data: { foo: 'foo' }
@@ -24,7 +25,7 @@ export default function() {
 		t.equal( ractive.template, 'good' );
 	});
 
-	QUnit.test( 'data is inherited from grand parent extend (#923)', t => {
+	test( 'data is inherited from grand parent extend (#923)', t => {
 		const Child = Ractive.extend({
 			append: true,
 			template: 'title:{{format(title)}}',
@@ -50,7 +51,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'title:CHILDtitle:GRANDCHILD' );
 	});
 
-	QUnit.test( 'instantiated .extend() component with data function called on initialize', t => {
+	test( 'instantiated .extend() component with data function called on initialize', t => {
 		const data = { foo: 'bar' };
 
 		const Component = Ractive.extend({
@@ -61,7 +62,7 @@ export default function() {
 		t.strictEqual( ractive.viewmodel.value, data );
 	});
 
-	QUnit.test( 'extend data option includes Ractive defaults.data', t => {
+	test( 'extend data option includes Ractive defaults.data', t => {
 		const defaultData = Ractive.defaults.data;
 		Ractive.defaults.data = {
 			format () { return 'default'; },
@@ -89,7 +90,7 @@ export default function() {
 		Ractive.defaults.data = defaultData;
 	});
 
-	QUnit.test( 'instantiated .extend() with template function called on initialize', t => {
+	test( 'instantiated .extend() with template function called on initialize', t => {
 		const Component = Ractive.extend({
 			template () { return '{{foo}}'; }
 		});
@@ -102,7 +103,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'bar' );
 	});
 
-	QUnit.test( 'extend template replaces Ractive defaults.template', t => {
+	test( 'extend template replaces Ractive defaults.template', t => {
 		const defaultTemplate = Ractive.defaults.template;
 		Ractive.defaults.template = function () { return '{{fizz}}'; };
 
@@ -120,7 +121,7 @@ export default function() {
 		Ractive.defaults.template = defaultTemplate;
 	});
 
-	QUnit.test( '"this" refers to ractive instance in init method with _super (#840)', t => {
+	test( '"this" refers to ractive instance in init method with _super (#840)', t => {
 		t.expect( 4 );
 
 		let cThis;
@@ -149,7 +150,7 @@ export default function() {
 	});
 
 
-	QUnit.test( '"parent" and "root" properties are correctly set', t => {
+	test( '"parent" and "root" properties are correctly set', t => {
 		const GrandChild = Ractive.extend({
 			template: 'this space for rent'
 		});
@@ -179,7 +180,7 @@ export default function() {
 	});
 
 	if ( hasUsableConsole ) {
-		QUnit.test( 'data function returning wrong value causes error/warning', t => {
+		test( 'data function returning wrong value causes error/warning', t => {
 			// non-objects are an error
 			const Bad = Ractive.extend({
 				data () {
@@ -206,7 +207,7 @@ export default function() {
 		});
 	}
 
-	QUnit.test( 'children inherit subscribers', t => {
+	test( 'children inherit subscribers', t => {
 		t.expect( 7 );
 
 		const cmp = Ractive.extend({
@@ -235,7 +236,7 @@ export default function() {
 		r.toggle( 'bar' );
 	});
 
-	QUnit.test( `an existing constructor can be specified using the class option`, t => {
+	test( `an existing constructor can be specified using the class option`, t => {
 		class Foo extends Ractive {
 			constructor ( opts ) {
 				super( opts );
@@ -258,7 +259,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'hello, classy' );
 	});
 
-	QUnit.test( `existing constructors supplied to extend should inherit from Ractive`, t => {
+	test( `existing constructors supplied to extend should inherit from Ractive`, t => {
 		t.expect( 1 );
 
 		class Foo {}
@@ -268,7 +269,7 @@ export default function() {
 		}, /inherit the appropriate prototype/ );
 	});
 
-	QUnit.test( `existing constructors supplied to extend should call super`, t => {
+	test( `existing constructors supplied to extend should call super`, t => {
 		t.expect( 1 );
 
 		class Foo extends Ractive {}
@@ -278,7 +279,7 @@ export default function() {
 		}, /call super/ );
 	});
 
-	QUnit.test( `multiple construction objects with functions passed to extend are layered correctly`, t => {
+	test( `multiple construction objects with functions passed to extend are layered correctly`, t => {
 		t.expect( 5 );
 
 		let count = 0;
@@ -316,7 +317,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '1 2' );
 	});
 
-	QUnit.test( `trying to extend with a component  arg throws`, t => {
+	test( `trying to extend with a component  arg throws`, t => {
 		const cmp = Ractive.extend();
 		t.throws( () => {
 			Ractive.extend( cmp );

@@ -1,9 +1,10 @@
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'methods/attachChild.js' );
 
-	QUnit.test( 'child instances can be attached to an anchor', t => {
+	test( 'child instances can be attached to an anchor', t => {
 		const r1 = new Ractive({
 			template: '<#foo />',
 			el: fixture
@@ -17,7 +18,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'hello' );
 	});
 
-	QUnit.test( 'targeted child instances are rendered and unrendered with their anchor', t => {
+	test( 'targeted child instances are rendered and unrendered with their anchor', t => {
 		const r1 = new Ractive({
 			template: '{{#if show}}<#foo />{{/if}}',
 			el: fixture
@@ -35,7 +36,7 @@ export default function() {
 		t.equal( fixture.innerHTML, '' );
 	});
 
-	QUnit.test( 'non-targeted instances stay where they are when attached', t => {
+	test( 'non-targeted instances stay where they are when attached', t => {
 		fixture.innerHTML = '<div id="r1"></div><div id="r2"></div>';
 		const r1 = new Ractive({
 			el: fixture.children[0],
@@ -51,7 +52,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="r1">r1</div><div id="r2">r2</div>' );
 	});
 
-	QUnit.test( 'targeted instances are unrendered before being attached', t => {
+	test( 'targeted instances are unrendered before being attached', t => {
 		fixture.innerHTML = '<div id="r1"></div><div id="r2"></div>';
 		const r1 = new Ractive({
 			el: fixture.children[0],
@@ -67,7 +68,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="r1">r1r2</div><div id="r2"></div>' );
 	});
 
-	QUnit.test( 'targeted instances are unrendered event if their anchor doesn\'t exist when attached', t => {
+	test( 'targeted instances are unrendered event if their anchor doesn\'t exist when attached', t => {
 		fixture.innerHTML = '<div id="r1"></div><div id="r2"></div>';
 		const r1 = new Ractive({
 			el: fixture.children[0],
@@ -83,7 +84,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="r1">r1</div><div id="r2"></div>' );
 	});
 
-	QUnit.test( 'anchors render the attached chile with an index corresponding to their position in the template', t => {
+	test( 'anchors render the attached chile with an index corresponding to their position in the template', t => {
 		const r1 = new Ractive({
 			template: '<#foo />',
 			el: fixture
@@ -106,7 +107,7 @@ export default function() {
 		t.equal( fixture.innerHTML, '' );
 	});
 
-	QUnit.test( 'same-named anchors distribute multiple attached children in template order by attached index', t => {
+	test( 'same-named anchors distribute multiple attached children in template order by attached index', t => {
 		const r1 = new Ractive({
 			template: '{{#each @this.children.byName.foo}}<#foo />{{/each}}',
 			el: fixture
@@ -129,7 +130,7 @@ export default function() {
 		t.equal( fixture.innerHTML, '' );
 	});
 
-	QUnit.test( 'attached children\'s events bubble to the parent', t => {
+	test( 'attached children\'s events bubble to the parent', t => {
 		fixture.innerHTML = '<div id="r1"></div><div id="r2"></div>';
 		const r1 = new Ractive({
 			el: fixture.children[0],
@@ -153,7 +154,7 @@ export default function() {
 		t.equal( count, 2 );
 	});
 
-	QUnit.test( 'attaching an already attached child throws an appropriate error', t => {
+	test( 'attaching an already attached child throws an appropriate error', t => {
 		const r1 = new Ractive({});
 		const r2 = new Ractive({});
 
@@ -164,7 +165,7 @@ export default function() {
 		}, /already attached.*this instance/ );
 	});
 
-	QUnit.test( 'attaching child that is attached elsewhere throws an appropriate error', t => {
+	test( 'attaching child that is attached elsewhere throws an appropriate error', t => {
 		const r1 = new Ractive({});
 		const r2 = new Ractive({});
 		const r3 = new Ractive({});
@@ -176,7 +177,7 @@ export default function() {
 		}, /already attached.*different instance/ );
 	});
 
-	QUnit.test( `attaching and detaching a child triggers transitions`, t => {
+	test( `attaching and detaching a child triggers transitions`, t => {
 		let ins = 0;
 		let outs = 0;
 		function go ( trans ) {
@@ -201,7 +202,7 @@ export default function() {
 		t.equal( outs, 1 );
 	});
 
-	QUnit.test( `transitions while detaching and reattaching child should carry on`, t => {
+	test( `transitions while detaching and reattaching child should carry on`, t => {
 		let ins = 0;
 		let outs = 0;
 		const done = t.async();
@@ -239,7 +240,7 @@ export default function() {
 		}, 60 );
 	});
 
-	QUnit.test( `anchors can supply mappings`, t => {
+	test( `anchors can supply mappings`, t => {
 		const r1 = new Ractive({
 			template: '{{foo}}'
 		});
@@ -262,7 +263,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '' );
 	});
 
-	QUnit.test( `children default to attach append`, t => {
+	test( `children default to attach append`, t => {
 		const r1 = new Ractive({
 			template: 'r1'
 		});
@@ -283,7 +284,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'r1r2r3' );
 	});
 
-	QUnit.test( `children can be attached prepend`, t => {
+	test( `children can be attached prepend`, t => {
 		const r1 = new Ractive({
 			template: 'r1'
 		});
@@ -300,7 +301,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'r2r1' );
 	});
 
-	QUnit.test( `children can be inserted at a specific index`, t => {
+	test( `children can be inserted at a specific index`, t => {
 		const r1 = new Ractive({
 			template: 'r1'
 		});
@@ -325,7 +326,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'r1r4r3r2' );
 	});
 
-	QUnit.test( `attached children can have their templates reset`, t => {
+	test( `attached children can have their templates reset`, t => {
 		fixture.innerHTML = '<div id="r1-spot"></div><div id="r2-spot"></div>';
 		const r1 = new Ractive({
 			el: fixture.querySelector( '#r1-spot' ),
@@ -343,7 +344,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="r1-spot">hey1</div><div id="r2-spot">hey2</div>' );
 	});
 
-	QUnit.test( `attached anchored children can have their templates reset`, t => {
+	test( `attached anchored children can have their templates reset`, t => {
 		const r1 = new Ractive({
 			template: 'r1'
 		});
@@ -358,7 +359,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'hey1' );
 	});
 
-	QUnit.test( `attached anchored children can be supplied with inline partials`, t => {
+	test( `attached anchored children can be supplied with inline partials`, t => {
 		const r1 = new Ractive({
 			template: '{{>thing}}{{>content}}'
 		});
@@ -372,7 +373,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yepmaybe' );
 	});
 
-	QUnit.test( `anchors attach and detach event proxies`, t => {
+	test( `anchors attach and detach event proxies`, t => {
 		let count = 0;
 		const r1 = new Ractive({
 			template: ''
@@ -391,7 +392,7 @@ export default function() {
 		t.equal( count, 1 );
 	});
 
-	QUnit.test( 'attached children have their parent and root ref updated', t => {
+	test( 'attached children have their parent and root ref updated', t => {
 		const p1 = new Ractive({
 			data: { foo: 'p1' }
 		});

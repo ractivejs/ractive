@@ -1,9 +1,10 @@
 import { initModule } from '../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule('node-info.js');
 
-	QUnit.test( 'node info relative data get' , t => {
+	test( 'node info relative data get' , t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo}}{{#bar}}<span>hello</span>{{/}}{{/with}}`,
@@ -15,7 +16,7 @@ export default function() {
 		t.equal( info.get( '../bat' ), 'yep' );
 	});
 
-	QUnit.test( 'node info relative data get with expression', t => {
+	test( 'node info relative data get with expression', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo()}}{{#bar}}<span>hello</span>{{/}}{{/with}}`,
@@ -30,7 +31,7 @@ export default function() {
 		t.equal( info.get( '../bat' ), 'yep' );
 	});
 
-	QUnit.test( 'node info alias data get' , t => {
+	test( 'node info alias data get' , t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo as wat}}{{#wat.bar}}<span>hello</span>{{/}}{{/with}}`,
@@ -42,7 +43,7 @@ export default function() {
 		t.equal( info.get( 'wat.bat' ), 'yep' );
 	});
 
-	QUnit.test( 'node info index ref get' , t => {
+	test( 'node info index ref get' , t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each items:i}}<span />{{/each}}`,
@@ -54,7 +55,7 @@ export default function() {
 		t.equal( info.get( 'i' ), 0 );
 	});
 
-	QUnit.test( 'node info key ref get' , t => {
+	test( 'node info key ref get' , t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each obj:k}}<span />{{/each}}`,
@@ -66,7 +67,7 @@ export default function() {
 		t.equal( info.get( 'k' ), 'foo' );
 	});
 
-	QUnit.test( 'node info index ref get' , t => {
+	test( 'node info index ref get' , t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each items}}<span />{{/each}}`,
@@ -78,7 +79,7 @@ export default function() {
 		t.equal( info.get( '@index' ), 0 );
 	});
 
-	QUnit.test( 'node info relative set' , t => {
+	test( 'node info relative set' , t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each items}}<span />{{/each}}`,
@@ -91,7 +92,7 @@ export default function() {
 		t.equal( r.get( 'items.0.foo' ), 'ha' );
 	});
 
-	QUnit.test( 'node info relative set with map' , t => {
+	test( 'node info relative set with map' , t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each items}}<span />{{/each}}`,
@@ -105,7 +106,7 @@ export default function() {
 		t.equal( r.get( 'items.0.bar' ), 'yep' );
 	});
 
-	QUnit.test( 'node info alias set' , t => {
+	test( 'node info alias set' , t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each items as item}}<span />{{/each}}`,
@@ -118,7 +119,7 @@ export default function() {
 		t.equal( r.get( 'items.0.foo' ), 'ha' );
 	});
 
-	QUnit.test( 'node info add' , t => {
+	test( 'node info add' , t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo}}{{#bar}}<span>hello</span>{{/}}{{/with}}`,
@@ -133,7 +134,7 @@ export default function() {
 		t.equal( r.get( 'foo.bat' ), 84 );
 	});
 
-	QUnit.test( 'node info add with map', t => {
+	test( 'node info add with map', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo}}{{#bar}}<span>hello</span>{{/}}{{/with}}`,
@@ -147,7 +148,7 @@ export default function() {
 		t.equal( r.get( 'foo.bop' ), 2 );
 	});
 
-	QUnit.test( 'node info subtract' , t => {
+	test( 'node info subtract' , t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo}}{{#bar}}<span>hello</span>{{/}}{{/with}}`,
@@ -162,7 +163,7 @@ export default function() {
 		t.equal( r.get( 'foo.bat' ), -2 );
 	});
 
-	QUnit.test( 'node info subtract with map', t => {
+	test( 'node info subtract with map', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo}}{{#bar}}<span>hello</span>{{/}}{{/with}}`,
@@ -176,7 +177,7 @@ export default function() {
 		t.equal( r.get( 'foo.bop' ), -1 );
 	});
 
-	QUnit.test( 'node info animate', t => {
+	test( 'node info animate', t => {
 		const done = t.async();
 		t.expect( 1 );
 
@@ -194,7 +195,7 @@ export default function() {
 		}, done);
 	});
 
-	QUnit.test( 'node info toggle' , t => {
+	test( 'node info toggle' , t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo}}{{#bar}}<span>hello</span>{{/}}{{/with}}`,
@@ -207,7 +208,7 @@ export default function() {
 		t.equal( r.get( 'foo.bar.baz' ), false );
 	});
 
-	QUnit.test( 'node info update', t => {
+	test( 'node info update', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo.bar}}<input value={{.baz}} />{{/with}}`,
@@ -220,7 +221,7 @@ export default function() {
 		t.equal( r.get( 'foo.bar.baz' ), 'yep' );
 	});
 
-	QUnit.test( 'node info updateModel', t => {
+	test( 'node info updateModel', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo.bar}}<input value={{.baz}} />{{/with}}`,
@@ -234,7 +235,7 @@ export default function() {
 		t.equal( r.get( 'foo.bar.baz' ), 'yep' );
 	});
 
-	QUnit.test( 'node info link', t => {
+	test( 'node info link', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo.bar}}<span />{{/with}}`,
@@ -247,7 +248,7 @@ export default function() {
 		t.equal( r.get( 'str' ), 'hello' );
 	});
 
-	QUnit.test( 'node info unlink', t => {
+	test( 'node info unlink', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo.bar}}<span />{{/with}}`,
@@ -263,7 +264,7 @@ export default function() {
 		t.ok( r.get( 'str' ) !== 'yep' );
 	});
 
-	QUnit.test( `node info readLink`, t => {
+	test( `node info readLink`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `{{#with bip}}<span />{{/with}}`,
@@ -275,7 +276,7 @@ export default function() {
 		t.equal( r.getNodeInfo( 'span' ).readLink( '.bop' ).keypath, 'foo.bar.baz.bat' );
 	});
 
-	QUnit.test( 'node info shuffle set', t => {
+	test( 'node info shuffle set', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each items}}<span />{{/each}}`,
@@ -293,7 +294,7 @@ export default function() {
 		t.ok( postSpans[0] === spans[1] && postSpans[1] === spans[0] );
 	});
 
-	QUnit.test( 'node info push', t => {
+	test( 'node info push', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each items}}<span />{{/each}}`,
@@ -307,7 +308,7 @@ export default function() {
 		t.equal( r.findAll( 'span' ).length, 2 );
 	});
 
-	QUnit.test( 'node info pop', t => {
+	test( 'node info pop', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each items}}<span />{{/each}}`,
@@ -321,7 +322,7 @@ export default function() {
 		t.equal( r.findAll( 'span' ).length, 0 );
 	});
 
-	QUnit.test( 'node info sort', t => {
+	test( 'node info sort', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each items}}<span>{{.}}</span>{{/each}}`,
@@ -335,7 +336,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<span>0</span><span>1</span><span>2</span>' );
 	});
 
-	QUnit.test( 'node info sreverse', t => {
+	test( 'node info sreverse', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each items}}<span>{{.}}</span>{{/each}}`,
@@ -349,7 +350,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<span>2</span><span>0</span><span>1</span>' );
 	});
 
-	QUnit.test( 'node info shift', t => {
+	test( 'node info shift', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each items}}<span />{{/each}}`,
@@ -363,7 +364,7 @@ export default function() {
 		t.equal( r.findAll( 'span' ).length, 0 );
 	});
 
-	QUnit.test( 'node info unshift', t => {
+	test( 'node info unshift', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each items}}<span />{{/each}}`,
@@ -377,7 +378,7 @@ export default function() {
 		t.equal( r.findAll( 'span' ).length, 2 );
 	});
 
-	QUnit.test( 'node info splice', t => {
+	test( 'node info splice', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each items}}<span />{{/each}}`,
@@ -392,7 +393,7 @@ export default function() {
 		t.equal( r.get( 'items.0' ), 3 );
 	});
 
-	QUnit.test( 'node info isBound', t => {
+	test( 'node info isBound', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo.bar}}<input value={{.baz}} /> <input value="test" />{{/with}}`,
@@ -405,7 +406,7 @@ export default function() {
 		t.ok( !info.isBound() );
 	});
 
-	QUnit.test( 'node info two-way binding path', t => {
+	test( 'node info two-way binding path', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo.bar}}<input value={{.baz}} />{{/with}}`,
@@ -416,7 +417,7 @@ export default function() {
 		t.equal( info.getBindingPath(), 'foo.bar.baz' );
 	});
 
-	QUnit.test( 'node info two-way binding get value', t => {
+	test( 'node info two-way binding get value', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo.bar}}<input value={{.baz}} />{{/with}}`,
@@ -427,7 +428,7 @@ export default function() {
 		t.equal( info.getBinding(), 'hello' );
 	});
 
-	QUnit.test( 'node info two-way binding set value', t => {
+	test( 'node info two-way binding set value', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo.bar}}<input value={{.baz}} />{{/with}}`,
@@ -439,7 +440,7 @@ export default function() {
 		t.equal( r.get( 'foo.bar.baz' ), 'yep' );
 	});
 
-	QUnit.test( 'node info with query selector', t => {
+	test( 'node info with query selector', t => {
 		new Ractive({
 			el: fixture,
 			template: `{{#with foo.bar}}<span id="baz">yep</span>{{/with}}`,
@@ -449,7 +450,7 @@ export default function() {
 		t.equal( Ractive.getNodeInfo( '#baz' ).resolve(), 'foo.bar' );
 	});
 
-	QUnit.test( 'node info from instance', t => {
+	test( 'node info from instance', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo.bar}}<span id="baz">yep</span>{{/with}}`,
@@ -459,7 +460,7 @@ export default function() {
 		t.equal( r.getNodeInfo( r.find( '#baz' ) ).resolve(), 'foo.bar' );
 	});
 
-	QUnit.test( 'node info from instance with selector', t => {
+	test( 'node info from instance with selector', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with foo.bar}}<span id="baz">yep</span>{{/with}}`,
@@ -469,7 +470,7 @@ export default function() {
 		t.equal( r.getNodeInfo( '#baz' ).resolve(), 'foo.bar' );
 	});
 
-	QUnit.test( `decorator objects are available from node info objects`, t => {
+	test( `decorator objects are available from node info objects`, t => {
 		let flag = false;
 		const r = new Ractive({
 			target: fixture,
@@ -491,7 +492,7 @@ export default function() {
 		t.ok( flag );
 	});
 
-	QUnit.test( `context observe resolves using the context fragment`, t => {
+	test( `context observe resolves using the context fragment`, t => {
 		let count = 0;
 		const r = new Ractive({
 			target: fixture,
@@ -507,7 +508,7 @@ export default function() {
 		t.equal( count, 1 );
 	});
 
-	QUnit.test( `context observe works with a map and wildcards`, t => {
+	test( `context observe works with a map and wildcards`, t => {
 		let count = 0;
 		const r = new Ractive({
 			target: fixture,
@@ -529,7 +530,7 @@ export default function() {
 		t.equal( count, 3 );
 	});
 
-	QUnit.test( `context observeOnce resolves using the context fragment`, t => {
+	test( `context observeOnce resolves using the context fragment`, t => {
 		let count = 0;
 		const r = new Ractive({
 			target: fixture,
@@ -554,7 +555,7 @@ export default function() {
 		t.equal( count, 3 );
 	});
 
-	QUnit.test( `context objects can trigger events on their element`, t => {
+	test( `context objects can trigger events on their element`, t => {
 		t.expect( 1 );
 
 		const r = new Ractive({
@@ -567,7 +568,7 @@ export default function() {
 		r.getNodeInfo( 'div' ).raise( 'foo', {}, 'bar' );
 	});
 
-	QUnit.test( `context objects can trigger events on parent elements`, t => {
+	test( `context objects can trigger events on parent elements`, t => {
 		t.expect( 1 );
 
 		const cmp = Ractive.extend({
@@ -583,7 +584,7 @@ export default function() {
 		r.getNodeInfo( 'span' ).raise( 'foo' );
 	});
 
-	QUnit.test( `getting node info for a non-ractive element returns undefined (#2819)`, t => {
+	test( `getting node info for a non-ractive element returns undefined (#2819)`, t => {
 		const r = new Ractive({
 			el: fixture
 		});
@@ -592,7 +593,7 @@ export default function() {
 		t.ok( Ractive.getNodeInfo( document.body ) === undefined );
 	});
 
-	QUnit.test( `getting node info for a host element returns the context of the hosted instance if there is only one (#2865)`, t => {
+	test( `getting node info for a host element returns the context of the hosted instance if there is only one (#2865)`, t => {
 		const r1 = new Ractive({
 			target: fixture,
 			template: 'a'
@@ -613,7 +614,7 @@ export default function() {
 		t.ok( Ractive.getNodeInfo( fixture ).ractive === r2 );
 	});
 
-	QUnit.test( `force update works from a context object`, t => {
+	test( `force update works from a context object`, t => {
 		let msg = 'one';
 		const r = new Ractive({
 			target: fixture,

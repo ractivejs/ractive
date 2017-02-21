@@ -1,4 +1,5 @@
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'methods/findComponent.js' );
@@ -15,7 +16,7 @@ export default function() {
 		components: { Widget, Decoy }
 	});
 
-	QUnit.test( 'ractive.findComponent() finds the first component, of any type', ( t ) => {
+	test( 'ractive.findComponent() finds the first component, of any type', ( t ) => {
 		const ractive = new MockRactive({
 			el: fixture,
 			template: '{{{ covered }}}<Widget/>',
@@ -27,7 +28,7 @@ export default function() {
 		t.ok( widget instanceof Widget );
 	});
 
-	QUnit.test( 'ractive.findComponent(selector) finds the first component of type `selector`', ( t ) => {
+	test( 'ractive.findComponent(selector) finds the first component of type `selector`', ( t ) => {
 		const ractive = new MockRactive({
 			el: fixture,
 			template: '<Decoy/><Widget/>'
@@ -38,7 +39,7 @@ export default function() {
 		t.ok( widget instanceof Widget );
 	});
 
-	QUnit.test( 'findComponent and findAllComponents work through {{>content}}', t => {
+	test( 'findComponent and findAllComponents work through {{>content}}', t => {
 		const Component = Ractive.extend({});
 		const Wrapper = Ractive.extend({
 			template: '<p>{{>content}}</p>',
@@ -58,7 +59,7 @@ export default function() {
 		t.equal( findAll.length, 1);
 	});
 
-	QUnit.test( 'findComponent finds non-targeted attached children last when asked', t => {
+	test( 'findComponent finds non-targeted attached children last when asked', t => {
 		const cmp = Ractive.extend({});
 		const r = new Ractive({
 			el: fixture,
@@ -84,7 +85,7 @@ export default function() {
 		t.ok( res && res === r2 );
 	});
 
-	QUnit.test( 'findComponent finds targeted attached children in template order', t => {
+	test( 'findComponent finds targeted attached children in template order', t => {
 		const cmp = Ractive.extend({});
 		const r = new Ractive({
 			el: fixture,
@@ -104,7 +105,7 @@ export default function() {
 		t.ok( res && res === r2 );
 	});
 
-	QUnit.test( 'findComponent finds anchored components by anchor name when the instance has no name', t => {
+	test( 'findComponent finds anchored components by anchor name when the instance has no name', t => {
 		const cmp = new Ractive();
 		const r = new Ractive({
 			el: fixture,
@@ -115,7 +116,7 @@ export default function() {
 		t.ok( r.findComponent( 'foo' ) === cmp, 'same instance' );
 	});
 
-	QUnit.test( 'findComponent finds anchored components by given name when the instance has one', t => {
+	test( 'findComponent finds anchored components by given name when the instance has one', t => {
 		const cmp = new Ractive();
 		const r = new Ractive({
 			el: fixture,

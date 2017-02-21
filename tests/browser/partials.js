@@ -1,6 +1,7 @@
 /* global document */
 import { initModule, hasUsableConsole, onWarn } from '../helpers/test-config';
 import { fire } from 'simulant';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'partials.js' );
@@ -11,7 +12,7 @@ export default function() {
 		}
 	};
 
-	QUnit.test( 'specify partial by function', t => {
+	test( 'specify partial by function', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{>foo}}',
@@ -23,7 +24,7 @@ export default function() {
 	});
 
 	if ( hasUsableConsole ) {
-		QUnit.test( 'no return of partial warns in debug', t => {
+		test( 'no return of partial warns in debug', t => {
 			t.expect( 2 );
 
 			onWarn( msg => {
@@ -44,7 +45,7 @@ export default function() {
 			});
 		});
 
-		QUnit.test( 'Warn on unknown partial', t => {
+		test( 'Warn on unknown partial', t => {
 			t.expect( 2 );
 
 			onWarn( () => t.ok( true ) );
@@ -56,7 +57,7 @@ export default function() {
 			});
 		});
 
-		QUnit.test( 'Don\'t warn on empty partial', t => {
+		test( 'Don\'t warn on empty partial', t => {
 			t.expect( 1 );
 
 			onWarn( () => {
@@ -75,7 +76,7 @@ export default function() {
 		});
 	}
 
-	QUnit.test( '`this` in function refers to ractive instance', t => {
+	test( '`this` in function refers to ractive instance', t => {
 		let thisForFoo;
 		let thisForBar;
 
@@ -105,7 +106,7 @@ export default function() {
 		t.equal( thisForBar, ractive );
 	});
 
-	QUnit.test( 'partial function has access to parser helper', t => {
+	test( 'partial function has access to parser helper', t => {
 		t.expect( 1 );
 
 		new Ractive({
@@ -120,7 +121,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'partial can be preparsed template (#942)', t => {
+	test( 'partial can be preparsed template (#942)', t => {
 		const partial = Ractive.parse( '<p>hello partial</p>' );
 
 		new Ractive({
@@ -132,7 +133,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>hello partial</p>' );
 	});
 
-	QUnit.test( 'partial functions belong to instance, not Component', t => {
+	test( 'partial functions belong to instance, not Component', t => {
 		const Component = Ractive.extend({
 			template: '{{>foo}}',
 			partials: partialsFn
@@ -150,7 +151,7 @@ export default function() {
 		t.equal( ractive2.toHTML(), '<h1>no</h1>' );
 	});
 
-	QUnit.test( 'partial functions selects same partial until reset', t => {
+	test( 'partial functions selects same partial until reset', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items}}{{>foo}}{{/items}}',
@@ -173,7 +174,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>1</p><p>2</p>' );
 	});
 
-	QUnit.test( 'reset data re-evaluates partial function', t => {
+	test( 'reset data re-evaluates partial function', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{>foo}}',
@@ -186,7 +187,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<h1>no</h1>' );
 	});
 
-	QUnit.test( 'partials functions can be found on view heirarchy', t => {
+	test( 'partials functions can be found on view heirarchy', t => {
 		const Widget = Ractive.extend({
 			template: '{{>foo}}',
 			isolated: false
@@ -205,7 +206,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<h1>no</h1>' );
 	});
 
-	QUnit.test( 'static partials are compiled on Component not instance', t => {
+	test( 'static partials are compiled on Component not instance', t => {
 		const Component = Ractive.extend({
 			template: '{{>foo}}',
 			partials: {
@@ -221,7 +222,7 @@ export default function() {
 		t.deepEqual( Component.partials.foo, [{ t:7, e: 'p', f: [{ t:2, r: 'foo' }] }] );
 	});
 
-	QUnit.test( 'Partials work in attributes (#917)', t => {
+	test( 'Partials work in attributes (#917)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div style="{{>boxAttr}}"/>',
@@ -239,7 +240,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML.replace( /\s+/g, '' ), `<div style="height: 200px;"></div>`.replace( /\s+/g, '' ) );
 	});
 
-	QUnit.test( 'Partial name can be a reference', t => {
+	test( 'Partial name can be a reference', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `{{#each items}}{{>type}}{{/each}}`,
@@ -260,7 +261,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, ':FOO:BAZ:FOO:BAZ:FOO' );
 	});
 
-	QUnit.test( 'Partial name can be an expression', t => {
+	test( 'Partial name can be an expression', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `{{>'partial_' + x}}`,
@@ -276,7 +277,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'second' );
 	});
 
-	QUnit.test( 'Expression partials can be nested', t => {
+	test( 'Expression partials can be nested', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `{{>'NESTED'.toLowerCase()}}`,
@@ -295,7 +296,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>it still works</p>' );
 	});
 
-	QUnit.test( 'Partials with expressions may also have context', ( t ) => {
+	test( 'Partials with expressions may also have context', ( t ) => {
 		new Ractive({
 			el: fixture,
 			template: '{{>(tpl + ".test") ctx}} : {{>"test." + tpl ctx.expr}}',
@@ -312,7 +313,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'inverted - 1 : normal - 2');
 	});
 
-	QUnit.test( 'Partials with context should still have access to special refs (#2164)', t => {
+	test( 'Partials with context should still have access to special refs (#2164)', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{>foo bar.baz}}',
@@ -324,7 +325,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'bar.baz.bop' );
 	});
 
-	QUnit.test( 'Partials .toString() works when not the first child of parent (#1163)', t => {
+	test( 'Partials .toString() works when not the first child of parent (#1163)', t => {
 		const ractive = new Ractive({
 			template: '<div>Foo {{>foo}}</div>',
 			partials: { foo: '...' }
@@ -333,7 +334,7 @@ export default function() {
 		t.htmlEqual( ractive.toHTML(), '<div>Foo ...</div>' );
 	});
 
-	QUnit.test( 'Dynamic partial works with shuffle set (#1313)', t => {
+	test( 'Dynamic partial works with shuffle set (#1313)', t => {
 		let fields = [
 			{ type: 'text', value: 'hello' },
 			{ type: 'number', value: 123 }
@@ -357,7 +358,7 @@ export default function() {
 		t.htmlEqual( ractive.toHTML(), 'number123texthello' );
 	});
 
-	QUnit.test( 'Nameless expressions with no matching partial don\'t throw', t => {
+	test( 'Nameless expressions with no matching partial don\'t throw', t => {
 		onWarn( msg => t.ok( /Could not find template for partial 'missing'/.test( msg ) ) );
 
 		const ractive = new Ractive({
@@ -368,7 +369,7 @@ export default function() {
 		t.htmlEqual( ractive.toHTML(), '' );
 	});
 
-	QUnit.test( 'Partials can be changed with resetPartial', t => {
+	test( 'Partials can be changed with resetPartial', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `wrapped {{>'partial'}} around`,
@@ -382,7 +383,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'wrapped ninner around' );
 	});
 
-	QUnit.test( 'Partials with variable names can be changed with resetPartial', t => {
+	test( 'Partials with variable names can be changed with resetPartial', t => {
 		onWarn( msg => t.ok( /Could not find template for partial 'partial'/.test( msg ) ) );
 
 		const ractive = new Ractive({
@@ -405,7 +406,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'wrapped nbar around' );
 	});
 
-	QUnit.test( 'Partials with expression names can be changed with resetPartial', t => {
+	test( 'Partials with expression names can be changed with resetPartial', t => {
 		onWarn( msg => t.ok( /Could not find template for partial 'undefinedPartial'/.test( msg ) ) );
 
 		const ractive = new Ractive({
@@ -423,7 +424,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'wrapped nfoo around' );
 	});
 
-	QUnit.test( 'Partials inside conditionals can be changed with resetPartial', t => {
+	test( 'Partials inside conditionals can be changed with resetPartial', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `{{#cond}}{{>partial}}{{/}}`,
@@ -439,7 +440,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'nfoo' );
 	});
 
-	QUnit.test( 'Partials (only) borrowed by components can be changed with resetPartial', t => {
+	test( 'Partials (only) borrowed by components can be changed with resetPartial', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{>foo}} {{>bar}} <component />',
@@ -467,7 +468,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'nrfoo nrbar nrfoo ncbar' );
 	});
 
-	QUnit.test( 'Partials inside iteratives can be changed with resetPartial', t => {
+	test( 'Partials inside iteratives can be changed with resetPartial', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#list}}{{>.type}}{{/}}',
@@ -488,7 +489,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'nt2' );
 	});
 
-	QUnit.test( 'Nested partials can be changed with resetPartial', t => {
+	test( 'Nested partials can be changed with resetPartial', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{>outer}}',
@@ -507,7 +508,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'outer' );
 	});
 
-	QUnit.test( 'Partials in context blocks can be changed with resetPartial', t => {
+	test( 'Partials in context blocks can be changed with resetPartial', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `{{#with { ctx: 'foo' } }}{{>ctx}}{{/with}}`,
@@ -521,7 +522,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'nfoo' );
 	});
 
-	QUnit.test( 'Partials in attributes can be changed with resetPartial', t => {
+	test( 'Partials in attributes can be changed with resetPartial', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div class="wrapped {{>foo}} around" id="{{>foo}}"></div>',
@@ -535,7 +536,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div class="wrapped around nfoo" id="nfoo"></div>' );
 	});
 
-	QUnit.test( 'Partials in attribute blocks can be changed with resetPartial', t => {
+	test( 'Partials in attribute blocks can be changed with resetPartial', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `<div {{#cond}}class="wrapped {{>foo}} around" id="{{>foo}}" {{>attr}}{{/}}></div>`,
@@ -554,7 +555,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div class="wrapped nfoo around" id="nfoo" alt="bar"></div>' );
 	});
 
-	QUnit.test( 'Partial naming requirements are relaxed', t => {
+	test( 'Partial naming requirements are relaxed', t => {
 		new Ractive({
 			el: fixture,
 			template: `{{>a-partial}}{{>10-2}}{{>a - partial}}{{>delete}}`,
@@ -572,7 +573,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'abbc' );
 	});
 
-	QUnit.test( 'Inline partials can override component partials', t => {
+	test( 'Inline partials can override component partials', t => {
 		new Ractive({
 			el: fixture,
 			template: `
@@ -594,7 +595,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'inline component' );
 	});
 
-	QUnit.test( 'Inline partials may be defined with a partial section', t => {
+	test( 'Inline partials may be defined with a partial section', t => {
 		new Ractive({
 			el: fixture,
 			template: `
@@ -615,7 +616,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foo foo bar' );
 	});
 
-	QUnit.test( 'inline partials take precedent over assigned instance partials for yield', t => {
+	test( 'inline partials take precedent over assigned instance partials for yield', t => {
 		onWarn( msg => t.ok( /Could not find template for partial "foo"/.test( msg ) ) );
 
 		const Widget = Ractive.extend({
@@ -634,7 +635,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'bar foo' );
 	});
 
-	QUnit.test( 'Don\'t throw on empty partial', t => {
+	test( 'Don\'t throw on empty partial', t => {
 		t.expect( 1 );
 
 		new Ractive({
@@ -649,7 +650,7 @@ export default function() {
 		t.ok( true );
 	});
 
-	QUnit.test( 'Dynamic empty partial ok', t => {
+	test( 'Dynamic empty partial ok', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{>foo}}',
@@ -669,7 +670,7 @@ export default function() {
 
 	});
 
-	QUnit.test( 'Partials with expressions in recursive structures should not blow the stack', t => {
+	test( 'Partials with expressions in recursive structures should not blow the stack', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{#items}}{{>\'item\'}}{{/}}',
@@ -686,7 +687,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'ab' );
 	});
 
-	QUnit.test( 'Named partials should not get rebound if they happen to have the same name as a reference (#1507)', t => {
+	test( 'Named partials should not get rebound if they happen to have the same name as a reference (#1507)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -714,7 +715,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'abc c' );
 	});
 
-	QUnit.test( 'Partials from the template hierarchy should take precedent over references', t => {
+	test( 'Partials from the template hierarchy should take precedent over references', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `<p>
@@ -741,7 +742,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p> abc c</p>' );
 	});
 
-	QUnit.test( 'Partial names can have slashes', t => {
+	test( 'Partial names can have slashes', t => {
 		new Ractive({
 			el: fixture,
 			template: '<p>{{#partial foo/bar}}foobar{{/partial}}{{> foo/bar}}</p>'
@@ -750,7 +751,7 @@ export default function() {
 		t.htmlEqual( '<p>foobar</p>', fixture.innerHTML );
 	});
 
-	QUnit.test( 'Several inline partials containing elements can be defined (#1736)', t => {
+	test( 'Several inline partials containing elements can be defined (#1736)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -769,7 +770,7 @@ export default function() {
 		t.equal( ractive.partials.part2.length, 1 );
 	});
 
-	QUnit.test( 'Removing a missing partial (#1808)', t => {
+	test( 'Removing a missing partial (#1808)', t => {
 		t.expect( 1 );
 
 		onWarn( msg => t.ok( /Could not find template for partial 'item'/.test( msg ) ) );
@@ -786,7 +787,7 @@ export default function() {
 		ractive.shift( 'items' );
 	});
 
-	QUnit.test( 'Dynamic partial can be set in oninit (#1826)', t => {
+	test( 'Dynamic partial can be set in oninit (#1826)', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{> partialName }}',
@@ -805,7 +806,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'twopart' );
 	});
 
-	QUnit.test( 'Inline partials don\'t dissipate into the ether when attached to non-components (#1838)', t => {
+	test( 'Inline partials don\'t dissipate into the ether when attached to non-components (#1838)', t => {
 		new Ractive({
 			el: fixture,
 			template: '<div>{{#partial foo}}foo{{/partial}}{{>foo}}</div>'
@@ -814,7 +815,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
 	});
 
-	QUnit.test( 'Inline partials can override instance partials if they exist on a node directly up-hierarchy', t => {
+	test( 'Inline partials can override instance partials if they exist on a node directly up-hierarchy', t => {
 		new Ractive({
 			el: fixture,
 			template: `{{#partial foo}}
@@ -834,7 +835,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div><span>Something happens one</span></div><div><span>Something happens two</span></div>' );
 	});
 
-	QUnit.test( 'partial expressions will use inline content if they resolve to an object with a template string property', t => {
+	test( 'partial expressions will use inline content if they resolve to an object with a template string property', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{>foo}}',
@@ -851,7 +852,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'turnips are tasty' );
 	});
 
-	QUnit.test( 'partial expressions will use inline content if they resolve to a pre-parsed template', t => {
+	test( 'partial expressions will use inline content if they resolve to a pre-parsed template', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{>foo}}',
@@ -868,7 +869,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'turnips are tasty' );
 	});
 
-	QUnit.test( 'resetting a dynamic partial to its reference name should replace the partial (#2185)', t => {
+	test( 'resetting a dynamic partial to its reference name should replace the partial (#2185)', t => {
 		onWarn( msg => t.ok( /Could not find template for partial 'nope'/.test( msg ) ) );
 
 		const r = new Ractive({
@@ -887,7 +888,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'part1part2' );
 	});
 
-	QUnit.test( `Partials can have context that starts with '.' (#1880)`, t => {
+	test( `Partials can have context that starts with '.' (#1880)`, t => {
 		new Ractive({
 			el: fixture,
 			template: '{{#with foo}}{{>foo .bar}}{{/with}}',
@@ -902,7 +903,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'bat' );
 	});
 
-	QUnit.test( 'Context computations are not called unnecessarily (#2224)', t => {
+	test( 'Context computations are not called unnecessarily (#2224)', t => {
 		t.expect( 2 );
 
 		const ractive = new Ractive({
@@ -928,7 +929,7 @@ export default function() {
 		ractive.set( 'foo', null );
 	});
 
-	QUnit.test( 'Partials can be given alias context (#2298)', t => {
+	test( 'Partials can be given alias context (#2298)', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{>foo foo.bar as bat, bip.bop as boo}}',
@@ -943,7 +944,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'one two' );
 	});
 
-	QUnit.test( 'Partials can be parsed from a partial template (#1445)', t => {
+	test( 'Partials can be parsed from a partial template (#1445)', t => {
 		fixture.innerHTML = '<div id="fixture-tmp"></div>';
 		const script = document.createElement( 'script' );
 		script.setAttribute( 'type', 'text/html' );
@@ -962,7 +963,7 @@ export default function() {
 		t.htmlEqual( fixture.childNodes[0].innerHTML, 'outer inner' );
 	});
 
-	QUnit.test( 'pre-parsed dynamic inline partial from computation doesn\'t try to reset on init if a binding causes an update (#2641)', t => {
+	test( 'pre-parsed dynamic inline partial from computation doesn\'t try to reset on init if a binding causes an update (#2641)', t => {
 		const cmp = Ractive.extend({ template: '<input type="checkbox" checked="{{flag}}" />' });
 		const r = new Ractive({
 			el: fixture,
@@ -981,7 +982,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yup <input type="checkbox" />' );
 	});
 
-	QUnit.test( 'unparsed dynamic inline partial from computation doesn\'t try to reset on init if a binding causes an update (#2641)', t => {
+	test( 'unparsed dynamic inline partial from computation doesn\'t try to reset on init if a binding causes an update (#2641)', t => {
 		const cmp = Ractive.extend({ template: '<input type="checkbox" checked="{{flag}}" />' });
 		const r = new Ractive({
 			el: fixture,
@@ -1000,7 +1001,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yup <input type="checkbox" />' );
 	});
 
-	QUnit.test( 'arg for event handler from previously uninitialised partial context (#2736)', t => {
+	test( 'arg for event handler from previously uninitialised partial context (#2736)', t => {
 		let v;
 		const r = new Ractive({
 			el: fixture,
@@ -1022,7 +1023,7 @@ export default function() {
 		t.equal( v, 1123 );
 	});
 
-	QUnit.test( `partial expressions survive rebinding`, t => {
+	test( `partial expressions survive rebinding`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `{{> foo[0].bar}}`,

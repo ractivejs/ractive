@@ -1,9 +1,10 @@
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'methods/set.js' );
 
-	QUnit.test( `deep set merges data into the existing model tree`, t => {
+	test( `deep set merges data into the existing model tree`, t => {
 		const r = new Ractive({
 			data: { foo: { bar: 42, bip: 'yep' } }
 		});
@@ -12,7 +13,7 @@ export default function() {
 		t.deepEqual( r.get( 'foo' ), { bar: { bat: 42 }, bip: 'yep', baz: [ true ] } );
 	});
 
-	QUnit.test( `deep setting with numeric keys will update array indices`, t => {
+	test( `deep setting with numeric keys will update array indices`, t => {
 		const r = new Ractive({
 			data: { foo: [ 1, 2, 3 ] }
 		});
@@ -25,7 +26,7 @@ export default function() {
 	});
 
 
-	QUnit.test( `keep set does not discard vdom or dom, where non-keep does`, t => {
+	test( `keep set does not discard vdom or dom, where non-keep does`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `{{#if show}}{{#each [1,2]}}<span>{{.}}</span>{{/each}}<cmp />{{/if}}`,
@@ -49,7 +50,7 @@ export default function() {
 		t.ok( cmp === r.findComponent( '*' ) );
 	});
 
-	QUnit.test( `kept fragments aren't considered during find, findAll, and friends`, t => {
+	test( `kept fragments aren't considered during find, findAll, and friends`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `{{#if show}}<div /><cmp />{{/if}}`,
@@ -71,7 +72,7 @@ export default function() {
 		t.ok( cmp === r.findComponent( 'cmp' ), 'cmp instance is same' );
 	});
 
-	QUnit.test( `kept fragments still intro and outro`, t => {
+	test( `kept fragments still intro and outro`, t => {
 		let count = 0;
 
 		const r = new Ractive({
@@ -95,7 +96,7 @@ export default function() {
 		t.equal( count, 3 );
 	});
 
-	QUnit.test( `kept fragments with triples work correctly`, t => {
+	test( `kept fragments with triples work correctly`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `{{#if show}}{{{html}}}{{/if}}`,

@@ -1,9 +1,10 @@
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'methods/reset.js' );
 
-	QUnit.test( 'Basic reset', t => {
+	test( 'Basic reset', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{one}}{{two}}{{three}}',
@@ -14,7 +15,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '4' );
 	});
 
-	QUnit.test( 'Invalid arguments', t => {
+	test( 'Invalid arguments', t => {
 		const ractive = new Ractive({
 			el: fixture
 		});
@@ -32,7 +33,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'ractive.reset() returns a promise', t => {
+	test( 'ractive.reset() returns a promise', t => {
 		t.expect( 6 );
 
 		const done = t.async();
@@ -59,7 +60,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '' );
 	});
 
-	QUnit.test( 'Dynamic template functions are recalled on reset', t => {
+	test( 'Dynamic template functions are recalled on reset', t => {
 		const done = t.async();
 
 		const ractive = new Ractive({
@@ -78,7 +79,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'Promise with dynamic template functions are recalled on reset', t => {
+	test( 'Promise with dynamic template functions are recalled on reset', t => {
 		t.expect( 5 );
 
 		const done = t.async();
@@ -108,7 +109,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'fizz' );
 	});
 
-	QUnit.test( 'resetTemplate rerenders with new template', t => {
+	test( 'resetTemplate rerenders with new template', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{foo}}',
@@ -123,7 +124,7 @@ export default function() {
 	// Removed this functionality for now as not apparent
 	// what purpose of calling resetTemplate() without rerender
 	/*
-QUnit.test( 'resetTemplate with no template change doesnt rerender', t => {
+test( 'resetTemplate with no template change doesnt rerender', t => {
 		var p, ractive = new Ractive({
 			el: fixture,
 			template: '<p>{{foo}}</p>',
@@ -141,7 +142,7 @@ QUnit.test( 'resetTemplate with no template change doesnt rerender', t => {
 	});
 	*/
 
-	QUnit.test( 'Reset retains parent default data (#572)', t => {
+	test( 'Reset retains parent default data (#572)', t => {
 		const Widget = Ractive.extend({
 			data: {
 				uppercase ( str ) {
@@ -160,7 +161,7 @@ QUnit.test( 'resetTemplate with no template change doesnt rerender', t => {
 		t.htmlEqual( fixture.innerHTML, 'BIZZ' );
 	});
 
-	QUnit.test( 'Reset inserts { target, anchor } el option correctly', t => {
+	test( 'Reset inserts { target, anchor } el option correctly', t => {
 		const target = document.createElement('div');
 		const anchor = document.createElement('div');
 
@@ -183,7 +184,7 @@ QUnit.test( 'resetTemplate with no template change doesnt rerender', t => {
 		t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div><div>bar</div></div>' );
 	});
 
-	QUnit.test( 'resetTemplate removes an inline component from the DOM (#928)', t => {
+	test( 'resetTemplate removes an inline component from the DOM (#928)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<Widget type="{{type}}"/>',
@@ -207,7 +208,7 @@ QUnit.test( 'resetTemplate with no template change doesnt rerender', t => {
 		t.htmlEqual( fixture.innerHTML, 'TWO' );
 	});
 
-	QUnit.test( 'reset removes correctly from the DOM (#941)', t => {
+	test( 'reset removes correctly from the DOM (#941)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#active}}active{{/active}}{{^active}}not active{{/active}}',
@@ -221,7 +222,7 @@ QUnit.test( 'resetTemplate with no template change doesnt rerender', t => {
 		t.htmlEqual( fixture.innerHTML, 'active' );
 	});
 
-	QUnit.test( 'reset does not re-render if template does not change', t => {
+	test( 'reset does not re-render if template does not change', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<p>me</p>',
@@ -236,7 +237,7 @@ QUnit.test( 'resetTemplate with no template change doesnt rerender', t => {
 		t.equal( ractive.find('p'), p );
 	});
 
-	QUnit.test( 'reset does not re-render if template function does not change', t => {
+	test( 'reset does not re-render if template function does not change', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template ( data ) {
@@ -253,7 +254,7 @@ QUnit.test( 'resetTemplate with no template change doesnt rerender', t => {
 		t.equal( ractive.find('p'), p );
 	});
 
-	QUnit.test( 'reset does re-render if template changes', t => {
+	test( 'reset does re-render if template changes', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template () {
@@ -270,7 +271,7 @@ QUnit.test( 'resetTemplate with no template change doesnt rerender', t => {
 		t.notEqual( ractive.find('p'), p );
 	});
 
-	QUnit.test( 'reset removes an inline component from the DOM', t => {
+	test( 'reset removes an inline component from the DOM', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<widget type="{{type}}"/>',
@@ -295,7 +296,7 @@ QUnit.test( 'resetTemplate with no template change doesnt rerender', t => {
 		t.htmlEqual( fixture.innerHTML, 'TWO' );
 	});
 
-	QUnit.test( 'resetting an instance of a component with a data function (#1745)', t => {
+	test( 'resetting an instance of a component with a data function (#1745)', t => {
 		const Widget = Ractive.extend({
 			data () {
 				return { foo: 'bar' };
@@ -310,7 +311,7 @@ QUnit.test( 'resetTemplate with no template change doesnt rerender', t => {
 		t.equal( widget.get( 'foo' ), 'bar' );
 	});
 
-	QUnit.test( 'resetting the template of a component (#2658)', t => {
+	test( 'resetting the template of a component (#2658)', t => {
 		const cmp = Ractive.extend({
 			template: 'hello'
 		});

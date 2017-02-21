@@ -1,8 +1,10 @@
-export default function(){
+const { module, test } = QUnit;
 
-	QUnit.module( 'Ractive' );
+export default function () {
 
-	QUnit.test( 'should be a function', t => {
+	module( 'Ractive' );
+
+	test( 'should be a function', t => {
 		t.equal( typeof Ractive, 'function' );
 	});
 

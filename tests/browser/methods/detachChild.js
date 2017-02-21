@@ -1,9 +1,10 @@
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'methods/detachChild.js' );
 
-	QUnit.test( `detached children are unrendered if they are targeted`, t => {
+	test( `detached children are unrendered if they are targeted`, t => {
 		fixture.innerHTML = '<div id="r1"></div><div id="r2"></div>';
 		const r1 = new Ractive({
 			template: 'r1',
@@ -25,7 +26,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="r1"></div><div id="r2">r2</div>' );
 	});
 
-	QUnit.test( `detaching a non-attached child throws an error`, t => {
+	test( `detaching a non-attached child throws an error`, t => {
 		const r = new Ractive({
 			el: fixture
 		});
@@ -36,7 +37,7 @@ export default function() {
 		}, /not attached/ );
 	});
 
-	QUnit.test( `detaching an anchored child updates children.byName`, t => {
+	test( `detaching an anchored child updates children.byName`, t => {
 		const r1 = new Ractive();
 		const r = new Ractive({
 			el: fixture,

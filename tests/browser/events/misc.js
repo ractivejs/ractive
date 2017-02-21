@@ -1,12 +1,13 @@
 import { fire } from 'simulant';
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'events/misc.js' );
 
 	// TODO finish moving these into more sensible locations
 
-	QUnit.test( 'Grandchild component teardown when nested in element (#1360)', t => {
+	test( 'Grandchild component teardown when nested in element (#1360)', t => {
 		const torndown = [];
 
 		const Child = Ractive.extend({
@@ -50,7 +51,7 @@ export default function() {
 		t.equal( torndown.length, 4 );
 	});
 
-	QUnit.test( 'event references in method call handler should not create a null resolver (#1438)', t => {
+	test( 'event references in method call handler should not create a null resolver (#1438)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `{{#foo}}<button on-click="@this.test(event.keypath + '.foo')">Click</button>{{/}}`,
@@ -66,7 +67,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '' );
 	});
 
-	QUnit.test( 'event actions and parameter references have context', t => {
+	test( 'event actions and parameter references have context', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive({
@@ -88,7 +89,7 @@ export default function() {
 		fire( ractive.find( '#test1' ), 'click' );
 	});
 
-	QUnit.test( 'Attribute directives on fragments that get re-used (partials) should stick around for re-use', t => {
+	test( 'Attribute directives on fragments that get re-used (partials) should stick around for re-use', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#list}}{{>partial}}{{/}}',
@@ -110,7 +111,7 @@ export default function() {
 		t.equal( ractive.get( 'list.1.foo' ), 'b' );
 	});
 
-	QUnit.test( 'Regression test for #2046', t => {
+	test( 'Regression test for #2046', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive({
@@ -127,7 +128,7 @@ export default function() {
 		fire( el, 'click' );
 	});
 
-	QUnit.test( 'Regression test for #1971', t => {
+	test( 'Regression test for #1971', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive({
@@ -149,7 +150,7 @@ export default function() {
 		fire( el, 'click' );
 	});
 
-	QUnit.test( 'correct function scope for this.bar() in template', t => {
+	test( 'correct function scope for this.bar() in template', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -175,7 +176,7 @@ export default function() {
 		fire( document.createElement( 'div' ), 'input' );
 		fire( document.createElement( 'div' ), 'blur' );
 
-		QUnit.test( 'lazy may be overridden on a per-element basis', t => {
+		test( 'lazy may be overridden on a per-element basis', t => {
 			let ractive = new Ractive({
 				el: fixture,
 				template: '<input value="{{foo}}" lazy="true" />',
@@ -203,7 +204,7 @@ export default function() {
 			t.equal( ractive.get( 'foo' ), 'bar' );
 		});
 
-		QUnit.test( 'lazy may be set to a number to trigger on a timeout', t => {
+		test( 'lazy may be set to a number to trigger on a timeout', t => {
 			const done = t.async();
 
 			const ractive = new Ractive({
@@ -227,7 +228,7 @@ export default function() {
 			}, 30 );
 		});
 
-		QUnit.test( 'invalid content in method call event directive should have a reasonable error message', t => {
+		test( 'invalid content in method call event directive should have a reasonable error message', t => {
 			t.throws(() => {
 				new Ractive({
 					el: fixture,
@@ -239,7 +240,7 @@ export default function() {
 		// do nothing
 	}
 
-	QUnit.test( 'events in nested elements are torn down properly (#2608)', t => {
+	test( 'events in nested elements are torn down properly (#2608)', t => {
 		let count = 0;
 		const r = new Ractive({
 			el: fixture,
@@ -268,7 +269,7 @@ export default function() {
 		r.toggle( 'foo' );
 	});
 
-	QUnit.test( `a subscriber that cancels during event firing should not fire (#2698)`, t => {
+	test( `a subscriber that cancels during event firing should not fire (#2698)`, t => {
 		t.expect( 0 );
 
 		const r = new Ractive();
@@ -280,7 +281,7 @@ export default function() {
 		r.fire( 'foo' );
 	});
 
-	QUnit.test( `re-fired event names get the new name`, t => {
+	test( `re-fired event names get the new name`, t => {
 		t.expect( 1 );
 
 		const r = new Ractive({
@@ -294,7 +295,7 @@ export default function() {
 		fire( r.find( 'div' ), 'click' );
 	});
 
-	QUnit.test( `special ref @context is available to events and replaces event`, t => {
+	test( `special ref @context is available to events and replaces event`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `<div on-click="@.check(@context)" />`,
@@ -309,7 +310,7 @@ export default function() {
 		fire( r.find( 'div' ), 'click' );
 	});
 
-	QUnit.test( `the actual dom event is available as @event and event and original in @context`, t => {
+	test( `the actual dom event is available as @event and event and original in @context`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: '<div on-click="@.check(@event, @context)" />',
@@ -323,7 +324,7 @@ export default function() {
 		fire( r.find( 'div' ), 'click' );
 	});
 
-	QUnit.test( `custom event plugins can pass along a source dom event`, t => {
+	test( `custom event plugins can pass along a source dom event`, t => {
 		t.expect( 4 );
 
 		const r = new Ractive({
@@ -350,7 +351,7 @@ export default function() {
 		fire( r.find( 'div' ), 'click' );
 	});
 
-	QUnit.test( `the event directive's node is exposed as @node`, t => {
+	test( `the event directive's node is exposed as @node`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `{{#with foo}}<input twoway=false on-change="@context.set('.bar', @node.value)" />{{/with}}`,

@@ -1,10 +1,11 @@
 import { fire } from 'simulant';
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule('event/expression.js');
 
-	QUnit.test( 'events can be handled as expressions', t => {
+	test( 'events can be handled as expressions', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<button on-click="@this.set('foo', 42)">click me</button>`,
@@ -17,7 +18,7 @@ export default function() {
 		t.equal( r.get( 'foo' ), 42 );
 	});
 
-	QUnit.test( 'expression events can handle arguments refs', t => {
+	test( 'expression events can handle arguments refs', t => {
 		t.expect(1);
 
 		const r = new Ractive({
@@ -31,7 +32,7 @@ export default function() {
 		r.getNodeInfo( 'button' ).raise( 'click', {}, 'foo' );
 	});
 
-	QUnit.test( 'expression events can handle dollar refs', t => {
+	test( 'expression events can handle dollar refs', t => {
 		t.expect(1);
 
 		const r = new Ractive({
@@ -45,7 +46,7 @@ export default function() {
 		r.getNodeInfo( 'button' ).raise( 'click', {}, 'foo' );
 	});
 
-	QUnit.test( 'expression events can handle spread args', t => {
+	test( 'expression events can handle spread args', t => {
 		t.expect(1);
 
 		const r = new Ractive({
@@ -59,7 +60,7 @@ export default function() {
 		r.getNodeInfo( 'button' ).raise( 'click', {}, 'foo' );
 	});
 
-	QUnit.test( 'expression events can handle argument keypath access', t => {
+	test( 'expression events can handle argument keypath access', t => {
 		t.expect(1);
 
 		const r = new Ractive({
@@ -73,7 +74,7 @@ export default function() {
 		r.getNodeInfo( 'button' ).raise( 'click', {}, 'foo' );
 	});
 
-	QUnit.test( 'expression events can handle dollar arg keypath access', t => {
+	test( 'expression events can handle dollar arg keypath access', t => {
 		t.expect(1);
 
 		const r = new Ractive({
@@ -87,7 +88,7 @@ export default function() {
 		r.getNodeInfo( 'button' ).raise( 'click', {}, 'foo' );
 	});
 
-	QUnit.test( 'expression events work with complex expressions', t => {
+	test( 'expression events work with complex expressions', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<button on-click="@this.set('foo', 42) && @this.toggle('bar')">click me</button>`
@@ -99,7 +100,7 @@ export default function() {
 		t.equal( r.get( 'bar' ), true );
 	});
 
-	QUnit.test( 'comma-ish operator can be used with expression events', t => {
+	test( 'comma-ish operator can be used with expression events', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<button on-click="@this.set('foo', 42), @this.toggle('bar')">click me</button>`

@@ -1,8 +1,10 @@
+const { module, test } = QUnit;
+
 export default function(){
 
-	QUnit.module( 'ractive.toCSS()' );
+	module( 'ractive.toCSS()' );
 
-	QUnit.test( 'should render CSS with a single component instance', t => {
+	test( 'should render CSS with a single component instance', t => {
 
 		const Component = Ractive.extend( {
 			template: '<div></div>',
@@ -20,7 +22,7 @@ export default function(){
 		app.teardown();
 	} );
 
-	QUnit.test( 'should render CSS with nested component instances', t => {
+	test( 'should render CSS with nested component instances', t => {
 
 		const GrandChildComponent = Ractive.extend( {
 			template: '<div></div>',
@@ -60,7 +62,7 @@ export default function(){
 		app.teardown();
 	} );
 
-	QUnit.test( 'should NEVER render CSS with a Ractive instance', t => {
+	test( 'should NEVER render CSS with a Ractive instance', t => {
 
 		const app = new Ractive( {
 			template: '<div></div>',

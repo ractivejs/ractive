@@ -1,12 +1,13 @@
 import { initModule, hasUsableConsole, onWarn } from '../../helpers/test-config';
 import { fire } from 'simulant';
+import { test } from 'qunit';
 
 // TODO tidy up, move some of these tests into separate files
 
 export default function() {
 	initModule( 'components/misc.js' );
 
-	QUnit.test( 'Component oncomplete() methods are called', t => {
+	test( 'Component oncomplete() methods are called', t => {
 		t.expect( 2 );
 
 		const done = t.async();
@@ -34,7 +35,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'Instances with multiple components still fire oncomplete() handlers (#486 regression)', t => {
+	test( 'Instances with multiple components still fire oncomplete() handlers (#486 regression)', t => {
 		t.expect( 3 );
 
 		const done = t.async();
@@ -63,7 +64,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'Correct value exists for node info keypath when a component is torn down and re-rendered (#470)', t => {
+	test( 'Correct value exists for node info keypath when a component is torn down and re-rendered (#470)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#foo}}<Widget visible="{{visible}}"/>{{/foo}}',
@@ -83,7 +84,7 @@ export default function() {
 		t.equal( Ractive.getNodeInfo( ractive.find( 'p' ) ).resolve(), '' );
 	});
 
-	QUnit.test( 'Nested components fire the oninit() event correctly (#511)', t => {
+	test( 'Nested components fire the oninit() event correctly (#511)', t => {
 		let outerInitCount = 0;
 		let innerInitCount = 0;
 
@@ -116,7 +117,7 @@ export default function() {
 	});
 
 
-	QUnit.test( 'Component removed from DOM on tear-down with teardown override that calls _super', t => {
+	test( 'Component removed from DOM on tear-down with teardown override that calls _super', t => {
 		const Widget = Ractive.extend({
 			template: 'foo',
 			onteardown () {
@@ -137,7 +138,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '' );
 	});
 
-	QUnit.test( 'Component names cannot include underscores (#483)', t => {
+	test( 'Component names cannot include underscores (#483)', t => {
 		t.expect( 1 );
 
 		const Component = Ractive.extend({ template: '{{foo}}' });
@@ -156,7 +157,7 @@ export default function() {
 		}
 	});
 
-	QUnit.test( 'Components can have names that happen to be Array.prototype or Object.prototype methods', t => {
+	test( 'Components can have names that happen to be Array.prototype or Object.prototype methods', t => {
 		new Ractive({
 			el: fixture,
 			template: '<map/>',
@@ -170,7 +171,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div class="map"></div>' );
 	});
 
-	QUnit.test( 'Set operations inside an inline component\'s onrender method update the DOM synchronously', t => {
+	test( 'Set operations inside an inline component\'s onrender method update the DOM synchronously', t => {
 		t.expect( 8 );
 
 		let previousHeight = -1;
@@ -204,7 +205,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'Component constructors found in view hierarchy', t => {
+	test( 'Component constructors found in view hierarchy', t => {
 		const Foo = Ractive.extend({
 			template: 'foo'
 		});
@@ -223,7 +224,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'foo' );
 	});
 
-	QUnit.test( 'Components not found in view hierarchy when isolated is true', t => {
+	test( 'Components not found in view hierarchy when isolated is true', t => {
 		const Foo = Ractive.extend({
 			template: 'foo'
 		});
@@ -242,7 +243,7 @@ export default function() {
 		t.equal( fixture.innerHTML, '<foo></foo>' );
 	});
 
-	QUnit.test( 'Evaluator used in component more than once (#844)', t => {
+	test( 'Evaluator used in component more than once (#844)', t => {
 		const Widget = Ractive.extend({
 			template: '{{getLabels(foo)}}{{getLabels(boo)}}',
 			data: {
@@ -261,7 +262,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'fooboo' );
 	});
 
-	QUnit.test( 'Removing inline components causes teardown events to fire (#853)', t => {
+	test( 'Removing inline components causes teardown events to fire (#853)', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive({
@@ -285,7 +286,7 @@ export default function() {
 		ractive.toggle( 'foo' );
 	});
 
-	QUnit.test( 'Regression test for #871', t => {
+	test( 'Regression test for #871', t => {
 		const Widget = Ractive.extend({
 			template: '<p>inside component: {{i}}-{{text}}</p>',
 			isolated: false
@@ -312,7 +313,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>outside component: 0-A</p><p>inside component: 0-A</p><p>outside component: 1-C</p><p>inside component: 1-C</p>' );
 	});
 
-	QUnit.test( 'Specify component by function', t => {
+	test( 'Specify component by function', t => {
 		const Widget1 = Ractive.extend({ template: 'widget1' });
 		const Widget2 = Ractive.extend({ template: 'widget2' });
 
@@ -339,7 +340,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'widget2widget2' );
 	});
 
-	QUnit.test( 'Specify component by function as string', t => {
+	test( 'Specify component by function as string', t => {
 		const Widget = Ractive.extend({ template: 'foo' });
 
 		new Ractive({
@@ -357,7 +358,7 @@ export default function() {
 	});
 
 	if ( hasUsableConsole ) {
-		QUnit.test( 'no return of component warns in debug', t => {
+		test( 'no return of component warns in debug', t => {
 			t.expect( 1 );
 
 			onWarn( msg => {
@@ -375,7 +376,7 @@ export default function() {
 			});
 		});
 
-		QUnit.test( 'Inline components disregard `el` option (#1072) (and print a warning in debug mode)', t => {
+		test( 'Inline components disregard `el` option (#1072) (and print a warning in debug mode)', t => {
 			t.expect( 1 );
 
 			onWarn( () => {
@@ -398,7 +399,7 @@ export default function() {
 			ractive.set( 'show', false );
 		});
 
-		QUnit.test( 'Using non-primitives in data passed to Ractive.extend() triggers a warning', t => {
+		test( 'Using non-primitives in data passed to Ractive.extend() triggers a warning', t => {
 			t.expect( 1 );
 
 			onWarn( msg => {
@@ -425,7 +426,7 @@ export default function() {
 		});
 	}
 
-	QUnit.test( '`this` in function refers to ractive instance', t => {
+	test( '`this` in function refers to ractive instance', t => {
 		const Component = Ractive.extend({});
 
 		let thisForFoo;
@@ -455,7 +456,7 @@ export default function() {
 		t.ok( thisForBar === ractive );
 	});
 
-	QUnit.test( 'oninit() only fires once on a component (#943 #927), oncomplete fires each render', t => {
+	test( 'oninit() only fires once on a component (#943 #927), oncomplete fires each render', t => {
 		t.expect( 5 );
 
 		const done = t.async();
@@ -493,7 +494,7 @@ export default function() {
 		component.reset({ foo: true });
 	});
 
-	QUnit.test( 'Double teardown is handled gracefully (#1218)', t => {
+	test( 'Double teardown is handled gracefully (#1218)', t => {
 		t.expect( 0 );
 
 		onWarn( () => {} ); // suppress
@@ -518,7 +519,7 @@ export default function() {
 		ractive.findComponent( 'Widget' ).teardown();
 	});
 
-	QUnit.test( 'component.teardown() causes component to be removed from the DOM (#1223)', t => {
+	test( 'component.teardown() causes component to be removed from the DOM (#1223)', t => {
 		onWarn( () => {} ); // suppress
 
 		const Widget = Ractive.extend({
@@ -535,7 +536,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '' );
 	});
 
-	QUnit.test( 'Component CSS is added to the page before components (#1046)', t => {
+	test( 'Component CSS is added to the page before components (#1046)', t => {
 		const Box = Ractive.extend({
 			template: '<div class="box"></div>',
 			css: '.box { width: 100px; height: 100px; }',
@@ -555,7 +556,7 @@ export default function() {
 		ractive.set( 'showBox', true );
 	});
 
-	QUnit.test( 'Decorators and transitions are only initialised post-render, when components are inside elements (#1346)', t => {
+	test( 'Decorators and transitions are only initialised post-render, when components are inside elements (#1346)', t => {
 		const inDom = {};
 
 		const Widget = Ractive.extend({
@@ -580,7 +581,7 @@ export default function() {
 
 	// TODO: revist how we should handle this before finishing keypath-ftw
 	/*
-QUnit.test( 'Mapping to a computed property is an error', t => {
+test( 'Mapping to a computed property is an error', t => {
 		t.throws( function () {
 			var ractive = new Ractive({
 				template: '<widget foo="{{bar}}"/>',
@@ -601,7 +602,7 @@ QUnit.test( 'Mapping to a computed property is an error', t => {
 	*/
 	// TODO: fix this, failing since keypath-ftw. maybe revisit if this is really correct
 	/*
-QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t => {
+test( 'Implicit mappings are created by restricted references (#1465)', t => {
 		new Ractive({
 			el: fixture,
 			template: '<p>a: {{foo}}</p><b/><c/>',
@@ -625,7 +626,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 	});
 	*/
 
-	QUnit.test( 'Multiple components two-way binding', t => {
+	test( 'Multiple components two-way binding', t => {
 		const ListFoo = Ractive.extend({
 			template: `{{d.foo}}`
 		});
@@ -674,7 +675,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		t.htmlEqual( fixture.innerHTML, '11233' );
 	});
 
-	QUnit.test( 'Explicit mappings with uninitialised data', t => {
+	test( 'Explicit mappings with uninitialised data', t => {
 		onWarn( () => {} ); // suppress
 
 		const ractive = new Ractive({
@@ -691,7 +692,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		t.htmlEqual( fixture.innerHTML, 'hello' );
 	});
 
-	QUnit.test( 'Implicit mappings with uninitialised data', t => {
+	test( 'Implicit mappings with uninitialised data', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<Foo message="{{message}}"/>',
@@ -706,7 +707,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		t.htmlEqual( fixture.innerHTML, 'hello' );
 	});
 
-	QUnit.test( 'Two-way bindings on an unresolved key can force resolution', t => {
+	test( 'Two-way bindings on an unresolved key can force resolution', t => {
 		onWarn( () => {} ); // suppress
 
 		const ractive = new Ractive({
@@ -722,7 +723,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		t.equal( ractive.find( 'input' ).value, 'hello' );
 	});
 
-	QUnit.test( 'Component mappings used in computations resolve correctly with the mapping (#1645)', t => {
+	test( 'Component mappings used in computations resolve correctly with the mapping (#1645)', t => {
 		onWarn( () => {} ); // suppress
 
 		const ractive = new Ractive({
@@ -740,7 +741,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		t.htmlEqual( fixture.innerHTML, ractive.toHTML() );
 	});
 
-	QUnit.test( 'Component attributes with no = are boolean true', t => {
+	test( 'Component attributes with no = are boolean true', t => {
 		new Ractive({
 			el: fixture,
 			template: '<Widget foo/>',
@@ -750,7 +751,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
 
-	QUnit.test( 'Component attributes with an empty string come back with an empty string', t => {
+	test( 'Component attributes with an empty string come back with an empty string', t => {
 		new Ractive({
 			el: fixture,
 			template: `<Widget foo='' />`,
@@ -760,7 +761,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
 
-	QUnit.test( 'Unresolved keypath can be safely torn down', t => {
+	test( 'Unresolved keypath can be safely torn down', t => {
 		t.expect( 0 );
 
 		onWarn( () => {} ); // suppress
@@ -780,7 +781,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		ractive.set('show', false);
 	});
 
-	QUnit.test( 'Mappings resolve correctly where references are shadowed (#2108)', assert => {
+	test( 'Mappings resolve correctly where references are shadowed (#2108)', assert => {
 		const names = [ 'alice', 'amy', 'andrew', 'bob', 'beatrice', 'brenda', 'charles', 'colin', 'camilla' ];
 
 		const Group = Ractive.extend({
@@ -811,7 +812,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 	});
 
 
-	QUnit.test( 'this.parent exists in component.onconstruct() (#2091)', t => {
+	test( 'this.parent exists in component.onconstruct() (#2091)', t => {
 		const Widget = Ractive.extend({
 			template: '<div>component</div>',
 			onconstruct () {
@@ -826,7 +827,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		});
 	});
 
-	QUnit.test( 'Inline components have a `container` property', t => {
+	test( 'Inline components have a `container` property', t => {
 		const ractive = new Ractive({
 			template: '<Outer><Inner/></Outer>',
 			components: {
@@ -839,7 +840,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		t.strictEqual( ractive.container, null );
 	});
 
-	QUnit.test( 'component w/ empty select/option value does not throw (#2139)', t => {
+	test( 'component w/ empty select/option value does not throw (#2139)', t => {
 		t.expect( 0 );
 
 		const Component = Ractive.extend({
@@ -864,7 +865,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		ractive.set('persons', [{}]);
 	});
 
-	QUnit.test( 'component @keypath references should shuffle correctly', t => {
+	test( 'component @keypath references should shuffle correctly', t => {
 		const cmp = Ractive.extend({
 			template: `{{#with foo.bar}}{{.}} {{@keypath}} {{@rootpath}} {{#each ../list}}{{@keypath}}|{{/each}}{{/with}}`
 		});
@@ -893,7 +894,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		t.htmlEqual( fixture.innerHTML, '2 foo.bar items.0.baz.bar foo.list.0|foo.list.1|1 foo.bar items.1.baz.bar foo.list.0|foo.list.1|' );
 	});
 
-	QUnit.test( 'component dom has correct keypaths in node info', t => {
+	test( 'component dom has correct keypaths in node info', t => {
 		const cmp = Ractive.extend({
 			template: '{{#with foo.bar}}<inner />{{/with}}'
 		});
@@ -916,7 +917,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		t.equal( inner.resolve( '.', r ), 'baz.bat.bar' );
 	});
 
-	QUnit.test( 'component @rootpaths should skip root contexts (#2026)', t => {
+	test( 'component @rootpaths should skip root contexts (#2026)', t => {
 		const end = Ractive.extend({
 			template: '{{@rootpath}}',
 			isolated: false
@@ -937,7 +938,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		t.htmlEqual( fixture.innerHTML, 'root.next.next.next.next root.next.next.next.next' );
 	});
 
-	QUnit.test( '@rootpath should be accurate in events fired from within components (#2026)', t => {
+	test( '@rootpath should be accurate in events fired from within components (#2026)', t => {
 		const end = Ractive.extend({
 			template: '<button on-click="go">click me</button>',
 			isolated: false
@@ -962,7 +963,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		fire( r.find( 'button' ), 'click' );
 	});
 
-	QUnit.test( '@rootpath should be accurate in a yielder', t => {
+	test( '@rootpath should be accurate in a yielder', t => {
 		const end = Ractive.extend({
 			template: '{{#with other.path}}{{yield}}{{/with}}',
 			data: { other: { path: { yep: true } } }
@@ -979,7 +980,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		t.htmlEqual( fixture.innerHTML, 'root.next.next.next.next true' );
 	});
 
-	QUnit.test( 'nested components play nice with the transition manager - #2578', t => {
+	test( 'nested components play nice with the transition manager - #2578', t => {
 		const done = t.async();
 		let count = 0;
 		let count1 = 0;
@@ -1019,7 +1020,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		}, 200 );
 	});
 
-	QUnit.test( `setting a falsey value in a component registry blocks the loading of the component (#1800)`, t => {
+	test( `setting a falsey value in a component registry blocks the loading of the component (#1800)`, t => {
 		const cmp = Ractive.extend({
 			template: '<cmp>stuff</cmp>',
 			components: { cmp: false }
@@ -1033,7 +1034,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		t.htmlEqual( fixture.innerHTML, '<cmp>stuff</cmp>' );
 	});
 
-	QUnit.test( `overriding a Ractive prototype method in extend issues a warning in debug mode (#2358)`, t => {
+	test( `overriding a Ractive prototype method in extend issues a warning in debug mode (#2358)`, t => {
 		t.expect( 1 );
 
 		onWarn( msg => t.ok( /overriding.*render.*dangerous/i.test( msg ) ) );
@@ -1047,7 +1048,7 @@ QUnit.test( 'Implicit mappings are created by restricted references (#1465)', t 
 		});
 	});
 
-	QUnit.test( `returning false from a component event doesn't try to cancel something that doesn't exist (#2731)`, t => {
+	test( `returning false from a component event doesn't try to cancel something that doesn't exist (#2731)`, t => {
 		t.expect( 1 );
 
 		onWarn( msg => {

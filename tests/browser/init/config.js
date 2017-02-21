@@ -3,11 +3,12 @@ import config from '../../../src/Ractive/config/config';
 import registries from '../../../src/Ractive/config/registries';
 import { findInViewHierarchy } from '../../../src/shared/registry';
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'init/config.js' );
 
-	QUnit.test( 'Ractive.defaults', t => {
+	test( 'Ractive.defaults', t => {
 		t.equal( Ractive.defaults, Ractive.prototype, 'defaults aliases prototype' );
 
 		for( const key in defaults ) {
@@ -15,7 +16,7 @@ export default function() {
 		}
 	});
 
-	QUnit.test( 'instance has config options', t => {
+	test( 'instance has config options', t => {
 		const ractive = new Ractive();
 		const registryNames = registries.map( r => r.name );
 
@@ -32,7 +33,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'find registry in hierarchy', t => {
+	test( 'find registry in hierarchy', t => {
 		const adaptor1 = {};
 		const adaptor2 = {};
 		const parent = new Ractive( { adaptors: { foo: adaptor1 } } );
@@ -44,7 +45,7 @@ export default function() {
 		t.equal( findInViewHierarchy( 'adaptors', ractive, 'bar' ), adaptor2 );
 	});
 
-	QUnit.test( 'non-configurations options are added to instance', t => {
+	test( 'non-configurations options are added to instance', t => {
 		const ractive = new Ractive({
 			foo: 'bar',
 			fumble () {
@@ -56,7 +57,7 @@ export default function() {
 		t.ok( ractive.fumble() );
 	});
 
-	QUnit.test( 'target element can be specified with target as well as el (#1848)', t => {
+	test( 'target element can be specified with target as well as el (#1848)', t => {
 		const r = new Ractive({
 			target: fixture,
 			template: 'yep'
@@ -67,7 +68,7 @@ export default function() {
 		t.strictEqual( fixture, r.el );
 	});
 
-	QUnit.test( 'events can be subscribed with the on option', t => {
+	test( 'events can be subscribed with the on option', t => {
 		t.expect( 2 );
 
 		const r = new Ractive({
@@ -85,7 +86,7 @@ export default function() {
 		r.fire( 'bar' );
 	});
 
-	QUnit.test( 'observers can be subscribed with the observe option', t => {
+	test( 'observers can be subscribed with the observe option', t => {
 		t.expect( 4 );
 
 		const r = new Ractive({

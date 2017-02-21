@@ -1,9 +1,10 @@
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'methods/findAll.js' );
 
-	QUnit.test( 'findAll() gets an array of all nodes matching a selector', t => {
+	test( 'findAll() gets an array of all nodes matching a selector', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div><div><div>{{foo}}</div></div></div>'
@@ -13,7 +14,7 @@ export default function() {
 		t.equal( divs.length, 3 );
 	});
 
-	QUnit.test( 'findAll() works with a string-only template', t => {
+	test( 'findAll() works with a string-only template', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div><p>foo</p><p>bar</p></div>'
@@ -26,7 +27,7 @@ export default function() {
 		t.ok( paragraphs[1].innerHTML === 'bar' );
 	});
 
-	QUnit.test( 'ractive.findAll() throws error if instance is unrendered (#2008)', t => {
+	test( 'ractive.findAll() throws error if instance is unrendered (#2008)', t => {
 		const ractive = new Ractive({
 			template: '<p>unrendered</p>'
 		});
@@ -36,7 +37,7 @@ export default function() {
 		}, /Cannot call ractive\.findAll\('p', \.\.\.\) unless instance is rendered to the DOM/ );
 	});
 
-	QUnit.test( 'ractive.findAll() throws error if instance is unrendered (#2008)', t => {
+	test( 'ractive.findAll() throws error if instance is unrendered (#2008)', t => {
 		const ractive = new Ractive({
 			template: '<p>unrendered</p>'
 		});
@@ -46,7 +47,7 @@ export default function() {
 		}, /Cannot call ractive\.findAll\('p', \.\.\.\) unless instance is rendered to the DOM/ );
 	});
 
-	QUnit.test( 'findAll skips non-target instances by default', t => {
+	test( 'findAll skips non-target instances by default', t => {
 		fixture.innerHTML = '<div></div><div></div>';
 		const r1 = new Ractive({
 			el: fixture.children[0],
@@ -65,7 +66,7 @@ export default function() {
 		t.strictEqual( all[0], r1.find( '#r1' ) );
 	});
 
-	QUnit.test( 'findAll searches non-targeted attached children, when asked, last', t => {
+	test( 'findAll searches non-targeted attached children, when asked, last', t => {
 		fixture.innerHTML = '<div></div><div></div>';
 		const r1 = new Ractive({
 			el: fixture.children[0],
@@ -85,7 +86,7 @@ export default function() {
 		t.strictEqual( all[1], r2.find( '#r2' ) );
 	});
 
-	QUnit.test( 'findAll searches targeted attached children in order', t => {
+	test( 'findAll searches targeted attached children in order', t => {
 		const r1 = new Ractive({
 			el: fixture,
 			template: '<#anchor /><div id="r1" />'
@@ -103,7 +104,7 @@ export default function() {
 		t.strictEqual( all[0], r2.find( '#r2' ) );
 	});
 
-	QUnit.test( `findAll() finds elements in triples`, t => {
+	test( `findAll() finds elements in triples`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `{{{foo}}}{{{bar}}}`,

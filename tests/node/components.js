@@ -1,7 +1,9 @@
-export default function(){
-	QUnit.module( 'Components' );
+const { module, test } = QUnit;
 
-	QUnit.test( 'should render in a non-DOM environment', t => {
+export default function(){
+	module( 'Components' );
+
+	test( 'should render in a non-DOM environment', t => {
 		const Widget = Ractive.extend({
 			template: '<p>foo-{{bar}}</p>',
 			isolated: false
@@ -20,7 +22,7 @@ export default function(){
 		t.equal( ractive.toHTML(), '<p>foo-baz</p>' );
 	});
 
-	QUnit.test( 'should not fail if component has CSS', t => {
+	test( 'should not fail if component has CSS', t => {
 		const Widget = Ractive.extend({
 			template: '<p>red</p>',
 			css: 'p { color: red; }'

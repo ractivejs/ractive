@@ -1,10 +1,11 @@
 import { fire } from 'simulant';
 import { hasUsableConsole, onWarn, initModule } from '../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'misc.js' );
 
-	QUnit.test( 'Subclass instance data extends prototype data', t => {
+	test( 'Subclass instance data extends prototype data', t => {
 		const Subclass = Ractive.extend({
 			template: '{{foo}} {{bar}}',
 			data: { foo: 1 }
@@ -19,7 +20,7 @@ export default function() {
 		t.deepEqual( instance.get(), { foo: 1, bar: 2 });
 	});
 
-	QUnit.test( 'Subclasses of subclasses inherit data, partials and transitions', t => {
+	test( 'Subclasses of subclasses inherit data, partials and transitions', t => {
 		let wiggled;
 		let shimmied;
 
@@ -48,7 +49,7 @@ export default function() {
 	});
 
 	// Commenting out - can't think of a way to test this in 0.8
-	//QUnit.test( 'Multiple identical evaluators merge', t => {
+	//test( 'Multiple identical evaluators merge', t => {
 	// 	const ractive;
 	//
 	// 	ractive = new Ractive({
@@ -64,7 +65,7 @@ export default function() {
 	// 	t.equal( ractive.viewmodel.root.properties.length, 3 );
 	// });
 
-	QUnit.test( 'Boolean attributes work as expected', t => {
+	test( 'Boolean attributes work as expected', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input id="one" type="checkbox" checked="{{falsy}}"><input id="two" type="checkbox" checked="{{truthy}}">',
@@ -75,7 +76,7 @@ export default function() {
 		t.equal( ractive.find( '#two' ).checked, true );
 	});
 
-	QUnit.test( 'Instances can be created without an element', t => {
+	test( 'Instances can be created without an element', t => {
 		const ractive = new Ractive({
 			template: '<ul>{{#items:i}}<li>{{i}}: {{.}}</li>{{/items}}</ul>',
 			data: { items: [ 'a', 'b', 'c' ] }
@@ -84,7 +85,7 @@ export default function() {
 		t.ok( ractive );
 	});
 
-	QUnit.test( 'Instances without an element can render HTML', t => {
+	test( 'Instances without an element can render HTML', t => {
 		const ractive = new Ractive({
 			template: '<ul>{{#items:i}}<li>{{i}}: {{.}}</li>{{/items}}</ul>',
 			data: { items: [ 'a', 'b', 'c' ] }
@@ -93,7 +94,7 @@ export default function() {
 		t.htmlEqual( ractive.toHTML(), '<ul><li>0: a</li><li>1: b</li><li>2: c</li></ul>' );
 	});
 
-	QUnit.test( 'Triples work with toHTML', t => {
+	test( 'Triples work with toHTML', t => {
 		const ractive = new Ractive({
 			template: '{{{ triple }}}',
 			data: { triple: '<p>test</p>' }
@@ -102,7 +103,7 @@ export default function() {
 		t.htmlEqual( ractive.toHTML(), '<p>test</p>' );
 	});
 
-	QUnit.test( 'Passing in alternative delimiters', t => {
+	test( 'Passing in alternative delimiters', t => {
 		new Ractive({
 			el: fixture,
 			template: '/~ greeting ~/, /~recipient~/! /~~ triple ~~/',
@@ -118,7 +119,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' );
 	});
 
-	QUnit.test( 'Using alternative delimiters in template', t => {
+	test( 'Using alternative delimiters in template', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{=/~ ~/=}} {{{=/~~ ~~/=}}} /~ greeting ~/, /~recipient~/! /~~ triple ~~/',
@@ -132,7 +133,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' );
 	});
 
-	QUnit.test( '.unshift() works with proxy event handlers, without index references', t => {
+	test( '.unshift() works with proxy event handlers, without index references', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items}}<button on-click="bla">Level1: {{ title }}</button>{{/items}}',
@@ -146,7 +147,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<button>Level1: Title0</button><button>Level1: Title1</button>' );
 	});
 
-	QUnit.test( 'Updating values with properties corresponding to unresolved references works', t => {
+	test( 'Updating values with properties corresponding to unresolved references works', t => {
 		const user = {};
 
 		const ractive = new Ractive({
@@ -161,7 +162,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'Jim' );
 	});
 
-	QUnit.test( 'Setting nested properties with a keypath correctly updates value of intermediate keypaths', t => {
+	test( 'Setting nested properties with a keypath correctly updates value of intermediate keypaths', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#foo}}{{#bar}}{{baz}}{{/bar}}{{/foo}}'
@@ -171,7 +172,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'success' );
 	});
 
-	QUnit.test( 'Functions are called with the ractive instance as context', t => {
+	test( 'Functions are called with the ractive instance as context', t => {
 		t.expect( 1 );
 
 		onWarn( () => {} ); // suppress
@@ -186,7 +187,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'Methods are called with their object as context', t => {
+	test( 'Methods are called with their object as context', t => {
 		t.expect( 1 );
 
 		onWarn( () => {} ); // suppress
@@ -205,7 +206,7 @@ export default function() {
 		ractive.set( 'foo', foo );
 	});
 
-	QUnit.test( 'Delimiters can be reset globally', t => {
+	test( 'Delimiters can be reset globally', t => {
 		const oldDelimiters = Ractive.defaults.delimiters;
 		const oldTripledDelimiters = Ractive.defaults.tripleDelimiters;
 
@@ -224,7 +225,7 @@ export default function() {
 		Ractive.defaults.tripleDelimiters = oldTripledDelimiters;
 	});
 
-	QUnit.test( 'Teardown works without throwing an error (#205)', t => {
+	test( 'Teardown works without throwing an error (#205)', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive({
@@ -241,7 +242,7 @@ export default function() {
 		}
 	});
 
-	QUnit.test( 'Bindings without explicit keypaths can survive a splice operation', t => {
+	test( 'Bindings without explicit keypaths can survive a splice operation', t => {
 		t.expect( 1 );
 
 		const items = new Array( 3 );
@@ -263,7 +264,7 @@ export default function() {
 		}
 	});
 
-	QUnit.test( 'Keypath resolutions that trigger teardowns don\'t cause the universe to implode', t => {
+	test( 'Keypath resolutions that trigger teardowns don\'t cause the universe to implode', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive({
@@ -283,7 +284,7 @@ export default function() {
 		}
 	});
 
-	QUnit.test( 'Inverted sections aren\'t broken by unshift operations', t => {
+	test( 'Inverted sections aren\'t broken by unshift operations', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{^items}}no items{{/items}}{{#items}}{{.}}{{/items}}',
@@ -295,7 +296,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foo' );
 	});
 
-	QUnit.test( 'Splice operations that try to remove more items than there are from an array are handled', t => {
+	test( 'Splice operations that try to remove more items than there are from an array are handled', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#items}}{{.}}{{/items}}',
@@ -307,7 +308,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'ab' );
 	});
 
-	QUnit.test( 'Partial templates will be drawn from script tags if not already registered', t => {
+	test( 'Partial templates will be drawn from script tags if not already registered', t => {
 		const partialScr = document.createElement( 'script' );
 		partialScr.id = 'thePartial';
 		partialScr.type = 'text/ractive';
@@ -324,7 +325,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '123' );
 	});
 
-	QUnit.test( 'ractive.insert() moves an instance to a different location', t => {
+	test( 'ractive.insert() moves an instance to a different location', t => {
 		const one = document.createElement( 'div' );
 		const two = document.createElement( 'div' );
 
@@ -351,7 +352,7 @@ export default function() {
 		t.htmlEqual( three.innerHTML, '<p>before</p><p>whee!</p><p class="after">after</p>' );
 	});
 
-	QUnit.test( 'ractive.insert() throws an error if instance is not rendered (#712)', t => {
+	test( 'ractive.insert() throws an error if instance is not rendered (#712)', t => {
 		const one = document.createElement( 'div' );
 		const two = document.createElement( 'div' );
 
@@ -380,7 +381,7 @@ export default function() {
 		t.htmlEqual( three.innerHTML, '<p>before</p><p>whee!</p><p class="after">after</p>' );
 	});
 
-	QUnit.test( 'Regression test for #271', t => {
+	test( 'Regression test for #271', t => {
 		const items = [{}];
 		const ractive = new Ractive({
 			el: fixture,
@@ -401,7 +402,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>foo</p>' );
 	});
 
-	QUnit.test( 'Partials in shuffled sections are updated/removed correctly (#297)', t => {
+	test( 'Partials in shuffled sections are updated/removed correctly (#297)', t => {
 		const items = [ 'one', 'two', 'three' ];
 
 		const ractive = new Ractive({
@@ -419,7 +420,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>one</p><p>three</p>' );
 	});
 
-	QUnit.test( 'Regression test for #316', t => {
+	test( 'Regression test for #316', t => {
 		const a = [];
 		const b = [];
 
@@ -438,7 +439,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foo' );
 	});
 
-	QUnit.test( 'Regression test for #321', t => {
+	test( 'Regression test for #321', t => {
 		t.expect( 2 );
 
 		const ractive = new Ractive({
@@ -459,7 +460,7 @@ export default function() {
 		fire( buttons[1], 'click' );
 	});
 
-	QUnit.test( 'Evaluators that have a value of undefined behave correctly', t => {
+	test( 'Evaluators that have a value of undefined behave correctly', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{ list[index] }}',
@@ -475,7 +476,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '' );
 	});
 
-	QUnit.test( 'Regression test for #798', t => {
+	test( 'Regression test for #798', t => {
 		function ClassB () {}
 		function ClassA () {}
 		ClassA.prototype.resources = new ClassB();
@@ -492,7 +493,7 @@ export default function() {
 		t.ok( ractive.findComponent( 'Widget' ).get( 'attr' ) instanceof ClassB );
 	});
 
-	QUnit.test( 'Subclass instance oncomplete() handlers can call _super', t => {
+	test( 'Subclass instance oncomplete() handlers can call _super', t => {
 		t.expect( 1 );
 
 		const done = t.async();
@@ -513,7 +514,7 @@ export default function() {
 	});
 
 
-	QUnit.test( 'ractive.insert() with triples doesn\'t invoke Yoda (#391)', t => {
+	test( 'ractive.insert() with triples doesn\'t invoke Yoda (#391)', t => {
 		const ractive = new Ractive({
 			el: document.createElement( 'div' ),
 			template: '{{{value}}}',
@@ -526,7 +527,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, ' you are <i>very puzzled now</i>' );
 	});
 
-	QUnit.test( 'Regression test for #460', t => {
+	test( 'Regression test for #460', t => {
 		const done = t.async();
 		const items = [
 			{ desc: 'foo' },
@@ -549,7 +550,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p>' );
 	});
 
-	QUnit.test( 'Regression test for #457', t => {
+	test( 'Regression test for #457', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#step.current == step.current}}<p>{{foo}}</p>{{/step.current == step.current}}'
@@ -566,7 +567,7 @@ export default function() {
 	});
 
 	if ( Ractive.svg ) {
-		QUnit.test( 'Case-sensitive conditional SVG attribute', t => {
+		test( 'Case-sensitive conditional SVG attribute', t => {
 			const ractive = new Ractive({
 				el: fixture,
 				template: '<svg {{vb}}></svg>',
@@ -577,7 +578,7 @@ export default function() {
 		});
 	}
 
-	QUnit.test( 'Custom delimiters apply to partials (#601)', t => {
+	test( 'Custom delimiters apply to partials (#601)', t => {
 		new Ractive({
 			el: fixture,
 			template: '([#items:i])([>foo])([/items])',
@@ -590,7 +591,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '01' );
 	});
 
-	QUnit.test( 'Rendering to an element, if `append` is false, causes any existing instances to be torn down', t => {
+	test( 'Rendering to an element, if `append` is false, causes any existing instances to be torn down', t => {
 		t.expect( 2 );
 
 		const ractive = new Ractive({
@@ -650,7 +651,7 @@ export default function() {
 		t.equal( tripled, 1 );
 	});*/
 
-	QUnit.test( 'Regression test for #695 (unrendering non-rendered items)', t => {
+	test( 'Regression test for #695 (unrendering non-rendered items)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{# { items: nested.items } }}{{#insert}}{{#items}}<div as-foo></div>{{/items}}{{/insert}}{{/}}',
@@ -678,7 +679,7 @@ export default function() {
 		t.ok( true );
 	});
 
-	QUnit.test( 'A Promise will be rejected if its callback throws (#759)', t => {
+	test( 'A Promise will be rejected if its callback throws (#759)', t => {
 		const done = t.async();
 
 		const p = new Promise( () => {
@@ -691,7 +692,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'A Promise will be chained and rejected if its callback throws ', t => {
+	test( 'A Promise will be chained and rejected if its callback throws ', t => {
 		const done = t.async();
 
 		const p = Promise.resolve();
@@ -704,7 +705,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'Keypaths in ractive.set() can contain wildcards (#784)', t => {
+	test( 'Keypaths in ractive.set() can contain wildcards (#784)', t => {
 		const ractive = new Ractive({
 			data: {
 				array: [
@@ -723,7 +724,7 @@ export default function() {
 		t.deepEqual( ractive.get( 'object' ), { foo: 42, bar: 42, baz: 42 });
 	});
 
-	QUnit.test( 'Wildcard keypaths do not affect array length', t => {
+	test( 'Wildcard keypaths do not affect array length', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{array.length}}',
@@ -736,7 +737,7 @@ export default function() {
 		t.deepEqual( ractive.get( 'array.length' ), 3 );
 	});
 
-	QUnit.test( 'Regression test for #801', t => {
+	test( 'Regression test for #801', t => {
 		const ractive = new Ractive({
 			el: document.createElement( 'div' ),
 			template: '<div>{{#(foo !== "bar")}}not bar{{#(foo !== "baz")}}not baz{{/()}}{{/()}}</div>',
@@ -749,7 +750,7 @@ export default function() {
 		t.ok( true );
 	});
 
-	QUnit.test( 'Regression test for #832', t => {
+	test( 'Regression test for #832', t => {
 		const ractive = new Ractive({
 			el: document.createElement( 'div' ),
 			template: '{{#if obj[foo].length}}{{#each obj[foo]}}{{this}}{{/each}}{{/if}}',
@@ -765,7 +766,7 @@ export default function() {
 		t.ok( true );
 	});
 
-	QUnit.test( 'Regression test for #857', t => {
+	test( 'Regression test for #857', t => {
 		const ractive = new Ractive({
 			el: document.createElement( 'div' ),
 			template: '<textarea value="{{foo}}"></textarea>',
@@ -777,7 +778,7 @@ export default function() {
 		t.equal( ractive.find( 'textarea' ).value, 'works' );
 	});
 
-	QUnit.test( 'oncomplete handlers are called for lazily-rendered instances (#749)', t => {
+	test( 'oncomplete handlers are called for lazily-rendered instances (#749)', t => {
 		t.expect( 1 );
 
 		const done = t.async();
@@ -794,7 +795,7 @@ export default function() {
 		ractive.render( fixture );
 	});
 
-	QUnit.test( 'Doctype declarations are handled, and the tag name is uppercased (#877)', t => {
+	test( 'Doctype declarations are handled, and the tag name is uppercased (#877)', t => {
 		const ractive = new Ractive({
 			template: '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>{{title}}</title></head><body>{{hello}} World!</body></html>',
 			data: { title: 'hi', hello: 'Hello' }
@@ -803,7 +804,7 @@ export default function() {
 		t.equal( ractive.toHTML(), '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>hi</title></head><body>Hello World!</body></html>' );
 	});
 
-	QUnit.test( 'Resolvers are torn down (#884)', t => {
+	test( 'Resolvers are torn down (#884)', t => {
 		t.expect( 0 );
 
 		const ractive = new Ractive({
@@ -827,7 +828,7 @@ export default function() {
 		ractive.set( 'currentStep', 1 );
 	});
 
-	QUnit.test( 'Regression test for #844', t => {
+	test( 'Regression test for #844', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -859,7 +860,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'some text  <a>toggle step: 1</a>' );
 	});
 
-	QUnit.test( 'Mustaches that re-resolve to undefined behave correctly (#908)', t => {
+	test( 'Mustaches that re-resolve to undefined behave correctly (#908)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -885,7 +886,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>1: one</p>' );
 	});
 
-	QUnit.test( 'Content renders to correct place when subsequent sections have no nodes (#910)', t => {
+	test( 'Content renders to correct place when subsequent sections have no nodes (#910)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{ >partial}} <!-- foo -->',
@@ -912,7 +913,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'before after' );
 	});
 
-	QUnit.test( 'Dependants can register more than once without error (#838)', t => {
+	test( 'Dependants can register more than once without error (#838)', t => {
 		t.expect( 0 );
 
 		const ractive = new Ractive({
@@ -931,7 +932,7 @@ export default function() {
 		ractive.set( 'foo', null );
 	});
 
-	QUnit.test( 'Ractive.extend() with parsed template (#939)', t => {
+	test( 'Ractive.extend() with parsed template (#939)', t => {
 		const parsed = Ractive.parse( '<p>{{foo}}</p>' );
 		const Widget = Ractive.extend({ template: parsed });
 
@@ -939,7 +940,7 @@ export default function() {
 		t.equal( ractive.toHTML(), '<p>bar</p>' );
 	});
 
-	QUnit.test( 'Regression test for #950', t => {
+	test( 'Regression test for #950', t => {
 		t.expect( 0 );
 
 		const ractive = new Ractive({
@@ -976,7 +977,7 @@ export default function() {
 		fire( select, 'change' );
 	});
 
-	QUnit.test( 'Custom delimiters apply to inline partials (#990)', t => {
+	test( 'Custom delimiters apply to inline partials (#990)', t => {
 		const ractive = new Ractive({
 			template: '([#partial a])abc([/partial])',
 			delimiters: [ '([', '])' ]
@@ -985,7 +986,7 @@ export default function() {
 		t.deepEqual( ractive.partials, { a : [ 'abc' ] });
 	});
 
-	QUnit.test( 'Regression test for #1019', t => {
+	test( 'Regression test for #1019', t => {
 		const done = t.async();
 
 		const ractive = new Ractive({
@@ -1005,7 +1006,7 @@ export default function() {
 		}, 100);
 	});
 
-	QUnit.test( 'Another regression test for #1019', t => {
+	test( 'Another regression test for #1019', t => {
 		const done = t.async();
 
 		const ractive = new Ractive({
@@ -1025,7 +1026,7 @@ export default function() {
 		}, 100);
 	});
 
-	QUnit.test( 'Regression test for #1003', t => {
+	test( 'Regression test for #1003', t => {
 		new Ractive({
 			el: fixture,
 			template: `
@@ -1039,7 +1040,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<select><option>x</option></select>' );
 	});
 
-	QUnit.test( 'Regression test for #1055', t => {
+	test( 'Regression test for #1055', t => {
 		const _ = {
 			bind () {
 				// do nothing
@@ -1061,7 +1062,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'FOO' );
 	});
 
-	QUnit.test( 'Interpolation of script/style contents can be disabled (#1050)', t => {
+	test( 'Interpolation of script/style contents can be disabled (#1050)', t => {
 		new Ractive({
 			el: fixture,
 			template: '<script>window.TEST_VALUE = "{{uninterpolated}}";</script>',
@@ -1078,7 +1079,7 @@ export default function() {
 		}
 	});
 
-	QUnit.test( 'Changing the length of a section has no effect to detached ractives until they are reattached (#1053)', t => {
+	test( 'Changing the length of a section has no effect to detached ractives until they are reattached (#1053)', t => {
 		let ractive = new Ractive({
 			el: fixture,
 			template: '{{#if foo}}yes{{else}}no{{/if}}',
@@ -1110,7 +1111,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'abcdef' );
 	});
 
-	QUnit.test( 'Regression test for #1038', t => {
+	test( 'Regression test for #1038', t => {
 		t.expect( 0 );
 
 		const done = t.async();
@@ -1144,7 +1145,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'Reference expressions can become invalid after being valid, without breaking (#1106)', t => {
+	test( 'Reference expressions can become invalid after being valid, without breaking (#1106)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -1169,7 +1170,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'c' );
 	});
 
-	QUnit.test( 'Implicitly-closed elements without closing section tag (#1124)', t => {
+	test( 'Implicitly-closed elements without closing section tag (#1124)', t => {
 		// this test lives here, not in render.js, due to an awkward quirk with htmlEqual -
 		// it corrects malformed HTML before stubbing it
 		let ractive = new Ractive({
@@ -1187,7 +1188,7 @@ export default function() {
 		t.equal( ractive.findAll( 'tr > td' ).length, 3 );
 	});
 
-	QUnit.test( 'Reference expressions used in component parameters teardown properly (#1130)', t => {
+	test( 'Reference expressions used in component parameters teardown properly (#1130)', t => {
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -1206,7 +1207,7 @@ export default function() {
 		t.ok( true );
 	});
 
-	QUnit.test( 'Regression test for #1166 (spellcheck bug)', t => {
+	test( 'Regression test for #1166 (spellcheck bug)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<input class="one" spellcheck="false"><input class="two" spellchecker="false">',
@@ -1221,7 +1222,7 @@ export default function() {
 		t.equal( two.getAttribute( 'spellchecker' ), 'false' );
 	});
 
-	QUnit.test( '. reference without any implicit or explicit context should resolve to root', t => {
+	test( '. reference without any implicit or explicit context should resolve to root', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{JSON.stringify(.)}}',
@@ -1233,7 +1234,7 @@ export default function() {
 		t.equal( fixture.innerHTML, JSON.stringify( ractive.viewmodel.value ) );
 	});
 
-	QUnit.test( 'Nested conditional computations should survive unrendering and rerendering (#1364)', ( t ) => {
+	test( 'Nested conditional computations should survive unrendering and rerendering (#1364)', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#cond}}{{# i === 1 }}1{{/}}{{# i === 2 }}2{{/}}{{/}}',
@@ -1247,12 +1248,12 @@ export default function() {
 		t.equal( fixture.innerHTML, '2' );
 	});
 
-	QUnit.test( 'DOCTYPE declarations are stringified correctly', t => {
+	test( 'DOCTYPE declarations are stringified correctly', t => {
 		const template = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html></html>';
 		t.equal( new Ractive({ template }).toHTML(), template );
 	});
 
-	QUnit.test( 'Ractive.getNodeInfo returns correct keypath, index, and ractive info', t => {
+	test( 'Ractive.getNodeInfo returns correct keypath, index, and ractive info', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div><foo /></div>{{#bars:i}}<b>b</b><foo />{{/}}{{#baz}}{{#bat}}<p>hello</p>{{/}}{{/}}',
@@ -1294,7 +1295,7 @@ export default function() {
 		t.equal( p.resolve(), 'baz.bat' );
 	});
 
-	QUnit.test( 'Boolean attributes are added/removed based on unstringified fragment value', t => {
+	test( 'Boolean attributes are added/removed based on unstringified fragment value', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<button disabled="{{foo}}"></button>',
@@ -1310,7 +1311,7 @@ export default function() {
 		t.ok( !button.disabled );
 	});
 
-	QUnit.test( 'input[type=range] values are respected regardless of attribute order (#1621)', t => {
+	test( 'input[type=range] values are respected regardless of attribute order (#1621)', t => {
 		let ractive = new Ractive({
 			el: fixture,
 			template: '<input type="range" min="0" max="200" value="150"/>'
@@ -1326,7 +1327,7 @@ export default function() {
 		t.equal( ractive.find( 'input' ).value, 150 );
 	});
 
-	QUnit.test( 'regression test for #1630', t => {
+	test( 'regression test for #1630', t => {
 		const ractive = new Ractive();
 
 		const obj = { foo: 'bar' };
@@ -1337,7 +1338,7 @@ export default function() {
 		t.equal( ractive.get( 'constructor' ), obj.constructor );
 	});
 
-	QUnit.test( 'Ractive can be instantiated without `new`', t => {
+	test( 'Ractive can be instantiated without `new`', t => {
 		t.ok( Ractive() instanceof Ractive );
 
 		const Subclass = Ractive.extend();
@@ -1345,7 +1346,7 @@ export default function() {
 		t.ok( Subclass() instanceof Ractive );
 	});
 
-	QUnit.test( 'multiple pattern keypaths can be set simultaneously (#1319)', t => {
+	test( 'multiple pattern keypaths can be set simultaneously (#1319)', t => {
 		const ractive = new Ractive({
 			data: {
 				foo: [ 1, 2, 3 ],
@@ -1362,7 +1363,7 @@ export default function() {
 		t.deepEqual( ractive.get( 'bar' ), [ 10, 10, 10 ] );
 	});
 
-	QUnit.test( 'Promise.all works with non-promises (#1642)', t => {
+	test( 'Promise.all works with non-promises (#1642)', t => {
 		const done = t.async();
 
 		// this test is redundant in browsers that support Promise natively
@@ -1372,7 +1373,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'Setting an escaped . keypath', t => {
+	test( 'Setting an escaped . keypath', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{ foo\\.bar\\.baz }}`,
@@ -1384,7 +1385,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
 
-	QUnit.test( 'Getting an escaped . keypath', t => {
+	test( 'Getting an escaped . keypath', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{ .['foo.bar.baz'] }}`,
@@ -1395,7 +1396,7 @@ export default function() {
 		t.equal( r.get( 'foo\\.bar\\.baz' ), 'yep' );
 	});
 
-	QUnit.test( '$ can be used in keypaths', t => {
+	test( '$ can be used in keypaths', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{ $$ }}{{ .['..'] }}`,
@@ -1411,7 +1412,7 @@ export default function() {
 		t.equal( r.get( '$$' ), 'set() works as well' );
 	});
 
-	QUnit.test( '. escapes can be escaped', t => {
+	test( '. escapes can be escaped', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{ .['foo\\\\'].bar }}{{ .['foo\\\\.bar'] }}`,
@@ -1431,7 +1432,7 @@ export default function() {
 	});
 
 	if ( hasUsableConsole ) {
-		QUnit.test( 'Ractive.DEBUG can be changed', t => {
+		test( 'Ractive.DEBUG can be changed', t => {
 			t.expect( 0 );
 
 			const DEBUG = Ractive.DEBUG;
@@ -1445,7 +1446,7 @@ export default function() {
 		});
 	}
 
-	QUnit.test( '@this special ref gives access to the ractive instance', t => {
+	test( '@this special ref gives access to the ractive instance', t => {
 		const DEBUG = Ractive.DEBUG;
 		const r = new Ractive({
 			el: fixture,
@@ -1476,7 +1477,7 @@ export default function() {
 		Ractive.DEBUG = DEBUG;
 	});
 
-	QUnit.test( 'shuffled elements have the correct keypath in their node info', t => {
+	test( 'shuffled elements have the correct keypath in their node info', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{#each list}}<span>{{.}}</span>{{/each}}',
@@ -1488,12 +1489,12 @@ export default function() {
 		t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[2] ).resolve(), 'list.2' );
 	});
 
-	QUnit.test( 'ractive.escapeKey() works correctly', t => {
+	test( 'ractive.escapeKey() works correctly', t => {
 		t.equal( Ractive.escapeKey( 'foo.bar' ), 'foo\\.bar' );
 		t.equal( Ractive.escapeKey( 'foo\\.bar' ), 'foo\\\\\\.bar' );
 	});
 
-	QUnit.test( 'spread args can be applied to any invocation expression', t => {
+	test( 'spread args can be applied to any invocation expression', t => {
 		t.expect( 4 );
 
 		const r = new Ractive({
@@ -1516,22 +1517,22 @@ export default function() {
 		r.push( 'list', 'a', 'b', 'c' );
 	});
 
-	QUnit.test( 'ractive.unescapeKey() works correctly', t => {
+	test( 'ractive.unescapeKey() works correctly', t => {
 		t.equal( Ractive.unescapeKey( 'foo\\.bar' ), 'foo.bar' );
 		t.equal( Ractive.unescapeKey( 'foo\\\\\\.bar' ), 'foo\\.bar' );
 	});
 
-	QUnit.test( 'ractive.joinKeys() works correctly', t => {
+	test( 'ractive.joinKeys() works correctly', t => {
 		t.equal( Ractive.joinKeys( 'foo', 'bar.baz' ), 'foo.bar\\.baz' );
 		t.equal( Ractive.joinKeys( 'foo', 'bar\\.baz' ), 'foo.bar\\\\\\.baz' );
 	});
 
-	QUnit.test( 'ractive.splitKeypath() works correctly', t => {
+	test( 'ractive.splitKeypath() works correctly', t => {
 		t.deepEqual( Ractive.splitKeypath( 'foo.bar\\.baz' ), [ 'foo', 'bar.baz' ] );
 		t.deepEqual( Ractive.splitKeypath( 'foo.bar\\\\\\.baz' ), [ 'foo', 'bar\\.baz' ] );
 	});
 
-	QUnit.test( 'triple curly binding', t => {
+	test( 'triple curly binding', t => {
 		t.expect( 11 );
 
 		onWarn( message => {
@@ -1563,7 +1564,7 @@ export default function() {
 
 	// Is there a way to artificially create a FileList? Leaving this commented
 	// out until someone smarter than me figures out how
-	//QUnit.test( '{{#each}} iterates over a FileList (#1220)', t => {
+	//test( '{{#each}} iterates over a FileList (#1220)', t => {
 	// 	var input, files, ractive;
 
 	// 	input = document.createElement( 'input' );
@@ -1584,7 +1585,7 @@ export default function() {
 	// });
 
 	if ( !/phantom/i.test( navigator.userAgent ) ) {
-		QUnit.test( '<input value="{{foo}}"> where foo === null should not render a value (#390)', t => {
+		test( '<input value="{{foo}}"> where foo === null should not render a value (#390)', t => {
 			const ractive = new Ractive({
 				el: fixture,
 				template: '<input value="{{foo}}">',
@@ -1596,7 +1597,7 @@ export default function() {
 			t.equal( ractive.find( 'input' ).value, '' );
 		});
 
-		QUnit.test( 'ractive.detach() removes an instance from the DOM and returns a document fragment', t => {
+		test( 'ractive.detach() removes an instance from the DOM and returns a document fragment', t => {
 			const ractive = new Ractive({
 				el: fixture,
 				template: '<p>{{foo}}</p>',
@@ -1610,7 +1611,7 @@ export default function() {
 			t.ok( docFrag.contains( p ) );
 		});
 
-		QUnit.test( 'ractive.detach() works with a previously unrendered ractive', t => {
+		test( 'ractive.detach() works with a previously unrendered ractive', t => {
 			const ractive = new Ractive({
 				el: fixture,
 				template: '<p>{{foo}}</p>',
@@ -1624,7 +1625,7 @@ export default function() {
 			t.ok( docFrag.contains( p ) );
 		});
 
-		QUnit.test( 'Components with two-way bindings set parent values on initialisation', t => {
+		test( 'Components with two-way bindings set parent values on initialisation', t => {
 			const Dropdown = Ractive.extend({
 				template: '<select value="{{value}}">{{#options}}<option value="{{this}}">{{ this[ display ] }}</option>{{/options}}</select>'
 			});
@@ -1648,7 +1649,7 @@ export default function() {
 			t.deepEqual( ractive.get( 'number' ), { word: 'one', digit: 1 });
 		});
 
-		QUnit.test( 'Tearing down expression mustaches and recreating them does\'t throw errors', t => {
+		test( 'Tearing down expression mustaches and recreating them does\'t throw errors', t => {
 			const ractive = new Ractive({
 				el: fixture,
 				template: '{{#condition}}{{( a+b )}} {{( a+b )}} {{( a+b )}}{{/condition}}',
@@ -1664,7 +1665,7 @@ export default function() {
 			t.equal( fixture.innerHTML, '3 3 3' );
 		});
 
-		QUnit.test( 'Updating an expression section doesn\'t throw errors', t => {
+		test( 'Updating an expression section doesn\'t throw errors', t => {
 			const array = [{ foo: 1 }, { foo: 2 }, { foo: 3 }, { foo: 4 }, { foo: 5 }];
 
 			const ractive = new Ractive({
@@ -1689,7 +1690,7 @@ export default function() {
 			t.equal( fixture.innerHTML, '012' );
 		});
 
-		QUnit.test( 'noConflict reinstates original Ractive value (#2066)', t => {
+		test( 'noConflict reinstates original Ractive value (#2066)', t => {
 			const r = Ractive;
 			const noConflict = r.noConflict();
 
@@ -1699,7 +1700,7 @@ export default function() {
 			Ractive = r;
 		});
 
-		QUnit.test( 'Updating a list section with child list expressions doesn\'t throw errors', t => {
+		test( 'Updating a list section with child list expressions doesn\'t throw errors', t => {
 			const array = [
 				{ foo: [ 1, 2, 3, 4, 5 ] },
 				{ foo: [ 2, 3, 4, 5, 6 ] },
@@ -1730,7 +1731,7 @@ export default function() {
 			t.htmlEqual( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
 		});
 
-		QUnit.test( `trying to set a property on a non-object doesn't break the world (#2451)`, t => {
+		test( `trying to set a property on a non-object doesn't break the world (#2451)`, t => {
 			t.expect( 1 );
 
 			onWarn( w => {
@@ -1743,7 +1744,7 @@ export default function() {
 		});
 	}
 
-	QUnit.test( `you can request more lines of context for parser errors`, t => {
+	test( `you can request more lines of context for parser errors`, t => {
 		try {
 			Ractive.parse( 'hello\n{{foo}\nworld', { contextLines: 1 } );
 		} catch (e) {
@@ -1751,7 +1752,7 @@ export default function() {
 		}
 	});
 
-	QUnit.test( `setting a null value to null does nothing`, t => {
+	test( `setting a null value to null does nothing`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `{{#if !foo}}yep{{/if}}`,
@@ -1764,7 +1765,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
 
-	QUnit.test( `non-bmp characters in templates`, t => {
+	test( `non-bmp characters in templates`, t => {
 		new Ractive({
 			target: fixture,
 			template: '{{foo}}',
@@ -1774,7 +1775,7 @@ export default function() {
 		t.equal( fixture.innerHTML, '😀𠀀'  );
 	});
 
-	QUnit.test( `entities in triples survive toHTML (#2882)`, t => {
+	test( `entities in triples survive toHTML (#2882)`, t => {
 		const r = new Ractive({
 			template: '{{{html}}}',
 			data: {
