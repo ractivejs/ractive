@@ -1,9 +1,10 @@
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'methods/merge.js' );
 
-	QUnit.test( 'Merging an array of strings only creates the necessary fragments', ( t ) => {
+	test( 'Merging an array of strings only creates the necessary fragments', ( t ) => {
 		let entered = 0;
 
 		const ractive = new Ractive({
@@ -40,7 +41,7 @@ export default function() {
 		t.ok( baz === ractive.find( '#baz ' ));
 	});
 
-	QUnit.test( 'Merging an array of strings only removes the necessary fragments', ( t ) => {
+	test( 'Merging an array of strings only removes the necessary fragments', ( t ) => {
 		let entered = 0;
 		let exited = 0;
 
@@ -79,7 +80,7 @@ export default function() {
 		t.ok( baz === ractive.find( '#baz ' ));
 	});
 
-	QUnit.test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is `JSON.stringify`', ( t ) => {
+	test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is `JSON.stringify`', ( t ) => {
 		let entered = 0;
 		let exited = 0;
 
@@ -120,7 +121,7 @@ export default function() {
 		t.ok( baz === ractive.find( '#baz ' ));
 	});
 
-	QUnit.test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is a string id field', ( t ) => {
+	test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is a string id field', ( t ) => {
 		let entered = 0;
 		let exited = 0;
 
@@ -161,7 +162,7 @@ export default function() {
 		t.ok( baz === ractive.find( '#baz ' ));
 	});
 
-	QUnit.test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is a comparison function', ( t ) => {
+	test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is a comparison function', ( t ) => {
 		let entered = 0;
 		let exited = 0;
 
@@ -204,7 +205,7 @@ export default function() {
 		t.ok( baz === ractive.find( '#baz ' ));
 	});
 
-	QUnit.test( 'If identity comparison fails, the resulting shape of the DOM is still correct', ( t ) => {
+	test( 'If identity comparison fails, the resulting shape of the DOM is still correct', ( t ) => {
 		let entered = 0;
 		let exited = 0;
 
@@ -245,7 +246,7 @@ export default function() {
 		t.ok( baz !== ractive.find( '#baz ' ));
 	});
 
-	QUnit.test( 'Merging will trigger upstream updates regardless of whether items are being added/removed', ( t ) => {
+	test( 'Merging will trigger upstream updates regardless of whether items are being added/removed', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{items}} {{JSON.stringify(items)}}',
@@ -259,7 +260,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'b,a,c ["b","a","c"]' );
 	});
 
-	QUnit.test( '#if section with merged array (#952)', ( t ) => {
+	test( '#if section with merged array (#952)', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#if list}}yes{{else}}no{{/if}}',
@@ -274,7 +275,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yes' );
 	});
 
-	QUnit.test( 'Unbound sections disregard merge instructions (#967)', ( t ) => {
+	test( 'Unbound sections disregard merge instructions (#967)', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -292,7 +293,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<ul><li>a: ac</li><li>c: ac</li></ul>' );
 	});
 
-	QUnit.test( 'Shuffling the order of array members', ( t ) => {
+	test( 'Shuffling the order of array members', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<ul>{{#each items}}<li>{{this}}</li>{{/each}}</ul>',
@@ -305,7 +306,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<ul><li>c</li><li>b</li><li>d</li><li>a</li></ul>' );
 	});
 
-	QUnit.test( 'Merging works with unrendered instances (#1314)', ( t ) => {
+	test( 'Merging works with unrendered instances (#1314)', ( t ) => {
 		const ractive = new Ractive({
 			template: '{{#items}}{{.}}{{/}}',
 			data: {
@@ -317,7 +318,7 @@ export default function() {
 		t.htmlEqual( ractive.toHTML(), 'ba' );
 	});
 
-	QUnit.test( 'Expressions with index references survive a merge', t => {
+	test( 'Expressions with index references survive a merge', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -340,7 +341,7 @@ export default function() {
 		return !node.parentNode || node.parentNode instanceof HTMLDocument;
 	}
 
-	QUnit.test( 'arrays merge safely with themselves', t => {
+	test( 'arrays merge safely with themselves', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{list.0.key}}{{#each list}}<span>{{.key}}</span>{{/each}}`,
@@ -370,7 +371,7 @@ export default function() {
 		t.equal( postB.myId, 'b' );
 	});
 
-	QUnit.test( 'arrays merge with themselves when no array is given', t => {
+	test( 'arrays merge with themselves when no array is given', t => {
 		const list = [ 1, 2, 3 ];
 		const r = new Ractive({
 			el: fixture,
@@ -386,7 +387,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '243' );
 	});
 
-	QUnit.test( 'arrays merge safely with themselves even if they are not rendered', t => {
+	test( 'arrays merge safely with themselves even if they are not rendered', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{list.0.key}}',

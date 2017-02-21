@@ -1,9 +1,10 @@
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'methods/findContainer.js' );
 
-	QUnit.test( '.findContainer() finds container component', t => {
+	test( '.findContainer() finds container component', t => {
 		const ractive = new Ractive({
 			template: '<Outer><Mid><Inner/></Mid></Outer>',
 			components: {

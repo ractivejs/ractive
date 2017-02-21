@@ -1,10 +1,11 @@
 import { fire } from 'simulant';
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'methods/observe.js' );
 
-	QUnit.test( 'Observers fire before the DOM updates', t => {
+	test( 'Observers fire before the DOM updates', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive({
@@ -20,7 +21,7 @@ export default function() {
 		ractive.set( 'foo', true );
 	});
 
-	QUnit.test( 'Observers with { defer: true } fire after the DOM updates', t => {
+	test( 'Observers with { defer: true } fire after the DOM updates', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive({
@@ -36,7 +37,7 @@ export default function() {
 		ractive.set( 'foo', true );
 	});
 
-	QUnit.test( 'Observers with { defer: true } fire after non-transitioned nodes removed from DOM (#1869)', t => {
+	test( 'Observers with { defer: true } fire after non-transitioned nodes removed from DOM (#1869)', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive({
@@ -52,7 +53,7 @@ export default function() {
 		ractive.pop( 'items' );
 	});
 
-	QUnit.test( 'Observer can be created without an options argument', t => {
+	test( 'Observer can be created without an options argument', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive({
@@ -66,7 +67,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'Observers fire on init when no matching data', t => {
+	test( 'Observers fire on init when no matching data', t => {
 		t.expect( 2 );
 
 		const ractive = new Ractive({
@@ -82,7 +83,7 @@ export default function() {
 	});
 
 
-	QUnit.test( 'Uninitialised observers do not fire if their keypath is set to the same value', t => {
+	test( 'Uninitialised observers do not fire if their keypath is set to the same value', t => {
 		t.expect( 0 );
 
 		const ractive = new Ractive({
@@ -98,7 +99,7 @@ export default function() {
 		ractive.set( 'foo', 'bar' );
 	});
 
-	QUnit.test( 'Uninitialised observers correctly report initial value on first fire (#1137)', t => {
+	test( 'Uninitialised observers correctly report initial value on first fire (#1137)', t => {
 		t.expect( 2 );
 
 		const ractive = new Ractive({
@@ -113,7 +114,7 @@ export default function() {
 		ractive.set( 'foo', 'baz' );
 	});
 
-	QUnit.test( 'Observers fire on downstream changes (#1393)', t => {
+	test( 'Observers fire on downstream changes (#1393)', t => {
 		t.expect( 4 );
 
 		const ractive = new Ractive({
@@ -133,7 +134,7 @@ export default function() {
 		ractive.set( 'config.foo', 'baz' );
 	});
 
-	QUnit.test( 'Observers do NOT fire on downstream changes with strict: true', t => {
+	test( 'Observers do NOT fire on downstream changes with strict: true', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: 'blah',
@@ -155,7 +156,7 @@ export default function() {
 		t.equal( observed, 1 );
 	});
 
-	QUnit.test( 'Observers can observe multiple keypaths, separated by a space', t => {
+	test( 'Observers can observe multiple keypaths, separated by a space', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: 'irrelevant'
@@ -185,7 +186,7 @@ export default function() {
 		t.deepEqual( results, { foo: 'one', bar: 'two', baz: 'three', a: 1, b: 2 });
 	});
 
-	QUnit.test( 'Promises from set() operations inside observers resolve (#765)', t => {
+	test( 'Promises from set() operations inside observers resolve (#765)', t => {
 		t.expect( 1 );
 
 		const done = t.async();
@@ -208,7 +209,7 @@ export default function() {
 		ractive.set( 'bar', true );
 	});
 
-	QUnit.test( 'set() operations inside observers affect the DOM immediately (related to #765)', t => {
+	test( 'set() operations inside observers affect the DOM immediately (related to #765)', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive({
@@ -227,7 +228,7 @@ export default function() {
 		ractive.set( 'bar', true );
 	});
 
-	QUnit.test( 'Errors inside observers are not caught', t => {
+	test( 'Errors inside observers are not caught', t => {
 		t.expect( 2 );
 
 		const ractive = new Ractive({
@@ -253,7 +254,7 @@ export default function() {
 		}
 	});
 
-	QUnit.test( 'Setting up and cancelling a regular observer', t => {
+	test( 'Setting up and cancelling a regular observer', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: 'unimportant',
@@ -273,7 +274,7 @@ export default function() {
 		observer.cancel();
 	});
 
-	QUnit.test( '.observeOnce() functionality', t => {
+	test( '.observeOnce() functionality', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive({ data: { foo: 'bar' } });
@@ -286,7 +287,7 @@ export default function() {
 		ractive.set( 'foo', 'qux' );
 	});
 
-	QUnit.test( 'Observer with no keypath argument (#1868)', t => {
+	test( 'Observer with no keypath argument (#1868)', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive();
@@ -295,7 +296,7 @@ export default function() {
 		ractive.set( 'answer', 42 );
 	});
 
-	QUnit.test( 'Observer with empty string keypath argument (#1868)', t => {
+	test( 'Observer with empty string keypath argument (#1868)', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive();
@@ -307,7 +308,7 @@ export default function() {
 	// This is a casualty of 0.8 – the `foo` observer will be called
 	// when it turns `false`, immediately before the component that
 	// owns the observer is torn down. The observer *is* torn down, though
-	QUnit.test( 'Observers are removed on teardown (#1865)', t => {
+	test( 'Observers are removed on teardown (#1865)', t => {
 		let rendered = 0;
 		let observed = 0;
 
@@ -339,7 +340,7 @@ export default function() {
 		t.equal( observed, 3 ); // formerly 2. (the important thing is it's not 3)
 	});
 
-	QUnit.test( 'Observers should not fire twice when an upstream change is already a change (#1695)', t => {
+	test( 'Observers should not fire twice when an upstream change is already a change (#1695)', t => {
 		let count = 0;
 
 		const ractive = new Ractive({
@@ -354,7 +355,7 @@ export default function() {
 		t.equal( count, 1 );
 	});
 
-	QUnit.test( 'Pattern observers fire on changes to keypaths that match their pattern', t => {
+	test( 'Pattern observers fire on changes to keypaths that match their pattern', t => {
 		t.expect( 4 );
 
 		const ractive = new Ractive({
@@ -375,7 +376,7 @@ export default function() {
 	});
 
 	// TODO why not deletes? was this discussed?
-	QUnit.test( 'Pattern observers fire on changes and adds, but not deletes', t => {
+	test( 'Pattern observers fire on changes and adds, but not deletes', t => {
 		let newName;
 		let oldName;
 		let keypath;
@@ -407,7 +408,7 @@ export default function() {
 		t.equal( index, 1 );
 	});
 
-	QUnit.test( 'Pattern observers fire on adds and changes in full array set', t => {
+	test( 'Pattern observers fire on adds and changes in full array set', t => {
 		let observed = 0;
 
 		const ractive = new Ractive({
@@ -423,7 +424,7 @@ export default function() {
 		t.equal( observed, 2 );
 	});
 
-	QUnit.test( 'Pattern observers do NOT fire on init when no matching data', t => {
+	test( 'Pattern observers do NOT fire on init when no matching data', t => {
 		t.expect( 0 );
 
 		const ractive = new Ractive({
@@ -437,7 +438,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'Pattern observers fire on changes to keypaths downstream of their pattern', t => {
+	test( 'Pattern observers fire on changes to keypaths downstream of their pattern', t => {
 		t.expect( 4 );
 
 		const ractive = new Ractive({
@@ -458,7 +459,7 @@ export default function() {
 	});
 
 
-	QUnit.test( 'observe has correct context #2087', t => {
+	test( 'observe has correct context #2087', t => {
 		t.expect( 4 );
 
 		const ractive = new Ractive({
@@ -479,7 +480,7 @@ export default function() {
 	});
 
 
-	QUnit.test( 'Pattern observers fire on changes to keypaths upstream of their pattern', t => {
+	test( 'Pattern observers fire on changes to keypaths upstream of their pattern', t => {
 		t.expect( 4 );
 
 		const ractive = new Ractive({
@@ -499,7 +500,7 @@ export default function() {
 		ractive.set( 'foo', { bar: { baz: 2 } });
 	});
 
-	QUnit.test( 'Pattern observers fire on changes to keypaths upstream of their pattern only if their value has changed', t => {
+	test( 'Pattern observers fire on changes to keypaths upstream of their pattern only if their value has changed', t => {
 		t.expect( 7 );
 
 		let foo = { bar: { baz: 1 } };
@@ -531,7 +532,7 @@ export default function() {
 		ractive.set( 'foo', foo );
 	});
 
-	QUnit.test( 'Pattern observers can have multiple wildcards', t => {
+	test( 'Pattern observers can have multiple wildcards', t => {
 		t.expect( 4 );
 
 		const ractive = new Ractive({
@@ -551,7 +552,7 @@ export default function() {
 		ractive.set( 'foo.bar', { baz: 2 });
 	});
 
-	QUnit.test( 'The first key in a pattern observer\'s pattern can be a wildcard', t => {
+	test( 'The first key in a pattern observer\'s pattern can be a wildcard', t => {
 		t.expect( 4 );
 
 		const ractive = new Ractive({
@@ -571,7 +572,7 @@ export default function() {
 		ractive.set( 'gup.foo.bar', { baz: 2 });
 	});
 
-	QUnit.test( 'Pattern observers fire when ractive.update() is called without parameters', t => {
+	test( 'Pattern observers fire when ractive.update() is called without parameters', t => {
 		t.expect( 2 );
 
 		const ractive = new Ractive({
@@ -589,7 +590,7 @@ export default function() {
 		ractive.update();
 	});
 
-	QUnit.test( 'Pattern observers can start with wildcards (#629)', t => {
+	test( 'Pattern observers can start with wildcards (#629)', t => {
 		const ractive = new Ractive({
 			data: {
 				foo: { number: 0 },
@@ -618,7 +619,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'Pattern observers on arrays fire correctly after mutations', t => {
+	test( 'Pattern observers on arrays fire correctly after mutations', t => {
 		const ractive = new Ractive({
 			data: {
 				items: [ 'a', 'b', 'c' ]
@@ -655,7 +656,7 @@ export default function() {
 		t.ok( observedLengthChange );
 	});
 
-	QUnit.test( 'Pattern observers receive additional arguments corresponding to the wildcards', t => {
+	test( 'Pattern observers receive additional arguments corresponding to the wildcards', t => {
 		const ractive = new Ractive({
 			data: {
 				array: [ 'a', 'b', 'c' ],
@@ -694,13 +695,13 @@ export default function() {
 		t.equal( lastB, 'five' );
 	});
 
-	QUnit.test( 'Pattern observers work with an empty array (#760)', t => {
+	test( 'Pattern observers work with an empty array (#760)', t => {
 		const ractive = new Ractive({});
 		ractive.observe( 'foo.*.bar', () => {});
 		t.ok( true );
 	});
 
-	QUnit.test( 'Pattern observers work with an property of array (#760) variant', t => {
+	test( 'Pattern observers work with an property of array (#760) variant', t => {
 		t.expect( 2 );
 
 		const ractive = new Ractive({ data: { foo: [] } } );
@@ -714,7 +715,7 @@ export default function() {
 		ractive.push( 'foo', bar );
 	});
 
-	QUnit.test( 'Setting up and cancelling a pattern observer', t => {
+	test( 'Setting up and cancelling a pattern observer', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: 'unimportant',
@@ -734,7 +735,7 @@ export default function() {
 		observer.cancel();
 	});
 
-	QUnit.test( 'Deferred pattern observers work correctly (#1079)', t => {
+	test( 'Deferred pattern observers work correctly (#1079)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: 'unimportant',
@@ -756,7 +757,7 @@ export default function() {
 		observer.cancel();
 	});
 
-	QUnit.test( 'Asterisks should not be left in computation keypaths (#1472)', t => {
+	test( 'Asterisks should not be left in computation keypaths (#1472)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{foo * 2}}',
@@ -782,7 +783,7 @@ export default function() {
 		fire( document.createElement( 'div' ), 'input' );
 		fire( document.createElement( 'div' ), 'blur' );
 
-		QUnit.test( 'Pattern observers used as validators behave correctly on blur (#1475)', t => {
+		test( 'Pattern observers used as validators behave correctly on blur (#1475)', t => {
 			const ractive = new Ractive({
 				el: fixture,
 				template: `
@@ -826,7 +827,7 @@ export default function() {
 		// do nothing
 	}
 
-	QUnit.test( 'Observer fires on initialisation for computed properties', t => {
+	test( 'Observer fires on initialisation for computed properties', t => {
 		const ractive = new Ractive({
 			data: { num: 21 },
 			computed: {
@@ -843,7 +844,7 @@ export default function() {
 		t.deepEqual( observed, { num: 21, doubled: 42 });
 	});
 
-	QUnit.test( `observers that cause a shuffle shouldn't throw (#2222)`, t => {
+	test( `observers that cause a shuffle shouldn't throw (#2222)`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `-{{#each items}}{{.}}{{/each}}
@@ -863,7 +864,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '-12 1 - items.0 2 - items.1' );
 	});
 
-	QUnit.test( `a pattern observer that is shuffled with objects should only notify on the new keys`, t => {
+	test( `a pattern observer that is shuffled with objects should only notify on the new keys`, t => {
 		let count = 0;
 
 		const r = new Ractive({
@@ -886,7 +887,7 @@ export default function() {
 		t.equal( count, 7 );
 	});
 
-	QUnit.test( `wildcard * and root fire in components for mapped and local data`, t => {
+	test( `wildcard * and root fire in components for mapped and local data`, t => {
 		t.expect(16);
 
 		let wckeypath = 'value';
@@ -930,7 +931,7 @@ export default function() {
 		r.findComponent( 'widget' ).set( 'bizz', 'buzz' );
 	});
 
-	QUnit.test( 'wildcard * and root include computed but not expressions', t => {
+	test( 'wildcard * and root include computed but not expressions', t => {
 		let wildcard = 0;
 		let root = 0;
 
@@ -956,7 +957,7 @@ export default function() {
 		t.equal( root, 1, 'root count' );
 	});
 
-	QUnit.test( 'Pattern observer expects * to only apply to arrays and objects (#1923)', t => {
+	test( 'Pattern observer expects * to only apply to arrays and objects (#1923)', t => {
 		t.expect(0);
 		const ractive = new Ractive({
 			data: { msg: 'hello world' }
@@ -967,7 +968,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'pattern observers only observe changed values (#2420)', t => {
+	test( 'pattern observers only observe changed values (#2420)', t => {
 		t.expect( 3 );
 
 		const r = new Ractive({
@@ -985,7 +986,7 @@ export default function() {
 		r.set( 'list.1', { foo: 'yep' } );
 	});
 
-	QUnit.test( 'pattern observers only observe changed values with exact keypath matches (#2420)', t => {
+	test( 'pattern observers only observe changed values with exact keypath matches (#2420)', t => {
 		t.expect( 3 );
 
 		const r = new Ractive({
@@ -1003,7 +1004,7 @@ export default function() {
 		r.set( 'list.1.foo', 'yep' );
 	});
 
-	QUnit.test( 'subsequent single segment pattern observers still have the correct old value', t => {
+	test( 'subsequent single segment pattern observers still have the correct old value', t => {
 		t.expect( 6 );
 		let str = 'yep';
 
@@ -1024,7 +1025,7 @@ export default function() {
 		r.set( 'list.0.foo', str );
 	});
 
-	QUnit.test( 'pattern observers only observe changed values on update', t => {
+	test( 'pattern observers only observe changed values on update', t => {
 		t.expect( 2 );
 
 		const r = new Ractive({
@@ -1042,7 +1043,7 @@ export default function() {
 		r.update( 'list.1.foo' );
 	});
 
-	QUnit.test( `pattern observer doesn't die on primitive values (#2503)`, t => {
+	test( `pattern observer doesn't die on primitive values (#2503)`, t => {
 		const done = t.async();
 		const r = new Ractive({
 			el: fixture,
@@ -1060,7 +1061,7 @@ export default function() {
 		r.add( 'foo' );
 	});
 
-	QUnit.test( 'wildcard * fires on new property', t => {
+	test( 'wildcard * fires on new property', t => {
 		t.expect( 2 );
 
 		const ractive = new Ractive({ data: { qux: 'qux' } });
@@ -1073,7 +1074,7 @@ export default function() {
 		ractive.set( 'foo', 'bar' );
 	});
 
-	QUnit.test( 'References to observers are not retained after cancel()', t => {
+	test( 'References to observers are not retained after cancel()', t => {
 		const ractive = new Ractive({ data: { counter: 0 } });
 		const obs = ractive.observe( 'counter', ( newValue, oldValue ) => {
 			if ( oldValue ) {
@@ -1089,7 +1090,7 @@ export default function() {
 		t.equal( ractive._observers.length, 0 );
 	});
 
-	QUnit.test( 'observers on implicit mappings should resolve correctly (#2572)', t => {
+	test( 'observers on implicit mappings should resolve correctly (#2572)', t => {
 		t.expect( 2 );
 
 		let count = 0;
@@ -1119,7 +1120,7 @@ export default function() {
 		r.add( 'foo.bar' );
 	});
 
-	QUnit.test( 'observing in an isolated component should not create implicit mappings', t => {
+	test( 'observing in an isolated component should not create implicit mappings', t => {
 		t.expect( 0 );
 
 		const cmp = Ractive.extend({
@@ -1140,7 +1141,7 @@ export default function() {
 		r.add( 'foo.bar' );
 	});
 
-	QUnit.test( 'observers should not be re-entrant when they init (#2594)', t => {
+	test( 'observers should not be re-entrant when they init (#2594)', t => {
 		let count = 0;
 		new Ractive({
 			el: fixture,
@@ -1156,7 +1157,7 @@ export default function() {
 		t.equal( count, 1 );
 	});
 
-	QUnit.test( 'pattern observers should not be re-entrant when they init', t => {
+	test( 'pattern observers should not be re-entrant when they init', t => {
 		let count = 0;
 		new Ractive({
 			el: fixture,
@@ -1172,7 +1173,7 @@ export default function() {
 		t.equal( count, 1 );
 	});
 
-	QUnit.test( 'pattern observers handle multi-key set correctly (#2631)', t => {
+	test( 'pattern observers handle multi-key set correctly (#2631)', t => {
 		const list = [];
 		const r = new Ractive({
 			data: {
@@ -1194,7 +1195,7 @@ export default function() {
 		t.deepEqual( list, [ 3, 4, 5 ] );
 	});
 
-	QUnit.test( `observers only fire for a computation when it actually changes (#2629)`, t => {
+	test( `observers only fire for a computation when it actually changes (#2629)`, t => {
 		const r = new Ractive({
 			computed: {
 				int () {
@@ -1219,7 +1220,7 @@ export default function() {
 		t.equal( r.get( 'observerCalledTimes' ), 1 );
 	});
 
-	QUnit.test( 'observers on conditional mappings fire correctly (#2636)', t => {
+	test( 'observers on conditional mappings fire correctly (#2636)', t => {
 		let val;
 
 		const cmp = Ractive.extend({
@@ -1239,7 +1240,7 @@ export default function() {
 		t.equal( val, 'hello' );
 	});
 
-	QUnit.test( `observers on ambiguous paths should not cause errors if they don't resolve before teardown (#2619)`, t => {
+	test( `observers on ambiguous paths should not cause errors if they don't resolve before teardown (#2619)`, t => {
 		const r = new Ractive({
 			el: fixture,
 			onconfig () {
@@ -1255,7 +1256,7 @@ export default function() {
 		}
 	});
 
-	QUnit.test( `observers that modify their observed keypath should fire again when set to the pre-observed value (#2668)`, t => {
+	test( `observers that modify their observed keypath should fire again when set to the pre-observed value (#2668)`, t => {
 		let count = 0;
 
 		const r = new Ractive({
@@ -1279,7 +1280,7 @@ export default function() {
 		t.equal( count, 2 );
 	});
 
-	QUnit.test( `observers fire properly on upstream links (#2675)`, t => {
+	test( `observers fire properly on upstream links (#2675)`, t => {
 		let count = 0;
 		const cmp = Ractive.extend({
 			template: '{{ JSON.stringify(obj) }}',
@@ -1303,7 +1304,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '{"str":"still yep"}{"str":"still yep"}' );
 	});
 
-	QUnit.test( `pattern observers fire properly on upstream links (#2675)`, t => {
+	test( `pattern observers fire properly on upstream links (#2675)`, t => {
 		let val;
 		let path;
 		let key;
@@ -1336,7 +1337,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '{"str":"still yep"}{"str":"still yep"}' );
 	});
 
-	QUnit.test( `observers fire properly on upstream linked links (#2675)`, t => {
+	test( `observers fire properly on upstream linked links (#2675)`, t => {
 		let count = 0;
 		const cmp2 = Ractive.extend({
 			template: '{{ JSON.stringify(obj) }}',
@@ -1365,7 +1366,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '{"str":"still yep"}{"str":"still yep"}' );
 	});
 
-	QUnit.test( `pattern observers only fire once for matching keypaths (#2682)`, t => {
+	test( `pattern observers only fire once for matching keypaths (#2682)`, t => {
 		let count = 0;
 		const r = new Ractive({
 			el: fixture
@@ -1382,7 +1383,7 @@ export default function() {
 		t.equal( count, 1 );
 	});
 
-	QUnit.test( 'observe ignores additional empty paths (#2690)', t => {
+	test( 'observe ignores additional empty paths (#2690)', t => {
 		let count1 = 0;
 		let count2 = 0;
 		const r = new Ractive({
@@ -1399,7 +1400,7 @@ export default function() {
 		t.equal( count2, 1 );
 	});
 
-	QUnit.test( `observeOnce works from the config event, even if the data is initialized - #2725`, t => {
+	test( `observeOnce works from the config event, even if the data is initialized - #2725`, t => {
 		let count = 0;
 		const r = new Ractive({
 			target: fixture,
@@ -1415,7 +1416,7 @@ export default function() {
 		t.equal( count, 1 );
 	});
 
-	QUnit.test( `observers can be silenced and resumed`, t => {
+	test( `observers can be silenced and resumed`, t => {
 		let count = 0;
 		const r = new Ractive();
 		const handle = r.observe( 'foo', function () {
@@ -1437,7 +1438,7 @@ export default function() {
 		t.equal( handle.isSilenced(), false );
 	});
 
-	QUnit.test( `observer handle cancels all observers when multiple observers are created`, t => {
+	test( `observer handle cancels all observers when multiple observers are created`, t => {
 		let count = 0;
 		const r = new Ractive();
 		const handle = r.observe( 'foo bar baz', () => count++, { init: false } );
@@ -1452,7 +1453,7 @@ export default function() {
 		t.equal( count, 2 );
 	});
 
-	QUnit.test( `pattern observer only fires a partial update once (#2800)`, t => {
+	test( `pattern observer only fires a partial update once (#2800)`, t => {
 		const counts = { a: 0, b: 0 };
 		const r = new Ractive();
 		r.observe( 'foo.*', ( n, o, kp, k ) => {
@@ -1466,7 +1467,7 @@ export default function() {
 		t.equal( counts.b, 1 );
 	});
 
-	QUnit.test( `pattern observer only fires for an exactly matching keypath, not just a partial match (#2805)`, t => {
+	test( `pattern observer only fires for an exactly matching keypath, not just a partial match (#2805)`, t => {
 		const keys = [];
 		const r = new Ractive({ data: { foo: [ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {} ] } });
 		r.observe('foo.*', ( n, o, kp, k ) => {
@@ -1482,7 +1483,7 @@ export default function() {
 		t.equal( keys[0], '20' );
 	});
 
-	QUnit.test( `inserting array elements without using modification methods should still mark length (#2806)`, t => {
+	test( `inserting array elements without using modification methods should still mark length (#2806)`, t => {
 		const r = new Ractive({
 			data: { foo: [] }
 		});
@@ -1496,7 +1497,7 @@ export default function() {
 		r.set( 'foo.6', 'b' );
 	});
 
-	QUnit.test( 'List observers report array modifications', t => {
+	test( 'List observers report array modifications', t => {
 		let shuffle;
 
 		const ractive = new Ractive({
@@ -1519,7 +1520,7 @@ export default function() {
 		t.equal( shuffle.start, 1 );
 	});
 
-	QUnit.test( 'List observers correctly report value change on no init', t => {
+	test( 'List observers correctly report value change on no init', t => {
 		let shuffle;
 
 		const ractive = new Ractive({
@@ -1538,7 +1539,7 @@ export default function() {
 		t.equal( shuffle.start, 1 );
 	});
 
-	QUnit.test( 'List observers report full array value changes as inserted/deleted', t => {
+	test( 'List observers report full array value changes as inserted/deleted', t => {
 		let shuffle;
 
 		const ractive = new Ractive({
@@ -1556,7 +1557,7 @@ export default function() {
 		t.deepEqual( shuffle.deleted, [ 'apple', 'orange', 'banana' ] );
 	});
 
-	QUnit.test( 'Pattern observers on arrays fire correctly after mutations', t => {
+	test( 'Pattern observers on arrays fire correctly after mutations', t => {
 		const ractive = new Ractive({
 			data: {
 				items: [ 'a', 'b', 'c' ]
@@ -1584,7 +1585,7 @@ export default function() {
 		t.equal( deleted[0], 'd' );
 	});
 
-	QUnit.test( 'array observers can be single fire', t => {
+	test( 'array observers can be single fire', t => {
 		let count = 0;
 		const r = new Ractive({
 			observe: {
@@ -1603,7 +1604,7 @@ export default function() {
 		t.equal( count, 1 );
 	});
 
-	QUnit.test( 'array observers can be deferred', t => {
+	test( 'array observers can be deferred', t => {
 		t.expect( 2 );
 
 		const r = new Ractive({
@@ -1624,7 +1625,7 @@ export default function() {
 		r.push( 'list', 1 );
 	});
 
-	QUnit.test( `plain observers allow a hook to set the 'old' value`, t => {
+	test( `plain observers allow a hook to set the 'old' value`, t => {
 		t.expect( 4 );
 
 		let target = 0;
@@ -1647,7 +1648,7 @@ export default function() {
 		r.push( 'list', 1 );
 	});
 
-	QUnit.test( `plain observer old value hook gets a lifelong context on top of the ractive instance`, t => {
+	test( `plain observer old value hook gets a lifelong context on top of the ractive instance`, t => {
 		t.expect( 3 );
 
 		const r = new Ractive({
@@ -1679,7 +1680,7 @@ export default function() {
 		r.set( 'foo', 'asdf' );
 	});
 
-	QUnit.test( `recursive observers from root`, t => {
+	test( `recursive observers from root`, t => {
 		const r = new Ractive();
 		const vals = [
 			[ { baz: 'yep' }, undefined, 'foo.bar' ],
@@ -1700,7 +1701,7 @@ export default function() {
 		r.set( 'foo.bar.baz', 'yep again' );
 	});
 
-	QUnit.test( `recursive observers from path`, t => {
+	test( `recursive observers from path`, t => {
 		const r = new Ractive();
 		const vals = [
 			[ { baz: 'yep' }, undefined, 'some.path.foo.bar', 'foo.bar' ],
@@ -1722,7 +1723,7 @@ export default function() {
 		r.set( 'not.relevant', 'yep' );
 	});
 
-	QUnit.test( `recursive observers and links`, t => {
+	test( `recursive observers and links`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: '<cmp foozle="{{thing}}" />',
@@ -1743,7 +1744,7 @@ export default function() {
 		ob2.cancel();
 	});
 
-	QUnit.test( `recursive observers catch changes on a root of link (#2862)`, t => {
+	test( `recursive observers catch changes on a root of link (#2862)`, t => {
 		t.expect( 12 );
 
 		const src = new Ractive({

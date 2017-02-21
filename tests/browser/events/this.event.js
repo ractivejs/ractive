@@ -1,10 +1,11 @@
 import { fire } from 'simulant';
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'events/this.event.js' );
 
-	QUnit.test( 'this.event set to current event object', t => {
+	test( 'this.event set to current event object', t => {
 		t.expect( 1 );
 
 		const ractive = new Ractive({
@@ -19,7 +20,7 @@ export default function() {
 		fire( ractive.find( '#test' ), 'click' );
 	});
 
-	QUnit.test( 'this.event exists on ractive.fire()', t => {
+	test( 'this.event exists on ractive.fire()', t => {
 		t.expect( 2 );
 
 		const ractive = new Ractive({
@@ -37,7 +38,7 @@ export default function() {
 		ractive.fire( 'foo' );
 	});
 
-	QUnit.test( 'method calls that fire events do not clobber this.events', t => {
+	test( 'method calls that fire events do not clobber this.events', t => {
 		t.expect( 4 );
 
 		let methodEvent;

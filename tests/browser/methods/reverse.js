@@ -1,10 +1,11 @@
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'methods/reverse.js' );
 
 	[ true, false ].forEach( modifyArrays => {
-		QUnit.test( `ractive.reverse() (modifyArrays: ${modifyArrays})`, t => {
+		test( `ractive.reverse() (modifyArrays: ${modifyArrays})`, t => {
 			const items = [ 'alice', 'bob', 'charles' ];
 
 			const ractive = new Ractive({

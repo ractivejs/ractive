@@ -1,5 +1,6 @@
 import { initModule } from '../helpers/test-config';
 import { createIsolatedEnv } from '../helpers/Environment';
+import { test } from 'qunit';
 
 export default function() {
 	initModule('getCss.js');
@@ -16,7 +17,7 @@ export default function() {
 
 	}
 
-	QUnit.test('getCSS with a single component definition', t => {
+	test('getCSS with a single component definition', t => {
 
 		const Component = createComponentDefinition(Ractive);
 
@@ -27,7 +28,7 @@ export default function() {
 
 	});
 
-	QUnit.test('getCSS with multiple components definition', t => {
+	test('getCSS with multiple components definition', t => {
 
 		const ComponentA = createComponentDefinition(Ractive);
 
@@ -44,7 +45,7 @@ export default function() {
 	});
 
 	if (!window.__karma__) {
-		QUnit.test('getCSS with component definitions constructed from Ractive of different environments', t => {
+		test('getCSS with component definitions constructed from Ractive of different environments', t => {
 			t.expect(5);
 
 			const done1 = t.async();

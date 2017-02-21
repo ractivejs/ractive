@@ -1,4 +1,5 @@
 import { afterEach, initModule } from '../../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	const defaultData = Ractive.defaults.data;
@@ -20,7 +21,7 @@ export default function() {
 		script.textContent = template;
 	}
 
-	QUnit.test( 'hash is retrieved from element Id', t => {
+	test( 'hash is retrieved from element Id', t => {
 		createScriptTemplate( '{{foo}}' );
 
 		new Ractive({
@@ -32,7 +33,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'bar' );
 	});
 
-	QUnit.test( 'non-existant element id throws', t => {
+	test( 'non-existant element id throws', t => {
 		t.throws( () => {
 			new Ractive({
 				el: fixture,
@@ -41,7 +42,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'Ractive.defaults.template used on initialize', t => {
+	test( 'Ractive.defaults.template used on initialize', t => {
 		Ractive.defaults.template = '{{foo}}';
 
 		new Ractive({
@@ -52,7 +53,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'bar' );
 	});
 
-	QUnit.test( 'Ractive.defaults.template function called on initialize', t => {
+	test( 'Ractive.defaults.template function called on initialize', t => {
 		Ractive.defaults.template = () => '{{foo}}';
 
 		new Ractive( {
@@ -63,7 +64,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'bar' );
 	});
 
-	QUnit.test( 'template function has helper object', t => {
+	test( 'template function has helper object', t => {
 		t.expect( 3 );
 
 		createScriptTemplate( '{{foo}}' );
@@ -85,7 +86,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'fizzbizz' );
 	});
 
-	QUnit.test( 'non-script tag for template throws error', t => {
+	test( 'non-script tag for template throws error', t => {
 		const div = document.createElement( 'DIV' );
 		div.id = 'template';
 		fixture.appendChild( div );

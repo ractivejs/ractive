@@ -1,9 +1,10 @@
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'methods/animate.js' );
 
-	QUnit.test( 'Values that cannot be interpolated change to their final value immediately', t => {
+	test( 'Values that cannot be interpolated change to their final value immediately', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<p>{{name}}</p>',
@@ -16,7 +17,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>bar</p>' );
 	});
 
-	QUnit.test( 'ractive.animate() returns a promise that resolves when the animation completes (#1047)', t => {
+	test( 'ractive.animate() returns a promise that resolves when the animation completes (#1047)', t => {
 		const done = t.async();
 
 		const ractive = new Ractive({
@@ -31,7 +32,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'ractive.animate() returns a promise even if nothing changes', t => {
+	test( 'ractive.animate() returns a promise even if nothing changes', t => {
 		t.expect( 3 );
 
 		const ractive = new Ractive();
@@ -42,7 +43,7 @@ export default function() {
 		t.ok( promise.stop );
 	});
 
-	QUnit.test( `ractive.animate() on a linked path returns a promise`, t => {
+	test( `ractive.animate() on a linked path returns a promise`, t => {
 		const done = t.async();
 
 		const r = new Ractive({
@@ -62,7 +63,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'all animations are updated in a single batch', t => {
+	test( 'all animations are updated in a single batch', t => {
 		const done = t.async();
 
 		let fooSteps = 0;
@@ -109,7 +110,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'animations cancel existing animations on the same keypath', t => {
+	test( 'animations cancel existing animations on the same keypath', t => {
 		t.expect( 1 );
 
 		const done = t.async();
@@ -138,7 +139,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'set operations cancel existing animations on the same keypath', t => {
+	test( 'set operations cancel existing animations on the same keypath', t => {
 		t.expect( 1 );
 
 		const done = t.async();
@@ -166,7 +167,7 @@ export default function() {
 		setTimeout( done, 50 );
 	});
 
-	QUnit.test( 'interpolates correctly between objects with identical properties', t => {
+	test( 'interpolates correctly between objects with identical properties', t => {
 		t.expect( 3 );
 
 		const done = t.async();
@@ -194,7 +195,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'Named easing functions are taken from the instance', t => {
+	test( 'Named easing functions are taken from the instance', t => {
 		t.expect( 0 );
 
 		const ractive = new Ractive({
@@ -204,7 +205,7 @@ export default function() {
 		ractive.animate( 'x', 1, { easing: 'easeOut' });
 	});
 
-	QUnit.test( `animating an array animates the values in the array`, t => {
+	test( `animating an array animates the values in the array`, t => {
 		const done = t.async();
 
 		const r = new Ractive({

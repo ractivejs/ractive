@@ -1,9 +1,10 @@
 import { initModule } from '../../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'init/hooks/onconstruct.js' );
 
-	QUnit.test( 'has access to options', t => {
+	test( 'has access to options', t => {
 		const View = Ractive.extend({
 			onconstruct ( ctx, options ){
 				options.template = '{{foo}}';

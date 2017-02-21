@@ -1,15 +1,16 @@
 import { hasUsableConsole, onWarn, initModule } from '../../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'init/initialisation/misc.js' );
 
-	QUnit.test( 'initialize with no options ok', t => {
+	test( 'initialize with no options ok', t => {
 		const ractive = new Ractive();
 		t.ok( ractive );
 	});
 
 	if ( hasUsableConsole ) {
-		QUnit.test( 'functions that conflict with default properties are ignored and trigger warning', t => {
+		test( 'functions that conflict with default properties are ignored and trigger warning', t => {
 			let warned;
 			onWarn( message => warned = message );
 

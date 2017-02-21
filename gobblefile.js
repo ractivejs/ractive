@@ -128,7 +128,7 @@ function buildNodeTests() {
 			format: 'cjs',
 			entry: 'tests.js',
 			dest: 'node.js',
-			external: ['qunitjs', 'cheerio']
+			external: ['cheerio']
 		}).moveTo('tests');
 }
 

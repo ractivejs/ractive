@@ -1,10 +1,11 @@
 import { fire } from 'simulant';
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'events/custom-proxy-events.js' );
 
-	QUnit.test( 'custom event invoked and torndown', t => {
+	test( 'custom event invoked and torndown', t => {
 		t.expect( 3 );
 
 		const custom = ( node, fire ) => {

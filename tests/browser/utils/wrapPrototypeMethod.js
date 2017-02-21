@@ -1,12 +1,13 @@
 import wrap from '../../../src/Ractive/config/wrapPrototypeMethod';
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'utils/wrapPrototypeMethod.js' );
 
 	function callSuper () { this._super(); }
 
-	QUnit.test( 'can call _super on parent', t => {
+	test( 'can call _super on parent', t => {
 		t.expect(1);
 
 		const parent = { talk: () => t.ok( true ) };
@@ -17,7 +18,7 @@ export default function() {
 		instance.talk();
 	});
 
-	QUnit.test( '"this" in methods refers to correct instance', t => {
+	test( '"this" in methods refers to correct instance', t => {
 		t.expect(2);
 
 		const parent = {
@@ -36,7 +37,7 @@ export default function() {
 		instance.talk();
 	});
 
-	QUnit.test( 'can find _super in prototype chain', t => {
+	test( 'can find _super in prototype chain', t => {
 		t.expect(1);
 
 		const grandparent = { talk: () => t.ok( true ) };
@@ -47,7 +48,7 @@ export default function() {
 		instance.talk();
 	});
 
-	QUnit.test( 'safe to use _super with no parent', t => {
+	test( 'safe to use _super with no parent', t => {
 		t.expect( 1 );
 
 		const parent = {};
@@ -61,7 +62,7 @@ export default function() {
 		instance.talk();
 	});
 
-	QUnit.test( 'parent _super can be added later', t => {
+	test( 'parent _super can be added later', t => {
 		t.expect( 1 );
 
 		const parent = {};
@@ -73,7 +74,7 @@ export default function() {
 		instance.talk();
 	});
 
-	QUnit.test( 'only wraps when this._super used in method', t => {
+	test( 'only wraps when this._super used in method', t => {
 		t.expect( 1 );
 
 		const parent = { talk: () => t.ok( true ) };
@@ -82,7 +83,7 @@ export default function() {
 		t.equal( wrap( parent, 'talk', method ), method );
 	});
 
-	QUnit.test( 'if this._super is non-function, returns as value', t => {
+	test( 'if this._super is non-function, returns as value', t => {
 		t.expect( 1 );
 
 		const data = { foo: 'bar' };
@@ -95,7 +96,7 @@ export default function() {
 		t.equal( instance.talk() , data );
 	});
 
-	QUnit.test( 'parent instance can be changed', t => {
+	test( 'parent instance can be changed', t => {
 		t.expect( 2 );
 
 		const parent = { talk: () => false };
@@ -109,7 +110,7 @@ export default function() {
 		instance.talk();
 	});
 
-	QUnit.test( 'can access original via _method', t => {
+	test( 'can access original via _method', t => {
 		const method = wrap( parent, 'talk', callSuper );
 		t.equal( method._method, callSuper );
 	});

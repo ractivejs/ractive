@@ -1,10 +1,11 @@
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'methods/pop.js' );
 
 	[ true, false ].forEach( modifyArrays => {
-		QUnit.test( `ractive.pop() (modifyArrays: ${modifyArrays})`, t => {
+		test( `ractive.pop() (modifyArrays: ${modifyArrays})`, t => {
 			t.expect( 2 );
 
 			const done = t.async();

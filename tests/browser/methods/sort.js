@@ -1,10 +1,11 @@
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'methods/sort.js' );
 
 	[ true, false ].forEach( modifyArrays => {
-		QUnit.test( `ractive.sort() (modifyArrays: ${modifyArrays})`, t => {
+		test( `ractive.sort() (modifyArrays: ${modifyArrays})`, t => {
 			const items = [ 'alice', 'bob', 'charles' ];
 
 			const ractive = new Ractive({

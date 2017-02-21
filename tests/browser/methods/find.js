@@ -1,9 +1,10 @@
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'methods/find.js' );
 
-	QUnit.test( 'find() works with a string-only template', t => {
+	test( 'find() works with a string-only template', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<p>foo</p><p>bar</p>'
@@ -12,7 +13,7 @@ export default function() {
 		t.ok( ractive.find( 'p' ).innerHTML === 'foo' );
 	});
 
-	QUnit.test( 'find() works with a template containing mustaches', t => {
+	test( 'find() works with a template containing mustaches', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<p>{{foo}}</p><p>{{bar}}</p>',
@@ -22,7 +23,7 @@ export default function() {
 		t.ok( ractive.find( 'p' ).innerHTML === 'one' );
 	});
 
-	QUnit.test( 'find() works with nested elements', t => {
+	test( 'find() works with nested elements', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div class="outer"><div class="inner"><p>{{foo}}</p><p>{{bar}}</p></div></div>',
@@ -32,7 +33,7 @@ export default function() {
 		t.ok( ractive.find( 'p' ).innerHTML === 'one' );
 	});
 
-	QUnit.test( 'ractive.find() throws error if instance is unrendered (#2008)', t => {
+	test( 'ractive.find() throws error if instance is unrendered (#2008)', t => {
 		const ractive = new Ractive({
 			template: '<p>unrendered</p>'
 		});
@@ -43,7 +44,7 @@ export default function() {
 	});
 
 
-	QUnit.test( `find() finds elements in targeted attached children`, t => {
+	test( `find() finds elements in targeted attached children`, t => {
 		const r1 = new Ractive({
 			template: '<div id="r1"></div>'
 		});
@@ -62,7 +63,7 @@ export default function() {
 		t.ok( r2.find( 'div' ).id === 'r1' );
 	});
 
-	QUnit.test( `find() doesn't find elements in non-targeted attached children by default`, t => {
+	test( `find() doesn't find elements in non-targeted attached children by default`, t => {
 		fixture.innerHTML = '<div></div><div></div>';
 		const r1 = new Ractive({
 			el: fixture.children[0],
@@ -83,7 +84,7 @@ export default function() {
 		t.ok( r2.find( 'div' ) === undefined );
 	});
 
-	QUnit.test( `find() finds elements in non-targeted attached children when asked to`, t => {
+	test( `find() finds elements in non-targeted attached children when asked to`, t => {
 		fixture.innerHTML = '<div></div><div></div>';
 		const r1 = new Ractive({
 			el: fixture.children[0],
@@ -104,7 +105,7 @@ export default function() {
 		t.ok( r2.find( 'div', { remote: true } ).id === 'r1' );
 	});
 
-	QUnit.test( `find() finds elements in triples`, t => {
+	test( `find() finds elements in triples`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: '{{{bar}}}{{{foo}}}',

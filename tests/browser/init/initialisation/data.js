@@ -1,4 +1,5 @@
 import { hasUsableConsole, afterEach, onWarn, initModule } from '../../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	const defaultData = Ractive.defaults.data;
@@ -11,7 +12,7 @@ export default function() {
 
 	initModule( 'init/initialisation/data.js' );
 
-	QUnit.test( 'default data function called on initialize', t => {
+	test( 'default data function called on initialize', t => {
 		const data = { foo: 'bar' } ;
 
 		Ractive.defaults.data = function () { return data; };
@@ -19,7 +20,7 @@ export default function() {
 		t.strictEqual( ractive.viewmodel.value, data );
 	});
 
-	QUnit.test( 'instance data function called on initialize', t => {
+	test( 'instance data function called on initialize', t => {
 		const data = { foo: 'bar' } ;
 
 		const ractive = new Ractive({
@@ -29,7 +30,7 @@ export default function() {
 	});
 
 	// TODO is this important/desirable?
-	//QUnit.test( 'Instance data is used as data object when parent is also object', t => {
+	//test( 'Instance data is used as data object when parent is also object', t => {
 	//
 	// 	var ractive, data = { foo: 'bar' };
 	//
@@ -40,7 +41,7 @@ export default function() {
 	// });
 
 	// TODO see above...
-	//QUnit.test( 'Data functions are inherited and pojo keys are copied', t => {
+	//test( 'Data functions are inherited and pojo keys are copied', t => {
 	// 	var ractive, data1 = { bizz: 'bop' }, data2 = { foo: 'bar' };
 	//
 	// 	Ractive.defaults.data = function () { return data1; };
@@ -51,7 +52,7 @@ export default function() {
 	// 	t.equal( ractive.get('bizz'), 'bop' );
 	// });
 
-	QUnit.test( 'instance data function is added to default data function', t => {
+	test( 'instance data function is added to default data function', t => {
 		Ractive.defaults.data = () => ({ foo: 'fizz' });
 
 		const ractive = new Ractive({
@@ -65,7 +66,7 @@ export default function() {
 	});
 
 	if ( hasUsableConsole ) {
-		QUnit.test( 'initing data with a non-POJO results in a warning', t => {
+		test( 'initing data with a non-POJO results in a warning', t => {
 			t.expect( 2 );
 
 			onWarn( warning => {
@@ -84,7 +85,7 @@ export default function() {
 		});
 	}
 
-	QUnit.test( 'instance data takes precedence over default data but includes unique properties', t => {
+	test( 'instance data takes precedence over default data but includes unique properties', t => {
 		Ractive.defaults.data = {
 			unique () { return; },
 			format () { return 'not me'; }
@@ -103,7 +104,7 @@ export default function() {
 		t.equal( ractive.get( 'format' )(), 'foo' );
 	});
 
-	QUnit.test( 'initing data with a primitive results in an error', t => {
+	test( 'initing data with a primitive results in an error', t => {
 		t.expect( 1 );
 
 		try {
@@ -117,7 +118,7 @@ export default function() {
 		}
 	});
 
-	QUnit.test( 'data and computed properties available in onconfig and later', t => {
+	test( 'data and computed properties available in onconfig and later', t => {
 		t.expect( 3 );
 
 		const ractive = new Ractive({

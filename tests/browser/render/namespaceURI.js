@@ -1,5 +1,6 @@
 import { svg } from '../../../src/config/environment';
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'render/namespaceURI.js' );
@@ -8,7 +9,7 @@ export default function() {
 		const html = 'http://www.w3.org/1999/xhtml';
 		const svg = 'http://www.w3.org/2000/svg';
 
-		QUnit.test( 'Top-level elements have html namespace by default', t => {
+		test( 'Top-level elements have html namespace by default', t => {
 			const ractive = new Ractive({
 				el: fixture,
 				template: `<p>html</p>`
@@ -17,7 +18,7 @@ export default function() {
 			t.equal( ractive.find( 'p' ).namespaceURI, html );
 		});
 
-		QUnit.test( 'SVG elements have svg namespace', t => {
+		test( 'SVG elements have svg namespace', t => {
 			const ractive = new Ractive({
 				el: fixture,
 				template: `<svg><text>svg</text></svg>`
@@ -27,7 +28,7 @@ export default function() {
 			t.equal( ractive.find( 'text' ).namespaceURI, svg );
 		});
 
-		QUnit.test( 'Top-level elements inherit SVG namespaceURI where appropriate', t => {
+		test( 'Top-level elements inherit SVG namespaceURI where appropriate', t => {
 			const ractive = new Ractive({
 				el: document.createElementNS( svg, 'svg' ),
 				template: '<text>svg</text>'
@@ -36,7 +37,7 @@ export default function() {
 			t.equal( ractive.find( 'text' ).namespaceURI, svg );
 		});
 
-		QUnit.test( 'Triples inside SVG elements result in correct namespaceURI', t => {
+		test( 'Triples inside SVG elements result in correct namespaceURI', t => {
 			const ractive = new Ractive({
 				el: document.createElementNS( svg, 'svg' ),
 				template: '{{{code}}}',
@@ -50,7 +51,7 @@ export default function() {
 			t.equal( text.namespaceURI, svg );
 		});
 
-		QUnit.test( 'Children of foreignObject elements default to html namespace (#713)', t => {
+		test( 'Children of foreignObject elements default to html namespace (#713)', t => {
 			const ractive = new Ractive({
 				el: fixture,
 				template: '<svg><foreignObject><p>foo</p></foreignObject></svg>'
@@ -62,7 +63,7 @@ export default function() {
 			t.equal( ractive.find( 'p' ).namespaceURI, html );
 		});
 
-		QUnit.test( 'Top-level elements in components have the correct namespace (#953)', t => {
+		test( 'Top-level elements in components have the correct namespace (#953)', t => {
 			const ractive = new Ractive({
 				el: fixture,
 				template: '<svg><widget message="yup"/></svg>',
@@ -77,7 +78,7 @@ export default function() {
 			t.htmlEqual( fixture.innerHTML, '<svg><text>yup</text></svg>' );
 		});
 
-		QUnit.test( 'Custom namespaces are supported (#2038)', t => {
+		test( 'Custom namespaces are supported (#2038)', t => {
 			new Ractive({
 				el: fixture,
 				template: `
@@ -90,7 +91,7 @@ export default function() {
 			t.equal( documentProperties.namespaceURI, 'http://www.w3.org/2000/svg' );
 		});
 
-		QUnit.test( 'Namespaced attributes are set correctly', t => {
+		test( 'Namespaced attributes are set correctly', t => {
 			const ractive = new Ractive({
 				template: '<svg><use xlink:href="#yup" /></svg>'
 			});

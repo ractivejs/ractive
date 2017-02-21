@@ -1,11 +1,12 @@
 import { initModule } from '../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'aliases' );
 
 	/* global navigator */
 
-	QUnit.test( 'simple template aliases', t => {
+	test( 'simple template aliases', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{#with foo.bar.baz as bar, bippy.boppy as boop}}{{bar}} {{boop}}{{/with}}',
@@ -18,7 +19,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yep works' );
 	});
 
-	QUnit.test( 'aliased computations', t => {
+	test( 'aliased computations', t => {
 		new Ractive({
 			el: fixture,
 			template: `{{#with 3 * 2 + 10 as num}}{{num}}{{/with}}`
@@ -27,7 +28,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '16' );
 	});
 
-	QUnit.test( '@index refs can be aliased', t => {
+	test( '@index refs can be aliased', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{#each items}}{{#with @index as idx}}{{idx}}{{/with}}{{/each}}',
@@ -39,7 +40,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '0123' );
 	});
 
-	QUnit.test( '@key refs can be aliased', t => {
+	test( '@key refs can be aliased', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{#each items}}{{#with @key as idx}}{{idx}}{{/with}}{{/each}}',
@@ -51,7 +52,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foobarbazbat' );
 	});
 
-	QUnit.test( '@keypath refs can be aliased', t => {
+	test( '@keypath refs can be aliased', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{#each items}}{{#with @keypath as idx}}{{idx}}{{/with}}{{/each}}',
@@ -63,7 +64,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'items.0items.1items.2items.3' );
 	});
 
-	QUnit.test( 'aliased complex computations are cached', t => {
+	test( 'aliased complex computations are cached', t => {
 		let normal = 0;
 		let aliased = 0;
 
@@ -84,7 +85,7 @@ export default function() {
 		t.equal( aliased, 1 );
 	});
 
-	QUnit.test( 'unresolved aliases should resolve if a suitable model appears', t => {
+	test( 'unresolved aliases should resolve if a suitable model appears', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{#with foo.bar as baz}}{{baz}}{{/with}}'
@@ -95,7 +96,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
 
-	QUnit.test( 'multiple nested aliases', t => {
+	test( 'multiple nested aliases', t => {
 		new Ractive({
 			el: fixture,
 			template:`
@@ -119,7 +120,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'items.0 items.0.foo.bar.0 1items.1 items.1.foo.bar.0 2items.2 items.2.foo.bar.0 3' );
 	});
 
-	QUnit.test( 'basic aliased array iteration', t => {
+	test( 'basic aliased array iteration', t => {
 		new Ractive({
 			el: fixture,
 			template: `{{#each items as item:i}}|{{i+1}}-{{item}}{{/each}}`,
@@ -129,7 +130,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '|1-a|2-b|3-c' );
 	});
 
-	QUnit.test( 'basic aliased object iteration', t => {
+	test( 'basic aliased object iteration', t => {
 		new Ractive({
 			el: fixture,
 			template: `{{#each items as item:k,i}}|{{k}}-{{i+1}}-{{item}}{{/each}}`,
@@ -139,7 +140,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '|k1-1-a|k2-2-b|k3-3-c' );
 	});
 
-	QUnit.test( 'aliased array iteration shuffle', t => {
+	test( 'aliased array iteration shuffle', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each items as item:i}}|{{i+1}}-{{item}}{{/each}}`,
@@ -153,7 +154,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '|1-a|2-d|3-b|4-c' );
 	});
 
-	QUnit.test( `aliases survive shuffling`, t => {
+	test( `aliases survive shuffling`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: '{{#each items as item}}{{#with item.foo as foo}}{{foo}}{{/with}}{{/each}}',
@@ -170,7 +171,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '21' );
 	});
 
-	QUnit.test( `explicit aliases survive rebinding`, t => {
+	test( `explicit aliases survive rebinding`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `{{#with foo.0.bar as baz}}{{#if flip}}{{baz}}{{else}}{{baz}}{{/if}}{{/with}}`,
@@ -188,7 +189,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
 
-	QUnit.test( `partial aliases survive rebinding`, t => {
+	test( `partial aliases survive rebinding`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `{{>p foo.0.bar as baz}}`,
@@ -209,7 +210,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
 
-	QUnit.test( `nested iteration aliases survive rebinding`, t => {
+	test( `nested iteration aliases survive rebinding`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `{{#each list as outer}}{{#each outer.sub as inner}}{{#if flip}}{{outer.a}}{{inner.a}}{{else}}{{outer.a}}{{inner.a}}{{/if}}{{/each}}{{/each}}`,

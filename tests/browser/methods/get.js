@@ -1,9 +1,10 @@
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'methods/get.js' );
 
-	QUnit.test( 'getting and adapted keypath should return the adaptee (#2513)', t => {
+	test( 'getting and adapted keypath should return the adaptee (#2513)', t => {
 		function Foo ( content ) {
 			this.content = content;
 		}
@@ -39,7 +40,7 @@ export default function() {
 		t.ok( foo instanceof Foo );
 	});
 
-	QUnit.test( 'Returns mappings on root .get()', t => {
+	test( 'Returns mappings on root .get()', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `<Widget bar='{{foo}}' qux='{{qux}}'/>`,
@@ -62,7 +63,7 @@ export default function() {
 		t.deepEqual( fixture.innerHTML, JSON.stringify( expected ) );
 	});
 
-	QUnit.test( `get doesn't return children unless they are a value or virtual`, t => {
+	test( `get doesn't return children unless they are a value or virtual`, t => {
 		const r = new Ractive({
 			data: { base: { foo: 1, bar: 2, baz: { bat: 3 } } }
 		});
@@ -81,7 +82,7 @@ export default function() {
 		t.equal( r.get().bar, 3 );
 	});
 
-	QUnit.test( `get doesn't return links in non-root models unless asked`, t => {
+	test( `get doesn't return links in non-root models unless asked`, t => {
 		const r = new Ractive({
 			data: { base: { foo: { baz: 2 }, bar: 1 } }
 		});
@@ -91,7 +92,7 @@ export default function() {
 		t.ok( 'bar' in r.get( 'base.foo', { virtual: true } ) );
 	});
 
-	QUnit.test( `get returns links in root models unless asked not to`, t => {
+	test( `get returns links in root models unless asked not to`, t => {
 		const r = new Ractive({
 			data: { base: { foo: { baz: 2 }, bar: 1 } }
 		});

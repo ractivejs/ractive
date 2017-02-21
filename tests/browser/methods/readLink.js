@@ -1,9 +1,10 @@
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'methods/readLink.js' );
 
-	QUnit.test( `readLink returns the immediately linked path by default`, t => {
+	test( `readLink returns the immediately linked path by default`, t => {
 		const r = new Ractive({
 			target: fixture
 		});
@@ -17,7 +18,7 @@ export default function() {
 		t.ok( r.readLink( 'bop' ).ractive === r );
 	});
 
-	QUnit.test( `readLink on a non-link returns undefined`, t => {
+	test( `readLink on a non-link returns undefined`, t => {
 		const r = new Ractive({
 			target: fixture
 		});
@@ -26,7 +27,7 @@ export default function() {
 		t.ok( r.readLink( 'bop' ) === undefined );
 	});
 
-	QUnit.test( `readLink with a mapped path returns the source instance`, t => {
+	test( `readLink with a mapped path returns the source instance`, t => {
 		const cmp = Ractive.extend();
 		const r = new Ractive({
 			on: { init() { this.set( 'foo.bar.baz.bat', true ); } },
@@ -40,7 +41,7 @@ export default function() {
 		t.ok( child.readLink( 'bop' ).ractive === r );
 	});
 
-	QUnit.test( `readLink is canonical by default`, t => {
+	test( `readLink is canonical by default`, t => {
 		const cmp1 = Ractive.extend({
 			template: '<cmp2 fizz="{{bop}}" />',
 			isolated: false
@@ -58,7 +59,7 @@ export default function() {
 		t.ok( child.readLink( 'fizz' ).ractive === r );
 	});
 
-	QUnit.test( `readLink can optionally be uncanonical`, t => {
+	test( `readLink can optionally be uncanonical`, t => {
 		const cmp1 = Ractive.extend({
 			template: '<cmp2 fizz="{{bop}}" />',
 			isolated: false

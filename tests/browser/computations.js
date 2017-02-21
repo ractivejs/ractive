@@ -1,10 +1,11 @@
 import { hasUsableConsole, onWarn } from '../helpers/test-config';
 import { initModule } from '../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'computations.js' );
 
-	QUnit.test( 'Computed value declared as a function', t => {
+	test( 'Computed value declared as a function', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<p>area: {{area}}</p>',
@@ -28,7 +29,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>area: 225</p>' );
 	});
 
-	QUnit.test( 'Dependency of computed property', t => {
+	test( 'Dependency of computed property', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{answer}}',
@@ -53,7 +54,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '40' );
 	});
 
-	QUnit.test( 'Computed value declared as a string', t => {
+	test( 'Computed value declared as a string', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<p>area: {{area}}</p>',
@@ -75,7 +76,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>area: 225</p>' );
 	});
 
-	QUnit.test( 'Computed value with a set() method', t => {
+	test( 'Computed value with a set() method', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<p>First name: {{first}}</p><p>Last name: {{last}}</p><p>Full name: {{full}}</p>',
@@ -110,7 +111,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>First name: John</p><p>Last name: Belushi</p><p>Full name: John Belushi</p>' );
 	});
 
-	QUnit.test( 'Components can have default computed properties', t => {
+	test( 'Components can have default computed properties', t => {
 		const Box = Ractive.extend({
 			template: '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
 			computed: {
@@ -135,7 +136,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML.replace( /\s+/g, '' ), `<div style="width: 200px; height: 100px;">20000px squared</div>`.replace( /\s+/g, '' ) );
 	});
 
-	QUnit.test( 'Instances can augment default computed properties of components', t => {
+	test( 'Instances can augment default computed properties of components', t => {
 		const Box = Ractive.extend({
 			template: '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
 			computed: {
@@ -159,7 +160,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML.replace( /\s+/g, '' ), `<div style="width: 200px; height: 100px;">20000px squared</div>`.replace( /\s+/g, '' ) );
 	});
 
-	QUnit.test( 'Computed values can depend on other computed values', t => {
+	test( 'Computed values can depend on other computed values', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{number}} - {{squared}} - {{cubed}}',
@@ -176,7 +177,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '6 - 36 - 216' );
 	});
 
-	QUnit.test( 'Computed values with mix of computed and non-computed dependencies updates when non-computed dependencies change (#2228)', t => {
+	test( 'Computed values with mix of computed and non-computed dependencies updates when non-computed dependencies change (#2228)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{number}}',
@@ -201,7 +202,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '42' );
 	});
 
-	QUnit.test( 'Computations that cause errors are considered undefined', t => {
+	test( 'Computations that cause errors are considered undefined', t => {
 		onWarn( () => {} ); // suppress
 
 		const ractive = new Ractive({
@@ -218,7 +219,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'WORKS' );
 	});
 
-	QUnit.test( 'Computations can be updated with ractive.update() (#651)', t => {
+	test( 'Computations can be updated with ractive.update() (#651)', t => {
 		let bar = undefined;
 
 		const ractive = new Ractive({
@@ -236,7 +237,7 @@ export default function() {
 		t.equal( ractive.get( 'foo' ), 1 );
 	});
 
-	QUnit.test( 'Regression test for #836', t => {
+	test( 'Regression test for #836', t => {
 		const Widget = Ractive.extend({
 			template: '{{# foo <= bar }}yes{{/}}',
 			computed: { foo: '[]' },
@@ -254,7 +255,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yes' );
 	});
 
-	QUnit.test( 'Setters are called on init with supplied data (#837)', t => {
+	test( 'Setters are called on init with supplied data (#837)', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{firstname}}',
@@ -280,7 +281,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'Colonel' );
 	});
 
-	QUnit.test( 'Set operations are not short-circuited when the set value is identical to the current get value (#837)', t => {
+	test( 'Set operations are not short-circuited when the set value is identical to the current get value (#837)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{bar}}',
@@ -304,7 +305,7 @@ export default function() {
 	});
 
 	if ( hasUsableConsole ) {
-		QUnit.test( 'Computations on unresolved refs don\'t error on initial component bindings', t => {
+		test( 'Computations on unresolved refs don\'t error on initial component bindings', t => {
 			t.expect( 0 );
 
 			onWarn( () => t.ok( false ) );
@@ -322,7 +323,7 @@ export default function() {
 			});
 		});
 
-		QUnit.test( 'Computed value that calls itself (#1359)', t => {
+		test( 'Computed value that calls itself (#1359)', t => {
 			let messages = 0;
 
 			onWarn( msg => {
@@ -361,7 +362,7 @@ export default function() {
 	}
 
 
-	QUnit.test( 'Unresolved computations resolve when parent component data exists', t => {
+	test( 'Unresolved computations resolve when parent component data exists', t => {
 		const Component = Ractive.extend({
 			template: '{{FOO}} {{BAR}}',
 			computed: {
@@ -387,7 +388,7 @@ export default function() {
 
 	});
 
-	QUnit.test( 'Computed properties referencing bound parent data', t => {
+	test( 'Computed properties referencing bound parent data', t => {
 		const List = Ractive.extend({
 			template: `{{limits.sum}}`,
 			computed: {
@@ -418,7 +419,7 @@ export default function() {
 		t.equal( fixture.innerHTML, '963' );
 	});
 
-	QUnit.test( 'Computed properties referencing bound parent data w/ conditional', t => {
+	test( 'Computed properties referencing bound parent data w/ conditional', t => {
 		const List = Ractive.extend({
 			template: `
 				{{#if limits.sum}}
@@ -454,7 +455,7 @@ export default function() {
 		t.equal( fixture.innerHTML, '963' );
 	});
 
-	QUnit.test( 'Computed properties referencing deep objects', t => {
+	test( 'Computed properties referencing deep objects', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{one.two.tre}}',
@@ -477,7 +478,7 @@ export default function() {
 		t.equal( fixture.innerHTML, '99' );
 	});
 
-	QUnit.test( 'Computations are not order dependent', t => {
+	test( 'Computations are not order dependent', t => {
 
 		const Component = Ractive.extend({
 			template: '{{foo}}',
@@ -502,7 +503,7 @@ export default function() {
 
 	});
 
-	QUnit.test( 'Parent extend instance computations are resolved before child computations', t => {
+	test( 'Parent extend instance computations are resolved before child computations', t => {
 		const Base = Ractive.extend({
 			computed: {
 				base: () => 1
@@ -525,7 +526,7 @@ export default function() {
 		t.equal( fixture.innerHTML, '2' );
 	});
 
-	QUnit.test( 'Computed values are only computed as necessary', t => {
+	test( 'Computed values are only computed as necessary', t => {
 		const count = { foo: 0, bar: 0, baz: 0, qux: 0 };
 
 		const ractive = new Ractive({
@@ -567,7 +568,7 @@ export default function() {
 		t.deepEqual( count, { foo: 3, bar: 3, baz: 3, qux: 1 });
 	});
 
-	QUnit.test( 'What happens if you access a computed property in data config?', t => {
+	test( 'What happens if you access a computed property in data config?', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{total}}',
@@ -582,7 +583,7 @@ export default function() {
 		t.equal( fixture.innerHTML, '5' );
 	});
 
-	QUnit.test( 'Computations matching _[0-9]+ that are not references should not be mangled incorrectly for caching', t => {
+	test( 'Computations matching _[0-9]+ that are not references should not be mangled incorrectly for caching', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{ foo["_1bar"] }} {{ foo["_2bar"] }}',
@@ -600,7 +601,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '_0 _1' );
 	});
 
-	QUnit.test( 'Computations can depend on array values (#1747)', t => {
+	test( 'Computations can depend on array values (#1747)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{count}} {{count === 4}}',
@@ -645,7 +646,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'foo:foobar-foo:foobar' );
 	});*/
 
-	QUnit.test( 'Computations depending up computed values cascade while updating (#1383)', ( t ) => {
+	test( 'Computations depending up computed values cascade while updating (#1383)', ( t ) => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#if a < 10}}less{{else}}more{{/if}}',
@@ -662,7 +663,7 @@ export default function() {
 		t.equal( fixture.innerHTML, 'more' );
 	});
 
-	QUnit.test( 'Setting an Array to [] does not recompute removed values (#2069)', t => {
+	test( 'Setting an Array to [] does not recompute removed values (#2069)', t => {
 		const called = { func: 0, f1: 0, f2: 0, f3: 0 };
 		const ractive = new Ractive({
 			el: fixture,
@@ -687,7 +688,7 @@ export default function() {
 		t.deepEqual( called, { func: 3, f1: 1, f2: 1, f3: 1 });
 	});
 
-	QUnit.test( 'ComputationChild dependencies are captured (#2132)', t => {
+	test( 'ComputationChild dependencies are captured (#2132)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -712,7 +713,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>d/d</p><p>e/e</p>' );
 	});
 
-	QUnit.test( 'reference expression proxy should play nicely with capture (#2550)', t => {
+	test( 'reference expression proxy should play nicely with capture (#2550)', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#with wat[idx]}}{{ident(.)}}{{/with}}`,
@@ -733,7 +734,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '4' );
 	});
 
-	QUnit.test( 'computations should not recompute when spliced out', t => {
+	test( 'computations should not recompute when spliced out', t => {
 		let count = 0;
 
 		const r = new Ractive({
@@ -757,7 +758,7 @@ export default function() {
 		t.equal( count, 2 );
 	});
 
-	QUnit.test( 'computations with a reference expression should update with the full reference too', t => {
+	test( 'computations with a reference expression should update with the full reference too', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{foo[v].wat + '!'}}`,
@@ -772,7 +773,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yep!' );
 	});
 
-	QUnit.test( 'computations should not recompute when parent section is destroyed', t => {
+	test( 'computations should not recompute when parent section is destroyed', t => {
 		let count = 0;
 
 		const ractive = new Ractive({
@@ -809,7 +810,7 @@ export default function() {
 		t.equal( count, 2 );
 	});
 
-	QUnit.test( 'computations should not recompute when parent component is destroyed', t => {
+	test( 'computations should not recompute when parent component is destroyed', t => {
 		let count = 0;
 
 		const Foo = Ractive.extend({
@@ -854,7 +855,7 @@ export default function() {
 		t.equal( count, 2 );
 	});
 
-	QUnit.test( 'expressions in conditional branches should not be re-evaluated', t => {
+	test( 'expressions in conditional branches should not be re-evaluated', t => {
 		let count = 0;
 		new Ractive({
 			el: fixture,
@@ -870,7 +871,7 @@ export default function() {
 		t.equal( count, 1 );
 	});
 
-	QUnit.test( 'expressions should shuffle correctly', t => {
+	test( 'expressions should shuffle correctly', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#each list}}{{.foo + 1}}{{~/list.0.foo + 1}}{{/each}}`,
@@ -886,7 +887,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '4434' );
 	});
 
-	QUnit.test( 'expressions with mappings shuffle correctly', t => {
+	test( 'expressions with mappings shuffle correctly', t => {
 		const cmp = Ractive.extend({
 			template: '{{foo.foo + 1}}{{bar.foo + 1}}'
 		});
@@ -906,7 +907,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '4434' );
 	});
 
-	QUnit.test( 'computations update correctly during a shuffle', t => {
+	test( 'computations update correctly during a shuffle', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{foo.foo}}{{foo.foo + 1}}',
@@ -927,7 +928,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '12' );
 	});
 
-	QUnit.test( `expression proxies shouldn't cause deps to re-order while handling changes from a mapping (#2678)`, t => {
+	test( `expression proxies shouldn't cause deps to re-order while handling changes from a mapping (#2678)`, t => {
 		const cmp = Ractive.extend({
 			template: '{{yield}}'
 		});
@@ -943,7 +944,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'yep-yep' );
 	});
 
-	QUnit.test( `expression proxies shouldn't cause deps to re-order while handling any changes (#2680)`, t => {
+	test( `expression proxies shouldn't cause deps to re-order while handling any changes (#2680)`, t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `{{#foo(bat)}}{{#if . === 'nope'}}never{{/if}}{{#if ~/bat === 'yep'}}yep{{else}}hey{{/if}}{{/}}`,
@@ -958,7 +959,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'hey' );
 	});
 
-	QUnit.test( `computation changes can be observed`, t => {
+	test( `computation changes can be observed`, t => {
 		t.expect( 3 );
 
 		const r = new Ractive({
@@ -987,7 +988,7 @@ export default function() {
 		r.set( 'bar', 'goof' );
 	});
 
-	QUnit.test( `computation changes are included in recursive observers`, t => {
+	test( `computation changes are included in recursive observers`, t => {
 		t.expect( 2 );
 
 		let fluff = 'bar';
@@ -1023,7 +1024,7 @@ export default function() {
 		r.set( 'bar', 'goof' );
 	});
 
-	QUnit.test( `computations can have child values set when allowed`, t => {
+	test( `computations can have child values set when allowed`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `
@@ -1054,7 +1055,7 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<i>3</i><i>3</i><i>3</i>' );
 	});
 
-	QUnit.test( `computations with dotted names can be accessed (#2807)`, t => {
+	test( `computations with dotted names can be accessed (#2807)`, t => {
 		const r = new Ractive({
 			computed: {
 				'foo.bar': '${baz} + 1'
@@ -1071,7 +1072,7 @@ export default function() {
 		t.equal( r.get( 'foo\\.bar' ), 10 );
 	});
 
-	QUnit.test( `computations that return objects fire with recursive observers`, t => {
+	test( `computations that return objects fire with recursive observers`, t => {
 		t.expect( 2 );
 
 		const r = new Ractive({
@@ -1101,7 +1102,7 @@ export default function() {
 	// phantom just doesn't execute this test... no error, just nothing
 	// even >>> log messages don't come out. passes chrome and ff, though
 	if ( !/phantom/i.test( navigator.userAgent ) ) {
-		QUnit.test( `various spread expressions compute correctly`, t => {
+		test( `various spread expressions compute correctly`, t => {
 			new Ractive({
 				el: fixture,
 				template: `{{ JSON.stringify([ foo, bar, ...baz, ...bat( { bip, bop: 42, ...whimmy.wham( ...[ zat, wozzle, ...qux, bar ], zip ), bif: 84 } ), bar, foo ]) }}`,

@@ -1,10 +1,11 @@
 import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
 	initModule( 'methods/push.js' );
 
 	[ true, false ].forEach( modifyArrays => {
-		QUnit.test( `ractive.push() (modifyArrays: ${modifyArrays})`, t => {
+		test( `ractive.push() (modifyArrays: ${modifyArrays})`, t => {
 			const items = [ 'alice', 'bob', 'charles' ];
 
 			const ractive = new Ractive({
@@ -23,7 +24,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'Array method proxies return a promise that resolves on transition complete', t => {
+	test( 'Array method proxies return a promise that resolves on transition complete', t => {
 		t.expect( 2 );
 
 		const done = t.async();
@@ -55,7 +56,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'grow an array if pushing to an undefined keypath', t => {
+	test( 'grow an array if pushing to an undefined keypath', t => {
 		const done = t.async();
 
 		const r = new Ractive({
@@ -69,7 +70,7 @@ export default function() {
 		result.then( res => t.equal( res, 1 ) ).then( done, done );
 	});
 
-	QUnit.test( 'Interpolators that directly reference arrays are updated on array mutation (#1074)', t => {
+	test( 'Interpolators that directly reference arrays are updated on array mutation (#1074)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{letters}}',

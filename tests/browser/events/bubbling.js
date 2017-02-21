@@ -1,5 +1,6 @@
 import { initModule, beforeEach } from '../../helpers/test-config';
 import { fire } from 'simulant';
+import { test } from 'qunit';
 
 export default function() {
 	let Component;
@@ -50,7 +51,7 @@ export default function() {
 			verify: ( ctx, arg ) => arg === 'foo'
 		}
 	].forEach( ({ type, callback, verify }) => {
-		QUnit.test( `Events bubble under "eventname", and also "Component.eventname" above firing component (${type})`, t => {
+		test( `Events bubble under "eventname", and also "Component.eventname" above firing component (${type})`, t => {
 			t.expect( 3 );
 
 			const ractive = new Subclass({ el: fixture });
@@ -69,7 +70,7 @@ export default function() {
 			callback( ractive.findComponent( 'Component' ) );
 		});
 
-		QUnit.test( `arguments bubble (${type})`, t => {
+		test( `arguments bubble (${type})`, t => {
 			t.expect( 3 );
 
 			Component.prototype.template = '<span id="test" on-click="@this.fire("someEvent", event, "foo")">click me</span>';
@@ -90,7 +91,7 @@ export default function() {
 			callback( ractive.findComponent( 'Component' ) );
 		});
 
-		QUnit.test( `bubbling events can be stopped by returning false (${type})`, t => {
+		test( `bubbling events can be stopped by returning false (${type})`, t => {
 			t.expect( 2 );
 
 			const ractive = new Subclass({ el: fixture });
@@ -111,7 +112,7 @@ export default function() {
 			callback( ractive.findComponent( 'Component' ) );
 		});
 
-		QUnit.test( `bubbling events with event object have component reference (${type})`, t => {
+		test( `bubbling events with event object have component reference (${type})`, t => {
 			t.expect( 3 );
 
 			const ractive = new Subclass({ el: fixture });
@@ -132,7 +133,7 @@ export default function() {
 		});
 	});
 
-	QUnit.test( 'bubbling handlers can use pattern matching', t => {
+	test( 'bubbling handlers can use pattern matching', t => {
 		t.expect( 4 );
 
 		const Component = Ractive.extend({
@@ -158,7 +159,7 @@ export default function() {
 		ractive.off();
 	});
 
-	QUnit.test( 'component "on-someEvent" implicitly cancels bubbling', t => {
+	test( 'component "on-someEvent" implicitly cancels bubbling', t => {
 		t.expect( 1 );
 
 		const Component = Ractive.extend({
@@ -178,7 +179,7 @@ export default function() {
 		fire( component.find( '#test' ), 'click' );
 	});
 
-	QUnit.test( 'component "on-" wildcards match', t => {
+	test( 'component "on-" wildcards match', t => {
 		t.expect( 3 );
 
 		const Component = Ractive.extend({
@@ -199,7 +200,7 @@ export default function() {
 		fire( component.find( '#test' ), 'click' );
 	});
 
-	QUnit.test( 'component "on-" do not get auto-namespaced events', t => {
+	test( 'component "on-" do not get auto-namespaced events', t => {
 		t.expect( 1 );
 
 		const Component = Ractive.extend({
@@ -219,7 +220,7 @@ export default function() {
 		t.ok( true );
 	});
 
-	QUnit.test( 'cancelling an event from a bubbled handler also cancels the root event (#2844)', t => {
+	test( 'cancelling an event from a bubbled handler also cancels the root event (#2844)', t => {
 		t.expect( 0 );
 
 		const cmp = Ractive.extend({
@@ -237,7 +238,7 @@ export default function() {
 		fire( r.find( 'button' ), 'click' );
 	});
 
-	QUnit.test( 'firing an event from an event directive cancels bubble if the sub-event also cancels', t => {
+	test( 'firing an event from an event directive cancels bubble if the sub-event also cancels', t => {
 		t.expect( 0 );
 
 		const r = new Ractive({

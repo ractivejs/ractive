@@ -1,3 +1,4 @@
+const { module, test } = QUnit;
 import renderTests from '../helpers/samples/render';
 import cheerio from 'cheerio';
 
@@ -30,10 +31,10 @@ function deepClone(source) {
 }
 
 export default function () {
-	QUnit.module('ractive.toHTML()');
+	module('ractive.toHTML()');
 
 	renderTests.forEach( theTest => {
-		QUnit.test(theTest.name, t => {
+		test(theTest.name, t => {
 
 			const ractive = new Ractive({
 				template: theTest.template,
@@ -54,7 +55,7 @@ export default function () {
 		});
 	});
 
-	QUnit.test('doctype declarations handle updates (#2679)', t => {
+	test('doctype declarations handle updates (#2679)', t => {
 		// the select triggers an update during bind
 		const template = Ractive.parse('<!DOCTYPE html><html><select value="{{foo}}"><option value="bar">bar</option></select></html>');
 		const r = new Ractive({

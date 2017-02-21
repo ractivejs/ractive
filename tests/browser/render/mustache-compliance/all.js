@@ -1,4 +1,5 @@
 import { onWarn, initModule } from '../../../helpers/test-config';
+import { test } from 'qunit';
 
 // MUSTACHE SPEC COMPLIANCE TESTS
 // ==============================
@@ -1193,7 +1194,7 @@ export default function() {
 		theModule.tests.forEach( theTest => {
 			if ( theTest.unpassable || ( isOldIe && theTest.oldIe ) ) return;
 
-			QUnit.test( `[${theModule.name}] ${theTest.name}`, t => {
+			test( `[${theModule.name}] ${theTest.name}`, t => {
 				onWarn( msg => {
 					t.ok( /Could not find template/.test( msg ) ); // only warning that should appear
 				});
