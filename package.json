@@ -17,7 +17,6 @@
     "gobble-cli": "^0.8.0",
     "gobble-rollup": "^0.40.0",
     "gobble-uglifyjs": "^0.2.1",
-    "hoist-props": "^0.1.2",
     "karma": "^1.4.0",
     "karma-coverage": "^1.1.1",
     "karma-coveralls": "^1.1.2",
