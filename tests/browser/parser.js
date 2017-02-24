@@ -62,4 +62,15 @@ export default function () {
 
 		t.deepEqual( parsed, { v: 4, t: [{ t: 7, e: 'div', m: [{ t: 13, f: 'replaced', n: 'id' }], f: [ 'yep' ] }, { t: 7, e: 'span', f: [ 'sure' ] }] } );
 	});
+
+	test( `parser transforms contribute to the parsed expression map`, t => {
+		const parsed = Ractive.parse( `<bar />`, {
+			transforms: [
+				function ( n ) { return n.e === 'bar' ? { replace: this.parse( `<div id="{{'' + replaced}}">yep</div>` ).t[0] } : undefined; }
+			]
+		});
+
+		t.deepEqual( parsed.t, [{ t: 7, e: 'div', m: [{ t: 13, f: [{ t: 2, x: { s: `""+_0`, r: ['replaced'] } }], n: 'id' }], f: [ 'yep' ] }] );
+		t.ok( typeof parsed.e[`""+_0`] === 'function' );
+	});
 }
