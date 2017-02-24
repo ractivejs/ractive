@@ -5,7 +5,9 @@ const path = require('path');
 
 const fsPlus = require('fs-plus');
 const gobble = require('gobble');
+const sander = gobble.sander;
 const buble = require('buble');
+const rollupLib = require('rollup');
 
 const time = new Date();
 const commitHash = process.env.COMMIT_HASH || 'unknown';
@@ -70,25 +72,27 @@ module.exports = ({
 
 // Builds a UMD bundle of Ractive
 function buildUmdLib(dest, excludedModules) {
-	return src.transform('rollup', {
+	return src.transform(rollup, {
 		plugins: [skipModule(excludedModules)],
 		moduleName: 'Ractive',
 		format: 'umd',
 		entry: 'src/Ractive.js',
 		dest: dest,
 		banner: banner,
-		noConflict: true
+		noConflict: true,
+		cache: false
 	});
 }
 
 // Builds an ES bundle of Ractive
 function buildESLib(dest, excludedModules) {
-	return src.transform('rollup', {
+	return src.transform(rollup, {
 		plugins: [skipModule(excludedModules)],
 		format: 'es',
 		entry: 'src/Ractive.js',
 		dest: dest,
-		banner: banner
+		banner: banner,
+		cache: false
 	});
 }
 
@@ -99,7 +103,7 @@ function buildBrowserTests() {
 		browserTests.transform(buildTestEntryPoint, { dir: 'tests/browser' })
 	])
 		.transform(copy)
-		.transform('rollup', {
+		.transform(rollup, {
 			moduleName: 'RactiveBrowserTests',
 			format: 'iife',
 			entry: 'tests.js',
@@ -108,7 +112,8 @@ function buildBrowserTests() {
 				qunit: 'QUnit',
 				simulant: 'simulant'
 			},
-			external: ['qunit', 'simulant']
+			external: ['qunit', 'simulant'],
+			cache: false
 		}).moveTo('tests');
 }
 
@@ -119,28 +124,31 @@ function buildNodeTests() {
 		nodeTests.transform(buildTestEntryPoint, { dir: 'tests/node' })
 	])
 		.transform(copy)
-		.transform('rollup', {
+		.transform(rollup, {
 			format: 'cjs',
 			entry: 'tests.js',
 			dest: 'node.js',
-			external: ['cheerio']
+			external: ['cheerio'],
+			cache: false
 		}).moveTo('tests');
 }
 
 function buildUmdPolyfill() {
-	return polyfills.transform('rollup', {
+	return polyfills.transform(rollup, {
 		moduleName: 'RactivePolyfills',
 		format: 'umd',
 		entry: 'polyfills.js',
-		dest: 'polyfills.js'
+		dest: 'polyfills.js',
+		cache: false
 	});
 }
 
 function buildESPolyfill() {
-	return polyfills.transform('rollup', {
+	return polyfills.transform(rollup, {
 		format: 'es',
 		entry: 'polyfills.js',
-		dest: 'polyfills.mjs'
+		dest: 'polyfills.mjs',
+		cache: false
 	});
 }
 
@@ -196,4 +204,15 @@ function copy(inputdir, outputdir, options) {
 	const _options = Object.assign({ dir: '.' }, options);
 	fsPlus.copySync(path.join(inputdir, _options.dir), outputdir);
 	return Promise.resolve();
+}
+
+function rollup(indir, outdir, options) {
+	if (!options.entry) throw new Error('You must supply `options.entry`');
+
+	options.dest = path.resolve(outdir, options.dest || options.entry);
+	options.entry = path.resolve(indir, options.entry);
+
+	return rollupLib.rollup(options).then(function(bundle) {
+		return bundle.write(options);
+	});
 }
