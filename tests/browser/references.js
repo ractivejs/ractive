@@ -421,14 +421,14 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div>yep</div>' );
 	});
 
-	test( `@data resolves to a template-local model`, t => {
+	test( `@local resolves to a template-local model`, t => {
 		const r = new Ractive({
 			target: fixture,
-			template: `<div>{{@data.foo}}</div>`
+			template: `<div>{{@local.foo}}</div>`
 		});
 
 		const ctx = r.getNodeInfo( 'div' );
-		ctx.set( '@data.foo', 42 );
+		ctx.set( '@local.foo', 42 );
 		t.htmlEqual( fixture.innerHTML, '<div>42</div>' );
 	});
 }

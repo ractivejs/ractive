@@ -99,7 +99,7 @@ export default function resolveReference ( fragment, ref ) {
 		}
 
 		// @context-local data
-		else if ( base === '@data' ) {
+		else if ( base === '@local' ) {
 			return fragment.getContext()._data.joinAll( keys );
 		}
 
