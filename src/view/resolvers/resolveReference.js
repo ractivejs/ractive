@@ -98,6 +98,11 @@ export default function resolveReference ( fragment, ref ) {
 			return new ContextModel( fragment.getContext() );
 		}
 
+		// @context-local data
+		else if ( base === '@local' ) {
+			return fragment.getContext()._data.joinAll( keys );
+		}
+
 		// nope
 		else {
 			throw new Error( `Invalid special reference '${base}'` );

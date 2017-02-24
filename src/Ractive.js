@@ -11,6 +11,7 @@ import initialise from './Ractive/initialise';
 import { getCSS } from './global/css';
 import { escapeKey, unescapeKey } from './shared/keypaths';
 import { joinKeys, splitKeypath } from './Ractive/static/keypaths';
+import shared from './Ractive/shared';
 
 export default function Ractive ( options ) {
 	if ( !( this instanceof Ractive ) ) return new Ractive( options );
@@ -34,6 +35,10 @@ Ractive.prototype.constructor = Ractive;
 
 // alias prototype as `defaults`
 Ractive.defaults = Ractive.prototype;
+
+// share defaults with the parser
+shared.defaults = Ractive.defaults;
+shared.Ractive = Ractive;
 
 // static properties
 Object.defineProperties( Ractive, {

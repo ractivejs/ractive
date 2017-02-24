@@ -7,6 +7,7 @@ import { update as protoUpdate } from '../Ractive/prototype/update';
 import runloop from '../global/runloop';
 import findElement from '../view/items/shared/findElement';
 import getRactiveContext, { extern } from './getRactiveContext';
+import Model from '../model/Model';
 
 const modelPush = makeArrayMethod( 'push' ).model;
 const modelPop = makeArrayMethod( 'pop' ).model;
@@ -16,11 +17,29 @@ const modelSort = makeArrayMethod( 'sort' ).model;
 const modelSplice = makeArrayMethod( 'splice' ).model;
 const modelReverse = makeArrayMethod( 'reverse' ).model;
 
+class ContextData extends Model {
+	constructor ( options ) {
+		super( null, null );
+
+		this.isRoot = true;
+		this.root = this;
+		this.value = {};
+		this.ractive = options.ractive;
+		this.adaptors = [];
+		this.context = options.context;
+	}
+
+	getKeypath () {
+		return '@context.data';
+	}
+}
+
 export default class Context {
 	constructor ( fragment, element ) {
 		this.fragment = fragment;
 		this.element = element || findElement( fragment );
 		this.ractive = fragment.ractive;
+		this.root = this;
 	}
 
 	get decorators () {
@@ -28,6 +47,10 @@ export default class Context {
 		if ( !this.element ) return items;
 		this.element.decorators.forEach( d => items[ d.name ] = d.intermediary );
 		return items;
+	}
+
+	get _data () {
+		return this.model || ( this.root.model = new ContextData({ ractive: this.ractive, context: this.root }) );
 	}
 
 	// the usual mutation suspects
@@ -51,7 +74,7 @@ export default class Context {
 	get ( keypath ) {
 		if ( !keypath ) return this.fragment.findContext().get( true );
 
-		const model = resolveReference( this.fragment, keypath );
+		const { model } = findModel( this, keypath );
 
 		return model ? model.get( true ) : undefined;
 	}
