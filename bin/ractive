@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 /* eslint-env node */
+/* eslint-disable no-console */
 
 const path = require( 'path' );
 const fs = require( 'fs' );
@@ -11,168 +12,209 @@ const component = require( '../lib/component' );
 const args = process.argv.slice();
 
 if ( ~args[0].indexOf( 'node' ) ) args.shift();
-const program = args.shift();
+args.shift(); // program
 const cmd = args.shift();
 
-let input = process.stdin;
-let output = process.stdout;
-// base path for resolving paths
-let base = process.cwd();
+const opts = {
+	input: process.stdin,
+	output: process.stdout,
+	base: process.cwd()
+};
 
 function readFile ( name ) {
-	return Promise.resolve( fs.readFileSync( path.resolve( base, name ), { encoding: 'utf8' } ) );
+	return Promise.resolve( fs.readFileSync( path.resolve( opts.base, name ), { encoding: 'utf8' } ) );
 }
 
 function dirIndexOrFile ( name ) {
 	const stats = util.stat( name );
 	if ( stats && stats.isDirectory() ) {
-		base = name;
+		opts.base = name;
 		if ( util.stat( path.resolve( name, './index.ractive' ) ) ) {
-			input = fs.createReadStream( path.resolve( name, './index.ractive' ) );
+			opts.input = fs.createReadStream( path.resolve( name, './index.ractive' ) );
 		} else {
-			input = fs.createReadStream( path.resolve( name, './index.html' ) );
+			opts.input = fs.createReadStream( path.resolve( name, './index.html' ) );
 		}
 	} else {
-		base = path.dirname( name );
-		input = fs.createReadStream( name );
+		opts.base = path.dirname( name );
+		opts.input = fs.createReadStream( name );
 	}
 }
 
-let arg;
-const opts = {};
-
-switch ( cmd ) {
-	case 'parse':
-		while ( arg = args.shift() ) {
-			switch ( arg ) {
-				case '-i':
-				case '--input':
-					input = fs.createReadStream( args.shift() );
-					break;
-
-				case '-o':
-				case '--output':
-					output = fs.createWriteStream( args.shift() );
-					break;
-
-				case '-t':
-				case '--text-only':
+const commands = {
+	parse: {
+		run ( opts ) {
+			util.readToString( opts.input ).then( string => {
+				return parse.parse( string, opts ).
+					then( string => util.writeToStream( opts.output, string ) );
+			}, err => {
+				console.error( err.message );
+				process.exit( 1 );
+			});
+		},
+		help: parse.help,
+		args ( list, opts ) {
+			for ( let i = 0; i < args.length; i++ ) {
+				if ( args[i] === '-t' || args[i] === '--text-only' ) {
 					opts.textOnlyMode = true;
-					break;
-
-				case '-x':
-				case '--nocsp':
-					opts.csp = false;
-					break;
-
-				case '-d':
-				case '--delimiters':
-					opts.delimiters = [ args.shift(), args.shift() ];
-					break;
-
-				case '-s':
-				case '--static':
-					opts.staticDelimiters = [ args.shift(), args.shift() ];
-					break;
-
-				case '-r':
-				case '--triple':
-					opts.tripleDelimiters = [ args.shift(), args.shift() ];
-					break;
-
-				case '-p':
-				case '--static-triple':
-					opts.staticTripleDelimiters = [ args.shift(), args.shift() ];
-					break;
-
-				case '-u':
-				case '--escape-unicode':
-					opts.escapeUnicode = true;
-					break;
-
-				default:
-					if ( !args.length && util.stat( arg ) ) { // last may be the input file
-						input = fs.createReadStream( arg );
-					} else {
-						console.error( '??? ', arg );
-					}
-					break;
+					args.splice( i--, 1 );
+				}
 			}
 		}
-		util.readToString( input ).then( string => {
-			return parse.parse( string, opts ).
-				then( string => util.writeToStream( output, string ) );
-		}, err => {
-			console.error( err.message );
-			process.exit( 1 );
-		});
-		break;
+	},
+	component: {
+		run ( opts ) {
+			util.readToString( opts.input ).then( string => {
+				return component.build( string, opts, readFile ).
+					then( string => util.writeToStream( opts.output, string ) );
+			}).then( null, err => {
+				console.error( err && typeof err === 'object' ? err.stack : err );
+				process.exit( 1 );
+			});
+		},
+		help: component.help
+	}
+};
 
-	case 'component':
-		while ( arg = args.shift() ) {
-			switch ( arg ) {
-				case '-i':
-				case '--input':
-					const file = args.shift();
-					dirIndexOrFile( file );
-					break;
+const config = {
+	addCommand( name, obj ) {
+		if ( !obj.help ) console.warn( `Command ${name} does not provide any help.` );
+		commands[name] = obj;
+	},
+	addStyleProcessor( fn ) {
+		const list = opts.styleProcessors || ( opts.styleProcessors = [] );
+		list.push( fn );
+	},
+	addTemplateProcessor( fn ) {
+		const list = opts.templateProcessors || ( opts.templateProcessors = [] );
+		list.push( fn );
+	},
+	addPartialProcessor( fn ) {
+		const list = opts.partialProcessors || ( opts.partialProcessors = [] );
+		list.push( fn );
+	},
+	addScriptProcessor( fn ) {
+		const list = opts.scriptProcessors || ( opts.scriptProcessors = [] );
+		list.push( fn );
+	},
+	Ractive: util.Ractive,
+	util,
+	parse,
+	component
+};
 
-				case '-o':
-				case '--output':
-					output = fs.createWriteStream( args.shift() );
-					break;
-
-				case '-x':
-				case '--nocsp':
-					opts.csp = false;
-					break;
-
-				case '-d':
-				case '--delimiters':
-					opts.delimiters = [ args.shift(), args.shift() ];
-					break;
-
-				case '-s':
-				case '--static':
-					opts.staticDelimiters = [ args.shift(), args.shift() ];
-					break;
-
-				case '-r':
-				case '--triple':
-					opts.tripleDelimiters = [ args.shift(), args.shift() ];
-					break;
-
-				case '-p':
-				case '--static-triple':
-					opts.staticTripleDelimiters = [ args.shift(), args.shift() ];
-					break;
-
-				case '-u':
-				case '--escape-unicode':
-					opts.escapeUnicode = true;
-					break;
-
-				default:
-					if ( !args.length && util.stat( arg ) ) { // last may be the input file
-						dirIndexOrFile( arg );
-					} else {
-						console.error( '??? ', arg );
-					}
-					break;
+function loadConfig () {
+	let dir = process.cwd();
+	let prev;
+	while ( dir !== prev ) {
+		const file = path.join( dir, '.ractive.config.js' );
+		if ( util.stat( file ) ) {
+			try {
+				const fn = require( file );
+				fn.call( config, config, util.Ractive );
+			} catch ( e ) {
+				console.error( `Error while trying to read Ractive config file at ${dir}:` );
+				console.error( e );
+				process.exit( 2 );
 			}
-		}
-		util.readToString( input ).then( string => {
-			return component.build( string, opts, readFile ).
-				then( string => util.writeToStream( output, string ) );
-		}).then( null, err => {
-			console.error( err.stack );
-			process.exit( 1 );
-		});
-		break;
 
-	default:
-		console.error( `Usage: ractive [command] [options] [file]\n  Commands:` );
-		console.error( parse.help );
-		console.error( component.help );
-		process.exit( 1 );
+			break;
+		} else {
+			prev = dir;
+			dir = path.join( dir, '..' );
+		}
+	}
 }
+// try to find a config file
+loadConfig();
+
+if ( cmd === 'help' ) {
+	console.error( `Usage: ractive [command] [options] [file]
+
+  Available commands: ${Object.keys(commands).sort().join(', ')}
+  ${Object.keys(commands).filter(c => commands[c].help).map(c => commands[c].help).join('')}`);
+
+	process.exit( 1 );
+}
+
+if ( args[0] === 'help' || !cmd || !commands[cmd] ) {
+	console.error( `Usage: ractive [command] [options] [file]
+
+  Available commands: ${Object.keys(commands).sort().join(', ')}`);
+
+	if ( !cmd ) console.error( `\n  Find out more about a particular command with ractive [command] help` );
+
+	if ( cmd && !commands[cmd] ) console.error( `\n  Unknown command: ${cmd}` );
+
+	if ( commands[cmd] && commands[cmd].help ) console.error( commands[cmd].help );
+
+	process.exit( 1 );
+}
+
+// let the command process the args if it wants to
+if ( typeof commands[cmd].preArgs === 'function' ) commands[cmd].preArgs( args, opts );
+
+// process out common args
+for ( let i = 0; i < args.length; i++ ) {
+	const arg = args[i];
+
+	switch ( arg ) {
+		case '-i':
+		case '--input':
+			opts.input = dirIndexOrFile( args[ i + 1 ] );
+			args.splice( i--, 2 );
+			i--;
+			break;
+
+		case '-o':
+		case '--output':
+			opts.output = fs.createWriteStream( args[ i + 1 ] );
+			args.splice( i--, 2 );
+			break;
+
+		case '-x':
+		case '--nocsp':
+			opts.csp = false;
+			args.splice( i--, 1 );
+			break;
+
+		case '-d':
+		case '--delimiters':
+			opts.delimiters = [ args[ i + 1 ], args[ i + 1 ] ];
+			args.splice( i--, 3 );
+			break;
+
+		case '-s':
+		case '--static':
+			opts.staticDelimiters = [ args[ i + 1 ], args[ i + 1 ] ];
+			args.splice( i--, 3 );
+			break;
+
+		case '-r':
+		case '--triple':
+			opts.tripleDelimiters = [ args[ i + 1 ], args[ i + 1 ] ];
+			args.splice( i--, 3 );
+			break;
+
+		case '-p':
+		case '--static-triple':
+			opts.staticTripleDelimiters = [ args[ i + 1 ], args[ i + 1 ] ];
+			args.splice( i--, 3 );
+			break;
+
+		case '-u':
+		case '--escape-unicode':
+			opts.escapeUnicode = true;
+			args.splice( i--, 1 );
+			break;
+	}
+}
+
+if ( typeof commands[cmd].args === 'function' ) commands[cmd].args( args, opts );
+
+if ( args.length === 1 && util.stat( args[0] ) ) { // last arg may be the input file
+	opts.input = fs.createReadStream( args[0] );
+} else if ( args.length ) {
+	console.error( `Unknown arguments: ${args.join(' ')}` );
+}
+
+commands[cmd].run( opts );
