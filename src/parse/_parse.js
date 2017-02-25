@@ -120,12 +120,24 @@ const StandardParser = Parser.extend({
 								break;
 							}
 						}
+
+						// watch for partials
+						if ( node.p ) {
+							for ( const k in node.p ) walk( node.p[k] );
+						}
 					}
 
 					if ( node.f ) walk( node.f );
 				}
 			};
+
+			// process the root fragment
 			walk( result[0].t );
+
+			// watch for root partials
+			if ( result[0].p ) {
+				for ( const k in result[0].p ) walk( result[0].p[k] );
+			}
 		}
 
 		if ( this.csp !== false ) {

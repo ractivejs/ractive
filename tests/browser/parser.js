@@ -87,16 +87,36 @@ export default function () {
 
 	test( `parser transforms include local and global options`, t => {
 		Ractive.defaults.parserTransforms.push(
-			function ( n ) { console.log('global', n);return n.e === 'bar' ? { replace: this.parse( `<baz id="replaced">yep</baz>` ).t[0] } : undefined; }
+			function ( n ) { return n.e === 'bar' ? { replace: this.parse( `<baz id="replaced">yep</baz>` ).t[0] } : undefined; }
 		);
 
 		const parsed = Ractive.parse( `<bar />`, {
 			transforms: [
-				function ( n ) { console.log('local', n); if ( n.e === 'baz' ) n.e = 'div'; }
+				function ( n ) { if ( n.e === 'baz' ) n.e = 'div'; }
 			]
 		});
 		t.deepEqual( parsed, { v: 4, t: [{ t: 7, e: 'div', m: [{ t: 13, f: 'replaced', n: 'id' }], f: [ 'yep' ] }] } );
 
 		Ractive.defaults.parserTransforms.pop();
+	});
+
+	test( `parser transforms also apply to inline partials`, t => {
+		const parsed = Ractive.parse( `<div>{{#partial foo}}<bar />{{/partial}}</div>`, {
+			transforms: [
+				function ( n ) { return n.e === 'bar' ? { replace: this.parse( `<div id="replaced">yep</div>` ).t[0] } : undefined; }
+			]
+		});
+
+		t.deepEqual( parsed, { v: 4, t: [{ t: 7, e: 'div', p: { foo: [{ t: 7, e: 'div', m: [{ t: 13, f: 'replaced', n: 'id' }], f: [ 'yep' ] }] } }] } );
+	});
+
+	test( `parser transforms also apply to root inline partials`, t => {
+		const parsed = Ractive.parse( `{{#partial foo}}<bar />{{/partial}}`, {
+			transforms: [
+				function ( n ) { return n.e === 'bar' ? { replace: this.parse( `<div id="replaced">yep</div>` ).t[0] } : undefined; }
+			]
+		});
+
+		t.deepEqual( parsed, { v: 4, t: [], p: { foo: [{ t: 7, e: 'div', m: [{ t: 13, f: 'replaced', n: 'id' }], f: [ 'yep' ] }] } } );
 	});
 }
