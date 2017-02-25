@@ -71,7 +71,12 @@ const StandardParser = Parser.extend({
 		this.textOnlyMode = options.textOnlyMode;
 		this.csp = options.csp;
 
-		this.transforms = options.transforms || options.parserTransforms || shared.defaults.parserTransforms;
+		this.transforms = options.transforms || options.parserTransforms;
+		if ( this.transforms ) {
+			this.transforms = this.transforms.concat( shared.defaults.parserTransforms );
+		} else {
+			this.transforms = shared.defaults.parserTransforms;
+		}
 	},
 
 	postProcess ( result ) {
@@ -87,7 +92,7 @@ const StandardParser = Parser.extend({
 		cleanup( result[0].t, this.stripComments, this.preserveWhitespace, !this.preserveWhitespace, !this.preserveWhitespace );
 
 		const transforms = this.transforms;
-		if ( transforms && transforms.length ) {
+		if ( transforms.length ) {
 			const tlen = transforms.length;
 			const walk = function ( fragment ) {
 				let len = fragment.length;
@@ -108,10 +113,11 @@ const StandardParser = Parser.extend({
 								if ( Array.isArray( res.replace ) ) {
 									fragment.splice( i--, 1, ...res.replace );
 									len += res.replace.length - 1;
-									break;
 								} else {
-									fragment[i] = node = res.replace;
+									fragment[i--] = node = res.replace;
 								}
+
+								break;
 							}
 						}
 					}

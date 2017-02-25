@@ -73,4 +73,30 @@ export default function () {
 		t.deepEqual( parsed.t, [{ t: 7, e: 'div', m: [{ t: 13, f: [{ t: 2, x: { s: `""+_0`, r: ['replaced'] } }], n: 'id' }], f: [ 'yep' ] }] );
 		t.ok( typeof parsed.e[`""+_0`] === 'function' );
 	});
+
+	test( `parser transforms may be global`, t => {
+		Ractive.defaults.parserTransforms.push(
+			function ( n ) { return n.e === 'bar' ? { replace: this.parse( `<div id="replaced">yep</div>` ).t[0] } : undefined; }
+		);
+
+		const parsed = Ractive.parse( `<bar />` );
+		t.deepEqual( parsed, { v: 4, t: [{ t: 7, e: 'div', m: [{ t: 13, f: 'replaced', n: 'id' }], f: [ 'yep' ] }] } );
+
+		Ractive.defaults.parserTransforms.pop();
+	});
+
+	test( `parser transforms include local and global options`, t => {
+		Ractive.defaults.parserTransforms.push(
+			function ( n ) { console.log('global', n);return n.e === 'bar' ? { replace: this.parse( `<baz id="replaced">yep</baz>` ).t[0] } : undefined; }
+		);
+
+		const parsed = Ractive.parse( `<bar />`, {
+			transforms: [
+				function ( n ) { console.log('local', n); if ( n.e === 'baz' ) n.e = 'div'; }
+			]
+		});
+		t.deepEqual( parsed, { v: 4, t: [{ t: 7, e: 'div', m: [{ t: 13, f: 'replaced', n: 'id' }], f: [ 'yep' ] }] } );
+
+		Ractive.defaults.parserTransforms.pop();
+	});
 }
