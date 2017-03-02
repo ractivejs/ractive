@@ -168,6 +168,7 @@ export default class LinkModel extends ModelBase {
 
 	teardown () {
 		if ( this._link ) this._link.teardown();
+		this.target.unregisterLink( this );
 		this.children.forEach( teardown );
 	}
 }
