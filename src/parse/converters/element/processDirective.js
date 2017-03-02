@@ -7,6 +7,7 @@ import { warnIfDebug } from '../../../utils/log';
 
 var methodCallPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)\(.*\)\s*$/,
 	ExpressionParser;
+const blank = /^\s*$/;
 
 ExpressionParser = Parser.extend({
 	converters: [ readExpression ],
@@ -69,6 +70,9 @@ export default function processDirective ( tokens, parentParser, type ) {
 			token = tokens.shift();
 
 			if ( typeof token === 'string' ) {
+				// ignore empty space
+				if ( blank.test( token ) ) continue;
+
 				colonIndex = token.indexOf( ':' );
 
 				if ( colonIndex === -1 ) {

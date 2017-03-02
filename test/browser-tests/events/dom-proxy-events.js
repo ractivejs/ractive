@@ -314,6 +314,20 @@ export default function() {
 		t.deepEqual( last, [ 1, 2, 3 ] );
 	});
 
+	test( 'proxy events parse correctly with bonus whitespace outside the mustaches even if they are not the first attr (#2894)', t => {
+		t.expect( 1 );
+
+		const r = new Ractive({
+			el: fixture,
+			template: '<button data-ignored="sure" on-click=" {{#if true}}bar{{/if}} ">click</button>',
+			data: { foo: true }
+		});
+
+		r.on( 'bar', () => t.ok( true, 'click event bound' ) );
+
+		fire( r.find( 'button' ), 'click' );
+	});
+
 	test( 'proxy events can have dynamic arguments', t => {
 		t.expect( 1 );
 
