@@ -9,6 +9,10 @@ export function resolveAliases( aliases, fragment ) {
 		resolved[ aliases[i].n ] = resolve( fragment, aliases[i].x );
 	}
 
+	for ( const k in resolved ) {
+		resolved[k].reference();
+	}
+
 	return resolved;
 }
 
@@ -35,6 +39,10 @@ export default class Alias extends ContainerItem {
 	}
 
 	unbind () {
+		for ( const k in this.fragment.aliases ) {
+			this.fragment.aliases[k].unreference();
+		}
+
 		this.fragment.aliases = {};
 		if ( this.fragment ) this.fragment.unbind();
 	}

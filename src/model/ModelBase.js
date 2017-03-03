@@ -195,6 +195,10 @@ export default class ModelBase {
 		}
 	}
 
+	reference () {
+		'refs' in this ? this.refs++ : this.refs = 1;
+	}
+
 	register ( dep ) {
 		this.deps.push( dep );
 	}
@@ -210,6 +214,10 @@ export default class ModelBase {
 
 	registerTwowayBinding ( binding ) {
 		this.bindings.push( binding );
+	}
+
+	unreference () {
+		if ( 'refs' in this ) this.refs--;
 	}
 
 	unregister ( dep ) {

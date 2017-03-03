@@ -1,6 +1,7 @@
 import { removeFromArray } from '../../utils/array';
 import { handleChange } from '../../shared/methodCallers';
 import { capture } from '../../global/capture';
+import noop from '../../utils/noop';
 
 export default class KeypathModel {
 	constructor ( parent, ractive ) {
@@ -88,3 +89,6 @@ export default class KeypathModel {
 		if ( !this.deps.length ) this.teardown();
 	}
 }
+
+KeypathModel.prototype.reference = noop;
+KeypathModel.prototype.unreference = noop;

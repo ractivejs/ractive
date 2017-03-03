@@ -104,9 +104,14 @@ export default class ExpressionProxy extends Model {
 		super.teardown();
 	}
 
+	unreference () {
+		super.unreference();
+		if ( !this.deps.length && !this.refs ) this.teardown();
+	}
+
 	unregister( dep ) {
 		super.unregister( dep );
-		if ( !this.deps.length ) this.teardown();
+		if ( !this.deps.length && !this.refs ) this.teardown();
 	}
 }
 

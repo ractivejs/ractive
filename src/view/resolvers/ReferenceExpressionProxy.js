@@ -199,11 +199,24 @@ export default class ReferenceExpressionProxy extends Model {
 		this.model.set( value );
 	}
 
-	unbind () {
+	teardown () {
 		if ( this.model ) {
 			this.model.unregister( this );
 			this.model.unregisterTwowayBinding( this );
 		}
+		if ( this.members ) {
+			this.members.forEach( m => m && m.unregister && m.unregister( this ) );
+		}
+	}
+
+	unreference () {
+		super.unreference();
+		if ( !this.deps.length && !this.refs ) this.teardown();
+	}
+
+	unregister( dep ) {
+		super.unregister( dep );
+		if ( !this.deps.length && !this.refs ) this.teardown();
 	}
 }
 
