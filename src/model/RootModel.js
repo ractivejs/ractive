@@ -176,6 +176,13 @@ export default class RootModel extends Model {
 		return this.wrapper ? this.wrapper.get() : this.value;
 	}
 
+	teardown () {
+		super.teardown();
+		for ( const k in this.computations ) {
+			this.computations[ k ].teardown();
+		}
+	}
+
 	update () {
 		// noop
 	}
