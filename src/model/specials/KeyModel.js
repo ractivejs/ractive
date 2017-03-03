@@ -1,6 +1,7 @@
 import { addToArray, removeFromArray } from '../../utils/array';
 import { unescapeKey } from '../../shared/keypaths';
 import { capture } from '../../global/capture';
+import noop from '../../utils/noop';
 
 export default class KeyModel {
 	constructor ( key, parent ) {
@@ -44,3 +45,6 @@ export default class KeyModel {
 		removeFromArray( this.links, link );
 	}
 }
+
+KeyModel.prototype.reference = noop;
+KeyModel.prototype.unreference = noop;

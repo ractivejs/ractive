@@ -13,6 +13,10 @@ function resolveAliases( section ) {
 			section.aliases[ refs[i].n ] = resolve( section.parentFragment, refs[i].x );
 		}
 	}
+
+	for ( const k in section.aliases ) {
+		section.aliases[k].reference();
+	}
 }
 
 export default class Alias extends Item {
@@ -83,6 +87,11 @@ export default class Alias extends Item {
 
 	unbind () {
 		this.aliases = {};
+
+		for ( const k in this.fragment.aliases ) {
+			this.aliases[k].unreference();
+		}
+
 		if ( this.fragment ) this.fragment.unbind();
 	}
 

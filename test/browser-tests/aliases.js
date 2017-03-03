@@ -84,6 +84,23 @@ export default function() {
 		t.equal( aliased, 1 );
 	});
 
+	test( `expression aliases that have deps pop in and out of existence don't teardown until their alias block does`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#with foo + 'a' as str}}{{#if bar}}{{str}}{{/if}}{{/with}}`,
+			data: {
+				foo: 1,
+				bar: true
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '1a' );
+		r.toggle( 'bar' );
+		r.set( 'foo', 42 );
+		r.toggle( 'bar' );
+		t.htmlEqual( fixture.innerHTML, '42a' );
+	});
+
 	test( 'unresolved aliases should resolve if a suitable model appears', t => {
 		const r = new Ractive({
 			el: fixture,
