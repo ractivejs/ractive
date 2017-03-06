@@ -533,7 +533,7 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '<div class="wrapped foo around" id="foo"></div>' );
 		ractive.resetPartial( 'foo', 'nfoo' );
-		t.htmlEqual( fixture.innerHTML, '<div class="wrapped around nfoo" id="nfoo"></div>' );
+		t.htmlEqual( fixture.innerHTML, '<div class="wrapped nfoo around" id="nfoo"></div>' );
 	});
 
 	test( 'Partials in attribute blocks can be changed with resetPartial', t => {

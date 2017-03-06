@@ -250,22 +250,7 @@ function updateClassName ( reset ) {
 	const attr = readClass( this.node.className );
 	const prev = this.previous || attr.slice( 0 );
 
-	let i = 0;
-	while ( i < value.length ) {
-		if ( !~attr.indexOf( value[i] ) ) attr.push( value[i] );
-		i++;
-	}
-
-	// remove now-missing classes
-	i = prev.length;
-	while ( i-- ) {
-		if ( !~value.indexOf( prev[i] ) ) {
-			const idx = attr.indexOf( prev[i] );
-			if ( ~idx ) attr.splice( idx, 1 );
-		}
-	}
-
-	const className = attr.join( ' ' );
+	const className = value.concat( attr.filter( c => !~prev.indexOf( c ) ) ).join( ' ' );
 
 	if ( className !== this.node.className ) {
 		this.node.className = className;

@@ -16,7 +16,7 @@ export default function () {
 		span.className += ' yep';
 		r.set( 'classes', 'foo baz' );
 
-		t.equal( span.className, 'foo yep baz' );
+		t.equal( span.className, 'foo baz yep' );
 	});
 
 	test( `style attributes only update the styles in their content`, t => {
@@ -147,7 +147,7 @@ export default function () {
 		r.toggle( 'foo' );
 		t.equal( span.className, 'bar baz' );
 		r.toggle( 'foo' );
-		t.equal( span.className, 'bar baz foo' );
+		t.equal( span.className, 'bar foo baz' );
 	});
 
 	test( `class attributes don't override class directives at render (#2565)`, t => {
@@ -241,5 +241,32 @@ export default function () {
 
 		t.equal( span.innerHTML, 'sure' );
 		t.equal( input.value, 'yep' );
+	});
+
+	test( `class attributes try to update in original order where possible (#2903)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `<div class="{{classes.join(' ')}}" />`,
+			data: {
+				classes: [ 'a', 'b', 'c' ]
+			}
+		});
+
+		const div = r.find( 'div' );
+
+		r.push( 'classes', 'd', 'e' );
+		t.equal( div.className, 'a b c d e' );
+
+		r.splice( 'classes', 2, 0, 'bb' );
+		t.equal( div.className, 'a b bb c d e' );
+
+		r.set( 'classes', [] );
+		t.equal( div.className, '' );
+
+		r.set( 'classes', [ 'z', 'c', 'b' ] );
+		t.equal( div.className, 'z c b' );
+
+		r.set( 'classes', [ 'a', 'b', 'c' ] );
+		t.equal( div.className, 'a b c' );
 	});
 }
