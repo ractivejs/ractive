@@ -170,8 +170,9 @@ export default class Section extends Mustache {
 				}
 			}
 		} else {
-			if ( this.fragment && this.rendered ) {
-				this.fragment.unbind().unrender( true );
+			if ( this.fragment ) {
+				this.fragment.unbind();
+				if ( this.rendered ) this.fragment.unrender( true );
 			}
 
 			this.fragment = null;
