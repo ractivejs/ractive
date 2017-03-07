@@ -5,8 +5,8 @@ set -e
 rm -rf .build
 mkdir .build
 
-npm run bundle
+npm run bundle:test
 npm run test:phantom
 
-echo "fast build complete"
+echo "build complete"
 

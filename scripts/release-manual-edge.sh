@@ -29,7 +29,7 @@ set -e
 #############################
 echo '> publishing to npm...'
 
-( cd .release
+( cd .build
 	# set the correct package version
 	node -e "var package = JSON.parse(fs.readFileSync('./package.json')); package.version = '${TARGET}'; fs.writeFileSync('./package.json', JSON.stringify(package, null, '  '));"
 	# ...and to npm

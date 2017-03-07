@@ -13,7 +13,7 @@ fi
 #############################
 echo 'publishing to npm...'
 
-( cd .release
+( cd .build
 	# ...and to npm
 	npm publish
 	npm dist-tag add ractive@target $TAG
@@ -32,7 +32,7 @@ rm -rf release-branch
 git clone https://github.com/ractivejs/ractive -b release --depth 2 release-branch
 
 rm -r release-branch/*
-cp -r .release/* release-branch
+cp -r .build/* release-branch
 
 ( cd release-branch
 	git add -A
