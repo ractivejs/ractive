@@ -44,7 +44,14 @@ module.exports = ({
 		const polyfills = buildUmdPolyfill();
 		return gobble([lib, polyfills, tests, sandbox, qunit]);
 	},
-	'production'() {
+	'bundle:test'() {
+		const lib = buildUmdLib('ractive.js', []);
+		const browserTests = buildBrowserTests();
+		const nodeTests = buildNodeTests();
+		const polyfills = buildUmdPolyfill();
+		return gobble([lib, polyfills, qunit, browserTests, nodeTests]);
+	},
+	'bundle:release'() {
 		const libEsFull = buildESLib('ractive.mjs', []);
 		const libEsRuntime = buildESLib('runtime.mjs', runtimeModulesToIgnore);
 
@@ -59,10 +66,7 @@ module.exports = ({
 		const polyfillUmd = buildUmdPolyfill();
 		const polyfillUmdMin = polyfillUmd.transform('uglifyjs', { ext: '.min.js' });
 
-		const browserTests = buildBrowserTests();
-		const nodeTests = buildNodeTests();
-
-		return gobble([libEs, libUmd, libUmdMin, polyfillEs, polyfillUmd, polyfillUmdMin, qunit, browserTests, nodeTests, bin, lib, typings, manifest]);
+		return gobble([libEs, libUmd, libUmdMin, polyfillEs, polyfillUmd, polyfillUmdMin, bin, lib, typings, manifest]);
 	}
 })[gobble.env()]();
 
@@ -212,7 +216,7 @@ function rollup(indir, outdir, options) {
 	options.dest = path.resolve(outdir, options.dest || options.entry);
 	options.entry = path.resolve(indir, options.entry);
 
-	return rollupLib.rollup(options).then(function(bundle) {
+	return rollupLib.rollup(options).then(function (bundle) {
 		return bundle.write(options);
 	});
 }
