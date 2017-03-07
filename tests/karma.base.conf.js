@@ -2,8 +2,9 @@
 
 module.exports = {
 	basePath: '../.build/tests',
+	plugins: ['karma-qunit', 'karma-failed-reporter'],
 	frameworks: ['qunit'],
-	singleRun: true,
+	reporters: ['failed'],
 	client: {
 		captureConsole: false,
 		qunit: {
@@ -11,16 +12,5 @@ module.exports = {
 			testTimeout: 30000
 		}
 	},
-	files: [
-		'files/qunit-html.js',
-		'files/simulant.js',
-		'../polyfills.js',
-		'../ractive.js',
-		'files/init.js',
-		'browser.js',
-		{ pattern: 'files/*.gif', served: true, included: false, watched: false, nocache: false },
-	],
-	proxies: {
-		'/files/': '/base/files/'
-	}
+	singleRun: true
 };
