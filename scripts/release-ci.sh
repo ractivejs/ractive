@@ -34,7 +34,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 	if [ "$MAJOR" = "0" -a "$EDGE" = "1" -a "$PUBLISHED" = "0" ]; then
 		echo 'publishing as stable to npm...'
 
-		( cd .release
+		( cd .build
 			npm publish
 			npm dist-tag add ractive@$TARGET $TAG
 		)
@@ -47,7 +47,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 		git clone https://Rich-Harris:${GH_TOKEN}@${GH_REF} -b release --depth 2 release-branch
 
 		rm -r release-branch/*
-		cp -r .release/* release-branch
+		cp -r .build/* release-branch
 
 		( cd release-branch
 			echo "Setting credentials..."
@@ -75,7 +75,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 	if [ "$MAJOR" = "0" -a "$EDGE" = "0" ]; then
 		echo 'publishing as major edge build to npm...'
 
-		( cd .release
+		( cd .build
 			# set the correct package version
 			node -e "var package = JSON.parse(fs.readFileSync('./package.json')); package.version = '${TARGET}'; fs.writeFileSync('./package.json', JSON.stringify(package, null, '  '));"
 			# ...and to npm
@@ -89,7 +89,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 	if [ "$TRAVIS_BRANCH" = "dev" ]; then
 		echo 'publishing as unstable edge build to npm...'
 
-		( cd .release
+		( cd .build
 			# set the correct package version
 			node -e "var package = JSON.parse(fs.readFileSync('./package.json')); package.version = '${TARGET}'; fs.writeFileSync('./package.json', JSON.stringify(package, null, '  '));"
 			# ...and to npm
