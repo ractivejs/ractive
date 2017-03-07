@@ -44,6 +44,7 @@ export default class TransitionManager {
 	detachNodes () {
 		this.detachQueue.forEach( detach );
 		this.children.forEach( _detachNodes );
+		this.detachQueue = [];
 	}
 
 	ready () {
