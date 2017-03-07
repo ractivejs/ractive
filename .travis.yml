@@ -11,15 +11,21 @@ addons:
       - xvfb
   jwt:
     secure: m2tGx8Pc2ZuukNqWxcDBZsuLT1xWYDz3ZJ1MG8+69EZwjjHT07SUPX8hoHt6Xa2tWGJiv0yHB5BdDlzFSYr104tNwPpUOaUPosDTSeL0M5gbsSX5+0orILeltCi7UJKIiJZ9kNAfq9bTIMdYb3mRm86nJp8lUd3Ok52u9digS98=
-install:
+before_script:
   - export DISPLAY=':99.0'
   - Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+script: |
+  set -e
+  if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    npm run build:ci:dev
+    npm run release:ci
+  else
+    npm run build:ci:pr
+  fi;
 branches:
   only:
   - 0.8
   - dev
-script:
-  - set -e; npm i; npm run build:ci; if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then chmod u+x ./scripts/release-ci.sh; ./scripts/release-ci.sh; fi; set +e
 env:
   global:
   - GH_REF: github.com/ractivejs/ractive.git
