@@ -306,6 +306,7 @@ export default class Fragment {
 
 	unbind () {
 		this.items.forEach( unbind );
+		this.resolvers.forEach( unbind );
 		this.bound = false;
 
 		return this;
