@@ -4,8 +4,30 @@ const base = require('./karma.base.conf');
 
 module.exports = function (config) {
 	config.set(Object.assign({}, base, {
-		plugins: ['karma-qunit', 'karma-phantomjs-launcher', 'karma-failed-reporter'],
+		plugins: base.plugins.concat(['karma-coverage', 'karma-phantomjs-launcher']),
 		browsers: ['PhantomJS'],
-		reporters: ['failed']
+		reporters: base.reporters.concat(['coverage']),
+		coverageReporter: {
+			dir: '../coverage/',
+			reporters: [
+				{ type: 'html' },
+				{ type: 'json' },
+			]
+		},
+		preprocessors: {
+			'../ractive.js': ['coverage']
+		},
+		files: [
+			'files/qunit-html.js',
+			'files/simulant.js',
+			'../polyfills.js',
+			'../ractive.js',
+			'files/init.js',
+			'browser.js',
+			{ pattern: 'files/*.gif', served: true, included: false, watched: false, nocache: false },
+		],
+		proxies: {
+			'/files/': '/base/files/'
+		}
 	}));
 };

@@ -4,18 +4,26 @@ const base = require('./karma.base.conf');
 
 module.exports = function (config) {
 	config.set(Object.assign({}, base, {
-		plugins: ['karma-qunit', 'karma-electron', 'karma-failed-reporter'],
+		plugins: base.plugins.concat(['karma-coverage', 'karma-electron']),
 		browsers: ['Electron'],
-		reporters: ['failed'],
-		preprocessors: {
-			'**/*.js': ['electron']
+		reporters: base.reporters.concat(['coverage']),
+		coverageReporter: {
+			dir: '../coverage/',
+			reporters: [
+				{ type: 'html' },
+				{ type: 'json' },
+			]
 		},
-		client: Object.assign({}, base.client, {
-			useIframe: false
-		}),
+		preprocessors: {
+			'../ractive.js': ['coverage'],
+			'**/*.js': ['electron'],
+		},
 		files: [
 			'../ractive.js',
 			'node.js'
-		]
+		],
+		client: Object.assign({}, base.client, {
+			useIframe: false
+		})
 	}));
 };
