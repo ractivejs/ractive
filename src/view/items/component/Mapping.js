@@ -51,6 +51,7 @@ export default class Mapping extends Item {
 
 	unbind () {
 		if ( this.fragment ) this.fragment.unbind();
+		if ( this.model ) this.model.unregister( this );
 		if ( this.boundFragment ) this.boundFragment.unbind();
 
 		if ( this.element.bound ) {
