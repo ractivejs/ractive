@@ -222,12 +222,12 @@ export default class EventDirective {
 	unbind () {
 		const template = this.template.f;
 
-		if ( template.m ) {
+		if ( template.x ) {
 			if ( this.resolvers ) this.resolvers.forEach( unbind );
 			this.resolvers = [];
 
 			if ( this.models ) this.models.forEach( m => {
-				if ( m.unregister ) m.unregister( this );
+				if ( m && m.unregister ) m.unregister( this );
 			});
 			this.models = null;
 		}
