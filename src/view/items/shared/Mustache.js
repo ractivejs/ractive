@@ -30,7 +30,7 @@ export default class Mustache extends Item {
 		if ( model ) {
 			model.register( this );
 			this.model = model;
-		} else {
+		} else if ( this.template.r ) {
 			this.resolver = this.parentFragment.resolve( this.template.r, model => {
 				this.model = model;
 				model.register( this );
