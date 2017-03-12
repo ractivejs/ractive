@@ -232,7 +232,7 @@ export default class Component extends Item {
 
 		removeFromLiveComponentQueries( this );
 
-		if ( instance.fragment.rendered && instance.el.__ractive_instances__ ) {
+		if ( instance.el && instance.el.__ractive_instances__ ) {
 			removeFromArray( instance.el.__ractive_instances__, instance );
 		}
 
