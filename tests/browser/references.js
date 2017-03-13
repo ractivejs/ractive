@@ -431,4 +431,21 @@ export default function() {
 		ctx.set( '@local.foo', 42 );
 		t.htmlEqual( fixture.innerHTML, '<div>42</div>' );
 	});
+
+	test( `@local and @context alias correctly`, t => {
+		let ctx;
+		const r = new Ractive({
+			target: fixture,
+			template: `<div>{{#with @local.foo as foo, @context as ctx}}{{foo}}{{store(ctx)}}{{/with}}</div>`,
+			data: {
+				store ( context ) {
+					ctx = context;
+				}
+			}
+		});
+		const info = r.getNodeInfo( 'div' );
+		info.set( '@local.foo', 'bar' );
+		t.ok( info.get( '@local.foo' ) === ctx.get( '@local.foo' ) );
+		t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
+	});
 }
