@@ -49,7 +49,14 @@ export default class ReferenceResolver {
 
 	rebinding ( next, previous ) {
 		if ( previous ) previous.removeUnresolved( this.keys[0], this );
-		if ( next ) runloop.scheduleTask( () => next.addUnresolved( this.keys[0], this ) );
+
+		this.next = next;
+		if ( next ) runloop.scheduleTask( () => {
+			if ( next === this.next ) {
+				next.addUnresolved( this.keys[0], this );
+				this.next = null;
+			}
+		});
 	}
 
 	unbind () {
