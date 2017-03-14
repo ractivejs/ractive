@@ -7,6 +7,8 @@ import { rebindMatch } from '../../shared/rebind';
 import ReferenceResolver from '../../view/resolvers/ReferenceResolver';
 
 export default function observe ( keypath, callback, options ) {
+	if ( this.torndown ) return { cancel() {} };
+
 	let observers = [];
 	let map;
 

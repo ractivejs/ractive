@@ -1437,4 +1437,16 @@ export default function() {
 		val = 7;
 		r.set( 'foo.6', 'b' );
 	});
+
+	test( `calling observe on a torn down instance is effectively a noop`, t => {
+		t.expect( 0 );
+
+		const r = new Ractive();
+		r.teardown();
+
+		const handle = r.observe( 'foo', () => t.ok( false, 'should not set up observers on torn down instances' ) );
+		r.set( 'foo', 1 );
+
+		handle.cancel();
+	});
 }
