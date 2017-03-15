@@ -9,12 +9,10 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 	if [ $? == 1 ]; then EDGE=0; else EDGE=1; fi
 	TAG="v$(cat package.json | grep "version" | sed 's/"version": "\([0-9]*\.[0-9]\).*",/\1/' | sed 's/[[:space:]]//g')-dev"
 
-	if [[ $EDGE == 0 ]]; then
+	if [ "$EDGE" = "0" ]; then
 		# find the last published build number for this series
-		LAST=$(npm show ractive versions | grep "${VERSION_NUM}-build-" | tail -n 1 | grep "${VERSION_NUM}-build-")
-		if [ $? -eq 0 ]; then
-			LAST=$(echo $LAST | sed 's/.*-build-\([0-9]*\).*/\1/')
-		else
+		LAST=$(npm show ractive versions --json | grep "${VERSION_NUM}-build-" | sed -re 's/.*-([0-9]+).*/\1/g' | sort -n | tail -n 1 | grep -v '^$')
+		if [ $? -ne 0 ]; then
 			LAST=0
 		fi
 		LAST=$((LAST + 1))
@@ -23,7 +21,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 	else
 		TARGET=$VERSION_NUM
 		npm show ractive versions --json | grep "\"$VERSION_NUM\"" > /dev/null
-		if [ $? == 1 ]; then PUBLISHED=0; else PUBLISHED=1; fi
+		if [ "$?" = "1" ]; then PUBLISHED=0; else PUBLISHED=1; fi
 	fi
 
 	echo major:$MAJOR version:$VERSION_NUM tag:$TAG edge:$EDGE last:$LAST target:$TARGET published:$PUBLISHED
