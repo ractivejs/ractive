@@ -1,5 +1,13 @@
 # changelog
 
+# 0.8.12
+
+* Bug fixes
+	* Read-only computed properties in components will no longer try to initialize from mappings (#2888)
+	* A number of memory leaks have been plugged thanks to @giovannipiller (#2899)
+	* Class directives will now try to maintain original ordering for things that use order-sensitive selectors (#2903)
+
+
 # 0.8.11
 
 * Bug fixes
