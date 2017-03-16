@@ -1,6 +1,6 @@
 /*
-	Ractive.js v0.8.11
-	Mon Feb 20 2017 08:44:41 GMT+0000 (UTC) - commit 2220e19d2fdfd5d046ef146496322c5c6df663c9
+	Ractive.js v0.8.12
+	Thu Mar 16 2017 17:26:29 GMT+0000 (UTC) - commit af463e0d2dff780e82e7c2a1ea218c7350d57bd6
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -428,13 +428,13 @@
 	var welcome;
 	if ( hasConsole ) {
 		var welcomeIntro = [
-			("%cRactive.js %c0.8.11 %cin debug mode, %cmore..."),
+			("%cRactive.js %c0.8.12 %cin debug mode, %cmore..."),
 			'color: rgb(114, 157, 52); font-weight: normal;',
 			'color: rgb(85, 85, 85); font-weight: normal;',
 			'color: rgb(85, 85, 85); font-weight: normal;',
 			'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 		];
-		var welcomeMessage = "You're running Ractive 0.8.11 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+		var welcomeMessage = "You're running Ractive 0.8.12 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
 		welcome = function () {
 			if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -1072,6 +1072,7 @@
 	TransitionManager.prototype.detachNodes = function detachNodes () {
 		this.detachQueue.forEach( detach );
 		this.children.forEach( _detachNodes );
+		this.detachQueue = [];
 	};
 
 	TransitionManager.prototype.ready = function ready () {
@@ -2057,6 +2058,9 @@
 		removeFromArray( this.links, link );
 	};
 
+	KeyModel.prototype.reference = noop;
+	KeyModel.prototype.unreference = noop;
+
 	function bind$1               ( x ) { x.bind(); }
 	function cancel             ( x ) { x.cancel(); }
 	function handleChange       ( x ) { x.handleChange(); }
@@ -2164,6 +2168,9 @@
 		removeFromArray( this.deps, dep );
 		if ( !this.deps.length ) this.teardown();
 	};
+
+	KeypathModel.prototype.reference = noop;
+	KeypathModel.prototype.unreference = noop;
 
 	var hasProp = Object.prototype.hasOwnProperty;
 
@@ -2410,6 +2417,10 @@
 		}
 	};
 
+	ModelBase.prototype.reference = function reference () {
+		'refs' in this ? this.refs++ : this.refs = 1;
+	};
+
 	ModelBase.prototype.register = function register ( dep ) {
 		this.deps.push( dep );
 	};
@@ -2458,8 +2469,12 @@
 		}
 	};
 
-	ModelBase.prototype.unregister = function unregister ( dependant ) {
-		removeFromArray( this.deps, dependant );
+	ModelBase.prototype.unreference = function unreference () {
+		if ( 'refs' in this ) this.refs--;
+	};
+
+	ModelBase.prototype.unregister = function unregister ( dep ) {
+		removeFromArray( this.deps, dep );
 	};
 
 	ModelBase.prototype.unregisterLink = function unregisterLink ( link ) {
@@ -2744,6 +2759,7 @@
 
 		LinkModel.prototype.teardown = function teardown$1 () {
 			if ( this._link ) this._link.teardown();
+			this.target.unregisterLink( this );
 			this.children.forEach( teardown );
 		};
 
@@ -4003,7 +4019,14 @@
 		var this$1 = this;
 
 			if ( previous ) previous.removeUnresolved( this.keys[0], this );
-		if ( next ) runloop.scheduleTask( function () { return next.addUnresolved( this$1.keys[0], this$1 ); } );
+
+		this.next = next;
+		if ( next ) runloop.scheduleTask( function () {
+			if ( next === this$1.next ) {
+				next.addUnresolved( this$1.keys[0], this$1 );
+				this$1.next = null;
+			}
+		});
 	};
 
 	ReferenceResolver.prototype.unbind = function unbind () {
@@ -4018,6 +4041,8 @@
 
 	function observe ( keypath, callback, options ) {
 		var this$1 = this;
+
+		if ( this.torndown ) return { cancel: function() {} };
 
 		var observers = [];
 		var map;
@@ -5854,9 +5879,14 @@
 			Model.prototype.teardown.call(this);
 		};
 
+		ExpressionProxy.prototype.unreference = function unreference () {
+			Model.prototype.unreference.call(this);
+			if ( !this.deps.length && !this.refs ) this.teardown();
+		};
+
 		ExpressionProxy.prototype.unregister = function unregister( dep ) {
 			Model.prototype.unregister.call( this, dep );
-			if ( !this.deps.length ) this.teardown();
+			if ( !this.deps.length && !this.refs ) this.teardown();
 		};
 
 		ExpressionProxy.prototype.unbind = function unbind$1 () {
@@ -6117,12 +6147,28 @@
 			this.model.set( value );
 		};
 
-		ReferenceExpressionProxy.prototype.unbind = function unbind$1 () {
+		ReferenceExpressionProxy.prototype.teardown = function teardown () {
+			var this$1 = this;
+
 			this.resolvers.forEach( unbind );
+
 			if ( this.model ) {
 				this.model.unregister( this );
 				this.model.unregisterTwowayBinding( this );
 			}
+			if ( this.members ) {
+				this.members.forEach( function ( m ) { return m && m.unregister && m.unregister( this$1 ); } );
+			}
+		};
+
+		ReferenceExpressionProxy.prototype.unreference = function unreference () {
+			Model.prototype.unreference.call(this);
+			if ( !this.deps.length && !this.refs ) this.teardown();
+		};
+
+		ReferenceExpressionProxy.prototype.unregister = function unregister( dep ) {
+			Model.prototype.unregister.call( this, dep );
+			if ( !this.deps.length && !this.refs ) this.teardown();
 		};
 
 		return ReferenceExpressionProxy;
@@ -6150,6 +6196,10 @@
 			for ( var i = 0; i < refs.length; i++ ) {
 				section.aliases[ refs[i].n ] = resolve$2( section.parentFragment, refs[i].x );
 			}
+		}
+
+		for ( var k in section.aliases ) {
+			section.aliases[k].reference();
 		}
 	}
 
@@ -6226,6 +6276,11 @@
 
 		Alias.prototype.unbind = function unbind () {
 			this.aliases = {};
+
+			for ( var k in this.fragment.aliases ) {
+				this.aliases[k].unreference();
+			}
+
 			if ( this.fragment ) this.fragment.unbind();
 		};
 
@@ -6560,22 +6615,7 @@
 		var attr = readClass( this.node.className );
 		var prev = this.previous || attr.slice( 0 );
 
-		var i = 0;
-		while ( i < value.length ) {
-			if ( !~attr.indexOf( value[i] ) ) attr.push( value[i] );
-			i++;
-		}
-
-		// remove now-missing classes
-		i = prev.length;
-		while ( i-- ) {
-			if ( !~value.indexOf( prev[i] ) ) {
-				var idx = attr.indexOf( prev[i] );
-				if ( ~idx ) attr.splice( idx, 1 );
-			}
-		}
-
-		var className = attr.join( ' ' );
+		var className = value.concat( attr.filter( function ( c ) { return !~prev.indexOf( c ); } ) ).join( ' ' );
 
 		if ( className !== this.node.className ) {
 			this.node.className = className;
@@ -7902,6 +7942,13 @@
 			return this.wrapper ? this.wrapper.get() : this.value;
 		};
 
+		RootModel.prototype.teardown = function teardown () {
+			Model.prototype.teardown.call(this);
+			for ( var k in this.computations ) {
+				this.computations[ k ].teardown();
+			}
+		};
+
 		RootModel.prototype.update = function update () {
 			// noop
 		};
@@ -8507,12 +8554,12 @@
 
 			var template = this.template.f;
 
-		if ( template.m ) {
+		if ( template.x ) {
 			if ( this.resolvers ) this.resolvers.forEach( unbind );
 			this.resolvers = [];
 
 			if ( this.models ) this.models.forEach( function ( m ) {
-				if ( m.unregister ) m.unregister( this$1 );
+				if ( m && m.unregister ) m.unregister( this$1 );
 			});
 			this.models = null;
 		}
@@ -8787,7 +8834,7 @@
 
 			removeFromLiveComponentQueries( this );
 
-			if ( instance.fragment.rendered && instance.el.__ractive_instances__ ) {
+			if ( instance.el && instance.el.__ractive_instances__ ) {
 				removeFromArray( instance.el.__ractive_instances__, instance );
 			}
 
@@ -10535,7 +10582,7 @@
 			if ( model ) {
 				model.register( this );
 				this.model = model;
-			} else {
+			} else if ( this.template.r ) {
 				this.resolver = this.parentFragment.resolve( this.template.r, function ( model ) {
 					this$1.model = model;
 					model.register( this$1 );
@@ -11181,6 +11228,7 @@
 
 		Mapping.prototype.unbind = function unbind () {
 			if ( this.fragment ) this.fragment.unbind();
+			if ( this.model ) this.model.unregister( this );
 			if ( this.boundFragment ) this.boundFragment.unbind();
 
 			if ( this.element.bound ) {
@@ -11218,7 +11266,7 @@
 
 			item.link = viewmodel.createLink( item.name, item.model, template[0].r );
 
-			if ( item.model.get() === undefined && item.name in childData ) {
+			if ( item.model.get() === undefined && !item.model.isReadonly && item.name in childData ) {
 				item.model.set( childData[ item.name ] );
 			}
 		}
@@ -12218,8 +12266,9 @@
 					}
 				}
 			} else {
-				if ( this.fragment && this.rendered ) {
-					this.fragment.unbind().unrender( true );
+				if ( this.fragment ) {
+					this.fragment.unbind();
+					if ( this.rendered ) this.fragment.unrender( true );
 				}
 
 				this.fragment = null;
@@ -13906,6 +13955,7 @@
 
 	Fragment.prototype.unbind = function unbind$1 () {
 		this.items.forEach( unbind );
+		this.resolvers.forEach( unbind );
 		this.bound = false;
 
 		return this;
@@ -14423,7 +14473,7 @@
 		magic:          { value: magicSupported },
 
 		// version
-		VERSION:        { value: '0.8.11' },
+		VERSION:        { value: '0.8.12' },
 
 		// plugins
 		adaptors:       { writable: true, value: {} },
