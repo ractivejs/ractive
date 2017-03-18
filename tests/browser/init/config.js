@@ -1,4 +1,3 @@
-import defaults from '../../../src/Ractive/config/defaults';
 import config from '../../../src/Ractive/config/config';
 import registries from '../../../src/Ractive/config/registries';
 import { findInViewHierarchy } from '../../../src/shared/registry';
@@ -9,11 +8,44 @@ export default function() {
 	initModule( 'init/config.js' );
 
 	test( 'Ractive.defaults', t => {
-		t.equal( Ractive.defaults, Ractive.prototype, 'defaults aliases prototype' );
+		const expectedDefaults = [
+			'el',
+			'append',
+			'delegate',
+			'template',
+			'delimiters',
+			'tripleDelimiters',
+			'staticDelimiters',
+			'staticTripleDelimiters',
+			'csp',
+			'interpolate',
+			'preserveWhitespace',
+			'sanitize',
+			'stripComments',
+			'contextLines',
+			'parserTransforms',
+			'data',
+			'computed',
+			'syncComputedChildren',
+			'resolveInstanceMembers',
+			'warnAboutAmbiguity',
+			'adapt',
+			'isolated',
+			'twoway',
+			'lazy',
+			'noIntro',
+			'noOutro',
+			'transitionsEnabled',
+			'complete',
+			'nestedTransitions',
+			'css',
+			'noCssTransform'
+		];
 
-		for( const key in defaults ) {
-			t.ok( Ractive.defaults.hasOwnProperty( key ), 'has default ' + key );
-		}
+		const actualDefaults = expectedDefaults.filter(key => Ractive.defaults.hasOwnProperty(key));
+
+		t.strictEqual( Ractive.defaults, Ractive.prototype, 'defaults aliases prototype' );
+		t.deepEqual(actualDefaults, expectedDefaults, 'defaults contain expected keys');
 	});
 
 	test( 'instance has config options', t => {
