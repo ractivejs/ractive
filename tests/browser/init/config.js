@@ -1,5 +1,4 @@
 import config from '../../../src/Ractive/config/config';
-import registries from '../../../src/Ractive/config/registries';
 import { findInViewHierarchy } from '../../../src/shared/registry';
 import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
@@ -50,7 +49,17 @@ export default function() {
 
 	test( 'instance has config options', t => {
 		const ractive = new Ractive();
-		const registryNames = registries.map( r => r.name );
+		const registryNames = [
+			'adaptors',
+			'components',
+			'computed',
+			'decorators',
+			'easing',
+			'events',
+			'interpolators',
+			'partials',
+			'transitions'
+		];
 
 		config.order.forEach( itemConfig => {
 			const name = itemConfig.name || itemConfig;
