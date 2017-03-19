@@ -9,7 +9,7 @@ import getContext, { getNodeInfo } from './Ractive/static/getContext';
 import construct from './Ractive/construct';
 import initialise from './Ractive/initialise';
 import { getCSS } from './global/css';
-import { escapeKey, unescapeKey } from './shared/keypaths';
+import { escapeKey, unescapeKey, normalise } from './shared/keypaths';
 import { joinKeys, splitKeypath } from './Ractive/static/keypaths';
 import shared from './Ractive/shared';
 
@@ -58,6 +58,7 @@ Object.defineProperties( Ractive, {
 	splitKeypath:   { value: splitKeypath },
 	unescapeKey:    { value: unescapeKey },
 	getCSS:         { value: getCSS },
+	normaliseKeypath: { value: normalise },
 
 	// support
 	enhance:        { writable: true, value: false },
