@@ -46,38 +46,38 @@ shared.Ractive = Ractive;
 Object.defineProperties( Ractive, {
 
 	// debug flag
-	DEBUG:          { writable: true, value: true },
-	DEBUG_PROMISES: { writable: true, value: true },
+	DEBUG:            { writable: true, value: true },
+	DEBUG_PROMISES:   { writable: true, value: true },
 
 	// static methods:
-	extend:         { value: extend },
-	extendWith:     { value: extendWith },
-	escapeKey:      { value: escapeKey },
-	getContext:     { value: getContext },
-	getNodeInfo:    { value: getNodeInfo },
-	joinKeys:       { value: joinKeys },
-	parse:          { value: parse },
-	splitKeypath:   { value: splitKeypath },
-	unescapeKey:    { value: unescapeKey },
-	getCSS:         { value: getCSS },
+	extend:           { value: extend },
+	extendWith:       { value: extendWith },
+	escapeKey:        { value: escapeKey },
+	getContext:       { value: getContext },
+	getNodeInfo:      { value: getNodeInfo },
+	joinKeys:         { value: joinKeys },
+	parse:            { value: parse },
+	splitKeypath:     { value: splitKeypath },
+	unescapeKey:      { value: unescapeKey },
+	getCSS:           { value: getCSS },
 	normaliseKeypath: { value: normalise },
 	findPlugin:       { value: findPlugin },
 	evalObjectString: { value: parseJSON },
 
 	// support
-	enhance:        { writable: true, value: false },
-	svg:            { value: svg },
+	enhance:          { writable: true, value: false },
+	svg:              { value: svg },
 
 	// version
-	VERSION:        { value: 'BUILD_PLACEHOLDER_VERSION' },
+	VERSION:          { value: 'BUILD_PLACEHOLDER_VERSION' },
 
 	// plugins
-	adaptors:       { writable: true, value: {} },
-	components:     { writable: true, value: {} },
-	decorators:     { writable: true, value: {} },
-	easing:         { writable: true, value: easing },
-	events:         { writable: true, value: {} },
-	interpolators:  { writable: true, value: interpolators },
-	partials:       { writable: true, value: {} },
-	transitions:    { writable: true, value: {} }
+	adaptors:         { writable: true, value: {} },
+	components:       { writable: true, value: {} },
+	decorators:       { writable: true, value: {} },
+	easing:           { writable: true, value: easing },
+	events:           { writable: true, value: {} },
+	interpolators:    { writable: true, value: interpolators },
+	partials:         { writable: true, value: {} },
+	transitions:      { writable: true, value: {} }
 });
