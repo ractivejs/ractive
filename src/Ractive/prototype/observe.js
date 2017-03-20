@@ -37,6 +37,7 @@ export default function observe ( keypath, callback, options ) {
 		if ( keypaths.length > 1 ) keypaths = keypaths.filter( k => k );
 
 		keypaths.forEach( keypath => {
+			opts.keypath = keypath;
 			const observer = createObserver( this, keypath, caller, opts );
 			if ( observer ) observers.push( observer );
 		});

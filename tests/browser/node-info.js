@@ -530,6 +530,36 @@ export default function() {
 		t.equal( count, 3 );
 	});
 
+	test( `context observers shuffle correctly`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#each foo.list}}<div as-foo />{{/each}}`,
+			data: {
+				foo: { list: [ { bar: 1 }, { bar: 2 } ] }
+			},
+			decorators: {
+				foo ( node ) {
+					const info = Ractive.getNodeInfo( node );
+					const observer = info.observe( '.bar', n => {
+						node.innerHTML = n;
+					}, { defer: true });
+
+					return {
+						teardown () {
+							observer.cancel();
+						}
+					};
+				}
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div>1</div><div>2</div>' );
+		r.splice( 'foo.list', 0, 1 );
+		t.htmlEqual( fixture.innerHTML, '<div>2</div>' );
+		r.set( 'foo.list.0.bar', 0 );
+		t.htmlEqual( fixture.innerHTML, '<div>0</div>' );
+	});
+
 	test( `context observeOnce resolves using the context fragment`, t => {
 		let count = 0;
 		const r = new Ractive({

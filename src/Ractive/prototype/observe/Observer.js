@@ -8,10 +8,10 @@ export default class Observer {
 		this.context = options.context || ractive;
 		this.callback = callback;
 		this.ractive = ractive;
+		this.keypath = options.keypath;
+		this.options = options;
 
 		if ( model ) this.resolved( model );
-
-		this.options = options;
 
 		if ( typeof options.old === 'function' ) {
 			this.oldContext = Object.create( ractive );
@@ -75,7 +75,6 @@ export default class Observer {
 
 	resolved ( model ) {
 		this.model = model;
-		this.keypath = model.getKeypath( this.ractive );
 
 		this.oldValue = undefined;
 		this.newValue = model.get();
