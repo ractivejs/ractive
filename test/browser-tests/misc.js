@@ -1162,6 +1162,37 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'FOO' );
 	});
 
+	test( 'Regression test for #2915', t => {
+		// This is how Underscore defines `_`:
+		// https://github.com/jashkenas/underscore/blob/8fc7032295d60aff3620ef85d4aa6549a55688a0/underscore.js#L42
+		// It is important to the purposes of this test, as distinct from the one
+		// above, that `_` be a function that uses `this`.
+		const _ = function (obj) {
+			if (obj instanceof _) return obj;
+			if (!(this instanceof _)) return new _(obj);
+			this._wrapped = obj;
+		};
+
+		_.bind = function () {
+			// do nothing
+		};
+		
+		_.uppercase = function ( str ) {
+			return str.toUpperCase();
+		};
+
+		new Ractive({
+			el: fixture,
+			template: '{{_.uppercase(str)}}',
+			data: {
+				_,
+				str: 'foo'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'FOO' );
+	});
+
 	test( 'Interpolation of script/style contents can be disabled (#1050)', t => {
 		new Ractive({
 			el: fixture,
