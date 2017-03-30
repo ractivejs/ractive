@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+</head>
+<body>
+	<div id="fixture"></div>
+	<script src="context.js"></script>
+	<script type="text/javascript">
+		%CLIENT_CONFIG%
+		window.__karma__.setupContext(window);
+		%MAPPINGS%
+	</script>
+	%SCRIPTS%
+	<script>
+		(function(){
+			var fixture = document.getElementById('fixture');
+			// TODO: Tests should clean up after themselves.
+			QUnit.testDone(function () { fixture.innerHTML = ''; });
+		})();
+	</script>
+	<script type="text/javascript">
+		window.__karma__.loaded();
+	</script>
+</body>
+</html>
