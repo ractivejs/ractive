@@ -14,11 +14,13 @@ export default function Ractive$off ( eventName, callback ) {
 			const subs = this._subs[ event ];
 			// if given a specific callback to remove, remove only it
 			if ( subs && callback ) {
-				// flag this callback as off so that any in-flight firings don't call
-				// a cancelled handler - this is _slightly_ hacky
-				( callback._proxy || callback ).off = true;
-				removeFromArray( subs, callback._proxy || callback );
-				if ( event.indexOf( '.' ) ) this._nsSubs--;
+				const entry = subs.find( s => s.callback === callback );
+				if ( entry ) {
+					removeFromArray( subs, entry );
+					entry.off = true;
+
+					if ( event.indexOf( '.' ) ) this._nsSubs--;
+				}
 			}
 
 			// otherwise, remove all listeners for this event

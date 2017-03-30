@@ -15,20 +15,23 @@ export default function Ractive$on ( eventName, callback ) {
 		const caller = function ( ...args ) {
 			if ( !silent ) return callback.apply( this, args );
 		};
-		callback._proxy = caller;
+		const entry = {
+			callback,
+			handler: caller
+		};
 
 		if ( map.hasOwnProperty( k ) ) {
 			const names = k.split( ' ' ).map( trim ).filter( notEmptyString );
 			names.forEach( n => {
-				( this._subs[ n ] || ( this._subs[ n ] = [] ) ).push( caller );
+				( this._subs[ n ] || ( this._subs[ n ] = [] ) ).push( entry );
 				if ( n.indexOf( '.' ) ) this._nsSubs++;
-				events.push( [ n, caller ] );
+				events.push( [ n, entry ] );
 			});
 		}
 	}
 
 	return {
-		cancel: () => events.forEach( e => this.off( e[0], e[1] ) ),
+		cancel: () => events.forEach( e => this.off( e[0], e[1].callback ) ),
 		isSilenced: () => silent,
 		silence: () => silent = true,
 		resume: () => silent = false
