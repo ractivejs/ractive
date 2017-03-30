@@ -1,5 +1,4 @@
 import { beforeEach, initModule } from '../../helpers/test-config';
-import { TEMPLATE_VERSION } from '../../../src/config/template';
 import config from '../../../src/Ractive/config/custom/template';
 import { test } from 'qunit';
 
@@ -17,7 +16,7 @@ export default function() {
 
 		// bootstrap mock Ractive
 		MockRactive = function () {};
-		MockRactive.prototype = { template: { v: TEMPLATE_VERSION, t: [] } };
+		MockRactive.prototype = { template: { v: 4, t: [] } };
 		MockRactive.defaults = MockRactive.prototype;
 
 		Component = function() {};
@@ -55,7 +54,7 @@ export default function() {
 
 	test( 'Extend with template', t => {
 		mockExtend( templateOpt1 );
-		t.deepEqual( Component.defaults.template, { v: TEMPLATE_VERSION, t: [{ r: 'foo', t: 2 }] } );
+		t.deepEqual( Component.defaults.template, { v: 4, t: [{ r: 'foo', t: 2 }] } );
 	});
 
 	test( 'Extend twice with different templates', t => {
@@ -63,7 +62,7 @@ export default function() {
 		const Child = Object.create( Component );
 		config.extend( Component, Child.prototype, templateOpt2 );
 
-		t.deepEqual( Child.prototype.template, { v: TEMPLATE_VERSION, t: [{ r: 'bar', t: 2 }] } );
+		t.deepEqual( Child.prototype.template, { v: 4, t: [{ r: 'bar', t: 2 }] } );
 	});
 
 	test( 'Init template', t => {
@@ -132,7 +131,7 @@ export default function() {
 		Component.partials = {};
 		config.extend( MockRactive, Component.prototype, options );
 
-		t.deepEqual( Component.defaults.template, { v: TEMPLATE_VERSION, t: [{r: 'foo', t: 2 } ], p: {bar: [{r: 'bar', t: 2 } ] } });
+		t.deepEqual( Component.defaults.template, { v: 4, t: [{r: 'foo', t: 2 } ], p: {bar: [{r: 'bar', t: 2 } ] } });
 	});
 
 	test( 'Template with partial added and takes precedence over option partials', t => {
