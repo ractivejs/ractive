@@ -109,18 +109,6 @@ export default function() {
 
 	});
 
-	test( 'find registry in hierarchy', t => {
-		const adaptor1 = {};
-		const adaptor2 = {};
-		const parent = new Ractive( { adaptors: { foo: adaptor1 } } );
-		const ractive = new Ractive( { adaptors: { bar: adaptor2 }, isolated: false } );
-
-		ractive.parent = parent;
-
-		t.equal( findInViewHierarchy( 'adaptors', ractive, 'foo' ), adaptor1 );
-		t.equal( findInViewHierarchy( 'adaptors', ractive, 'bar' ), adaptor2 );
-	});
-
 	test( 'non-configurations options are added to instance', t => {
 		const ractive = new Ractive({
 			foo: 'bar',
