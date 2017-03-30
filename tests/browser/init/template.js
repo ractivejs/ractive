@@ -1,7 +1,6 @@
 import { beforeEach, initModule } from '../../helpers/test-config';
 import { TEMPLATE_VERSION } from '../../../src/config/template';
 import config from '../../../src/Ractive/config/custom/template';
-import { isObject } from '../../../src/utils/is';
 import { test } from 'qunit';
 
 export default function() {
@@ -37,7 +36,7 @@ export default function() {
 		const template = MockRactive.defaults.template;
 
 		t.ok( template, 'on defaults' );
-		t.ok( isObject( template ), 'isObject' );
+		t.ok( Object.prototype.toString.call( template ), 'isObject' );
 		t.ok( template.v, 'has version' );
 		t.ok( template.t, 'has main template' );
 		t.equal( template.t.length, 0, 'main template has no items' );
@@ -48,7 +47,7 @@ export default function() {
 		const template = Component.defaults.template;
 
 		t.ok( template, 'on defaults' );
-		t.ok( isObject( template ), 'isObject' );
+		t.ok( Object.prototype.toString.call( template ), 'isObject' );
 		t.ok( template.v, 'has version' );
 		t.ok( template.t, 'has main template' );
 		t.equal( template.t.length, 0, 'main template has no items' );
