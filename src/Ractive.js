@@ -13,6 +13,7 @@ import { escapeKey, unescapeKey, normalise } from './shared/keypaths';
 import { joinKeys, splitKeypath } from './Ractive/static/keypaths';
 import shared from './Ractive/shared';
 import { findPlugin } from './Ractive/static/findPlugin';
+import parseJSON from './utils/parseJSON';
 
 export default function Ractive ( options ) {
 	if ( !( this instanceof Ractive ) ) return new Ractive( options );
@@ -61,6 +62,7 @@ Object.defineProperties( Ractive, {
 	getCSS:         { value: getCSS },
 	normaliseKeypath: { value: normalise },
 	findPlugin:       { value: findPlugin },
+	evalObjectString: { value: parseJSON },
 
 	// support
 	enhance:        { writable: true, value: false },
