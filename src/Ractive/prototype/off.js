@@ -26,10 +26,12 @@ export default function Ractive$off ( eventName, callback ) {
 				if ( callback ) {
 					// flag this callback as off so that any in-flight firings don't call
 					// a cancelled handler - this is _slightly_ hacky
-					callback.off = true;
-					const index = subscribers.indexOf( callback );
-					if ( index !== -1 ) {
-						subscribers.splice( index, 1 );
+					let i = subscribers.length;
+					while ( i-- ) {
+						if ( subscribers[i].callback === callback ) {
+							subscribers[i].off = true;
+							subscribers.splice( i, 1 );
+						}
 					}
 				}
 

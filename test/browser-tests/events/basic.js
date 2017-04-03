@@ -158,4 +158,48 @@ export default function() {
 		ractive.fire( 'foo' );
 		ractive.fire( 'foo' );
 	});
+
+	test( 'using the same event callback function for different events or multiple times doesn\'t break (#2922)', t => {
+		let count = 0;
+		function handler() {
+			count++;
+		}
+
+		const r = new Ractive();
+
+		const foo = r.on( 'foo', handler );
+		r.on( 'bar', handler );
+		const multi = r.on( 'baz bat bip.bop', handler );
+
+		r.fire( 'foo' );
+		r.fire( 'bar' );
+		r.fire( 'baz' );
+		r.fire( 'bat' );
+		r.fire( 'bip.bop' );
+
+		t.equal( count, 5 );
+
+		foo.cancel();
+		r.off( 'bar', handler );
+
+		r.fire( 'foo' );
+		r.fire( 'bar' );
+		r.fire( 'baz' );
+		r.fire( 'bat' );
+		r.fire( 'bip.bop' );
+
+		t.equal( count, 8 );
+
+		multi.cancel();
+		r.on( 'foo', handler );
+		r.on( 'bar', handler );
+
+		r.fire( 'foo' );
+		r.fire( 'bar' );
+		r.fire( 'baz' );
+		r.fire( 'bat' );
+		r.fire( 'bip.bop' );
+
+		t.equal( count, 10 );
+	});
 }

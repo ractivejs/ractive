@@ -14,10 +14,7 @@ export default function Ractive$on ( eventName, callback ) {
 		}
 
 		return {
-			cancel () {
-				let listener;
-				while ( listener = listeners.pop() ) listener.cancel();
-			}
+			cancel () { listeners.forEach( l => l.cancel() ); }
 		};
 	}
 
@@ -25,10 +22,10 @@ export default function Ractive$on ( eventName, callback ) {
 	const eventNames = eventName.split( ' ' ).map( trim ).filter( notEmptyString );
 
 	eventNames.forEach( eventName => {
-		( this._subs[ eventName ] || ( this._subs[ eventName ] = [] ) ).push( callback );
+		( this._subs[ eventName ] || ( this._subs[ eventName ] = [] ) ).push( { callback } );
 	});
 
 	return {
-		cancel: () => this.off( eventName, callback )
+		cancel: () => eventNames.forEach( n => this.off( n, callback ) )
 	};
 }
