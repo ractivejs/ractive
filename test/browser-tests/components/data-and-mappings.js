@@ -1389,4 +1389,24 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'undefined' );
 	});
+
+	test( `linking a mapped path triggers updates to the DOM (#2924)`, t => {
+		const cmp = Ractive.extend({
+			template: '{{#if foo.bar}}yep{{else}}nope{{/if}}'
+		});
+
+		new Ractive({
+			el: fixture,
+			template: '<cmp foo="{{baz}}" />',
+			data: {
+				bat: { bar: true }
+			},
+			components: { cmp },
+			oninit () {
+				this.link( 'bat', 'baz' );
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
 }
