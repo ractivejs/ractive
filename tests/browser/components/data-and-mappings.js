@@ -1441,7 +1441,7 @@ export default function() {
 		t.equal( JSON.stringify( r.findComponent().get( 'json' ) ), JSON.stringify( { foo: [1,2,3], bar: { baz: true }, bat: 'yep' } ) );
 	});
 
-	test( `mappings don't try to initial a parent computed property that is readonly (#2888)`, t => {
+	test( `mappings don't try to initialize a parent computed property that is readonly (#2888)`, t => {
 		const cmp = Ractive.extend({
 			data: { foo: 1 },
 			template: `{{'' + foo}}`
@@ -1456,5 +1456,25 @@ export default function() {
 		});
 
 		t.htmlEqual( fixture.innerHTML, 'undefined' );
+	});
+
+	test( `linking a mapped path triggers updates to the DOM (#2924)`, t => {
+		const cmp = Ractive.extend({
+			template: '{{#if foo.bar}}yep{{else}}nope{{/if}}'
+		});
+
+		new Ractive({
+			el: fixture,
+			template: '<cmp foo="{{baz}}" />',
+			data: {
+				bat: { bar: true }
+			},
+			components: { cmp },
+			oninit () {
+				this.link( 'bat', 'baz' );
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
 }
