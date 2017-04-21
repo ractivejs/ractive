@@ -1538,4 +1538,25 @@ export default function() {
 		fire( sel, 'change' );
 		t.deepEqual( r.get( 'list' ), [ '2', '3' ] );
 	});
+
+	test( `radio name bindings survive a shuffle (#2939)`, t => {
+		t.expect( 3 );
+
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#each xs as x}}{{#each [1, 2, 3]}}<input type="radio" value="{{.}}" name="{{x.selected}}" />{{/each}}{{/each}}`,
+			data: {
+				xs: [
+					{ selected: 1 },
+					{ selected: 2 },
+					{ selected: 1 },
+					{ selected: 3 }
+				]
+			}
+		});
+
+		r.splice( 'xs', 2, 1 );
+
+		r.get( 'xs' ).forEach( ( x, i ) => t.equal( x.selected, i + 1 ) );
+	});
 }
