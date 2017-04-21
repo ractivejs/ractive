@@ -1,4 +1,5 @@
 import { removeFromArray } from '../../../../utils/array';
+import Binding from './Binding';
 
 export default function getBindingGroup ( group, model, getValue ) {
 	const hash = `${group}-bindingGroup`;
@@ -40,3 +41,5 @@ class BindingGroup {
 		delete this.model[this.hash];
 	}
 }
+
+BindingGroup.prototype.rebinding = Binding.prototype.rebinding;

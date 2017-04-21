@@ -1,6 +1,7 @@
 import Binding from './Binding';
 import getBindingGroup from './getBindingGroup';
 import handleDomEvent from './handleDomEvent';
+import noop from '../../../../utils/noop';
 
 function getValue() {
 	const checked = this.bindings.filter( b => b.node.checked );
@@ -28,7 +29,8 @@ export default class RadioNameBinding extends Binding {
 
 		// update name keypath when necessary
 		this.nameAttributeBinding = {
-			handleChange: () => this.node.name = `{{${this.model.getKeypath()}}}`
+			handleChange: () => this.node.name = `{{${this.model.getKeypath()}}}`,
+			rebinding: noop
 		};
 
 		this.model.getKeypathModel().register( this.nameAttributeBinding );
