@@ -364,7 +364,7 @@ export default class RepeatedFragment {
 				removed[ oldIndex ] = fragment;
 			} else if ( fragment.index !== newIndex ) {
 				const model = this.context.joinKey( newIndex );
-				fragment.index = newIndex;
+				fragment.index = fragment.key = newIndex;
 				fragment.context = model;
 				if ( this.owner.template.z ) {
 					fragment.aliases = {};
