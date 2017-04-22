@@ -701,4 +701,22 @@ export default function() {
 		r.shift( 'list' );
 		t.ok( map[undefined] === 2 && map[1] === 0 && map[2] === 1 );
 	});
+
+	test( `shuffling lists with nested lists with same-named keypaths (#2491)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#each list}}{{#each list}}<span>{{@keypath}}</span>{{/each}}{{/each}}',
+			data: {
+				list: [ { list: [0] }, { list: [{ list: [0] }, 1, 2] } ]
+			}
+		});
+
+		t.equal( fixture.innerHTML, '<span>list.0.list.0</span><span>list.1.list.0</span><span>list.1.list.1</span><span>list.1.list.2</span>' );
+		const tmp = r.splice( 'list.1.list', 0, 1 ).result[0];
+		t.equal( fixture.innerHTML, '<span>list.0.list.0</span><span>list.1.list.0</span><span>list.1.list.1</span>' );
+		r.splice( 'list', 0, 0, tmp );
+		t.equal( fixture.innerHTML, '<span>list.0.list.0</span><span>list.1.list.0</span><span>list.2.list.0</span><span>list.2.list.1</span>' );
+
+		t.equal( r.getNodeInfo( r.findAll( 'span' )[2] ).resolve(), 'list.2.list.0' );
+	});
 }

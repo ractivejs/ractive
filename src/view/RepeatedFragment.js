@@ -140,7 +140,7 @@ export default class RepeatedFragment {
 		return this.iterations[0] ? this.iterations[0].firstNode( skipParent ) : null;
 	}
 
-	rebinding ( next ) {
+	rebind ( next ) {
 		this.context = next;
 		this.iterations.forEach( fragment => {
 			const model = next ? next.joinKey( fragment.key ) : undefined;
@@ -362,7 +362,7 @@ export default class RepeatedFragment {
 				removed[ oldIndex ] = fragment;
 			} else if ( fragment.index !== newIndex ) {
 				const model = this.context.joinKey( newIndex );
-				fragment.index = newIndex;
+				fragment.index = fragment.key = newIndex;
 				fragment.context = model;
 				if ( this.owner.template.z ) {
 					fragment.aliases = {};

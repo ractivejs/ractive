@@ -184,7 +184,7 @@ export default class Fragment {
 		return this.parent.findNextNode( this.owner );
 	}
 
-	rebinding ( next ) {
+	rebind ( next ) {
 		this.context = next;
 	}
 

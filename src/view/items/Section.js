@@ -64,7 +64,7 @@ export default class Section extends MustacheContainer {
 	rebind ( next, previous, safe ) {
 		if ( super.rebind( next, previous, safe ) ) {
 			if ( this.fragment && this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS ) {
-				this.fragment.rebinding( next );
+				this.fragment.rebind( next );
 			}
 		}
 	}
