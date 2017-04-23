@@ -7,6 +7,7 @@ const fsPlus = require('fs-plus');
 const gobble = require('gobble');
 const buble = require('buble');
 const rollupLib = require('rollup');
+const MagicString = require('magic-string');
 
 const time = new Date();
 const commitHash = process.env.COMMIT_HASH || 'unknown';
@@ -19,21 +20,23 @@ const banner = `/*
 	License: MIT
 */`;
 
-const runtimeModulesToIgnore = ['src/parse/_parse.js'];
-const placeholders = {
-	BUILD_PLACEHOLDER_VERSION: version
-};
+const runtimeModulesToIgnore = ['parse/_parse.js'].map(p => p.split('/').join(path.sep));
+const placeholders = { BUILD_PLACEHOLDER_VERSION: version };
 
-const src = gobble('src').moveTo('src').transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
-const browserTests = gobble('tests').include(['helpers/**/*', 'browser/**/*']).moveTo('tests').transform(transpile, { accept: ['.js'] });
-const nodeTests = gobble('tests').include(['helpers/**/*', 'node/**/*']).moveTo('tests').transform(transpile, { accept: ['.js'] });
-const manifest = gobble('templates/manifests').transform(replacePlaceholders);
-const qunit = gobble('templates/qunit').moveTo('tests');
+const src = gobble('src').transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
+const polyfills = src.include(['polyfills.js']);
+const tests = gobble('tests').transform(transpile, { accept: ['.js'] });
+const browserTests = tests.include(['helpers/**/*', 'browser/**/*']);
+const nodeTests = tests.include(['helpers/**/*', 'node/**/*']);
+
+const qunit = gobble('qunit').moveTo('qunit');
+const typings = gobble('typings').moveTo('typings');
 const bin = gobble('bin').moveTo('bin');
 const lib = gobble('lib').moveTo('lib');
-const typings = gobble('typings').moveTo('typings');
+
+const manifest = gobble('manifests').transform(replacePlaceholders);
 const sandbox = gobble('sandbox');
-const polyfills = src.transform(copy, { dir: 'src' }).include(['polyfills.js']);
+
 
 module.exports = ({
 	'dev:browser'() {
@@ -78,11 +81,12 @@ function buildUmdLib(dest, excludedModules) {
 		plugins: [skipModule(excludedModules)],
 		moduleName: 'Ractive',
 		format: 'umd',
-		entry: 'src/Ractive.js',
+		entry: 'Ractive.js',
 		dest: dest,
 		banner: banner,
 		noConflict: true,
-		cache: false
+		cache: false,
+		sourceMap: true
 	});
 }
 
@@ -91,10 +95,11 @@ function buildESLib(dest, excludedModules) {
 	return src.transform(rollup, {
 		plugins: [skipModule(excludedModules)],
 		format: 'es',
-		entry: 'src/Ractive.js',
+		entry: 'Ractive.js',
 		dest: dest,
 		banner: banner,
-		cache: false
+		cache: false,
+		sourceMap: true
 	});
 }
 
@@ -102,37 +107,39 @@ function buildESLib(dest, excludedModules) {
 function buildBrowserTests() {
 	return gobble([
 		browserTests,
-		browserTests.transform(buildTestEntryPoint, { dir: 'tests/browser' })
+		browserTests.transform(buildTestEntryPoint, { dir: 'browser' })
 	])
-		.transform(copy)
+		.transform('hardlink')
 		.transform(rollup, {
 			moduleName: 'RactiveBrowserTests',
 			format: 'iife',
-			entry: 'tests.js',
-			dest: 'browser.js',
+			entry: 'index.js',
+			dest: 'tests-browser.js',
 			globals: {
 				qunit: 'QUnit',
 				simulant: 'simulant'
 			},
 			external: ['qunit', 'simulant'],
-			cache: false
-		}).moveTo('tests');
+			cache: false,
+			sourceMap: true
+		});
 }
 
 // Builds a CJS bundle for node tests.
 function buildNodeTests() {
 	return gobble([
 		nodeTests,
-		nodeTests.transform(buildTestEntryPoint, { dir: 'tests/node' })
+		nodeTests.transform(buildTestEntryPoint, { dir: 'node' })
 	])
-		.transform(copy)
+		.transform('hardlink')
 		.transform(rollup, {
 			format: 'cjs',
-			entry: 'tests.js',
-			dest: 'node.js',
+			entry: 'index.js',
+			dest: 'tests-node.js',
 			external: ['cheerio'],
-			cache: false
-		}).moveTo('tests');
+			cache: false,
+			sourceMap: true
+		});
 }
 
 function buildUmdPolyfill() {
@@ -141,7 +148,8 @@ function buildUmdPolyfill() {
 		format: 'umd',
 		entry: 'polyfills.js',
 		dest: 'polyfills.js',
-		cache: false
+		cache: false,
+		sourceMap: true
 	});
 }
 
@@ -157,7 +165,6 @@ function buildESPolyfill() {
 /* Rollup plugins */
 
 // Replaces a modules content with a null export to omit module contents.
-// TODO: Must return sourcemap
 function skipModule(excludedModules) {
 	return {
 		name: 'skipModule',
@@ -165,7 +172,15 @@ function skipModule(excludedModules) {
 			// Gobble has a predictable directory structure of gobble/transform/number
 			// so we slice at 3 to slice relative to project root.
 			const moduleRelativePath = path.relative(__dirname, modulePath).split(path.sep).slice(3).join(path.sep);
-			return excludedModules.indexOf(moduleRelativePath) > -1 ? 'export default null; export const shared = {};' : src;
+			const isModuleExcluded = excludedModules.indexOf(moduleRelativePath) > -1;
+
+			const source = new MagicString(src);
+			const sourceLength = src.length;
+
+			const transformCode = isModuleExcluded ? source.overwrite(0, sourceLength, 'export default null;'): source;
+			const transformMap = transformCode.generateMap({ hires: true });
+
+			return { code: transformCode.toString(), map: transformMap.toString() };
 		}
 	};
 }
@@ -188,26 +203,16 @@ function buildTestEntryPoint(inDir, outDir, options) {
 	const testPaths = fsPlus.listTreeSync(path.join(inDir, _options.dir)).filter(testPath => fsPlus.isFileSync(testPath) && path.extname(testPath) === '.js');
 	const testImports = testPaths.map((testPath, index) => `import test${index} from './${path.relative(inDir, testPath).replace(/\\/g, '/')}';`).join('\n');
 	const testCalls = testPaths.map((testPath, index) => `test${index}();`).join('\n');
-	fs.writeFileSync(path.join(outDir, 'tests.js'), `${testImports}\n${testCalls}`, 'utf8');
+	fs.writeFileSync(path.join(outDir, 'index.js'), `${testImports}\n${testCalls}`, 'utf8');
 	return Promise.resolve();
 }
 
 // Looks for placeholders in the code and replaces them.
-// TODO: Must return sourcemap
 // eslint-disable-next-line no-unused-vars
 function replacePlaceholders(src, options) {
 	return Object.keys(placeholders).reduce((out, placeholder) => {
 		return out.replace(new RegExp(`${placeholder}`, 'g'), placeholders[placeholder]);
 	}, src);
-}
-
-// This is because Gobble's grab and Rollup's resolution is broken
-// https://github.com/gobblejs/gobble/issues/89
-// https://github.com/rollup/rollup/issues/1291
-function copy(inputdir, outputdir, options) {
-	const _options = Object.assign({ dir: '.' }, options);
-	fsPlus.copySync(path.join(inputdir, _options.dir), outputdir);
-	return Promise.resolve();
 }
 
 function rollup(indir, outdir, options) {
