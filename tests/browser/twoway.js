@@ -1559,4 +1559,13 @@ export default function() {
 
 		r.get( 'xs' ).forEach( ( x, i ) => t.equal( x.selected, i + 1 ) );
 	});
+
+	test( `value attributes are always set with a string safe value (#2944)`, t => {
+		new Ractive({
+			el: fixture,
+			template: '<div value="{{foo}}" />'
+		});
+
+		t.equal( fixture.innerHTML, '<div value=""></div>' );
+	});
 }

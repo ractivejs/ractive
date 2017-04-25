@@ -160,7 +160,7 @@ function updateValue ( reset ) {
 			const value = this.getValue();
 
 			this.node.value = this.node._ractive.value = value;
-			this.node.setAttribute( 'value', value );
+			this.node.setAttribute( 'value', safeToStringValue( value ) );
 		}
 	}
 }
