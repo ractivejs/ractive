@@ -81,7 +81,7 @@ function readMustacheOfType ( parser, tag ) {
 
 		if ( mustache = reader( parser, tag ) ) {
 			if ( tag.isStatic ) {
-				mustache.s = true; // TODO make this `1` instead - more compact
+				mustache.s = 1;
 			}
 
 			if ( parser.includeLinePositions ) {

@@ -26,17 +26,17 @@ const parseTests = [
 	{
 		name: 'Static Interpolator',
 		template: `[[mustache]]`,
-		parsed: {v:4,t:[{t:2,r:'mustache',s:true}]}
+		parsed: {v:4,t:[{t:2,r:'mustache',s:1}]}
 	},
 	{
 		name: 'Static Triple',
 		template: `[[[mustache]]]`,
-		parsed: {v:4,t:[{t:3,r:'mustache',s:true}]}
+		parsed: {v:4,t:[{t:3,r:'mustache',s:1}]}
 	},
 	{
 		name: 'Static Section',
 		template: `[[#foo]]yes[[/foo]]`,
-		parsed: {v:4,t:[{t:4,r:'foo',s:true,f:['yes']}]}
+		parsed: {v:4,t:[{t:4,r:'foo',s:1,f:['yes']}]}
 	},
 	{
 		name: 'Empty section',
@@ -748,7 +748,7 @@ const parseTests = [
 	{
 		name: 'Not-really-escaped mustaches',
 		template: `\\\\[[static]] \\\\[[[tripleStatic]]] \\\\{{normal}} \\\\{{{triple}}}}`,
-		parsed: {v:4,t:['\\',{r:'static',s:true,t:2},' \\',{r:'tripleStatic',s:true,t:3},' \\',{r:'normal',t:2},' \\',{r:'triple',t:3},'}']}
+		parsed: {v:4,t:['\\',{r:'static',s:1,t:2},' \\',{r:'tripleStatic',s:1,t:3},' \\',{r:'normal',t:2},' \\',{r:'triple',t:3},'}']}
 	},
 	{
 		name: 'Attribute/directive without =',
@@ -811,7 +811,7 @@ const parseTests = [
 		options: {
 			textOnlyMode: true
 		},
-		parsed: {v:4,t:['no <elements or="attributes" /> or &amp; & entities <',{t:2,r:'any'},' foo="bar"> ',{t:2,r:'just'},' text, ',{t:2,r:'refs',s:true},', and ',{t:4,n:50,r:'foo',f:['sections']}]}
+		parsed: {v:4,t:['no <elements or="attributes" /> or &amp; & entities <',{t:2,r:'any'},' foo="bar"> ',{t:2,r:'just'},' text, ',{t:2,r:'refs',s:1},', and ',{t:4,n:50,r:'foo',f:['sections']}]}
 	},
 	{
 		name: 'text-only mode starting with an element',
