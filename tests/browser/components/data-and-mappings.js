@@ -1477,4 +1477,48 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
+
+	test( `static mappings copy value into the child if the value (#2897)`, t => {
+		const cmp = Ractive.extend({
+			template: '{{foo}}'
+		});
+
+		const r = new Ractive({
+			el: fixture,
+			template: '{{bar}} <cmp foo="[[bar]]" />',
+			data: {
+				bar: 42
+			},
+			components: { cmp }
+		});
+
+		t.equal( fixture.innerHTML, '42 42' );
+		r.set( 'bar', 99 );
+		t.equal( fixture.innerHTML, '99 42' );
+		r.findComponent( 'cmp' ).set( 'foo', 21 );
+		t.equal( fixture.innerHTML, '99 21' );
+	});
+
+	test( `static mappings won't copy non-computed objects`, t => {
+		t.expect( 2 );
+
+		const cmp = Ractive.extend({
+			template: '{{foo.bar}} {{baz.bat}}'
+		});
+
+		onWarn(m => {
+			t.ok( /cannot copy non-computed.*baz/i.test( m ) );
+		});
+
+		new Ractive({
+			el: fixture,
+			template: `<cmp foo="[[{ bar: 123 }]]" baz="[[bip]]" />`,
+			data: {
+				bip: { bat: 42 }
+			},
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '123' );
+	});
 }

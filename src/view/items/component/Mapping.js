@@ -5,6 +5,7 @@ import findElement from '../shared/findElement';
 import parseJSON from '../../../utils/parseJSON';
 import resolve from '../../resolvers/resolve';
 import runloop from '../../../global/runloop';
+import { warnIfDebug } from '../../../utils/log';
 
 export default class Mapping extends Item {
 	constructor ( options ) {
@@ -77,12 +78,28 @@ function createMapping ( item ) {
 	const childData = viewmodel.value;
 
 	if ( template.length === 1 && template[0].t === INTERPOLATOR ) {
-		item.model = resolve( item.parentFragment, template[0] );
+		const model = resolve( item.parentFragment, template[0] );
+		const val = model.get( false );
 
-		item.link = viewmodel.createLink( item.name, item.model, template[0].r );
+		// if the interpolator is not static
+		if ( !template[0].s ) {
+			item.model = model;
+			item.link = viewmodel.createLink( item.name, model, template[0].r );
 
-		if ( item.model.get() === undefined && !item.model.isReadonly && item.name in childData ) {
-			item.model.set( childData[ item.name ] );
+			// initialize parent side of the mapping from child data
+			if ( val === undefined && !model.isReadonly && item.name in childData ) {
+				model.set( childData[ item.name ] );
+			}
+		}
+
+		// copy non-object, non-computed vals through
+		else if ( typeof val !== 'object' || template[0].x ) {
+			viewmodel.joinKey( item.name ).set( val );
+		}
+
+		// warn about trying to copy an object
+		else {
+			warnIfDebug( `Cannot copy non-computed object value from static mapping '${item.name}'` );
 		}
 	}
 
