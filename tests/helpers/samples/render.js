@@ -627,7 +627,7 @@ const renderTests = [
 	},
 	{
 		name: 'two indices in an #each with object give access to the key and index',
-		template: '{{#object:k,i}}<p>{{k}} {{i}} {{.}}</p>{{/each}}',
+		template: '{{#object:k,i}}<p>{{k}} {{i}} {{.}}</p>{{/}}',
 		data: { object: { foo: 1, bar: 2, baz: 3 } },
 		result: '<p>foo 0 1</p><p>bar 1 2</p><p>baz 2 3</p>'
 	},

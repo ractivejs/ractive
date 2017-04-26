@@ -75,6 +75,10 @@ export default function readSection ( parser, tag ) {
 				section.i = i;
 			}
 		}
+
+		if ( !block && expression.n ) {
+			expectedClose = expression.n;
+		}
 	}
 
 	parser.allowWhitespace();
@@ -91,8 +95,12 @@ export default function readSection ( parser, tag ) {
 		pos = parser.pos;
 		if ( child = readClosing( parser, tag ) ) {
 			if ( expectedClose && child.r !== expectedClose ) {
-				parser.pos = pos;
-				parser.error( `Expected ${tag.open}/${expectedClose}${tag.close}` );
+				if ( !block ) {
+					if ( child.r ) parser.warn( `Expected ${tag.open}/${expectedClose}${tag.close} but found ${tag.open}/${child.r}${tag.close}` );
+				} else {
+					parser.pos = pos;
+					parser.error( `Expected ${tag.open}/${expectedClose}${tag.close}` );
+				}
 			}
 
 			parser.sectionDepth -= 1;

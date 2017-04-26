@@ -1,3 +1,5 @@
+import { warnIfDebug } from '../utils/log';
+
 const leadingWhitespace = /^\s+/;
 
 const ParseError = function ( message ) {
@@ -146,6 +148,12 @@ Parser.prototype = {
 
 	nextChar () {
 		return this.str.charAt( this.pos );
+	},
+
+	warn ( message ) {
+		const msg = this.getContextMessage( this.pos, message )[2];
+
+		warnIfDebug( msg );
 	}
 };
 
