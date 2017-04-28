@@ -26,7 +26,14 @@ export function update ( ractive, model, options ) {
 }
 
 export default function Ractive$update ( keypath, options ) {
-	if ( keypath ) keypath = splitKeypath( keypath );
+	let opts, path;
 
-	return update( this, keypath ? this.viewmodel.joinAll( keypath ) : this.viewmodel, options );
+	if ( typeof keypath === 'string' ) {
+		path = splitKeypath( keypath );
+		opts = options;
+	} else {
+		opts = keypath;
+	}
+
+	return update( this, path ? this.viewmodel.joinAll( path ) : this.viewmodel, opts );
 }

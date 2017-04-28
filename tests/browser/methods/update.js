@@ -55,4 +55,20 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'two two' );
 	});
+
+	test( `update with no keypath can still take options (#2948)`, t => {
+		const obj = { foo: 'a' };
+		const r = new Ractive({
+			target: fixture,
+			template: '{{obj.foo}}',
+			data: { obj }
+		});
+
+		t.equal( fixture.innerHTML, 'a' );
+
+		obj.foo = 'b';
+		r.update({ force: true });
+
+		t.equal( fixture.innerHTML, 'b' );
+	});
 }
