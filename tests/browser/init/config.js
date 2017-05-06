@@ -1,5 +1,3 @@
-import config from '../../../src/Ractive/config/config';
-import { findInViewHierarchy } from '../../../src/shared/registry';
 import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
@@ -47,12 +45,42 @@ export default function() {
 		t.deepEqual(actualDefaults, expectedDefaults, 'defaults contain expected keys');
 	});
 
-	test( 'instance has config options', t => {
+	test('instance has config options', t => {
 		const ractive = new Ractive();
-		const registryNames = [
+
+		const expectedConfig = [
+			'append',
+			'complete',
+			'computed',
+			'contextLines',
+			'csp',
+			'delegate',
+			'delimiters',
+			'el',
+			'interpolate',
+			'isolated',
+			'lazy',
+			'nestedTransitions',
+			'noCssTransform',
+			'noIntro',
+			'noOutro',
+			'parserTransforms',
+			'preserveWhitespace',
+			'resolveInstanceMembers',
+			'sanitize',
+			'staticDelimiters',
+			'staticTripleDelimiters',
+			'stripComments',
+			'syncComputedChildren',
+			'transitionsEnabled',
+			'tripleDelimiters',
+			'twoway',
+			'warnAboutAmbiguity'
+		];
+
+		const expectedInstanceRegistries = [
 			'adaptors',
 			'components',
-			'computed',
 			'decorators',
 			'easing',
 			'events',
@@ -61,17 +89,24 @@ export default function() {
 			'transitions'
 		];
 
-		config.order.forEach( itemConfig => {
-			const name = itemConfig.name || itemConfig;
+		const expectedPrototypeRegistries = [
+			'computed'
+		];
 
-			if ( name in Ractive.prototype ) {
-				t.ok( name in ractive, 'has ' + name);
-			}
-
-			if ( !~registryNames.indexOf( name ) && !/^(template|data)$/.test( name ) ) { // TODO template is a special case... this should probably be handled differently
-				t.deepEqual( ractive[ name ], Ractive.prototype[ name ], 'compare ' + name );
-			}
+		expectedInstanceRegistries.forEach(registry => {
+			t.ok(ractive.hasOwnProperty(registry), `Instance has ${registry} registry`);
 		});
+
+		expectedPrototypeRegistries.forEach(registry => {
+			t.ok(registry in ractive, `Instance has ${registry} registry`);
+			t.deepEqual(ractive[registry], Ractive.prototype[registry], `Instance has ${registry} registry on prototype`);
+		});
+
+		expectedConfig.forEach(config => {
+			t.ok(config in ractive, `Instance has ${config} config`);
+			t.deepEqual(ractive[config], Ractive.prototype[config], `Instance has ${config} config on prototype`);
+		});
+
 	});
 
 	test( 'find registry in hierarchy', t => {
