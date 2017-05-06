@@ -26,9 +26,8 @@ const placeholders = {
 };
 
 const src = gobble('src').moveTo('src').transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
-const tests = gobble('tests').include(['helpers/**/*', 'browser/**/*', 'node/**/*']).moveTo('tests').transform(transpile, { accept: ['.js'] });
-const browserTests = gobble([src, tests.include(['tests/helpers/**/*', 'tests/browser/**/*'])]);
-const nodeTests = gobble([src, tests.include(['tests/helpers/**/*', 'tests/node/**/*'])]);
+const browserTests = gobble('tests').include(['helpers/**/*', 'browser/**/*']).moveTo('tests').transform(transpile, { accept: ['.js'] });
+const nodeTests = gobble('tests').include(['helpers/**/*', 'node/**/*']).moveTo('tests').transform(transpile, { accept: ['.js'] });
 const manifest = gobble('templates/manifests').transform(replacePlaceholders);
 const qunit = gobble('templates/qunit').moveTo('tests');
 const bin = gobble('bin').moveTo('bin');
