@@ -98,4 +98,76 @@ export default function() {
 			});
 		}, /script/ );
 	});
+
+	test('Override empty component template', t => {
+		const Component = Ractive.extend({ template: '' });
+		const instance = Component({ template: '{{ foo }}' });
+
+		t.deepEqual(instance.template, [{ r: 'foo', t: 2 }]);
+	});
+
+	test('Override non-empty component template', t => {
+		const Component = Ractive.extend({ template: '{{ foo }}' });
+		const instance = Component({ template: '{{ bar }}' });
+
+		t.deepEqual(instance.template, [{ r: 'bar', t: 2 }]);
+	});
+
+	test('String template', t => {
+		const Component = Ractive.extend({ template: '' });
+		const instance = Component({ template: 'foo' });
+
+		t.deepEqual(instance.template, ['foo']);
+	});
+
+	test('Function template', t => {
+		const Component = Ractive.extend({ template: '' });
+		const instance = Component({ template: () => '{{ foo }}' });
+
+		t.deepEqual(instance.template, [{ r: 'foo', t: 2 }]);
+	});
+
+	test('Uses component parse options on inherited template', t => {
+		const Component = Ractive.extend({ template: '<#foo#>', delimiters: ['<#', '#>'] });
+		const instance = Component();
+
+		t.deepEqual(instance.template, [{ r: 'foo', t: 2 }]);
+	});
+
+	test('Uses component parse options on overridden template', t => {
+		const Component = Ractive.extend({ template: '<#foo#>', delimiters: ['<#', '#>'] });
+		const instance = Component({ template: '<#bar#>' });
+
+		t.deepEqual(instance.template, [{ r: 'bar', t: 2 }]);
+	});
+
+	test('Replace component template after extend, before instantiation', t => {
+		const Component = Ractive.extend({ template: '{{ foo }}' });
+		Component.defaults.template = '{{ bar }}';
+
+		const instance = Component();
+
+		t.deepEqual(instance.template, [{ r: 'bar', t: 2 }]);
+	});
+
+	test('Inline partial', t => {
+		const Component = Ractive.extend({ template: '' });
+		const instance = Component({ template: '{{foo}}{{#partial bar}}{{bar}}{{/partial}}' });
+
+		t.deepEqual(instance.template, [{ r: 'foo', t: 2 }]);
+		t.deepEqual(instance.partials.bar, [{ r: 'bar', t: 2 }]);
+	});
+
+	test('Inline partial overrides option partial', t => {
+		const Component = Ractive.extend({ template: '' });
+		const instance = Component({
+			template: '{{foo}}{{#partial bar}}{{bar}}{{/partial}}',
+			partials: { bar: '{{ baz }}', qux: '{{ qux }}' }
+		});
+
+		t.deepEqual(instance.template, [{ r: 'foo', t: 2 }]);
+		t.deepEqual(instance.partials.bar, [{ r: 'bar', t: 2 }]);
+		t.deepEqual(instance.partials.qux, [{ r: 'qux', t: 2 }]);
+	});
+
 }
