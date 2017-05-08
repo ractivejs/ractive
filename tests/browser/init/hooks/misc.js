@@ -169,6 +169,27 @@ export default function() {
 		});
 	}
 
+	test( 'oncomplete should not be fired if teardown is invoked while the rendering phase is still in progress (#2945)', t => {
+		t.expect( 1 );
+
+		const done = t.async();
+
+		const ractive = new Ractive({
+			template: '<p>foo</p>',
+
+			oncomplete () {
+				t.ok( false );
+			}
+		});
+
+		ractive.render( fixture );
+
+		ractive.teardown().then ( () => {
+			t.ok( true );
+			done();
+		} );
+	});
+
 	test( 'hooks include the source ractive instance as the last argument', t => {
 		const done = t.async();
 		t.expect( 3 );
@@ -180,11 +201,16 @@ export default function() {
 		});
 		const c = r.findComponent( 'cmp' );
 
-		r.on( 'cmp.render', ( ctx, inst ) => t.ok( c === inst ) );
-		r.on( 'cmp.complete', ( ctx, inst ) => { t.ok( c === inst ); done(); } );
-		r.on( 'cmp.teardown', ( ctx, inst ) => t.ok( c === inst ) );
+		r.on( 'cmp.render', ( ctx, inst ) => { t.ok( c === inst ); } );
+		r.on( 'cmp.complete', ( ctx, inst ) => { t.ok( c === inst ); } );
+		r.on( 'cmp.teardown', ( ctx, inst ) => { t.ok( c === inst ); } );
 
 		r.render( fixture );
-		r.teardown();
+
+		setTimeout( () => {
+			r.teardown().then ( () => {
+				done();
+			} );
+		} );
 	});
 }

@@ -47,5 +47,9 @@ export default function render ( ractive, target, anchor, occupants ) {
 	runloop.end();
 	ractive.rendering = false;
 
-	return promise.then( () => completeHook.fire( ractive ) );
+	return promise.then( () => {
+		if (ractive.torndown) return;
+
+		completeHook.fire( ractive );
+	});
 }

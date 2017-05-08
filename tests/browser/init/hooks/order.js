@@ -143,20 +143,23 @@ export default function() {
 
 		t.equal( fixture.innerHTML, simpsons.join( '' ) );
 
-		ractive.teardown().then( () => {
-			function testHooks( name, order ) {
-				Object.keys( order ).forEach( hook => {
-					if ( hook === 'complete' ) {
-						t.equal( order.complete.length, simpsons.length );
-					} else {
-						t.deepEqual( order[ hook ], simpsons, `${hook} ${name} order` );
-					}
-				});
-			}
+		setTimeout( () => {
 
-			testHooks( 'method', method );
-			testHooks( 'event', event );
-			done();
+			ractive.teardown().then( () => {
+				function testHooks( name, order ) {
+					Object.keys( order ).forEach( hook => {
+						if ( hook === 'complete' ) {
+							t.equal( order.complete.length, simpsons.length );
+						} else {
+							t.deepEqual( order[ hook ], simpsons, `${hook} ${name} order` );
+						}
+					});
+				}
+
+				testHooks( 'method', method );
+				testHooks( 'event', event );
+				done();
+			});
 		});
 	});
 
@@ -193,9 +196,11 @@ export default function() {
 			const grandchild = ractive.findComponent( 'GrandChild' );
 			grandchild.set( 'foo', 'fizz' );
 
-			ractive.teardown().then( () => {
-				t.deepEqual( fired, expected );
-				done();
+			setTimeout( () => {
+				ractive.teardown().then( () => {
+					t.deepEqual( fired, expected );
+					done();
+				});
 			});
 		});
 	}
