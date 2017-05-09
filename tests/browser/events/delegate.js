@@ -248,4 +248,19 @@ export default function() {
 
 		fire( r.find( 'span' ), 'click' );
 	});
+
+	test( `blur events delegate correctly`, t => {
+		t.expect( 2 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: '<div>{{#each [1]}}<input on-focus="@.focus()" on-blur="@.blur()" />{{/each}}</div>',
+			focus () { t.ok( true, 'got focus' ); },
+			blur () { t.ok( true, 'got blur' ); }
+		});
+
+		const input = r.find( 'input' );
+		input.focus();
+		input.blur();
+	});
 }

@@ -74,7 +74,7 @@ export default class EventDirective {
 				} else {
 					if ( delegate ) {
 						if ( !delegate.delegates[n] ) {
-							const ev = new DOMEvent( n, delegate );
+							const ev = new DOMEvent( n, delegate, true );
 							delegate.delegates[n] = ev;
 							// if the element is already rendered, render the event too
 							if ( delegate.rendered ) ev.listen( DelegateProxy );
