@@ -362,14 +362,6 @@ export default function() {
 		t.deepEqual(template, { v: 4, t: [{ r: 'bar', t: 2 }] });
 	});
 
-	test('Inline partial', t => {
-		const Parent = Ractive.extend({ template: '' });
-		const Child = Parent.extend({ template: '{{foo}}{{#partial bar}}{{bar}}{{/partial}}' });
-		const template = Child.prototype.template;
-
-		t.deepEqual(template, { v: 4, t: [{ r: 'foo', t: 2 }], p: { bar: [{ r: 'bar', t: 2 }] } });
-	});
-
 	test('Child parse options', t => {
 		const Parent = Ractive.extend({ template: '' });
 		const Child = Parent.extend({ template: '<#foo#>', delimiters: ['<#', '#>'] });

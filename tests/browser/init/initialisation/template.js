@@ -150,24 +150,4 @@ export default function() {
 		t.deepEqual(instance.template, [{ r: 'bar', t: 2 }]);
 	});
 
-	test('Inline partial', t => {
-		const Component = Ractive.extend({ template: '' });
-		const instance = Component({ template: '{{foo}}{{#partial bar}}{{bar}}{{/partial}}' });
-
-		t.deepEqual(instance.template, [{ r: 'foo', t: 2 }]);
-		t.deepEqual(instance.partials.bar, [{ r: 'bar', t: 2 }]);
-	});
-
-	test('Inline partial overrides option partial', t => {
-		const Component = Ractive.extend({ template: '' });
-		const instance = Component({
-			template: '{{foo}}{{#partial bar}}{{bar}}{{/partial}}',
-			partials: { bar: '{{ baz }}', qux: '{{ qux }}' }
-		});
-
-		t.deepEqual(instance.template, [{ r: 'foo', t: 2 }]);
-		t.deepEqual(instance.partials.bar, [{ r: 'bar', t: 2 }]);
-		t.deepEqual(instance.partials.qux, [{ r: 'qux', t: 2 }]);
-	});
-
 }

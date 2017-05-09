@@ -1041,4 +1041,44 @@ export default function() {
 		r.unshift( 'foo', { bar: 'q' } );
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
+
+	test('Inline partial on instance config', t => {
+		const Component = Ractive.extend({ template: '' });
+		const instance = Component({ template: '{{foo}}{{#partial bar}}{{bar}}{{/partial}}' });
+
+		t.deepEqual(instance.template, [{ r: 'foo', t: 2 }]);
+		t.deepEqual(instance.partials.bar, [{ r: 'bar', t: 2 }]);
+	});
+
+	test('Inline partial on component config', t => {
+		const Parent = Ractive.extend({ template: '' });
+		const Child = Parent.extend({ template: '{{foo}}{{#partial bar}}{{bar}}{{/partial}}' });
+		const template = Child.prototype.template;
+
+		t.deepEqual(template, { v: 4, t: [{ r: 'foo', t: 2 }], p: { bar: [{ r: 'bar', t: 2 }] } });
+	});
+
+	test('Inline partial does not override option partials when not in use', t => {
+		const Component = Ractive.extend({ template: '' });
+		const instance = Component({
+			template: '{{foo}}{{#partial bar}}{{bar}}{{/partial}}',
+			partials: { bar: '{{ baz }}', qux: '{{ qux }}' }
+		});
+
+		t.deepEqual(instance.template, [{ r: 'foo', t: 2 }]);
+		t.deepEqual(instance.partials.bar, '{{ baz }}');
+		t.deepEqual(instance.partials.qux, '{{ qux }}');
+	});
+
+	test('Inline partial overrides option partials when in use', t => {
+		const Component = Ractive.extend({ template: '' });
+		const instance = Component({
+			template: '{{foo}}{{#partial bar}}{{bar}}{{/partial}}{{> bar}}{{> qux}}',
+			partials: { bar: '{{ baz }}', qux: '{{ qux }}' }
+		});
+
+		t.deepEqual(instance.template, [{ r: 'foo', t: 2 },{ r: 'bar', t: 8 },{ r: 'qux', t: 8 }]);
+		t.deepEqual(instance.partials.bar, [{ r: 'baz', t: 2 }]);
+		t.deepEqual(instance.partials.qux, [{ r: 'qux', t: 2 }]);
+	});
 }
