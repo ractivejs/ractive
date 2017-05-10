@@ -214,4 +214,13 @@ export default function () {
 		r.set( 'classes', [ 'a', 'b', 'c' ] );
 		t.equal( div.className, 'a b c' );
 	});
+
+	test( `class directives work with the weird classes on svg elements (#2955)`, t => {
+		new Ractive({
+			el: fixture,
+			template: '<svg><rect x="0" y="0" width="100" height="100" class="red" class-bordered="{{true}}" /></svg>'
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<svg><rect x="0" y="0" width="100" height="100" class="red bordered" /></svg>' );
+	});
 }
