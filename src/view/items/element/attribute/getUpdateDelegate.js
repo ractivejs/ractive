@@ -247,13 +247,22 @@ function updateInlineStyle ( reset ) {
 
 function updateClassName ( reset ) {
 	const value = reset ? [] : readClass( safeToStringValue( this.getValue() ) );
-	const attr = readClass( this.node.className );
+
+	// watch out for werdo svg elements
+	let cls = this.node.className;
+	cls = cls.baseVal !== undefined ? cls.baseVal : cls;
+
+	const attr = readClass( cls );
 	const prev = this.previous || attr.slice( 0 );
 
 	const className = value.concat( attr.filter( c => !~prev.indexOf( c ) ) ).join( ' ' );
 
-	if ( className !== this.node.className ) {
-		this.node.className = className;
+	if ( className !== cls ) {
+		if ( typeof this.node.className !== 'string' ) {
+			this.node.className.baseVal = className;
+		} else {
+			this.node.className = className;
+		}
 	}
 
 	this.previous = value;
@@ -261,7 +270,12 @@ function updateClassName ( reset ) {
 
 function updateInlineClass ( reset ) {
 	const name = this.name.substr( 6 );
-	const attr = readClass( this.node.className );
+
+	// watch out for werdo svg elements
+	let cls = this.node.className;
+	cls = cls.baseVal !== undefined ? cls.baseVal : cls;
+
+	const attr = readClass( cls );
 	const value = reset ? false : this.getValue();
 
 	if ( !this.inlineClass ) this.inlineClass = name;
@@ -269,7 +283,11 @@ function updateInlineClass ( reset ) {
 	if ( value && !~attr.indexOf( name ) ) attr.push( name );
 	else if ( !value && ~attr.indexOf( name ) ) attr.splice( attr.indexOf( name ), 1 );
 
-	this.node.className = attr.join( ' ' );
+	if ( typeof this.node.className !== 'string' ) {
+		this.node.className.baseVal = attr.join( ' ' );
+	} else {
+		this.node.className = attr.join( ' ' );
+	}
 }
 
 function updateBoolean ( reset ) {
