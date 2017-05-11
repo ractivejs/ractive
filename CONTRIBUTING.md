@@ -61,7 +61,13 @@ npm install
 npm run dev:browser
 
 # Run a build locally (linting, bundling, testing)
+# Linux/Unix
 npm run build:local
+
+# Windows
+npm run bundle:release
+
+# The .build folder contains the various Ractive distributions
 ```
 
 [http://localhost:4567](http://localhost:4567) serves the sandbox page which you can use to hack Ractive. The files can be found in the `sandbox` directory. [http://localhost:4567/tests](http://localhost:4567/tests) serves the unit tests which can be found in `tests/browser`. Modifications to `src`, `tests/browser`, `sandbox`, and `polyfills` will automatically rebuild the sources served in this mode.
