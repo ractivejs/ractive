@@ -449,4 +449,21 @@ export default function() {
 		r.attachChild( r1, { target: 'other-anchor$' });
 		t.htmlEqual( fixture.innerHTML, 'hey' );
 	});
+
+	test( `attachChild with insertAt 0 is equivalent to prepend (#2958)`, t => {
+		const r = new Ractive({
+			template: '<#anchor/>',
+			target: fixture
+		});
+		const r1 = new Ractive({
+			template: '1'
+		});
+		const r2 = new Ractive({
+			template: '2'
+		});
+
+		r.attachChild( r1, { target: 'anchor' });
+		r.attachChild( r2, { target: 'anchor', insertAt: 0 });
+		t.htmlEqual( fixture.innerHTML, '2' );
+	});
 }
