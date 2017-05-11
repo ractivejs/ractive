@@ -5,9 +5,9 @@ import cleanup from '../utils/cleanup';
 import readMustache from './readMustache';
 import readClosing from './mustache/section/readClosing';
 import readClosingTag from './element/readClosingTag';
-import { relaxedName } from './expressions/shared/patterns';
 
 const tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/;
+const anchorPattern = /^[a-zA-Z_$][-a-zA-Z0-9_$]*/;
 const validTagNameFollower = /^[\s\n\/>]/;
 const exclude = { exclude: true };
 
@@ -68,7 +68,7 @@ function readElement ( parser ) {
 	else if ( anchor = parser.matchString( '#' ) ) {
 		parser.allowWhitespace();
 		element.t = ANCHOR;
-		element.n = parser.matchPattern( relaxedName );
+		element.n = parser.matchPattern( anchorPattern );
 	}
 	// otherwise, it's an element/component
 	else {
