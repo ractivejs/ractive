@@ -30,7 +30,7 @@ export default function attachChild ( child, options = {} ) {
 			list = [];
 			this.set( `@this.children.byName.${meta.target}`, list );
 		}
-		const idx = options.prepend ? 0 : options.insertAt || list.length;
+		const idx = options.prepend ? 0 : options.insertAt !== undefined ? options.insertAt : list.length;
 		list.splice( idx, 0, meta );
 	}
 

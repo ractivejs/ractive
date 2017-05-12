@@ -433,4 +433,37 @@ export default function() {
 		t.ok( c.root === c );
 		t.htmlEqual( fixture.innerHTML, '_c' );
 	});
+
+	test( `anchors use relaxed names without slashes (#2957)`, t => {
+		const r = new Ractive({
+			template: `<#anchor/><#other-anchor$/>`,
+			target: fixture
+		});
+		const r1 = new Ractive({
+			template: 'hey'
+		});
+
+		r.attachChild( r1, { target: 'anchor' });
+		t.htmlEqual( fixture.innerHTML, 'hey' );
+		r.detachChild( r1 );
+		r.attachChild( r1, { target: 'other-anchor$' });
+		t.htmlEqual( fixture.innerHTML, 'hey' );
+	});
+
+	test( `attachChild with insertAt 0 is equivalent to prepend (#2958)`, t => {
+		const r = new Ractive({
+			template: '<#anchor/>',
+			target: fixture
+		});
+		const r1 = new Ractive({
+			template: '1'
+		});
+		const r2 = new Ractive({
+			template: '2'
+		});
+
+		r.attachChild( r1, { target: 'anchor' });
+		r.attachChild( r2, { target: 'anchor', insertAt: 0 });
+		t.htmlEqual( fixture.innerHTML, '2' );
+	});
 }

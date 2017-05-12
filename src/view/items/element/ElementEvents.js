@@ -1,13 +1,14 @@
 import { fatal } from '../../../utils/log';
 
 class DOMEvent {
-	constructor ( name, owner ) {
+	constructor ( name, owner, delegate ) {
 		if ( name.indexOf( '*' ) !== -1 ) {
 			fatal( `Only component proxy-events may contain "*" wildcards, <${owner.name} on-${name}="..."/> is not valid` );
 		}
 
 		this.name = name;
 		this.owner = owner;
+		this.delegate = delegate;
 		this.node = null;
 		this.handler = null;
 	}
@@ -26,7 +27,7 @@ class DOMEvent {
 				event,
 				name
 			});
-		}, false );
+		}, this.delegate );
 	}
 
 	unlisten () {
