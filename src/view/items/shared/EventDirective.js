@@ -26,7 +26,7 @@ export const DelegateProxy = {
 			let bubble = true;
 
 			// starting with the origin node, walk up the DOM looking for ractive nodes with a matching event listener
-			while ( bubble && node !== end ) {
+			while ( bubble && node && node !== end ) {
 				const el = node._ractive && node._ractive.proxy;
 
 				if ( el ) {

@@ -263,4 +263,18 @@ export default function() {
 		input.focus();
 		input.blur();
 	});
+
+	test( `event handlers that cause their DOM to be removed should not cause an error (#2961)`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '<div>{{#each list}}<div><button on-click="@.splice("list", @index, 1)">x</button></div>{{/each}}</div>',
+			data: {
+				list: [ 1, 2 ]
+			}
+		});
+
+		fire( r.find( 'button' ), 'click' );
+
+		t.equal( r.findAll( 'button' ).length, 1 );
+	});
 }
