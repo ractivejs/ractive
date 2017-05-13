@@ -47,7 +47,11 @@ const runloop = {
 	},
 
 	addObserver ( observer, defer ) {
-		addToArray( defer ? batch.deferredObservers : batch.immediateObservers, observer );
+		if ( !batch ) {
+			observer.dispatch();
+		} else {
+			addToArray( defer ? batch.deferredObservers : batch.immediateObservers, observer );
+		}
 	},
 
 	registerTransition ( transition ) {

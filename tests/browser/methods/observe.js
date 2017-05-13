@@ -1794,4 +1794,23 @@ export default function() {
 
 		t.equal( count, 5 );
 	});
+
+	test( `observers can be created outside of a runloop e.g. oninit (#2960)`, t => {
+		t.expect( 5 );
+
+		new Ractive({
+			target: fixture,
+			template: '{{expr}} {{foo}}',
+			oninit () {
+				this.observe( '*', () => t.ok( this.set( 'foo', 'here' ) ), { defer: true });
+				this.observe( '*', () => t.ok( true ), { defer: true });
+			},
+			data: {
+				foo: ''
+			},
+			computed: {
+				expr: '${foo}'
+			}
+		});
+	});
 }
