@@ -108,7 +108,7 @@ export default function() {
 		r.set( 'foo', false );
 		t.htmlEqual( fixture.innerHTML, '' );
 		t.ok( !r.get( 'baz' ) );
-		t.ok(r.viewmodel.joinAll(['bip', 'bop']).deps.length === 0);
+		t.ok( r.viewmodel.joinAll(['bip', 'bop']).deps.length === 0 );
 	});
 
 	test( 'deeply nested links can be retrieved', t => {
@@ -143,5 +143,21 @@ export default function() {
 		t.equal( parent.get( 'child.path.foo.bar' ), 'baz' );
 		parent.observe( 'child.path.foo', () => t.ok( true, 'parent notified' ), { init: false } );
 		child.set( 'foo.bar', 'yep' );
+	});
+
+	test( `cross-instance links check actual path rather than just keypath (#2962)`, t => {
+		const r1 = new Ractive({
+			data: { foo: { bar: { baz: 1 } } }
+		});
+		const r2 = new Ractive({
+			data: { foo: { bar: { baz: 2 } } }
+		});
+
+		r1.link( 'foo.bar', 'foo.bar', { ractive: r2 });
+		t.equal( r1.get( 'foo.bar.baz' ), 2 );
+
+		t.throws(() => {
+			r2.link( 'foo.bar', 'foo.bar', { ractive: r1 });
+		}, /keypath cannot be linked to itself/i);
 	});
 }
