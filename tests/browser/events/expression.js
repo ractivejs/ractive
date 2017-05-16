@@ -29,7 +29,7 @@ export default function() {
 			}
 		});
 
-		r.getNodeInfo( 'button' ).raise( 'click', {}, 'foo' );
+		r.getContext( 'button' ).raise( 'click', {}, 'foo' );
 	});
 
 	test( 'expression events can handle dollar refs', t => {
@@ -43,7 +43,7 @@ export default function() {
 			}
 		});
 
-		r.getNodeInfo( 'button' ).raise( 'click', {}, 'foo' );
+		r.getContext( 'button' ).raise( 'click', {}, 'foo' );
 	});
 
 	test( 'expression events can handle spread args', t => {
@@ -57,7 +57,7 @@ export default function() {
 			}
 		});
 
-		r.getNodeInfo( 'button' ).raise( 'click', {}, 'foo' );
+		r.getContext( 'button' ).raise( 'click', {}, 'foo' );
 	});
 
 	test( 'expression events can handle argument keypath access', t => {
@@ -71,7 +71,7 @@ export default function() {
 			}
 		});
 
-		r.getNodeInfo( 'button' ).raise( 'click', {}, 'foo' );
+		r.getContext( 'button' ).raise( 'click', {}, 'foo' );
 	});
 
 	test( 'expression events can handle dollar arg keypath access', t => {
@@ -85,7 +85,7 @@ export default function() {
 			}
 		});
 
-		r.getNodeInfo( 'button' ).raise( 'click', {}, 'foo' );
+		r.getContext( 'button' ).raise( 'click', {}, 'foo' );
 	});
 
 	test( 'expression events work with complex expressions', t => {

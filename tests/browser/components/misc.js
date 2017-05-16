@@ -76,12 +76,12 @@ export default function() {
 			}
 		});
 
-		t.equal( Ractive.getNodeInfo( ractive.find( 'p' ) ).resolve(), '' );
+		t.equal( Ractive.getContext( ractive.find( 'p' ) ).resolve(), '' );
 
 		ractive.set( 'visible', false );
 		ractive.set( 'visible', true );
 
-		t.equal( Ractive.getNodeInfo( ractive.find( 'p' ) ).resolve(), '' );
+		t.equal( Ractive.getContext( ractive.find( 'p' ) ).resolve(), '' );
 	});
 
 	test( 'Nested components fire the oninit() event correctly (#511)', t => {
@@ -908,8 +908,8 @@ test( 'Implicit mappings are created by restricted references (#1465)', t => {
 			components: { cmp }
 		});
 
-		const outer = Ractive.getNodeInfo ( r.find( 'outer' ) );
-		const inner = Ractive.getNodeInfo( r.find( 'inner' ) );
+		const outer = Ractive.getContext ( r.find( 'outer' ) );
+		const inner = Ractive.getContext( r.find( 'inner' ) );
 
 		t.equal( outer.resolve(), 'baz' );
 		t.equal( outer.resolve( '.', r ), 'baz' );

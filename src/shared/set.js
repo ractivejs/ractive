@@ -52,7 +52,7 @@ export function set ( ractive, pairs, options ) {
 const star = /\*/;
 export function gather ( ractive, keypath, base, isolated ) {
 	if ( !base && ( keypath[0] === '.' || keypath[1] === '^' ) ) {
-		warnIfDebug( `Attempted to set a relative keypath from a non-relative context. You can use a getNodeInfo or event object to set relative keypaths.` );
+		warnIfDebug( `Attempted to set a relative keypath from a non-relative context. You can use a context object to set relative keypaths.` );
 		return [];
 	}
 

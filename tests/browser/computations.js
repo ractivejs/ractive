@@ -1046,7 +1046,7 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '<i>1</i><i>1</i><i>1</i>' );
 
-		const [ c, e ] = r.findAll( 'i' ).map( r.getNodeInfo );
+		const [ c, e ] = r.findAll( 'i' ).map( r.getContext );
 
 		c.set( '.a', 2 );
 		t.htmlEqual( fixture.innerHTML, '<i>2</i><i>2</i><i>2</i>' );

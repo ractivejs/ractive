@@ -110,9 +110,9 @@ export default function() {
 			data: { arr: [ 1, 2, 3 ] }
 		});
 
-		t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[1] ).get( 'i' ), 1 );
+		t.equal( Ractive.getContext( r.findAll( 'span' )[1] ).get( 'i' ), 1 );
 		r.unshift( 'arr' );
-		t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[1] ).get( 'i' ), 1 );
+		t.equal( Ractive.getContext( r.findAll( 'span' )[1] ).get( 'i' ), 1 );
 	});
 
 	test( 'splicing should not make event index info get out of sync (#2399)', t => {

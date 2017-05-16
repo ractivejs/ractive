@@ -1076,7 +1076,7 @@ export default function() {
 		_.bind = function () {
 			// do nothing
 		};
-		
+
 		_.uppercase = function ( str ) {
 			return str.toUpperCase();
 		};
@@ -1284,7 +1284,7 @@ export default function() {
 		t.equal( new Ractive({ template }).toHTML(), template );
 	});
 
-	test( 'Ractive.getNodeInfo returns correct keypath, index, and ractive info', t => {
+	test( 'Ractive.getContext returns correct keypath, index, and ractive info', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div><foo /></div>{{#bars:i}}<b>b</b><foo />{{/}}{{#baz}}{{#bat}}<p>hello</p>{{/}}{{/}}',
@@ -1300,10 +1300,10 @@ export default function() {
 			}
 		});
 
-		const div = Ractive.getNodeInfo( ractive.find( 'div' ) );
-		const p = Ractive.getNodeInfo( ractive.find( 'p' ) );
-		const [b1, b2] = ractive.findAll( 'b' ).map( n => Ractive.getNodeInfo( n ) );
-		const [span1, span2, span3] = ractive.findAll( 'span' ).map( n => Ractive.getNodeInfo( n ) );
+		const div = Ractive.getContext( ractive.find( 'div' ) );
+		const p = Ractive.getContext( ractive.find( 'p' ) );
+		const [b1, b2] = ractive.findAll( 'b' ).map( n => Ractive.getContext( n ) );
+		const [span1, span2, span3] = ractive.findAll( 'span' ).map( n => Ractive.getContext( n ) );
 		const [foo1, foo2, foo3] = ractive.findAllComponents( 'foo' );
 
 		t.equal( div.ractive, ractive );
@@ -1515,9 +1515,9 @@ export default function() {
 			data: { list: [ 42, 42, 42 ] }
 		});
 
-		t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[2] ).resolve(), 'list.2' );
+		t.equal( Ractive.getContext( r.findAll( 'span' )[2] ).resolve(), 'list.2' );
 		r.unshift( 'list', 42 );
-		t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[2] ).resolve(), 'list.2' );
+		t.equal( Ractive.getContext( r.findAll( 'span' )[2] ).resolve(), 'list.2' );
 	});
 
 	test( 'ractive.escapeKey() works correctly', t => {

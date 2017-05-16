@@ -111,7 +111,7 @@ export default function() {
 			}
 		});
 
-		r.getNodeInfo( r.findAll( 'div' )[1] ).raise( 'click', {} );
+		r.getContext( r.findAll( 'div' )[1] ).raise( 'click', {} );
 	});
 
 	test( `dom events within components can also be delegated`, t => {

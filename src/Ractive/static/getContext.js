@@ -1,9 +1,10 @@
 import { doc } from '../../config/environment';
 import getRactiveContext from '../../shared/getRactiveContext';
+import { warnOnceIfDebug } from '../../utils/log';
 
 const query = doc && doc.querySelector;
 
-export default function( node ) {
+export default function getContext ( node ) {
 	if ( typeof node === 'string' && query ) {
 		node = query.call( document, node );
 	}
@@ -16,4 +17,9 @@ export default function( node ) {
 			return getRactiveContext( instances[0] );
 		}
 	}
+}
+
+export function getNodeInfo ( node ) {
+	warnOnceIfDebug( `getNodeInfo has been renamed to getContext, and the getNodeInfo alias will be removed in a future release.` );
+	return getContext ( node );
 }

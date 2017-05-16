@@ -11,7 +11,7 @@ import findContainer from './prototype/findContainer';
 import findParent from './prototype/findParent';
 import fire from './prototype/fire';
 import get from './prototype/get';
-import getNodeInfo from './prototype/getNodeInfo';
+import getContext, { getNodeInfo } from './prototype/getContext';
 import insert from './prototype/insert';
 import link from './prototype/link';
 import observe from './prototype/observe';
@@ -58,6 +58,7 @@ export default {
 	findParent,
 	fire,
 	get,
+	getContext,
 	getNodeInfo,
 	insert,
 	link,

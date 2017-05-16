@@ -717,6 +717,6 @@ export default function() {
 		r.splice( 'list', 0, 0, tmp );
 		t.equal( fixture.innerHTML, '<span>list.0.list.0</span><span>list.1.list.0</span><span>list.2.list.0</span><span>list.2.list.1</span>' );
 
-		t.equal( r.getNodeInfo( r.findAll( 'span' )[2] ).resolve(), 'list.2.list.0' );
+		t.equal( r.getContext( r.findAll( 'span' )[2] ).resolve(), 'list.2.list.0' );
 	});
 }

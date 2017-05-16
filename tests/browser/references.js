@@ -334,7 +334,7 @@ export default function() {
 
 	test( `trying to set a relative keypath from instance set warns and doesn't do unexpected things`, t => {
 		onWarn( w => {
-			t.ok( /relative keypath.*non-relative.*getNodeInfo.*event object/.test( w ) );
+			t.ok( /relative keypath.*non-relative.*context.*object/.test( w ) );
 		});
 
 		const r = new Ractive();
@@ -427,7 +427,7 @@ export default function() {
 			template: `<div>{{@local.foo}}</div>`
 		});
 
-		const ctx = r.getNodeInfo( 'div' );
+		const ctx = r.getContext( 'div' );
 		ctx.set( '@local.foo', 42 );
 		t.htmlEqual( fixture.innerHTML, '<div>42</div>' );
 	});
@@ -443,7 +443,7 @@ export default function() {
 				}
 			}
 		});
-		const info = r.getNodeInfo( 'div' );
+		const info = r.getContext( 'div' );
 		info.set( '@local.foo', 'bar' );
 		t.ok( info.get( '@local.foo' ) === ctx.get( '@local.foo' ) );
 		t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );

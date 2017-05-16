@@ -1,4 +1,4 @@
-import { initModule } from '../helpers/test-config';
+import { initModule, onWarn } from '../helpers/test-config';
 import { test } from 'qunit';
 
 export default function() {
@@ -11,7 +11,7 @@ export default function() {
 			data: { foo: { bar: { baz: true }, bat: 'yep' } }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		t.equal( info.get( '../bat' ), 'yep' );
 	});
@@ -26,7 +26,7 @@ export default function() {
 			}
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		t.equal( info.get( '../bat' ), 'yep' );
 	});
@@ -38,7 +38,7 @@ export default function() {
 			data: { foo: { bar: { baz: true }, bat: 'yep' } }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		t.equal( info.get( 'wat.bat' ), 'yep' );
 	});
@@ -50,7 +50,7 @@ export default function() {
 			data: { items: [ { foo: 'yep' } ] }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		t.equal( info.get( 'i' ), 0 );
 	});
@@ -62,7 +62,7 @@ export default function() {
 			data: { obj: { foo: 'yep' } }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		t.equal( info.get( 'k' ), 'foo' );
 	});
@@ -74,7 +74,7 @@ export default function() {
 			data: { items: [ { foo: 'yep' } ] }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		t.equal( info.get( '@index' ), 0 );
 	});
@@ -86,7 +86,7 @@ export default function() {
 			data: { items: [ { foo: 'yep' } ] }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.set( '.foo', 'ha' );
 		t.equal( r.get( 'items.0.foo' ), 'ha' );
@@ -99,7 +99,7 @@ export default function() {
 			data: { items: [ { foo: 'yep', bar: 'nope' } ] }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.set({ '.foo': 'ha', '.bar': 'yep' });
 		t.equal( r.get( 'items.0.foo' ), 'ha' );
@@ -113,7 +113,7 @@ export default function() {
 			data: { items: [ { foo: 'yep' } ] }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.set( 'item.foo', 'ha' );
 		t.equal( r.get( 'items.0.foo' ), 'ha' );
@@ -126,7 +126,7 @@ export default function() {
 			data: { foo: { bar: { baz: true }, bat: 41 } }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.add( '../bat' );
 		t.equal( r.get( 'foo.bat' ), 42 );
@@ -141,7 +141,7 @@ export default function() {
 			data: { foo: { bar: { baz: true }, bat: 41, bop: 1 } }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.add({ '../bat': 1, '../bop': 1 });
 		t.equal( r.get( 'foo.bat' ), 42 );
@@ -155,7 +155,7 @@ export default function() {
 			data: { foo: { bar: { baz: true }, bat: 41 } }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.subtract( '../bat' );
 		t.equal( r.get( 'foo.bat' ), 40 );
@@ -170,7 +170,7 @@ export default function() {
 			data: { foo: { bar: { baz: true }, bat: 41, bop: 1 } }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.subtract({ '../bat': 1, '../bop': 2 });
 		t.equal( r.get( 'foo.bat' ), 40 );
@@ -187,7 +187,7 @@ export default function() {
 			data: { foo: { bar: { baz: true }, bat: 41 } }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.animate( '../bat', 22 ).then(() => {
 			t.equal( r.get( 'foo.bat' ), 22 );
@@ -202,7 +202,7 @@ export default function() {
 			data: { foo: { bar: { baz: true }, bat: 'yep' } }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.toggle( '.baz' );
 		t.equal( r.get( 'foo.bar.baz' ), false );
@@ -215,7 +215,7 @@ export default function() {
 			data: { foo: { bar: { baz: 'hello' } } }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'input' ) );
+		const info = Ractive.getContext( r.find( 'input' ) );
 		r.get( 'foo.bar' ).baz = 'yep';
 		info.update( '.baz' );
 		t.equal( r.get( 'foo.bar.baz' ), 'yep' );
@@ -230,7 +230,7 @@ export default function() {
 
 		const input = r.find( 'input' );
 		input.value = 'yep';
-		const info = Ractive.getNodeInfo( input );
+		const info = Ractive.getContext( input );
 		info.updateModel( '.baz' );
 		t.equal( r.get( 'foo.bar.baz' ), 'yep' );
 	});
@@ -242,7 +242,7 @@ export default function() {
 			data: { foo: { bar: { baz: 'hello' } } }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.link( '.baz', '~/str' );
 		t.equal( r.get( 'str' ), 'hello' );
@@ -255,7 +255,7 @@ export default function() {
 			data: { foo: { bar: { baz: 'hello' } } }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.link( '.baz', '~/str' );
 		t.equal( r.get( 'str' ), 'hello' );
@@ -273,7 +273,7 @@ export default function() {
 		r.set( 'foo.bar.baz.bat', true );
 		r.link( 'foo.bar.baz.bat', 'bip.bop' );
 
-		t.equal( r.getNodeInfo( 'span' ).readLink( '.bop' ).keypath, 'foo.bar.baz.bat' );
+		t.equal( r.getContext( 'span' ).readLink( '.bop' ).keypath, 'foo.bar.baz.bat' );
 	});
 
 	test( 'node info shuffle set', t => {
@@ -283,7 +283,7 @@ export default function() {
 			data: { items: [ 2, 1, 0 ] }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 		const spans = r.findAll( 'span' );
 
 		info.set( '../', [ 1, 2 ], { shuffle: true } );
@@ -301,7 +301,7 @@ export default function() {
 			data: { items: [ 0 ] }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.push( '../', 1 );
 
@@ -315,7 +315,7 @@ export default function() {
 			data: { items: [ 0 ] }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.pop( '../' );
 
@@ -329,7 +329,7 @@ export default function() {
 			data: { items: [ 1, 0, 2 ] }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.sort( '../' );
 
@@ -343,7 +343,7 @@ export default function() {
 			data: { items: [ 1, 0, 2 ] }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.reverse( '../' );
 
@@ -357,7 +357,7 @@ export default function() {
 			data: { items: [ 0 ] }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.shift( '../' );
 
@@ -371,7 +371,7 @@ export default function() {
 			data: { items: [ 0 ] }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.unshift( '../', 1 );
 
@@ -385,7 +385,7 @@ export default function() {
 			data: { items: [ 0, 1 ] }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'span' ) );
+		const info = Ractive.getContext( r.find( 'span' ) );
 
 		info.splice( '../', 0, 1, 3, 2 );
 
@@ -400,9 +400,9 @@ export default function() {
 			data: { foo: { bar: { baz: 'hello' } } }
 		});
 
-		let info = Ractive.getNodeInfo( r.findAll( 'input' )[0] );
+		let info = Ractive.getContext( r.findAll( 'input' )[0] );
 		t.ok( info.isBound() );
-		info = Ractive.getNodeInfo( r.findAll( 'input' )[1] );
+		info = Ractive.getContext( r.findAll( 'input' )[1] );
 		t.ok( !info.isBound() );
 	});
 
@@ -413,7 +413,7 @@ export default function() {
 			data: { foo: { bar: { baz: 'hello' } } }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'input' ) );
+		const info = Ractive.getContext( r.find( 'input' ) );
 		t.equal( info.getBindingPath(), 'foo.bar.baz' );
 	});
 
@@ -424,7 +424,7 @@ export default function() {
 			data: { foo: { bar: { baz: 'hello' } } }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'input' ) );
+		const info = Ractive.getContext( r.find( 'input' ) );
 		t.equal( info.getBinding(), 'hello' );
 	});
 
@@ -435,7 +435,7 @@ export default function() {
 			data: { foo: { bar: { baz: 'hello' } } }
 		});
 
-		const info = Ractive.getNodeInfo( r.find( 'input' ) );
+		const info = Ractive.getContext( r.find( 'input' ) );
 		info.setBinding( 'yep' );
 		t.equal( r.get( 'foo.bar.baz' ), 'yep' );
 	});
@@ -447,7 +447,7 @@ export default function() {
 			data: { foo: { bar: { baz: true } } }
 		});
 
-		t.equal( Ractive.getNodeInfo( '#baz' ).resolve(), 'foo.bar' );
+		t.equal( Ractive.getContext( '#baz' ).resolve(), 'foo.bar' );
 	});
 
 	test( 'node info from instance', t => {
@@ -457,7 +457,7 @@ export default function() {
 			data: { foo: { bar: { baz: true } } }
 		});
 
-		t.equal( r.getNodeInfo( r.find( '#baz' ) ).resolve(), 'foo.bar' );
+		t.equal( r.getContext( r.find( '#baz' ) ).resolve(), 'foo.bar' );
 	});
 
 	test( 'node info from instance with selector', t => {
@@ -467,7 +467,7 @@ export default function() {
 			data: { foo: { bar: { baz: true } } }
 		});
 
-		t.equal( r.getNodeInfo( '#baz' ).resolve(), 'foo.bar' );
+		t.equal( r.getContext( '#baz' ).resolve(), 'foo.bar' );
 	});
 
 	test( `decorator objects are available from node info objects`, t => {
@@ -487,7 +487,7 @@ export default function() {
 			}
 		});
 
-		r.getNodeInfo( 'div' ).decorators.foo.method();
+		r.getContext( 'div' ).decorators.foo.method();
 
 		t.ok( flag );
 	});
@@ -502,7 +502,7 @@ export default function() {
 			}
 		});
 
-		r.getNodeInfo( 'div' ).observe( '.foo', () => count++, { init: false } );
+		r.getContext( 'div' ).observe( '.foo', () => count++, { init: false } );
 
 		r.set( 'foo.bar.foo', 'yep' );
 		t.equal( count, 1 );
@@ -518,7 +518,7 @@ export default function() {
 			}
 		});
 
-		r.getNodeInfo( 'div' ).observe({
+		r.getContext( 'div' ).observe({
 			'.foo': () => count++,
 			'.*': () => count++
 		}, { init: false } );
@@ -539,7 +539,7 @@ export default function() {
 			},
 			decorators: {
 				foo ( node ) {
-					const info = Ractive.getNodeInfo( node );
+					const info = Ractive.getContext( node );
 					const observer = info.observe( '.bar', n => {
 						node.innerHTML = n;
 					}, { defer: true });
@@ -570,7 +570,7 @@ export default function() {
 			}
 		});
 
-		r.getNodeInfo( 'div' ).observeOnce({
+		r.getContext( 'div' ).observeOnce({
 			'.foo': () => count++,
 			'.*': () => count++
 		});
@@ -579,7 +579,7 @@ export default function() {
 		r.set( 'foo.bar.foo', 'yep' );
 		t.equal( count, 2 );
 
-		r.getNodeInfo( 'div' ).observeOnce('.*', () => count++);
+		r.getContext( 'div' ).observeOnce('.*', () => count++);
 		r.set( 'foo.bar.baz.bar', 'yep' );
 		r.set( 'foo.bar.baz.bip', 'yep' );
 		t.equal( count, 3 );
@@ -595,7 +595,7 @@ export default function() {
 
 		r.on( 'wat', ( ev, arg ) => t.equal( arg, 'bar' ) );
 
-		r.getNodeInfo( 'div' ).raise( 'foo', {}, 'bar' );
+		r.getContext( 'div' ).raise( 'foo', {}, 'bar' );
 	});
 
 	test( `context objects can trigger events on parent elements`, t => {
@@ -611,7 +611,7 @@ export default function() {
 			foo () { t.ok( true ); }
 		});
 
-		r.getNodeInfo( 'span' ).raise( 'foo' );
+		r.getContext( 'span' ).raise( 'foo' );
 	});
 
 	test( `getting node info for a non-ractive element returns undefined (#2819)`, t => {
@@ -619,8 +619,8 @@ export default function() {
 			el: fixture
 		});
 
-		t.ok( r.getNodeInfo( document.body ) === undefined );
-		t.ok( Ractive.getNodeInfo( document.body ) === undefined );
+		t.ok( r.getContext( document.body ) === undefined );
+		t.ok( Ractive.getContext( document.body ) === undefined );
 	});
 
 	test( `getting node info for a host element returns the context of the hosted instance if there is only one (#2865)`, t => {
@@ -629,7 +629,7 @@ export default function() {
 			template: 'a'
 		});
 
-		t.ok( Ractive.getNodeInfo( fixture ).ractive === r1 );
+		t.ok( Ractive.getContext( fixture ).ractive === r1 );
 
 		const r2 = new Ractive({
 			target: fixture,
@@ -637,11 +637,11 @@ export default function() {
 			template: 'b'
 		});
 
-		t.ok( Ractive.getNodeInfo( fixture ) === undefined );
+		t.ok( Ractive.getContext( fixture ) === undefined );
 
 		r1.teardown();
 
-		t.ok( Ractive.getNodeInfo( fixture ).ractive === r2 );
+		t.ok( Ractive.getContext( fixture ).ractive === r2 );
 	});
 
 	test( `force update works from a context object`, t => {
@@ -660,7 +660,28 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div>one</div>' );
 
 		msg = 'two';
-		r.getNodeInfo( 'div' ).update( '../fn', { force: true } );
+		r.getContext( 'div' ).update( '../fn', { force: true } );
 		t.htmlEqual( fixture.innerHTML, '<div>two</div>' );
+	});
+
+	test( `getNodeInfo still works but warns about deprecation`, t => {
+		t.expect( 4 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: '{{#with foo.bar}}<div />{{/with}}',
+			data: { foo: { bar: { baz: 42 } } }
+		});
+
+		onWarn( m => t.ok( /renamed to getContext/i.test( m ) ) );
+
+		let ctx = Ractive.getNodeInfo( fixture.querySelector( 'div' ) );
+		t.equal( ctx.resolve(), 'foo.bar' );
+
+		ctx = r.getNodeInfo( r.find( 'div' ) );
+		t.equal( ctx.resolve(), 'foo.bar' );
+
+		ctx = r.getNodeInfo( 'div' );
+		t.equal( ctx.resolve(), 'foo.bar' );
 	});
 }

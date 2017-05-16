@@ -1333,7 +1333,7 @@ export default function() {
 			components: { cmp: cmp2 }
 		});
 
-		const info = r.getNodeInfo( 'input' );
+		const info = r.getContext( 'input' );
 		t.equal( info.getBinding(), 'hello' );
 		info.setBinding( 'yep' );
 		t.equal( info.getBinding(), 'yep' );
