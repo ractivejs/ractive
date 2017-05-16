@@ -6,5 +6,5 @@ export default function Ractive$toggle ( keypath, options ) {
 		throw new TypeError( badArguments );
 	}
 
-	return set( this, gather( this, keypath ).map( m => [ m, !m.get() ] ), options );
+	return set( this, gather( this, keypath, null, options && options.isolated ).map( m => [ m, !m.get() ] ), options );
 }

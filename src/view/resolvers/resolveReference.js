@@ -117,7 +117,7 @@ export default function resolveReference ( fragment, ref ) {
 	}
 
 	// walk up the fragment hierarchy looking for a matching ref, alias, or key in a context
-	let crossedComponentBoundary;
+	let createMapping = false;
 	const shouldWarn = fragment.ractive.warnAboutAmbiguity;
 
 	while ( fragment ) {
@@ -147,9 +147,9 @@ export default function resolveReference ( fragment, ref ) {
 		// check fragment context to see if it has the key we need
 		if ( fragment.context && fragment.context.has( base ) ) {
 			// this is an implicit mapping
-			if ( crossedComponentBoundary ) {
+			if ( createMapping ) {
 				if ( shouldWarn ) warnIfDebug( `'${ref}' resolved but is ambiguous and will create a mapping to a parent component.` );
-				return context.root.createLink( base, fragment.context.joinKey( base ), base, { implicit: true } ).joinAll( keys );
+				return context.root.createLink( base, fragment.context.joinKey( base ), base, { implicit: true }).joinAll( keys );
 			}
 
 			if ( shouldWarn ) warnIfDebug( `'${ref}' resolved but is ambiguous.` );
@@ -159,7 +159,7 @@ export default function resolveReference ( fragment, ref ) {
 		if ( ( fragment.componentParent || ( !fragment.parent && fragment.ractive.component ) ) && !fragment.ractive.isolated ) {
 			// ascend through component boundary
 			fragment = fragment.componentParent || fragment.ractive.component.parentFragment;
-			crossedComponentBoundary = true;
+			createMapping = true;
 		} else {
 			fragment = fragment.parent;
 		}

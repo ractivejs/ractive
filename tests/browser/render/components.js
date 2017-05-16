@@ -123,8 +123,7 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'the first place' );
 		const cmp = r.findComponent( 'cmp1' );
-		cmp.set( 'cmp', 'cmp3' );
-		cmp.reset();
+		cmp.reset({ cmp: 'cmp3' });
 		t.htmlEqual( fixture.innerHTML, 'the second place' );
 	});
 

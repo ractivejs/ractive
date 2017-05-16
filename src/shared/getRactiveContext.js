@@ -13,7 +13,7 @@ export function getContext ( ...assigns ) {
 	return Object.assign.apply( null, assigns );
 }
 
-class FakeFragment {
+export class FakeFragment {
 	constructor ( ractive ) {
 		this.ractive = ractive;
 	}

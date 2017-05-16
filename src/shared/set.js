@@ -2,6 +2,8 @@ import runloop from '../global/runloop';
 import { splitKeypath } from './keypaths';
 import { isObject } from '../utils/is';
 import { warnIfDebug } from '../utils/log';
+import resolveReference from '../view/resolvers/resolveReference';
+import { FakeFragment } from './getRactiveContext';
 
 export let keep = false;
 
@@ -48,35 +50,46 @@ export function set ( ractive, pairs, options ) {
 }
 
 const star = /\*/;
-export function gather ( ractive, keypath, base ) {
-	if ( !base && keypath[0] === '.' ) {
+export function gather ( ractive, keypath, base, isolated ) {
+	if ( !base && ( keypath[0] === '.' || keypath[1] === '^' ) ) {
 		warnIfDebug( `Attempted to set a relative keypath from a non-relative context. You can use a getNodeInfo or event object to set relative keypaths.` );
 		return [];
 	}
 
+	const keys = splitKeypath( keypath );
 	const model = base || ractive.viewmodel;
+
 	if ( star.test( keypath ) ) {
-		return model.findMatches( splitKeypath( keypath ) );
+		return model.findMatches( keys );
 	} else {
-		return [ model.joinAll( splitKeypath( keypath ) ) ];
+		if ( model === ractive.viewmodel ) {
+			// allow implicit mappings
+			if ( ractive.component && !ractive.isolated && !model.has( keys[0] ) && keypath[0] !== '@' && keypath[0] && !isolated ) {
+				return [ resolveReference( ractive.fragment || new FakeFragment( ractive ), keypath ) ];
+			} else {
+				return [ model.joinAll( keys ) ];
+			}
+		} else {
+			return [ model.joinAll( keys ) ];
+		}
 	}
 }
 
-export function build ( ractive, keypath, value ) {
+export function build ( ractive, keypath, value, isolated ) {
 	const sets = [];
 
 	// set multiple keypaths in one go
 	if ( isObject( keypath ) ) {
 		for ( const k in keypath ) {
 			if ( keypath.hasOwnProperty( k ) ) {
-				sets.push.apply( sets, gather( ractive, k ).map( m => [ m, keypath[k], k ] ) );
+				sets.push.apply( sets, gather( ractive, k, null, isolated ).map( m => [ m, keypath[k], k ] ) );
 			}
 		}
 
 	}
 	// set a single keypath
 	else {
-		sets.push.apply( sets, gather( ractive, keypath ).map( m => [ m, value, keypath ] ) );
+		sets.push.apply( sets, gather( ractive, keypath, null, isolated ).map( m => [ m, value, keypath ] ) );
 	}
 
 	return sets;

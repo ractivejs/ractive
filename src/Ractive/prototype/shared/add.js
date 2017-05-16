@@ -3,12 +3,12 @@ import { build, set } from '../../../shared/set';
 
 const errorMessage = 'Cannot add to a non-numeric value';
 
-export default function add ( ractive, keypath, d ) {
+export default function add ( ractive, keypath, d, options ) {
 	if ( typeof keypath !== 'string' || !isNumeric( d ) ) {
 		throw new Error( 'Bad arguments' );
 	}
 
-	const sets = build( ractive, keypath, d );
+	const sets = build( ractive, keypath, d, options && options.isolated );
 
 	return set( ractive, sets.map( pair => {
 		const [ model, add ] = pair;

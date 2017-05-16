@@ -131,12 +131,6 @@ export default class RootModel extends Model {
 		       super.joinKey( key, opts );
 	}
 
-	// TODO: this should go away
-	map ( localKey, origin, options ) {
-		const local = this.joinKey( localKey );
-		local.link( origin, localKey, options );
-	}
-
 	set ( value ) {
 		// TODO wrapping root node is a baaaad idea. We should prevent this
 		const wrapper = this.wrapper;

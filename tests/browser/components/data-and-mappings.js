@@ -437,7 +437,8 @@ export default function() {
 			data: {
 				status () {
 					return this.get( '_status' );
-				}
+				},
+				_status: ''
 			},
 			components: { Widget }
 		});
@@ -1520,5 +1521,77 @@ export default function() {
 		});
 
 		t.htmlEqual( fixture.innerHTML, '123' );
+	});
+
+	test( `non-isolated components can implicitly map on set (#2963)`, t => {
+		const cmp = Ractive.extend({
+			isolated: false
+		});
+		const r = new Ractive({
+			target: fixture,
+			template: '<cmp/>',
+			components: { cmp },
+			data: {
+				foo: { bar: 42 }
+			}
+		});
+
+		let c = r.findComponent( 'cmp' );
+		c.set( 'foo.bar', 84 );
+		t.equal( r.get( 'foo.bar' ), 84 );
+
+		r.set( 'foo.bar', 99 );
+		t.equal( c.get( 'foo.bar' ), 99 );
+
+		r.unrender();
+		r.render();
+
+		c = r.findComponent( 'cmp' );
+		c.add( 'foo.bar', 1 );
+		t.equal( r.get( 'foo.bar' ), 100 );
+
+		r.unrender();
+		r.render();
+
+		c = r.findComponent( 'cmp' );
+		c.toggle( 'foo.bar' );
+		t.equal( r.get( 'foo.bar' ), false );
+	});
+
+	test( `non-isolated components don't implicitly map on set when asked not to`, t => {
+		const cmp = Ractive.extend({
+			isolated: false
+		});
+		const r = new Ractive({
+			target: fixture,
+			template: '<cmp/>',
+			components: { cmp },
+			data: {
+				foo: { bar: 42 }
+			}
+		});
+
+		let c = r.findComponent( 'cmp' );
+		c.set( 'foo.bar', 84, { isolated: true });
+		t.equal( r.get( 'foo.bar' ), 42 );
+		t.equal( c.get( 'foo.bar' ), 84 );
+
+		r.set( 'foo.bar', 99 );
+		t.equal( c.get( 'foo.bar' ), 84 );
+
+		r.unrender();
+		r.render();
+
+		c = r.findComponent( 'cmp' );
+		t.throws(() => c.add( 'foo.bar', 1, { isolated: true }), /cannot add to a non-numeric/i );
+		t.equal( r.get( 'foo.bar' ), 99 );
+
+		r.unrender();
+		r.render();
+
+		c = r.findComponent( 'cmp' );
+		c.toggle( 'foo.bar', { isolated: true });
+		t.equal( r.get( 'foo.bar' ), 99 );
+		t.equal( c.get( 'foo.bar' ), true );
 	});
 }
