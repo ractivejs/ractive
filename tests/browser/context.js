@@ -684,4 +684,15 @@ export default function() {
 		ctx = r.getNodeInfo( 'div' );
 		t.equal( ctx.resolve(), 'foo.bar' );
 	});
+
+	test( `node is available on all element context objects`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '<div />'
+		});
+
+		const n = fixture.querySelector( 'div' );
+
+		t.strictEqual( n, r.getContext( 'div' ).node );
+	});
 }

@@ -38,6 +38,7 @@ export default class Context {
 	constructor ( fragment, element ) {
 		this.fragment = fragment;
 		this.element = element || findElement( fragment );
+		this.node = this.element && this.element.node;
 		this.ractive = fragment.ractive;
 		this.root = this;
 	}
