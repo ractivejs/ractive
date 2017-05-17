@@ -153,4 +153,42 @@ export default function() {
 		r.toggle( 'foo' );
 		t.htmlEqual( fixture.innerHTML, 'foo: <form>Yep</form>' );
 	});
+
+	test( `non-twoway selects should not reset to their attribute value on update unless actually dirty (#2965)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: '<label>{{foo}} <select twoway="false" value="{{bar}}"><option value="{{baz}}">baz</option><option value="2">2</option></select></label>',
+			data: {
+				foo: 'a',
+				bar: '1',
+				baz: '1'
+			}
+		});
+
+		const select = r.find( 'select' );
+		const options = r.findAll( 'option' );
+
+		t.equal( select.value, '1' );
+		t.ok( options[0].selected );
+
+		r.set( 'bar', '2' );
+		t.equal( select.value, '2' );
+		t.ok( options[1].selected );
+
+		select.value = '1';
+		t.ok( options[0].selected );
+
+		r.set( 'foo', 'b' );
+		t.equal( select.value, '1' );
+		t.ok( options[0].selected );
+
+		r.set( 'bar', 2 );
+		t.equal( select.value, '2' );
+		t.ok( options[1].selected );
+
+		r.set( 'baz', '42' );
+		r.set( 'bar', '42' );
+		t.equal( select.value, '42' );
+		t.ok( options[0].selected );
+	});
 }

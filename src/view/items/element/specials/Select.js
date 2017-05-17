@@ -103,7 +103,10 @@ export default class Select extends Element {
 		return selectValue == optionValue;
 	}
 	update () {
+		const dirty = this.dirty;
 		super.update();
-		this.sync();
+		if ( dirty ) {
+			this.sync();
+		}
 	}
 }
