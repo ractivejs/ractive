@@ -1,5 +1,6 @@
 import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
 export default function() {
 	initModule( 'methods/attachChild.js' );
@@ -465,5 +466,31 @@ export default function() {
 		r.attachChild( r1, { target: 'anchor' });
 		r.attachChild( r2, { target: 'anchor', insertAt: 0 });
 		t.htmlEqual( fixture.innerHTML, '2' );
+	});
+
+	test( `bindings rebind properly when a child is attached (#2966)`, t => {
+		const c = new Ractive({
+			template: '<input value="{{mapped}}" />'
+		});
+
+		const r = new Ractive({
+			target: fixture,
+			template: '<input value="{{nested.string}}" /> <#anchor bind-mapped="nested.string" />',
+			data: {
+				nested: { string: 'a' }
+			}
+		});
+
+		const rinput = r.find( 'input' );
+		t.equal( rinput.value, 'a' );
+
+		r.attachChild( c, { target: 'anchor' });
+		const cinput = c.find( 'input' );
+		t.equal( cinput.value, 'a' );
+
+		cinput.value = 'b';
+		fire( cinput, 'change' );
+		t.equal( rinput.value, 'b' );
+		t.equal( r.get( 'nested.string' ), 'b' );
 	});
 }

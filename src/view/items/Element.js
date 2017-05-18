@@ -93,6 +93,7 @@ export default class Element extends ContainerItem {
 
 		// create two-way binding if necessary
 		if ( !this.binding ) this.recreateTwowayBinding();
+		else this.binding.bind();
 	}
 
 	createTwowayBinding () {
