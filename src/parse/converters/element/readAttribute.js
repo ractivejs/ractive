@@ -255,12 +255,8 @@ export function readAttributeOrDirective ( parser ) {
 		attribute.t = ATTRIBUTE;
 		readArguments( parser, attribute, false, true );
 
-		if ( !attribute.f ) {
-			if ( !bind ) {
-				attribute.f = [{ t: INTERPOLATOR, x: { r: [], s: 'true' } }];
-			} else {
-				attribute.f = [{ t: INTERPOLATOR, r: match[3] }];
-			}
+		if ( !attribute.f && bind ) {
+			attribute.f = [{ t: INTERPOLATOR, r: match[3] }];
 		}
 	}
 

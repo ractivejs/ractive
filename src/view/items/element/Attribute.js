@@ -46,6 +46,8 @@ export default class Attribute extends Item {
 			this.value = options.template.f;
 			if ( this.value === 0 ) {
 				this.value = '';
+			} else if ( this.value === undefined ) {
+				this.value = true;
 			}
 		} else {
 			this.fragment = new Fragment({
