@@ -8,7 +8,7 @@ If you think you've found a security vulnerability, please email [ractive-js-sec
 
 ## Raising issues
 
-Issues can be anything. It can be questions, feature requests, enhancements, optimizations and more.
+Issues can be _anything_. It can be questions, feature requests, enhancements, optimizations and more.
 
 For bug-related issues, please make sure you are using the [latest stable build](https://unpkg.com/ractive). The latest stable build can be found at [https://unpkg.com/ractive](https://unpkg.com/ractive). If the bug persists, it may have been fixed in the [latest "edge" build](https://unpkg.com/ractive@edge). Edge builds can be found at [https://unpkg.com/ractive@edge](https://unpkg.com/ractive@edge) and are updated on every change to the `dev` branch.
 
@@ -28,24 +28,13 @@ When filing an issue, please follow the issue template provided. The best issues
 - A _real_ shell
 	- Ubuntu: Use the built-in terminal.
 	- macOS: Use the built-in terminal.
-	- Windows: The shell that comes with Git for Windows.
+	- Windows: Git Bash (from Git for Windows) or Windows Command Prompt.
 
-Dependencies might require the following software to build native add-ons:
-
-- [Python 2.7](https://www.python.org/download/releases/2.7/)
-- Native Build Tools
-	- Ubuntu: `sudo apt-get install -y build-essential`
-	- macOS: `xcode-select --install`
-	- Windows: [Visual C++ Build Tools](http://landinghub.visualstudio.com/visual-cpp-build-tools)
-
-Tests might require `xvfb` when working on headless setups (i.e. ssh):
-
-- xvfb
-    - Ubuntu: `sudo apt-get install xvfb`
+When using Windows Command Prompt, the `build:*` and `release:*` npm scripts will not be available as they use bash scripts. In the case of `build:*` bash scripts, however, the scripts simply call module binaries which can be run manually.
 
 ### Hacking Ractive
 
-Fork the repository to your Github account. Click the "Fork" button on the [Ractive.js repository page](https://github.com/ractivejs/ractive). Select the account to fork to if prompted. Then do the following:
+Fork the repository to your Github account by clicking the "Fork" button on the [Ractive.js repository page](https://github.com/ractivejs/ractive). Then do the following:
 
 ```bash
 # Clone your fork of the repo
@@ -64,19 +53,19 @@ npm run dev:browser
 npm run build:local
 ```
 
-[http://localhost:4567](http://localhost:4567) serves the sandbox page which you can use to hack Ractive. The files can be found in the `sandbox` directory. [http://localhost:4567/tests](http://localhost:4567/tests) serves the unit tests which can be found in `tests/browser`. Modifications to `src`, `tests/browser`, `sandbox`, and `polyfills` will automatically rebuild the sources served in this mode.
+[http://localhost:4567](http://localhost:4567) serves the sandbox page which you can use to hack Ractive. The files can be found in the `sandbox` directory. [http://localhost:4567/qunit](http://localhost:4567/qunit) serves the unit tests which can be found in `tests/browser`. Modifications to `src`, `tests/browser`, `sandbox`, and `polyfills` will automatically rebuild the sources served in this mode.
 
 ### Style guide
 
-Most of the coding standards are handled by ESLint and EditorConfig configurations. When using an editor with the proper integrations, the editor will guide you. In addition, builds will fail if the coding standards are not adhered. Above all, code should be clean, readable, and commented where necessary.
+Code should be clean, readable, and commented where necessary.
+
+Most of the coding standards are handled by ESLint and EditorConfig configurations. When using an editor with ESLint and EditorConfig support, the editor will guide you in writing code. In addition, builds will fail if the coding standards are not met.
 
 ## Testing
 
 Tests use [QUnit](https://qunitjs.com/). Check out [their API documentation](https://api.qunitjs.com/) to learn more on how to write QUnit tests.
 
-As mentioned in the previous section, you can run `npm run dev:browser` to serve the sandbox page on [http://localhost:4567](http://localhost:4567) and the browser-based QUnit tests on [http://localhost:4567/tests](http://localhost:4567/tests). To run the full battery of tests headlessly, run `npm run build:local` in the terminal. This will run both browser and Node.js tests.
-
-Tests can be found in the `tests` directory, separated by platform and functionality. The `helpers` directory contains files common to all tests, but do not contain tests. To write tests, simply look for an existing file named after the functionality you're testing.
+Tests can be found in the `tests` directory, separated by platform and functionality. The `helpers` directory contains files common to all tests, but do not contain tests. To write tests, simply look for an existing file named after the functionality you're testing and write your tests there.
 
 A sample test file will look like this:
 
@@ -92,7 +81,7 @@ test( 'The thing that is supposed to happen does in fact happen (#42)', t => {
 
 ### Guidelines
 
-- Test as few things per `test`.
+- Test as few things as possible per `test`.
 - Test against the public API, not against implementation details.
 - Tests should be isolated, portable, and readable.
 - Tests should clean up after themselves.
@@ -133,9 +122,6 @@ test( 'Click events work', t => {
   fire( ractive.find( 'button' ), 'click' );
 });
 ```
-
-
-
 
 ## Pull requests
 
