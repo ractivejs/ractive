@@ -1,7 +1,7 @@
 /* eslint-env node */
 /* eslint object-shorthand:0 */
 
-const base = require('./karma.base.conf');
+const base = require('./base.conf');
 
 const customLaunchers = {
 	sl_chrome: {
@@ -38,15 +38,15 @@ module.exports = function (config) {
 		browsers: Object.keys(customLaunchers),
 		reporters: base.reporters.concat(['saucelabs']),
 		files: [
-			'files/qunit-html.js',
-			'files/simulant.js',
-			'../polyfills.js',
-			'../ractive.js',
-			'browser.js',
-			{ pattern: 'files/*.gif', served: true, included: false, watched: false, nocache: false },
+			'qunit/qunit-html.js',
+			'qunit/simulant.js',
+			'polyfills.js',
+			'ractive.js',
+			'tests-browser.js',
+			{ pattern: 'qunit/*.gif', served: true, included: false, watched: false, nocache: false },
 		],
 		proxies: {
-			'/files/': '/base/files/'
+			'/qunit/': '/base/qunit/'
 		},
 		customLaunchers: customLaunchers,
 		sauceLabs: {

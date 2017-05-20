@@ -1,6 +1,6 @@
 /* eslint-env node */
 
-const base = require('./karma.base.conf');
+const base = require('./base.conf');
 
 module.exports = function (config) {
 	config.set(Object.assign({}, base, {
@@ -8,19 +8,19 @@ module.exports = function (config) {
 		browsers: ['Electron'],
 		reporters: base.reporters.concat(['coverage']),
 		coverageReporter: {
-			dir: '../coverage/',
+			dir: './coverage/',
 			reporters: [
 				{ type: 'html' },
 				{ type: 'json' },
 			]
 		},
 		preprocessors: {
-			'../ractive.js': ['coverage'],
-			'**/*.js': ['electron'],
+			'ractive.js': ['coverage'],
+			'*.js': ['electron'],
 		},
 		files: [
-			'../ractive.js',
-			'node.js'
+			'ractive.js',
+			'tests-node.js'
 		],
 		client: Object.assign({}, base.client, {
 			useIframe: false

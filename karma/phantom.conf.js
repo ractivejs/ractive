@@ -1,6 +1,6 @@
 /* eslint-env node */
 
-const base = require('./karma.base.conf');
+const base = require('./base.conf');
 
 module.exports = function (config) {
 	config.set(Object.assign({}, base, {
@@ -8,25 +8,25 @@ module.exports = function (config) {
 		browsers: ['PhantomJS'],
 		reporters: base.reporters.concat(['coverage']),
 		coverageReporter: {
-			dir: '../coverage/',
+			dir: './coverage/',
 			reporters: [
 				{ type: 'html' },
 				{ type: 'json' },
 			]
 		},
 		preprocessors: {
-			'../ractive.js': ['coverage']
+			'ractive.js': ['coverage']
 		},
 		files: [
-			'files/qunit-html.js',
-			'files/simulant.js',
-			'../polyfills.js',
-			'../ractive.js',
-			'browser.js',
-			{ pattern: 'files/*.gif', served: true, included: false, watched: false, nocache: false },
+			'qunit/qunit-html.js',
+			'qunit/simulant.js',
+			'polyfills.js',
+			'ractive.js',
+			'tests-browser.js',
+			{ pattern: 'qunit/*.gif', served: true, included: false, watched: false, nocache: false },
 		],
 		proxies: {
-			'/files/': '/base/files/'
+			'/qunit/': '/base/qunit/'
 		}
 	}));
 };
