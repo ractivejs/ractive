@@ -1,11 +1,10 @@
-import { svg } from '../../../src/config/environment';
 import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
 export default function() {
 	initModule( 'render/namespaceURI.js' );
 
-	if ( svg ) {
+	if ( Ractive.svg ) {
 		const html = 'http://www.w3.org/1999/xhtml';
 		const svg = 'http://www.w3.org/2000/svg';
 

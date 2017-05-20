@@ -42,7 +42,6 @@ module.exports = function (config) {
 			'files/simulant.js',
 			'../polyfills.js',
 			'../ractive.js',
-			'files/init.js',
 			'browser.js',
 			{ pattern: 'files/*.gif', served: true, included: false, watched: false, nocache: false },
 		],

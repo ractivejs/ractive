@@ -1,4 +1,3 @@
-import { svg } from '../../../src/config/environment';
 import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
@@ -7,7 +6,7 @@ import { test } from 'qunit';
 export default function() {
 	initModule( 'render/misc' );
 
-	if ( svg ) {
+	if ( Ractive.svg ) {
 		test( 'Style elements have content inserted that becomes .textContent gh #569', t => {
 			new Ractive({
 				el: fixture,

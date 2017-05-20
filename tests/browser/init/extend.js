@@ -149,7 +149,6 @@ export default function() {
 		t.equal( dThis, ractive );
 	});
 
-
 	test( '"parent" and "root" properties are correctly set', t => {
 		const GrandChild = Ractive.extend({
 			template: 'this space for rent'
@@ -322,5 +321,52 @@ export default function() {
 		t.throws( () => {
 			Ractive.extend( cmp );
 		}, /no longer supports multiple inheritance/ );
+	});
+
+	test('Default template', t => {
+		const Component = Ractive.extend({ template: '' });
+		const template = Component.prototype.template;
+
+		t.ok(template, 'on prototype');
+		t.ok(Object.prototype.toString.call(template), 'is an object');
+		t.ok(template.v, 'has a version');
+		t.ok(template.t, 'has a template');
+		t.strictEqual(template.t.length, 0, 'has no items');
+	});
+
+	test('Empty template', t => {
+		const Parent = Ractive.extend({ template: '' });
+		const Child = Parent.extend();
+		const template = Child.prototype.template;
+
+		t.ok(template, 'on prototype');
+		t.ok(Object.prototype.toString.call(template), 'is an object');
+		t.ok(template.v, 'has a version');
+		t.ok(template.t, 'has a template');
+		t.strictEqual(template.t.length, 0, 'has no items');
+	});
+
+	test('Non-empty template', t => {
+		const Parent = Ractive.extend({ template: '' });
+		const Child = Parent.extend({ template: '{{ foo }}' });
+		const template = Child.prototype.template;
+
+		t.deepEqual(template, { v: 4, t: [{ r: 'foo', t: 2 }] });
+	});
+
+	test('Multiple configuration', t => {
+		const Parent = Ractive.extend({ template: '' });
+		const Child = Parent.extend({ template: '{{ foo }}' }, { template: '{{ bar }}' });
+		const template = Child.prototype.template;
+
+		t.deepEqual(template, { v: 4, t: [{ r: 'bar', t: 2 }] });
+	});
+
+	test('Child parse options', t => {
+		const Parent = Ractive.extend({ template: '' });
+		const Child = Parent.extend({ template: '<#foo#>', delimiters: ['<#', '#>'] });
+		const template = Child.prototype.template;
+
+		t.deepEqual(template, { v: 4, t: [{ r: 'foo', t: 2 }] });
 	});
 }

@@ -1,4 +1,3 @@
-import { svg } from '../../../src/config/environment';
 import tests from '../../helpers/samples/render';
 import { onWarn, initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
@@ -11,7 +10,7 @@ export default function() {
 	}
 
 	tests.forEach( theTest => {
-		if ( !svg && theTest.svg ) return;
+		if ( !Ractive.svg && theTest.svg ) return;
 		if ( theTest.nodeOnly ) return;
 
 		test( theTest.name, t => {

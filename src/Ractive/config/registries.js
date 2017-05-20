@@ -10,6 +10,10 @@ const registryNames = [
 	'transitions'
 ];
 
+const registriesOnDefaults = [
+	'computed'
+];
+
 class Registry {
 	constructor ( name, useDefaults ) {
 		this.name = name;
@@ -17,10 +21,9 @@ class Registry {
 	}
 
 	extend ( Parent, proto, options ) {
-		this.configure(
-			this.useDefaults ? Parent.defaults : Parent,
-			this.useDefaults ? proto : proto.constructor,
-			options );
+		const parent = this.useDefaults ? Parent.defaults : Parent;
+		const target = this.useDefaults ? proto : proto.constructor;
+		this.configure( parent, target, options );
 	}
 
 	init () {
@@ -61,6 +64,9 @@ class Registry {
 	}
 }
 
-const registries = registryNames.map( name => new Registry( name, name === 'computed' ) );
+const registries = registryNames.map( name => {
+	const putInDefaults = registriesOnDefaults.indexOf(name) > -1;
+	return new Registry( name, putInDefaults );
+});
 
 export default registries;

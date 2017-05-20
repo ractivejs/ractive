@@ -1,7 +1,3 @@
-import defaults from '../../../src/Ractive/config/defaults';
-import config from '../../../src/Ractive/config/config';
-import registries from '../../../src/Ractive/config/registries';
-import { findInViewHierarchy } from '../../../src/shared/registry';
 import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
@@ -9,40 +5,108 @@ export default function() {
 	initModule( 'init/config.js' );
 
 	test( 'Ractive.defaults', t => {
-		t.equal( Ractive.defaults, Ractive.prototype, 'defaults aliases prototype' );
+		const expectedDefaults = [
+			'el',
+			'append',
+			'delegate',
+			'template',
+			'delimiters',
+			'tripleDelimiters',
+			'staticDelimiters',
+			'staticTripleDelimiters',
+			'csp',
+			'interpolate',
+			'preserveWhitespace',
+			'sanitize',
+			'stripComments',
+			'contextLines',
+			'parserTransforms',
+			'data',
+			'computed',
+			'syncComputedChildren',
+			'resolveInstanceMembers',
+			'warnAboutAmbiguity',
+			'adapt',
+			'isolated',
+			'twoway',
+			'lazy',
+			'noIntro',
+			'noOutro',
+			'transitionsEnabled',
+			'complete',
+			'nestedTransitions',
+			'css',
+			'noCssTransform'
+		];
 
-		for( const key in defaults ) {
-			t.ok( Ractive.defaults.hasOwnProperty( key ), 'has default ' + key );
-		}
+		const actualDefaults = expectedDefaults.filter(key => Ractive.defaults.hasOwnProperty(key));
+
+		t.strictEqual( Ractive.defaults, Ractive.prototype, 'defaults aliases prototype' );
+		t.deepEqual(actualDefaults, expectedDefaults, 'defaults contain expected keys');
 	});
 
-	test( 'instance has config options', t => {
+	test('instance has config options', t => {
 		const ractive = new Ractive();
-		const registryNames = registries.map( r => r.name );
 
-		config.order.forEach( itemConfig => {
-			const name = itemConfig.name || itemConfig;
+		const expectedConfig = [
+			'append',
+			'complete',
+			'computed',
+			'contextLines',
+			'csp',
+			'delegate',
+			'delimiters',
+			'el',
+			'interpolate',
+			'isolated',
+			'lazy',
+			'nestedTransitions',
+			'noCssTransform',
+			'noIntro',
+			'noOutro',
+			'parserTransforms',
+			'preserveWhitespace',
+			'resolveInstanceMembers',
+			'sanitize',
+			'staticDelimiters',
+			'staticTripleDelimiters',
+			'stripComments',
+			'syncComputedChildren',
+			'transitionsEnabled',
+			'tripleDelimiters',
+			'twoway',
+			'warnAboutAmbiguity'
+		];
 
-			if ( name in Ractive.prototype ) {
-				t.ok( name in ractive, 'has ' + name);
-			}
+		const expectedInstanceRegistries = [
+			'adaptors',
+			'components',
+			'decorators',
+			'easing',
+			'events',
+			'interpolators',
+			'partials',
+			'transitions'
+		];
 
-			if ( !~registryNames.indexOf( name ) && !/^(template|data)$/.test( name ) ) { // TODO template is a special case... this should probably be handled differently
-				t.deepEqual( ractive[ name ], Ractive.prototype[ name ], 'compare ' + name );
-			}
+		const expectedPrototypeRegistries = [
+			'computed'
+		];
+
+		expectedInstanceRegistries.forEach(registry => {
+			t.ok(ractive.hasOwnProperty(registry), `Instance has ${registry} registry`);
 		});
-	});
 
-	test( 'find registry in hierarchy', t => {
-		const adaptor1 = {};
-		const adaptor2 = {};
-		const parent = new Ractive( { adaptors: { foo: adaptor1 } } );
-		const ractive = new Ractive( { adaptors: { bar: adaptor2 }, isolated: false } );
+		expectedPrototypeRegistries.forEach(registry => {
+			t.ok(registry in ractive, `Instance has ${registry} registry`);
+			t.deepEqual(ractive[registry], Ractive.prototype[registry], `Instance has ${registry} registry on prototype`);
+		});
 
-		ractive.parent = parent;
+		expectedConfig.forEach(config => {
+			t.ok(config in ractive, `Instance has ${config} config`);
+			t.deepEqual(ractive[config], Ractive.prototype[config], `Instance has ${config} config on prototype`);
+		});
 
-		t.equal( findInViewHierarchy( 'adaptors', ractive, 'foo' ), adaptor1 );
-		t.equal( findInViewHierarchy( 'adaptors', ractive, 'bar' ), adaptor2 );
 	});
 
 	test( 'non-configurations options are added to instance', t => {

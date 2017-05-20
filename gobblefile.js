@@ -5,7 +5,6 @@ const path = require('path');
 
 const fsPlus = require('fs-plus');
 const gobble = require('gobble');
-const sander = gobble.sander;
 const buble = require('buble');
 const rollupLib = require('rollup');
 
@@ -26,9 +25,8 @@ const placeholders = {
 };
 
 const src = gobble('src').moveTo('src').transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
-const tests = gobble('tests').include(['helpers/**/*', 'browser/**/*', 'node/**/*']).moveTo('tests').transform(transpile, { accept: ['.js'] });
-const browserTests = gobble([src, tests.include(['tests/helpers/**/*', 'tests/browser/**/*'])]);
-const nodeTests = gobble([src, tests.include(['tests/helpers/**/*', 'tests/node/**/*'])]);
+const browserTests = gobble('tests').include(['helpers/**/*', 'browser/**/*']).moveTo('tests').transform(transpile, { accept: ['.js'] });
+const nodeTests = gobble('tests').include(['helpers/**/*', 'node/**/*']).moveTo('tests').transform(transpile, { accept: ['.js'] });
 const manifest = gobble('templates/manifests').transform(replacePlaceholders);
 const qunit = gobble('templates/qunit').moveTo('tests');
 const bin = gobble('bin').moveTo('bin');
@@ -175,6 +173,7 @@ function skipModule(excludedModules) {
 /* Gobble transforms */
 
 // Essentially gobble-buble but takes out the middleman.
+// eslint-disable-next-line no-unused-vars
 function transpile(src, options) {
 	return buble.transform(src, {
 		target: { ie: 9 },
@@ -195,6 +194,7 @@ function buildTestEntryPoint(inDir, outDir, options) {
 
 // Looks for placeholders in the code and replaces them.
 // TODO: Must return sourcemap
+// eslint-disable-next-line no-unused-vars
 function replacePlaceholders(src, options) {
 	return Object.keys(placeholders).reduce((out, placeholder) => {
 		return out.replace(new RegExp(`${placeholder}`, 'g'), placeholders[placeholder]);
@@ -216,7 +216,5 @@ function rollup(indir, outdir, options) {
 	options.dest = path.resolve(outdir, options.dest || options.entry);
 	options.entry = path.resolve(indir, options.entry);
 
-	return rollupLib.rollup(options).then(function (bundle) {
-		return bundle.write(options);
-	});
+	return rollupLib.rollup(options).then(bundle => bundle.write(options));
 }
