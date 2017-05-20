@@ -695,4 +695,30 @@ export default function() {
 
 		t.strictEqual( n, r.getContext( 'div' ).node );
 	});
+
+	test( `raise should forward the return from fire`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `<div on-check="false, false" />`
+		});
+
+		const ctx = r.getContext( 'div' );
+
+		t.equal( ctx.raise( 'check' ), false );
+	});
+
+	test( `raise should provide an 'original' property if one is not supplied to avoid warning about missing event objects`, t => {
+		t.expect( 0 );
+
+		onWarn( () => t.ok( false, 'should not warn' ) );
+
+		const r = new Ractive({
+			target: fixture,
+			template: `<div on-check="false, false" />`
+		});
+
+		const ctx = r.getContext( 'div' );
+
+		ctx.raise( 'check' );
+	});
 }

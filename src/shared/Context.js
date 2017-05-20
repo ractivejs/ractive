@@ -117,8 +117,10 @@ export default class Context {
 			for ( let i = 0; i < events.length; i++ ) {
 				const ev = events[i];
 				if ( ~ev.template.n.indexOf( name ) ) {
-					ev.fire( ev.element.getContext( event ), args );
-					return;
+					const ctx = !event || !( 'original' in event ) ?
+						ev.element.getContext( event || {}, { original: {} } ) :
+						ev.element.getContext( event || {} );
+					return ev.fire( ctx, args );
 				}
 			}
 
