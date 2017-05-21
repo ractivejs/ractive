@@ -16,7 +16,7 @@ module.exports = function (config) {
 		},
 		preprocessors: {
 			'ractive.js': ['coverage'],
-			'*.js': ['electron'],
+			'tests-node.js': ['electron'],
 		},
 		files: [
 			'ractive.js',
