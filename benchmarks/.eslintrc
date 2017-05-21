@@ -1,0 +1,10 @@
+{
+	"env": {
+		"browser": true
+	},
+	"globals": {
+		"suite": true,
+		"benchmark": true,
+		"Ractive": true
+	}
+}
