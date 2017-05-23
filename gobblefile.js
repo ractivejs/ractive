@@ -109,7 +109,7 @@ function buildBrowserTests() {
 		browserTests,
 		browserTests.transform(buildTestEntryPoint, { dir: 'browser' })
 	])
-		.transform('hardlink')
+		.transform(copy)
 		.transform(rollup, {
 			moduleName: 'RactiveBrowserTests',
 			format: 'iife',
@@ -131,7 +131,7 @@ function buildNodeTests() {
 		nodeTests,
 		nodeTests.transform(buildTestEntryPoint, { dir: 'node' })
 	])
-		.transform('hardlink')
+		.transform(copy)
 		.transform(rollup, {
 			format: 'cjs',
 			entry: 'index.js',
@@ -213,6 +213,15 @@ function replacePlaceholders(src, options) {
 	return Object.keys(placeholders).reduce((out, placeholder) => {
 		return out.replace(new RegExp(`${placeholder}`, 'g'), placeholders[placeholder]);
 	}, src);
+}
+
+// This is because Gobble's grab and Rollup's resolution is broken
+// https://github.com/gobblejs/gobble/issues/89
+// https://github.com/rollup/rollup/issues/1291
+function copy(inputdir, outputdir, options) {
+	const _options = Object.assign({ dir: '.' }, options);
+	fsPlus.copySync(path.join(inputdir, _options.dir), outputdir);
+	return Promise.resolve();
 }
 
 function rollup(indir, outdir, options) {

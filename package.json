@@ -16,7 +16,6 @@
     "fs-plus": "^2.9.3",
     "gobble": "^0.12.0",
     "gobble-cli": "^0.8.0",
-    "gobble-hardlink": "^0.2.0",
     "gobble-uglifyjs": "^0.2.1",
     "istanbul": "^0.4.5",
     "karma": "^1.4.0",
