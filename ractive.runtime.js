@@ -1,6 +1,6 @@
 /*
-	Ractive.js v0.8.12
-	Thu Mar 16 2017 17:26:29 GMT+0000 (UTC) - commit af463e0d2dff780e82e7c2a1ea218c7350d57bd6
+	Ractive.js v0.8.14
+	Tue May 23 2017 18:45:38 GMT+0000 (UTC) - commit 9cf380262b870f4fd676e2fd42accf8be9a22c5b
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -428,13 +428,13 @@
 	var welcome;
 	if ( hasConsole ) {
 		var welcomeIntro = [
-			("%cRactive.js %c0.8.12 %cin debug mode, %cmore..."),
+			("%cRactive.js %c0.8.14 %cin debug mode, %cmore..."),
 			'color: rgb(114, 157, 52); font-weight: normal;',
 			'color: rgb(85, 85, 85); font-weight: normal;',
 			'color: rgb(85, 85, 85); font-weight: normal;',
 			'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 		];
-		var welcomeMessage = "You're running Ractive 0.8.12 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+		var welcomeMessage = "You're running Ractive 0.8.14 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
 		welcome = function () {
 			if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -1356,10 +1356,12 @@
 		return key;
 	}
 
+	var fnBind = Function.prototype.bind;
+
 	function bind ( fn, context ) {
 		if ( !/this/.test( fn.toString() ) ) return fn;
 
-		var bound = fn.bind( context );
+		var bound = fnBind.call( fn, context );
 		for ( var prop in fn ) bound[ prop ] = fn[ prop ];
 
 		return bound;
@@ -1912,7 +1914,7 @@
 		subscribers = subscribers.slice();
 
 		for ( var i = 0, len = subscribers.length; i < len; i += 1 ) {
-			if ( !subscribers[ i ].off && subscribers[ i ].apply( ractive, args ) === false ) {
+			if ( !subscribers[ i ].off && subscribers[ i ].callback.apply( ractive, args ) === false ) {
 				stopEvent = true;
 			}
 		}
@@ -2066,6 +2068,7 @@
 	function handleChange       ( x ) { x.handleChange(); }
 	function mark               ( x ) { x.mark(); }
 	function marked             ( x ) { x.marked(); }
+	function markedAll          ( x ) { x.markedAll(); }
 	function notifiedUpstream   ( x ) { x.notifiedUpstream(); }
 	function render             ( x ) { x.render(); }
 	function teardown           ( x ) { x.teardown(); }
@@ -2669,6 +2672,11 @@
 			this.clearUnresolveds();
 		};
 
+		LinkModel.prototype.markedAll = function markedAll$1 () {
+			this.children.forEach( markedAll );
+			this.marked();
+		};
+
 		LinkModel.prototype.notifiedUpstream = function notifiedUpstream$1 () {
 			this.links.forEach( notifiedUpstream );
 			this.deps.forEach( handleChange );
@@ -2776,7 +2784,7 @@
 		var unresolved = !this._link;
 		this._link = lnk;
 		if ( unresolved ) this.parent.clearUnresolveds();
-		lnk.marked();
+		lnk.markedAll();
 		return lnk;
 	};
 
@@ -4513,10 +4521,12 @@
 					if ( callback ) {
 						// flag this callback as off so that any in-flight firings don't call
 						// a cancelled handler - this is _slightly_ hacky
-						callback.off = true;
-						var index = subscribers.indexOf( callback );
-						if ( index !== -1 ) {
-							subscribers.splice( index, 1 );
+						var i = subscribers.length;
+						while ( i-- ) {
+							if ( subscribers[i].callback === callback ) {
+								subscribers[i].off = true;
+								subscribers.splice( i, 1 );
+							}
 						}
 					}
 
@@ -4546,10 +4556,7 @@
 			}
 
 			return {
-				cancel: function () {
-					var listener;
-					while ( listener = listeners.pop() ) listener.cancel();
-				}
+				cancel: function () { listeners.forEach( function ( l ) { return l.cancel(); } ); }
 			};
 		}
 
@@ -4557,11 +4564,11 @@
 		var eventNames = eventName.split( ' ' ).map( trim ).filter( notEmptyString );
 
 		eventNames.forEach( function ( eventName ) {
-			( this$1._subs[ eventName ] || ( this$1._subs[ eventName ] = [] ) ).push( callback );
+			( this$1._subs[ eventName ] || ( this$1._subs[ eventName ] = [] ) ).push( { callback: callback } );
 		});
 
 		return {
-			cancel: function () { return this$1.off( eventName, callback ); }
+			cancel: function () { return eventNames.forEach( function ( n ) { return this$1.off( n, callback ); } ); }
 		};
 	}
 
@@ -6525,7 +6532,7 @@
 			var value = this.getValue();
 
 			this.node.value = this.node._ractive.value = value;
-			this.node.setAttribute( 'value', value );
+			this.node.setAttribute( 'value', safeToStringValue( value ) );
 		}
 	}
 
@@ -6612,13 +6619,22 @@
 
 	function updateClassName ( reset ) {
 		var value = reset ? [] : readClass( safeToStringValue( this.getValue() ) );
-		var attr = readClass( this.node.className );
+
+		// watch for weirdo svg elements
+		var cls = this.node.className;
+		cls = cls.baseVal !== undefined ? cls.baseVal : cls;
+
+		var attr = readClass( cls );
 		var prev = this.previous || attr.slice( 0 );
 
 		var className = value.concat( attr.filter( function ( c ) { return !~prev.indexOf( c ); } ) ).join( ' ' );
 
-		if ( className !== this.node.className ) {
-			this.node.className = className;
+		if ( className !== cls ) {
+			if ( typeof this.node.className !== 'string' ) {
+				this.node.className.baseVal = className;
+			} else {
+				this.node.className = className;
+			}
 		}
 
 		this.previous = value;
@@ -6626,7 +6642,12 @@
 
 	function updateInlineClass ( reset ) {
 		var name = this.name.substr( 6 );
-		var attr = readClass( this.node.className );
+
+		// watch for weirdo svg elements
+		var cls = this.node.className;
+		cls = cls.baseVal !== undefined ? cls.baseVal : cls;
+
+		var attr = readClass( cls );
 		var value = reset ? false : this.getValue();
 
 		if ( !this.inlineClass ) this.inlineClass = name;
@@ -6634,7 +6655,11 @@
 		if ( value && !~attr.indexOf( name ) ) attr.push( name );
 		else if ( !value && ~attr.indexOf( name ) ) attr.splice( attr.indexOf( name ), 1 );
 
-		this.node.className = attr.join( ' ' );
+		if ( typeof this.node.className !== 'string' ) {
+			this.node.className.baseVal = attr.join( ' ' );
+		} else {
+			this.node.className = attr.join( ' ' );
+		}
 	}
 
 	function updateBoolean ( reset ) {
@@ -9320,7 +9345,7 @@
 		this.bound = true;
 	};
 
-	BindingGroup.prototype.remove = function remove ( binding ) {
+		BindingGroup.prototype.remove = function remove ( binding ) {
 		removeFromArray( this.bindings, binding );
 		if ( !this.bindings.length ) {
 			this.unbind();
@@ -9332,6 +9357,8 @@
 		this.bound = false;
 		delete this.model[this.hash];
 	};
+
+	BindingGroup.prototype.rebinding = Binding.prototype.rebinding;
 
 	var push$2 = [].push;
 
@@ -9847,7 +9874,8 @@
 
 			// update name keypath when necessary
 			this.nameAttributeBinding = {
-				handleChange: function () { return this$1.node.name = "{{" + (this$1.model.getKeypath()) + "}}"; }
+				handleChange: function () { return this$1.node.name = "{{" + (this$1.model.getKeypath()) + "}}"; },
+				rebinding: noop
 			};
 
 			this.model.getKeypathModel().register( this.nameAttributeBinding );
@@ -12032,7 +12060,7 @@
 				removed[ oldIndex ] = fragment;
 			} else if ( fragment.index !== newIndex ) {
 				var model = this$1.context.joinKey( newIndex );
-				fragment.index = newIndex;
+				fragment.index = fragment.key = newIndex;
 				fragment.context = model;
 				if ( this$1.owner.template.z ) {
 					fragment.aliases = {};
@@ -12397,8 +12425,11 @@
 		};
 
 		Select.prototype.update = function update () {
+			var dirty = this.dirty;
 			Element.prototype.update.call(this);
-			this.sync();
+			if ( dirty ) {
+				this.sync();
+			}
 		};
 
 		return Select;
@@ -14473,7 +14504,7 @@
 		magic:          { value: magicSupported },
 
 		// version
-		VERSION:        { value: '0.8.12' },
+		VERSION:        { value: '0.8.14' },
 
 		// plugins
 		adaptors:       { writable: true, value: {} },
