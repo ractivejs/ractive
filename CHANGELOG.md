@@ -1,5 +1,18 @@
 # changelog
 
+# 0.8.13
+
+* Bug fixes
+	* Bound functions always use `Function.prototype.bind` in case the function has an overridden `bind` (#2915)
+	* The same handler can now be safely added and removed from an event while the event is firing (#2922)
+	* Linking will now fully invalidate any downstream keypaths (#2924)
+	* Name-bound radio button groups will now shuffle correctly (#2939)
+	* `getNodeInfo` objects linked to a shuffled fragment have their keypaths updated correctly (#2941)
+	* Bound attributes now use an appropriate stringified value when updating their element attribute (#2944)
+	* Class directives now work correctly with SVG elements (#2955)
+	* Selects that are not dirty will no longer update erroneously and subsequently reset their value (#2965)
+
+
 # 0.8.12
 
 * Bug fixes
