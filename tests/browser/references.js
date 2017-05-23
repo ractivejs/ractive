@@ -448,4 +448,16 @@ export default function() {
 		t.ok( info.get( '@local.foo' ) === ctx.get( '@local.foo' ) );
 		t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
 	});
+
+	test( `reference expression children work if the parent is never directly accessed`, t => {
+		new Ractive({
+			target: fixture,
+			template: `{{#with foo['bar'] as baz}}{{baz.bat.bop}}{{/with}}`,
+			data: {
+				foo: { bar: { bat: { bop: 42 } } }
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '42' );
+	});
 }

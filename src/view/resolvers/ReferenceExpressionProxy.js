@@ -33,6 +33,11 @@ class ReferenceExpressionChild extends Model {
 		}
 	}
 
+	get ( shouldCapture, opts ) {
+		this.value = this.retrieve();
+		return super.get( shouldCapture, opts );
+	}
+
 	joinKey ( key ) {
 		if ( key === undefined || key === '' ) return this;
 
