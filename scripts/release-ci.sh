@@ -32,19 +32,12 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 
 	# is this a major branch, not an edge build, and not published?
 	if [ "$MAJOR" = "0" -a "$EDGE" = "1" -a "$PUBLISHED" = "0" ]; then
-		echo 'publishing as stable to npm...'
-
-		( cd .build
-			npm publish
-			npm dist-tag add ractive@$TARGET $TAG
-		)
-
 		echo 'updating tags...'
 
-		git config --global user.email "richard.a.harris+travis@gmail.com"
+		git config --global user.email "evschris+travis@gmail.com"
 		git config --global user.name "Travis-CI"
 		rm -rf release-branch
-		git clone https://Rich-Harris:${GH_TOKEN}@${GH_REF} -b release --depth 2 release-branch
+		git clone https://evs-chris:${GH_TOKEN}@${GH_REF} -b release --depth 2 release-branch
 
 		rm -r release-branch/*
 		cp -r .build/* release-branch
@@ -52,7 +45,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 		( cd release-branch
 			echo "Setting credentials..."
 			git remote rm origin
-			git remote add origin https://Rich-Harris:${GH_TOKEN}@${GH_REF}
+			git remote add origin https://evs-chris:${GH_TOKEN}@${GH_REF}
 
 			echo "Adding files..."
 			git add -A
@@ -67,6 +60,13 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 		)
 
 		rm -rf release-branch
+
+		echo 'publishing as stable to npm...'
+
+		( cd .build
+			npm publish
+			npm dist-tag add ractive@$TARGET $TAG
+		)
 
 		echo 'stable release complete'
 	fi
