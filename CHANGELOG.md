@@ -44,7 +44,7 @@
 	* Ships with a separate, minimal polyfill file containing only the above APIs for older browsers.
 	* `ractive.nodes` no longer contains elements by id. The same functionality can be handled more safely and conveniently with a decorator.
 	* HTML elements are now exclusively created with a lowercase name.
-	* Keypath expressions are no longer supported, as they are largely redundant with `getNodeInfo` functionality. (`@keypath(../some.ref)` is no longer a valid reference)
+	* Keypath expressions are no longer supported, as they are largely redundant with `getContext` functionality. (`@keypath(../some.ref)` is no longer a valid reference)
 	* Unresolved references will now resolve to the immediate context rather than registering with every available context to be resolved when one of the contexts grows a matching base key.
 	* Event directives within iterative sections will automatically use delegation (see below).
 	* The undocumented `observeList` function has been moved to an option of `observe` (see below).
@@ -58,13 +58,15 @@
 	* You can no longer create a component using another component as the options argument to `extend` e.g. `MyComponent.extend(OtherComponent)`. You can still extend a component with one or more options objects e.g. `MyComponent.extend({ ...options }, { ...other }).extend({ ...more })`.
 	* `class-` directives are now parsed in an expression context, meaning that mustaches are no longer required. This normalizes templates into two categories: stringy things that require mustaches, and value things that don't. The `style-` directive remains in the stringy category.
 	* The **magic** and **array** adaptors have been removed from core, though they may reappear as plugins.
+	* `getNodeInfo` has been renamed to `getContext`. The old name is deprecated and will be removed in a future release.
+	* Non-`isolated` components may now implicitly map during `set` operations. You can achieve the previous behavior by passing `isolated: true` as an option.
 
 * New features (experimental - feedback welcome!)
 	* You can now create cross-instance links by passing an options object with a target instance e.g. `this.link('source.path', 'dest.path', { ractive: sourceInstance })`. This covers many of the cases handled by the `ractive-ractive` adaptor in a considerably more efficient manner.
 	* There is now an API to manage embedding external instances i.e. out-of-template components. You can use `ractive.attachChild(otherRactive, { options })` and `ractive.detachChild(otherRactive)` to create a component relationship between two instances. There is a new anchor construct `<#anchorName />` that behaves mostly like a regular inline component except that it won't create its own Ractive instance. You can target an anchor when attaching a child by giving an anchor name as an option e.g. `ractive.attachChild(otherRactive, { target: 'anchorName' })`. Attached children need not be components, so you can attach a plain Ractive instance e.g. `const foo = new Ractive({ ... }); ractive.attachChild(foo);`.
 	* `{{yield}}` can now be used with any partial, not just inlines, and it may also use an expression to look up the target partial. It basically behaves as a regular partial with a special context.
 		* `{{yield}}` can also specify aliases, so that yielding is useful inside an iterative section. `{{yield partialName with foo as bar}}` and `{{yield with foo as bar}}` will make `foo` from the component context available to the `partialName` partial as `bar`.
-	* You can specify that child keypaths of computations should trigger updates on the computation's dependencies, which _should_ have the effect of keeping the models involved in the computation in sync with changes to the computed models. The flag to enable this behavior at instance creation is `syncComputedChildren: true`. With that flag set, children of computations are available for two-way binding and mutation from event or `getNodeInfo` objects using relative keypaths.
+	* You can specify that child keypaths of computations should trigger updates on the computation's dependencies, which _should_ have the effect of keeping the models involved in the computation in sync with changes to the computed models. The flag to enable this behavior at instance creation is `syncComputedChildren: true`. With that flag set, children of computations are available for two-way binding and mutation from event or `getContext` objects using relative keypaths.
 	* `@.foo` has been introduced as shorthand for `@this.foo`. This mirrors the data shorthand `.foo` for `this.foo`.
 	* You can now pop contexts using `^^/` in the same way that you can pop keypaths with `../`.
 	* Special keypaths that resolve to Ractive instances now resolve using the proper model rather than a computation, so they now stay in sync.
@@ -72,8 +74,8 @@
 	* There is a new Ractive-private shared store, `@shared`. This is roughly the same as `@global`, but it is not susceptible to interference from the global scope.
 	* There is a new option, `resolveInstanceMembers`, which defaults to `true`, and when enabled, it adds the instance scope `@this` to the end of the reference resolution process. This means that as long as there are no conflicting members in the context hierarchy, things like `<button on-click="set('foo', 'bar')">yep</button>` work as expected. Note that if the resolved function will only be bound to the instance if it contains a `this` reference, which can be a little strange if you're debugging.
 	* There is a new option, `warnAboutAmbiguity`, which defaults to `false`, and when set, it will issue a warning any time a reference fails to resolve to a member in the immediate context.
-	* API methods can now handle things like `ractive.set('~/foo', 'bar')`, mirroring how context methods for `getNodeInfo` and `event`s are handled. Things like `ractive.set('.foo', 'bar')` will now issue a warning and do nothing rather than creating an incorrect keypath (`<empty string>.foo`).
-	* You can now trigger event listeners in the VDOM from event and node info objects e.g. with `<div on-foo="@global.alert('hello')" >` with `ractive.getNodeInfo('div').raise('foo');` will trigger an alert.
+	* API methods can now handle things like `ractive.set('~/foo', 'bar')`, mirroring how context methods for `getContext` and `event`s are handled. Things like `ractive.set('.foo', 'bar')` will now issue a warning and do nothing rather than creating an incorrect keypath (`<empty string>.foo`).
+	* You can now trigger event listeners in the VDOM from event and node info objects e.g. with `<div on-foo="@global.alert('hello')" >` with `ractive.getContext('div').raise('foo');` will trigger an alert.
 	* There are two new options available for subscribing events and observers when an instance is created using two new options.
 		* `on` takes a hash of event listeners that will be subscribed just after the `construct` phase of instantiation, meaning that any lifecycle events after `construct` may also have listeners added in the event hash.
 		* `observe` takes a hash of observers that will be subscribed just after the `config` phase of instantiation.
@@ -107,6 +109,7 @@
 	* You can now re-proxy an event from an event directive expression by returning a single array with a `string` first element e.g. `<button on-click="['foo', arg1, arg2]">`, which is the equivalent of `@this.fire('foo', @context, arg1, arg2)`.
 	* You can now use an existing class, be it ES5, ES6, or any other conforming implementation, using `Ractive.extendWith( MyClass, { ...extendOpts } )`. This allows `class Foo { constructor( opts ) { super( opts ); /* other init */ }, someMethod () { ... }, ... }` to be turned into a Ractive component.
 	* To complete the split of template handling in to stringy mustaches and non-stringy expression values, the `bind-` directive has been introduced to bind an attribute value without mustaches e.g. `<input value="{{foo}}" />` is the same as `<input bind-value="foo" />`. This can be used with components to create mappings to same-named values in the current context e.g. `<component bind-item />`.
+	* There is now a post-parsing hook available in the form of parser transforms, which are simply functions that receive a template element node and return a falsey value, telling the parser to do nothing, an object with a `remove` boolean, telling the parser to remove the node, or an object with a `replace` key, telling the parser to replace the node with the given content. Any expressions injected by parser transforms also participate in the CSP adjustment process. There is also a special reference `@local`, which only exists directly within a given context that is intended for use by parser transforms that need minor private state management.
 
 * New features (stable)
 	* `target` is now an alias for `el` when creating a Ractive instance.
@@ -125,7 +128,7 @@
 	* You can specify `{ force: true }` to `ractive.update` to force the target keypath to update event if internal checks determine that the value has not changed. This is useful for causing re-evaluation of all references to a function.
 
 
-# 0.8.13
+# 0.8.14
 
 * Bug fixes
 	* Bound functions always use `Function.prototype.bind` in case the function has an overridden `bind` (#2915)
@@ -137,6 +140,10 @@
 	* Class directives now work correctly with SVG elements (#2955)
 	* Selects that are not dirty will no longer update erroneously and subsequently reset their value (#2965)
 
+
+# 0.8.13
+
+Same as 0.8.14, but automated deployment had some issues.
 
 # 0.8.12
 
