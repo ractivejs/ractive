@@ -1,6 +1,6 @@
 # changelog
 
-# 0.8.13
+# 0.8.14
 
 * Bug fixes
 	* Bound functions always use `Function.prototype.bind` in case the function has an overridden `bind` (#2915)
@@ -12,6 +12,10 @@
 	* Class directives now work correctly with SVG elements (#2955)
 	* Selects that are not dirty will no longer update erroneously and subsequently reset their value (#2965)
 
+
+# 0.8.13
+
+Same as 0.8.14, but automated deployment had some issues.
 
 # 0.8.12
 
