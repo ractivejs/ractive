@@ -1,6 +1,6 @@
 {
   "name": "ractive",
-  "version": "0.9.0-edge",
+  "version": "1.0.0-edge",
   "license": "MIT",
   "private": true,
   "engines": {
@@ -13,7 +13,7 @@
     "coveralls": "^2.12.0",
     "electron": "^1.4.15",
     "eslint": "^3.14.0",
-    "fs-plus": "^2.9.3",
+    "fs-plus": "^3.0.0",
     "gobble": "^0.12.0",
     "gobble-cli": "^0.8.0",
     "gobble-uglifyjs": "^0.2.1",
@@ -25,7 +25,7 @@
     "karma-phantomjs-launcher": "^1.0.2",
     "karma-qunit": "^1.2.1",
     "karma-sauce-launcher": "^1.1.0",
-    "magic-string": "^0.19.0",
+    "magic-string": "^0.21.0",
     "phantomjs-prebuilt": "^2.1.14",
     "qunitjs": "^2.1.1",
     "rollup": "^0.41.0"

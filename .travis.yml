@@ -25,6 +25,7 @@ script: |
 branches:
   only:
   - 0.8
+  - 0.9
   - dev
 env:
   global:

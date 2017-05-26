@@ -1,6 +1,6 @@
 # changelog
 
-# 0.9.0 (alpha)
+# 0.9.0
 
 * Bug fixes
 	* Observers on uninitialized data may be added during the `config` event (#2725)
