@@ -11,6 +11,7 @@
 
 * Breaking changes
 	* All deprecations have been removed, including proxy events with args, un-prefixed method events, decorator="...", transition="...", the ractive.data getter, partial comment definitions, and lifecycle methods like `init` and `beforeInit`.
+	* With deprecations removed, directive values are now parsed with the plain expression parser, which doesn't automatically encode HTML entities in string literals.
 	* The template spec is now a bit simpler after the removal of deprecations, and **templates parsed with previous versions of Ractive are no longer compatible**.
 	* Partial context (`{{>foo thisIsTheContext}}`) now only applies inside the partial template, meaning it is no longer equivalent to `{{#with thisIsTheContext}}{{>foo}}{{/with}}`. The with is wrapped around the content of `foo`, so that the context doesn't interfere with the partial expression.
 	* Any partial may be yielded, so yielding non-inline partials will no longer warn.
