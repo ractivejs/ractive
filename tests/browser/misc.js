@@ -1816,4 +1816,12 @@ export default function() {
 
 		t.equal( r.toHTML(), '<b>&amp; &lt;</b>' );
 	});
+
+	test( `el is aliased as target on the instance mirroring the init param`, t => {
+		const r = new Ractive({
+			el: fixture
+		});
+
+		t.ok( r.el === fixture && r.target === fixture );
+	});
 }

@@ -44,7 +44,7 @@ import unshift from './prototype/unshift';
 import update from './prototype/update';
 import updateModel from './prototype/updateModel';
 
-export default {
+const proto = {
 	add,
 	animate,
 	attachChild,
@@ -94,3 +94,9 @@ export default {
 	update,
 	updateModel
 };
+
+Object.defineProperty( proto, 'target', {
+	get() { return this.el; }
+});
+
+export default proto;
