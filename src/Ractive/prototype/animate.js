@@ -5,8 +5,11 @@ import { splitKeypath } from '../../shared/keypaths';
 import easing from '../../Ractive/static/easing';
 import noop from '../../utils/noop';
 
-const noAnimation = Promise.resolve();
-Object.defineProperty( noAnimation, 'stop', { value: noop });
+function immediate ( value ) {
+	const result = Promise.resolve( value );
+	Object.defineProperty( result, 'stop', { value: noop });
+	return result;
+}
 
 const linear = easing.linear;
 
@@ -35,7 +38,7 @@ export function animate ( ractive, model, to, options ) {
 	// don't bother animating values that stay the same
 	if ( isEqual( from, to ) ) {
 		options.complete( options.to );
-		return noAnimation; // TODO should this have .then and .catch methods?
+		return immediate( to );
 	}
 
 	const interpolator = interpolate( from, to, ractive, options.interpolator );
@@ -46,7 +49,7 @@ export function animate ( ractive, model, to, options ) {
 		model.set( to );
 		runloop.end();
 
-		return noAnimation;
+		return immediate( to );
 	}
 
 	return model.animate( from, to, options, interpolator );

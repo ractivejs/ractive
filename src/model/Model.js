@@ -98,7 +98,7 @@ export default class Model extends ModelBase {
 				if ( options.complete ) options.complete( to );
 
 				this.ticker = null;
-				fulfilPromise();
+				fulfilPromise( to );
 			}
 		});
 

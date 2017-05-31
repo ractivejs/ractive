@@ -219,4 +219,23 @@ export default function() {
 
 		t.deepEqual( r.get( 'foo' ), [ 1, 2, 3 ] );
 	});
+
+	test( `animate promise resolves with the target value`, t => {
+		t.expect( 3 );
+		const done = t.async();
+
+		const r = new Ractive({
+			data: { num: 1 }
+		});
+
+		r.animate( 'num', 1 ).then( v => {
+			t.equal( v, 1 );
+			return r.animate( 'num', 10, { easing: 'frizzle' }).then( v => {
+				t.equal( v, 10 );
+				return r.animate( 'num', 1 ).then( v => {
+					t.equal( v, 1 );
+				});
+			});
+		}).then( done, done );
+	});
 }
