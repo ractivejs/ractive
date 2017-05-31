@@ -6,6 +6,7 @@ import proto from './Ractive/prototype';
 import { extend, extendWith } from './extend/_extend';
 import parse from './parse/_parse';
 import getContext, { getNodeInfo } from './Ractive/static/getContext';
+import isInstance from './Ractive/static/isInstance';
 import construct from './Ractive/construct';
 import initialise from './Ractive/initialise';
 import { getCSS } from './global/css';
@@ -55,6 +56,7 @@ Object.defineProperties( Ractive, {
 	escapeKey:        { value: escapeKey },
 	getContext:       { value: getContext },
 	getNodeInfo:      { value: getNodeInfo },
+	isInstance:       { value: isInstance },
 	joinKeys:         { value: joinKeys },
 	parse:            { value: parse },
 	splitKeypath:     { value: splitKeypath },
