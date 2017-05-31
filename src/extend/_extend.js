@@ -4,6 +4,7 @@ import dataConfigurator from '../Ractive/config/custom/data';
 import construct from '../Ractive/construct';
 import initialise from '../Ractive/initialise';
 import Ractive from '../Ractive';
+import isInstance from '../Ractive/static/isInstance';
 
 const callsSuper = /super\s\(|\.call\s*\(\s*this/;
 
@@ -60,7 +61,9 @@ function extendOne ( Parent, options = {}, Target ) {
 		extendClass: { value: extendWith, writable: true, configurable: true },
 
 		Parent: { value: Parent },
-		Ractive: { value: Ractive }
+		Ractive: { value: Ractive },
+
+		isInstance: { value: isInstance }
 	});
 
 	// extend configuration

@@ -382,4 +382,23 @@ export default function() {
 		t.ok( Child.Ractive === Ractive );
 		t.ok( Parent.Ractive === Parent.Parent && Parent.Parent === Ractive );
 	});
+
+	test( `isInstance returns true for instances of ractive or a component (#2914)`, t => {
+		const Parent = Ractive.extend();
+		const Child = Parent.extend();
+
+		const r1 = new Child();
+		const r2 = new Parent();
+		const r3 = {};
+
+		t.ok( Ractive.isInstance( r1 ) );
+		t.ok( Ractive.isInstance( r2 ) );
+		t.ok( !Ractive.isInstance( r3 ) );
+		t.ok( Parent.isInstance( r1 ) );
+		t.ok( Parent.isInstance( r2 ) );
+		t.ok( Child.isInstance( r1 ) );
+		t.ok( !Child.isInstance( r2 ) );
+		t.ok( Ractive.isInstance( Ractive() ) );
+		t.ok( !Parent.isInstance( new Ractive() ) );
+	});
 }
