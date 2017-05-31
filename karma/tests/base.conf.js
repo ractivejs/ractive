@@ -1,11 +1,11 @@
 /* eslint-env node */
 
 module.exports = {
-	basePath: '../.build',
+	basePath: '../../.build',
 	plugins: ['karma-qunit', 'karma-failed-reporter'],
 	frameworks: ['qunit'],
 	reporters: ['failed'],
-	customContextFile: '../karma/context.html',
+	customContextFile: '../karma/tests/context.html',
 	client: {
 		captureConsole: false,
 		qunit: {

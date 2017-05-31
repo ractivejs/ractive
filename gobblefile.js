@@ -25,9 +25,12 @@ const placeholders = { BUILD_PLACEHOLDER_VERSION: version };
 
 const src = gobble('src').transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
 const polyfills = src.include(['polyfills.js']);
+
 const tests = gobble('tests').transform(transpile, { accept: ['.js'] });
 const browserTests = tests.include(['helpers/**/*', 'browser/**/*']);
 const nodeTests = tests.include(['helpers/**/*', 'node/**/*']);
+
+const benchmarks = gobble('benchmarks').transform(transpile, { accept: ['.js'] }).moveTo('benchmarks');
 
 const qunit = gobble('qunit').moveTo('qunit');
 const typings = gobble('typings').moveTo('typings');
@@ -51,6 +54,10 @@ module.exports = ({
 		const nodeTests = buildNodeTests();
 		const polyfills = buildUmdPolyfill();
 		return gobble([lib, polyfills, qunit, browserTests, nodeTests]);
+	},
+	'bundle:benchmark'(){
+		const lib = buildUmdLib('ractive.js', []);
+		return gobble([lib, polyfills, benchmarks]);
 	},
 	'bundle:release'() {
 		const libEsFull = buildESLib('ractive.mjs', []);

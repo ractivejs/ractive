@@ -1,9 +1,20 @@
-/*global Ractive */
-var tests = [
-	{
-		name: 'parse complex template',
-		setup: () => {
-			window.template = `
+suite('Parse', () => {
+
+	benchmark('Simple template', function(){
+		Ractive.parse( this.template );
+	},{
+		setup(){
+			this.template = '<div>{{ message }}</div>';
+		}
+	});
+
+	benchmark('Complex template', function () {
+
+		Ractive.parse( this.template );
+
+	}, {
+		setup() {
+			this.template = `
 				<div class='graphic'>
 				  <div class='header'>
 				    {{#fullscreenEnabled}}
@@ -2589,10 +2600,9 @@ var tests = [
 				  <div class='detail'>
 				    <p>{{{ detail[ info ] || 'Tap on the labels for more info' }}}</p>
 				  </div>
-				</div>`
-		},
-		test: () => {
-			var parsed = Ractive.parse( window.template );
+				</div>
+			`;
 		}
-	}
-];
+	});
+
+});
