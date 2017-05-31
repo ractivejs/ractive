@@ -59,8 +59,8 @@ function extendOne ( Parent, options = {}, Target ) {
 		extend: { value: extend, writable: true, configurable: true },
 		extendClass: { value: extendWith, writable: true, configurable: true },
 
-		// Parent - for IE8, can't use Object.getPrototypeOf
-		_Parent: { value: Parent }
+		Parent: { value: Parent },
+		Ractive: { value: Ractive }
 	});
 
 	// extend configuration

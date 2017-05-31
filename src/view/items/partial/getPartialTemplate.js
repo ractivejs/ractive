@@ -84,7 +84,7 @@ function findConstructor ( constructor, key ) {
 	if ( !constructor ) { return; }
 	return constructor.partials.hasOwnProperty( key )
 		? constructor
-		: findConstructor( constructor._Parent, key );
+		: findConstructor( constructor.Parent, key );
 }
 
 function findParentPartial( name, parent ) {

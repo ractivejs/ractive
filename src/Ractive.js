@@ -79,5 +79,8 @@ Object.defineProperties( Ractive, {
 	events:           { writable: true, value: {} },
 	interpolators:    { writable: true, value: interpolators },
 	partials:         { writable: true, value: {} },
-	transitions:      { writable: true, value: {} }
+	transitions:      { writable: true, value: {} },
+
+	// for getting the source Ractive lib from a constructor
+	Ractive:          { value: Ractive }
 });
