@@ -1813,4 +1813,51 @@ export default function() {
 			}
 		});
 	});
+
+	test( `pattern observers see new values when partial changes happen at the same time (#2984)`, t => {
+		t.expect( 2 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: '{{#each items}}<input bind-value=".id" />{{/each}}',
+			data: {
+				items: [
+					{ name: 'Frank', id: '42' }
+				]
+			}
+		});
+
+		let expected;
+		r.observe( 'items.*.name', v => {
+			t.ok( v === expected );
+		}, { init: false });
+
+		expected = 'Joe';
+		r.push( 'items', { name: 'Joe' } );
+
+		expected = 'Larry';
+		r.push( 'items', { name: 'Larry' } );
+	});
+
+	test( `pattern observers with multiple wildcards and an array base work`, t => {
+		t.expect( 3 );
+
+		const r = new Ractive({
+			data: { items: [] }
+		});
+
+		let expected = '';
+		let next = '';
+		r.observe( 'items.*.list.*.name', v => {
+			t.ok( v === expected );
+			expected = next;
+		}, { init: false });
+
+		expected = 'apple';
+		r.push( 'items', { list: [ { name: 'apple' } ] });
+
+		next = 'apple';
+		expected = 'banana';
+		r.unshift( 'items', { list: [ { name: 'banana' } ] } );
+	});
 }

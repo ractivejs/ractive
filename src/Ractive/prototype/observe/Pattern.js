@@ -55,8 +55,6 @@ export default class PatternObserver {
 		const newValues = this.newValues;
 		this.newValues = {};
 		Object.keys( newValues ).forEach( keypath => {
-			if ( this.newKeys && !this.newKeys[ keypath ] ) return;
-
 			const newValue = newValues[ keypath ];
 			const oldValue = this.oldValues[ keypath ];
 
@@ -82,7 +80,6 @@ export default class PatternObserver {
 			this.oldValues = newValues;
 		}
 
-		this.newKeys = null;
 		this.dirty = false;
 	}
 
@@ -93,18 +90,15 @@ export default class PatternObserver {
 	shuffle ( newIndices ) {
 		if ( !Array.isArray( this.baseModel.value ) ) return;
 
-		const base = this.baseKeypath = this.baseModel.getKeypath( this.ractive );
 		const max = this.baseModel.value.length;
-		const suffix = this.keys.length > 1 ? '.' + this.keys.slice( 1 ).join( '.' ) : '';
 
-		this.newKeys = {};
 		for ( let i = 0; i < newIndices.length; i++ ) {
 			if ( newIndices[ i ] === -1 || newIndices[ i ] === i ) continue;
-			this.newKeys[ `${base}.${i}${suffix}` ] = true;
+			this.changed.push([ i ]);
 		}
 
 		for ( let i = newIndices.touchedFrom; i < max; i++ ) {
-			this.newKeys[ `${base}.${i}${suffix}` ] = true;
+			this.changed.push([ i ]);
 		}
 	}
 
@@ -138,7 +132,6 @@ export default class PatternObserver {
 						const check = k => {
 							return ( k.indexOf( keypath ) === 0 && ( k.length === keypath.length || k[ keypath.length ] === '.' ) ) ||
 								( keypath.indexOf( k ) === 0 && ( k.length === keypath.length || keypath[ k.length ] === '.' ) );
-
 						};
 
 						// is this model on a changed keypath?
