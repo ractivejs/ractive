@@ -89,6 +89,14 @@ export default class Context {
 		return promise;
 	}
 
+	listen ( event, handler ) {
+		const el = this.element;
+		el.on( event, handler );
+		return {
+			cancel () { el.off( event, handler ); }
+		};
+	}
+
 	observe ( keypath, callback, options = {} ) {
 		if ( isObject( keypath ) ) options = callback || {};
 		options.fragment = this.fragment;
@@ -180,6 +188,10 @@ export default class Context {
 		if ( here.owner && here.owner._link ) here.owner.unlink();
 		runloop.end();
 		return promise;
+	}
+
+	unlisten ( event, handler ) {
+		this.element.off( event, handler );
 	}
 
 	unshift ( keypath, ...add ) {

@@ -110,7 +110,7 @@ export default class Element extends ContainerItem {
 		this.attributes.forEach( destroyed );
 		const ls = this.listeners;
 		for ( const k in ls ) {
-			if ( ls[k] && ls[k].length ) this.node.removeEventListener( event, handler );
+			if ( ls[k] && ls[k].length ) this.node.removeEventListener( k, handler );
 		}
 		if ( this.fragment ) this.fragment.destroyed();
 	}
@@ -204,8 +204,8 @@ export default class Element extends ContainerItem {
 			const add = n.addEventListener;
 			const rem = n.removeEventListener;
 
-			if ( !ref.refs || !ref.length ) {
-				add.call( n, event, handler, capture || !!ref.refs );
+			if ( !ref.length ) {
+				add.call( n, event, handler, capture );
 			} else if ( ref.length && !ref.refs && capture ) {
 				rem.call( n, event, handler, false );
 				add.call( n, event, handler, true );
