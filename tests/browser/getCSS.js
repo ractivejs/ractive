@@ -1,6 +1,6 @@
 import { initModule } from '../helpers/test-config';
 import { createIsolatedEnv } from '../helpers/Environment';
-import { test } from 'qunit';
+import QUnit, { test } from 'qunit';
 
 export default function() {
 	initModule('getCss.js');
@@ -47,6 +47,13 @@ export default function() {
 	if (!window.__karma__) {
 		test('getCSS with component definitions constructed from Ractive of different environments', t => {
 			t.expect(5);
+
+			// this test takes a while sometimes
+			const timeout = QUnit.config.testTimeout;
+			QUnit.config.testTimeout = 30000;
+			setTimeout(() => {
+				QUnit.config.testTimeout = timeout;
+			}, 10);
 
 			const done1 = t.async();
 			const done2 = t.async();
