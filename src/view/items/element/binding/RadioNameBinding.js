@@ -69,10 +69,10 @@ export default class RadioNameBinding extends Binding {
 		node.name = `{{${this.model.getKeypath()}}}`;
 		node.checked = this.element.compare ( this.model.get(), this.element.getAttribute( 'value' ) );
 
-		node.addEventListener( 'change', handleDomEvent, false );
+		this.element.on( 'change', handleDomEvent );
 
 		if ( node.attachEvent ) {
-			node.addEventListener( 'click', handleDomEvent, false );
+			this.element.on( 'click', handleDomEvent );
 		}
 	}
 
@@ -89,9 +89,9 @@ export default class RadioNameBinding extends Binding {
 	}
 
 	unrender () {
-		const node = this.node;
+		const el = this.element;
 
-		node.removeEventListener( 'change', handleDomEvent, false );
-		node.removeEventListener( 'click', handleDomEvent, false );
+		el.off( 'change', handleDomEvent );
+		el.off( 'click', handleDomEvent );
 	}
 }

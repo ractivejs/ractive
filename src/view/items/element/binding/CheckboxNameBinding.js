@@ -91,11 +91,11 @@ export default class CheckboxNameBinding extends Binding {
 		node.name = '{{' + this.model.getKeypath() + '}}';
 		node.checked = this.isChecked;
 
-		node.addEventListener( 'change', handleDomEvent, false );
+		this.element.on( 'change', handleDomEvent );
 
 		// in case of IE emergency, bind to click event as well
-		if ( node.attachEvent ) {
-			node.addEventListener( 'click', handleDomEvent, false );
+		if ( this.node.attachEvent ) {
+			this.element.on( 'click', handleDomEvent );
 		}
 	}
 
@@ -115,10 +115,10 @@ export default class CheckboxNameBinding extends Binding {
 	}
 
 	unrender () {
-		const node = this.element.node;
+		const el = this.element;
 
-		node.removeEventListener( 'change', handleDomEvent, false );
-		node.removeEventListener( 'click', handleDomEvent, false );
+		el.off( 'change', handleDomEvent );
+		el.off( 'click', handleDomEvent );
 	}
 
 	arrayContains ( selectValue, optionValue ) {

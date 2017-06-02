@@ -44,7 +44,7 @@ export default class MultipleSelectBinding extends Binding {
 	render () {
 		super.render();
 
-		this.node.addEventListener( 'change', handleDomEvent, false );
+		this.element.on( 'change', handleDomEvent );
 
 		if ( this.model.get() === undefined ) {
 			// get value from DOM, if possible
@@ -66,6 +66,6 @@ export default class MultipleSelectBinding extends Binding {
 	}
 
 	unrender () {
-		this.node.removeEventListener( 'change', handleDomEvent, false );
+		this.element.off( 'change', handleDomEvent );
 	}
 }
