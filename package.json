@@ -28,7 +28,8 @@
     "magic-string": "^0.21.0",
     "phantomjs-prebuilt": "^2.1.14",
     "qunitjs": "^2.1.1",
-    "rollup": "^0.41.0"
+    "rollup": "^0.41.0",
+    "rollup-plugin-istanbul": "^1"
   },
   "scripts": {
     "start": "gobble --env=dev:browser serve",
@@ -43,10 +44,10 @@
     "lint:lib": "",
     "bundle:test": "gobble --env=bundle:test build .build --force",
     "bundle:release": "gobble --env=bundle:release build .build --force",
-    "test:electron": "karma start karma/electron.conf.js",
-    "test:phantom": "karma start karma/phantom.conf.js",
+    "test:electron": "cd .build; karma start ../karma/electron.conf.js",
+    "test:phantom": "cd .build; karma start ../karma/phantom.conf.js",
     "test:saucelabs": "karma start karma/sauce.conf.js",
-    "test:coverage": "istanbul report --root .build/coverage --dir .build/coverage/combined",
+    "test:coverage": "cd .build; istanbul report --root coverage --dir coverage/combined",
     "test:bin": "",
     "test:lib": "",
     "build:local": "sh ./scripts/build-local.sh",

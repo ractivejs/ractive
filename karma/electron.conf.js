@@ -9,13 +9,13 @@ module.exports = function (config) {
 		reporters: base.reporters.concat(['coverage']),
 		coverageReporter: {
 			dir: './coverage/',
+			subdir: 'electron',
 			reporters: [
 				{ type: 'html' },
 				{ type: 'json' },
 			]
 		},
 		preprocessors: {
-			'ractive.js': ['coverage'],
 			'tests-node.js': ['electron'],
 		},
 		files: [
