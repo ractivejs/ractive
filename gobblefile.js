@@ -7,6 +7,7 @@ const fsPlus = require('fs-plus');
 const gobble = require('gobble');
 const buble = require('buble');
 const rollupLib = require('rollup');
+const istanbul = require('rollup-plugin-istanbul');
 const MagicString = require('magic-string');
 
 const time = new Date();
@@ -37,7 +38,6 @@ const lib = gobble('lib').moveTo('lib');
 const manifest = gobble('manifests').transform(replacePlaceholders);
 const sandbox = gobble('sandbox');
 
-
 module.exports = ({
 	'dev:browser'() {
 		const lib = buildUmdLib('ractive.js', []);
@@ -46,7 +46,7 @@ module.exports = ({
 		return gobble([lib, polyfills, tests, sandbox, qunit]);
 	},
 	'bundle:test'() {
-		const lib = buildUmdLib('ractive.js', []);
+		const lib = buildUmdLib('ractive.js', [], [istanbul()]);
 		const browserTests = buildBrowserTests();
 		const nodeTests = buildNodeTests();
 		const polyfills = buildUmdPolyfill();
@@ -76,9 +76,9 @@ module.exports = ({
 /* Bundle builders */
 
 // Builds a UMD bundle of Ractive
-function buildUmdLib(dest, excludedModules) {
+function buildUmdLib(dest, excludedModules, extraRollupPlugins) {
 	return src.transform(rollup, {
-		plugins: [skipModule(excludedModules)],
+		plugins: [skipModule(excludedModules)].concat(extraRollupPlugins || []),
 		moduleName: 'Ractive',
 		format: 'umd',
 		entry: 'Ractive.js',

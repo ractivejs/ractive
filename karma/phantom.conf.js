@@ -9,13 +9,11 @@ module.exports = function (config) {
 		reporters: base.reporters.concat(['coverage']),
 		coverageReporter: {
 			dir: './coverage/',
+			subdir: 'phantom',
 			reporters: [
 				{ type: 'html' },
 				{ type: 'json' },
 			]
-		},
-		preprocessors: {
-			'ractive.js': ['coverage']
 		},
 		files: [
 			'qunit/qunit-html.js',
