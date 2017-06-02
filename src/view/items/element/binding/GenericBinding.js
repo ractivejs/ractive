@@ -39,6 +39,7 @@ export default class GenericBinding extends Binding {
 		// if the value is a number, it's a timeout
 		let lazy = this.ractive.lazy;
 		let timeout = false;
+		const el = this.element;
 
 		if ( 'lazy' in this.element ) {
 			lazy = this.element.lazy;
@@ -53,26 +54,27 @@ export default class GenericBinding extends Binding {
 
 		const node = this.node;
 
-		node.addEventListener( 'change', handleDomEvent, false );
+		el.on( 'change', handleDomEvent );
 
 		if ( !lazy ) {
-			node.addEventListener( 'input', this.handler, false );
+			el.on( 'input', this.handler );
 
+			// IE is a special snowflake
 			if ( node.attachEvent ) {
-				node.addEventListener( 'keyup', this.handler, false );
+				el.on( 'keyup', this.handler );
 			}
 		}
 
-		node.addEventListener( 'blur', handleBlur, false );
+		el.on( 'blur', handleBlur );
 	}
 
 	unrender () {
-		const node = this.element.node;
+		const el = this.element;
 		this.rendered = false;
 
-		node.removeEventListener( 'change', handleDomEvent, false );
-		node.removeEventListener( 'input', this.handler, false );
-		node.removeEventListener( 'keyup', this.handler, false );
-		node.removeEventListener( 'blur', handleBlur, false );
+		el.off( 'change', handleDomEvent );
+		el.off( 'input', this.handler );
+		el.off( 'keyup', this.handler );
+		el.off( 'blur', handleBlur );
 	}
 }

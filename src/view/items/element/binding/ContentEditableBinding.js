@@ -13,16 +13,16 @@ export default class ContentEditableBinding extends Binding {
 	render () {
 		super.render();
 
-		const node = this.node;
+		const el = this.element;
 
-		node.addEventListener( 'change', handleDomEvent, false );
-		node.addEventListener( 'blur', handleDomEvent, false );
+		el.on( 'change', handleDomEvent );
+		el.on( 'blur', handleDomEvent );
 
 		if ( !this.ractive.lazy ) {
-			node.addEventListener( 'input', handleDomEvent, false );
+			el.on( 'input', handleDomEvent );
 
-			if ( node.attachEvent ) {
-				node.addEventListener( 'keyup', handleDomEvent, false );
+			if ( this.node.attachEvent ) {
+				el.on( 'keyup', handleDomEvent );
 			}
 		}
 	}
@@ -32,11 +32,11 @@ export default class ContentEditableBinding extends Binding {
 	}
 
 	unrender () {
-		const node = this.node;
+		const el = this.element;
 
-		node.removeEventListener( 'blur', handleDomEvent, false );
-		node.removeEventListener( 'change', handleDomEvent, false );
-		node.removeEventListener( 'input', handleDomEvent, false );
-		node.removeEventListener( 'keyup', handleDomEvent, false );
+		el.off( 'blur', handleDomEvent );
+		el.off( 'change', handleDomEvent );
+		el.off( 'input', handleDomEvent );
+		el.off( 'keyup', handleDomEvent );
 	}
 }

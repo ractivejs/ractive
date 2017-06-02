@@ -78,7 +78,7 @@ export default class SingleSelectBinding extends Binding {
 
 	render () {
 		super.render();
-		this.node.addEventListener( 'change', handleDomEvent, false );
+		this.element.on( 'change', handleDomEvent );
 	}
 
 	setFromNode ( node ) {
@@ -87,6 +87,6 @@ export default class SingleSelectBinding extends Binding {
 	}
 
 	unrender () {
-		this.node.removeEventListener( 'change', handleDomEvent, false );
+		this.element.off( 'change', handleDomEvent );
 	}
 }

@@ -3,7 +3,7 @@ import runloop from '../../global/runloop';
 import { ContainerItem } from './shared/Item';
 import Fragment from '../Fragment';
 import ConditionalAttribute from './element/ConditionalAttribute';
-import { toArray } from '../../utils/array';
+import { toArray, addToArray, removeFromArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
 import { bind, destroyed, render, unbind, update } from '../../shared/methodCallers';
 import { createElement, detachNode, matches, safeAttributeString } from '../../utils/dom';
@@ -11,7 +11,6 @@ import createItem from './createItem';
 import { html, svg } from '../../config/namespaces';
 import findElement from './shared/findElement';
 import selectBinding from './element/binding/selectBinding';
-import { DelegateProxy } from './shared/EventDirective';
 import Context from '../../shared/Context';
 
 const endsWithSemi = /;\s*$/;
@@ -31,6 +30,7 @@ export default class Element extends ContainerItem {
 		}
 
 		this.decorators = [];
+		this.listeners = {};
 		this.events = [];
 
 		// create attributes
@@ -108,8 +108,9 @@ export default class Element extends ContainerItem {
 
 	destroyed () {
 		this.attributes.forEach( destroyed );
-		for ( const ev in this.delegates ) {
-			this.delegates[ev].unlisten();
+		const ls = this.listeners;
+		for ( const k in ls ) {
+			if ( ls[k] && ls[k].length ) this.node.removeEventListener( event, handler );
 		}
 		if ( this.fragment ) this.fragment.destroyed();
 	}
@@ -159,6 +160,59 @@ export default class Element extends ContainerItem {
 		if ( !this.ctx ) this.ctx = new Context( this.parentFragment, this );
 		assigns.unshift( Object.create( this.ctx ) );
 		return Object.assign.apply( null, assigns );
+	}
+
+	off ( event, callback, capture = false ) {
+		const delegate = this.parentFragment.delegate;
+		const ref = this.listeners[event];
+
+		if ( !ref ) return;
+		removeFromArray( ref, callback );
+
+		if ( delegate ) {
+			const listeners = delegate.listeners[event] || ( delegate.listeners[event] = [] );
+			if ( listeners.refs && !--listeners.refs ) delegate.off( event, delegateHandler, true );
+		} else if ( this.rendered ) {
+			const n = this.node;
+			const add = n.addEventListener;
+			const rem = n.removeEventListener;
+
+			if ( !ref.length ) {
+				rem.call( n, event, handler, capture );
+			} else if ( ref.length && !ref.refs && capture ) {
+				rem.call( n, event, handler, true );
+				add.call( n, event, handler, false );
+			}
+		}
+	}
+
+	on ( event, callback, capture = false ) {
+		const delegate = this.parentFragment.delegate;
+		const ref = this.listeners[event] || ( this.listeners[event] = [] );
+
+		if ( delegate ) {
+			const listeners = delegate.listeners[event] || ( delegate.listeners[event] = [] );
+			if ( !listeners.refs ) {
+				listeners.refs = 0;
+				delegate.on( event, delegateHandler, true );
+				listeners.refs++;
+			} else {
+				listeners.refs++;
+			}
+		} else if ( this.rendered ) {
+			const n = this.node;
+			const add = n.addEventListener;
+			const rem = n.removeEventListener;
+
+			if ( !ref.refs || !ref.length ) {
+				add.call( n, event, handler, capture || !!ref.refs );
+			} else if ( ref.length && !ref.refs && capture ) {
+				rem.call( n, event, handler, false );
+				add.call( n, event, handler, true );
+			}
+		}
+
+		addToArray( this.listeners[event], callback );
 	}
 
 	recreateTwowayBinding () {
@@ -245,13 +299,12 @@ export default class Element extends ContainerItem {
 		}
 
 		this.attributes.forEach( render );
-		if ( this.delegates ) {
-			for ( const ev in this.delegates ) {
-				this.delegates[ev].listen( DelegateProxy );
-			}
-		}
-
 		if ( this.binding ) this.binding.render();
+
+		const ls = this.listeners;
+		for ( const k in ls ) {
+			if ( ls[k] && ls[k].length ) this.node.addEventListener( k, handler, !!ls[k].refs );
+		}
 
 		if ( !existing ) {
 			target.appendChild( node );
@@ -411,4 +464,33 @@ function getNamespace ( element ) {
 	}
 
 	return element.ractive.el.namespaceURI;
+}
+
+function delegateHandler ( ev ) {
+	const name = ev.type;
+	const end = ev.currentTarget;
+	let node = ev.target;
+	let bubble = true;
+	let listeners;
+
+	// starting with the origin node, walk up the DOM looking for ractive nodes with a matching event listener
+	while ( bubble && node && node !== end ) {
+		listeners = node._ractive && node._ractive.proxy && node._ractive.proxy.listeners[name];
+
+		if ( listeners ) {
+			listeners.forEach( l => {
+				bubble = l.call( node, ev ) !== false && bubble;
+			});
+		}
+
+		node = node.parentNode;
+	}
+
+	return bubble;
+}
+
+function handler ( ev ) {
+	const el = this._ractive.proxy;
+	if ( !el.listeners[ ev.type ] ) return;
+	el.listeners[ ev.type ].forEach( l => l.call( this, ev ) );
 }
