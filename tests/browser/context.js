@@ -1,8 +1,9 @@
 import { initModule, onWarn } from '../helpers/test-config';
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
 export default function() {
-	initModule('node-info.js');
+	initModule('context.js');
 
 	test( 'node info relative data get' , t => {
 		const r = new Ractive({
@@ -720,5 +721,183 @@ export default function() {
 		const ctx = r.getContext( 'div' );
 
 		ctx.raise( 'check' );
+	});
+
+	test( `listen and unlisten subscribe and unsubscribe dom events`, t => {
+		t.expect( 1 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: `<button />`
+		});
+
+		const ctx = r.getContext( 'button' );
+
+		const listener = () => t.ok( true );
+
+		ctx.listen( 'click', listener );
+		fire( ctx.node, 'click' );
+
+		ctx.unlisten( 'click', listener );
+		fire( ctx.node, 'click' );
+	});
+
+	test( `listen returns a handle with a cancel method`, t => {
+		t.expect( 1 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: `<button />`
+		});
+
+		const ctx = r.getContext( 'button' );
+
+		const handle = ctx.listen( 'click', () => t.ok( true ) );
+		fire( ctx.node, 'click' );
+
+		handle.cancel();
+		fire( ctx.node, 'click' );
+	});
+
+	test( `listen works with delegated events`, t => {
+		t.expect( 4 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: `<div>{{#each [1]}}<button />{{/each}}</div>`
+		});
+
+		const ctx = r.getContext( 'button' );
+
+		const add = Element.prototype.addEventListener;
+		Element.prototype.addEventListener = function ( event, handler, capture ) {
+			t.ok( capture );
+			t.ok( this.tagName === 'DIV' );
+			t.ok( event === 'click' );
+			return add.call( this, event, handler, capture );
+		};
+		const handle = ctx.listen( 'click', () => t.ok( true ) );
+		Element.prototype.addEventListener = add;
+
+		fire( ctx.node, 'click' );
+
+		handle.cancel();
+		fire( ctx.node, 'click' );
+	});
+
+	test( `listen can add a sub to an already subscribed event`, t => {
+		t.expect( 5 );
+
+		let count = 0;
+
+		const add = Element.prototype.addEventListener;
+		Element.prototype.addEventListener = function ( event, handler, capture ) {
+			count++;
+			t.ok( !capture );
+			return add.call( this, event, handler, capture );
+		};
+
+		const r = new Ractive({
+			target: fixture,
+			template: `<button on-click="@.check()" />`,
+			check () {
+				t.ok( true, 'template handler fired' );
+			}
+		});
+
+		const ctx = r.getContext( 'button' );
+		const handle = ctx.listen( 'click', () => t.ok( true ) );
+		Element.prototype.addEventListener = add;
+
+		t.equal( count, 1 );
+		fire( ctx.node, 'click' );
+
+		handle.cancel();
+		fire( ctx.node, 'click' );
+	});
+
+	test( `listen can add a sub to an already subscribed delegated event`, t => {
+		t.expect( 7 );
+
+		let count = 0;
+
+		const add = Element.prototype.addEventListener;
+		Element.prototype.addEventListener = function ( event, handler, capture ) {
+			count++;
+			t.ok( capture );
+			t.ok( this.tagName === 'DIV' );
+			t.ok( event === 'click' );
+			return add.call( this, event, handler, capture );
+		};
+
+		const r = new Ractive({
+			target: fixture,
+			template: `<div>{{#each [1]}}<button on-click="@.check()" />{{/each}}</div>`,
+			check () {
+				t.ok( true, 'template handler fired' );
+			}
+		});
+
+		const ctx = r.getContext( 'button' );
+		const handle = ctx.listen( 'click', () => t.ok( true ) );
+		Element.prototype.addEventListener = add;
+
+		t.equal( count, 1 );
+		fire( ctx.node, 'click' );
+
+		handle.cancel();
+		fire( ctx.node, 'click' );
+	});
+
+	test( `sub and unsub delegated events on an existing event type converts to and from capture listener`, t => {
+		t.expect( 19 );
+
+		let count = 0;
+		let rcount = 0;
+		let delegate = false;
+
+		const rem = Element.prototype.removeEventListener;
+		const add = Element.prototype.addEventListener;
+		Element.prototype.addEventListener = function ( event, handler, capture ) {
+			count++;
+			t.equal( capture, delegate );
+			t.ok( this.tagName === 'DIV' );
+			t.ok( event === 'click' );
+			return add.call( this, event, handler, capture );
+		};
+		Element.prototype.removeEventListener = function ( event, handler, capture ) {
+			rcount++;
+			t.equal( capture, !delegate );
+			return rem.call( this, event, handler, capture );
+		};
+
+		const r = new Ractive({
+			target: fixture,
+			template: `<div on-click="@.check()">{{#each [1]}}<button />{{/each}}</div>`,
+			check () {
+				t.ok( true, 'template handler fired' );
+			}
+		});
+
+		t.equal( count, 1 );
+
+		delegate = true;
+		const ctx = r.getContext( 'button' );
+		const handle = ctx.listen( 'click', () => t.ok( true ) );
+
+		t.equal( count, 2 );
+		t.equal( rcount, 1 );
+
+		fire( ctx.node, 'click' );
+
+		delegate = false;
+		handle.cancel();
+		t.equal( count, 3 );
+		t.equal( rcount, 2 );
+
+		fire( ctx.node, 'click' );
+
+		Element.prototype.addEventListener = add;
+		Element.prototype.removeEventListener = rem;
 	});
 }
