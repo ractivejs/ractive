@@ -7,7 +7,6 @@ import { missingPlugin } from '../../../config/errors';
 import { findInViewHierarchy } from '../../../shared/registry';
 import { visible } from '../../../config/visibility';
 import createTransitions from './transitions/createTransitions';
-import resetStyle from './transitions/resetStyle';
 import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
 import noop from '../../../utils/noop';
 
@@ -55,16 +54,6 @@ export default class Transition {
 			options = value;
 		}
 
-		// As of 0.3.9, transition authors should supply an `option` object with
-		// `duration` and `easing` properties (and optional `delay`), plus a
-		// callback function that gets called after the animation completes
-
-		// TODO remove this check in a future version
-		if ( !options ) {
-			warnOnceIfDebug( 'The "%s" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340', this.name );
-			options = this;
-		}
-
 		return new Promise( fulfil => {
 			// Edge case - if duration is zero, set style synchronously and complete
 			if ( !options.duration ) {
@@ -83,17 +72,27 @@ export default class Transition {
 			let i = propertyNames.length;
 			while ( i-- ) {
 				const prop = propertyNames[i];
-				let current = computedStyle[ prefix( prop ) ];
+				const name = prefix( prop );
 
-				if ( current === '0px' ) current = 0;
+				const current = computedStyle[ prefix( prop ) ];
+
+				// record the starting points
+				const init = this.node.style[name];
+				if ( !( name in this.originals ) ) this.originals[ name ] = this.node.style[ name ];
+				this.node.style[ name ] = to[ prop ];
+				this.targets[ name ] = this.node.style[ name ];
+				this.node.style[ name ] = init;
 
 				// we need to know if we're actually changing anything
 				if ( current != to[ prop ] ) { // use != instead of !==, so we can compare strings with numbers
-					changedProperties.push( prop );
+					changedProperties.push( name );
+
+					// if we happened to prefix, make sure there is a properly prefixed value
+					to[ name ] = to[ prop ];
 
 					// make the computed style explicit, so we can animate where
 					// e.g. height='auto'
-					this.node.style[ prefix( prop ) ] = current;
+					this.node.style[ name ] = current;
 				}
 			}
 
@@ -205,14 +204,17 @@ export default class Transition {
 
 	setStyle ( style, value ) {
 		if ( typeof style === 'string' ) {
-			this.node.style[ prefix( style ) ] = value;
+			const name = prefix(  style );
+			if ( !this.originals.hasOwnProperty( name ) ) this.originals[ name ] = this.node.style[ name ];
+			this.node.style[ name ] = value;
+			this.targets[ name ] = this.node.style[ name ];
 		}
 
 		else {
 			let prop;
 			for ( prop in style ) {
 				if ( style.hasOwnProperty( prop ) ) {
-					this.node.style[ prefix( prop ) ] = style[ prop ];
+					this.setStyle( prop, style[ prop ] );
 				}
 			}
 		}
@@ -251,7 +253,8 @@ export default class Transition {
 
 	start () {
 		const node = this.node = this.element.node;
-		const originalStyle = node.getAttribute( 'style' );
+		const originals = this.originals = {};  //= node.getAttribute( 'style' );
+		const targets = this.targets = {};
 
 		let completed;
 		const args = this.getParams();
@@ -267,7 +270,9 @@ export default class Transition {
 
 			this.onComplete.forEach( fn => fn() );
 			if ( !noReset && this.isIntro ) {
-				resetStyle( node, originalStyle);
+				for ( const k in targets ) {
+					if ( node.style[ k ] === targets[ k ] ) node.style[ k ] = originals[ k ];
+				}
 			}
 
 			this._manager.remove( this );
