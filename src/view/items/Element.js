@@ -108,10 +108,14 @@ export default class Element extends ContainerItem {
 
 	destroyed () {
 		this.attributes.forEach( destroyed );
-		const ls = this.listeners;
-		for ( const k in ls ) {
-			if ( ls[k] && ls[k].length ) this.node.removeEventListener( k, handler );
+
+		if ( !this.parentFragment.delegate ) {
+			const ls = this.listeners;
+			for ( const k in ls ) {
+				if ( ls[k] && ls[k].length ) this.node.removeEventListener( k, handler );
+			}
 		}
+
 		if ( this.fragment ) this.fragment.destroyed();
 	}
 
@@ -301,9 +305,11 @@ export default class Element extends ContainerItem {
 		this.attributes.forEach( render );
 		if ( this.binding ) this.binding.render();
 
-		const ls = this.listeners;
-		for ( const k in ls ) {
-			if ( ls[k] && ls[k].length ) this.node.addEventListener( k, handler, !!ls[k].refs );
+		if ( !this.parentFragment.delegate ) {
+			const ls = this.listeners;
+			for ( const k in ls ) {
+				if ( ls[k] && ls[k].length ) this.node.addEventListener( k, handler, !!ls[k].refs );
+			}
 		}
 
 		if ( !existing ) {

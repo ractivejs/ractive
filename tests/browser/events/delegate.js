@@ -276,6 +276,8 @@ export default function() {
 	});
 
 	test( `delegated bindings fire in the correct order (#2988)`, t => {
+		t.expect( 2 );
+
 		let selected = 1;
 		const r = new Ractive({
 			target: fixture,
