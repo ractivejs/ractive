@@ -14,41 +14,6 @@ import noop from '../../../utils/noop';
 const specialPattern = /^(event|arguments|@node|@event|@context)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
 
-export const DelegateProxy = {
-	fire ( event, args = [] ) {
-		if ( event && event.event ) {
-			const ev = event.event;
-
-			// TODO if IE<9 needs to be supported here, could probably walk to the element with a ractive proxy with a delegates property
-			const end = ev.currentTarget;
-			let node = ev.target;
-			const name = event.name;
-			let bubble = true;
-
-			// starting with the origin node, walk up the DOM looking for ractive nodes with a matching event listener
-			while ( bubble && node && node !== end ) {
-				const el = node._ractive && node._ractive.proxy;
-
-				if ( el ) {
-					// set up the context for the handler
-					event.node = el.node;
-					event.name = name;
-
-					el.events.forEach( ev => {
-						if ( ev.delegate && ~ev.template.n.indexOf( name ) ) {
-							bubble = ev.fire( event, args ) !== false && bubble;
-						}
-					});
-				}
-
-				node = node.parentNode;
-			}
-
-			return bubble;
-		}
-	}
-};
-
 export default class EventDirective {
 	constructor ( options ) {
 		this.owner = options.owner || options.parentFragment.owner || findElement( options.parentFragment );
@@ -56,7 +21,7 @@ export default class EventDirective {
 		this.template = options.template;
 		this.parentFragment = options.parentFragment;
 		this.ractive = options.parentFragment.ractive;
-		const delegate = this.delegate = this.ractive.delegate && options.parentFragment.delegate;
+		//const delegate = this.delegate = this.ractive.delegate && options.parentFragment.delegate;
 		this.events = [];
 
 		if ( this.element.type === COMPONENT || this.element.type === ANCHOR ) {
@@ -65,14 +30,14 @@ export default class EventDirective {
 			});
 		} else {
 			// make sure the delegate element has a storag object
-			if ( delegate && !delegate.delegates ) delegate.delegates = {};
+			//if ( delegate && !delegate.delegates ) delegate.delegates = {};
 
 			this.template.n.forEach( n => {
 				const fn = findInViewHierarchy( 'events', this.ractive, n );
 				if ( fn ) {
 					this.events.push( new CustomEvent( fn, this.element, n ) );
 				} else {
-					if ( delegate ) {
+					/*if ( delegate ) {
 						if ( !delegate.delegates[n] ) {
 							const ev = new DOMEvent( n, delegate, true );
 							delegate.delegates[n] = ev;
@@ -81,7 +46,8 @@ export default class EventDirective {
 						}
 					} else {
 						this.events.push( new DOMEvent( n, this.element ) );
-					}
+					}*/
+					this.events.push( new DOMEvent( n, this.element ) );
 				}
 			});
 		}

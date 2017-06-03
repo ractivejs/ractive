@@ -9,11 +9,11 @@ export default class Form extends Element {
 
 	render ( target, occupants ) {
 		super.render( target, occupants );
-		this.node.addEventListener( 'reset', handleReset, false );
+		this.on( 'reset', handleReset );
 	}
 
 	unrender ( shouldDestroy ) {
-		this.node.removeEventListener( 'reset', handleReset, false );
+		this.off( 'reset', handleReset );
 		super.unrender( shouldDestroy );
 	}
 }

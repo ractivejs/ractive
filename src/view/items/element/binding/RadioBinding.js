@@ -34,10 +34,10 @@ export default class RadioBinding extends Binding {
 	render () {
 		super.render();
 
-		this.node.addEventListener( 'change', handleDomEvent, false );
+		this.element.on( 'change', handleDomEvent );
 
 		if ( this.node.attachEvent ) {
-			this.node.addEventListener( 'click', handleDomEvent, false );
+			this.element.on( 'click', handleDomEvent );
 		}
 	}
 
@@ -50,7 +50,7 @@ export default class RadioBinding extends Binding {
 	}
 
 	unrender () {
-		this.node.removeEventListener( 'change', handleDomEvent, false );
-		this.node.removeEventListener( 'click', handleDomEvent, false );
+		this.element.off( 'change', handleDomEvent );
+		this.element.off( 'click', handleDomEvent );
 	}
 }
