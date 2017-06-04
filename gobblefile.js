@@ -24,7 +24,7 @@ const banner = `/*
 const runtimeModulesToIgnore = ['parse/_parse.js'].map(p => p.split('/').join(path.sep));
 const placeholders = { BUILD_PLACEHOLDER_VERSION: version };
 
-const src = gobble('src').transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
+const src = gobble('src');
 const polyfills = src.include(['polyfills.js']);
 const tests = gobble('tests').transform(transpile, { accept: ['.js'] });
 const browserTests = tests.include(['helpers/**/*', 'browser/**/*']);
@@ -87,7 +87,7 @@ function buildUmdLib(dest, excludedModules, extraRollupPlugins) {
 		noConflict: true,
 		cache: false,
 		sourceMap: true
-	});
+	}).transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
 }
 
 // Builds an ES bundle of Ractive
@@ -100,7 +100,7 @@ function buildESLib(dest, excludedModules) {
 		banner: banner,
 		cache: false,
 		sourceMap: true
-	});
+	}).transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
 }
 
 // Builds a UMD bundle for browser/PhantomJS tests.
@@ -150,7 +150,7 @@ function buildUmdPolyfill() {
 		dest: 'polyfills.js',
 		cache: false,
 		sourceMap: true
-	});
+	}).transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
 }
 
 function buildESPolyfill() {
@@ -159,7 +159,7 @@ function buildESPolyfill() {
 		entry: 'polyfills.js',
 		dest: 'polyfills.mjs',
 		cache: false
-	});
+	}).transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
 }
 
 /* Rollup plugins */

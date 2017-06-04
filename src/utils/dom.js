@@ -5,6 +5,7 @@ let createElement, matches, div, methodNames, unprefixed, prefixed, i, j, makeFu
 
 // Test for SVG support
 if ( !svg ) {
+	/* istanbul ignore next */
 	createElement = ( type, ns, extend ) => {
 		if ( ns && ns !== html ) {
 			throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See http://docs.ractivejs.org/latest/svg-and-older-browsers for more information';
@@ -37,6 +38,7 @@ function getElement ( input ) {
 
 	if ( !input || typeof input === 'boolean' ) { return; }
 
+	/* istanbul ignore next */
 	if ( !win || !doc || !input ) {
 		return null;
 	}
@@ -102,7 +104,8 @@ if ( !isClient ) {
 		}
 	}
 
-	// IE8...
+	// IE8... and apparently phantom some?
+	/* istanbul ignore next */
 	if ( !matches ) {
 		matches = function ( node, selector ) {
 			let parentNode, i;

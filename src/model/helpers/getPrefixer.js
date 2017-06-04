@@ -1,6 +1,7 @@
 const prefixers = {};
 
 // TODO this is legacy. sooner we can replace the old adaptor API the better
+/* istanbul ignore next */
 function prefixKeypath ( obj, prefix ) {
 	const prefixed = {};
 
@@ -25,6 +26,7 @@ export default function getPrefixer ( rootKeypath ) {
 	if ( !prefixers[ rootKeypath ] ) {
 		rootDot = rootKeypath ? rootKeypath + '.' : '';
 
+		/* istanbul ignore next */
 		prefixers[ rootKeypath ] = function ( relativeKeypath, value ) {
 			let obj;
 
