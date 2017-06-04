@@ -2,11 +2,8 @@ import { missingPlugin } from '../../../../config/errors';
 import { isClient } from '../../../../config/environment';
 import { warnIfDebug, warnOnceIfDebug } from '../../../../utils/log';
 import { createElement } from '../../../../utils/dom';
-import camelizeHyphenated from '../../../../utils/camelizeHyphenated.js';
 import interpolate from '../../../../shared/interpolate';
 import Ticker from '../../../../shared/Ticker';
-import prefix from './prefix';
-import unprefix from './unprefix';
 import hyphenate from './hyphenate';
 
 let createTransitions;
@@ -78,14 +75,14 @@ if ( !isClient ) {
 				duration: style[ TRANSITION_DURATION ]
 			};
 
-			style[ TRANSITION_PROPERTY ] = changedProperties.map( prefix ).map( hyphenate ).join( ',' );
+			style[ TRANSITION_PROPERTY ] = changedProperties.join( ',' );
 			const easingName = hyphenate( options.easing || 'linear' );
 			style[ TRANSITION_TIMING_FUNCTION ] = easingName;
 			const cssTiming = style[ TRANSITION_TIMING_FUNCTION ] === easingName;
 			style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
 
 			function transitionEndHandler ( event ) {
-				const index = changedProperties.indexOf( camelizeHyphenated( unprefix( event.propertyName ) ) );
+				const index = changedProperties.indexOf( event.propertyName );
 
 				if ( index !== -1 ) {
 					changedProperties.splice( index, 1 );
@@ -135,7 +132,8 @@ if ( !isClient ) {
 					hash = hashPrefix + prop;
 
 					if ( cssTiming && CSS_TRANSITIONS_ENABLED && !cannotUseCssTransitions[ hash ] ) {
-						style[ prefix( prop ) ] = to[ prop ];
+						const initial = style[ prop ];
+						style[ prop ] = to[ prop ];
 
 						// If we're not sure if CSS transitions are supported for
 						// this tag/property combo, find out now
@@ -149,7 +147,7 @@ if ( !isClient ) {
 
 							// Reset, if we're going to use timers after all
 							if ( cannotUseCssTransitions[ hash ] ) {
-								style[ prefix( prop ) ] = originalValue;
+								style[ prop ] = initial;
 							}
 						}
 					}
@@ -176,7 +174,7 @@ if ( !isClient ) {
 
 						// ...then kick off a timer-based transition
 						propertiesToTransitionInJs.push({
-							name: prefix( prop ),
+							name: prop,
 							interpolator,
 							suffix
 						});

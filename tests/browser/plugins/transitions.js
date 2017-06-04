@@ -293,34 +293,33 @@ export default function() {
 	}
 
 	test( 'Transitions work the first time (#916)', t => {
-		// we're using line height for testing because it's a numerical CSS property that IE8 supports
 		const done = t.async();
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<div changeLineHeight-in></div>',
+			template: '<div changeHeight-in></div>',
 			oncomplete () {
-				t.equal( div.style.lineHeight, '' );
+				t.equal( div.style.height, '' );
 				done();
 			},
 			transitions: {
-				changeLineHeight ( t ) {
-					let targetLineHeight;
+				changeHeight ( t ) {
+					let targetHeight;
 
 					if ( t.isIntro ) {
-						targetLineHeight = t.getStyle( 'lineHeight' );
-						t.setStyle( 'lineHeight', 0 );
+						targetHeight = t.getStyle( 'height' );
+						t.setStyle( 'height', 0 );
 					} else {
-						targetLineHeight = 0;
+						targetHeight = 0;
 					}
 
-					t.animateStyle( 'lineHeight', targetLineHeight, { duration: 50 } ).then( t.complete );
+					t.animateStyle( 'height', targetHeight, { duration: 50 } ).then( t.complete );
 				}
 			}
 		});
 
 		const div = ractive.find( 'div' );
-		t.equal( div.style.lineHeight, 0 );
+		t.equal( div.style.height, '0px' );
 	});
 
 	test( 'Nodes are detached synchronously if there are no outro transitions (#856)', t => {
@@ -529,6 +528,28 @@ export default function() {
 		});
 
 		ractive.set( 'visible', true );
+	});
+
+	test( `transitions don't wipe out inline styles set during run when completing (#2986)`, t => {
+		const done = t.async();
+
+		const r = new Ractive({
+			template: '<div go-in {{#if yep}}style-height="50px"{{/if}} />',
+			transitions: {
+				go ( trans ) {
+					trans.setStyle( 'height', '0px' );
+					trans.animateStyle( 'height', '100px', { duration: 50 } ).then( trans.complete );
+				}
+			}
+		});
+
+		r.render( fixture ).then( () => {
+			t.equal( r.find( 'div' ).style.height, '50px' );
+		}).then( done, done );
+
+		t.equal( r.find( 'div' ).style.height, '0px' );
+
+		setTimeout( () => r.set( 'yep', true ), 30 );
 	});
 
 	test( 'intro transitions can be conditional', t => {
@@ -814,8 +835,9 @@ export default function() {
 		});
 
 		r.render( fixture ).then( () => {
-			t.equal( r.find( 'div' ).style.height, '' );
-			t.ok( !( 'style' in r.find( 'div' ).attributes ) );
+			const div = r.find( 'div' );
+			t.equal( div.style.height, '' );
+			t.ok( !( 'style' in div.attributes ) || ( div.getAttribute( 'style' ) === '' ) );
 			r.unrender().then( () => {
 				done();
 			});
