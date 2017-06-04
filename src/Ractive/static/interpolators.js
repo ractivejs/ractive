@@ -1,10 +1,6 @@
 import { isObject, isNumeric } from '../../utils/is';
 import interpolate from '../../shared/interpolate';
 
-function snap ( to ) {
-	return () => to;
-}
-
 const interpolators = {
 	number ( from, to ) {
 		if ( !isNumeric( from ) || !isNumeric( to ) ) {
@@ -73,7 +69,7 @@ const interpolators = {
 			if ( from.hasOwnProperty( prop ) ) {
 				if ( to.hasOwnProperty( prop ) ) {
 					properties.push( prop );
-					interpolators[ prop ] = interpolate( from[ prop ], to[ prop ] ) || snap( to[ prop ] );
+					interpolators[ prop ] = interpolate( from[ prop ], to[ prop ] ) || ( () => to[ prop ] );
 				}
 
 				else {

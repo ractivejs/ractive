@@ -24,10 +24,15 @@
 
 export default {
 	linear ( pos ) { return pos; },
-	easeIn ( pos ) { return Math.pow( pos, 3 ); },
+	easeIn ( pos ) {
+		/* istanbul ignore next */
+		return Math.pow( pos, 3 );
+	},
 	easeOut ( pos ) { return ( Math.pow( ( pos - 1 ), 3 ) + 1 ); },
 	easeInOut ( pos ) {
+		/* istanbul ignore next */
 		if ( ( pos /= 0.5 ) < 1 ) { return ( 0.5 * Math.pow( pos, 3 ) ); }
+		/* istanbul ignore next */
 		return ( 0.5 * ( Math.pow( ( pos - 2 ), 3 ) + 2 ) );
 	}
 };

@@ -46,6 +46,7 @@ export function escapeHtml ( str ) {
 // to replace them ourselves
 //
 // Source: http://en.wikipedia.org/wiki/Character_encodings_in_HTML#Illegal_characters
+/* istanbul ignore next */
 function validateCode ( code ) {
 	if ( !code ) {
 		return invalid;
