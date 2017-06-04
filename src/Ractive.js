@@ -26,10 +26,11 @@ export default function Ractive ( options ) {
 // check to see if we're being asked to force Ractive as a global for some weird environments
 if ( win && !win.Ractive ) {
 	let opts = '';
-	const script = document.currentScript || document.querySelector( 'script[data-ractive-options]' );
+	const script = document.currentScript || /* istanbul ignore next */ document.querySelector( 'script[data-ractive-options]' );
 
 	if ( script ) opts = script.getAttribute( 'data-ractive-options' ) || '';
 
+	/* istanbul iggnore next */
 	if ( ~opts.indexOf( 'ForceGlobal' ) ) win.Ractive = Ractive;
 }
 

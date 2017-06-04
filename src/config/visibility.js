@@ -6,6 +6,7 @@ let hidden = 'hidden';
 if ( doc ) {
 	let prefix;
 
+	/* istanbul ignore next */
 	if ( hidden in doc ) {
 		prefix = '';
 	} else {
@@ -21,6 +22,7 @@ if ( doc ) {
 		}
 	}
 
+	/* istanbul ignore else */
 	if ( prefix !== undefined ) {
 		doc.addEventListener( prefix + 'visibilitychange', onChange );
 		onChange();
@@ -47,10 +49,12 @@ function onChange () {
 	visible = !doc[ hidden ];
 }
 
+/* istanbul ignore next */
 function onHide () {
 	visible = false;
 }
 
+/* istanbul ignore next */
 function onShow () {
 	visible = true;
 }

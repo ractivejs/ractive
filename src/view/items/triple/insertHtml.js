@@ -8,7 +8,7 @@ let ieBlacklist;
 
 try {
 	createElement( 'table' ).innerHTML = 'foo';
-} catch ( err ) {
+} catch /* istanbul ignore next */ ( err ) {
 	ieBug = true;
 
 	ieBlacklist = {
@@ -30,6 +30,7 @@ export default function ( html, node ) {
 	let wrapper;
 	let selectedOption;
 
+	/* istanbul ignore if */
 	if ( ieBug && ( wrapper = ieBlacklist[ node.tagName ] ) ) {
 		container = element( 'DIV' );
 		container.innerHTML = wrapper[0] + html + wrapper[1];
