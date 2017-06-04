@@ -1594,4 +1594,21 @@ export default function() {
 		t.equal( r.get( 'foo.bar' ), 99 );
 		t.equal( c.get( 'foo.bar' ), true );
 	});
+
+	test( `keypath mappings map to nested keypaths`, t => {
+		new Ractive({
+			target: fixture,
+			template: `<cmp foo.bar="{{baz}}" />`,
+			data: {
+				baz: 42
+			},
+			components: {
+				cmp: Ractive.extend({
+					template: `{{foo.bar}}`
+				})
+			}
+		});
+
+		t.equal( fixture.innerHTML, '42' );
+	});
 }
