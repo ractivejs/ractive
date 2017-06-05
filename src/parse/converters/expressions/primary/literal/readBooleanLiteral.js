@@ -1,9 +1,9 @@
 import { BOOLEAN_LITERAL } from '../../../../../config/types';
 
-export default function readBooleanLiteral ( parser ) {
+export default function readBooleanLiteral(parser) {
 	const remaining = parser.remaining();
 
-	if ( remaining.substr( 0, 4 ) === 'true' ) {
+	if (remaining.substr(0, 4) === 'true') {
 		parser.pos += 4;
 		return {
 			t: BOOLEAN_LITERAL,
@@ -11,7 +11,7 @@ export default function readBooleanLiteral ( parser ) {
 		};
 	}
 
-	if ( remaining.substr( 0, 5 ) === 'false' ) {
+	if (remaining.substr(0, 5) === 'false') {
 		parser.pos += 5;
 		return {
 			t: BOOLEAN_LITERAL,

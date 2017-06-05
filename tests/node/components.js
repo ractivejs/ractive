@@ -1,9 +1,9 @@
 const { module, test } = QUnit;
 
-export default function(){
-	module( 'Components' );
+export default function() {
+	module('Components');
 
-	test( 'should render in a non-DOM environment', t => {
+	test('should render in a non-DOM environment', t => {
 		const Widget = Ractive.extend({
 			template: '<p>foo-{{bar}}</p>',
 			isolated: false
@@ -19,10 +19,10 @@ export default function(){
 			}
 		});
 
-		t.equal( ractive.toHTML(), '<p>foo-baz</p>' );
+		t.equal(ractive.toHTML(), '<p>foo-baz</p>');
 	});
 
-	test( 'should not fail if component has CSS', t => {
+	test('should not fail if component has CSS', t => {
 		const Widget = Ractive.extend({
 			template: '<p>red</p>',
 			css: 'p { color: red; }'
@@ -33,5 +33,4 @@ export default function(){
 		// If the code reached this point, then the lines before it didn't blow up.
 		t.ok(true);
 	});
-
 }

@@ -2,9 +2,9 @@ import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
 export default function() {
-	initModule( 'methods/updateModel.js' );
+	initModule('methods/updateModel.js');
 
-	test( 'Works across component boundary', t => {
+	test('Works across component boundary', t => {
 		const widget = Ractive.extend({
 			template: '{{bar}}'
 		});
@@ -22,18 +22,19 @@ export default function() {
 			}
 		});
 
-		ractive.find( 'input' ).value = 'changed';
-		ractive.updateModel( 'foo' );
-		t.equal( ractive.get( 'foo.bar' ), 'changed' );
+		ractive.find('input').value = 'changed';
+		ractive.updateModel('foo');
+		t.equal(ractive.get('foo.bar'), 'changed');
 
-		t.equal( fixture.innerHTML, '<input value="changed">changed' );
-		t.equal( ractive.findComponent( 'widget' ).get( 'bar' ), 'changed' );
+		t.equal(fixture.innerHTML, '<input value="changed">changed');
+		t.equal(ractive.findComponent('widget').get('bar'), 'changed');
 	});
 
-	test( 'one-way bindings can be used to update the model (#1963)', t => {
+	test('one-way bindings can be used to update the model (#1963)', t => {
 		const cmp = Ractive.extend({
 			twoway: false,
-			template: '<input value="{{obj.foo}}" /><input value="{{obj[obj.key]}}" /><input type="checkbox" checked="{{obj.bar.baz}}" />'
+			template:
+				'<input value="{{obj.foo}}" /><input value="{{obj[obj.key]}}" /><input type="checkbox" checked="{{obj.bar.baz}}" />'
 		});
 		const r = new Ractive({
 			el: fixture,
@@ -51,7 +52,7 @@ export default function() {
 			components: { cmp }
 		});
 
-		const [ larry, curly, moe ] = r.findAll( 'input' );
+		const [larry, curly, moe] = r.findAll('input');
 
 		larry.value = 'larry';
 		curly.value = 'curly';
@@ -59,8 +60,8 @@ export default function() {
 
 		r.updateModel();
 
-		t.equal( r.get( 'some.thing.foo' ), 'larry' );
-		t.equal( r.get( 'some.thing.test' ), 'curly' );
-		t.equal( r.get( 'some.thing.bar.baz' ), true );
+		t.equal(r.get('some.thing.foo'), 'larry');
+		t.equal(r.get('some.thing.test'), 'curly');
+		t.equal(r.get('some.thing.bar.baz'), true);
 	});
 }

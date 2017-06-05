@@ -3,18 +3,18 @@ import readKey from '../../../shared/readKey';
 import readExpression from '../../../../readExpression';
 import { name as namePattern, spreadPattern } from '../../../shared/patterns';
 
-export default function readKeyValuePair ( parser ) {
+export default function readKeyValuePair(parser) {
 	let spread;
 	const start = parser.pos;
 
 	// allow whitespace between '{' and key
 	parser.allowWhitespace();
 
-	const refKey = parser.nextChar() !== '\'' && parser.nextChar() !== '"';
-	if ( refKey ) spread = parser.matchPattern( spreadPattern );
+	const refKey = parser.nextChar() !== "'" && parser.nextChar() !== '"';
+	if (refKey) spread = parser.matchPattern(spreadPattern);
 
-	const key = spread ? readExpression( parser ) : readKey( parser );
-	if ( key === null ) {
+	const key = spread ? readExpression(parser) : readKey(parser);
+	if (key === null) {
 		parser.pos = start;
 		return null;
 	}
@@ -23,9 +23,9 @@ export default function readKeyValuePair ( parser ) {
 	parser.allowWhitespace();
 
 	// es2015 shorthand property
-	if ( refKey && ( parser.nextChar() === ',' || parser.nextChar() === '}' ) ) {
-		if ( !spread && !namePattern.test( key ) ) {
-			parser.error( `Expected a valid reference, but found '${key}' instead.` );
+	if (refKey && (parser.nextChar() === ',' || parser.nextChar() === '}')) {
+		if (!spread && !namePattern.test(key)) {
+			parser.error(`Expected a valid reference, but found '${key}' instead.`);
 		}
 
 		const pair = {
@@ -37,16 +37,15 @@ export default function readKeyValuePair ( parser ) {
 			}
 		};
 
-		if ( spread ) {
+		if (spread) {
 			pair.p = true;
 		}
 
 		return pair;
 	}
 
-
 	// next character must be ':'
-	if ( !parser.matchString( ':' ) ) {
+	if (!parser.matchString(':')) {
 		parser.pos = start;
 		return null;
 	}
@@ -55,8 +54,8 @@ export default function readKeyValuePair ( parser ) {
 	parser.allowWhitespace();
 
 	// next expression must be a, well... expression
-	const value = readExpression( parser );
-	if ( value === null ) {
+	const value = readExpression(parser);
+	if (value === null) {
 		parser.pos = start;
 		return null;
 	}

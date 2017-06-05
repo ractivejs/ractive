@@ -1,18 +1,18 @@
 import noop from '../../utils/noop';
 
-export default function wrap ( parent, name, method ) {
-	if ( !/_super/.test( method ) ) return method;
+export default function wrap(parent, name, method) {
+	if (!/_super/.test(method)) return method;
 
-	function wrapper () {
-		const superMethod = getSuperMethod( wrapper._parent, name );
+	function wrapper() {
+		const superMethod = getSuperMethod(wrapper._parent, name);
 		const hasSuper = '_super' in this;
 		const oldSuper = this._super;
 
 		this._super = superMethod;
 
-		const result = method.apply( this, arguments );
+		const result = method.apply(this, arguments);
 
-		if ( hasSuper ) {
+		if (hasSuper) {
 			this._super = oldSuper;
 		} else {
 			delete this._super;
@@ -27,13 +27,11 @@ export default function wrap ( parent, name, method ) {
 	return wrapper;
 }
 
-function getSuperMethod ( parent, name ) {
-	if ( name in parent ) {
-		const value = parent[ name ];
+function getSuperMethod(parent, name) {
+	if (name in parent) {
+		const value = parent[name];
 
-		return typeof value === 'function' ?
-			value :
-			() => value;
+		return typeof value === 'function' ? value : () => value;
 	}
 
 	return noop;

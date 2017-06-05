@@ -16,25 +16,29 @@ import shared from './Ractive/shared';
 import { findPlugin } from './Ractive/static/findPlugin';
 import parseJSON from './utils/parseJSON';
 
-export default function Ractive ( options ) {
-	if ( !( this instanceof Ractive ) ) return new Ractive( options );
+export default function Ractive(options) {
+	if (!(this instanceof Ractive)) return new Ractive(options);
 
-	construct( this, options || {} );
-	initialise( this, options || {}, {} );
+	construct(this, options || {});
+	initialise(this, options || {}, {});
 }
 
 // check to see if we're being asked to force Ractive as a global for some weird environments
-if ( win && !win.Ractive ) {
+if (win && !win.Ractive) {
 	let opts = '';
-	const script = document.currentScript || /* istanbul ignore next */ document.querySelector( 'script[data-ractive-options]' );
+	const script =
+		document.currentScript ||
+		/* istanbul ignore next */ document.querySelector(
+			'script[data-ractive-options]'
+		);
 
-	if ( script ) opts = script.getAttribute( 'data-ractive-options' ) || '';
+	if (script) opts = script.getAttribute('data-ractive-options') || '';
 
 	/* istanbul iggnore next */
-	if ( ~opts.indexOf( 'ForceGlobal' ) ) win.Ractive = Ractive;
+	if (~opts.indexOf('ForceGlobal')) win.Ractive = Ractive;
 }
 
-Object.assign( Ractive.prototype, proto, defaults );
+Object.assign(Ractive.prototype, proto, defaults);
 Ractive.prototype.constructor = Ractive;
 
 // alias prototype as `defaults`
@@ -45,45 +49,44 @@ shared.defaults = Ractive.defaults;
 shared.Ractive = Ractive;
 
 // static properties
-Object.defineProperties( Ractive, {
-
+Object.defineProperties(Ractive, {
 	// debug flag
-	DEBUG:            { writable: true, value: true },
-	DEBUG_PROMISES:   { writable: true, value: true },
+	DEBUG: { writable: true, value: true },
+	DEBUG_PROMISES: { writable: true, value: true },
 
 	// static methods:
-	extend:           { value: extend },
-	extendWith:       { value: extendWith },
-	escapeKey:        { value: escapeKey },
-	getContext:       { value: getContext },
-	getNodeInfo:      { value: getNodeInfo },
-	isInstance:       { value: isInstance },
-	joinKeys:         { value: joinKeys },
-	parse:            { value: parse },
-	splitKeypath:     { value: splitKeypath },
-	unescapeKey:      { value: unescapeKey },
-	getCSS:           { value: getCSS },
+	extend: { value: extend },
+	extendWith: { value: extendWith },
+	escapeKey: { value: escapeKey },
+	getContext: { value: getContext },
+	getNodeInfo: { value: getNodeInfo },
+	isInstance: { value: isInstance },
+	joinKeys: { value: joinKeys },
+	parse: { value: parse },
+	splitKeypath: { value: splitKeypath },
+	unescapeKey: { value: unescapeKey },
+	getCSS: { value: getCSS },
 	normaliseKeypath: { value: normalise },
-	findPlugin:       { value: findPlugin },
+	findPlugin: { value: findPlugin },
 	evalObjectString: { value: parseJSON },
 
 	// support
-	enhance:          { writable: true, value: false },
-	svg:              { value: svg },
+	enhance: { writable: true, value: false },
+	svg: { value: svg },
 
 	// version
-	VERSION:          { value: 'BUILD_PLACEHOLDER_VERSION' },
+	VERSION: { value: 'BUILD_PLACEHOLDER_VERSION' },
 
 	// plugins
-	adaptors:         { writable: true, value: {} },
-	components:       { writable: true, value: {} },
-	decorators:       { writable: true, value: {} },
-	easing:           { writable: true, value: easing },
-	events:           { writable: true, value: {} },
-	interpolators:    { writable: true, value: interpolators },
-	partials:         { writable: true, value: {} },
-	transitions:      { writable: true, value: {} },
+	adaptors: { writable: true, value: {} },
+	components: { writable: true, value: {} },
+	decorators: { writable: true, value: {} },
+	easing: { writable: true, value: easing },
+	events: { writable: true, value: {} },
+	interpolators: { writable: true, value: interpolators },
+	partials: { writable: true, value: {} },
+	transitions: { writable: true, value: {} },
 
 	// for getting the source Ractive lib from a constructor
-	Ractive:          { value: Ractive }
+	Ractive: { value: Ractive }
 });

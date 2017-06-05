@@ -27,6 +27,7 @@
     "karma-sauce-launcher": "^1.1.0",
     "magic-string": "^0.21.0",
     "phantomjs-prebuilt": "^2.1.14",
+    "prettier": "^1.4",
     "qunitjs": "^2.1.1",
     "rollup": "^0.41.0",
     "rollup-plugin-istanbul": "^1"
@@ -42,6 +43,7 @@
     "lint:bin": "",
     "lint:perf": "",
     "lint:lib": "",
+    "prettier": "prettier --use-tabs --single-quote --trailing-comma-es5 --write \"{src,tests/browser,tests/node}/**/*.js\"",
     "bundle:test": "gobble --env=bundle:test build .build --force",
     "bundle:release": "gobble --env=bundle:release build .build --force",
     "test:electron": "cd .build; karma start ../karma/electron.conf.js",
