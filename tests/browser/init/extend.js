@@ -1,36 +1,44 @@
-import { hasUsableConsole, onWarn, initModule } from '../../helpers/test-config';
+import {
+	hasUsableConsole,
+	onWarn,
+	initModule
+} from '../../helpers/test-config';
 import { test } from 'qunit';
 
 export default function() {
-	initModule( 'init/extend.js' );
+	initModule('init/extend.js');
 
-	test( 'multiple options arguments applied left to right', t => {
-		const X = Ractive.extend({
-			template: 'ignore',
-			data: { foo: 'foo' }
-		}, {
-			template: 'ignore',
-			data: { bar: 'bar' }
-		}, {
-			template: 'good',
-			data: { qux: 'qux' }
-		});
+	test('multiple options arguments applied left to right', t => {
+		const X = Ractive.extend(
+			{
+				template: 'ignore',
+				data: { foo: 'foo' }
+			},
+			{
+				template: 'ignore',
+				data: { bar: 'bar' }
+			},
+			{
+				template: 'good',
+				data: { qux: 'qux' }
+			}
+		);
 
 		const ractive = new X();
 
-		t.equal( ractive.get( 'foo' ), 'foo' );
-		t.equal( ractive.get( 'bar' ), 'bar' );
-		t.equal( ractive.get( 'qux' ), 'qux' );
+		t.equal(ractive.get('foo'), 'foo');
+		t.equal(ractive.get('bar'), 'bar');
+		t.equal(ractive.get('qux'), 'qux');
 
-		t.equal( ractive.template, 'good' );
+		t.equal(ractive.template, 'good');
 	});
 
-	test( 'data is inherited from grand parent extend (#923)', t => {
+	test('data is inherited from grand parent extend (#923)', t => {
 		const Child = Ractive.extend({
 			append: true,
 			template: 'title:{{format(title)}}',
 			data: {
-				format ( title ) {
+				format(title) {
 					return title.toUpperCase();
 				}
 			}
@@ -48,51 +56,59 @@ export default function() {
 			data: { title: 'grandchild' }
 		});
 
-		t.equal( fixture.innerHTML, 'title:CHILDtitle:GRANDCHILD' );
+		t.equal(fixture.innerHTML, 'title:CHILDtitle:GRANDCHILD');
 	});
 
-	test( 'instantiated .extend() component with data function called on initialize', t => {
+	test('instantiated .extend() component with data function called on initialize', t => {
 		const data = { foo: 'bar' };
 
 		const Component = Ractive.extend({
-			data () { return data; }
+			data() {
+				return data;
+			}
 		});
 
 		const ractive = new Component();
-		t.strictEqual( ractive.viewmodel.value, data );
+		t.strictEqual(ractive.viewmodel.value, data);
 	});
 
-	test( 'extend data option includes Ractive defaults.data', t => {
+	test('extend data option includes Ractive defaults.data', t => {
 		const defaultData = Ractive.defaults.data;
 		Ractive.defaults.data = {
-			format () { return 'default'; },
+			format() {
+				return 'default';
+			},
 			defaultOnly: {}
 		};
 
 		const Component = Ractive.extend({
 			data: () => ({
-				format () { return 'component'; },
+				format() {
+					return 'component';
+				},
 				componentOnly: {}
 			})
 		});
 
-		const ractive = new Component( {
+		const ractive = new Component({
 			el: fixture,
 			template: '{{format()}}',
 			data: { foo: 'bar' }
 		});
 
-		t.ok( ractive.get( 'foo' ), 'has instance data' );
-		t.ok( ractive.get( 'componentOnly' ), 'has Component data' );
-		t.ok( ractive.get( 'defaultOnly' ), 'has Ractive.default data' );
-		t.equal( fixture.innerHTML, 'component' );
+		t.ok(ractive.get('foo'), 'has instance data');
+		t.ok(ractive.get('componentOnly'), 'has Component data');
+		t.ok(ractive.get('defaultOnly'), 'has Ractive.default data');
+		t.equal(fixture.innerHTML, 'component');
 
 		Ractive.defaults.data = defaultData;
 	});
 
-	test( 'instantiated .extend() with template function called on initialize', t => {
+	test('instantiated .extend() with template function called on initialize', t => {
 		const Component = Ractive.extend({
-			template () { return '{{foo}}'; }
+			template() {
+				return '{{foo}}';
+			}
 		});
 
 		new Component({
@@ -100,42 +116,46 @@ export default function() {
 			data: { foo: 'bar' }
 		});
 
-		t.equal( fixture.innerHTML, 'bar' );
+		t.equal(fixture.innerHTML, 'bar');
 	});
 
-	test( 'extend template replaces Ractive defaults.template', t => {
+	test('extend template replaces Ractive defaults.template', t => {
 		const defaultTemplate = Ractive.defaults.template;
-		Ractive.defaults.template = function () { return '{{fizz}}'; };
+		Ractive.defaults.template = function() {
+			return '{{fizz}}';
+		};
 
 		const Component = Ractive.extend({
-			template () { return '{{foo}}'; }
+			template() {
+				return '{{foo}}';
+			}
 		});
 
-		new Component( {
+		new Component({
 			el: fixture,
 			data: { foo: 'bar', fizz: 'bizz' }
 		});
 
-		t.equal( fixture.innerHTML, 'bar' );
+		t.equal(fixture.innerHTML, 'bar');
 
 		Ractive.defaults.template = defaultTemplate;
 	});
 
-	test( '"this" refers to ractive instance in init method with _super (#840)', t => {
-		t.expect( 4 );
+	test('"this" refers to ractive instance in init method with _super (#840)', t => {
+		t.expect(4);
 
 		let cThis;
 		const C = Ractive.extend({
-			oninit () {
-				t.ok( this instanceof Ractive );
+			oninit() {
+				t.ok(this instanceof Ractive);
 				cThis = this;
 			}
 		});
 
 		let dThis;
 		const D = C.extend({
-			oninit () {
-				t.ok( this instanceof Ractive );
+			oninit() {
+				t.ok(this instanceof Ractive);
 				dThis = this;
 				this._super();
 			}
@@ -145,11 +165,11 @@ export default function() {
 			el: fixture
 		});
 
-		t.equal( cThis, ractive );
-		t.equal( dThis, ractive );
+		t.equal(cThis, ractive);
+		t.equal(dThis, ractive);
 	});
 
-	test( '"parent" and "root" properties are correctly set', t => {
+	test('"parent" and "root" properties are correctly set', t => {
 		const GrandChild = Ractive.extend({
 			template: 'this space for rent'
 		});
@@ -159,94 +179,104 @@ export default function() {
 			components: { GrandChild }
 		});
 
-		const ractive = new Ractive( {
+		const ractive = new Ractive({
 			el: fixture,
 			template: '<Child/>',
 			components: { Child }
 		});
 
-		const child = ractive.findComponent( 'Child' );
-		const grandchild = ractive.findComponent( 'GrandChild' );
+		const child = ractive.findComponent('Child');
+		const grandchild = ractive.findComponent('GrandChild');
 
-		t.equal( ractive.root, ractive );
-		t.ok( !ractive.parent );
+		t.equal(ractive.root, ractive);
+		t.ok(!ractive.parent);
 
-		t.equal( child.root, ractive );
-		t.equal( child.parent, ractive );
+		t.equal(child.root, ractive);
+		t.equal(child.parent, ractive);
 
-		t.equal( grandchild.root, ractive );
-		t.equal( grandchild.parent, child );
+		t.equal(grandchild.root, ractive);
+		t.equal(grandchild.parent, child);
 	});
 
-	if ( hasUsableConsole ) {
-		test( 'data function returning wrong value causes error/warning', t => {
+	if (hasUsableConsole) {
+		test('data function returning wrong value causes error/warning', t => {
 			// non-objects are an error
 			const Bad = Ractive.extend({
-				data () {
+				data() {
 					return 'disallowed';
 				}
 			});
 
-			t.throws( () => new Bad(), /Data function must return an object/ );
+			t.throws(() => new Bad(), /Data function must return an object/);
 
 			// non-POJOs should trigger a warning
-			function Foo () {}
+			function Foo() {}
 
 			let warned;
-			onWarn( () => warned = true );
+			onWarn(() => (warned = true));
 
 			const LessBad = Ractive.extend({
-				data () {
+				data() {
 					return new Foo();
 				}
 			});
 
 			new LessBad();
-			t.ok( warned );
+			t.ok(warned);
 		});
 	}
 
-	test( 'children inherit subscribers', t => {
-		t.expect( 7 );
+	test('children inherit subscribers', t => {
+		t.expect(7);
 
 		const cmp = Ractive.extend({
 			on: {
-				foo() { t.ok( true ); }
+				foo() {
+					t.ok(true);
+				}
 			},
 			observe: {
-				foo() { t.ok( true ); }
+				foo() {
+					t.ok(true);
+				}
 			}
 		});
 		const two = cmp.extend({
 			on: {
-				foo() { t.ok( true ); },
-				bar() { t.ok( true ); }
+				foo() {
+					t.ok(true);
+				},
+				bar() {
+					t.ok(true);
+				}
 			},
 			observe: {
-				bar() { t.ok( true ); }
+				bar() {
+					t.ok(true);
+				}
 			}
 		});
 
 		const r = new two();
 
-		r.fire( 'foo' );
-		r.fire( 'bar' );
-		r.toggle( 'foo' );
-		r.toggle( 'bar' );
+		r.fire('foo');
+		r.fire('bar');
+		r.toggle('foo');
+		r.toggle('bar');
 	});
 
-	test( `an existing constructor can be specified using the class option`, t => {
+	test(`an existing constructor can be specified using the class option`, t => {
 		class Foo extends Ractive {
-			constructor ( opts ) {
-				super( opts );
+			constructor(opts) {
+				super(opts);
 			}
 
-			go () {
-				this.set( 'name', 'classy' );
+			go() {
+				this.set('name', 'classy');
 			}
 		}
 
-		Ractive.extendWith( Foo, {
+		Ractive.extendWith(Foo, {
 			template: 'hello, {{name}}'
 		});
 
@@ -255,72 +285,72 @@ export default function() {
 		});
 
 		f.go();
-		t.htmlEqual( fixture.innerHTML, 'hello, classy' );
+		t.htmlEqual(fixture.innerHTML, 'hello, classy');
 	});
 
-	test( `existing constructors supplied to extend should inherit from Ractive`, t => {
-		t.expect( 1 );
+	test(`existing constructors supplied to extend should inherit from Ractive`, t => {
+		t.expect(1);
 
 		class Foo {}
 
-		t.throws( () => {
-			Ractive.extendWith( Foo );
-		}, /inherit the appropriate prototype/ );
+		t.throws(() => {
+			Ractive.extendWith(Foo);
+		}, /inherit the appropriate prototype/);
 	});
 
-	test( `existing constructors supplied to extend should call super`, t => {
-		t.expect( 1 );
+	test(`existing constructors supplied to extend should call super`, t => {
+		t.expect(1);
 
 		class Foo extends Ractive {}
 
-		t.throws( () => {
-			Ractive.extendWith( Foo );
-		}, /call super/ );
+		t.throws(() => {
+			Ractive.extendWith(Foo);
+		}, /call super/);
 	});
 
-	test( `multiple construction objects with functions passed to extend are layered correctly`, t => {
-		t.expect( 5 );
+	test(`multiple construction objects with functions passed to extend are layered correctly`, t => {
+		t.expect(5);
 
 		let count = 0;
 		const c1 = {
-			data () {
-				t.equal( count, 1 ); //child data fn has been called
+			data() {
+				t.equal(count, 1); //child data fn has been called
 				count++;
 				return { foo: 1 };
 			},
-			onrender () {
-				t.equal( count, 3 ); //all other fns have been called
+			onrender() {
+				t.equal(count, 3); //all other fns have been called
 				count++;
 			}
 		};
 		const c2 = {
-			data () {
-				t.equal( count, 0 ); //first to be called
+			data() {
+				t.equal(count, 0); //first to be called
 				count++;
 				return { bar: 2 };
 			},
-			onrender () {
-				t.equal( count, 2 ); //first render called
+			onrender() {
+				t.equal(count, 2); //first render called
 				count++;
 				this._super();
 			}
 		};
 
-		const cmp = Ractive.extend( c1, c2 );
+		const cmp = Ractive.extend(c1, c2);
 
 		new cmp({
 			target: fixture,
 			template: '{{foo}} {{bar}}'
 		});
 
-		t.htmlEqual( fixture.innerHTML, '1 2' );
+		t.htmlEqual(fixture.innerHTML, '1 2');
 	});
 
-	test( `trying to extend with a component  arg throws`, t => {
+	test(`trying to extend with a component  arg throws`, t => {
 		const cmp = Ractive.extend();
-		t.throws( () => {
-			Ractive.extend( cmp );
-		}, /no longer supports multiple inheritance/ );
+		t.throws(() => {
+			Ractive.extend(cmp);
+		}, /no longer supports multiple inheritance/);
 	});
 
 	test('Default template', t => {
@@ -356,7 +386,10 @@ export default function() {
 
 	test('Multiple configuration', t => {
 		const Parent = Ractive.extend({ template: '' });
-		const Child = Parent.extend({ template: '{{ foo }}' }, { template: '{{ bar }}' });
+		const Child = Parent.extend(
+			{ template: '{{ foo }}' },
+			{ template: '{{ bar }}' }
+		);
 		const template = Child.prototype.template;
 
 		t.deepEqual(template, { v: 4, t: [{ r: 'bar', t: 2 }] });
@@ -364,26 +397,29 @@ export default function() {
 
 	test('Child parse options', t => {
 		const Parent = Ractive.extend({ template: '' });
-		const Child = Parent.extend({ template: '<#foo#>', delimiters: ['<#', '#>'] });
+		const Child = Parent.extend({
+			template: '<#foo#>',
+			delimiters: ['<#', '#>']
+		});
 		const template = Child.prototype.template;
 
 		t.deepEqual(template, { v: 4, t: [{ r: 'foo', t: 2 }] });
 	});
 
-	test( `Ractive and Parent are exposed`, t => {
+	test(`Ractive and Parent are exposed`, t => {
 		const Parent = Ractive.extend();
 		const Child = Parent.extend();
 
 		const instance = new Child();
 
-		t.ok( instance.constructor.Parent === Parent );
-		t.ok( instance.constructor.Ractive === Ractive );
-		t.ok( Child.Parent === Parent );
-		t.ok( Child.Ractive === Ractive );
-		t.ok( Parent.Ractive === Parent.Parent && Parent.Parent === Ractive );
+		t.ok(instance.constructor.Parent === Parent);
+		t.ok(instance.constructor.Ractive === Ractive);
+		t.ok(Child.Parent === Parent);
+		t.ok(Child.Ractive === Ractive);
+		t.ok(Parent.Ractive === Parent.Parent && Parent.Parent === Ractive);
 	});
 
-	test( `isInstance returns true for instances of ractive or a component (#2914)`, t => {
+	test(`isInstance returns true for instances of ractive or a component (#2914)`, t => {
 		const Parent = Ractive.extend();
 		const Child = Parent.extend();
 
@@ -391,14 +427,14 @@ export default function() {
 		const r2 = new Parent();
 		const r3 = {};
 
-		t.ok( Ractive.isInstance( r1 ) );
-		t.ok( Ractive.isInstance( r2 ) );
-		t.ok( !Ractive.isInstance( r3 ) );
-		t.ok( Parent.isInstance( r1 ) );
-		t.ok( Parent.isInstance( r2 ) );
-		t.ok( Child.isInstance( r1 ) );
-		t.ok( !Child.isInstance( r2 ) );
-		t.ok( Ractive.isInstance( Ractive() ) );
-		t.ok( !Parent.isInstance( new Ractive() ) );
+		t.ok(Ractive.isInstance(r1));
+		t.ok(Ractive.isInstance(r2));
+		t.ok(!Ractive.isInstance(r3));
+		t.ok(Parent.isInstance(r1));
+		t.ok(Parent.isInstance(r2));
+		t.ok(Child.isInstance(r1));
+		t.ok(!Child.isInstance(r2));
+		t.ok(Ractive.isInstance(Ractive()));
+		t.ok(!Parent.isInstance(new Ractive()));
 	});
 }

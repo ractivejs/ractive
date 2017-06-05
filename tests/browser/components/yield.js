@@ -1,11 +1,15 @@
 import { fire } from 'simulant';
-import { hasUsableConsole, onWarn, initModule } from '../../helpers/test-config';
+import {
+	hasUsableConsole,
+	onWarn,
+	initModule
+} from '../../helpers/test-config';
 import { test } from 'qunit';
 
 export default function() {
-	initModule( 'components/yield.js' );
+	initModule('components/yield.js');
 
-	test( 'Basic yield', t => {
+	test('Basic yield', t => {
 		const Widget = Ractive.extend({
 			template: '<p>{{yield}}</p>'
 		});
@@ -16,10 +20,10 @@ export default function() {
 			components: { Widget }
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<p>yeah!</p>' );
+		t.htmlEqual(fixture.innerHTML, '<p>yeah!</p>');
 	});
 
-	test( 'References are resolved in parent context', t => {
+	test('References are resolved in parent context', t => {
 		const Widget = Ractive.extend({
 			template: '<p>{{yield}}</p>',
 			isolated: true
@@ -32,10 +36,10 @@ export default function() {
 			components: { Widget }
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<p>yeah!</p>' );
+		t.htmlEqual(fixture.innerHTML, '<p>yeah!</p>');
 	});
 
-	test( 'References are resolved in parent context through multiple layers', t => {
+	test('References are resolved in parent context through multiple layers', t => {
 		const WidgetInner = Ractive.extend({
 			template: '<p>{{yield}}</p>',
 			isolated: true
@@ -58,11 +62,11 @@ export default function() {
 			components: { Widget, Middle }
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<p><strong>yeah!</strong></p>' );
+		t.htmlEqual(fixture.innerHTML, '<p><strong>yeah!</strong></p>');
 	});
 
-	test( 'Events fire in parent context', t => {
-		t.expect( 1 );
+	test('Events fire in parent context', t => {
+		t.expect(1);
 
 		const WidgetInner = Ractive.extend({
 			template: '<p>{{yield}}</p>',
@@ -81,19 +85,20 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<Widget><Middle><button on-click="@this.test(foo)">click me</button></Middle></Widget>',
+			template:
+				'<Widget><Middle><button on-click="@this.test(foo)">click me</button></Middle></Widget>',
 			data: { foo: 'yeah!' },
 			components: { Widget, Middle }
 		});
 
-		ractive.test = function ( foo ) {
-			t.equal( foo, 'yeah!' );
+		ractive.test = function(foo) {
+			t.equal(foo, 'yeah!');
 		};
 
-		fire( ractive.find( 'button' ), 'click' );
+		fire(ractive.find('button'), 'click');
 	});
 
-	test( 'A component {{yield}} can be rerendered in conditional section block', t => {
+	test('A component {{yield}} can be rerendered in conditional section block', t => {
 		const Widget = Ractive.extend({
 			template: '<p>{{#foo}}{{yield}}{{/}}</p>',
 			isolated: false
@@ -106,13 +111,13 @@ export default function() {
 			data: { foo: true }
 		});
 
-		ractive.set( 'foo', false );
-		ractive.set( 'foo', true );
+		ractive.set('foo', false);
+		ractive.set('foo', true);
 
-		t.htmlEqual( fixture.innerHTML, '<p>yield</p>' );
+		t.htmlEqual(fixture.innerHTML, '<p>yield</p>');
 	});
 
-	test( 'A component {{yield}} can be rerendered in list section block', t => {
+	test('A component {{yield}} can be rerendered in list section block', t => {
 		const Widget = Ractive.extend({
 			template: `
 				{{#each items:i}}
@@ -125,17 +130,17 @@ export default function() {
 			el: fixture,
 			template: '<Widget>YIELDED</Widget>',
 			components: { Widget },
-			data: { items: [ 'a', 'b', 'c' ] }
+			data: { items: ['a', 'b', 'c'] }
 		});
 
-		t.htmlEqual( fixture.innerHTML, 'ab:YIELDED:c' );
+		t.htmlEqual(fixture.innerHTML, 'ab:YIELDED:c');
 
-		ractive.set( 'items', [ 'c', 'a' ], { shuffle: true } );
+		ractive.set('items', ['c', 'a'], { shuffle: true });
 
-		t.htmlEqual( fixture.innerHTML, 'ca:YIELDED:' );
+		t.htmlEqual(fixture.innerHTML, 'ca:YIELDED:');
 	});
 
-	test( 'A component {{yield}} should be parented by the fragment holding the yield and not the fragment holding the component', t => {
+	test('A component {{yield}} should be parented by the fragment holding the yield and not the fragment holding the component', t => {
 		const Widget = Ractive.extend({
 			template: '<div>{{yield}}</div>',
 			data: {
@@ -153,10 +158,10 @@ export default function() {
 			components: { Widget }
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div>foo! foo!</div>' );
+		t.htmlEqual(fixture.innerHTML, '<div>foo! foo!</div>');
 	});
 
-	test( 'Named yield with a hyphenated name (#1681)', t => {
+	test('Named yield with a hyphenated name (#1681)', t => {
 		const template = `
 			<Widget>
 				{{#partial foo-bar}}
@@ -174,10 +179,10 @@ export default function() {
 			components: { Widget }
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<p>this is foo-bar</p>' );
+		t.htmlEqual(fixture.innerHTML, '<p>this is foo-bar</p>');
 	});
 
-	test( 'yield can yield an expression', t => {
+	test('yield can yield an expression', t => {
 		const cmp = Ractive.extend({
 			template: '{{yield { template: "<p>yep</p>" } }}'
 		});
@@ -187,10 +192,10 @@ export default function() {
 			components: { cmp }
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<p>yep</p>' );
+		t.htmlEqual(fixture.innerHTML, '<p>yep</p>');
 	});
 
-	test( 'Named yield with Ractive.extend() works as with new Ractive() (#1680)', t => {
+	test('Named yield with Ractive.extend() works as with new Ractive() (#1680)', t => {
 		const Widget = Ractive.extend({
 			template: '{{yield foo}}'
 		});
@@ -208,7 +213,7 @@ export default function() {
 			components: { Widget }
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<p>this is foo</p>' );
+		t.htmlEqual(fixture.innerHTML, '<p>this is foo</p>');
 
 		const Container = Ractive.extend({
 			template,
@@ -219,14 +224,14 @@ export default function() {
 			el: fixture
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<p>this is foo</p>' );
+		t.htmlEqual(fixture.innerHTML, '<p>this is foo</p>');
 	});
 
-	test( 'yielded fragments that are updated from an observer should actually update (#2225)', t => {
+	test('yielded fragments that are updated from an observer should actually update (#2225)', t => {
 		const cmp = Ractive.extend({
 			template: '{{yield}}',
 			onrender() {
-				this.observe( 'bar', v => this.set( 'baz', `${v} yep` ) );
+				this.observe('bar', v => this.set('baz', `${v} yep`));
 			}
 		});
 
@@ -239,12 +244,12 @@ export default function() {
 			components: { cmp }
 		});
 
-		t.htmlEqual( fixture.innerHTML, '- yep' );
-		r.set( 'foo', 2 );
-		t.htmlEqual( fixture.innerHTML, '-2 yep' );
+		t.htmlEqual(fixture.innerHTML, '- yep');
+		r.set('foo', 2);
+		t.htmlEqual(fixture.innerHTML, '-2 yep');
 	});
 
-	test( 'Components inherited from more than one generation off work with named yields', t => {
+	test('Components inherited from more than one generation off work with named yields', t => {
 		const widget = Ractive.extend({
 			template: '{{yield foo}}'
 		});
@@ -268,10 +273,10 @@ export default function() {
 			el: fixture
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<p>this is foo</p>' );
+		t.htmlEqual(fixture.innerHTML, '<p>this is foo</p>');
 	});
 
-	test( 'yielders should properly update with their container instance (#2235)', t => {
+	test('yielders should properly update with their container instance (#2235)', t => {
 		const Foo = Ractive.extend({
 			template: '{{yield}}'
 		});
@@ -285,12 +290,12 @@ export default function() {
 			components: { Foo }
 		});
 
-		t.htmlEqual( fixture.innerHTML, 'foo' );
-		r.set( 'foo', 'bar' );
-		t.htmlEqual( fixture.innerHTML, 'bar' );
+		t.htmlEqual(fixture.innerHTML, 'foo');
+		r.set('foo', 'bar');
+		t.htmlEqual(fixture.innerHTML, 'bar');
 	});
 
-	test( 'yielders should search the container for their anchor (#2235)', t => {
+	test('yielders should search the container for their anchor (#2235)', t => {
 		const Foo = Ractive.extend({
 			template: '<div>{{yield}}</div>'
 		});
@@ -304,15 +309,15 @@ export default function() {
 			components: { Foo }
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div></div>' );
-		r.set( 'foo', true );
-		t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
+		t.htmlEqual(fixture.innerHTML, '<div></div>');
+		r.set('foo', true);
+		t.htmlEqual(fixture.innerHTML, '<div>bar</div>');
 	});
 
-	if ( hasUsableConsole ) {
-		test( 'Yield with missing partial (#1681)', t => {
-			onWarn( msg => {
-				t.ok( /Could not find template for partial 'missing'/.test( msg ) );
+	if (hasUsableConsole) {
+		test('Yield with missing partial (#1681)', t => {
+			onWarn(msg => {
+				t.ok(/Could not find template for partial 'missing'/.test(msg));
 			});
 
 			const Widget = Ractive.extend({
@@ -326,7 +331,7 @@ export default function() {
 		});
 	}
 
-	test( 'a plain content yielder may provide context via aliases', t => {
+	test('a plain content yielder may provide context via aliases', t => {
 		const cmp = Ractive.extend({
 			template: `<ul>{{#each items}}<li>{{yield with . as item}}</li>{{/each}}</ul>`
 		});
@@ -335,15 +340,18 @@ export default function() {
 			el: fixture,
 			template: `<cmp items="{{.list}}">hello {{item}}</cmp>`,
 			data: {
-				list: [ 1, 2, 3 ]
+				list: [1, 2, 3]
 			},
 			components: { cmp }
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<ul><li>hello 1</li><li>hello 2</li><li>hello 3</li></ul>' );
+		t.htmlEqual(
+			fixture.innerHTML,
+			'<ul><li>hello 1</li><li>hello 2</li><li>hello 3</li></ul>'
+		);
 	});
 
-	test( 'a specific content yielder may provide context via aliases', t => {
+	test('a specific content yielder may provide context via aliases', t => {
 		const cmp = Ractive.extend({
 			template: `<ul>{{#each items}}<li>{{yield foo with . as item}}</li>{{/each}}</ul>`
 		});
@@ -352,15 +360,18 @@ export default function() {
 			el: fixture,
 			template: `<cmp items="{{.list}}">{{#partial foo}}hello {{item}}{{/partial}}</cmp>`,
 			data: {
-				list: [ 1, 2, 3 ]
+				list: [1, 2, 3]
 			},
 			components: { cmp }
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<ul><li>hello 1</li><li>hello 2</li><li>hello 3</li></ul>' );
+		t.htmlEqual(
+			fixture.innerHTML,
+			'<ul><li>hello 1</li><li>hello 2</li><li>hello 3</li></ul>'
+		);
 	});
 
-	test( 'partial expression is evaluated outside of the partial context', t => {
+	test('partial expression is evaluated outside of the partial context', t => {
 		new Ractive({
 			el: fixture,
 			template: `{{>foo { foo: 'nope' } }}`,
@@ -373,10 +384,10 @@ export default function() {
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, 'yep' );
+		t.htmlEqual(fixture.innerHTML, 'yep');
 	});
 
-	test( 'yield resolves its expression in the correct context', t => {
+	test('yield resolves its expression in the correct context', t => {
 		const cmp = Ractive.extend({
 			template: '{{yield foo.bar}}',
 			data: {
@@ -389,6 +400,6 @@ export default function() {
 			components: { cmp }
 		});
 
-		t.htmlEqual( fixture.innerHTML, 'yep' );
+		t.htmlEqual(fixture.innerHTML, 'yep');
 	});
 }

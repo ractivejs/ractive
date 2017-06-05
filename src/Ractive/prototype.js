@@ -95,8 +95,10 @@ const proto = {
 	updateModel
 };
 
-Object.defineProperty( proto, 'target', {
-	get() { return this.el; }
+Object.defineProperty(proto, 'target', {
+	get() {
+		return this.el;
+	}
 });
 
 export default proto;

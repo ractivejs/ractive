@@ -16,15 +16,21 @@ const custom = {
 	template: templateConfigurator
 };
 
-const defaultKeys = Object.keys( defaults );
+const defaultKeys = Object.keys(defaults);
 
-const isStandardKey = makeObj( defaultKeys.filter( key => !custom[ key ] ) );
+const isStandardKey = makeObj(defaultKeys.filter(key => !custom[key]));
 
 // blacklisted keys that we don't double extend
-const isBlacklisted = makeObj( defaultKeys.concat( registries.map( r => r.name ), [ 'on', 'observe', 'attributes' ] ) );
+const isBlacklisted = makeObj(
+	defaultKeys.concat(registries.map(r => r.name), [
+		'on',
+		'observe',
+		'attributes'
+	])
+);
 
 const order = [].concat(
-	defaultKeys.filter( key => !registries[ key ] && !custom[ key ] ),
+	defaultKeys.filter(key => !registries[key] && !custom[key]),
 	registries,
 	//custom.data,
 	custom.template,
@@ -32,71 +38,77 @@ const order = [].concat(
 );
 
 const config = {
-	extend: ( Parent, proto, options ) => configure( 'extend', Parent, proto, options ),
-	init: ( Parent, ractive, options ) => configure( 'init', Parent, ractive, options ),
-	reset: ractive => order.filter( c => c.reset && c.reset( ractive ) ).map( c => c.name )
+	extend: (Parent, proto, options) =>
+		configure('extend', Parent, proto, options),
+	init: (Parent, ractive, options) =>
+		configure('init', Parent, ractive, options),
+	reset: ractive =>
+		order.filter(c => c.reset && c.reset(ractive)).map(c => c.name)
 };
 
-function configure ( method, Parent, target, options ) {
-	deprecate( options );
+function configure(method, Parent, target, options) {
+	deprecate(options);
 
-	for ( const key in options ) {
-		if ( isStandardKey.hasOwnProperty( key ) ) {
-			const value = options[ key ];
+	for (const key in options) {
+		if (isStandardKey.hasOwnProperty(key)) {
+			const value = options[key];
 
 			// warn the developer if they passed a function and ignore its value
 
 			// NOTE: we allow some functions on "el" because we duck type element lists
 			// and some libraries or ef'ed-up virtual browsers (phantomJS) return a
 			// function object as the result of querySelector methods
-			if ( key !== 'el' && typeof value === 'function' ) {
-				warnIfDebug( `${ key } is a Ractive option that does not expect a function and will be ignored`,
-					method === 'init' ? target : null );
-			}
-			else {
-				target[ key ] = value;
+			if (key !== 'el' && typeof value === 'function') {
+				warnIfDebug(
+					`${key} is a Ractive option that does not expect a function and will be ignored`,
+					method === 'init' ? target : null
+				);
+			} else {
+				target[key] = value;
 			}
 		}
 	}
 
 	// disallow combination of `append` and `enhance`
-	if ( options.append && options.enhance ) {
-		throw new Error( 'Cannot use append and enhance at the same time' );
+	if (options.append && options.enhance) {
+		throw new Error('Cannot use append and enhance at the same time');
 	}
 
-	registries.forEach( registry => {
-		registry[ method ]( Parent, target, options );
+	registries.forEach(registry => {
+		registry[method](Parent, target, options);
 	});
 
-	adaptConfigurator[ method ]( Parent, target, options );
-	templateConfigurator[ method ]( Parent, target, options );
-	cssConfigurator[ method ]( Parent, target, options );
+	adaptConfigurator[method](Parent, target, options);
+	templateConfigurator[method](Parent, target, options);
+	cssConfigurator[method](Parent, target, options);
 
-	extendOtherMethods( Parent.prototype, target, options );
+	extendOtherMethods(Parent.prototype, target, options);
 }
 
 const _super = /\b_super\b/;
-function extendOtherMethods ( parent, target, options ) {
-	for ( const key in options ) {
-		if ( !isBlacklisted[ key ] && options.hasOwnProperty( key ) ) {
-			let member = options[ key ];
+function extendOtherMethods(parent, target, options) {
+	for (const key in options) {
+		if (!isBlacklisted[key] && options.hasOwnProperty(key)) {
+			let member = options[key];
 
 			// if this is a method that overwrites a method, wrap it:
-			if ( typeof member === 'function' ) {
-				if ( key in RactiveProto && !_super.test( member.toString() ) ) {
-					warnIfDebug( `Overriding Ractive prototype function '${key}' without calling the '${_super}' method can be very dangerous.` );
+			if (typeof member === 'function') {
+				if (key in RactiveProto && !_super.test(member.toString())) {
+					warnIfDebug(
+						`Overriding Ractive prototype function '${key}' without calling the '${_super}' method can be very dangerous.`
+					);
 				}
-				member = wrapPrototype( parent, key, member );
+				member = wrapPrototype(parent, key, member);
 			}
 
-			target[ key ] = member;
+			target[key] = member;
 		}
 	}
 }
 
-function makeObj ( array ) {
+function makeObj(array) {
 	const obj = {};
-	array.forEach( x => obj[x] = true );
+	array.forEach(x => (obj[x] = true));
 	return obj;
 }
 

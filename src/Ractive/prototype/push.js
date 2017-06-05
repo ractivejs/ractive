@@ -1,2 +1,2 @@
 import makeArrayMethod from './shared/makeArrayMethod';
-export default makeArrayMethod( 'push' ).path;
+export default makeArrayMethod('push').path;

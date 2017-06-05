@@ -9,32 +9,32 @@ export default {
 	name: 'css',
 
 	// Called when creating a new component definition
-	extend: ( Parent, proto, options ) => {
-		if ( !options.css ) return;
-		let css = typeof options.css === 'string' && !hasCurly.test( options.css ) ?
-			( getElement( options.css ) || options.css ) :
-			options.css;
+	extend: (Parent, proto, options) => {
+		if (!options.css) return;
+		let css = typeof options.css === 'string' && !hasCurly.test(options.css)
+			? getElement(options.css) || options.css
+			: options.css;
 
 		const id = options.cssId || uuid();
 
-		if ( typeof css === 'object' ) {
+		if (typeof css === 'object') {
 			css = 'textContent' in css ? css.textContent : css.innerHTML;
 		}
 
-		if ( !css ) return;
+		if (!css) return;
 
-		const styles = options.noCssTransform ? css : transformCss( css, id );
+		const styles = options.noCssTransform ? css : transformCss(css, id);
 
 		proto.cssId = id;
 
-		addCSS( { id, styles } );
+		addCSS({ id, styles });
 	},
 
 	// Called when creating a new component instance
-	init: ( Parent, target, options ) => {
-		if ( !options.css ) return;
+	init: (Parent, target, options) => {
+		if (!options.css) return;
 
-		warnIfDebug( `
+		warnIfDebug(`
 The css option is currently not supported on a per-instance basis and will be discarded. Instead, we recommend instantiating from a component definition with a css option.
 
 const Component = Ractive.extend({
@@ -44,7 +44,6 @@ const Component = Ractive.extend({
 });
 
 const componentInstance = new Component({ ... })
-		` );
+		`);
 	}
-
 };

@@ -6,12 +6,14 @@ import readObjectLiteral from './literal/readObjectLiteral';
 import readArrayLiteral from './literal/readArrayLiteral';
 import readRegexpLiteral from './literal/readRegexpLiteral';
 
-export default function readLiteral ( parser ) {
-	return readNumberLiteral( parser )         ||
-	       readBooleanLiteral( parser )        ||
-	       readStringLiteral( parser )         ||
-	       readTemplateStringLiteral( parser ) ||
-	       readObjectLiteral( parser )         ||
-	       readArrayLiteral( parser )          ||
-	       readRegexpLiteral( parser );
+export default function readLiteral(parser) {
+	return (
+		readNumberLiteral(parser) ||
+		readBooleanLiteral(parser) ||
+		readStringLiteral(parser) ||
+		readTemplateStringLiteral(parser) ||
+		readObjectLiteral(parser) ||
+		readArrayLiteral(parser) ||
+		readRegexpLiteral(parser)
+	);
 }

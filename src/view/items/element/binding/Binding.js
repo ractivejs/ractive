@@ -4,19 +4,22 @@ import findElement from '../../shared/findElement';
 import noop from '../../../../utils/noop';
 
 export default class Binding {
-	constructor ( element, name = 'value' ) {
+	constructor(element, name = 'value') {
 		this.element = element;
 		this.ractive = element.ractive;
-		this.attribute = element.attributeByName[ name ];
+		this.attribute = element.attributeByName[name];
 
 		const interpolator = this.attribute.interpolator;
 		interpolator.twowayBinding = this;
 
 		const model = interpolator.model;
 
-		if ( model.isReadonly ) {
-			const keypath = model.getKeypath().replace( /^@/, '' );
-			warnOnceIfDebug( `Cannot use two-way binding on <${element.name}> element: ${keypath} is read-only. To suppress this warning use <${element.name} twoway='false'...>`, { ractive: this.ractive });
+		if (model.isReadonly) {
+			const keypath = model.getKeypath().replace(/^@/, '');
+			warnOnceIfDebug(
+				`Cannot use two-way binding on <${element.name}> element: ${keypath} is read-only. To suppress this warning use <${element.name} twoway='false'...>`,
+				{ ractive: this.ractive }
+			);
 			return false;
 		}
 
@@ -27,64 +30,65 @@ export default class Binding {
 		let value = model.get();
 		this.wasUndefined = value === undefined;
 
-		if ( value === undefined && this.getInitialValue ) {
+		if (value === undefined && this.getInitialValue) {
 			value = this.getInitialValue();
-			model.set( value );
+			model.set(value);
 		}
-		this.lastVal( true, value );
+		this.lastVal(true, value);
 
-		const parentForm = findElement( this.element, false, 'form' );
-		if ( parentForm ) {
+		const parentForm = findElement(this.element, false, 'form');
+		if (parentForm) {
 			this.resetValue = value;
-			parentForm.formBindings.push( this );
+			parentForm.formBindings.push(this);
 		}
 	}
 
-	bind () {
-		this.model.registerTwowayBinding( this );
+	bind() {
+		this.model.registerTwowayBinding(this);
 	}
 
-	handleChange () {
+	handleChange() {
 		const value = this.getValue();
-		if ( this.lastVal() === value ) return;
+		if (this.lastVal() === value) return;
 
-		runloop.start( this.root );
+		runloop.start(this.root);
 		this.attribute.locked = true;
-		this.model.set( value );
-		this.lastVal( true, value );
+		this.model.set(value);
+		this.lastVal(true, value);
 
 		// if the value changes before observers fire, unlock to be updatable cause something weird and potentially freezy is up
-		if ( this.model.get() !== value ) this.attribute.locked = false;
-		else runloop.scheduleTask( () => this.attribute.locked = false );
+		if (this.model.get() !== value) this.attribute.locked = false;
+		else runloop.scheduleTask(() => (this.attribute.locked = false));
 
 		runloop.end();
 	}
 
-	lastVal ( setting, value ) {
-		if ( setting ) this.lastValue = value;
+	lastVal(setting, value) {
+		if (setting) this.lastValue = value;
 		else return this.lastValue;
 	}
 
-	rebind ( next, previous ) {
-		if ( this.model && this.model === previous ) previous.unregisterTwowayBinding( this );
-		if ( next ) {
+	rebind(next, previous) {
+		if (this.model && this.model === previous)
+			previous.unregisterTwowayBinding(this);
+		if (next) {
 			this.model = next;
-			runloop.scheduleTask( () => next.registerTwowayBinding( this ) );
+			runloop.scheduleTask(() => next.registerTwowayBinding(this));
 		}
 	}
 
-	render () {
+	render() {
 		this.node = this.element.node;
 		this.node._ractive.binding = this;
 		this.rendered = true; // TODO is this used anywhere?
 	}
 
-	setFromNode ( node ) {
-		this.model.set( node.value );
+	setFromNode(node) {
+		this.model.set(node.value);
 	}
 
-	unbind () {
-		this.model.unregisterTwowayBinding( this );
+	unbind() {
+		this.model.unregisterTwowayBinding(this);
 	}
 }
 

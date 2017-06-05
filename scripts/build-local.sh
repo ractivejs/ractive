@@ -5,6 +5,8 @@ set -e
 rm -rf .build
 mkdir .build
 
+npm run prettier
+
 npm run lint:src
 npm run lint:tests:browser
 npm run lint:tests:node

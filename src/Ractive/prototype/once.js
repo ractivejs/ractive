@@ -1,6 +1,6 @@
-export default function Ractive$once ( eventName, handler ) {
-	const listener = this.on( eventName, function () {
-		handler.apply( this, arguments );
+export default function Ractive$once(eventName, handler) {
+	const listener = this.on(eventName, function() {
+		handler.apply(this, arguments);
 		listener.cancel();
 	});
 

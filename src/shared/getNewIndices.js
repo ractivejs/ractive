@@ -23,36 +23,36 @@
 // This information is used to enable fast, non-destructive shuffling of list
 // sections when you do e.g. `ractive.splice( 'items', 2, 2 );
 
-export default function getNewIndices ( length, methodName, args ) {
+export default function getNewIndices(length, methodName, args) {
 	const newIndices = [];
 
-	const spliceArguments = getSpliceEquivalent( length, methodName, args );
+	const spliceArguments = getSpliceEquivalent(length, methodName, args);
 
-	if ( !spliceArguments ) {
+	if (!spliceArguments) {
 		return null; // TODO support reverse and sort?
 	}
 
-	const balance = ( spliceArguments.length - 2 ) - spliceArguments[1];
+	const balance = spliceArguments.length - 2 - spliceArguments[1];
 
-	const removeStart = Math.min( length, spliceArguments[0] );
+	const removeStart = Math.min(length, spliceArguments[0]);
 	const removeEnd = removeStart + spliceArguments[1];
 	newIndices.startIndex = removeStart;
 
 	let i;
-	for ( i = 0; i < removeStart; i += 1 ) {
-		newIndices.push( i );
+	for (i = 0; i < removeStart; i += 1) {
+		newIndices.push(i);
 	}
 
-	for ( ; i < removeEnd; i += 1 ) {
-		newIndices.push( -1 );
+	for (; i < removeEnd; i += 1) {
+		newIndices.push(-1);
 	}
 
-	for ( ; i < length; i += 1 ) {
-		newIndices.push( i + balance );
+	for (; i < length; i += 1) {
+		newIndices.push(i + balance);
 	}
 
 	// there is a net shift for the rest of the array starting with index + balance
-	if ( balance !== 0 ) {
+	if (balance !== 0) {
 		newIndices.touchedFrom = spliceArguments[0];
 	} else {
 		newIndices.touchedFrom = length;
@@ -61,28 +61,27 @@ export default function getNewIndices ( length, methodName, args ) {
 	return newIndices;
 }
 
-
 // The pop, push, shift an unshift methods can all be represented
 // as an equivalent splice
-function getSpliceEquivalent ( length, methodName, args ) {
-	switch ( methodName ) {
+function getSpliceEquivalent(length, methodName, args) {
+	switch (methodName) {
 		case 'splice':
-			if ( args[0] !== undefined && args[0] < 0 ) {
-				args[0] = length + Math.max( args[0], -length );
+			if (args[0] !== undefined && args[0] < 0) {
+				args[0] = length + Math.max(args[0], -length);
 			}
 
-			if ( args[0] === undefined ) args[0] = 0;
+			if (args[0] === undefined) args[0] = 0;
 
-			while ( args.length < 2 ) {
-				args.push( length - args[0] );
+			while (args.length < 2) {
+				args.push(length - args[0]);
 			}
 
-			if ( typeof args[1] !== 'number' ) {
+			if (typeof args[1] !== 'number') {
 				args[1] = length - args[0];
 			}
 
 			// ensure we only remove elements that exist
-			args[1] = Math.min( args[1], length - args[0] );
+			args[1] = Math.min(args[1], length - args[0]);
 
 			return args;
 
@@ -91,18 +90,18 @@ function getSpliceEquivalent ( length, methodName, args ) {
 			return null;
 
 		case 'pop':
-			if ( length ) {
-				return [ length - 1, 1 ];
+			if (length) {
+				return [length - 1, 1];
 			}
-			return [ 0, 0 ];
+			return [0, 0];
 
 		case 'push':
-			return [ length, 0 ].concat( args );
+			return [length, 0].concat(args);
 
 		case 'shift':
-			return [ 0, length ? 1 : 0 ];
+			return [0, length ? 1 : 0];
 
 		case 'unshift':
-			return [ 0, 0 ].concat( args );
+			return [0, 0].concat(args);
 	}
 }

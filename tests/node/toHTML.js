@@ -3,7 +3,12 @@ import renderTests from '../helpers/samples/render';
 import cheerio from 'cheerio';
 
 function normaliseHTML(html) {
-	return cheerio.load(html).html().trim().replace(/^\s+/gm, '').replace(/\n/g, ' ');
+	return cheerio
+		.load(html)
+		.html()
+		.trim()
+		.replace(/^\s+/gm, '')
+		.replace(/\n/g, ' ');
 }
 
 function getData(data) {
@@ -30,12 +35,11 @@ function deepClone(source) {
 	return target;
 }
 
-export default function () {
+export default function() {
 	module('ractive.toHTML()');
 
-	renderTests.forEach( theTest => {
+	renderTests.forEach(theTest => {
 		test(theTest.name, t => {
-
 			const ractive = new Ractive({
 				template: theTest.template,
 				partials: theTest.partials,
@@ -46,7 +50,10 @@ export default function () {
 
 			if (theTest.new_data) {
 				ractive.set(getData(theTest.new_data));
-				t.equal(normaliseHTML(ractive.toHTML()), normaliseHTML(theTest.new_result));
+				t.equal(
+					normaliseHTML(ractive.toHTML()),
+					normaliseHTML(theTest.new_result)
+				);
 			}
 
 			// TODO array of data/expected
@@ -57,7 +64,9 @@ export default function () {
 
 	test('doctype declarations handle updates (#2679)', t => {
 		// the select triggers an update during bind
-		const template = Ractive.parse('<!DOCTYPE html><html><select value="{{foo}}"><option value="bar">bar</option></select></html>');
+		const template = Ractive.parse(
+			'<!DOCTYPE html><html><select value="{{foo}}"><option value="bar">bar</option></select></html>'
+		);
 		const r = new Ractive({
 			template
 		});
@@ -67,5 +76,4 @@ export default function () {
 
 		r.teardown();
 	});
-
 }

@@ -2,9 +2,9 @@ import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
 export default function() {
-	initModule( 'init/config.js' );
+	initModule('init/config.js');
 
-	test( 'Ractive.defaults', t => {
+	test('Ractive.defaults', t => {
 		const expectedDefaults = [
 			'el',
 			'append',
@@ -39,10 +39,20 @@ export default function() {
 			'noCssTransform'
 		];
 
-		const actualDefaults = expectedDefaults.filter(key => Ractive.defaults.hasOwnProperty(key));
+		const actualDefaults = expectedDefaults.filter(key =>
+			Ractive.defaults.hasOwnProperty(key)
+		);
 
-		t.strictEqual( Ractive.defaults, Ractive.prototype, 'defaults aliases prototype' );
-		t.deepEqual(actualDefaults, expectedDefaults, 'defaults contain expected keys');
+		t.strictEqual(
+			Ractive.defaults,
+			Ractive.prototype,
+			'defaults aliases prototype'
+		);
+		t.deepEqual(
+			actualDefaults,
+			expectedDefaults,
+			'defaults contain expected keys'
+		);
 	});
 
 	test('instance has config options', t => {
@@ -89,88 +99,106 @@ export default function() {
 			'transitions'
 		];
 
-		const expectedPrototypeRegistries = [
-			'computed'
-		];
+		const expectedPrototypeRegistries = ['computed'];
 
 		expectedInstanceRegistries.forEach(registry => {
-			t.ok(ractive.hasOwnProperty(registry), `Instance has ${registry} registry`);
+			t.ok(
+				ractive.hasOwnProperty(registry),
+				`Instance has ${registry} registry`
+			);
 		});
 
 		expectedPrototypeRegistries.forEach(registry => {
 			t.ok(registry in ractive, `Instance has ${registry} registry`);
-			t.deepEqual(ractive[registry], Ractive.prototype[registry], `Instance has ${registry} registry on prototype`);
+			t.deepEqual(
+				ractive[registry],
+				Ractive.prototype[registry],
+				`Instance has ${registry} registry on prototype`
+			);
 		});
 
 		expectedConfig.forEach(config => {
 			t.ok(config in ractive, `Instance has ${config} config`);
-			t.deepEqual(ractive[config], Ractive.prototype[config], `Instance has ${config} config on prototype`);
+			t.deepEqual(
+				ractive[config],
+				Ractive.prototype[config],
+				`Instance has ${config} config on prototype`
+			);
 		});
-
 	});
 
-	test( 'non-configurations options are added to instance', t => {
+	test('non-configurations options are added to instance', t => {
 		const ractive = new Ractive({
 			foo: 'bar',
-			fumble () {
+			fumble() {
 				return true;
 			}
 		});
 
-		t.equal( ractive.foo, 'bar' );
-		t.ok( ractive.fumble() );
+		t.equal(ractive.foo, 'bar');
+		t.ok(ractive.fumble());
 	});
 
-	test( 'target element can be specified with target as well as el (#1848)', t => {
+	test('target element can be specified with target as well as el (#1848)', t => {
 		const r = new Ractive({
 			target: fixture,
 			template: 'yep'
 		});
 
-		t.htmlEqual( fixture.innerHTML, 'yep' );
-		t.strictEqual( fixture, r.target );
-		t.strictEqual( fixture, r.el );
+		t.htmlEqual(fixture.innerHTML, 'yep');
+		t.strictEqual(fixture, r.target);
+		t.strictEqual(fixture, r.el);
 	});
 
-	test( 'events can be subscribed with the on option', t => {
-		t.expect( 2 );
+	test('events can be subscribed with the on option', t => {
+		t.expect(2);
 
 		const r = new Ractive({
 			on: {
-				foo() { t.ok( true ); },
+				foo() {
+					t.ok(true);
+				},
 				bar: {
 					once: true,
-					handler() { t.ok( true ); }
+					handler() {
+						t.ok(true);
+					}
 				}
 			}
 		});
 
-		r.fire( 'foo' );
-		r.fire( 'bar' );
-		r.fire( 'bar' );
+		r.fire('foo');
+		r.fire('bar');
+		r.fire('bar');
 	});
 
-	test( 'observers can be subscribed with the observe option', t => {
-		t.expect( 4 );
+	test('observers can be subscribed with the observe option', t => {
+		t.expect(4);
 
 		const r = new Ractive({
 			observe: {
-				foo() { t.ok( true ); },
+				foo() {
+					t.ok(true);
+				},
 				bar: {
 					once: true,
-					handler() { t.ok( true ); }
+					handler() {
+						t.ok(true);
+					}
 				},
 				baz: {
 					init: false,
-					handler() { t.ok( true ); }
+					handler() {
+						t.ok(true);
+					}
 				}
 			}
 		});
 
 		// foo has already run once, because init defaults to true
-		r.toggle( 'foo' );
-		r.toggle( 'bar' );
-		r.toggle( 'bar' );
-		r.toggle( 'baz' );
+		r.toggle('foo');
+		r.toggle('bar');
+		r.toggle('bar');
+		r.toggle('baz');
 	});
 }
