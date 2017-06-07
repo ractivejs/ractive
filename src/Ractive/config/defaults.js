@@ -8,6 +8,7 @@ export default {
 	template:               null,
 
 	// parse:
+	allowExpressions:       true,
 	delimiters:             [ '{{', '}}' ],
 	tripleDelimiters:       [ '{{{', '}}}' ],
 	staticDelimiters:       [ '[[', ']]' ],
