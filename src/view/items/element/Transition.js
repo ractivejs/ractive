@@ -156,8 +156,7 @@ export default class Transition {
 		const computedStyle = getComputedStyle( this.node );
 
 		if ( typeof props === 'string' ) {
-			const value = computedStyle[ prefix( props ) ];
-			return value === '0px' ? 0 : value;
+			return computedStyle[ prefix( props ) ];
 		}
 
 		if ( !Array.isArray( props ) ) {
