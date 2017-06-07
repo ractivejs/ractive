@@ -68,7 +68,7 @@ export default function resolveReference ( fragment, ref ) {
 			const repeater = fragment.findRepeatingFragment();
 			// make sure the found fragment is actually an iteration
 			if ( !repeater.isIteration ) return;
-			return repeater.context.getKeyModel( repeater[ ref[1] === 'i' ? 'index' : 'key' ] );
+			return repeater.context && repeater.context.getKeyModel( repeater[ ref[1] === 'i' ? 'index' : 'key' ] );
 		}
 
 		// @global referring to window or global
