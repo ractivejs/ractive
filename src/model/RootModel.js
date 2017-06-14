@@ -43,7 +43,7 @@ export default class RootModel extends Model {
 		let model = this;
 		while ( keys.length ) {
 			const key = keys.shift();
-			model = this.childByKey[ key ] || this.joinKey( key );
+			model = model.childByKey[ key ] || model.joinKey( key );
 		}
 
 		return model.link( target, targetPath, options );

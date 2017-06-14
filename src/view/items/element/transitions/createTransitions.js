@@ -2,11 +2,8 @@ import { missingPlugin } from '../../../../config/errors';
 import { isClient } from '../../../../config/environment';
 import { warnIfDebug, warnOnceIfDebug } from '../../../../utils/log';
 import { createElement } from '../../../../utils/dom';
-import camelizeHyphenated from '../../../../utils/camelizeHyphenated.js';
 import interpolate from '../../../../shared/interpolate';
 import Ticker from '../../../../shared/Ticker';
-import prefix from './prefix';
-import unprefix from './unprefix';
 import hyphenate from './hyphenate';
 
 let createTransitions;
@@ -78,14 +75,8 @@ if ( !isClient ) {
 				duration: style[ TRANSITION_DURATION ]
 			};
 
-			style[ TRANSITION_PROPERTY ] = changedProperties.map( prefix ).map( hyphenate ).join( ',' );
-			const easingName = hyphenate( options.easing || 'linear' );
-			style[ TRANSITION_TIMING_FUNCTION ] = easingName;
-			const cssTiming = style[ TRANSITION_TIMING_FUNCTION ] === easingName;
-			style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
-
 			function transitionEndHandler ( event ) {
-				const index = changedProperties.indexOf( camelizeHyphenated( unprefix( event.propertyName ) ) );
+				const index = changedProperties.indexOf( event.propertyName );
 
 				if ( index !== -1 ) {
 					changedProperties.splice( index, 1 );
@@ -120,10 +111,16 @@ if ( !isClient ) {
 			}, options.duration + ( options.delay || 0 ) + 50 );
 			t.registerCompleteHandler( transitionDone );
 
+			style[ TRANSITION_PROPERTY ] = changedProperties.join( ',' );
+			const easingName = hyphenate( options.easing || 'linear' );
+			style[ TRANSITION_TIMING_FUNCTION ] = easingName;
+			const cssTiming = style[ TRANSITION_TIMING_FUNCTION ] === easingName;
+			style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
+
 			setTimeout( () => {
 				let i = changedProperties.length;
 				let hash;
-				let originalValue;
+				let originalValue = null;
 				let index;
 				const propertiesToTransitionInJs = [];
 				let prop;
@@ -135,11 +132,12 @@ if ( !isClient ) {
 					hash = hashPrefix + prop;
 
 					if ( cssTiming && CSS_TRANSITIONS_ENABLED && !cannotUseCssTransitions[ hash ] ) {
-						style[ prefix( prop ) ] = to[ prop ];
+						const initial = style[ prop ];
+						style[ prop ] = to[ prop ];
 
 						// If we're not sure if CSS transitions are supported for
 						// this tag/property combo, find out now
-						if ( !canUseCssTransitions[ hash ] ) {
+						if ( !( hash in canUseCssTransitions ) ) {
 							originalValue = t.getStyle( prop );
 
 							// if this property is transitionable in this browser,
@@ -149,16 +147,14 @@ if ( !isClient ) {
 
 							// Reset, if we're going to use timers after all
 							if ( cannotUseCssTransitions[ hash ] ) {
-								style[ prefix( prop ) ] = originalValue;
+								style[ prop ] = initial;
 							}
 						}
 					}
 
 					if ( !cssTiming || !CSS_TRANSITIONS_ENABLED || cannotUseCssTransitions[ hash ] ) {
 						// we need to fall back to timer-based stuff
-						if ( originalValue === undefined ) {
-							originalValue = t.getStyle( prop );
-						}
+						if ( originalValue === null ) originalValue = t.getStyle( prop );
 
 						// need to remove this from changedProperties, otherwise transitionEndHandler
 						// will get confused
@@ -171,15 +167,21 @@ if ( !isClient ) {
 
 						// TODO Determine whether this property is animatable at all
 
-						suffix = /[^\d]*$/.exec( to[ prop ] )[0];
-						interpolator = interpolate( parseFloat( originalValue ), parseFloat( to[ prop ] ) ) || ( () => to[ prop ] );
+						suffix = /[^\d]*$/.exec( originalValue )[0];
+						interpolator = interpolate( parseFloat( originalValue ), parseFloat( to[ prop ] ) );
 
 						// ...then kick off a timer-based transition
-						propertiesToTransitionInJs.push({
-							name: prefix( prop ),
-							interpolator,
-							suffix
-						});
+						if ( interpolator ) {
+							propertiesToTransitionInJs.push({
+								name: prop,
+								interpolator,
+								suffix
+							});
+						} else {
+							style[ prop ] = to[ prop ];
+						}
+
+						originalValue = null;
 					}
 				}
 
@@ -207,7 +209,7 @@ if ( !isClient ) {
 							let i = propertiesToTransitionInJs.length;
 							while ( i-- ) {
 								const prop = propertiesToTransitionInJs[i];
-								t.node.style[ prop.name ] = prop.interpolator( pos ) + prop.suffix;
+								style[ prop.name ] = prop.interpolator( pos ) + prop.suffix;
 							}
 						},
 						complete () {
@@ -219,7 +221,11 @@ if ( !isClient ) {
 					jsTransitionsComplete = true;
 				}
 
-				if ( !changedProperties.length ) {
+				if ( changedProperties.length ) {
+					style[ TRANSITION_PROPERTY ] = changedProperties.join( ',' );
+				} else {
+					style[ TRANSITION_PROPERTY ] = 'none';
+
 					// We need to cancel the transitionEndHandler, and deal with
 					// the fact that it will never fire
 					t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );

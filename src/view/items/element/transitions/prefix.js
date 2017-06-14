@@ -1,6 +1,6 @@
 import { isClient, vendors } from '../../../../config/environment';
 import { createElement } from '../../../../utils/dom';
-import camelizeHyphenated from '../../../../utils/camelizeHyphenated.js';
+import hyphenateCamel from '../../../../utils/hyphenateCamel';
 
 let prefix;
 
@@ -10,23 +10,22 @@ if ( !isClient ) {
 	const prefixCache = {};
 	const testStyle = createElement( 'div' ).style;
 
+	// technically this also normalizes on hyphenated styles as well
 	prefix = function ( prop ) {
-		prop = camelizeHyphenated( prop );
-
 		if ( !prefixCache[ prop ] ) {
+			const name = hyphenateCamel( prop );
+
 			if ( testStyle[ prop ] !== undefined ) {
-				prefixCache[ prop ] = prop;
+				prefixCache[ prop ] = name;
 			}
 
 			else {
 				// test vendors...
-				const capped = prop.charAt( 0 ).toUpperCase() + prop.substring( 1 );
-
 				let i = vendors.length;
 				while ( i-- ) {
-					const vendor = vendors[i];
-					if ( testStyle[ vendor + capped ] !== undefined ) {
-						prefixCache[ prop ] = vendor + capped;
+					const vendor = `-${vendors[i]}-${name}`;
+					if ( testStyle[ vendor ] !== undefined ) {
+						prefixCache[ prop ] = vendor;
 						break;
 					}
 				}

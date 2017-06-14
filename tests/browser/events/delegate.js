@@ -31,9 +31,9 @@ export default function() {
 		Element.prototype.addEventListener = addEventListener;
 
 		const [ top, ev, other ] = r.findAll( 'div' );
-		t.ok( Object.keys( top._ractive.proxy.delegates ).length );
-		t.ok( ev._ractive.proxy.events[0].events.length === 0 );
-		t.ok( other._ractive.proxy.events[0].events.length === 0 );
+		t.ok( top._ractive.proxy.listeners.click.length === 1 && top._ractive.proxy.listeners.click.refs === 2 );
+		t.ok( ev._ractive.proxy.listeners.click.length === 1 );
+		t.ok( other._ractive.proxy.listeners.click.length === 1 );
 		fire( top, 'click' );
 		fire( ev, 'click' );
 		fire( other, 'click' );
@@ -142,9 +142,9 @@ export default function() {
 		Element.prototype.addEventListener = addEventListener;
 
 		const [ top, ev, other ] = r.findAll( 'div' );
-		t.ok( Object.keys( top._ractive.proxy.delegates ).length );
-		t.ok( ev._ractive.proxy.events[0].events.length === 0 );
-		t.ok( other._ractive.proxy.events[0].events.length === 0 );
+		t.ok( top._ractive.proxy.listeners.click.length === 1 && top._ractive.proxy.listeners.click.refs === 2 );
+		t.ok( ev._ractive.proxy.listeners.click.length === 1 );
+		t.ok( other._ractive.proxy.listeners.click.length === 1 );
 		fire( top, 'click' );
 		fire( ev, 'click' );
 		fire( other, 'click' );
@@ -169,7 +169,7 @@ export default function() {
 			data: { arr: [ 1 ] }
 		});
 
-		t.equal( count, 3 );
+		t.equal( count, 1 );
 		Element.prototype.addEventListener = addEventListener;
 
 		const [ top, outer, ev, other ] = r.findAll( 'div' );
@@ -200,12 +200,9 @@ export default function() {
 		t.equal( count, 2 );
 		Element.prototype.addEventListener = addEventListener;
 
-		const [ top, outer, , ev, other ] = r.findAll( 'div' );
-		t.ok( top._ractive.proxy.delegate === false );
-		t.ok( !top._ractive.proxy.delegates );
-		t.ok( outer._ractive.proxy.events[0].events.length === 1 );
-		t.ok( ev._ractive.proxy.events[0].events.length === 0 );
-		t.ok( other._ractive.proxy.events[0].events.length === 0 );
+		const [ top, , wrap ] = r.findAll( 'div' );
+		t.ok( !top._ractive.proxy.listeners.click );
+		t.ok( wrap._ractive.proxy.listeners.click.refs === 2 );
 	});
 
 	test( `delegated events work with non-ractive nodes (#2871)`, t => {
@@ -276,5 +273,33 @@ export default function() {
 		fire( r.find( 'button' ), 'click' );
 
 		t.equal( r.findAll( 'button' ).length, 1 );
+	});
+
+	test( `delegated bindings fire in the correct order (#2988)`, t => {
+		t.expect( 2 );
+
+		let selected = 1;
+		const r = new Ractive({
+			target: fixture,
+			template: `<div>{{#each items}}<select value="{{.option}}" on-change="@.check()">{{#each options}}<option value="{{.}}">{{@index + 1}}</option>{{/each}}</select>{{/each}}</div>`,
+			data: {
+				options: [ 1, 2, 3 ],
+				items: [ {} ]
+			},
+			check() {
+				t.equal( this.get( 'items.0.option' ), selected );
+			}
+		});
+
+		const select = r.find( 'select' );
+		const options = r.findAll( 'option' );
+
+		selected = 2;
+		options[1].selected = true;
+		fire( select, 'change' );
+
+		selected = 3;
+		options[2].selected = true;
+		fire( select, 'change' );
 	});
 }

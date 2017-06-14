@@ -6,6 +6,7 @@ import parseJSON from '../../../utils/parseJSON';
 import resolve from '../../resolvers/resolve';
 import runloop from '../../../global/runloop';
 import { warnIfDebug } from '../../../utils/log';
+import { splitKeypath } from '../../../shared/keypaths';
 
 export default class Mapping extends Item {
 	constructor ( options ) {
@@ -18,18 +19,12 @@ export default class Mapping extends Item {
 		this.parentFragment = this.element.parentFragment; // shared
 		this.ractive = this.parentFragment.ractive;
 
-		this.fragment = null;
-
 		this.element.attributeByName[ this.name ] = this;
 
 		this.value = options.template.f;
 	}
 
 	bind () {
-		if ( this.fragment ) {
-			this.fragment.bind();
-		}
-
 		const template = this.template.f;
 		const viewmodel = this.element.instance.viewmodel;
 
@@ -51,7 +46,6 @@ export default class Mapping extends Item {
 	render () {}
 
 	unbind () {
-		if ( this.fragment ) this.fragment.unbind();
 		if ( this.model ) this.model.unregister( this );
 		if ( this.boundFragment ) this.boundFragment.unbind();
 
@@ -65,9 +59,7 @@ export default class Mapping extends Item {
 	update () {
 		if ( this.dirty ) {
 			this.dirty = false;
-			if ( this.fragment ) this.fragment.update();
 			if ( this.boundFragment ) this.boundFragment.update();
-			if ( this.rendered ) this.updateDelegate();
 		}
 	}
 }
@@ -94,7 +86,7 @@ function createMapping ( item ) {
 
 		// copy non-object, non-computed vals through
 		else if ( typeof val !== 'object' || template[0].x ) {
-			viewmodel.joinKey( item.name ).set( val );
+			viewmodel.joinKey( splitKeypath( item.name ) ).set( val );
 		}
 
 		// warn about trying to copy an object
@@ -109,7 +101,7 @@ function createMapping ( item ) {
 			template
 		}).bind();
 
-		item.model = viewmodel.joinKey( item.name );
+		item.model = viewmodel.joinKey( splitKeypath( item.name ) );
 		item.model.set( item.boundFragment.valueOf() );
 
 		// item is a *bit* of a hack

@@ -369,4 +369,36 @@ export default function() {
 
 		t.deepEqual(template, { v: 4, t: [{ r: 'foo', t: 2 }] });
 	});
+
+	test( `Ractive and Parent are exposed`, t => {
+		const Parent = Ractive.extend();
+		const Child = Parent.extend();
+
+		const instance = new Child();
+
+		t.ok( instance.constructor.Parent === Parent );
+		t.ok( instance.constructor.Ractive === Ractive );
+		t.ok( Child.Parent === Parent );
+		t.ok( Child.Ractive === Ractive );
+		t.ok( Parent.Ractive === Parent.Parent && Parent.Parent === Ractive );
+	});
+
+	test( `isInstance returns true for instances of ractive or a component (#2914)`, t => {
+		const Parent = Ractive.extend();
+		const Child = Parent.extend();
+
+		const r1 = new Child();
+		const r2 = new Parent();
+		const r3 = {};
+
+		t.ok( Ractive.isInstance( r1 ) );
+		t.ok( Ractive.isInstance( r2 ) );
+		t.ok( !Ractive.isInstance( r3 ) );
+		t.ok( Parent.isInstance( r1 ) );
+		t.ok( Parent.isInstance( r2 ) );
+		t.ok( Child.isInstance( r1 ) );
+		t.ok( !Child.isInstance( r2 ) );
+		t.ok( Ractive.isInstance( Ractive() ) );
+		t.ok( !Parent.isInstance( new Ractive() ) );
+	});
 }
