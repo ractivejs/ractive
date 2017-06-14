@@ -1,7 +1,7 @@
 /*
-	Ractive.js v0.9.0
-	Build: e2505c5cb8d78ee9e760ea6f91b74ccfb3e8424b
-	Date: Fri May 26 2017 21:43:30 GMT+0000 (UTC)
+	Ractive.js v0.9.1
+	Build: 9fda8827685349db68ba6c081b2e04dd7ff2dd48
+	Date: Wed Jun 14 2017 00:22:01 GMT+0000 (UTC)
 	Website: http://ractivejs.org
 	License: MIT
 */
@@ -149,13 +149,13 @@ var welcome;
 
 if ( hasConsole ) {
 	var welcomeIntro = [
-		"%cRactive.js %c0.9.0 %cin debug mode, %cmore...",
+		"%cRactive.js %c0.9.1 %cin debug mode, %cmore...",
 		'color: rgb(114, 157, 52); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 	];
-	var welcomeMessage = "You're running Ractive 0.9.0 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+	var welcomeMessage = "You're running Ractive 0.9.1 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
 	welcome = function () {
 		if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -2169,7 +2169,7 @@ function resolveReference ( fragment, ref ) {
 			var repeater = fragment.findRepeatingFragment();
 			// make sure the found fragment is actually an iteration
 			if ( !repeater.isIteration ) { return; }
-			return repeater.context.getKeyModel( repeater[ ref[1] === 'i' ? 'index' : 'key' ] );
+			return repeater.context && repeater.context.getKeyModel( repeater[ ref[1] === 'i' ? 'index' : 'key' ] );
 		}
 
 		// @global referring to window or global
@@ -2316,9 +2316,9 @@ var FakeFragment = function FakeFragment ( ractive ) {
 };
 
 FakeFragment.prototype.findContext = function findContext () { return this.ractive.viewmodel; };
-var proto = FakeFragment.prototype;
-proto.getContext = getContext;
-proto.find = proto.findComponent = proto.findAll = proto.findAllComponents = noop;
+var proto$1 = FakeFragment.prototype;
+proto$1.getContext = getContext;
+proto$1.find = proto$1.findComponent = proto$1.findAll = proto$1.findAllComponents = noop;
 
 var keep = false;
 
@@ -3315,6 +3315,14 @@ Context.prototype.link = function link ( source, dest ) {
 	return promise;
 };
 
+Context.prototype.listen = function listen ( event, handler ) {
+	var el = this.element;
+	el.on( event, handler );
+	return {
+		cancel: function cancel () { el.off( event, handler ); }
+	};
+};
+
 Context.prototype.observe = function observe ( keypath, callback, options ) {
 		if ( options === void 0 ) options = {};
 
@@ -3423,6 +3431,10 @@ Context.prototype.unlink = function unlink ( dest ) {
 	if ( here.owner && here.owner._link ) { here.owner.unlink(); }
 	runloop.end();
 	return promise;
+};
+
+Context.prototype.unlisten = function unlisten ( event, handler ) {
+	this.element.off( event, handler );
 };
 
 Context.prototype.unshift = function unshift ( keypath ) {
@@ -3963,8 +3975,6 @@ PatternObserver.prototype.dispatch = function dispatch () {
 	var newValues = this.newValues;
 	this.newValues = {};
 	Object.keys( newValues ).forEach( function (keypath) {
-		if ( this$1.newKeys && !this$1.newKeys[ keypath ] ) { return; }
-
 		var newValue = newValues[ keypath ];
 		var oldValue = this$1.oldValues[ keypath ];
 
@@ -3990,7 +4000,6 @@ PatternObserver.prototype.dispatch = function dispatch () {
 		this.oldValues = newValues;
 	}
 
-	this.newKeys = null;
 	this.dirty = false;
 };
 
@@ -4003,18 +4012,15 @@ PatternObserver.prototype.shuffle = function shuffle ( newIndices ) {
 
 	if ( !Array.isArray( this.baseModel.value ) ) { return; }
 
-	var base = this.baseKeypath = this.baseModel.getKeypath( this.ractive );
 	var max = this.baseModel.value.length;
-	var suffix = this.keys.length > 1 ? '.' + this.keys.slice( 1 ).join( '.' ) : '';
 
-	this.newKeys = {};
 	for ( var i = 0; i < newIndices.length; i++ ) {
 		if ( newIndices[ i ] === -1 || newIndices[ i ] === i ) { continue; }
-		this$1.newKeys[ (base + "." + i + suffix) ] = true;
+		this$1.changed.push([ i ]);
 	}
 
 	for ( var i$1 = newIndices.touchedFrom; i$1 < max; i$1++ ) {
-		this$1.newKeys[ (base + "." + i$1 + suffix) ] = true;
+		this$1.changed.push([ i$1 ]);
 	}
 };
 
@@ -4050,7 +4056,6 @@ PatternObserver.prototype.handleChange = function handleChange () {
 					var check = function (k) {
 						return ( k.indexOf( keypath ) === 0 && ( k.length === keypath.length || k[ keypath.length ] === '.' ) ) ||
 							( keypath.indexOf( k ) === 0 && ( k.length === keypath.length || keypath[ k.length ] === '.' ) );
-
 					};
 
 					// is this model on a changed keypath?
@@ -8302,7 +8307,7 @@ var order = [].concat(
 );
 
 var config = {
-	extend: function ( Parent, proto, options ) { return configure( 'extend', Parent, proto, options ); },
+	extend: function ( Parent, proto$$1, options ) { return configure( 'extend', Parent, proto$$1, options ); },
 	init: function ( Parent, ractive, options ) { return configure( 'init', Parent, ractive, options ); },
 	reset: function (ractive) { return order.filter( function (c) { return c.reset && c.reset( ractive ); } ).map( function (c) { return c.name; } ); }
 };
@@ -8353,7 +8358,7 @@ function extendOtherMethods ( parent, target, options ) {
 
 			// if this is a method that overwrites a method, wrap it:
 			if ( typeof member === 'function' ) {
-				if ( key in RactiveProto && !_super.test( member.toString() ) ) {
+				if ( key in proto && !_super.test( member.toString() ) ) {
 					warnIfDebug( ("Overriding Ractive prototype function '" + key + "' without calling the '" + _super + "' method can be very dangerous.") );
 				}
 				member = wrap( parent, key, member );
@@ -9983,14 +9988,12 @@ var RootModel = (function (Model$$1) {
 	};
 
 	RootModel.prototype.createLink = function createLink ( keypath, target, targetPath, options ) {
-		var this$1 = this;
-
 		var keys = splitKeypath( keypath );
 
 		var model = this;
 		while ( keys.length ) {
 			var key = keys.shift();
-			model = this$1.childByKey[ key ] || this$1.joinKey( key );
+			model = model.childByKey[ key ] || model.joinKey( key );
 		}
 
 		return model.link( target, targetPath, options );
@@ -10882,8 +10885,8 @@ var Doctype = (function (Item$$1) {
 	return Doctype;
 }(Item));
 
-var proto$1 = Doctype.prototype;
-proto$1.bind = proto$1.render = proto$1.teardown = proto$1.unbind = proto$1.unrender = proto$1.update = noop;
+var proto$2 = Doctype.prototype;
+proto$2.bind = proto$2.render = proto$2.teardown = proto$2.unbind = proto$2.unrender = proto$2.update = noop;
 
 var Binding = function Binding ( element, name ) {
 	if ( name === void 0 ) name = 'value';
@@ -10994,16 +10997,16 @@ var CheckboxBinding = (function (Binding$$1) {
 	CheckboxBinding.prototype.render = function render () {
 		Binding$$1.prototype.render.call(this);
 
-		this.node.addEventListener( 'change', handleDomEvent, false );
+		this.element.on( 'change', handleDomEvent );
 
 		if ( this.node.attachEvent ) {
-			this.node.addEventListener( 'click', handleDomEvent, false );
+			this.element.on( 'click', handleDomEvent );
 		}
 	};
 
 	CheckboxBinding.prototype.unrender = function unrender () {
-		this.node.removeEventListener( 'change', handleDomEvent, false );
-		this.node.removeEventListener( 'click', handleDomEvent, false );
+		this.element.off( 'change', handleDomEvent );
+		this.element.off( 'click', handleDomEvent );
 	};
 
 	CheckboxBinding.prototype.getInitialValue = function getInitialValue () {
@@ -11159,11 +11162,11 @@ var CheckboxNameBinding = (function (Binding$$1) {
 		node.name = '{{' + this.model.getKeypath() + '}}';
 		node.checked = this.isChecked;
 
-		node.addEventListener( 'change', handleDomEvent, false );
+		this.element.on( 'change', handleDomEvent );
 
 		// in case of IE emergency, bind to click event as well
-		if ( node.attachEvent ) {
-			node.addEventListener( 'click', handleDomEvent, false );
+		if ( this.node.attachEvent ) {
+			this.element.on( 'click', handleDomEvent );
 		}
 	};
 
@@ -11183,10 +11186,10 @@ var CheckboxNameBinding = (function (Binding$$1) {
 	};
 
 	CheckboxNameBinding.prototype.unrender = function unrender () {
-		var node = this.element.node;
+		var el = this.element;
 
-		node.removeEventListener( 'change', handleDomEvent, false );
-		node.removeEventListener( 'click', handleDomEvent, false );
+		el.off( 'change', handleDomEvent );
+		el.off( 'click', handleDomEvent );
 	};
 
 	CheckboxNameBinding.prototype.arrayContains = function arrayContains ( selectValue, optionValue ) {
@@ -11234,16 +11237,16 @@ var ContentEditableBinding = (function (Binding$$1) {
 	ContentEditableBinding.prototype.render = function render () {
 		Binding$$1.prototype.render.call(this);
 
-		var node = this.node;
+		var el = this.element;
 
-		node.addEventListener( 'change', handleDomEvent, false );
-		node.addEventListener( 'blur', handleDomEvent, false );
+		el.on( 'change', handleDomEvent );
+		el.on( 'blur', handleDomEvent );
 
 		if ( !this.ractive.lazy ) {
-			node.addEventListener( 'input', handleDomEvent, false );
+			el.on( 'input', handleDomEvent );
 
-			if ( node.attachEvent ) {
-				node.addEventListener( 'keyup', handleDomEvent, false );
+			if ( this.node.attachEvent ) {
+				el.on( 'keyup', handleDomEvent );
 			}
 		}
 	};
@@ -11253,12 +11256,12 @@ var ContentEditableBinding = (function (Binding$$1) {
 	};
 
 	ContentEditableBinding.prototype.unrender = function unrender () {
-		var node = this.node;
+		var el = this.element;
 
-		node.removeEventListener( 'blur', handleDomEvent, false );
-		node.removeEventListener( 'change', handleDomEvent, false );
-		node.removeEventListener( 'input', handleDomEvent, false );
-		node.removeEventListener( 'keyup', handleDomEvent, false );
+		el.off( 'blur', handleDomEvent );
+		el.off( 'change', handleDomEvent );
+		el.off( 'input', handleDomEvent );
+		el.off( 'keyup', handleDomEvent );
 	};
 
 	return ContentEditableBinding;
@@ -11311,6 +11314,7 @@ var GenericBinding = (function (Binding$$1) {
 		// if the value is a number, it's a timeout
 		var lazy = this.ractive.lazy;
 		var timeout = false;
+		var el = this.element;
 
 		if ( 'lazy' in this.element ) {
 			lazy = this.element.lazy;
@@ -11325,27 +11329,28 @@ var GenericBinding = (function (Binding$$1) {
 
 		var node = this.node;
 
-		node.addEventListener( 'change', handleDomEvent, false );
+		el.on( 'change', handleDomEvent );
 
 		if ( !lazy ) {
-			node.addEventListener( 'input', this.handler, false );
+			el.on( 'input', this.handler );
 
+			// IE is a special snowflake
 			if ( node.attachEvent ) {
-				node.addEventListener( 'keyup', this.handler, false );
+				el.on( 'keyup', this.handler );
 			}
 		}
 
-		node.addEventListener( 'blur', handleBlur, false );
+		el.on( 'blur', handleBlur );
 	};
 
 	GenericBinding.prototype.unrender = function unrender () {
-		var node = this.element.node;
+		var el = this.element;
 		this.rendered = false;
 
-		node.removeEventListener( 'change', handleDomEvent, false );
-		node.removeEventListener( 'input', this.handler, false );
-		node.removeEventListener( 'keyup', this.handler, false );
-		node.removeEventListener( 'blur', handleBlur, false );
+		el.off( 'change', handleDomEvent );
+		el.off( 'input', this.handler );
+		el.off( 'keyup', this.handler );
+		el.off( 'blur', handleBlur );
 	};
 
 	return GenericBinding;
@@ -11437,7 +11442,7 @@ var MultipleSelectBinding = (function (Binding$$1) {
 	MultipleSelectBinding.prototype.render = function render () {
 		Binding$$1.prototype.render.call(this);
 
-		this.node.addEventListener( 'change', handleDomEvent, false );
+		this.element.on( 'change', handleDomEvent );
 
 		if ( this.model.get() === undefined ) {
 			// get value from DOM, if possible
@@ -11459,7 +11464,7 @@ var MultipleSelectBinding = (function (Binding$$1) {
 	};
 
 	MultipleSelectBinding.prototype.unrender = function unrender () {
-		this.node.removeEventListener( 'change', handleDomEvent, false );
+		this.element.off( 'change', handleDomEvent );
 	};
 
 	return MultipleSelectBinding;
@@ -11526,10 +11531,10 @@ var RadioBinding = (function (Binding$$1) {
 	RadioBinding.prototype.render = function render () {
 		Binding$$1.prototype.render.call(this);
 
-		this.node.addEventListener( 'change', handleDomEvent, false );
+		this.element.on( 'change', handleDomEvent );
 
 		if ( this.node.attachEvent ) {
-			this.node.addEventListener( 'click', handleDomEvent, false );
+			this.element.on( 'click', handleDomEvent );
 		}
 	};
 
@@ -11542,8 +11547,8 @@ var RadioBinding = (function (Binding$$1) {
 	};
 
 	RadioBinding.prototype.unrender = function unrender () {
-		this.node.removeEventListener( 'change', handleDomEvent, false );
-		this.node.removeEventListener( 'click', handleDomEvent, false );
+		this.element.off( 'change', handleDomEvent );
+		this.element.off( 'click', handleDomEvent );
 	};
 
 	return RadioBinding;
@@ -11621,10 +11626,10 @@ var RadioNameBinding = (function (Binding$$1) {
 		node.name = "{{" + (this.model.getKeypath()) + "}}";
 		node.checked = this.element.compare ( this.model.get(), this.element.getAttribute( 'value' ) );
 
-		node.addEventListener( 'change', handleDomEvent, false );
+		this.element.on( 'change', handleDomEvent );
 
 		if ( node.attachEvent ) {
-			node.addEventListener( 'click', handleDomEvent, false );
+			this.element.on( 'click', handleDomEvent );
 		}
 	};
 
@@ -11641,10 +11646,10 @@ var RadioNameBinding = (function (Binding$$1) {
 	};
 
 	RadioNameBinding.prototype.unrender = function unrender () {
-		var node = this.node;
+		var el = this.element;
 
-		node.removeEventListener( 'change', handleDomEvent, false );
-		node.removeEventListener( 'click', handleDomEvent, false );
+		el.off( 'change', handleDomEvent );
+		el.off( 'click', handleDomEvent );
 	};
 
 	return RadioNameBinding;
@@ -11735,7 +11740,7 @@ var SingleSelectBinding = (function (Binding$$1) {
 
 	SingleSelectBinding.prototype.render = function render () {
 		Binding$$1.prototype.render.call(this);
-		this.node.addEventListener( 'change', handleDomEvent, false );
+		this.element.on( 'change', handleDomEvent );
 	};
 
 	SingleSelectBinding.prototype.setFromNode = function setFromNode ( node ) {
@@ -11744,7 +11749,7 @@ var SingleSelectBinding = (function (Binding$$1) {
 	};
 
 	SingleSelectBinding.prototype.unrender = function unrender () {
-		this.node.removeEventListener( 'change', handleDomEvent, false );
+		this.element.off( 'change', handleDomEvent );
 	};
 
 	return SingleSelectBinding;
@@ -11844,312 +11849,6 @@ function selectBinding ( element ) {
 	return null;
 }
 
-var DOMEvent = function DOMEvent ( name, owner, delegate ) {
-	if ( name.indexOf( '*' ) !== -1 ) {
-		fatal( ("Only component proxy-events may contain \"*\" wildcards, <" + (owner.name) + " on-" + name + "=\"...\"/> is not valid") );
-	}
-
-	this.name = name;
-	this.owner = owner;
-	this.delegate = delegate;
-	this.node = null;
-	this.handler = null;
-};
-
-DOMEvent.prototype.listen = function listen ( directive ) {
-	var node = this.node = this.owner.node;
-	var name = this.name;
-
-	// this is probably a custom event fired from a decorator or manually
-	if ( !( ("on" + name) in node ) ) { return; }
-
-	node.addEventListener( name, this.handler = function( event ) {
-		directive.fire({
-			node: node,
-			original: event,
-			event: event,
-			name: name
-		});
-	}, this.delegate );
-};
-
-DOMEvent.prototype.unlisten = function unlisten () {
-	if ( this.handler ) { this.node.removeEventListener( this.name, this.handler, false ); }
-};
-
-var CustomEvent = function CustomEvent ( eventPlugin, owner, name ) {
-	this.eventPlugin = eventPlugin;
-	this.owner = owner;
-	this.name = name;
-	this.handler = null;
-};
-
-CustomEvent.prototype.listen = function listen ( directive ) {
-		var this$1 = this;
-
-	var node = this.owner.node;
-
-	this.handler = this.eventPlugin( node, function ( event ) {
-			if ( event === void 0 ) event = {};
-
-		if ( event.original ) { event.event = event.original; }
-		else { event.original = event.event; }
-
-		event.name = this$1.name;
-		event.node = event.node || node;
-		directive.fire( event );
-	});
-};
-
-CustomEvent.prototype.unlisten = function unlisten () {
-	this.handler.teardown();
-};
-
-var RactiveEvent = function RactiveEvent ( component, name ) {
-	this.component = component;
-	this.name = name;
-	this.handler = null;
-};
-
-RactiveEvent.prototype.listen = function listen ( directive ) {
-	var ractive = this.component.instance;
-
-	this.handler = ractive.on( this.name, function () {
-			var args = [], len = arguments.length;
-			while ( len-- ) args[ len ] = arguments[ len ];
-
-		// watch for reproxy
-		if ( args[0] instanceof Context ) {
-			var ctx = args.shift();
-			ctx.component = ractive;
-			directive.fire( ctx, args );
-		} else {
-			directive.fire( {}, args );
-		}
-
-		// cancel bubbling
-		return false;
-	});
-};
-
-RactiveEvent.prototype.unlisten = function unlisten () {
-	this.handler.cancel();
-};
-
-var specialPattern = /^(event|arguments|@node|@event|@context)(\..+)?$/;
-var dollarArgsPattern = /^\$(\d+)(\..+)?$/;
-
-var DelegateProxy = {
-	fire: function fire ( event, args ) {
-		if ( args === void 0 ) args = [];
-
-		if ( event && event.event ) {
-			var ev = event.event;
-
-			// TODO if IE<9 needs to be supported here, could probably walk to the element with a ractive proxy with a delegates property
-			var end = ev.currentTarget;
-			var node = ev.target;
-			var name = event.name;
-			var bubble = true;
-
-			// starting with the origin node, walk up the DOM looking for ractive nodes with a matching event listener
-			while ( bubble && node && node !== end ) {
-				var el = node._ractive && node._ractive.proxy;
-
-				if ( el ) {
-					// set up the context for the handler
-					event.node = el.node;
-					event.name = name;
-
-					el.events.forEach( function (ev) {
-						if ( ev.delegate && ~ev.template.n.indexOf( name ) ) {
-							bubble = ev.fire( event, args ) !== false && bubble;
-						}
-					});
-				}
-
-				node = node.parentNode;
-			}
-
-			return bubble;
-		}
-	}
-};
-
-var EventDirective = function EventDirective ( options ) {
-	var this$1 = this;
-
-	this.owner = options.owner || options.parentFragment.owner || findElement( options.parentFragment );
-	this.element = this.owner.attributeByName ? this.owner : findElement( options.parentFragment, true );
-	this.template = options.template;
-	this.parentFragment = options.parentFragment;
-	this.ractive = options.parentFragment.ractive;
-	var delegate = this.delegate = this.ractive.delegate && options.parentFragment.delegate;
-	this.events = [];
-
-	if ( this.element.type === COMPONENT || this.element.type === ANCHOR ) {
-		this.template.n.forEach( function (n) {
-			this$1.events.push( new RactiveEvent( this$1.element, n ) );
-		});
-	} else {
-		// make sure the delegate element has a storag object
-		if ( delegate && !delegate.delegates ) { delegate.delegates = {}; }
-
-		this.template.n.forEach( function (n) {
-			var fn = findInViewHierarchy( 'events', this$1.ractive, n );
-			if ( fn ) {
-				this$1.events.push( new CustomEvent( fn, this$1.element, n ) );
-			} else {
-				if ( delegate ) {
-					if ( !delegate.delegates[n] ) {
-						var ev = new DOMEvent( n, delegate, true );
-						delegate.delegates[n] = ev;
-						// if the element is already rendered, render the event too
-						if ( delegate.rendered ) { ev.listen( DelegateProxy ); }
-					}
-				} else {
-					this$1.events.push( new DOMEvent( n, this$1.element ) );
-				}
-			}
-		});
-	}
-
-	// method calls
-	this.models = null;
-};
-
-EventDirective.prototype.bind = function bind () {
-	addToArray( this.element.events, this );
-
-	setupArgsFn( this, this.template );
-	if ( !this.fn ) { this.action = this.template.f; }
-};
-
-EventDirective.prototype.destroyed = function destroyed () {
-	this.events.forEach( function (e) { return e.unlisten(); } );
-};
-
-EventDirective.prototype.fire = function fire ( event, args ) {
-		var this$1 = this;
-		if ( args === void 0 ) args = [];
-
-	var context = this.element.getContext( event );
-
-	if ( this.fn ) {
-		var values = [];
-
-		var models = resolveArgs( this, this.template, this.parentFragment, {
-			specialRef: function specialRef ( ref ) {
-				var specialMatch = specialPattern.exec( ref );
-				if ( specialMatch ) {
-					// on-click="foo(event.node)"
-					return {
-						special: specialMatch[1],
-						keys: specialMatch[2] ? splitKeypath( specialMatch[2].substr(1) ) : []
-					};
-				}
-
-				var dollarMatch = dollarArgsPattern.exec( ref );
-				if ( dollarMatch ) {
-					// on-click="foo($1)"
-					return {
-						special: 'arguments',
-						keys: [ dollarMatch[1] - 1 ].concat( dollarMatch[2] ? splitKeypath( dollarMatch[2].substr( 1 ) ) : [] )
-					};
-				}
-			}
-		});
-
-		if ( models ) {
-			models.forEach( function (model) {
-				if ( !model ) { return values.push( undefined ); }
-
-				if ( model.special ) {
-					var which = model.special;
-					var obj;
-
-					if ( which === '@node' ) {
-						obj = this$1.element.node;
-					} else if ( which === '@event' ) {
-						obj = event && event.event;
-					} else if ( which === 'event' ) {
-						warnOnceIfDebug( "The event reference available to event directives is deprecated and should be replaced with @context and @event" );
-						obj = context;
-					} else if ( which === '@context' ) {
-						obj = context;
-					} else {
-						obj = args;
-					}
-
-					var keys = model.keys.slice();
-
-					while ( obj && keys.length ) { obj = obj[ keys.shift() ]; }
-					return values.push( obj );
-				}
-
-				if ( model.wrapper ) {
-					return values.push( model.wrapperValue );
-				}
-
-				values.push( model.get() );
-			});
-		}
-
-		// make event available as `this.event`
-		var ractive = this.ractive;
-		var oldEvent = ractive.event;
-
-		ractive.event = context;
-		var returned = this.fn.apply( ractive, values );
-		var result = returned.pop();
-
-		// Auto prevent and stop if return is explicitly false
-		if ( result === false ) {
-			var original = event ? event.original : undefined;
-			if ( original ) {
-				original.preventDefault && original.preventDefault();
-				original.stopPropagation && original.stopPropagation();
-			} else {
-				warnOnceIfDebug( ("handler '" + (this.template.n.join( ' ' )) + "' returned false, but there is no event available to cancel") );
-			}
-		}
-
-		// watch for proxy events
-		else if ( !returned.length && Array.isArray( result ) && typeof result[0] === 'string' ) {
-			result = fireEvent( this.ractive, result.shift(), context, result );
-		}
-
-		ractive.event = oldEvent;
-
-		return result;
-	}
-
-	else {
-		return fireEvent( this.ractive, this.action, context, args);
-	}
-};
-
-EventDirective.prototype.handleChange = function handleChange () {};
-
-EventDirective.prototype.render = function render () {
-		var this$1 = this;
-
-	// render events after everything else, so they fire after bindings
-	runloop.scheduleTask( function () { return this$1.events.forEach( function (e) { return e.listen( this$1 ); }, true ); } );
-};
-
-EventDirective.prototype.toString = function toString () { return ''; };
-
-EventDirective.prototype.unbind = function unbind () {
-	removeFromArray( this.element.events, this );
-};
-
-EventDirective.prototype.unrender = function unrender () {
-	this.events.forEach( function (e) { return e.unlisten(); } );
-};
-
-EventDirective.prototype.update = noop;
-
 var endsWithSemi = /;\s*$/;
 
 var Element = (function (ContainerItem$$1) {
@@ -12169,6 +11868,7 @@ var Element = (function (ContainerItem$$1) {
 		}
 
 		this.decorators = [];
+		this.listeners = {};
 		this.events = [];
 
 		// create attributes
@@ -12252,9 +11952,14 @@ var Element = (function (ContainerItem$$1) {
 		var this$1 = this;
 
 		this.attributes.forEach( destroyed );
-		for ( var ev in this$1.delegates ) {
-			this$1.delegates[ev].unlisten();
+
+		if ( !this.parentFragment.delegate ) {
+			var ls = this.listeners;
+			for ( var k in ls ) {
+				if ( ls[k] && ls[k].length ) { this$1.node.removeEventListener( k, handler ); }
+			}
 		}
+
 		if ( this.fragment ) { this.fragment.destroyed(); }
 	};
 
@@ -12307,6 +12012,63 @@ var Element = (function (ContainerItem$$1) {
 		assigns.unshift( Object.create( this.ctx ) );
 		return Object.assign.apply( null, assigns );
 		var ref;
+	};
+
+	Element.prototype.off = function off ( event, callback, capture ) {
+		if ( capture === void 0 ) capture = false;
+
+		var delegate = this.parentFragment.delegate;
+		var ref = this.listeners[event];
+
+		if ( !ref ) { return; }
+		removeFromArray( ref, callback );
+
+		if ( delegate ) {
+			var listeners = delegate.listeners[event] || ( delegate.listeners[event] = [] );
+			if ( listeners.refs && !--listeners.refs ) { delegate.off( event, delegateHandler, true ); }
+		} else if ( this.rendered ) {
+			var n = this.node;
+			var add = n.addEventListener;
+			var rem = n.removeEventListener;
+
+			if ( !ref.length ) {
+				rem.call( n, event, handler, capture );
+			} else if ( ref.length && !ref.refs && capture ) {
+				rem.call( n, event, handler, true );
+				add.call( n, event, handler, false );
+			}
+		}
+	};
+
+	Element.prototype.on = function on ( event, callback, capture ) {
+		if ( capture === void 0 ) capture = false;
+
+		var delegate = this.parentFragment.delegate;
+		var ref = this.listeners[event] || ( this.listeners[event] = [] );
+
+		if ( delegate ) {
+			var listeners = delegate.listeners[event] || ( delegate.listeners[event] = [] );
+			if ( !listeners.refs ) {
+				listeners.refs = 0;
+				delegate.on( event, delegateHandler, true );
+				listeners.refs++;
+			} else {
+				listeners.refs++;
+			}
+		} else if ( this.rendered ) {
+			var n = this.node;
+			var add = n.addEventListener;
+			var rem = n.removeEventListener;
+
+			if ( !ref.length ) {
+				add.call( n, event, handler, capture );
+			} else if ( ref.length && !ref.refs && capture ) {
+				rem.call( n, event, handler, false );
+				add.call( n, event, handler, true );
+			}
+		}
+
+		addToArray( this.listeners[event], callback );
 	};
 
 	Element.prototype.recreateTwowayBinding = function recreateTwowayBinding () {
@@ -12395,13 +12157,14 @@ var Element = (function (ContainerItem$$1) {
 		}
 
 		this.attributes.forEach( render );
-		if ( this.delegates ) {
-			for ( var ev in this$1.delegates ) {
-				this$1.delegates[ev].listen( DelegateProxy );
+		if ( this.binding ) { this.binding.render(); }
+
+		if ( !this.parentFragment.delegate ) {
+			var ls = this.listeners;
+			for ( var k in ls ) {
+				if ( ls[k] && ls[k].length ) { this$1.node.addEventListener( k, handler, !!ls[k].refs ); }
 			}
 		}
-
-		if ( this.binding ) { this.binding.render(); }
 
 		if ( !existing ) {
 			target.appendChild( node );
@@ -12565,6 +12328,37 @@ function getNamespace ( element ) {
 	return element.ractive.el.namespaceURI;
 }
 
+function delegateHandler ( ev ) {
+	var name = ev.type;
+	var end = ev.currentTarget;
+	var node = ev.target;
+	var bubble = true;
+	var listeners;
+
+	// starting with the origin node, walk up the DOM looking for ractive nodes with a matching event listener
+	while ( bubble && node && node !== end ) {
+		listeners = node._ractive && node._ractive.proxy && node._ractive.proxy.listeners[name];
+
+		if ( listeners ) {
+			listeners.forEach( function (l) {
+				bubble = l.call( node, ev ) !== false && bubble;
+			});
+		}
+
+		node = node.parentNode;
+	}
+
+	return bubble;
+}
+
+function handler ( ev ) {
+	var this$1 = this;
+
+	var el = this._ractive.proxy;
+	if ( !el.listeners[ ev.type ] ) { return; }
+	el.listeners[ ev.type ].forEach( function (l) { return l.call( this$1, ev ); } );
+}
+
 var Form = (function (Element$$1) {
 	function Form ( options ) {
 		Element$$1.call( this, options );
@@ -12577,11 +12371,11 @@ var Form = (function (Element$$1) {
 
 	Form.prototype.render = function render ( target, occupants ) {
 		Element$$1.prototype.render.call( this, target, occupants );
-		this.node.addEventListener( 'reset', handleReset, false );
+		this.on( 'reset', handleReset );
 	};
 
 	Form.prototype.unrender = function unrender ( shouldDestroy ) {
-		this.node.removeEventListener( 'reset', handleReset, false );
+		this.off( 'reset', handleReset );
 		Element$$1.prototype.unrender.call( this, shouldDestroy );
 	};
 
@@ -12599,6 +12393,274 @@ function handleReset () {
 function updateModel ( binding ) {
 	binding.model.set( binding.resetValue );
 }
+
+var DOMEvent = function DOMEvent ( name, owner ) {
+	if ( name.indexOf( '*' ) !== -1 ) {
+		fatal( ("Only component proxy-events may contain \"*\" wildcards, <" + (owner.name) + " on-" + name + "=\"...\"/> is not valid") );
+	}
+
+	this.name = name;
+	this.owner = owner;
+	this.handler = null;
+};
+
+DOMEvent.prototype.listen = function listen ( directive ) {
+	var node = this.owner.node;
+	var name = this.name;
+
+	// this is probably a custom event fired from a decorator or manually
+	if ( !( ("on" + name) in node ) ) { return; }
+
+	this.owner.on( name, this.handler = function ( event ) {
+		return directive.fire({
+			node: node,
+			original: event,
+			event: event,
+			name: name
+		});
+	});
+};
+
+DOMEvent.prototype.unlisten = function unlisten () {
+	if ( this.handler ) { this.owner.off( this.name, this.handler ); }
+};
+
+var CustomEvent = function CustomEvent ( eventPlugin, owner, name ) {
+	this.eventPlugin = eventPlugin;
+	this.owner = owner;
+	this.name = name;
+	this.handler = null;
+};
+
+CustomEvent.prototype.listen = function listen ( directive ) {
+		var this$1 = this;
+
+	var node = this.owner.node;
+
+	this.handler = this.eventPlugin( node, function ( event ) {
+			if ( event === void 0 ) event = {};
+
+		if ( event.original ) { event.event = event.original; }
+		else { event.original = event.event; }
+
+		event.name = this$1.name;
+		event.node = event.node || node;
+		return directive.fire( event );
+	});
+};
+
+CustomEvent.prototype.unlisten = function unlisten () {
+	this.handler.teardown();
+};
+
+var RactiveEvent = function RactiveEvent ( component, name ) {
+	this.component = component;
+	this.name = name;
+	this.handler = null;
+};
+
+RactiveEvent.prototype.listen = function listen ( directive ) {
+	var ractive = this.component.instance;
+
+	this.handler = ractive.on( this.name, function () {
+			var args = [], len = arguments.length;
+			while ( len-- ) args[ len ] = arguments[ len ];
+
+		// watch for reproxy
+		if ( args[0] instanceof Context ) {
+			var ctx = args.shift();
+			ctx.component = ractive;
+			directive.fire( ctx, args );
+		} else {
+			directive.fire( {}, args );
+		}
+
+		// cancel bubbling
+		return false;
+	});
+};
+
+RactiveEvent.prototype.unlisten = function unlisten () {
+	this.handler.cancel();
+};
+
+var specialPattern = /^(event|arguments|@node|@event|@context)(\..+)?$/;
+var dollarArgsPattern = /^\$(\d+)(\..+)?$/;
+
+var EventDirective = function EventDirective ( options ) {
+	var this$1 = this;
+
+	this.owner = options.owner || options.parentFragment.owner || findElement( options.parentFragment );
+	this.element = this.owner.attributeByName ? this.owner : findElement( options.parentFragment, true );
+	this.template = options.template;
+	this.parentFragment = options.parentFragment;
+	this.ractive = options.parentFragment.ractive;
+	//const delegate = this.delegate = this.ractive.delegate && options.parentFragment.delegate;
+	this.events = [];
+
+	if ( this.element.type === COMPONENT || this.element.type === ANCHOR ) {
+		this.template.n.forEach( function (n) {
+			this$1.events.push( new RactiveEvent( this$1.element, n ) );
+		});
+	} else {
+		// make sure the delegate element has a storag object
+		//if ( delegate && !delegate.delegates ) delegate.delegates = {};
+
+		this.template.n.forEach( function (n) {
+			var fn = findInViewHierarchy( 'events', this$1.ractive, n );
+			if ( fn ) {
+				this$1.events.push( new CustomEvent( fn, this$1.element, n ) );
+			} else {
+				/*if ( delegate ) {
+					if ( !delegate.delegates[n] ) {
+						const ev = new DOMEvent( n, delegate, true );
+						delegate.delegates[n] = ev;
+						// if the element is already rendered, render the event too
+						if ( delegate.rendered ) ev.listen( DelegateProxy );
+					}
+				} else {
+					this.events.push( new DOMEvent( n, this.element ) );
+				}*/
+				this$1.events.push( new DOMEvent( n, this$1.element ) );
+			}
+		});
+	}
+
+	// method calls
+	this.models = null;
+};
+
+EventDirective.prototype.bind = function bind () {
+	addToArray( this.element.events, this );
+
+	setupArgsFn( this, this.template );
+	if ( !this.fn ) { this.action = this.template.f; }
+};
+
+EventDirective.prototype.destroyed = function destroyed () {
+	this.events.forEach( function (e) { return e.unlisten(); } );
+};
+
+EventDirective.prototype.fire = function fire ( event, args ) {
+		var this$1 = this;
+		if ( args === void 0 ) args = [];
+
+	var context = this.element.getContext( event );
+
+	if ( this.fn ) {
+		var values = [];
+
+		var models = resolveArgs( this, this.template, this.parentFragment, {
+			specialRef: function specialRef ( ref ) {
+				var specialMatch = specialPattern.exec( ref );
+				if ( specialMatch ) {
+					// on-click="foo(event.node)"
+					return {
+						special: specialMatch[1],
+						keys: specialMatch[2] ? splitKeypath( specialMatch[2].substr(1) ) : []
+					};
+				}
+
+				var dollarMatch = dollarArgsPattern.exec( ref );
+				if ( dollarMatch ) {
+					// on-click="foo($1)"
+					return {
+						special: 'arguments',
+						keys: [ dollarMatch[1] - 1 ].concat( dollarMatch[2] ? splitKeypath( dollarMatch[2].substr( 1 ) ) : [] )
+					};
+				}
+			}
+		});
+
+		if ( models ) {
+			models.forEach( function (model) {
+				if ( !model ) { return values.push( undefined ); }
+
+				if ( model.special ) {
+					var which = model.special;
+					var obj;
+
+					if ( which === '@node' ) {
+						obj = this$1.element.node;
+					} else if ( which === '@event' ) {
+						obj = event && event.event;
+					} else if ( which === 'event' ) {
+						warnOnceIfDebug( "The event reference available to event directives is deprecated and should be replaced with @context and @event" );
+						obj = context;
+					} else if ( which === '@context' ) {
+						obj = context;
+					} else {
+						obj = args;
+					}
+
+					var keys = model.keys.slice();
+
+					while ( obj && keys.length ) { obj = obj[ keys.shift() ]; }
+					return values.push( obj );
+				}
+
+				if ( model.wrapper ) {
+					return values.push( model.wrapperValue );
+				}
+
+				values.push( model.get() );
+			});
+		}
+
+		// make event available as `this.event`
+		var ractive = this.ractive;
+		var oldEvent = ractive.event;
+
+		ractive.event = context;
+		var returned = this.fn.apply( ractive, values );
+		var result = returned.pop();
+
+		// Auto prevent and stop if return is explicitly false
+		if ( result === false ) {
+			var original = event ? event.original : undefined;
+			if ( original ) {
+				original.preventDefault && original.preventDefault();
+				original.stopPropagation && original.stopPropagation();
+			} else {
+				warnOnceIfDebug( ("handler '" + (this.template.n.join( ' ' )) + "' returned false, but there is no event available to cancel") );
+			}
+		}
+
+		// watch for proxy events
+		else if ( !returned.length && Array.isArray( result ) && typeof result[0] === 'string' ) {
+			result = fireEvent( this.ractive, result.shift(), context, result );
+		}
+
+		ractive.event = oldEvent;
+
+		return result;
+	}
+
+	else {
+		return fireEvent( this.ractive, this.action, context, args);
+	}
+};
+
+EventDirective.prototype.handleChange = function handleChange () {};
+
+EventDirective.prototype.render = function render () {
+		var this$1 = this;
+
+	// render events after everything else, so they fire after bindings
+	runloop.scheduleTask( function () { return this$1.events.forEach( function (e) { return e.listen( this$1 ); }, true ); } );
+};
+
+EventDirective.prototype.toString = function toString () { return ''; };
+
+EventDirective.prototype.unbind = function unbind () {
+	removeFromArray( this.element.events, this );
+};
+
+EventDirective.prototype.unrender = function unrender () {
+	this.events.forEach( function (e) { return e.unlisten(); } );
+};
+
+EventDirective.prototype.update = noop;
 
 function progressiveText ( item, target, occupants, text ) {
 	if ( occupants ) {
@@ -12706,12 +12768,12 @@ var MustacheContainer = (function (ContainerItem$$1) {
 
 	return MustacheContainer;
 }(ContainerItem));
-var proto$2 = MustacheContainer.prototype;
+var proto$3 = MustacheContainer.prototype;
 var mustache = Mustache.prototype;
-proto$2.bind = mustache.bind;
-proto$2.handleChange = mustache.handleChange;
-proto$2.rebind = mustache.rebind;
-proto$2.unbind = mustache.unbind;
+proto$3.bind = mustache.bind;
+proto$3.handleChange = mustache.handleChange;
+proto$3.rebind = mustache.rebind;
+proto$3.unbind = mustache.unbind;
 
 var Interpolator = (function (Mustache$$1) {
 	function Interpolator () {
@@ -12971,8 +13033,6 @@ var Mapping = (function (Item$$1) {
 		this.parentFragment = this.element.parentFragment; // shared
 		this.ractive = this.parentFragment.ractive;
 
-		this.fragment = null;
-
 		this.element.attributeByName[ this.name ] = this;
 
 		this.value = options.template.f;
@@ -12983,10 +13043,6 @@ var Mapping = (function (Item$$1) {
 	Mapping.prototype.constructor = Mapping;
 
 	Mapping.prototype.bind = function bind () {
-		if ( this.fragment ) {
-			this.fragment.bind();
-		}
-
 		var template = this.template.f;
 		var viewmodel = this.element.instance.viewmodel;
 
@@ -13008,7 +13064,6 @@ var Mapping = (function (Item$$1) {
 	Mapping.prototype.render = function render () {};
 
 	Mapping.prototype.unbind = function unbind () {
-		if ( this.fragment ) { this.fragment.unbind(); }
 		if ( this.model ) { this.model.unregister( this ); }
 		if ( this.boundFragment ) { this.boundFragment.unbind(); }
 
@@ -13022,9 +13077,7 @@ var Mapping = (function (Item$$1) {
 	Mapping.prototype.update = function update () {
 		if ( this.dirty ) {
 			this.dirty = false;
-			if ( this.fragment ) { this.fragment.update(); }
 			if ( this.boundFragment ) { this.boundFragment.update(); }
-			if ( this.rendered ) { this.updateDelegate(); }
 		}
 	};
 
@@ -13053,7 +13106,7 @@ function createMapping ( item ) {
 
 		// copy non-object, non-computed vals through
 		else if ( typeof val !== 'object' || template[0].x ) {
-			viewmodel.joinKey( item.name ).set( val );
+			viewmodel.joinKey( splitKeypath( item.name ) ).set( val );
 		}
 
 		// warn about trying to copy an object
@@ -13068,7 +13121,7 @@ function createMapping ( item ) {
 			template: template
 		}).bind();
 
-		item.model = viewmodel.joinKey( item.name );
+		item.model = viewmodel.joinKey( splitKeypath( item.name ) );
 		item.model.set( item.boundFragment.valueOf() );
 
 		// item is a *bit* of a hack
@@ -13260,7 +13313,7 @@ function findConstructor ( constructor, key ) {
 	if ( !constructor ) { return; }
 	return constructor.partials.hasOwnProperty( key )
 		? constructor
-		: findConstructor( constructor._Parent, key );
+		: findConstructor( constructor.Parent, key );
 }
 
 function findParentPartial( name, parent ) {
@@ -14299,14 +14352,8 @@ var Text = (function (Item$$1) {
 	return Text;
 }(Item));
 
-var proto$3 = Text.prototype;
-proto$3.bind = proto$3.unbind = proto$3.update = noop;
-
-var camelizeHyphenated = function ( hyphenatedStr ) {
-	return hyphenatedStr.replace( /-([a-zA-Z])/g, function ( match, $1 ) {
-		return $1.toUpperCase();
-	});
-};
+var proto$4 = Text.prototype;
+proto$4.bind = proto$4.unbind = proto$4.update = noop;
 
 var prefix;
 
@@ -14316,23 +14363,22 @@ if ( !isClient ) {
 	var prefixCache = {};
 	var testStyle = createElement( 'div' ).style;
 
+	// technically this also normalizes on hyphenated styles as well
 	prefix = function ( prop ) {
-		prop = camelizeHyphenated( prop );
-
 		if ( !prefixCache[ prop ] ) {
+			var name = hyphenateCamel( prop );
+
 			if ( testStyle[ prop ] !== undefined ) {
-				prefixCache[ prop ] = prop;
+				prefixCache[ prop ] = name;
 			}
 
 			else {
 				// test vendors...
-				var capped = prop.charAt( 0 ).toUpperCase() + prop.substring( 1 );
-
 				var i = vendors.length;
 				while ( i-- ) {
-					var vendor = vendors[i];
-					if ( testStyle[ vendor + capped ] !== undefined ) {
-						prefixCache[ prop ] = vendor + capped;
+					var vendor = "-" + (vendors[i]) + "-" + name;
+					if ( testStyle[ vendor ] !== undefined ) {
+						prefixCache[ prop ] = vendor;
 						break;
 					}
 				}
@@ -14399,12 +14445,6 @@ function onHide () {
 function onShow () {
 	visible = true;
 }
-
-var unprefixPattern = new RegExp( '^-(?:' + vendors.join( '|' ) + ')-' );
-
-var unprefix = function ( prop ) {
-	return prop.replace( unprefixPattern, '' );
-};
 
 var vendorPattern = new RegExp( '^(?:' + vendors.join( '|' ) + ')([A-Z])' );
 
@@ -14485,14 +14525,8 @@ if ( !isClient ) {
 				duration: style[ TRANSITION_DURATION ]
 			};
 
-			style[ TRANSITION_PROPERTY ] = changedProperties.map( prefix$1 ).map( hyphenate ).join( ',' );
-			var easingName = hyphenate( options.easing || 'linear' );
-			style[ TRANSITION_TIMING_FUNCTION ] = easingName;
-			var cssTiming = style[ TRANSITION_TIMING_FUNCTION ] === easingName;
-			style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
-
 			function transitionEndHandler ( event ) {
-				var index = changedProperties.indexOf( camelizeHyphenated( unprefix( event.propertyName ) ) );
+				var index = changedProperties.indexOf( event.propertyName );
 
 				if ( index !== -1 ) {
 					changedProperties.splice( index, 1 );
@@ -14527,10 +14561,16 @@ if ( !isClient ) {
 			}, options.duration + ( options.delay || 0 ) + 50 );
 			t.registerCompleteHandler( transitionDone );
 
+			style[ TRANSITION_PROPERTY ] = changedProperties.join( ',' );
+			var easingName = hyphenate( options.easing || 'linear' );
+			style[ TRANSITION_TIMING_FUNCTION ] = easingName;
+			var cssTiming = style[ TRANSITION_TIMING_FUNCTION ] === easingName;
+			style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
+
 			setTimeout( function () {
 				var i = changedProperties.length;
 				var hash;
-				var originalValue;
+				var originalValue = null;
 				var index;
 				var propertiesToTransitionInJs = [];
 				var prop;
@@ -14542,11 +14582,12 @@ if ( !isClient ) {
 					hash = hashPrefix + prop;
 
 					if ( cssTiming && CSS_TRANSITIONS_ENABLED && !cannotUseCssTransitions[ hash ] ) {
-						style[ prefix$1( prop ) ] = to[ prop ];
+						var initial = style[ prop ];
+						style[ prop ] = to[ prop ];
 
 						// If we're not sure if CSS transitions are supported for
 						// this tag/property combo, find out now
-						if ( !canUseCssTransitions[ hash ] ) {
+						if ( !( hash in canUseCssTransitions ) ) {
 							originalValue = t.getStyle( prop );
 
 							// if this property is transitionable in this browser,
@@ -14556,16 +14597,14 @@ if ( !isClient ) {
 
 							// Reset, if we're going to use timers after all
 							if ( cannotUseCssTransitions[ hash ] ) {
-								style[ prefix$1( prop ) ] = originalValue;
+								style[ prop ] = initial;
 							}
 						}
 					}
 
 					if ( !cssTiming || !CSS_TRANSITIONS_ENABLED || cannotUseCssTransitions[ hash ] ) {
 						// we need to fall back to timer-based stuff
-						if ( originalValue === undefined ) {
-							originalValue = t.getStyle( prop );
-						}
+						if ( originalValue === null ) { originalValue = t.getStyle( prop ); }
 
 						// need to remove this from changedProperties, otherwise transitionEndHandler
 						// will get confused
@@ -14578,15 +14617,21 @@ if ( !isClient ) {
 
 						// TODO Determine whether this property is animatable at all
 
-						suffix = /[^\d]*$/.exec( to[ prop ] )[0];
-						interpolator = interpolate( parseFloat( originalValue ), parseFloat( to[ prop ] ) ) || ( function () { return to[ prop ]; } );
+						suffix = /[^\d]*$/.exec( originalValue )[0];
+						interpolator = interpolate( parseFloat( originalValue ), parseFloat( to[ prop ] ) );
 
 						// ...then kick off a timer-based transition
-						propertiesToTransitionInJs.push({
-							name: prefix$1( prop ),
-							interpolator: interpolator,
-							suffix: suffix
-						});
+						if ( interpolator ) {
+							propertiesToTransitionInJs.push({
+								name: prop,
+								interpolator: interpolator,
+								suffix: suffix
+							});
+						} else {
+							style[ prop ] = to[ prop ];
+						}
+
+						originalValue = null;
 					}
 				}
 
@@ -14614,7 +14659,7 @@ if ( !isClient ) {
 							var i = propertiesToTransitionInJs.length;
 							while ( i-- ) {
 								var prop = propertiesToTransitionInJs[i];
-								t.node.style[ prop.name ] = prop.interpolator( pos ) + prop.suffix;
+								style[ prop.name ] = prop.interpolator( pos ) + prop.suffix;
 							}
 						},
 						complete: function complete () {
@@ -14626,7 +14671,11 @@ if ( !isClient ) {
 					jsTransitionsComplete = true;
 				}
 
-				if ( !changedProperties.length ) {
+				if ( changedProperties.length ) {
+					style[ TRANSITION_PROPERTY ] = changedProperties.join( ',' );
+				} else {
+					style[ TRANSITION_PROPERTY ] = 'none';
+
 					// We need to cancel the transitionEndHandler, and deal with
 					// the fact that it will never fire
 					t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );
@@ -14639,17 +14688,6 @@ if ( !isClient ) {
 }
 
 var createTransitions$1 = createTransitions;
-
-function resetStyle ( node, style ) {
-	if ( style ) {
-		node.setAttribute( 'style', style );
-	} else {
-		// Next line is necessary, to remove empty style attribute!
-		// See http://stackoverflow.com/a/7167553
-		node.getAttribute( 'style' );
-		node.removeAttribute( 'style' );
-	}
-}
 
 var getComputedStyle = win && win.getComputedStyle;
 var resolved = Promise.resolve();
@@ -14696,16 +14734,6 @@ Transition.prototype.animateStyle = function animateStyle ( style, value, option
 		options = value;
 	}
 
-	// As of 0.3.9, transition authors should supply an `option` object with
-	// `duration` and `easing` properties (and optional `delay`), plus a
-	// callback function that gets called after the animation completes
-
-	// TODO remove this check in a future version
-	if ( !options ) {
-		warnOnceIfDebug( 'The "%s" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340', this.name );
-		options = this;
-	}
-
 	return new Promise( function (fulfil) {
 		// Edge case - if duration is zero, set style synchronously and complete
 		if ( !options.duration ) {
@@ -14724,17 +14752,27 @@ Transition.prototype.animateStyle = function animateStyle ( style, value, option
 		var i = propertyNames.length;
 		while ( i-- ) {
 			var prop = propertyNames[i];
+			var name = prefix$1( prop );
+
 			var current = computedStyle[ prefix$1( prop ) ];
 
-			if ( current === '0px' ) { current = 0; }
+			// record the starting points
+			var init = this$1.node.style[name];
+			if ( !( name in this$1.originals ) ) { this$1.originals[ name ] = this$1.node.style[ name ]; }
+			this$1.node.style[ name ] = to[ prop ];
+			this$1.targets[ name ] = this$1.node.style[ name ];
+			this$1.node.style[ name ] = init;
 
 			// we need to know if we're actually changing anything
 			if ( current != to[ prop ] ) { // use != instead of !==, so we can compare strings with numbers
-				changedProperties.push( prop );
+				changedProperties.push( name );
+
+				// if we happened to prefix, make sure there is a properly prefixed value
+				to[ name ] = to[ prop ];
 
 				// make the computed style explicit, so we can animate where
 				// e.g. height='auto'
-				this$1.node.style[ prefix$1( prop ) ] = current;
+				this$1.node.style[ name ] = current;
 			}
 		}
 
@@ -14798,8 +14836,7 @@ Transition.prototype.getStyle = function getStyle ( props ) {
 	var computedStyle = getComputedStyle( this.node );
 
 	if ( typeof props === 'string' ) {
-		var value = computedStyle[ prefix$1( props ) ];
-		return value === '0px' ? 0 : value;
+		return computedStyle[ prefix$1( props ) ];
 	}
 
 	if ( !Array.isArray( props ) ) {
@@ -14811,10 +14848,10 @@ Transition.prototype.getStyle = function getStyle ( props ) {
 	var i = props.length;
 	while ( i-- ) {
 		var prop = props[i];
-		var value$1 = computedStyle[ prefix$1( prop ) ];
+		var value = computedStyle[ prefix$1( prop ) ];
 
-		if ( value$1 === '0px' ) { value$1 = 0; }
-		styles[ prop ] = value$1;
+		if ( value === '0px' ) { value = 0; }
+		styles[ prop ] = value;
 	}
 
 	return styles;
@@ -14848,14 +14885,17 @@ Transition.prototype.setStyle = function setStyle ( style, value ) {
 		var this$1 = this;
 
 	if ( typeof style === 'string' ) {
-		this.node.style[ prefix$1( style ) ] = value;
+		var name = prefix$1(  style );
+		if ( !this.originals.hasOwnProperty( name ) ) { this.originals[ name ] = this.node.style[ name ]; }
+		this.node.style[ name ] = value;
+		this.targets[ name ] = this.node.style[ name ];
 	}
 
 	else {
 		var prop;
 		for ( prop in style ) {
 			if ( style.hasOwnProperty( prop ) ) {
-				this$1.node.style[ prefix$1( prop ) ] = style[ prop ];
+				this$1.setStyle( prop, style[ prop ] );
 			}
 		}
 	}
@@ -14896,7 +14936,8 @@ Transition.prototype.start = function start () {
 		var this$1 = this;
 
 	var node = this.node = this.element.node;
-	var originalStyle = node.getAttribute( 'style' );
+	var originals = this.originals = {};  //= node.getAttribute( 'style' );
+	var targets = this.targets = {};
 
 	var completed;
 	var args = this.getParams();
@@ -14912,7 +14953,9 @@ Transition.prototype.start = function start () {
 
 		this$1.onComplete.forEach( function (fn) { return fn(); } );
 		if ( !noReset && this$1.isIntro ) {
-			resetStyle( node, originalStyle);
+			for ( var k in targets ) {
+				if ( node.style[ k ] === targets[ k ] ) { node.style[ k ] = originals[ k ]; }
+			}
 		}
 
 		this$1._manager.remove( this$1 );
@@ -14944,8 +14987,8 @@ Transition.prototype.unregisterCompleteHandler = function unregisterCompleteHand
 	removeFromArray( this.onComplete, fn );
 };
 
-var proto$4 = Transition.prototype;
-proto$4.destroyed = proto$4.render = proto$4.unrender = proto$4.update = noop;
+var proto$5 = Transition.prototype;
+proto$5.destroyed = proto$5.render = proto$5.unrender = proto$5.update = noop;
 
 function nearestProp ( prop, ractive, rendering ) {
 	var instance = ractive;
@@ -15208,7 +15251,7 @@ function getComponentConstructor ( ractive, name ) {
 		Component = instance.components[ name ];
 
 		// best test we have for not Ractive.extend
-		if ( Component && !Component._Parent ) {
+		if ( Component && !Component.Parent ) {
 			// function option, execute and store for reset
 			var fn = Component.bind( instance );
 			fn.isOwner = instance.components.hasOwnProperty( name );
@@ -16109,7 +16152,7 @@ function Ractive$updateModel ( keypath, cascade ) {
 	return promise;
 }
 
-var RactiveProto = {
+var proto = {
 	add: Ractive$add,
 	animate: Ractive$animate,
 	attachChild: attachChild,
@@ -16159,6 +16202,14 @@ var RactiveProto = {
 	update: Ractive$update,
 	updateModel: Ractive$updateModel
 };
+
+Object.defineProperty( proto, 'target', {
+	get: function get() { return this.el; }
+});
+
+function isInstance ( object ) {
+	return object && object instanceof this;
+}
 
 var callsSuper = /super\s\(|\.call\s*\(\s*this/;
 
@@ -16221,8 +16272,10 @@ function extendOne ( Parent, options, Target ) {
 		extend: { value: extend, writable: true, configurable: true },
 		extendClass: { value: extendWith, writable: true, configurable: true },
 
-		// Parent - for IE8, can't use Object.getPrototypeOf
-		_Parent: { value: Parent }
+		Parent: { value: Parent },
+		Ractive: { value: Ractive },
+
+		isInstance: { value: isInstance }
 	});
 
 	// extend configuration
@@ -16291,7 +16344,7 @@ if ( win && !win.Ractive ) {
 	if ( ~opts.indexOf( 'ForceGlobal' ) ) { win.Ractive = Ractive; }
 }
 
-Object.assign( Ractive.prototype, RactiveProto, defaults );
+Object.assign( Ractive.prototype, proto, defaults );
 Ractive.prototype.constructor = Ractive;
 
 // alias prototype as `defaults`
@@ -16314,6 +16367,7 @@ Object.defineProperties( Ractive, {
 	escapeKey:        { value: escapeKey },
 	getContext:       { value: getContext$2 },
 	getNodeInfo:      { value: getNodeInfo$1 },
+	isInstance:       { value: isInstance },
 	joinKeys:         { value: joinKeys },
 	parse:            { value: parse },
 	splitKeypath:     { value: splitKeypath$1 },
@@ -16328,7 +16382,7 @@ Object.defineProperties( Ractive, {
 	svg:              { value: svg },
 
 	// version
-	VERSION:          { value: '0.9.0' },
+	VERSION:          { value: '0.9.1' },
 
 	// plugins
 	adaptors:         { writable: true, value: {} },
@@ -16338,7 +16392,10 @@ Object.defineProperties( Ractive, {
 	events:           { writable: true, value: {} },
 	interpolators:    { writable: true, value: interpolators },
 	partials:         { writable: true, value: {} },
-	transitions:      { writable: true, value: {} }
+	transitions:      { writable: true, value: {} },
+
+	// for getting the source Ractive lib from a constructor
+	Ractive:          { value: Ractive }
 });
 
 return Ractive;
