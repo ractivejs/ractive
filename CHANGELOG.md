@@ -1,5 +1,27 @@
 # changelog
 
+# 1.0.0 (unreleased, edge)
+
+* New features
+	* There is now an `allowExpressions` parser and init option that disables the parsing of expressions when passed to `parse` or an instance with an unparsed template and disables the evaluation of expessions when passed to an instance. See #3000 for more info.
+
+
+# 0.9.1
+
+* Bug fixes
+	* Pattern observers will now fire even if there are other incidental changes caused by a shuffle (#2984)
+	* Bindings now interact correctly with event delegation (#2988)
+	* Styles set during transitions are now tracked individually and reset only if they have the expected value after the transition is complete (#2986)
+	* CSS and JS transitions are now selected more accurately and don't interfere with each other if they happen to overlap (#2998)
+	* Dotted mappings on components apply properly (#2060)
+
+* Other changes
+	* `ractive.target` is an alias for `ractive.el` to match the init params of sharing those names (#2977)
+	* You can now access the `Parent` and `Ractive` constructors from any extension. The parent constructor was available before, but using the "private" property `_Parent`.
+	* Ractive constructors now have an `isInstance` method that will return `true` if a given object is an instance of the constructor (#2914)
+	* Context objects now have event delegation helpers `listen` and `unlisten` so that custom events and decorators can use delegation where appropriate.
+
+
 # 0.9.0
 
 * Bug fixes
