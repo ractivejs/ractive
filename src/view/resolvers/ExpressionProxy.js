@@ -18,7 +18,9 @@ export default class ExpressionProxy extends Model {
 		this.isReadonly = true;
 		this.dirty = true;
 
-		this.fn = getFunction( template.s, template.r.length );
+		this.fn = fragment.ractive.allowExpressions === false ?
+			noop :
+			getFunction( template.s, template.r.length );
 
 		this.models = this.template.r.map( ref => {
 			return resolveReference( this.fragment, ref );

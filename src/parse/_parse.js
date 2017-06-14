@@ -70,6 +70,7 @@ const StandardParser = Parser.extend({
 		this.includeLinePositions = options.includeLinePositions;
 		this.textOnlyMode = options.textOnlyMode;
 		this.csp = options.csp;
+		this.allowExpressions = options.allowExpressions;
 
 		this.transforms = options.transforms || options.parserTransforms;
 		if ( this.transforms ) {
