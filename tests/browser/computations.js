@@ -1099,6 +1099,36 @@ export default function() {
 		r.set( 'baz', 999 );
 	});
 
+	test( `computeds with setters should call the set when updated (#3006)`, t => {
+		t.expect( 7 );
+
+		const obj = { foo: false };
+		let count = 0;
+
+		const r = new Ractive({
+			computed: {
+				foo: {
+					get () {
+						count++;
+						return obj;
+					},
+					set ( val ) {
+						t.ok( val === obj );
+						return;
+					}
+				}
+			}
+		});
+
+		t.equal( r.get( 'foo.foo' ), false );
+		t.equal( count, 1 );
+		t.equal( r.get( 'foo.foo' ), false );
+		t.equal( count, 1 );
+		r.set( 'foo.foo', true );
+		t.equal( r.get( 'foo.foo' ), true );
+		t.equal( count, 2 );
+	});
+
 	// phantom just doesn't execute this test... no error, just nothing
 	// even >>> log messages don't come out. passes chrome and ff, though
 	if ( !/phantom/i.test( navigator.userAgent ) ) {
