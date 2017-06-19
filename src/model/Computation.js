@@ -36,6 +36,10 @@ export default class Computation extends Model {
 		this.shuffle = undefined;
 	}
 
+	get setRoot () {
+		if ( this.signature.setter ) return this;
+	}
+
 	get ( shouldCapture ) {
 		if ( shouldCapture ) capture( this );
 

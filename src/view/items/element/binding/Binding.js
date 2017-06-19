@@ -14,7 +14,7 @@ export default class Binding {
 
 		const model = interpolator.model;
 
-		if ( model.isReadonly ) {
+		if ( model.isReadonly && !model.setRoot ) {
 			const keypath = model.getKeypath().replace( /^@/, '' );
 			warnOnceIfDebug( `Cannot use two-way binding on <${element.name}> element: ${keypath} is read-only. To suppress this warning use <${element.name} twoway='false'...>`, { ractive: this.ractive });
 			return false;
