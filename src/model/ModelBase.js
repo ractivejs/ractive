@@ -307,7 +307,7 @@ export function fireShuffleTasks ( stage ) {
 	}
 }
 
-export function shuffle ( model, newIndices, link ) {
+export function shuffle ( model, newIndices, link, unsafe ) {
 	model.shuffling = true;
 
 	let i = newIndices.length;
@@ -319,7 +319,7 @@ export function shuffle ( model, newIndices, link ) {
 		}
 
 		// rebind the children on i to idx
-		if ( i in model.childByKey ) model.childByKey[ i ].rebind( !~idx ? undefined : model.joinKey( idx ), model.childByKey[ i ], true );
+		if ( i in model.childByKey ) model.childByKey[ i ].rebind( !~idx ? undefined : model.joinKey( idx ), model.childByKey[ i ], !unsafe );
 
 		if ( !~idx && model.keyModels[ i ] ) {
 			model.keyModels[i].rebind( undefined, model.keyModels[i], false );

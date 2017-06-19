@@ -263,7 +263,7 @@ export default class Model extends ModelBase {
 		});
 
 		this.parent.value[ this.key ] = array;
-		this.shuffle( newIndices );
+		this.shuffle( newIndices, true );
 	}
 
 	retrieve () {
@@ -275,8 +275,8 @@ export default class Model extends ModelBase {
 		this.applyValue( value );
 	}
 
-	shuffle ( newIndices ) {
-		shuffle( this, newIndices, false );
+	shuffle ( newIndices, unsafe ) {
+		shuffle( this, newIndices, false, unsafe );
 	}
 
 	source () { return this; }
