@@ -719,4 +719,30 @@ export default function() {
 
 		t.equal( r.getContext( r.findAll( 'span' )[2] ).resolve(), 'list.2.list.0' );
 	});
+
+	test( `shuffle set should also check for element updates (#3010)`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#each items}}<div>{{.name}}</div>{{/each}}`,
+			data: {
+				items: [
+					{ name: 'apple', id: 1 },
+					{ name: 'filler1', id: 200 },
+					{ name: 'filler2', id: 201 },
+					{ name: 'orange', id: 2 },
+					{ name: 'banana', id: 3 }
+				]
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div>apple</div><div>filler1</div><div>filler2</div><div>orange</div><div>banana</div>' );
+
+		r.set( 'items', [
+			{ id: 3, name: 'gwen stefani' },
+			{ id: 4, name: 'george lucas' },
+			{ id: 1, name: 'granny smith' },
+		], { shuffle: 'id' });
+
+		t.htmlEqual( fixture.innerHTML, '<div>gwen stefani</div><div>george lucas</div><div>granny smith</div>' );
+	});
 }
