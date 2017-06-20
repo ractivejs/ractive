@@ -10,6 +10,8 @@ export default class ComputationChild extends Model {
 		this.dirty = true;
 	}
 
+	get setRoot () { return this.parent.setRoot; }
+
 	applyValue ( value ) {
 		super.applyValue( value );
 
@@ -23,6 +25,10 @@ export default class ComputationChild extends Model {
 			if ( source ) {
 				source.dependencies.forEach( mark );
 			}
+		}
+
+		if ( this.setRoot ) {
+			this.setRoot.set( this.setRoot.value );
 		}
 	}
 
