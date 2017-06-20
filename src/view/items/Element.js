@@ -481,12 +481,15 @@ function delegateHandler ( ev ) {
 
 	// starting with the origin node, walk up the DOM looking for ractive nodes with a matching event listener
 	while ( bubble && node && node !== end ) {
-		listeners = node._ractive && node._ractive.proxy && node._ractive.proxy.listeners[name];
+		const proxy = node._ractive && node._ractive.proxy;
+		if ( proxy && proxy.parentFragment.delegate ) {
+			listeners = proxy.listeners[name];
 
-		if ( listeners ) {
-			listeners.forEach( l => {
-				bubble = l.call( node, ev ) !== false && bubble;
-			});
+			if ( listeners ) {
+				listeners.forEach( l => {
+					bubble = l.call( node, ev ) !== false && bubble;
+				});
+			}
 		}
 
 		node = node.parentNode;

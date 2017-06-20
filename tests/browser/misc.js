@@ -991,7 +991,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<img src="qunit/350x150.gif" width="{{350}}">'
+			template: '<img src="/qunit/350x150.gif" width="{{350}}">'
 		});
 
 		const img = ractive.find( 'img' );
@@ -1011,7 +1011,7 @@ export default function() {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<div style="width: 350px"><img src="qunit/350x150.gif" width="100%"></div>'
+			template: '<div style="width: 350px"><img src="/qunit/350x150.gif" width="100%"></div>'
 		});
 
 		const img = ractive.find( 'img' );

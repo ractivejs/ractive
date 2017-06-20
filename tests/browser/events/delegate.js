@@ -302,4 +302,20 @@ export default function() {
 		options[2].selected = true;
 		fire( select, 'change' );
 	});
+
+	test( `non-delegated listeners should not fire when inside a delegation target (#3012)`, t => {
+		let ok = true;
+		const r = new Ractive({
+			target: fixture,
+			template: `<div>{{#each [1]}}<button on-click="foo">ignore me</button>{{/each}}<button id="btn" on-click="check">click me</button></div>`,
+			on: {
+				check () {
+					t.ok( ok );
+					ok = false;
+				}
+			}
+		});
+
+		fire( r.find( '#btn' ), 'click' );
+	});
 }
