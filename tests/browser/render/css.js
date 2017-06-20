@@ -406,4 +406,17 @@ export default function() {
 		t.ok( cmp2.prototype.cssId );
 		t.ok( cmp3.prototype.cssId );
 	});
+
+	test( `css that has no curlies and also isn't a valid selector should not throw (#3005)`, t => {
+		t.expect( 0 );
+
+		const cmp = Ractive.extend({
+			css: '/* not a valid selector */',
+			template: ''
+		});
+
+		new cmp({
+			target: fixture
+		});
+	});
 }

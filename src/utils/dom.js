@@ -53,7 +53,9 @@ function getElement ( input ) {
 
 		// then as selector, if possible
 		if ( !output && doc.querySelector ) {
-			output = doc.querySelector( input );
+			try {
+				output = doc.querySelector( input );
+			} catch (e) { /* this space intentionally left blank */ }
 		}
 
 		// did it work?
