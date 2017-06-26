@@ -71,4 +71,23 @@ export default function() {
 
 		t.equal( fixture.innerHTML, 'b' );
 	});
+
+	test( `force update works on downstream keypaths`, t => {
+		const obj = { foo() {} };
+		obj.foo.bar = function bar () {};
+		obj.foo.bar.baz = 'a';
+
+		const r = new Ractive({
+			target: fixture,
+			template: '{{obj.foo.bar.baz}}',
+			data: { obj }
+		});
+
+		t.equal( fixture.innerHTML, 'a' );
+
+		obj.foo.bar.baz = 'b';
+		r.update( 'obj', { force: true } );
+
+		t.equal( fixture.innerHTML, 'b' );
+	});
 }
