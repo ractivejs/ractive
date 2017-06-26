@@ -154,7 +154,10 @@ export default class LinkModel extends ModelBase {
 
 		if ( this.rootLink ) this.addShuffleTask( () => {
 			this.relinked();
-			if ( !safe ) this.notifyUpstream();
+			if ( !safe ) {
+				this.markedAll();
+				this.notifyUpstream();
+			}
 		});
 	}
 
@@ -193,7 +196,7 @@ ModelBase.prototype.link = function link ( model, keypath, options ) {
 	lnk.implicit = options && options.implicit;
 	lnk.sourcePath = keypath;
 	lnk.rootLink = true;
-	if ( this._link ) this._link.relinking( model, true, false );
+	if ( this._link ) this._link.relinking( model, false );
 	this.rebind( lnk, this, false );
 	fireShuffleTasks();
 
@@ -208,7 +211,7 @@ ModelBase.prototype.unlink = function unlink () {
 	if ( this._link ) {
 		const ln = this._link;
 		this._link = undefined;
-		ln.rebind( this, this._link );
+		ln.rebind( this, ln, false );
 		fireShuffleTasks();
 		ln.teardown();
 		this.notifyUpstream();

@@ -160,4 +160,31 @@ export default function() {
 			r2.link( 'foo.bar', 'foo.bar', { ractive: r1 });
 		}, /keypath cannot be linked to itself/i);
 	});
+
+	test( `unlinking and relinking linked links properly updates deps`, t => {
+		const r1 = new Ractive({
+			data: { foo: { bar: 'a' }, bat: { bar: 'b' } }
+		});
+		const r2 = new Ractive({
+			target: fixture,
+			template: '{{~/link.bar}}'
+		});
+
+		r2.link( 'baz', 'link', { ractive: r1 } );
+		r1.link( 'foo', 'baz' );
+
+		t.htmlEqual( fixture.innerHTML, 'a' );
+
+		r1.unlink( 'baz' );
+		t.equal( fixture.innerHTML, '' );
+
+		r1.link( 'bat', 'baz' );
+		t.htmlEqual( fixture.innerHTML, 'b' );
+
+		r1.unlink( 'baz' );
+		t.equal( fixture.innerHTML, '' );
+
+		r1.link( 'bat', 'baz' );
+		t.htmlEqual( fixture.innerHTML, 'b' );
+	});
 }
