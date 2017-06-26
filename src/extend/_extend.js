@@ -6,7 +6,7 @@ import initialise from '../Ractive/initialise';
 import Ractive from '../Ractive';
 import isInstance from '../Ractive/static/isInstance';
 
-const callsSuper = /super\s\(|\.call\s*\(\s*this/;
+const callsSuper = /super\s*\(|\.call\s*\(\s*this/;
 
 export function extend ( ...options ) {
 	if( !options.length ) {
