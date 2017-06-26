@@ -3,6 +3,7 @@ export function cancel             ( x ) { x.cancel(); }
 export function destroyed          ( x ) { x.destroyed(); }
 export function handleChange       ( x ) { x.handleChange(); }
 export function mark               ( x ) { x.mark(); }
+export function markForce          ( x ) { x.mark( true ); }
 export function marked             ( x ) { x.marked(); }
 export function markedAll          ( x ) { x.markedAll(); }
 export function render             ( x ) { x.render(); }

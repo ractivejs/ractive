@@ -3,7 +3,7 @@ import LinkModel from './LinkModel'; // eslint-disable-line no-unused-vars
 import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
 import { isEqual, isNumeric, isObjectLike } from '../utils/is';
-import { handleChange, mark, marked, teardown } from '../shared/methodCallers';
+import { handleChange, mark, markForce, marked, teardown } from '../shared/methodCallers';
 import Ticker from '../shared/Ticker';
 import getPrefixer from './helpers/getPrefixer';
 import { unescapeKey } from '../shared/keypaths';
@@ -194,7 +194,7 @@ export default class Model extends ModelBase {
 	}
 
 	mark ( force ) {
-		if ( this._link ) return this._link.mark();
+		if ( this._link ) return this._link.mark( force );
 
 		const value = this.retrieve();
 
@@ -217,7 +217,7 @@ export default class Model extends ModelBase {
 				this.isArray = false;
 			}
 
-			this.children.forEach( mark );
+			this.children.forEach( force ? markForce : mark );
 			this.links.forEach( marked );
 
 			this.deps.forEach( handleChange );
