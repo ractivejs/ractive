@@ -323,6 +323,19 @@ export default function() {
 			t.equal( blocker.get( 'foo.bar.baz' ), 1337 );
 		});
 
+		test( 'animate still works with magic mode (#3018)', t => {
+			const done = t.async();
+			const r = new Ractive({
+				magic: true,
+				data: { foo: 0 }
+			});
+
+			r.animate( 'foo', 10 ).then(() => {
+				t.equal( r.get( 'foo' ), 10 );
+				done();
+			}, done);
+		});
+
 	} catch ( err ) {
 		// don't run these tests
 	}

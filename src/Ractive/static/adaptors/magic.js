@@ -1,4 +1,4 @@
-import { escapeKey } from '../../../shared/keypaths';
+import { escapeKey, splitKeypath } from '../../../shared/keypaths';
 
 let magicAdaptor;
 
@@ -44,9 +44,17 @@ function createOrWrapDescriptor ( originalDescriptor, ractive, keypath, wrapper 
 
 			if ( wrapper.locked ) return;
 			setting = true;
-			dependants.forEach( ({ ractive, keypath }) => {
-				ractive.set( keypath, value );
-			});
+
+			if ( wrapper.setting ) {
+				dependants.forEach( ({ ractive, keypath }) => {
+					ractive.viewmodel.joinAll( splitKeypath( keypath ) ).mark();
+				});
+			} else {
+				dependants.forEach( ({ ractive, keypath }) => {
+					ractive.set( keypath, value );
+				});
+			}
+
 			setting = false;
 		},
 		enumerable: true
@@ -103,7 +111,9 @@ class MagicWrapper {
 	}
 
 	set ( key, value ) {
+		this.setting = true;
 		this.value[ key ] = value;
+		this.setting = false;
 	}
 
 	teardown () {
