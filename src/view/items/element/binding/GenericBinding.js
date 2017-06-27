@@ -56,16 +56,18 @@ export default class GenericBinding extends Binding {
 
 		el.on( 'change', handleDomEvent );
 
-		if ( !lazy ) {
-			el.on( 'input', this.handler );
+		if ( node.type !== 'file' ) {
+			if ( !lazy ) {
+				el.on( 'input', this.handler );
 
-			// IE is a special snowflake
-			if ( node.attachEvent ) {
-				el.on( 'keyup', this.handler );
+				// IE is a special snowflake
+				if ( node.attachEvent ) {
+					el.on( 'keyup', this.handler );
+				}
 			}
-		}
 
-		el.on( 'blur', handleBlur );
+			el.on( 'blur', handleBlur );
+		}
 	}
 
 	unrender () {
