@@ -1,39 +1,39 @@
-import { CLOSING } from '../../../../config/types';
+import { CLOSING } from '../../../../config/types'
 
-export default function readClosing ( parser, tag ) {
-	const start = parser.pos;
+export default function readClosing (parser, tag) {
+  const start = parser.pos
 
-	if ( !parser.matchString( tag.open ) ) {
-		return null;
-	}
+  if (!parser.matchString(tag.open)) {
+    return null
+  }
 
-	parser.allowWhitespace();
+  parser.allowWhitespace()
 
-	if ( !parser.matchString( '/' ) ) {
-		parser.pos = start;
-		return null;
-	}
+  if (!parser.matchString('/')) {
+    parser.pos = start
+    return null
+  }
 
-	parser.allowWhitespace();
+  parser.allowWhitespace()
 
-	const remaining = parser.remaining();
-	const index = remaining.indexOf( tag.close );
+  const remaining = parser.remaining()
+  const index = remaining.indexOf(tag.close)
 
-	if ( index !== -1 ) {
-		const closing = {
-			t: CLOSING,
-			r: remaining.substr( 0, index ).split( ' ' )[0]
-		};
+  if (index !== -1) {
+    const closing = {
+      t: CLOSING,
+      r: remaining.substr(0, index).split(' ')[0]
+    }
 
-		parser.pos += index;
+    parser.pos += index
 
-		if ( !parser.matchString( tag.close ) ) {
-			parser.error( `Expected closing delimiter '${tag.close}'` );
-		}
+    if (!parser.matchString(tag.close)) {
+      parser.error(`Expected closing delimiter '${tag.close}'`)
+    }
 
-		return closing;
-	}
+    return closing
+  }
 
-	parser.pos = start;
-	return null;
+  parser.pos = start
+  return null
 }

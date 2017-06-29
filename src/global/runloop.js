@@ -1,138 +1,138 @@
-import { addToArray } from '../utils/array';
-import TransitionManager from './TransitionManager';
+import { addToArray } from '../utils/array'
+import TransitionManager from './TransitionManager'
 
-let batch;
+let batch
 
 const runloop = {
-	start ( instance ) {
-		let fulfilPromise;
-		const promise = new Promise( f => ( fulfilPromise = f ) );
+  start (instance) {
+    let fulfilPromise
+    const promise = new Promise(f => (fulfilPromise = f))
 
-		batch = {
-			previousBatch: batch,
-			transitionManager: new TransitionManager( fulfilPromise, batch && batch.transitionManager ),
-			fragments: [],
-			tasks: [],
-			immediateObservers: [],
-			deferredObservers: [],
-			instance,
-			promise
-		};
+    batch = {
+      previousBatch: batch,
+      transitionManager: new TransitionManager(fulfilPromise, batch && batch.transitionManager),
+      fragments: [],
+      tasks: [],
+      immediateObservers: [],
+      deferredObservers: [],
+      instance,
+      promise
+    }
 
-		return promise;
-	},
+    return promise
+  },
 
-	end () {
-		flushChanges();
+  end () {
+    flushChanges()
 
-		if ( !batch.previousBatch ) batch.transitionManager.start();
+    if (!batch.previousBatch) batch.transitionManager.start()
 
-		batch = batch.previousBatch;
-	},
+    batch = batch.previousBatch
+  },
 
-	addFragment ( fragment ) {
-		addToArray( batch.fragments, fragment );
-	},
+  addFragment (fragment) {
+    addToArray(batch.fragments, fragment)
+  },
 
-	// TODO: come up with a better way to handle fragments that trigger their own update
-	addFragmentToRoot ( fragment ) {
-		if ( !batch ) return;
+  // TODO: come up with a better way to handle fragments that trigger their own update
+  addFragmentToRoot (fragment) {
+    if (!batch) return
 
-		let b = batch;
-		while ( b.previousBatch ) {
-			b = b.previousBatch;
-		}
+    let b = batch
+    while (b.previousBatch) {
+      b = b.previousBatch
+    }
 
-		addToArray( b.fragments, fragment );
-	},
+    addToArray(b.fragments, fragment)
+  },
 
-	addObserver ( observer, defer ) {
-		if ( !batch ) {
-			observer.dispatch();
-		} else {
-			addToArray( defer ? batch.deferredObservers : batch.immediateObservers, observer );
-		}
-	},
+  addObserver (observer, defer) {
+    if (!batch) {
+      observer.dispatch()
+    } else {
+      addToArray(defer ? batch.deferredObservers : batch.immediateObservers, observer)
+    }
+  },
 
-	registerTransition ( transition ) {
-		transition._manager = batch.transitionManager;
-		batch.transitionManager.add( transition );
-	},
+  registerTransition (transition) {
+    transition._manager = batch.transitionManager
+    batch.transitionManager.add(transition)
+  },
 
-	// synchronise node detachments with transition ends
-	detachWhenReady ( thing ) {
-		batch.transitionManager.detachQueue.push( thing );
-	},
+  // synchronise node detachments with transition ends
+  detachWhenReady (thing) {
+    batch.transitionManager.detachQueue.push(thing)
+  },
 
-	scheduleTask ( task, postRender ) {
-		let _batch;
+  scheduleTask (task, postRender) {
+    let _batch
 
-		if ( !batch ) {
-			task();
-		} else {
-			_batch = batch;
-			while ( postRender && _batch.previousBatch ) {
-				// this can't happen until the DOM has been fully updated
-				// otherwise in some situations (with components inside elements)
-				// transitions and decorators will initialise prematurely
-				_batch = _batch.previousBatch;
-			}
+    if (!batch) {
+      task()
+    } else {
+      _batch = batch
+      while (postRender && _batch.previousBatch) {
+        // this can't happen until the DOM has been fully updated
+        // otherwise in some situations (with components inside elements)
+        // transitions and decorators will initialise prematurely
+        _batch = _batch.previousBatch
+      }
 
-			_batch.tasks.push( task );
-		}
-	},
+      _batch.tasks.push(task)
+    }
+  },
 
-	promise () {
-		if ( !batch ) return Promise.resolve();
+  promise () {
+    if (!batch) return Promise.resolve()
 
-		let target = batch;
-		while ( target.previousBatch ) {
-			target = target.previousBatch;
-		}
+    let target = batch
+    while (target.previousBatch) {
+      target = target.previousBatch
+    }
 
-		return target.promise || Promise.resolve();
-	}
-};
+    return target.promise || Promise.resolve()
+  }
+}
 
-export default runloop;
+export default runloop
 
-function dispatch ( observer ) {
-	observer.dispatch();
+function dispatch (observer) {
+  observer.dispatch()
 }
 
 function flushChanges () {
-	let which = batch.immediateObservers;
-	batch.immediateObservers = [];
-	which.forEach( dispatch );
+  let which = batch.immediateObservers
+  batch.immediateObservers = []
+  which.forEach(dispatch)
 
-	// Now that changes have been fully propagated, we can update the DOM
-	// and complete other tasks
-	let i = batch.fragments.length;
-	let fragment;
+  // Now that changes have been fully propagated, we can update the DOM
+  // and complete other tasks
+  let i = batch.fragments.length
+  let fragment
 
-	which = batch.fragments;
-	batch.fragments = [];
+  which = batch.fragments
+  batch.fragments = []
 
-	while ( i-- ) {
-		fragment = which[i];
-		fragment.update();
-	}
+  while (i--) {
+    fragment = which[i]
+    fragment.update()
+  }
 
-	batch.transitionManager.ready();
+  batch.transitionManager.ready()
 
-	which = batch.deferredObservers;
-	batch.deferredObservers = [];
-	which.forEach( dispatch );
+  which = batch.deferredObservers
+  batch.deferredObservers = []
+  which.forEach(dispatch)
 
-	const tasks = batch.tasks;
-	batch.tasks = [];
+  const tasks = batch.tasks
+  batch.tasks = []
 
-	for ( i = 0; i < tasks.length; i += 1 ) {
-		tasks[i]();
-	}
+  for (i = 0; i < tasks.length; i += 1) {
+    tasks[i]()
+  }
 
-	// If updating the view caused some model blowback - e.g. a triple
-	// containing <option> elements caused the binding on the <select>
-	// to update - then we start over
-	if ( batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length || batch.tasks.length ) return flushChanges();
+  // If updating the view caused some model blowback - e.g. a triple
+  // containing <option> elements caused the binding on the <select>
+  // to update - then we start over
+  if (batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length || batch.tasks.length) return flushChanges()
 }

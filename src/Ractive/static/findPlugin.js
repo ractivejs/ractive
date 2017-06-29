@@ -1,5 +1,5 @@
-import { findInViewHierarchy } from '../../shared/registry';
+import { findInViewHierarchy } from '../../shared/registry'
 
-export function findPlugin(name, type, instance) {
-	return findInViewHierarchy(type, instance, name);
+export function findPlugin (name, type, instance) {
+  return findInViewHierarchy(type, instance, name)
 }

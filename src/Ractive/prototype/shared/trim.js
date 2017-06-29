@@ -1,1 +1,1 @@
-export default str => str.trim();
+export default str => str.trim()

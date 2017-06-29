@@ -1,26 +1,25 @@
-import GenericBinding from './GenericBinding';
+import GenericBinding from './GenericBinding'
 
 export default class FileBinding extends GenericBinding {
-	getInitialValue () {
-		/* istanbul ignore next */
-		return undefined;
-	}
+  getInitialValue () {
+    /* istanbul ignore next */
+    return undefined
+  }
 
-	getValue () {
-		/* istanbul ignore next */
-		return this.node.files;
-	}
+  getValue () {
+    /* istanbul ignore next */
+    return this.node.files
+  }
 
-	render () {
-		/* istanbul ignore next */
-		this.element.lazy = false;
-		/* istanbul ignore next */
-		super.render();
-	}
+  render () {
+    /* istanbul ignore next */
+    this.element.lazy = false
+    /* istanbul ignore next */
+    super.render()
+  }
 
-	setFromNode( node ) {
-		/* istanbul ignore next */
-		this.model.set( node.files );
-	}
+  setFromNode (node) {
+    /* istanbul ignore next */
+    this.model.set(node.files)
+  }
 }
-

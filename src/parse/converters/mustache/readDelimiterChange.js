@@ -1,40 +1,40 @@
-const delimiterChangePattern = /^[^\s=]+/;
-const whitespacePattern = /^\s+/;
+const delimiterChangePattern = /^[^\s=]+/
+const whitespacePattern = /^\s+/
 
-export default function readDelimiterChange ( parser ) {
-	if ( !parser.matchString( '=' ) ) {
-		return null;
-	}
+export default function readDelimiterChange (parser) {
+  if (!parser.matchString('=')) {
+    return null
+  }
 
-	const start = parser.pos;
+  const start = parser.pos
 
-	// allow whitespace before new opening delimiter
-	parser.allowWhitespace();
+  // allow whitespace before new opening delimiter
+  parser.allowWhitespace()
 
-	const opening = parser.matchPattern( delimiterChangePattern );
-	if ( !opening ) {
-		parser.pos = start;
-		return null;
-	}
+  const opening = parser.matchPattern(delimiterChangePattern)
+  if (!opening) {
+    parser.pos = start
+    return null
+  }
 
-	// allow whitespace (in fact, it's necessary...)
-	if ( !parser.matchPattern( whitespacePattern ) ) {
-		return null;
-	}
+  // allow whitespace (in fact, it's necessary...)
+  if (!parser.matchPattern(whitespacePattern)) {
+    return null
+  }
 
-	const closing = parser.matchPattern( delimiterChangePattern );
-	if ( !closing ) {
-		parser.pos = start;
-		return null;
-	}
+  const closing = parser.matchPattern(delimiterChangePattern)
+  if (!closing) {
+    parser.pos = start
+    return null
+  }
 
-	// allow whitespace before closing '='
-	parser.allowWhitespace();
+  // allow whitespace before closing '='
+  parser.allowWhitespace()
 
-	if ( !parser.matchString( '=' ) ) {
-		parser.pos = start;
-		return null;
-	}
+  if (!parser.matchString('=')) {
+    parser.pos = start
+    return null
+  }
 
-	return [ opening, closing ];
+  return [ opening, closing ]
 }
