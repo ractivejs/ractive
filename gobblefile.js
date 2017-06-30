@@ -100,7 +100,7 @@ function buildESLib(dest, excludedModules) {
 		banner: banner,
 		cache: false,
 		sourceMap: true
-	}).transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
+	}).transform(transpile, { accept: ['.js', '.mjs'] }).transform(replacePlaceholders);
 }
 
 // Builds a UMD bundle for browser/PhantomJS tests.
