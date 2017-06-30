@@ -6,6 +6,18 @@
 	* There is now an `allowExpressions` parser and init option that disables the parsing of expressions when passed to `parse` or an instance with an unparsed template and disables the evaluation of expessions when passed to an instance. See #3000 for more info.
 
 
+# 0.9.2
+
+* Bug fixes
+	* The bin now properly handles partial names with invalid identifier characters (`-`).
+	* Computed setters are now called when a child is updated (#3006)
+	* Shuffling `set`s and link-related shuffles properly invalidate any associated DOM (#3010)
+	* Elements that happen to be children of a delegation target that are also not subject to delegation will no longer fire events twice (#3012)
+	* `super` detection for `extendWith` is a bit more accomodating for ES6+ classes.
+	* `css` that looks like it may be a selector will no longer throw if it's not a valid selector (#3005)
+	* `input[type=file]` bindings will no longer try to set the value on blur, causing a DOMException (#3015)
+
+
 # 0.9.1
 
 * Bug fixes
