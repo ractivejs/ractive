@@ -1,41 +1,41 @@
-const refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
-const splitPattern = /([^\\](?:\\\\)*)\./;
-const escapeKeyPattern = /\\|\./g;
-const unescapeKeyPattern = /((?:\\)+)\1|\\(\.)/g;
+const refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g
+const splitPattern = /([^\\](?:\\\\)*)\./
+const escapeKeyPattern = /\\|\./g
+const unescapeKeyPattern = /((?:\\)+)\1|\\(\.)/g
 
-export function escapeKey ( key ) {
-	if ( typeof key === 'string' ) {
-		return key.replace( escapeKeyPattern, '\\$&' );
-	}
+export function escapeKey (key) {
+  if (typeof key === 'string') {
+    return key.replace(escapeKeyPattern, '\\$&')
+  }
 
-	return key;
+  return key
 }
 
-export function normalise ( ref ) {
-	return ref ? ref.replace( refPattern, '.$1' ) : '';
+export function normalise (ref) {
+  return ref ? ref.replace(refPattern, '.$1') : ''
 }
 
-export function splitKeypath ( keypath ) {
-	const result = [];
-	let match;
+export function splitKeypath (keypath) {
+  const result = []
+  let match
 
-	keypath = normalise( keypath );
+  keypath = normalise(keypath)
 
-	while ( match = splitPattern.exec( keypath ) ) {
-		const index = match.index + match[1].length;
-		result.push( keypath.substr( 0, index ) );
-		keypath = keypath.substr( index + 1 );
-	}
+  while (match = splitPattern.exec(keypath)) {
+    const index = match.index + match[1].length
+    result.push(keypath.substr(0, index))
+    keypath = keypath.substr(index + 1)
+  }
 
-	result.push( keypath );
+  result.push(keypath)
 
-	return result;
+  return result
 }
 
-export function unescapeKey ( key ) {
-	if ( typeof key === 'string' ) {
-		return key.replace( unescapeKeyPattern, '$1$2' );
-	}
+export function unescapeKey (key) {
+  if (typeof key === 'string') {
+    return key.replace(unescapeKeyPattern, '$1$2')
+  }
 
-	return key;
+  return key
 }

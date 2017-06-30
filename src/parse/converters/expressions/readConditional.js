@@ -1,46 +1,46 @@
-import { CONDITIONAL } from '../../../config/types';
-import readLogicalOr from './readLogicalOr';
-import { expectedExpression } from './shared/errors';
-import readExpression from '../readExpression';
+import { CONDITIONAL } from '../../../config/types'
+import readLogicalOr from './readLogicalOr'
+import { expectedExpression } from './shared/errors'
+import readExpression from '../readExpression'
 
 // The conditional operator is the lowest precedence operator, so we start here
-export default function getConditional ( parser ) {
-	const expression = readLogicalOr( parser );
-	if ( !expression ) {
-		return null;
-	}
+export default function getConditional (parser) {
+  const expression = readLogicalOr(parser)
+  if (!expression) {
+    return null
+  }
 
-	const start = parser.pos;
+  const start = parser.pos
 
-	parser.allowWhitespace();
+  parser.allowWhitespace()
 
-	if ( !parser.matchString( '?' ) ) {
-		parser.pos = start;
-		return expression;
-	}
+  if (!parser.matchString('?')) {
+    parser.pos = start
+    return expression
+  }
 
-	parser.allowWhitespace();
+  parser.allowWhitespace()
 
-	const ifTrue = readExpression( parser );
-	if ( !ifTrue ) {
-		parser.error( expectedExpression );
-	}
+  const ifTrue = readExpression(parser)
+  if (!ifTrue) {
+    parser.error(expectedExpression)
+  }
 
-	parser.allowWhitespace();
+  parser.allowWhitespace()
 
-	if ( !parser.matchString( ':' ) ) {
-		parser.error( 'Expected ":"' );
-	}
+  if (!parser.matchString(':')) {
+    parser.error('Expected ":"')
+  }
 
-	parser.allowWhitespace();
+  parser.allowWhitespace()
 
-	const ifFalse = readExpression( parser );
-	if ( !ifFalse ) {
-		parser.error( expectedExpression );
-	}
+  const ifFalse = readExpression(parser)
+  if (!ifFalse) {
+    parser.error(expectedExpression)
+  }
 
-	return {
-		t: CONDITIONAL,
-		o: [ expression, ifTrue, ifFalse ]
-	};
+  return {
+    t: CONDITIONAL,
+    o: [ expression, ifTrue, ifFalse ]
+  }
 }

@@ -1,39 +1,39 @@
-import Hook from '../../events/Hook';
-import runloop from '../../global/runloop';
-import { splitKeypath } from '../../shared/keypaths';
+import Hook from '../../events/Hook'
+import runloop from '../../global/runloop'
+import { splitKeypath } from '../../shared/keypaths'
 
-const updateHook = new Hook( 'update' );
+const updateHook = new Hook('update')
 
-export function update ( ractive, model, options ) {
-	// if the parent is wrapped, the adaptor will need to be updated before
-	// updating on this keypath
-	if ( model.parent && model.parent.wrapper ) {
-		model.parent.adapt();
-	}
+export function update (ractive, model, options) {
+  // if the parent is wrapped, the adaptor will need to be updated before
+  // updating on this keypath
+  if (model.parent && model.parent.wrapper) {
+    model.parent.adapt()
+  }
 
-	const promise = runloop.start( ractive, true );
+  const promise = runloop.start(ractive, true)
 
-	model.mark( options && options.force );
+  model.mark(options && options.force)
 
-	// notify upstream of changes
-	model.notifyUpstream();
+  // notify upstream of changes
+  model.notifyUpstream()
 
-	runloop.end();
+  runloop.end()
 
-	updateHook.fire( ractive, model );
+  updateHook.fire(ractive, model)
 
-	return promise;
+  return promise
 }
 
-export default function Ractive$update ( keypath, options ) {
-	let opts, path;
+export default function Ractive$update (keypath, options) {
+  let opts, path
 
-	if ( typeof keypath === 'string' ) {
-		path = splitKeypath( keypath );
-		opts = options;
-	} else {
-		opts = keypath;
-	}
+  if (typeof keypath === 'string') {
+    path = splitKeypath(keypath)
+    opts = options
+  } else {
+    opts = keypath
+  }
 
-	return update( this, path ? this.viewmodel.joinAll( path ) : this.viewmodel, opts );
+  return update(this, path ? this.viewmodel.joinAll(path) : this.viewmodel, opts)
 }
