@@ -1,7 +1,7 @@
 /*
-	Ractive.js v0.9.1
-	Build: 9fda8827685349db68ba6c081b2e04dd7ff2dd48
-	Date: Wed Jun 14 2017 00:22:01 GMT+0000 (UTC)
+	Ractive.js v0.9.2
+	Build: 914a7dac7cbeaf720abf7913326927e1dda77767
+	Date: Fri Jun 30 2017 16:35:02 GMT+0000 (UTC)
 	Website: http://ractivejs.org
 	License: MIT
 */
@@ -149,13 +149,13 @@ var welcome;
 
 if ( hasConsole ) {
 	var welcomeIntro = [
-		"%cRactive.js %c0.9.1 %cin debug mode, %cmore...",
+		"%cRactive.js %c0.9.2 %cin debug mode, %cmore...",
 		'color: rgb(114, 157, 52); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 	];
-	var welcomeMessage = "You're running Ractive 0.9.1 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+	var welcomeMessage = "You're running Ractive 0.9.2 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
 	welcome = function () {
 		if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -895,6 +895,7 @@ function cancel             ( x ) { x.cancel(); }
 function destroyed          ( x ) { x.destroyed(); }
 function handleChange       ( x ) { x.handleChange(); }
 function mark               ( x ) { x.mark(); }
+function markForce          ( x ) { x.mark( true ); }
 function marked             ( x ) { x.marked(); }
 function markedAll          ( x ) { x.markedAll(); }
 function render             ( x ) { x.render(); }
@@ -1329,7 +1330,7 @@ function fireShuffleTasks ( stage ) {
 	}
 }
 
-function shuffle ( model, newIndices, link ) {
+function shuffle ( model, newIndices, link, unsafe ) {
 	model.shuffling = true;
 
 	var i = newIndices.length;
@@ -1341,7 +1342,7 @@ function shuffle ( model, newIndices, link ) {
 		}
 
 		// rebind the children on i to idx
-		if ( i in model.childByKey ) { model.childByKey[ i ].rebind( !~idx ? undefined : model.joinKey( idx ), model.childByKey[ i ], true ); }
+		if ( i in model.childByKey ) { model.childByKey[ i ].rebind( !~idx ? undefined : model.joinKey( idx ), model.childByKey[ i ], !unsafe ); }
 
 		if ( !~idx && model.keyModels[ i ] ) {
 			model.keyModels[i].rebind( undefined, model.keyModels[i], false );
@@ -1595,7 +1596,10 @@ var LinkModel = (function (ModelBase$$1) {
 
 		if ( this.rootLink ) { this.addShuffleTask( function () {
 			this$1.relinked();
-			if ( !safe ) { this$1.notifyUpstream(); }
+			if ( !safe ) {
+				this$1.markedAll();
+				this$1.notifyUpstream();
+			}
 		}); }
 	};
 
@@ -1636,7 +1640,7 @@ ModelBase.prototype.link = function link ( model, keypath, options ) {
 	lnk.implicit = options && options.implicit;
 	lnk.sourcePath = keypath;
 	lnk.rootLink = true;
-	if ( this._link ) { this._link.relinking( model, true, false ); }
+	if ( this._link ) { this._link.relinking( model, false ); }
 	this.rebind( lnk, this, false );
 	fireShuffleTasks();
 
@@ -1651,7 +1655,7 @@ ModelBase.prototype.unlink = function unlink () {
 	if ( this._link ) {
 		var ln = this._link;
 		this._link = undefined;
-		ln.rebind( this, this._link );
+		ln.rebind( this, ln, false );
 		fireShuffleTasks();
 		ln.teardown();
 		this.notifyUpstream();
@@ -1968,7 +1972,7 @@ var Model = (function (ModelBase$$1) {
 	};
 
 	Model.prototype.mark = function mark$1 ( force ) {
-		if ( this._link ) { return this._link.mark(); }
+		if ( this._link ) { return this._link.mark( force ); }
 
 		var value = this.retrieve();
 
@@ -1991,7 +1995,7 @@ var Model = (function (ModelBase$$1) {
 				this.isArray = false;
 			}
 
-			this.children.forEach( mark );
+			this.children.forEach( force ? markForce : mark );
 			this.links.forEach( marked );
 
 			this.deps.forEach( handleChange );
@@ -2037,7 +2041,7 @@ var Model = (function (ModelBase$$1) {
 		});
 
 		this.parent.value[ this.key ] = array;
-		this.shuffle( newIndices );
+		this.shuffle( newIndices, true );
 	};
 
 	Model.prototype.retrieve = function retrieve () {
@@ -2049,8 +2053,8 @@ var Model = (function (ModelBase$$1) {
 		this.applyValue( value );
 	};
 
-	Model.prototype.shuffle = function shuffle$1 ( newIndices ) {
-		shuffle( this, newIndices, false );
+	Model.prototype.shuffle = function shuffle$1 ( newIndices, unsafe ) {
+		shuffle( this, newIndices, false, unsafe );
 	};
 
 	Model.prototype.source = function source () { return this; };
@@ -3667,7 +3671,9 @@ function getElement ( input ) {
 
 		// then as selector, if possible
 		if ( !output && doc.querySelector ) {
-			output = doc.querySelector( input );
+			try {
+				output = doc.querySelector( input );
+			} catch (e) { /* this space intentionally left blank */ }
 		}
 
 		// did it work?
@@ -8480,6 +8486,10 @@ var ComputationChild = (function (Model$$1) {
 	ComputationChild.prototype = Object.create( Model$$1 && Model$$1.prototype );
 	ComputationChild.prototype.constructor = ComputationChild;
 
+	var prototypeAccessors = { setRoot: {} };
+
+	prototypeAccessors.setRoot.get = function () { return this.parent.setRoot; };
+
 	ComputationChild.prototype.applyValue = function applyValue ( value ) {
 		Model$$1.prototype.applyValue.call( this, value );
 
@@ -8493,6 +8503,10 @@ var ComputationChild = (function (Model$$1) {
 			if ( source ) {
 				source.dependencies.forEach( mark );
 			}
+		}
+
+		if ( this.setRoot ) {
+			this.setRoot.set( this.setRoot.value );
 		}
 	};
 
@@ -8530,6 +8544,8 @@ var ComputationChild = (function (Model$$1) {
 		return this.childByKey[ key ];
 	};
 
+	Object.defineProperties( ComputationChild.prototype, prototypeAccessors );
+
 	return ComputationChild;
 }(Model));
 
@@ -8566,6 +8582,12 @@ var Computation = (function (Model$$1) {
 	if ( Model$$1 ) Computation.__proto__ = Model$$1;
 	Computation.prototype = Object.create( Model$$1 && Model$$1.prototype );
 	Computation.prototype.constructor = Computation;
+
+	var prototypeAccessors = { setRoot: {} };
+
+	prototypeAccessors.setRoot.get = function () {
+		if ( this.signature.setter ) { return this; }
+	};
 
 	Computation.prototype.get = function get ( shouldCapture ) {
 		if ( shouldCapture ) { capture( this ); }
@@ -8657,6 +8679,8 @@ var Computation = (function (Model$$1) {
 		if ( this.root.computations[this.key] === this ) { delete this.root.computations[this.key]; }
 		Model$$1.prototype.teardown.call(this);
 	};
+
+	Object.defineProperties( Computation.prototype, prototypeAccessors );
 
 	return Computation;
 }(Model));
@@ -10900,7 +10924,7 @@ var Binding = function Binding ( element, name ) {
 
 	var model = interpolator.model;
 
-	if ( model.isReadonly ) {
+	if ( model.isReadonly && !model.setRoot ) {
 		var keypath = model.getKeypath().replace( /^@/, '' );
 		warnOnceIfDebug( ("Cannot use two-way binding on <" + (element.name) + "> element: " + keypath + " is read-only. To suppress this warning use <" + (element.name) + " twoway='false'...>"), { ractive: this.ractive });
 		return false;
@@ -11331,16 +11355,18 @@ var GenericBinding = (function (Binding$$1) {
 
 		el.on( 'change', handleDomEvent );
 
-		if ( !lazy ) {
-			el.on( 'input', this.handler );
+		if ( node.type !== 'file' ) {
+			if ( !lazy ) {
+				el.on( 'input', this.handler );
 
-			// IE is a special snowflake
-			if ( node.attachEvent ) {
-				el.on( 'keyup', this.handler );
+				// IE is a special snowflake
+				if ( node.attachEvent ) {
+					el.on( 'keyup', this.handler );
+				}
 			}
-		}
 
-		el.on( 'blur', handleBlur );
+			el.on( 'blur', handleBlur );
+		}
 	};
 
 	GenericBinding.prototype.unrender = function unrender () {
@@ -12337,12 +12363,15 @@ function delegateHandler ( ev ) {
 
 	// starting with the origin node, walk up the DOM looking for ractive nodes with a matching event listener
 	while ( bubble && node && node !== end ) {
-		listeners = node._ractive && node._ractive.proxy && node._ractive.proxy.listeners[name];
+		var proxy = node._ractive && node._ractive.proxy;
+		if ( proxy && proxy.parentFragment.delegate ) {
+			listeners = proxy.listeners[name];
 
-		if ( listeners ) {
-			listeners.forEach( function (l) {
-				bubble = l.call( node, ev ) !== false && bubble;
-			});
+			if ( listeners ) {
+				listeners.forEach( function (l) {
+					bubble = l.call( node, ev ) !== false && bubble;
+				});
+			}
 		}
 
 		node = node.parentNode;
@@ -16211,7 +16240,7 @@ function isInstance ( object ) {
 	return object && object instanceof this;
 }
 
-var callsSuper = /super\s\(|\.call\s*\(\s*this/;
+var callsSuper = /super\s*\(|\.call\s*\(\s*this/;
 
 function extend () {
 	var options = [], len = arguments.length;
@@ -16382,7 +16411,7 @@ Object.defineProperties( Ractive, {
 	svg:              { value: svg },
 
 	// version
-	VERSION:          { value: '0.9.1' },
+	VERSION:          { value: '0.9.2' },
 
 	// plugins
 	adaptors:         { writable: true, value: {} },
