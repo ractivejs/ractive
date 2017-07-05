@@ -1,5 +1,6 @@
 import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
 export default function() {
 	initModule( 'events/basic.js' );
@@ -310,5 +311,57 @@ export default function() {
 		r.fire( 'bip.bop' );
 
 		t.equal( count, 10 );
+	});
+
+	test( `firing a pojo first arg extends context (#3033)`, t => {
+		t.expect( 6 );
+
+		const r = new Ractive();
+		class Foo {}
+
+		r.on( 'foo', ( ctx, foo ) => {
+			t.ok( foo instanceof Foo );
+			t.ok( ctx.set ); // is still a context
+		});
+
+		r.on( 'merge', ctx => {
+			t.ok( ctx.foo instanceof Foo );
+			t.ok( ctx.set ); // is still a context
+		});
+
+		r.on( 'str', ( ctx, foo ) => {
+			t.ok( foo === 'foo' );
+			t.ok( ctx.set ); // is still a context
+		});
+
+		r.fire( 'foo', new Foo() );
+		r.fire( 'merge', { foo: new Foo() } );
+		r.fire( 'str', 'foo' );
+	});
+
+	test( `extending context from a proxy fire uses the source event (#3033)`, t => {
+		t.expect( 5 );
+
+		const cmp = Ractive.extend({
+			template: `{{#with test.path}}<button on-click="@.fire('foo', { bar: true }, 'test')" />{{/with}}`,
+			data () { return { test: { path: {} } }; }
+		});
+		const r = new Ractive({
+			target: fixture,
+			components: { cmp },
+			template: `<cmp on-foo="bar" />`,
+			on: {
+				bar ( ctx, str ) {
+					t.equal( ctx.resolve(), '' );
+					t.ok( ctx.bar );
+					t.strictEqual( this.findComponent( 'cmp' ), ctx.ractive );
+					t.equal( str, 'test' );
+					t.equal( ctx.name, 'bar' );
+				}
+			}
+		});
+
+
+		fire( r.find( 'button' ), 'click' );
 	});
 }

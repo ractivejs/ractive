@@ -2,13 +2,19 @@ import fireEvent from '../../events/fireEvent';
 import Context from '../../shared/Context';
 
 export default function Ractive$fire ( eventName, ...args ) {
+	let ctx;
+
 	// watch for reproxy
-	if ( args[0] instanceof Context ) {
+	if ( args[0] instanceof Context  ) {
 		const proto = args.shift();
-		const ctx = Object.create( proto );
+		ctx = Object.create( proto );
 		Object.assign( ctx, proto );
-		return fireEvent( this, eventName, ctx, args );
+	} else if ( typeof args[0] === 'object' && args[0].constructor === Object ) {
+		ctx = Context.forRactive( this, args.shift() );
 	} else {
-		return fireEvent( this, eventName, Context.forRactive( this ), args );
+		ctx = Context.forRactive( this );
 	}
+
+
+	return fireEvent( this, eventName, ctx, args );
 }
