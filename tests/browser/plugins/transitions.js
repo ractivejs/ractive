@@ -1072,4 +1072,24 @@ export default function() {
 			done();
 		});
 	});
+
+	test(`nested transitions don't require object params (#3029)`, t => {
+		let count = 0;
+		const done = t.async();
+
+		function go(t) {
+			count++;
+			t.complete();
+		}
+
+		const r = new Ractive({
+			transitions: { go },
+			template: '<div go-in><div go-in=300 /></div>'
+		});
+
+		r.render(fixture).then(() => {
+			t.equal(count, 2);
+			done();
+		}, done);
+	});
 }

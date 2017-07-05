@@ -1,5 +1,6 @@
 import { win } from '../../../config/environment';
 import { addToArray, removeFromArray } from '../../../utils/array';
+import { isObject } from '../../../utils/is';
 import findElement from '../shared/findElement';
 import prefix from './transitions/prefix';
 import { warnOnceIfDebug } from '../../../utils/log';
@@ -233,7 +234,7 @@ export default class Transition {
 		if ( !this.element.parent ) return true;
 
 		// if there is a local param, it takes precedent
-		if ( params && params[0] && 'nested' in params[0] ) {
+		if ( params && params[0] && isObject(params[0]) && 'nested' in params[0] ) {
 			if ( params[0].nested !== false ) return true;
 		} else { // use the nearest instance setting
 			// find the nearest instance that actually has a nested setting
