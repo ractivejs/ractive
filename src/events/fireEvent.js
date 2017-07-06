@@ -47,8 +47,10 @@ function variants ( name, initial ) {
 export default function fireEvent ( ractive, eventName, context, args = [] ) {
 	if ( !eventName ) { return; }
 
-	context.name = eventName;
-	args.unshift( context );
+	if (context) {
+		context.name = eventName;
+		args.unshift( context );
+	}
 
 	const eventNames = ractive._nsSubs ? variants( eventName, true ) : [ '*', eventName ];
 
