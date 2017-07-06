@@ -152,7 +152,7 @@ export default function() {
 
 		const component = ractive.findComponent( 'Component' );
 		fire( component.find( '#test' ), 'click' );
-		component.fire( 'bar', 'bar' );
+		component.fire( 'bar', {}, 'bar' );
 	});
 
 	test( 'component "on-" with ...arguments', t => {
@@ -307,5 +307,27 @@ export default function() {
 
 		fire( ractive.find( '#return_zero' ), 'click' );
 		t.ok( !preventedDefault && !stoppedPropagation );
+	});
+
+	test( 'Extend a context event', t => {
+		let customContext = false;
+
+		const ractive = new Ractive({
+			el: fixture,
+			template: `<button on-click='@this.fire("customContextEvent", { customContext: true }, 1)'>{{foo}}</button>`,
+			data: { foo: 0 },
+			on: {
+				customContextEvent: (context, value) => {
+					ractive.set({ foo: value });
+					if (context && context.customContext === true) {
+						customContext = true;
+					}
+				},
+			}
+		});
+
+		fire( ractive.find( 'button' ), 'click' );
+		t.equal( ractive.get( 'foo' ), 1 );
+		t.ok(customContext);
 	});
 }
