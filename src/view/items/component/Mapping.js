@@ -76,7 +76,7 @@ function createMapping ( item ) {
 		// if the interpolator is not static
 		if ( !template[0].s ) {
 			item.model = model;
-			item.link = viewmodel.createLink( item.name, model, template[0].r );
+			item.link = viewmodel.createLink( item.name, model, template[0].r, { mapping: true } );
 
 			// initialize parent side of the mapping from child data
 			if ( val === undefined && !model.isReadonly && item.name in childData ) {

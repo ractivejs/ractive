@@ -1420,9 +1420,9 @@ export default function() {
 		});
 		new Ractive({
 			target: fixture,
-			template: '<cmp foo="{{fn}}" />',
+			template: '<cmp foo="{{a.fn}}" />',
 			data: {
-				fn() { return this.get('bar'); },
+				a: { fn() { return this.get('bar'); } },
 				bar: 'nope'
 			},
 			components: { cmp }
@@ -1610,5 +1610,28 @@ export default function() {
 		});
 
 		t.equal( fixture.innerHTML, '42' );
+	});
+
+	test( `mapped functions should be bound to the source instance (#3031)`, t => {
+		const cmp = Ractive.extend({
+			template: '{{foo()}}',
+			data() {
+				return {
+					bar: 'nope'
+				};
+			}
+		});
+
+		new Ractive({
+			target: fixture,
+			components: { cmp },
+			template: `<cmp bind-foo />`,
+			data: {
+				foo() { return this.get('bar'); },
+				bar: 'yep'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
 }
