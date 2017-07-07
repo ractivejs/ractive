@@ -318,4 +318,21 @@ export default function() {
 
 		fire( r.find( '#btn' ), 'click' );
 	});
+
+	test( `delegates that happen to contain child and grandchild iterations should not duplicate events (#3036)`, t => {
+		let count = 0;
+		const r = new Ractive({
+			target: fixture,
+			template: `<div>{{#each [1]}}<span on-click="ignored" />{{/each}}<div>{{#each [1]}}<button on-click="check">click</button>{{/each}}</div></div>`,
+			on: {
+				check () {
+					count++;
+				}
+			}
+		});
+
+		fire( r.find( 'button' ), 'click' );
+
+		t.equal( count, 1 );
+	});
 }
