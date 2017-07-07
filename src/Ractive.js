@@ -1,3 +1,7 @@
+import './polyfills/Promise';
+import './polyfills/array.find';
+import './polyfills/Object.assign';
+
 import defaults from './Ractive/config/defaults';
 import easing from './Ractive/static/easing';
 import interpolators from './Ractive/static/interpolators';

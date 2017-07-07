@@ -18,7 +18,6 @@ module.exports = function (config) {
 		files: [
 			'qunit/qunit-html.js',
 			'qunit/simulant.js',
-			'polyfills.js',
 			'ractive.js',
 			'tests-browser.js',
 			{ pattern: 'qunit/*.gif', served: true, included: false, watched: false, nocache: false },
