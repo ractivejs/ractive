@@ -14,9 +14,11 @@ export default class RepeatedFragment {
 		this.parentFragment = this;
 		this.owner = options.owner;
 		this.ractive = this.parent.ractive;
-		this.delegate = this.parent.delegate || findElement( options.owner );
+		this.delegate = this.parent.delegate || findDelegate( findElement( options.owner ) );
 		// delegation disabled by directive
 		if ( this.delegate && this.delegate.delegate === false ) this.delegate = false;
+		// let the element know it's a delegate handler
+		if ( this.delegate ) this.delegate.delegate = this.delegate;
 
 		// encapsulated styles should be inherited until they get applied by an element
 		this.cssIds = 'cssIds' in options ? options.cssIds : ( this.parent ? this.parent.cssIds : null );
@@ -427,4 +429,17 @@ export default class RepeatedFragment {
 
 		this.shuffled();
 	}
+}
+
+// find the topmost delegate
+function findDelegate ( start ) {
+	let el = start;
+	let delegate = start;
+
+	while ( el ) {
+		if ( el.delegate ) delegate = el;
+		el = el.parent;
+	}
+
+	return delegate;
 }
