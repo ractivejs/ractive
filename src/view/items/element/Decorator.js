@@ -106,18 +106,25 @@ export default class Decorator {
 	}
 
 	update () {
-		if ( !this.dirty ) return;
+		const instance = this.intermediary;
+
+		if ( !this.dirty ) {
+			if ( instance && instance.invalidate ) {
+				runloop.scheduleTask( () => instance.invalidate(), true );
+			}
+			return;
+		}
 
 		this.dirty = false;
 
-		if ( this.intermediary ) {
-			if ( !this.intermediary.update ) {
+		if ( instance ) {
+			if ( !instance.update ) {
 				this.unrender();
 				this.render();
 			}
 			else {
 				const args = this.models.map( model => model && model.get() );
-				this.intermediary.update.apply( this.ractive, this.fn.apply( this.ractive, args ) );
+				instance.update.apply( this.ractive, this.fn.apply( this.ractive, args ) );
 			}
 		}
 	}

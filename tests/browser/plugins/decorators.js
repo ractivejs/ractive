@@ -587,4 +587,37 @@ export default function() {
 		t.equal( teardown, 1 );
 		t.htmlEqual( fixture.innerHTML, '<div>b</div><div>c</div>' );
 	});
+
+	test( `decorators ask to be notified when dom changes in the element's tree`, t => {
+		let dom = 0;
+		let updated = 0;
+
+		const r = new Ractive({
+			target: fixture,
+			template: `<div as-watched>{{downstream}}</div>`,
+			data: { downstream: 1 },
+			decorators: {
+				watched () {
+					return {
+						invalidate () { dom++; },
+						update () { updated++; },
+						teardown () {}
+					};
+				}
+			}
+		});
+
+		t.equal( dom, 0 );
+		t.equal( updated, 0 );
+		r.add( 'downstream' );
+
+		t.equal( dom, 1 );
+		t.equal( updated, 0 );
+
+		r.add( 'downstream' );
+
+		t.equal( dom, 2 );
+		t.equal( updated, 0 );
+
+	});
 }
