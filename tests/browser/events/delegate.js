@@ -329,4 +329,19 @@ export default function() {
 
 		t.equal( count, 1 );
 	});
+
+	test( `delegates that happen to be nested in another delegate don't fire twice`, t => {
+		let count = 0;
+		const r = new Ractive({
+			target: fixture,
+			template: `<div><div>{{#each [1]}}<button on-click="ev" />{{/each}}</div>{{#each [1]}}<button on-click="ev" />{{/each}}</div>`,
+			on: {
+				ev () { count++; }
+			}
+		});
+
+		r.findAll( 'button' ).forEach( b => fire( b, 'click' ) );
+
+		t.equal( count, 2 );
+	});
 }
