@@ -14,7 +14,7 @@ export default class RepeatedFragment {
 		this.parentFragment = this;
 		this.owner = options.owner;
 		this.ractive = this.parent.ractive;
-		this.delegate = this.parent.delegate || findDelegate( findElement( options.owner ) );
+		this.delegate = this.ractive.delegate !== false && ( this.parent.delegate || findDelegate( findElement( options.owner ) ) );
 		// delegation disabled by directive
 		if ( this.delegate && this.delegate.delegate === false ) this.delegate = false;
 		// let the element know it's a delegate handler
