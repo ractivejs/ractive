@@ -1,6 +1,7 @@
 import './polyfills/Promise';
 import './polyfills/array.find';
 import './polyfills/Object.assign';
+import './polyfills/node.contains';
 
 import defaults from './Ractive/config/defaults';
 import easing from './Ractive/static/easing';
