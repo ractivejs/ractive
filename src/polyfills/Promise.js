@@ -1,4 +1,4 @@
-if (window && !window.Promise) {
+if (typeof window !== 'undefined' && !window.Promise) {
 	const PENDING = {};
 	const FULFILLED = {};
 	const REJECTED = {};
