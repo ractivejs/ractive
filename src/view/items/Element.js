@@ -475,6 +475,7 @@ function getNamespace ( element ) {
 function delegateHandler ( ev ) {
 	const name = ev.type;
 	const end = ev.currentTarget;
+	const endEl = end._ractive && end._ractive.proxy;
 	let node = ev.target;
 	let bubble = true;
 	let listeners;
@@ -482,7 +483,7 @@ function delegateHandler ( ev ) {
 	// starting with the origin node, walk up the DOM looking for ractive nodes with a matching event listener
 	while ( bubble && node && node !== end ) {
 		const proxy = node._ractive && node._ractive.proxy;
-		if ( proxy && proxy.parentFragment.delegate ) {
+		if ( proxy && proxy.parentFragment.delegate === endEl ) {
 			listeners = proxy.listeners[name];
 
 			if ( listeners ) {
