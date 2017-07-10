@@ -161,7 +161,7 @@ export default function() {
 		const cmp = Ractive.extend({
 			template: `<div on-click="ev" /><div on-click="other" />`
 		});
-		const r = new Ractive({
+		Ractive({
 			target: fixture,
 			delegate: false,
 			template: `<div>{{#each arr}}<div on-click="outer" /><cmp />{{/each}}</div>`,
@@ -169,14 +169,8 @@ export default function() {
 			data: { arr: [ 1 ] }
 		});
 
-		t.equal( count, 1 );
+		t.equal( count, 3 );
 		Element.prototype.addEventListener = addEventListener;
-
-		const [ top, outer, ev, other ] = r.findAll( 'div' );
-		t.ok( !top._ractive.proxy.delegates );
-		t.ok( outer._ractive.proxy.events[0].events.length === 1 );
-		t.ok( ev._ractive.proxy.events[0].events.length === 1 );
-		t.ok( other._ractive.proxy.events[0].events.length === 1 );
 	});
 
 	test( `delegation can be turned off for specific elements with no-delegation`, t => {
