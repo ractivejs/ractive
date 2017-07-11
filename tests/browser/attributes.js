@@ -278,4 +278,17 @@ export default function () {
 
 		t.htmlEqual( fixture.innerHTML, '<svg><rect x="0" y="0" width="100" height="100" class="red bordered" /></svg>' );
 	});
+
+	test( `style and class directives within conditional sections don't render actual attributes`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `<div {{#if .toggle}}style-background-color="blue" class-foo{{/if}} />`
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div></div>' );
+
+		r.toggle( 'toggle' );
+
+		t.htmlEqual( fixture.innerHTML, '<div style="background-color: blue;" class="foo"></div>' );
+	});
 }

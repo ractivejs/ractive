@@ -84,10 +84,10 @@ export default class ConditionalAttribute extends Item {
 			const current = attributes;
 			attributes = true;
 			this.fragment.update();
-			attributes = current || false;
 
 			if ( this.rendered && this.node ) {
 				str = this.fragment.toString();
+
 				attrs = parseAttributes( str, this.isSvg );
 
 				// any attributes that previously existed but no longer do
@@ -102,12 +102,15 @@ export default class ConditionalAttribute extends Item {
 
 				this.attributes = attrs;
 			}
+
+			attributes = current || false;
 		}
 	}
 }
 
-
+const onlyWhitespace = /^\s*$/;
 function parseAttributes ( str, isSvg ) {
+	if ( onlyWhitespace.test( str ) ) return [];
 	const tagName = isSvg ? 'svg' : 'div';
 	return str
 		? (div.innerHTML = `<${tagName} ${str}></${tagName}>`) &&
