@@ -23,7 +23,6 @@ export function createIsolatedEnv() {
 			const doc = frame.contentDocument || frame.contentWindow.document;
 
 			Promise.resolve()
-				.then(() => appendScript(doc, '../../polyfills.js'))
 				.then(() => appendScript(doc, '../../ractive.js'))
 				.then(() => resolve({
 					Ractive: win.Ractive,

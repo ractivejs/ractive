@@ -1,4 +1,4 @@
-if (window && !(window.requestAnimationFrame && window.cancelAnimationFrame)) {
+if (typeof window !== 'undefined' && !(window.requestAnimationFrame && window.cancelAnimationFrame)) {
 	let lastTime = 0;
 	window.requestAnimationFrame = function (callback) {
 		const currentTime = Date.now();

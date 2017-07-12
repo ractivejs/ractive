@@ -1,7 +1,4 @@
-import './Date.now';
-
-// NOTE: Setup requires Date.now() to be present already.
-if (window && window.performance && !window.performance.now) {
+if (typeof window !== 'undefined' && window.performance && !window.performance.now) {
 	window.performance = window.performance || {};
 
 	const nowOffset = Date.now();
