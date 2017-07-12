@@ -1,3 +1,10 @@
+import './polyfills/array.find';
+import './polyfills/node.contains';
+import './polyfills/Object.assign';
+import './polyfills/performance.now';
+import './polyfills/Promise';
+import './polyfills/requestAnimationFrame';
+
 import defaults from './Ractive/config/defaults';
 import easing from './Ractive/static/easing';
 import interpolators from './Ractive/static/interpolators';
