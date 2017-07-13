@@ -62,17 +62,18 @@ Object.defineProperties( Ractive, {
 	extend:           { value: extend },
 	extendWith:       { value: extendWith },
 	escapeKey:        { value: escapeKey },
+	evalObjectString: { value: parseJSON },
+	findPlugin:       { value: findPlugin },
 	getContext:       { value: getContext },
+	getCSS:           { value: getCSS },
 	getNodeInfo:      { value: getNodeInfo },
 	isInstance:       { value: isInstance },
 	joinKeys:         { value: joinKeys },
+	normaliseKeypath: { value: normalise },
 	parse:            { value: parse },
 	splitKeypath:     { value: splitKeypath },
+	// styleSet is in _extend because circular refs
 	unescapeKey:      { value: unescapeKey },
-	getCSS:           { value: getCSS },
-	normaliseKeypath: { value: normalise },
-	findPlugin:       { value: findPlugin },
-	evalObjectString: { value: parseJSON },
 
 	// support
 	enhance:          { writable: true, value: false },
@@ -87,9 +88,13 @@ Object.defineProperties( Ractive, {
 	decorators:       { writable: true, value: {} },
 	easing:           { writable: true, value: easing },
 	events:           { writable: true, value: {} },
+	extensions:       { value: [] },
 	interpolators:    { writable: true, value: interpolators },
 	partials:         { writable: true, value: {} },
 	transitions:      { writable: true, value: {} },
+
+	// CSS variables
+	cssData:          { configurable: true, value: {} },
 
 	// for getting the source Ractive lib from a constructor
 	Ractive:          { value: Ractive }

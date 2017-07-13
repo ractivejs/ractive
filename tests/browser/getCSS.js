@@ -44,6 +44,46 @@ export default function() {
 
 	});
 
+	test('getCSS with a single component definition and an update', t => {
+
+		const Component = Ractive.extend({
+			css ( d ) { return `.green { color: ${d.color || 'green'}; }`; }
+		});
+
+		const cssId = Component.prototype.cssId;
+
+		t.ok(!!~Ractive.getCSS().indexOf(`.green[data-ractive-css~="{${cssId}}"], [data-ractive-css~="{${cssId}}"] .green { color: green`, `.green selector for ${cssId} should exist`));
+
+		Component.styleSet( 'color', 'red' );
+
+		t.ok(!!~Ractive.getCSS().indexOf(`.green[data-ractive-css~="{${cssId}}"], [data-ractive-css~="{${cssId}}"] .green { color: red`, `.green selector for ${cssId} should be updated`));
+
+	});
+
+	test('getCSS with multiple components definition and an update', t => {
+
+		const ComponentA = Ractive.extend({
+			css ( d ) { return `.green { color: ${d.color || 'green'}; }`; }
+		});
+		const ComponentB = Ractive.extend({
+			css ( d ) { return `.green { color: ${d.color || 'green'}; }`; }
+		});
+
+		const cssIdA = ComponentA.prototype.cssId;
+		const cssIdB = ComponentB.prototype.cssId;
+
+		// Look for the selectors
+		t.ok(!!~Ractive.getCSS().indexOf(`.green[data-ractive-css~="{${cssIdA}}"], [data-ractive-css~="{${cssIdA}}"] .green { color: green`, `.green selector for ${cssIdA} should exist`));
+		t.ok(!!~Ractive.getCSS().indexOf(`.green[data-ractive-css~="{${cssIdB}}"], [data-ractive-css~="{${cssIdB}}"] .green { color: green`, `.green selector for ${cssIdB} should exist`));
+
+		ComponentA.styleSet( 'color', 'red' );
+		ComponentB.styleSet( 'color', 'red' );
+
+		t.ok(!!~Ractive.getCSS().indexOf(`.green[data-ractive-css~="{${cssIdA}}"], [data-ractive-css~="{${cssIdA}}"] .green { color: red`, `.green selector for ${cssIdA} should exist`));
+		t.ok(!!~Ractive.getCSS().indexOf(`.green[data-ractive-css~="{${cssIdB}}"], [data-ractive-css~="{${cssIdB}}"] .green { color: red`, `.green selector for ${cssIdB} should exist`));
+
+	});
+
 	if (!window.__karma__) {
 		test('getCSS with component definitions constructed from Ractive of different environments', t => {
 			t.expect(5);

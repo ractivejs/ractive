@@ -28,7 +28,11 @@ export default class Fragment {
 		this.rendered = false;
 
 		// encapsulated styles should be inherited until they get applied by an element
-		this.cssIds = 'cssIds' in options ? options.cssIds : ( this.parent ? this.parent.cssIds : null );
+		if ( 'cssIds' in options ) {
+			this.cssIds = options.cssIds && options.cssIds.length && options.cssIds;
+		} else {
+			this.cssIds = this.parent ? this.parent.cssIds : null;
+		}
 
 		this.dirty = false;
 		this.dirtyValue = true; // used for attribute values

@@ -419,4 +419,189 @@ export default function() {
 			target: fixture
 		});
 	});
+
+	test( `css can also be a function`, t => {
+		const cmp = Ractive.extend({
+			template: `<div />`,
+			css () {
+				return `div { color: rgb(0, 128, 0) }`;
+			}
+		});
+
+		new cmp({ target: fixture });
+
+		t.equal( getComputedStyle( fixture.querySelector( 'div' ) ).color, 'rgb(0, 128, 0)' );
+	});
+
+	test( `cssData has safe accessors`, t => {
+		t.expect( 7 );
+
+		let val1 = undefined;
+		let val2 = 10;
+		let testing = true;
+
+		const cmp = Ractive.extend({
+			template: '<div />',
+			css ( d ) {
+				if ( !testing ) return;
+				t.strictEqual( d( 'foo.bar.baz' ), val1 );
+				t.equal( d( 'bar.baz' ), val2 );
+			},
+			cssData: { bar: { baz: 10 } }
+		});
+
+		val1 = 'green';
+		cmp.styleSet( 'foo.bar.baz', 'green' );
+
+		val1 = 'pink';
+		val2 = 42;
+		cmp.styleSet({
+			'foo.bar.baz': 'pink',
+			'bar.baz': 42,
+			'some.path': 99
+		});
+
+		t.strictEqual( cmp.cssData.some.path, 99 );
+		 testing = 0;
+	});
+
+	test( 'cssData inherits from parents', t => {
+		const cmp = Ractive.extend({
+			cssData: { color: 'rgb(0, 128, 0)' }
+		});
+		const cmp2 = cmp.extend({
+			template: '<div />',
+			css ( d ) {
+				return `div { color: ${ d( 'color' ) }; background-color: ${ d( 'bg' ) }; }`;
+			},
+			cssData: { bg: 'rgb(128, 0, 0)' }
+		});
+
+		new cmp2({ target: fixture });
+
+		const style = getComputedStyle( fixture.querySelector( 'div' ) );
+
+		t.equal( style.color, 'rgb(0, 128, 0)' );
+		t.equal( style.backgroundColor, 'rgb(128, 0, 0)' );
+	});
+
+	test( `setting css for a component with applied styles updates the styles`, t => {
+		const cmp = Ractive.extend({
+			template: '<div />',
+			css ( d ) {
+				return `div { color: ${d('color') || 'rgb(255, 255, 255)'}; }`;
+			}
+		});
+
+		new cmp({ target: fixture });
+
+		const style = getComputedStyle( fixture.querySelector( 'div' ) );
+
+		t.equal( style.color, 'rgb(255, 255, 255)' );
+
+		cmp.styleSet( 'color', 'rgb(0, 128, 0)' );
+
+		t.equal( style.color, 'rgb(0, 128, 0)' );
+	});
+
+	test( `setting css for a component with applied styles can skip the update with an option`, t => {
+		const cmp = Ractive.extend({
+			template: '<div />',
+			css ( d ) {
+				return `div { color: ${d('color') || 'rgb(255, 255, 255)'}; }`;
+			}
+		});
+
+		new cmp({ target: fixture });
+
+		const style = getComputedStyle( fixture.querySelector( 'div' ) );
+
+		t.equal( style.color, 'rgb(255, 255, 255)' );
+
+		cmp.styleSet( 'color', 'rgb(0, 128, 0)', { apply: false } );
+
+		t.equal( style.color, 'rgb(255, 255, 255)' );
+		t.equal( cmp.cssData.color, 'rgb(0, 128, 0)' );
+	});
+
+	test( `setting css for a parent component cascades to children`, t => {
+		const cmp = Ractive.extend({
+			cssData: { color: 'rgb(0, 128, 0)' }
+		});
+		const cmp2 = cmp.extend({
+			template: '<div />',
+			css ( d ) {
+				return `div { color: ${ d( 'color' ) }; }`;
+			}
+		});
+
+		new cmp2({ target: fixture });
+
+		const style = getComputedStyle( fixture.querySelector( 'div' ) );
+
+		t.equal( style.color, 'rgb(0, 128, 0)' );
+
+		cmp.styleSet( 'color', 'rgb(255, 255, 255)' );
+
+		t.equal( style.color, 'rgb(255, 255, 255)' );
+	});
+
+	test( `css set cascade from parent can be stopped with an option`, t => {
+		const cmp = Ractive.extend({
+			cssData: { color: 'rgb(0, 128, 0)' }
+		});
+		const cmp2 = cmp.extend({
+			template: '<div />',
+			css ( d ) {
+				return `div { color: ${ d( 'color' ) }; }`;
+			}
+		});
+
+		new cmp2({ target: fixture });
+
+		const style = getComputedStyle( fixture.querySelector( 'div' ) );
+
+		t.equal( style.color, 'rgb(0, 128, 0)' );
+
+		cmp.styleSet( 'color', 'rgb(255, 255, 255)', { cascade: false } );
+
+		t.equal( style.color, 'rgb(0, 128, 0)' );
+	});
+
+	test( `all relevant component ids are applied to top-level nodes`, t => {
+		const cmp = Ractive.extend({
+			css: `div { color: rgb(0, 128, 0); }`
+		});
+
+		const cmp2 = cmp.extend({
+			css: `div { display: inline-block; }`,
+			template: '<div />'
+		});
+
+		new cmp2({ target: fixture });
+
+		const div = fixture.querySelector( 'div' );
+		const style = getComputedStyle( div );
+
+		t.equal( div.getAttribute( 'data-ractive-css' ), `{${cmp.prototype.cssId}} {${cmp2.prototype.cssId}}` );
+		t.equal( style.color, 'rgb(0, 128, 0)' );
+		t.equal( style.display, 'inline-block' );
+	});
+
+	test( `components can pick up css vars from the Ractive constructor`, t => {
+		const cmp = Ractive.extend({
+			css ( d ) { console.log('>>> ' + d.fg); return `div { color: ${ d.fg || 'rgb(128, 128, 128)' }; }`; }, // eslint-disable-line no-console
+			template: '<div />'
+		});
+
+		new cmp({ target: fixture });
+
+		const style = getComputedStyle( fixture.querySelector( 'div' ) );
+
+		t.equal( style.color, 'rgb(128, 128, 128)' );
+
+		Ractive.styleSet( 'fg', 'rgb(0, 128, 0)' );
+
+		t.equal( style.color, 'rgb(0, 128, 0)' );
+	});
 }

@@ -5,6 +5,7 @@ import construct from '../Ractive/construct';
 import initialise from '../Ractive/initialise';
 import Ractive from '../Ractive';
 import isInstance from '../Ractive/static/isInstance';
+import setCSSData from '../Ractive/static/setCSSData';
 
 const callsSuper = /super\s*\(|\.call\s*\(\s*this/;
 
@@ -56,22 +57,26 @@ function extendOne ( Parent, options = {}, Target ) {
 		// alias prototype as defaults
 		defaults: { value: proto },
 
-		// extendable
 		extend: { value: extend, writable: true, configurable: true },
-		extendClass: { value: extendWith, writable: true, configurable: true },
+		extendWith: { value: extendWith, writable: true, configurable: true },
+		extensions: { value: [] },
+
+		isInstance: { value: isInstance },
 
 		Parent: { value: Parent },
 		Ractive: { value: Ractive },
 
-		isInstance: { value: isInstance }
+		styleSet: { value: setCSSData.bind( Child ), configurable: true }
 	});
 
 	// extend configuration
-	config.extend( Parent, proto, options );
+	config.extend( Parent, proto, options, Child );
 
 	// store event and observer registries on the constructor when extending
 	Child._on = ( Parent._on || [] ).concat( toPairs( options.on ) );
 	Child._observe = ( Parent._observe || [] ).concat( toPairs( options.observe ) );
+
+	Parent.extensions.push( Child );
 
 	// attribute defs are not inherited, but they need to be stored
 	if ( options.attributes ) {
@@ -91,7 +96,7 @@ function extendOne ( Parent, options = {}, Target ) {
 		Child.attributes = attrs;
 	}
 
-	dataConfigurator.extend( Parent, proto, options );
+	dataConfigurator.extend( Parent, proto, options, Child );
 
 	if ( options.computed ) {
 		proto.computed = Object.assign( Object.create( Parent.prototype.computed ), options.computed );
@@ -99,3 +104,6 @@ function extendOne ( Parent, options = {}, Target ) {
 
 	return Child;
 }
+
+// styleSet for Ractive
+Object.defineProperty( Ractive, 'styleSet', { configurable: true, value: setCSSData.bind( Ractive ) } );
