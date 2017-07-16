@@ -26,7 +26,7 @@ export default class KeyModel {
 		while ( i-- ) this.deps[i].rebind( next, previous, false );
 
 		i = this.links.length;
-		while ( i-- ) this.links[i].rebind( next, previous, false );
+		while ( i-- ) this.links[i].relinking( next, false );
 	}
 
 	register ( dependant ) {
