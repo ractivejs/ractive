@@ -1,6 +1,7 @@
 import Model from '../../helpers/Model';
 import { initModule, onWarn } from '../../helpers/test-config';
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
 export default function() {
 	initModule( 'components/data-and-mappings.js' );
@@ -1633,5 +1634,32 @@ export default function() {
 		});
 
 		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
+
+	test( `mapped indices should update correctly on shuffle (#3042)`, t => {
+		const child = Ractive.extend({
+			template: `{{index}} {{item}}<button on-click="@this.parent.splice('list', index, 1)">rm</button>`
+		});
+
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#each list:i}}<child bind-index=i bind-item=. />{{/each}}`,
+			components: { child },
+			data: { list: [ 'dave', 'joe', 'susan', 'marie' ] }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '0 dave<button>rm</button>1 joe<button>rm</button>2 susan<button>rm</button>3 marie<button>rm</button>' );
+
+		fire( r.findAll( 'button' )[1], 'click' );
+
+		t.htmlEqual( fixture.innerHTML, '0 dave<button>rm</button>1 susan<button>rm</button>2 marie<button>rm</button>' );
+
+		fire( r.findAll( 'button' )[1], 'click' );
+
+		t.htmlEqual( fixture.innerHTML, '0 dave<button>rm</button>1 marie<button>rm</button>' );
+
+		fire( r.findAll( 'button' )[1], 'click' );
+
+		t.htmlEqual( fixture.innerHTML, '0 dave<button>rm</button>' );
 	});
 }
