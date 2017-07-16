@@ -1824,4 +1824,13 @@ export default function() {
 
 		t.ok( r.el === fixture && r.target === fixture );
 	});
+
+	test( `exclude data from resolveInstanceMembers`, t => {
+		new Ractive({
+			target: 'fixture',
+			template: `{{JSON.stringify(data)}}`
+		});
+
+		t.equal( fixture.innerHTML, '' );
+	});
 }
