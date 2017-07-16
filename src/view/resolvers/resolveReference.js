@@ -166,11 +166,9 @@ export default function resolveReference ( fragment, ref ) {
 	}
 
 	// if enabled, check the instance for a match
-	if ( initialFragment.ractive.resolveInstanceMembers ) {
-		const model = initialFragment.ractive.viewmodel.getRactiveModel();
-		if ( model.has( base ) ) {
-			return model.joinKey( base ).joinAll( keys );
-		}
+	const instance = initialFragment.ractive;
+	if ( instance.resolveInstanceMembers && base !== 'data' && base in instance ) {
+		return instance.viewmodel.getRactiveModel().joinKey( base ).joinAll( keys );
 	}
 
 	if ( shouldWarn ) {
