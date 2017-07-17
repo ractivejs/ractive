@@ -12,7 +12,7 @@ module.exports = gobble([
 	gobble( 'control' ).moveTo( 'builds/control' ),
 
 	// most recent build
-	gobble( '../build' ).moveTo( 'builds/edge' ),
+	gobble( '../.build' ).moveTo( 'builds/edge' ),
 
 	gobble( 'tests' ).transform( 'buble' ).transform( function ( inputdir, outputdir, options ) {
 		var pageTemplate, indexTemplate;

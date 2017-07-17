@@ -76,7 +76,7 @@ function runTest ( context, test, version, ractiveUrl, callback ) {
 
 		// setup test
 		context.setupComplete = function ( err, setupResult ) {
-			var start, runStart, duration, totalDuration, count = 0, label = version + ': ' + test.name, steps = [], died = false;
+			var start, runStart, duration, totalDuration, count = 0, label = version + ': ' + test.name, steps = [], died = false, min, max, durs = [];
 
 			if ( err ) {
 				return callback( err );
@@ -88,7 +88,7 @@ function runTest ( context, test, version, ractiveUrl, callback ) {
 			if ( shouldProfile || test.profile ) console.profile( label );
 
 			start = now();
-			duration = totalDuration = 0;
+			duration = totalDuration = min = max = 0;
 
 			context.setupResult = setupResult;
 
@@ -123,8 +123,12 @@ function runTest ( context, test, version, ractiveUrl, callback ) {
 					return callback( e );
 				}
 
-				duration += now() - runStart;
-				totalDuration = now() - start;
+				var dur = now() - runStart;
+				duration += dur;
+				durs.push( dur );
+				if ( !min || dur < min ) min = dur;
+				if ( dur > max ) max = dur;
+				totalDuration += dur;
 			}
 
 			if ( shouldProfile || test.profile ) console.profileEnd( label );
@@ -139,7 +143,10 @@ function runTest ( context, test, version, ractiveUrl, callback ) {
 				count: count,
 				steps,
 				duration: duration,
-				average: duration / count
+				average: duration / count,
+				min: min,
+				max: max,
+				durations: durs
 			});
 		};
 
@@ -155,12 +162,24 @@ function runTest ( context, test, version, ractiveUrl, callback ) {
 }
 
 function runStep ( context, test, callback ) {
-	let start = now(), count = 0, runStart;
-	let duration = 0, totalDuration = 0;
+	let start = now(), count = 0, runStart, setupStart;
+	let duration = 0, totalDuration = 0, min = 0, max = 0;
+	let durs = [], setups = [], setup;
 
 	console.group( test.name );
 
+	if ( typeof test.setup === 'function' ) {
+		setupStart = now();
+		context.eval( '(' + test.setup.toString() + ')()' );
+		setup = now() - setupStart;
+	}
+
 	while ( duration < ( test.max || durationMax ) && totalDuration < ( test.totalMax || totalDurationMax ) ) {
+		if ( typeof test.beforeEach === 'function' ) {
+			setupStart = now();
+			context.eval( '(' + test.beforeEach.toString() + ')()' );
+			setups.push( now() - setupStart );
+		}
 		runStart = now();
 		count++;
 
@@ -170,7 +189,11 @@ function runStep ( context, test, callback ) {
 			return callback( e, { name: test.name } );
 		}
 
-		duration += now() - runStart;
+		var dur = now() - runStart;
+		duration += dur;
+		durs.push( dur );
+		if ( !min || dur < min ) min = dur;
+		if ( dur > max ) max = dur;
 		totalDuration = now() - start;
 
 		if ( test.maxCount && count >= test.maxCount ) break;
@@ -180,7 +203,12 @@ function runStep ( context, test, callback ) {
 		name: test.name,
 		duration,
 		count,
-		average: duration / count
+		average: duration / count,
+		min,
+		max,
+		durations: durs,
+		setups,
+		setup
 	});
 
 	console.groupEnd( test.name );

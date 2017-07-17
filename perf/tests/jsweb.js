@@ -5,25 +5,33 @@ var tests = [
 		name: 'js web framework benchmark approximation',
 		test: [
 			{
+				name: 'parse',
+				maxCount: 10,
+				test() {
+					window.tpl = Ractive.parse(
+						`<table>
+							<tr><th>name</th><th>index</th><th>remove</th></tr>
+							{{#if show}}
+							{{#rows:i}}
+							<tr class="{{#if ~/selected === .id}}selected{{/if}}">
+								<td>{{.id}}</td>
+								<td>{{.name}}</td>
+								<td>{{i}} - {{@index}}</td>
+								<td><button on-click="remove:{{i}}">remove</button></td>
+							</tr>
+							{{/rows}}
+							{{/if}}
+						</table>`
+					);
+				}
+			},
+			{
 				name: 'init',
-				max: 1,
+				maxCount: 1,
 				test() {
 					var r = window.ractive = new Ractive({
 						el: 'body',
-						template:
-`<table>
-	<tr><th>name</th><th>index</th><th>remove</th></tr>
-	{{#if show}}
-	{{#rows:i}}
-	<tr class="{{#if ~/selected === .id}}selected{{/if}}">
-		<td>{{.id}}</td>
-		<td>{{.name}}</td>
-		<td>{{i}} - {{@index}}</td>
-		<td><button on-click="remove:{{i}}">remove</button></td>
-	</tr>
-	{{/rows}}
-	{{/if}}
-</table>`,
+						template: window.tpl,
 						data: { rows: [], show: true }
 					});
 					var id = 0;
@@ -51,8 +59,10 @@ var tests = [
 				name: 'create 1000 rows',
 				max: 1500,
 				totalMax: 5000,
-				test() {
+				beforeEach() {
 					ractive.set( 'rows', [] );
+				},
+				test() {
 					ractive.set( 'rows', gen() );
 				}
 			},
@@ -76,15 +86,11 @@ var tests = [
 			},
 
 			{
-				name: 'reset to 1000 rows',
-				test() {
+				name: 'remove random row',
+				setup() {
 					/* global ractive, gen */
 					ractive.set( 'rows', gen() );
-				}
-			},
-
-			{
-				name: 'remove random row',
+				},
 				test() {
 					/* global ractive, random */
 					ractive.splice( 'rows', random( ractive.get( 'rows' ).length - 1 ), 1 );
@@ -93,15 +99,11 @@ var tests = [
 			},
 
 			{
-				name: 'reset to 1000 rows',
-				test() {
+				name: 'remove first row',
+				beforeEach() {
 					/* global ractive, gen */
 					ractive.set( 'rows', gen() );
-				}
-			},
-
-			{
-				name: 'remove first row',
+				},
 				test() {
 					/* global ractive */
 					ractive.shift( 'rows' );
@@ -110,15 +112,11 @@ var tests = [
 			},
 
 			{
-				name: 'reset to 1000 rows',
-				test() {
+				name: 'remove last row',
+				beforeEach() {
 					/* global ractive, gen */
 					ractive.set( 'rows', gen() );
-				}
-			},
-
-			{
-				name: 'remove last row',
+				},
 				test() {
 					/* global ractive */
 					ractive.pop( 'rows' );
@@ -127,15 +125,11 @@ var tests = [
 			},
 
 			{
-				name: 'reset to 1000 rows',
-				test() {
+				name: 'hide rows',
+				setup() {
 					/* global ractive, gen */
 					ractive.set( 'rows', gen() );
-				}
-			},
-
-			{
-				name: 'hide rows',
+				},
 				test() {
 					/* global ractive */
 					ractive.set( 'show', false );
@@ -195,10 +189,15 @@ var tests = [
 
 			{
 				name: 'generate 10,000 rows',
+				beforeEach() {
+					ractive.set( 'rows', [] );
+				},
 				test() {
 					/* global ractive, gen */
 					ractive.set( 'rows', gen( 10000 ) );
-				}
+				},
+				totalMax: 10000,
+				max: 5000
 			},
 
 			{
