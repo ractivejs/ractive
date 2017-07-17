@@ -37,16 +37,6 @@ export default class EventDirective {
 				if ( fn ) {
 					this.events.push( new CustomEvent( fn, this.element, n ) );
 				} else {
-					/*if ( delegate ) {
-						if ( !delegate.delegates[n] ) {
-							const ev = new DOMEvent( n, delegate, true );
-							delegate.delegates[n] = ev;
-							// if the element is already rendered, render the event too
-							if ( delegate.rendered ) ev.listen( DelegateProxy );
-						}
-					} else {
-						this.events.push( new DOMEvent( n, this.element ) );
-					}*/
 					this.events.push( new DOMEvent( n, this.element ) );
 				}
 			});
@@ -57,7 +47,7 @@ export default class EventDirective {
 	}
 
 	bind () {
-		addToArray( this.element.events, this );
+		addToArray( ( this.element.events || ( this.element.events = [] ) ), this );
 
 		setupArgsFn( this, this.template );
 		if ( !this.fn ) this.action = this.template.f;
