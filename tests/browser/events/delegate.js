@@ -195,7 +195,7 @@ export default function() {
 		Element.prototype.addEventListener = addEventListener;
 
 		const [ top, , wrap ] = r.findAll( 'div' );
-		t.ok( !top._ractive.proxy.listeners.click );
+		t.ok( !top._ractive.proxy.listeners );
 		t.ok( wrap._ractive.proxy.listeners.click.refs === 2 );
 	});
 

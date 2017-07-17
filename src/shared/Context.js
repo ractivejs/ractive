@@ -119,10 +119,12 @@ export default class Context {
 
 	raise ( name, event, ...args ) {
 		let element = this.element;
+		let events, len, i;
 
 		while ( element ) {
-			const events = element.events;
-			for ( let i = 0; i < events.length; i++ ) {
+			events = element.events;
+			len = events && events.length;
+			for ( i = 0; i < len; i++ ) {
 				const ev = events[i];
 				if ( ~ev.template.n.indexOf( name ) ) {
 					const ctx = !event || !( 'original' in event ) ?

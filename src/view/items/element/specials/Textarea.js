@@ -16,7 +16,7 @@ export default class Textarea extends Input {
 		// check for single interpolator binding
 		if ( !this.attributeByName.value ) {
 			if ( template.f && isBindable( { template } ) ) {
-				this.attributes.push( createItem( {
+				( this.attributes || ( this.attributes = [] ) ).push( createItem( {
 					owner: this,
 					template: { t: ATTRIBUTE, f: template.f, n: 'value' },
 					parentFragment: this.parentFragment

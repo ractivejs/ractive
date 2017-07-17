@@ -20,7 +20,6 @@ export default class Element extends ContainerItem {
 		super( options );
 
 		this.name = options.template.e.toLowerCase();
-		this.isVoid = voidElementNames.test( this.name );
 
 		// find parent element
 		this.parent = findElement( this.parentFragment, false );
@@ -30,26 +29,39 @@ export default class Element extends ContainerItem {
 		}
 
 		this.decorators = [];
-		this.listeners = {};
-		this.events = [];
 
 		// create attributes
 		this.attributeByName = {};
 
-		this.attributes = [];
-		const leftovers = [];
-		( this.template.m || [] ).forEach( template => {
+		let attrs;
+		let n, attr, val, cls, name, template, leftovers;
+
+		const m = this.template.m;
+		const len = ( m && m.length ) || 0;
+
+		for ( let i = 0; i < len; i++ ) {
+			template = m[i];
 			switch ( template.t ) {
 				case ATTRIBUTE:
 				case BINDING_FLAG:
 				case DECORATOR:
 				case EVENT:
 				case TRANSITION:
-					this.attributes.push( createItem({
+					attr = createItem({
 						owner: this,
 						parentFragment: this.parentFragment,
 						template
-					}) );
+					});
+
+					n = template.n;
+
+					attrs = attrs || ( attrs = this.attributes = [] );
+
+					if ( n === 'value' ) val = attr;
+					else if ( n === 'name' ) name = attr;
+					else if ( n === 'class' ) cls = attr;
+					else attrs.push( attr );
+
 					break;
 
 				case DELEGATE_FLAG:
@@ -57,20 +69,25 @@ export default class Element extends ContainerItem {
 					break;
 
 				default:
-					leftovers.push( template );
+					( leftovers || ( leftovers = [] ) ).push( template );
 					break;
 			}
-		});
+		}
 
-		if ( leftovers.length ) {
-			this.attributes.push( new ConditionalAttribute({
+		if ( name ) attrs.push( name );
+		if ( val ) attrs.push( val );
+		if ( cls ) attrs.unshift( cls );
+
+		if ( leftovers ) {
+			( attrs || ( this.attributes = [] ) ).push( new ConditionalAttribute({
 				owner: this,
 				parentFragment: this.parentFragment,
 				template: leftovers
 			}) );
-		}
 
-		this.attributes.sort( sortAttributes );
+			// empty leftovers array
+			leftovers = [];
+		}
 
 		// create children
 		if ( options.template.f && !options.deferContent ) {
@@ -85,9 +102,12 @@ export default class Element extends ContainerItem {
 	}
 
 	bind () {
-		this.attributes.binding = true;
-		this.attributes.forEach( bind );
-		this.attributes.binding = false;
+		const attrs = this.attributes;
+		if ( attrs ) {
+			attrs.binding = true;
+			attrs.forEach( bind );
+			attrs.binding = false;
+		}
 
 		if ( this.fragment ) this.fragment.bind();
 
@@ -107,9 +127,9 @@ export default class Element extends ContainerItem {
 	}
 
 	destroyed () {
-		this.attributes.forEach( destroyed );
+		if ( this.attributes ) this.attributes.forEach( destroyed );
 
-		if ( !this.parentFragment.delegate ) {
+		if ( !this.parentFragment.delegate && this.listeners ) {
 			const ls = this.listeners;
 			for ( const k in ls ) {
 				if ( ls[k] && ls[k].length ) this.node.removeEventListener( k, handler );
@@ -168,13 +188,13 @@ export default class Element extends ContainerItem {
 
 	off ( event, callback, capture = false ) {
 		const delegate = this.parentFragment.delegate;
-		const ref = this.listeners[event];
+		const ref = this.listeners && this.listeners[event];
 
 		if ( !ref ) return;
 		removeFromArray( ref, callback );
 
 		if ( delegate ) {
-			const listeners = delegate.listeners[event] || ( delegate.listeners[event] = [] );
+			const listeners = ( delegate.listeners || ( delegate.listeners = [] ) ) && ( delegate.listeners[event] || ( delegate.listeners[event] = [] ) );
 			if ( listeners.refs && !--listeners.refs ) delegate.off( event, delegateHandler, true );
 		} else if ( this.rendered ) {
 			const n = this.node;
@@ -192,10 +212,10 @@ export default class Element extends ContainerItem {
 
 	on ( event, callback, capture = false ) {
 		const delegate = this.parentFragment.delegate;
-		const ref = this.listeners[event] || ( this.listeners[event] = [] );
+		const ref = ( this.listeners || ( this.listeners = {} ) )[event] || ( this.listeners[event] = [] );
 
 		if ( delegate ) {
-			const listeners = delegate.listeners[event] || ( delegate.listeners[event] = [] );
+			const listeners = ( delegate.listeners || ( delegate.listeners = [] ) ) && delegate.listeners[event] || ( delegate.listeners[event] = [] );
 			if ( !listeners.refs ) {
 				listeners.refs = 0;
 				delegate.on( event, delegateHandler, true );
@@ -302,10 +322,10 @@ export default class Element extends ContainerItem {
 			}
 		}
 
-		this.attributes.forEach( render );
+		if ( this.attributes ) this.attributes.forEach( render );
 		if ( this.binding ) this.binding.render();
 
-		if ( !this.parentFragment.delegate ) {
+		if ( !this.parentFragment.delegate && this.listeners ) {
 			const ls = this.listeners;
 			for ( const k in ls ) {
 				if ( ls[k] && ls[k].length ) this.node.addEventListener( k, handler, !!ls[k].refs );
@@ -322,7 +342,7 @@ export default class Element extends ContainerItem {
 	toString () {
 		const tagName = this.template.e;
 
-		let attrs = this.attributes.map( stringifyAttribute ).join( '' );
+		let attrs = ( this.attributes && this.attributes.map( stringifyAttribute ).join( '' ) ) || '';
 
 		// Special case - selected options
 		if ( this.name === 'option' && this.isSelected() ) {
@@ -336,7 +356,7 @@ export default class Element extends ContainerItem {
 
 		// Special case style and class attributes and directives
 		let style, cls;
-		this.attributes.forEach( attr => {
+		this.attributes && this.attributes.forEach( attr => {
 			if ( attr.name === 'class' ) {
 				cls = ( cls || '' ) + ( cls ? ' ' : '' ) + safeAttributeString( attr.getString() );
 			} else if ( attr.name === 'style' ) {
@@ -358,7 +378,7 @@ export default class Element extends ContainerItem {
 
 		let str = `<${tagName}${attrs}>`;
 
-		if ( this.isVoid ) return str;
+		if ( voidElementNames.test( this.name ) ) return str;
 
 		// Special case - textarea
 		if ( this.name === 'textarea' && this.getAttribute( 'value' ) !== undefined ) {
@@ -379,9 +399,12 @@ export default class Element extends ContainerItem {
 	}
 
 	unbind () {
-		this.attributes.unbinding = true;
-		this.attributes.forEach( unbind );
-		this.attributes.unbinding = false;
+		const attrs = this.attributes;
+		if ( attrs ) {
+			attrs.unbinding = true;
+			attrs.forEach( unbind );
+			attrs.unbinding = false;
+		}
 
 		if ( this.binding ) this.binding.unbind();
 		if ( this.fragment ) this.fragment.unbind();
@@ -423,20 +446,11 @@ export default class Element extends ContainerItem {
 		if ( this.dirty ) {
 			this.dirty = false;
 
-			this.attributes.forEach( update );
+			this.attributes && this.attributes.forEach( update );
 
 			if ( this.fragment ) this.fragment.update();
 		}
 	}
-}
-
-const toFront = [ 'min', 'max', 'class', 'type' ];
-function sortAttributes ( left, right ) {
-	left = left.name;
-	right = right.name;
-	const l = left === 'value' ? 1 : ~toFront.indexOf( left );
-	const r = right === 'value' ? 1 : ~toFront.indexOf( right );
-	return l < r ? -1 : l > r ? 1 : 0;
 }
 
 function inputIsCheckedRadio ( element ) {
@@ -484,7 +498,7 @@ function delegateHandler ( ev ) {
 	while ( bubble && node && node !== end ) {
 		const proxy = node._ractive && node._ractive.proxy;
 		if ( proxy && proxy.parentFragment.delegate === endEl ) {
-			listeners = proxy.listeners[name];
+			listeners = proxy.listeners && proxy.listeners[name];
 
 			if ( listeners ) {
 				listeners.forEach( l => {
@@ -501,6 +515,6 @@ function delegateHandler ( ev ) {
 
 function handler ( ev ) {
 	const el = this._ractive.proxy;
-	if ( !el.listeners[ ev.type ] ) return;
+	if ( !el.listeners || !el.listeners[ ev.type ] ) return;
 	el.listeners[ ev.type ].forEach( l => l.call( this, ev ) );
 }
