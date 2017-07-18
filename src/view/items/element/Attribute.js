@@ -164,7 +164,7 @@ export default class Attribute extends Item {
 			return;
 		}
 
-		if ( booleanAttributes.test( this.name ) ) return value ? this.name : '';
+		if ( booleanAttributes.test( this.name ) ) return value ? ( typeof value === 'string' ? `${this.name}="${safeAttributeString(value)}"` : this.name ) : '';
 		if ( value == null ) return '';
 
 		const str = safeAttributeString( this.getString() );

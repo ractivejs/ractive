@@ -301,8 +301,9 @@ function updateBoolean ( reset ) {
 			if ( this.useProperty ) {
 				this.node[ this.propertyName ] = this.getValue();
 			} else {
-				if ( this.getValue() ) {
-					this.node.setAttribute( this.propertyName, '' );
+				const val = this.getValue();
+				if ( val ) {
+					this.node.setAttribute( this.propertyName, typeof val === 'string' ? val : '' );
 				} else {
 					this.node.removeAttribute( this.propertyName );
 				}
