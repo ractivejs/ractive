@@ -2,7 +2,7 @@ import { splitKeypath } from '../../shared/keypaths';
 import resolveReference from '../../view/resolvers/resolveReference';
 import runloop from '../../global/runloop';
 
-export default function link( there, here, options ) {
+export default function link ( there, here, options ) {
 	let model;
 	const target = ( options && ( options.ractive || options.instance ) ) || this;
 
