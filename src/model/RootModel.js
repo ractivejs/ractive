@@ -102,7 +102,7 @@ export default class RootModel extends Model {
 
 		if ( unescapedKey === '@this' || unescapedKey === '@global' || unescapedKey === '@shared' ) return true;
 		if ( unescapedKey[0] === '~' && unescapedKey[1] === '/' ) unescapedKey = unescapedKey.slice( 2 );
-		if ( hasProp.call( value, unescapedKey ) ) return true;
+		if ( key === '' || hasProp.call( value, unescapedKey ) ) return true;
 
 		// mappings/links and computations
 		if ( key in this.computations || this.childByKey[unescapedKey] && this.childByKey[unescapedKey]._link ) return true;
