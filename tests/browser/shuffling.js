@@ -765,4 +765,32 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '99' );
 	});
+
+	test( `reference expression children invalidate correctly on shuffle (#3045)`, t => {
+		const one = [ { bat: 42, bop: 43, bip: 44 } ];
+		const two = [ { bat: 99, bop: 98, bip: 97 }, { bat: 98, bop: 10, bip: 9 } ];
+		const r = new Ractive({
+			target: fixture,
+			template: `<select>{{#each foo[bar]}}<option title="{{.bop}}" value="{{.bat}}" label="{{.bip}}">{{.bop}}</option>{{/each}}</select>`,
+			data: {
+				dest1: { path: one },
+				bar: 'path'
+			}
+		});
+
+		r.link( 'dest1', 'foo' );
+
+		t.equal( r.findAll( 'option' ).map( o => o.value ).join( '' ), '42' );
+		t.equal( r.findAll( 'option' ).map( o => o.label ).join( '' ), '44' );
+
+		r.set( 'dest1.path', two );
+
+		t.equal( r.findAll( 'option' ).map( o => o.value ).join( '' ), '9998' );
+		t.equal( r.findAll( 'option' ).map( o => o.label ).join( '' ), '979' );
+
+		r.set( 'dest1.path', one );
+
+		t.equal( r.findAll( 'option' ).map( o => o.value ).join( '' ), '42' );
+		t.equal( r.findAll( 'option' ).map( o => o.label ).join( '' ), '44' );
+	});
 }
