@@ -8,7 +8,6 @@ import { rebindMatch } from '../../shared/rebind';
 import { handleChange, mark, marked } from '../../shared/methodCallers';
 import { isEqual } from '../../utils/is';
 import { escapeKey } from '../../shared/keypaths';
-import noop from '../../utils/noop';
 
 class ReferenceExpressionChild extends Model {
 	constructor ( parent, key ) {
@@ -196,6 +195,8 @@ export default class ReferenceExpressionProxy extends Model {
 		this.children.forEach( mark );
 	}
 
+	rebind () { this.handleChange(); }
+
 	retrieve () {
 		return this.value;
 	}
@@ -224,5 +225,3 @@ export default class ReferenceExpressionProxy extends Model {
 		if ( !this.deps.length && !this.refs ) this.teardown();
 	}
 }
-
-ReferenceExpressionProxy.prototype.rebind = noop;

@@ -745,4 +745,24 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '<div>gwen stefani</div><div>george lucas</div><div>granny smith</div>' );
 	});
+
+	test( `reference expressions update correctly when their target model rebinds (#3045)`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `{{foo[bar].baz.bat}}`,
+			data: {
+				dest1: { path: { baz: { bat: 42 } } },
+				dest2: { path: { baz: { bat: 99 } } },
+				bar: 'path'
+			}
+		});
+
+		r.link( 'dest1', 'foo' );
+
+		t.htmlEqual( fixture.innerHTML, '42' );
+
+		r.link( 'dest2', 'foo' );
+
+		t.htmlEqual( fixture.innerHTML, '99' );
+	});
 }
