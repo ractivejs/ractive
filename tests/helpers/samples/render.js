@@ -1249,6 +1249,14 @@ const renderTests = [
 		new_result: '<div></div>'
 	},
 	{
+		name: 'Boolean attributes that have a string value, render the string value (#3023)',
+		template: `<div itemscope="{{foo}}"></div>`,
+		data: { foo: 'sure?' },
+		result: '<div itemscope="sure?"></div>',
+		new_data: { foo: false },
+		new_result: '<div></div>'
+	},
+	{
 		name: '`undefined` and `null` can be used as object keys (#1878)',
 		template: `{{dict[null]}}, {{dict[undefined]}}`,
 		data: {
