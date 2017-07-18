@@ -1092,4 +1092,23 @@ export default function() {
 			done();
 		}, done);
 	});
+
+
+	test( `triples wait on outros to detach`, t => {
+		t.expect( 1 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: '{{#unless hide}}<div go-out>{{{nodes}}}</div>{{/unless}}',
+			transitions: {
+				go ( trans ) {
+					t.htmlEqual( fixture.innerHTML, '<div><i>one</i><b>two</b></div>' );
+					trans.complete();
+				}
+			},
+			data: { nodes: '<i>one</i><b>two</b>' }
+		});
+
+		r.toggle( 'hide' );
+	});
 }

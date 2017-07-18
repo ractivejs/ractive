@@ -4,6 +4,7 @@ import insertHtml from './triple/insertHtml';
 import { decodeCharacterReferences } from '../../utils/html';
 import { detachNode } from '../../utils/dom';
 import { inAttribute } from './element/Attribute';
+import runloop from '../../global/runloop';
 
 export default class Triple extends Mustache {
 	constructor ( options ) {
@@ -125,7 +126,10 @@ export default class Triple extends Mustache {
 	}
 
 	unrender () {
-		if ( this.nodes ) this.nodes.forEach( node => detachNode( node ) );
+		if ( this.nodes ) this.nodes.forEach( node => {
+			// defer detachment until all relevant outros are done
+			runloop.detachWhenReady( { node, detach() { detachNode( node ); } } );
+		});
 		this.rendered = false;
 		this.nodes = null;
 	}
