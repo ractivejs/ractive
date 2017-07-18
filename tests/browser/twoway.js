@@ -1568,4 +1568,16 @@ export default function() {
 
 		t.equal( fixture.innerHTML, '<div value=""></div>' );
 	});
+
+	test( `trying to bind to more than two attributes should not throw (#3043)`, t => {
+		t.expect( 0 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: '<input bind-twoway value="{{foo}}{{bar}}" />',
+			data: { twoway: false }
+		});
+
+		r.set( 'twoway', true );
+	});
 }

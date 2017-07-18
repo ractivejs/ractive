@@ -14,7 +14,7 @@ import SingleSelectBinding from './SingleSelectBinding';
 export function isBindable ( attribute ) {
 
 	// The fragment must be a single non-string fragment
-	if ( !attribute || !attribute.template.f || !attribute.template.f.length === 1 || attribute.template.f[0].s ) return false;
+	if ( !attribute || !attribute.template.f || attribute.template.f.length !== 1 || attribute.template.f[0].s ) return false;
 
 	// A binding is an interpolator `{{ }}`, yey.
 	if ( attribute.template.f[0].t === INTERPOLATOR ) return true;
