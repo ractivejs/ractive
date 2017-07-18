@@ -12,6 +12,7 @@ import { escapeKey } from '../../shared/keypaths';
 class ReferenceExpressionChild extends Model {
 	constructor ( parent, key ) {
 		super ( parent, key );
+		this.dirty = true;
 	}
 
 	applyValue ( value ) {
@@ -33,7 +34,7 @@ class ReferenceExpressionChild extends Model {
 	}
 
 	get ( shouldCapture, opts ) {
-		this.value = this.retrieve();
+		this.retrieve();
 		return super.get( shouldCapture, opts );
 	}
 
@@ -49,9 +50,19 @@ class ReferenceExpressionChild extends Model {
 		return this.childByKey[ key ];
 	}
 
+	mark () {
+		this.dirty = true;
+		super.mark();
+	}
+
 	retrieve () {
-		const parent = this.parent.get();
-		return parent && parent[ this.key ];
+		if ( this.dirty ) {
+			this.dirty = false;
+			const parent = this.parent.get();
+			this.value = parent && parent[ this.key ];
+		}
+
+		return this.value;
 	}
 }
 
