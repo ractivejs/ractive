@@ -114,4 +114,19 @@ export default function() {
 		r.toggle( 'show' );
 		t.htmlEqual( fixture.innerHTML, '<div></div>text' );
 	});
+
+	test( `trying to shuffle set a keypath that doesn't exist yet should be equivalent to a plain set`, t => {
+		const r = new Ractive({
+			template: `{{#each list}}{{.}}{{/each}}`,
+			target: fixture
+		});
+
+		r.set( 'list', [ 1, 2, 3 ], { shuffle: true } );
+
+		t.htmlEqual( fixture.innerHTML, '123' );
+
+		r.set( 'list', [ 4, 3, 6, 1 ], { shuffle: true } );
+
+		t.htmlEqual( fixture.innerHTML, '4361' );
+	});
 }

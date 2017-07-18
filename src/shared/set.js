@@ -33,12 +33,18 @@ export function set ( ractive, pairs, options ) {
 			// shuffle target array with itself
 			if ( !array ) array = target;
 
-			if ( !Array.isArray( target ) || !Array.isArray( array ) ) {
-				throw new Error( 'You cannot merge an array with a non-array' );
-			}
+			// if there's not an array there yet, go ahead and set
+			if ( target === undefined ) {
+				model.set( array );
+			} else {
+				if ( !Array.isArray( target ) || !Array.isArray( array ) ) {
+					runloop.end();
+					throw new Error( 'You cannot merge an array with a non-array' );
+				}
 
-			const comparator = getComparator( shuffle );
-			model.merge( array, comparator );
+				const comparator = getComparator( shuffle );
+				model.merge( array, comparator );
+			}
 		} else model.set( value );
 	}
 
