@@ -235,6 +235,48 @@ export default function() {
 		r.toggle( 'bar' );
 	});
 
+	test( `inherited lifecycle events fire in the correct order`, t => {
+		const ev = [];
+		const cmp = Ractive.extend({
+			on: {
+				construct() { ev.push( 'construct1' ); },
+				config() { ev.push( 'config1' ); },
+				init() { ev.push( 'init1' ); },
+				render() { ev.push( 'render1' ); },
+				unrender() { ev.push( 'unrender1' ); },
+				teardown() { ev.push( 'teardown1' ); }
+			}
+		});
+
+		const two = cmp.extend({
+			on: {
+				construct() { ev.push( 'construct2' ); },
+				config() { ev.push( 'config2' ); },
+				init() { ev.push( 'init2' ); },
+				render() { ev.push( 'render2' ); },
+				unrender() { ev.push( 'unrender2' ); },
+				teardown() { ev.push( 'teardown2' ); }
+			}
+		});
+
+		const r = new two({
+			template: 'hello',
+			target: fixture,
+			on: {
+				construct() { ev.push( 'construct3' ); },
+				config() { ev.push( 'config3' ); },
+				init() { ev.push( 'init3' ); },
+				render() { ev.push( 'render3' ); },
+				unrender() { ev.push( 'unrender3' ); },
+				teardown() { ev.push( 'teardown3' ); }
+			}
+		});
+
+		r.teardown();
+
+		t.equal( ev.join( ' ' ), 'construct1 construct2 construct3 config1 config2 config3 init1 init2 init3 render1 render2 render3 unrender1 unrender2 unrender3 teardown1 teardown2 teardown3' );
+	});
+
 	test( `an existing constructor can be specified using the class option`, t => {
 		class Foo extends Ractive {
 			constructor ( opts ) {
