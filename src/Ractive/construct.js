@@ -6,6 +6,7 @@ import dataConfigurator from './config/custom/data';
 import RootModel from '../model/RootModel';
 import Hook from '../events/Hook';
 import getComputationSignature from './helpers/getComputationSignature';
+import subscribe from './helpers/subscribe';
 import Ractive from '../Ractive';
 import { ATTRIBUTE, INTERPOLATOR } from '../config/types';
 
@@ -29,6 +30,9 @@ export default function construct ( ractive, options ) {
 
 	initialiseProperties( ractive );
 	handleAttributes( ractive );
+
+	// set up event subscribers
+	subscribe( ractive, options, 'on' );
 
 	// if there's not a delegation setting, inherit from parent if it's not default
 	if ( !options.hasOwnProperty( 'delegate' ) && ractive.parent && ractive.parent.delegate !== ractive.delegate ) {

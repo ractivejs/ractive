@@ -173,4 +173,24 @@ export default function() {
 		r.toggle( 'bar' );
 		r.toggle( 'baz' );
 	});
+
+	test( `lifecycle events can be subscribed with the on option`, t => {
+		const ev = [];
+		const r = new Ractive({
+			on: {
+				construct() { ev.push( 'construct' ); },
+				config() { ev.push( 'config' ); },
+				init() { ev.push( 'init' ); },
+				render() { ev.push( 'render' ); },
+				unrender() { ev.push( 'unrender' ); },
+				teardown() { ev.push( 'teardown' ); }
+			},
+			template: 'hello',
+			target: fixture
+		});
+
+		r.teardown();
+
+		t.equal( ev.join( ' ' ), 'construct config init render unrender teardown' );
+	});
 }

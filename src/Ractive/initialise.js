@@ -1,11 +1,11 @@
 import { logIfDebug, warnIfDebug, warnOnceIfDebug } from '../utils/log';
 import { getElement } from '../utils/dom';
-import { toPairs } from '../utils/object';
 import config from './config/config';
 import Fragment from '../view/Fragment';
 import Hook from '../events/Hook';
 import HookQueue from '../events/HookQueue';
 import Ractive from '../Ractive';
+import subscribe from './helpers/subscribe';
 
 const configHook = new Hook( 'config' );
 const initHook = new HookQueue( 'init' );
@@ -18,9 +18,6 @@ export default function initialise ( ractive, userOptions, options ) {
 			computation.set( ractive.viewmodel.value[ key ] );
 		}
 	});
-
-	// set up event subscribers
-	subscribe( ractive, userOptions, 'on' );
 
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, userOptions );
@@ -74,17 +71,4 @@ export function createFragment ( ractive, options = {} ) {
 			cssIds
 		});
 	}
-}
-
-function subscribe ( instance, options, type ) {
-	const subs = ( instance.constructor[ `_${type}` ] || [] ).concat( toPairs( options[ type ] || [] ) );
-	const single = type === 'on' ? 'once' : `${type}Once`;
-
-	subs.forEach( ([ target, config ]) => {
-		if ( typeof config === 'function' ) {
-			instance[type]( target, config );
-		} else if ( typeof config === 'object' && typeof config.handler === 'function' ) {
-			instance[ config.once ? single : type ]( target, config.handler, config );
-		}
-	});
 }
