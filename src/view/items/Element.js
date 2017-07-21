@@ -1,5 +1,6 @@
 import { ATTRIBUTE, BINDING_FLAG, DECORATOR, DELEGATE_FLAG, EVENT, TRANSITION } from '../../config/types';
 import runloop from '../../global/runloop';
+import { win } from '../../config/environment';
 import { ContainerItem } from './shared/Item';
 import Fragment from '../Fragment';
 import ConditionalAttribute from './element/ConditionalAttribute';
@@ -497,7 +498,7 @@ function delegateHandler ( ev ) {
 	// starting with the origin node, walk up the DOM looking for ractive nodes with a matching event listener
 	while ( bubble && node && node !== end ) {
 		const proxy = node._ractive && node._ractive.proxy;
-		if ( proxy && proxy.parentFragment.delegate === endEl ) {
+		if ( proxy && proxy.parentFragment.delegate === endEl && shouldFire( ev, node, end ) ) {
 			listeners = proxy.listeners && proxy.listeners[name];
 
 			if ( listeners ) {
@@ -511,6 +512,19 @@ function delegateHandler ( ev ) {
 	}
 
 	return bubble;
+}
+
+const UIEvent = win !== null ? win.UIEvent : null;
+function shouldFire ( event, start, end ) {
+	if ( UIEvent && event instanceof UIEvent ) {
+		let node = start;
+		while ( node && node !== end ) {
+			if ( node.disabled ) return false;
+			node = node.parentNode;
+		}
+	}
+
+	return true;
 }
 
 function handler ( ev ) {
