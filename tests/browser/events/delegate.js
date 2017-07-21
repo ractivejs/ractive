@@ -344,4 +344,33 @@ export default function() {
 
 		t.equal( count, 2 );
 	});
+
+	test( `delegated events within disabled elements don't trigger ui events (#3046)`, t => {
+		const events = {};
+		const r = new Ractive({
+			target: fixture,
+			template: `<div>{{#each [1]}}<div class="outer" on-click="['ev', 'outer']"><button disabled on-click="['ev', 'target']"><span on-click="['ev', 'inner']" /></button></div>{{/each}}</div>`,
+			on: {
+				ev ( ctx, name ) {
+					if ( !events[ name ] ) events[ name ] = 1;
+					else events[ name ]++;
+				}
+			}
+		});
+
+		fire( r.find( 'span' ), 'click' );
+
+		t.ok( !events.target && !events.inner );
+
+		fire( r.find( 'button' ), 'click' );
+
+		t.ok( !events.target && !events.inner );
+
+		fire( r.find( 'div.outer' ), 'click' );
+
+		t.ok( !events.target && !events.inner );
+
+		// Firefox doesn't do events at _all_ from disabled elements, whereas other browsers just stop at the disabled element
+		if ( events.outer ) t.equal( events.outer, 3 );
+	});
 }
