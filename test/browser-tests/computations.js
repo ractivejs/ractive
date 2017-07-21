@@ -1,6 +1,7 @@
 import { test } from 'qunit';
 import { hasUsableConsole, onWarn } from './test-config';
 import { initModule } from './test-config';
+import { fire } from 'simulant';
 
 export default function() {
 	initModule( 'computations.js' );
@@ -1037,6 +1038,25 @@ export default function() {
 
 		expected = 'foogoof';
 		r.set( 'bar', 'goof' );
+	});
+
+	test( `computation children use their dirty flag (#3047)`, t => {
+		const obj = { value: false };
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#with obj || {}}}<div on-click="event.toggle('.value')">{{.value}}</div>{{/with}}`,
+			data: { obj }
+		});
+
+		fire( r.find( 'div' ), 'click' );
+		t.equal( fixture.innerHTML, '<div>true</div>' );
+
+		obj.value = false;
+		r.update( 'obj' );
+		t.equal( fixture.innerHTML, '<div>false</div>' );
+
+		fire( r.find( 'div' ), 'click' );
+		t.equal( fixture.innerHTML, '<div>true</div>' );
 	});
 
 	test( `computations with dotted names can be accessed (#2807)`, t => {

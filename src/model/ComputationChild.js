@@ -3,11 +3,21 @@ import Model from './Model';
 import { handleChange, marked } from '../shared/methodCallers';
 
 export default class ComputationChild extends Model {
+	constructor ( parent, key ) {
+		super( parent, key );
+
+		this.dirty = true;
+	}
+
 	get ( shouldCapture ) {
 		if ( shouldCapture ) capture( this );
 
-		const parentValue = this.parent.get();
-		return parentValue ? parentValue[ this.key ] : undefined;
+		if ( this.dirty ) {
+			const parentValue = this.parent.get();
+			this.value = parentValue ? parentValue[ this.key ] : undefined;
+		}
+
+		return this.value;
 	}
 
 	handleChange () {
@@ -30,9 +40,4 @@ export default class ComputationChild extends Model {
 
 		return this.childByKey[ key ];
 	}
-
-	// TODO this causes problems with inter-component mappings
-	// set () {
-	// 	throw new Error( `Cannot set read-only property of computed value (${this.getKeypath()})` );
-	// }
 }
