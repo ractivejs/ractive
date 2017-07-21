@@ -238,4 +238,24 @@ export default function() {
 			});
 		}).then( done, done );
 	});
+
+	test( `animate uses given interpolator if available`, t => {
+		t.expect( 1 );
+		const done = t.async();
+
+		const cmp = Ractive.extend({
+			interpolators: {
+				test ( v1, v2 ) {
+					t.ok( true, 'interpolator used' );
+					return () => v2;
+				}
+			}
+		});
+
+		const r = new cmp({
+			data: { v: 1 }
+		});
+
+		r.animate( 'v', 10, { interpolator: 'test' } ).then( done, done );
+	});
 }
