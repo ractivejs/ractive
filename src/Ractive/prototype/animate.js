@@ -24,7 +24,8 @@ function getOptions ( options, instance ) {
 		easing: easing || linear,
 		duration: 'duration' in options ? options.duration : 400,
 		complete: options.complete || noop,
-		step: options.step || noop
+		step: options.step || noop,
+		interpolator: options.interpolator
 	};
 }
 
