@@ -6,6 +6,28 @@
 	* There is now an `allowExpressions` parser and init option that disables the parsing of expressions when passed to `parse` or an instance with an unparsed template and disables the evaluation of expessions when passed to an instance. See #3000 for more info.
 
 
+# 0.9.3
+
+* Bug fixes
+	* Plain objects can now be used to extend context when firing events (#3033)
+	* Bug with transition params being non-objects (#3029)
+	* Various fixes for delegation corner cases related to both nesting and disabled elements (#3036, #3046)
+	* Root functions that are mapped to a component root maintain the owning instance as context (#3031)
+	* Directive attributes within conditionals will now avoid rendering their directive form as an attribute on their owning element
+	* The polyfills have been reduced to the minimum for ES5 support and included in the main build. There is no longer any need for the polyfills.js file for browsers that support ES5, which should include IE9+.
+	* Links/mappings to indices and object iteration keys will now shuffle correctly (#3042)
+	* `data` is no longer considered when `resolveInstanceMemebers` is true, so that the root model can't be accidentally corrupted when data is not fully initialized. `resolveInstanceMembers` will be defaulted to `false` for 1.0.
+	* Reference expressions will now correctly invalidate when their target model is shuffled (#3045)
+	* Bug with twoway bindings and more than one interpolator in the target attribute (#3043)
+	* Boolean attributes that have a string value will now render the string into the target attributes (#3023)
+	* Shuffling an unset keypath is now the equivalent of a `set`
+	* Nodes within a triple mustache will now defer detachment until any containing elements with transitions are detached
+	* `ractive.animate` will consider the `interpolator` option, if passed, when looking up an interpolator to use with the source and destination values
+
+* New features
+	* Decorators can now request that their owning element notify them when the element is invalidated i.e. when the element or some template that is part of its body will be updated. This is accopmlished by simply adding an `invalidate` method to the control handle returned by the decorator.
+
+
 # 0.9.2
 
 * Bug fixes
