@@ -546,28 +546,6 @@ export default function() {
 		t.equal( style.color, 'rgb(255, 255, 255)' );
 	});
 
-	test( `css set cascade from parent can be stopped with an option`, t => {
-		const cmp = Ractive.extend({
-			cssData: { color: 'rgb(0, 128, 0)' }
-		});
-		const cmp2 = cmp.extend({
-			template: '<div />',
-			css ( d ) {
-				return `div { color: ${ d( 'color' ) }; }`;
-			}
-		});
-
-		new cmp2({ target: fixture });
-
-		const style = getComputedStyle( fixture.querySelector( 'div' ) );
-
-		t.equal( style.color, 'rgb(0, 128, 0)' );
-
-		cmp.styleSet( 'color', 'rgb(255, 255, 255)', { cascade: false } );
-
-		t.equal( style.color, 'rgb(0, 128, 0)' );
-	});
-
 	test( `all relevant component ids are applied to top-level nodes`, t => {
 		const cmp = Ractive.extend({
 			css: `div { color: rgb(0, 128, 0); }`
@@ -603,5 +581,35 @@ export default function() {
 		Ractive.styleSet( 'fg', 'rgb(0, 128, 0)' );
 
 		t.equal( style.color, 'rgb(0, 128, 0)' );
+	});
+
+	test( `instances can access component style data via @style and @this.cssData`, t => {
+		let width = '10em';
+		let computedWidth;
+
+		const cmp = Ractive.extend({
+			cssData: { width },
+			css ( d ) { return `.do-width { width: ${d( 'width' )};`; },
+			template: '<div class-do-width /><div style-width="{{@style.width}}" /><div style-width="{{@this.cssData.width}}" />{{@style.width}} {{@.cssData.width}}'
+		});
+
+		const r = new cmp({ target: fixture });
+		const divs = r.findAll( 'div' ).map( d => getComputedStyle( d ) );
+		computedWidth = divs[1].width;
+
+		t.ok( divs.reduce( ( b, d ) => b && d.width === computedWidth, true ) );
+		t.htmlEqual( fixture.innerText, `${width} ${width}` );
+
+		width = '12em';
+		r.set( '@style.width', width );
+		computedWidth = divs[1].width;
+		t.ok( divs.reduce( ( b, d ) => b && d.width === computedWidth, true ) );
+		t.htmlEqual( fixture.innerText, `${width} ${width}` );
+
+		width = '14px';
+		r.set( '@this.cssData.width', width );
+		computedWidth = divs[1].width;
+		t.ok( divs.reduce( ( b, d ) => b && d.width === computedWidth, true ) );
+		t.htmlEqual( fixture.innerText, `${width} ${width}` );
 	});
 }

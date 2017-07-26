@@ -16,7 +16,7 @@ export default function ( methodName ) {
 			if ( array === undefined ) {
 				array = [];
 				const result = arrayProto[ methodName ].apply( array, args );
-				const promise = runloop.start( this, true ).then( () => result );
+				const promise = runloop.start().then( () => result );
 				mdl.set( array );
 				runloop.end();
 				return promise;
@@ -28,7 +28,7 @@ export default function ( methodName ) {
 		const newIndices = getNewIndices( array.length, methodName, args );
 		const result = arrayProto[ methodName ].apply( array, args );
 
-		const promise = runloop.start( this, true ).then( () => result );
+		const promise = runloop.start().then( () => result );
 		promise.result = result;
 
 		if ( newIndices ) {

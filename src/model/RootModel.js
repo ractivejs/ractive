@@ -100,7 +100,7 @@ export default class RootModel extends Model {
 		const value = this.value;
 		let unescapedKey = unescapeKey( key );
 
-		if ( unescapedKey === '@this' || unescapedKey === '@global' || unescapedKey === '@shared' ) return true;
+		if ( unescapedKey === '@this' || unescapedKey === '@global' || unescapedKey === '@shared' || unescapedKey === '@style' ) return true;
 		if ( unescapedKey[0] === '~' && unescapedKey[1] === '/' ) unescapedKey = unescapedKey.slice( 2 );
 		if ( key === '' || hasProp.call( value, unescapedKey ) ) return true;
 
@@ -122,6 +122,7 @@ export default class RootModel extends Model {
 			if ( key === '@this' || key === '@' ) return this.getRactiveModel();
 			if ( key === '@global' ) return GlobalModel;
 			if ( key === '@shared' ) return SharedModel;
+			if ( key === '@style' ) return this.getRactiveModel().joinKey( 'cssData' );
 			return;
 		}
 

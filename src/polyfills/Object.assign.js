@@ -1,3 +1,4 @@
+/* istanbul ignore if */
 if (!Object.assign) {
 	Object.assign = function (target, ...sources) {
 		if (target == null)

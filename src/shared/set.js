@@ -7,12 +7,12 @@ import { FakeFragment } from './getRactiveContext';
 
 export let keep = false;
 
-export function set ( ractive, pairs, options ) {
+export function set ( pairs, options ) {
 	const k = keep;
 
 	const deep = options && options.deep;
 	const shuffle = options && options.shuffle;
-	const promise = runloop.start( ractive, true );
+	const promise = runloop.start();
 	if ( options && 'keep' in options ) keep = options.keep;
 
 	let i = pairs.length;

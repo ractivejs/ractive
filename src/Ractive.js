@@ -22,6 +22,7 @@ import { joinKeys, splitKeypath } from './Ractive/static/keypaths';
 import shared from './Ractive/shared';
 import { findPlugin } from './Ractive/static/findPlugin';
 import parseJSON from './utils/parseJSON';
+import CSSModel from './model/specials/CSSModel';
 
 export default function Ractive ( options ) {
 	if ( !( this instanceof Ractive ) ) return new Ractive( options );
@@ -37,7 +38,7 @@ if ( win && !win.Ractive ) {
 
 	if ( script ) opts = script.getAttribute( 'data-ractive-options' ) || '';
 
-	/* istanbul iggnore next */
+	/* istanbul ignore next */
 	if ( ~opts.indexOf( 'ForceGlobal' ) ) win.Ractive = Ractive;
 }
 
@@ -99,3 +100,5 @@ Object.defineProperties( Ractive, {
 	// for getting the source Ractive lib from a constructor
 	Ractive:          { value: Ractive }
 });
+
+Object.defineProperty( Ractive, '_cssModel', { configurable: true, value: new CSSModel( Ractive ) } );

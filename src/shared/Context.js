@@ -58,7 +58,7 @@ export default class Context {
 	add ( keypath, d, options ) {
 		const num = typeof d === 'number' ? +d : 1;
 		const opts = typeof d === 'object' ? d : options;
-		return sharedSet( this.ractive, build( this, keypath, num ).map( pair => {
+		return sharedSet( build( this, keypath, num ).map( pair => {
 			const [ model, val ] = pair;
 			const value = model.get();
 			if ( !isNumeric( val ) || !isNumeric( value ) ) throw new Error( 'Cannot add non-numeric value' );
@@ -83,7 +83,7 @@ export default class Context {
 	link ( source, dest ) {
 		const there = findModel( this, source ).model;
 		const here = findModel( this, dest ).model;
-		const promise = runloop.start( this.ractive, true );
+		const promise = runloop.start();
 		here.link( there, source );
 		runloop.end();
 		return promise;
@@ -152,7 +152,7 @@ export default class Context {
 	}
 
 	set ( keypath, value, options ) {
-		return sharedSet( this.ractive, build( this, keypath, value ), options );
+		return sharedSet( build( this, keypath, value ), options );
 	}
 
 	shift ( keypath ) {
@@ -171,7 +171,7 @@ export default class Context {
 	subtract ( keypath, d, options ) {
 		const num = typeof d === 'number' ? d : 1;
 		const opts = typeof d === 'object' ? d : options;
-		return sharedSet( this.ractive, build( this, keypath, num ).map( pair => {
+		return sharedSet( build( this, keypath, num ).map( pair => {
 			const [ model, val ] = pair;
 			const value = model.get();
 			if ( !isNumeric( val ) || !isNumeric( value ) ) throw new Error( 'Cannot add non-numeric value' );
@@ -181,12 +181,12 @@ export default class Context {
 
 	toggle ( keypath, options ) {
 		const { model } = findModel( this, keypath );
-		return sharedSet( this.ractive, [ [ model, !model.get() ] ], options );
+		return sharedSet( [ [ model, !model.get() ] ], options );
 	}
 
 	unlink ( dest ) {
 		const here = findModel( this, dest ).model;
-		const promise = runloop.start( this.ractive, true );
+		const promise = runloop.start();
 		if ( here.owner && here.owner._link ) here.owner.unlink();
 		runloop.end();
 		return promise;
@@ -206,7 +206,7 @@ export default class Context {
 
 	updateModel ( keypath, cascade ) {
 		const { model } = findModel( this, keypath );
-		const promise = runloop.start( this.ractive, true );
+		const promise = runloop.start();
 		model.updateFromBindings( cascade );
 		runloop.end();
 		return promise;
@@ -235,7 +235,7 @@ export default class Context {
 
 	setBinding ( value ) {
 		const { model } = this.getBindingModel( this );
-		return sharedSet( this.ractive, [ [ model, value ] ] );
+		return sharedSet( [ [ model, value ] ] );
 	}
 }
 

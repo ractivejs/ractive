@@ -103,6 +103,11 @@ export default function resolveReference ( fragment, ref ) {
 			return fragment.getContext()._data.joinAll( keys );
 		}
 
+		// @style shared model
+		else if ( base === '@style' ) {
+			return fragment.ractive.constructor._cssModel.joinAll( keys );
+		}
+
 		// nope
 		else {
 			throw new Error( `Invalid special reference '${base}'` );

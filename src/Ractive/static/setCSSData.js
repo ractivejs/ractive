@@ -1,46 +1,41 @@
 import { applyCSS } from '../../global/css';
 import transformCSS from '../config/custom/css/transform';
 import { evalCSS } from '../config/custom/css/css';
-import { splitKeypath } from '../../shared/keypaths';
-import { isObjectLike, isNumeric } from '../../utils/is';
+import { build, set } from '../../shared/set';
+import runloop from '../../global/runloop';
 
-export default function setCSSData ( obj, val, options ) {
-	let opts;
-	if ( typeof obj === 'string' ) {
-		const key = obj;
-		obj = {};
-		obj[key] = val;
-		opts = options || {};
-	} else {
-		opts = val || {};
-	}
+export default function setCSSData ( keypath, value, options ) {
+	const opts = typeof keypath === 'object' ? value : options;
+	const model = this._cssModel;
 
-	Object.keys( obj ).forEach( k => {
-		const path = splitKeypath( k );
-		const key = path.pop();
-		let dest = this.cssData;
+	model.locked = true;
+	const promise = set( build( { viewmodel: model }, keypath, value, true ), opts );
+	model.locked = false;
 
-		for ( let i = 0; i < path.length; i++ ) {
-			const k = path[i];
-			if ( !isObjectLike( dest[k] ) ) dest[k] = isNumeric( k ) ? [] : {};
-			dest = dest[ path[i] ];
-		}
-		if ( isObjectLike( dest ) ) dest[ key ] = obj[k];
+	const cascade = runloop.start();
+	this.extensions.forEach( e => {
+		const model = e._cssModel;
+		model.mark();
+		model.downstreamChanged( '', 1 );
 	});
+	runloop.end();
 
-	recomputeCSS( this );
+	applyChanges( this, !opts || opts.apply !== false );
 
-	// if this change should cascade to further extensions, let them know
-	if ( opts.cascade !== false ) {
-		this.extensions.forEach( e => e.styleSet( {}, { apply: false } ) );
+	return promise.then( () => cascade );
+}
+
+export function applyChanges ( component, apply ) {
+	const local = recomputeCSS( component );
+	const child = component.extensions.map( e => applyChanges( e, false ) ).
+	  reduce( ( a, c ) => c || a, false );
+
+	if ( apply && ( local || child ) ) {
+		const def = component._cssDef;
+		if ( !def || ( def && def.applied ) ) applyCSS( true );
 	}
 
-	// if this css is already applied and the user hasn't requested that it
-	// not be updated, go ahead and trigger a reapply
-	const def = this._cssDef;
-	if ( ( ( !def && this.extensions.length ) || ( def && def.applied ) ) && opts.apply !== false ) {
-		applyCSS( true );
-	}
+	return local || child;
 }
 
 function recomputeCSS ( component ) {
