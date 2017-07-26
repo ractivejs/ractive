@@ -4,6 +4,7 @@ import hyphenateCamel from 'utils/hyphenateCamel';
 
 let prefix;
 
+/* istanbul ignore next */
 if ( !isClient ) {
 	prefix = null;
 } else {
@@ -19,6 +20,7 @@ if ( !isClient ) {
 				prefixCache[ prop ] = name;
 			}
 
+			/* istanbul ignore next */
 			else {
 				// test vendors...
 				let i = vendors.length;

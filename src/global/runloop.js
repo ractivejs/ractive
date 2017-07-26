@@ -4,7 +4,7 @@ import TransitionManager from './TransitionManager';
 let batch;
 
 const runloop = {
-	start ( instance ) {
+	start () {
 		let fulfilPromise;
 		const promise = new Promise( f => ( fulfilPromise = f ) );
 
@@ -15,7 +15,6 @@ const runloop = {
 			tasks: [],
 			immediateObservers: [],
 			deferredObservers: [],
-			instance,
 			promise
 		};
 

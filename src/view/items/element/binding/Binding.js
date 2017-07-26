@@ -48,7 +48,7 @@ export default class Binding {
 		const value = this.getValue();
 		if ( this.lastVal() === value ) return;
 
-		runloop.start( this.root );
+		runloop.start();
 		this.attribute.locked = true;
 		this.model.set( value );
 		this.lastVal( true, value );

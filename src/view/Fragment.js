@@ -6,7 +6,7 @@ import { bind, destroyed, shuffled, toEscapedString, toString, unbind, unrender,
 import createItem from './items/createItem';
 import processItems from './helpers/processItems';
 import parseJSON from 'utils/parseJSON';
-import { createDocumentFragment } from '../utils/dom';
+import { createDocumentFragment } from 'utils/dom';
 
 function unrenderAndDestroy ( item ) {
 	item.unrender( true );

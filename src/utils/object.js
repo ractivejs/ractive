@@ -1,8 +1,4 @@
-import { splitKeypath } from '../shared/keypaths';
-import { isObjectLike } from './is';
-
 export function fillGaps ( target, ...sources ) {
-
 	for (let i = 0; i < sources.length; i++){
 		const source = sources[i];
 		for ( const key in source ) {
@@ -23,18 +19,4 @@ export function toPairs ( obj = {} ) {
 		pairs.push( [ key, obj[ key ] ] );
 	}
 	return pairs;
-}
-
-export function safeGet ( obj, path ) {
-	if ( !isObjectLike( obj ) ) return;
-
-	const keys = splitKeypath( path );
-	let val = obj;
-
-	for ( let i = 0; i < keys.length; i++ ) {
-		val = val[ keys[i] ];
-		if ( !isObjectLike( val ) ) return i + 1 === keys.length ? val : undefined;
-	}
-
-	return val;
 }

@@ -1,3 +1,4 @@
+/* istanbul ignore if */
 if (typeof window !== 'undefined' && !window.Promise) {
 	const PENDING = {};
 	const FULFILLED = {};

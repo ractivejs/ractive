@@ -11,7 +11,7 @@ export function update ( ractive, model, options ) {
 		model.parent.adapt();
 	}
 
-	const promise = runloop.start( ractive, true );
+	const promise = runloop.start();
 
 	model.mark( options && options.force );
 

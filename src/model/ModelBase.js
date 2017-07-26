@@ -32,6 +32,8 @@ export default class ModelBase {
 	addShuffleTask ( task, stage = 'early' ) { shuffleTasks[stage].push( task ); }
 	addShuffleRegister ( item, stage = 'early' ) { registerQueue[stage].push({ model: this, item }); }
 
+	downstreamChanged () {}
+
 	findMatches ( keys ) {
 		const len = keys.length;
 
@@ -162,6 +164,7 @@ export default class ModelBase {
 			path.unshift( parent.key );
 			parent.links.forEach( l => l.notifiedUpstream( path, this.root ) );
 			parent.deps.forEach( d => d.handleChange( path ) );
+			parent.downstreamChanged( startPath );
 			parent = parent.parent;
 		}
 	}

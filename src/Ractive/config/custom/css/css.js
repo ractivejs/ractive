@@ -3,7 +3,8 @@ import transformCss from './transform';
 import { uuid } from 'utils/id';
 import { warnIfDebug } from 'utils/log';
 import { getElement } from 'utils/dom';
-import { safeGet } from 'utils/object';
+import { splitKeypath } from 'shared/keypaths';
+import CSSModel from 'src/model/specials/CSSModel';
 
 const hasCurly = /\{/;
 export default {
@@ -13,10 +14,15 @@ export default {
 	extend: ( Parent, proto, options, Child ) => {
 		Child._cssIds = gatherIds( Parent );
 
-		// store css function and data if supplied
-		if ( options.cssData || Parent.cssData ) {
-			Object.defineProperty( Child, 'cssData', { configurable: true, value: Object.assign( Object.create( Parent.cssData || null ), options.cssData || {} ) } );
-		}
+		Object.defineProperty( Child, 'cssData', {
+			configurable: true,
+			value: Object.assign( Object.create( Parent.cssData ), options.cssData || {} )
+		});
+
+		Object.defineProperty( Child, '_cssModel', {
+			configurable: true,
+			value: new CSSModel( Child )
+		});
 
 		if ( !options.css ) return;
 
@@ -30,7 +36,6 @@ export default {
 			css = 'textContent' in css ? css.textContent : css.innerHTML;
 		} else if ( typeof css === 'function' ) {
 			Child._css = options.css;
-			if ( !Child.cssData ) Child.cssData = {};
 			css = evalCSS( Child, css );
 		}
 
@@ -75,7 +80,10 @@ function gatherIds ( start ) {
 
 export function evalCSS ( component, css ) {
 	const cssData = component.cssData;
-	const data = function data ( path ) { return safeGet( cssData, path ); };
+	const model = component._cssModel;
+	const data = function data ( path ) {
+		return model.joinAll( splitKeypath( path ) ).get();
+	};
 	data.__proto__ = cssData;
 
 	const result = css.call( component, data );
