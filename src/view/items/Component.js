@@ -286,6 +286,7 @@ function renderItem ( anchor, meta ) {
 	meta.instance.partials = Object.assign( {}, meta.partials, anchor._partials );
 
 	meta.instance.fragment.unbind();
+	meta.instance.fragment.componentParent = anchor.parentFragment;
 	meta.instance.fragment.bind( meta.instance.viewmodel );
 
 	anchor.attributes.forEach( bind );
@@ -313,6 +314,7 @@ function unrenderItem ( anchor, meta ) {
 	anchor.attributes.forEach( unbind );
 
 	meta.instance.el = meta.instance.anchor = null;
+	meta.instance.fragment.componentParent = null;
 	meta.parentFragment = null;
 	meta.anchor = null;
 	anchor.item = null;

@@ -493,4 +493,22 @@ export default function() {
 		t.equal( rinput.value, 'b' );
 		t.equal( r.get( 'nested.string' ), 'b' );
 	});
+
+	test( `attaching a child with a top-level section correctly finds the parent fragment`, t => {
+		const c = new Ractive({
+			template: '{{#if .open}}<div>yep</div>{{/if}}'
+		});
+		const r = new Ractive({
+			target: fixture,
+			template: '{{#each @.children.byName.anchor}}<#anchor />{{/each}}'
+		});
+
+		r.attachChild( c, { target: 'anchor' });
+		c.toggle( 'open' );
+
+		t.htmlEqual( fixture.innerHTML, '<div>yep</div>' );
+
+		r.detachChild( c );
+		t.htmlEqual( fixture.innerHTML, '' );
+	});
 }
