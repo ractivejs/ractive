@@ -79,6 +79,8 @@ export default class ExpressionProxy extends Model {
 		return result;
 	}
 
+	notifyUpstream () {}
+
 	rebind ( next, previous, safe ) {
 		const idx = this.models.indexOf( previous );
 
