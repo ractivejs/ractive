@@ -275,12 +275,12 @@ export default class RepeatedFragment {
 
 		// update the remaining ones
 		if ( !reset && this.isArray && this.bubbled && this.bubbled.length ) {
-			this.bubbled.forEach( i => this.iterations[i] && this.iterations[i].update() );
+			const bubbled = this.bubbled;
+			this.bubbled = [];
+			bubbled.forEach( i => this.iterations[i] && this.iterations[i].update() );
 		} else {
 			this.iterations.forEach( update );
 		}
-
-		if ( this.bubbled ) this.bubbled.length = 0;
 
 		// add new iterations
 		const newLength = Array.isArray( value ) ?

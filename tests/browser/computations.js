@@ -1129,6 +1129,29 @@ export default function() {
 		t.equal( count, 2 );
 	});
 
+	test( `expressions don't cause themselves to invalidate and leave already updated items dirty`, t => {
+		// NOTE: this test doesn't quite reproduce the original issue, which was caused by repeated fragment children bubbling during a bubbled update
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#each items}}{{#unless .bool}}{{>part}}{{/unless}}{{/each}}`,
+			data: {
+				items: [ { bool: false }, { bool: false }, { bool: false } ],
+				selected: 0
+			},
+			partials: {
+				part: '<span class-selected="~/selected === @index" />'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<span class="selected"></span><span></span><span></span>' );
+
+		r.set( 'selected', 1 );
+		t.htmlEqual( fixture.innerHTML, '<span wat></span><span class="selected"></span><span></span>' );
+
+		r.set( 'selected', 0 );
+		t.htmlEqual( fixture.innerHTML, '<span class="selected"></span><span></span><span></span>' );
+	});
+
 	// phantom just doesn't execute this test... no error, just nothing
 	// even >>> log messages don't come out. passes chrome and ff, though
 	if ( !/phantom/i.test( navigator.userAgent ) ) {
