@@ -511,4 +511,23 @@ export default function() {
 		r.detachChild( c );
 		t.htmlEqual( fixture.innerHTML, '' );
 	});
+
+	test( `attaching a child doesn't hide its original inherited partials`, t => {
+		const b = Ractive.extend({
+			partials: {
+				part: 'yep'
+			}
+		});
+		const c = new b({
+			template: '{{>part}}',
+		});
+
+		const r = new Ractive({
+			target: fixture,
+			template: '<#anchor />'
+		});
+
+		r.attachChild( c, { target: 'anchor' });
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
 }
