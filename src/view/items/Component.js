@@ -283,7 +283,7 @@ function renderItem ( anchor, meta ) {
 	}
 
 	meta.partials = meta.instance.partials;
-	meta.instance.partials = Object.assign( Object.create( meta.partials ), anchor._partials );
+	meta.instance.partials = Object.assign( Object.create( meta.partials ), meta.partials, anchor._partials );
 
 	meta.instance.fragment.unbind();
 	meta.instance.fragment.componentParent = anchor.parentFragment;
