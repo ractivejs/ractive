@@ -240,9 +240,12 @@ function updateInlineStyle ( reset ) {
 		this.style = hyphenateCamel( this.name.substr( 6 ) );
 	}
 
+	if ( reset && this.node.style.getPropertyValue( this.style ) !== this.last ) return;
+
 	const value = reset ? '' : safeToStringValue( this.getValue() );
 	const safe = value.replace( '!important', '' );
 	this.node.style.setProperty( this.style, safe, safe.length !== value.length ? 'important' : '' );
+	this.last = safe;
 }
 
 function updateClassName ( reset ) {

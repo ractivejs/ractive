@@ -291,4 +291,15 @@ export default function () {
 
 		t.htmlEqual( fixture.innerHTML, '<div style="background-color: blue;" class="foo"></div>' );
 	});
+
+	test( `style directives reset safely without undoing other same-prop directives`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `<div {{#if foo}}style-width="20px"{{else}}style-width="0"{{/if}} />`,
+			data: { foo: false }
+		});
+
+		r.toggle( 'foo' );
+		t.equal( r.find( 'div' ).style.width, '20px' );
+	});
 }

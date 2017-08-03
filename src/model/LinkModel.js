@@ -70,7 +70,7 @@ export default class LinkModel extends ModelBase {
 		}
 
 		const bind = 'shouldBind' in opts ? opts.shouldBind : true;
-		opts.shouldBind = this.mapping && this.target.parent.isRoot;
+		opts.shouldBind = this.mapping && this.target.parent && this.target.parent.isRoot;
 
 		return maybeBind( this, this.target.get( false, opts ), bind );
 	}
