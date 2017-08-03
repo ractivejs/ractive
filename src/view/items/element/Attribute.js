@@ -78,6 +78,8 @@ export default class Attribute extends Item {
 		}
 	}
 
+	firstNode () {}
+
 	getString () {
 		attribute = true;
 		const value = this.fragment ?

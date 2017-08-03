@@ -66,6 +66,8 @@ class ReferenceExpressionChild extends Model {
 	}
 }
 
+const missing = { get() {} };
+
 export default class ReferenceExpressionProxy extends Model {
 	constructor ( fragment, template ) {
 		super( null, null );
@@ -90,7 +92,7 @@ export default class ReferenceExpressionProxy extends Model {
 						// only direct references will rebind... expressions handle themselves
 						next = rebindMatch( template.m[idx].n, next, previous );
 						if ( next !== this.members[idx] ) {
-							this.members.splice( idx, 1, next );
+							this.members.splice( idx, 1, next || missing );
 						}
 					}
 				}
