@@ -28,9 +28,7 @@ export default function detachChild ( child ) {
 
 	children.splice( index, 1 );
 	if ( meta.target ) {
-		const list = children.byName[ meta.target ];
-		list.splice( list.indexOf( meta ), 1 );
-		this.set( `@this.children.byName.${meta.target}`, null, { shuffle: true } );
+		this.splice( `@this.children.byName.${meta.target}`, children.byName[ meta.target ].indexOf(meta), 1 );
 		updateAnchors( this, meta.target );
 	}
 	child.set({
