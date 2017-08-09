@@ -158,7 +158,7 @@ export default class EventDirective {
 
 	render () {
 		// render events after everything else, so they fire after bindings
-		runloop.scheduleTask( () => this.events.forEach( e => e.listen( this ), true ) );
+		runloop.scheduleTask( () => this.events.forEach( e => e.listen( this ) ), true );
 	}
 
 	toString() { return ''; }
