@@ -364,4 +364,38 @@ export default function() {
 
 		fire( r.find( 'button' ), 'click' );
 	});
+
+	test( `event directives subscribe as deferred tasks (#3050)`, t => {
+		let c1 = 0;
+		let c2 = 0;
+
+		function check ( node ) {
+			const handle = () => c1++;
+			node.addEventListener( 'click', handle );
+			return {
+				teardown () {
+					node.removeEventListener( 'click', handle );
+				}
+			};
+		}
+
+		const cmp = Ractive.extend({
+			template: '{{#if first}}<button as-check on-click="check" />{{/if}}',
+			decorators: { check },
+			on: {
+				check () { this.toggle( 'first' ); c2++; }
+			},
+			data () { return { first: true }; }
+		});
+
+		const r = new Ractive({
+			template: '<cmp />',
+			components: { cmp },
+			target: fixture
+		});
+
+		fire( r.find( 'button' ), 'click' );
+
+		t.ok( c1 === 1 && c2 === 1 );
+	});
 }
