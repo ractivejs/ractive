@@ -24,15 +24,15 @@ export default function initialise ( ractive, userOptions, options ) {
 
 	configHook.fire( ractive );
 
-	// general config done, set up observers
-	subscribe( ractive, userOptions, 'observe' );
-
 	initHook.begin( ractive );
 
 	const fragment = ractive.fragment = createFragment( ractive, options );
 	if ( fragment ) fragment.bind( ractive.viewmodel );
 
 	initHook.end( ractive );
+
+	// general config done, set up observers
+	subscribe( ractive, userOptions, 'observe' );
 
 	if ( fragment ) {
 		// render automatically ( if `el` is specified )
