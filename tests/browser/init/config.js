@@ -193,4 +193,28 @@ export default function() {
 
 		t.equal( ev.join( ' ' ), 'construct config init render unrender teardown' );
 	});
+
+	test( `observers subscribe after the root fragment is created (#3053)`, t => {
+		let v;
+
+		const cmp = Ractive.extend({
+			isolated: false,
+			observe: {
+				'thing.value' ( val ) {
+					v = val;
+				}
+			}
+		});
+
+		const r = new Ractive({
+			template: '<cmp />',
+			data: { thing: {} },
+			components: { cmp },
+			target: fixture
+		});
+
+		t.ok( v === undefined );
+		r.set( 'thing.value', 42 );
+		t.equal( v, 42 );
+	});
 }
