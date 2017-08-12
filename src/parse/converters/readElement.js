@@ -3,8 +3,10 @@ import { voidElementNames } from '../../utils/html';
 import { READERS, PARTIAL_READERS } from '../_parse';
 import cleanup from '../utils/cleanup';
 import readMustache from './readMustache';
-import readClosing from './mustache/section/readClosing';
 import readClosingTag from './element/readClosingTag';
+import readClosing from './mustache/section/readClosing';
+import readElse from './mustache/section/readElse';
+import readElseIf from './mustache/section/readElseIf';
 
 const tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/;
 const anchorPattern = /^[a-zA-Z_$][-a-zA-Z0-9_$]*/;
@@ -180,14 +182,16 @@ function readElement ( parser ) {
 				closed = true;
 			}
 
-			// implicit close by closing section tag. TODO clean this up
-			else if ( child = readClosing( parser, { open: parser.standardDelimiters[0], close: parser.standardDelimiters[1] } ) ) {
-				closed = true;
-				parser.pos = pos;
-			}
-
 			else {
-				if ( child = parser.read( PARTIAL_READERS ) ) {
+				// implicit close by closing section tag. TODO clean this up
+				const tag = { open: parser.standardDelimiters[0], close: parser.standardDelimiters[1] };
+				const implicitCloseCase = [ readClosing, readElseIf, readElse ];
+				if (  implicitCloseCase.some( r => r( parser, tag ) ) ) {
+					closed = true;
+					parser.pos = pos;
+				}
+
+				else if ( child = parser.read( PARTIAL_READERS ) ) {
 					if ( partials[ child.n ] ) {
 						parser.pos = pos;
 						parser.error( 'Duplicate partial definition' );
