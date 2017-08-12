@@ -317,6 +317,22 @@ const renderTests = [
 		new_result: '<ul><li>d</li><li>e</li><li>f</li></ul>'
 	},
 	{
+		name: 'Element without close tag inside if-elseif-else section',
+		template: '{{#if who == 1}}<div>1{{elseif who === 2}}<div>2{{else}}<div>else{{/if}}',
+		data:  { who: 1 },
+		result: '<div>1</div>',
+		steps: [
+			{
+				data:  { who: 2 },
+				result: '<div>2</div>'
+			},
+			{
+				data: { who: 3 },
+				result: '<div>else</div>'
+			}
+		]
+	},
+	{
 		name: 'Whitespace is stripped from start and end of templates',
 		template: '     <p>{{content}}</p>      ',
 		data: { content: 'test' },
