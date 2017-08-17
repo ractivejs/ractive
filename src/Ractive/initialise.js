@@ -1,9 +1,9 @@
-import { logIfDebug, warnIfDebug, warnOnceIfDebug } from '../utils/log';
-import { getElement } from '../utils/dom';
+import { logIfDebug, warnIfDebug, warnOnceIfDebug } from 'utils/log';
+import { getElement } from 'utils/dom';
 import config from './config/config';
-import Fragment from '../view/Fragment';
-import Hook from '../events/Hook';
-import HookQueue from '../events/HookQueue';
+import Fragment from 'src/view/Fragment';
+import Hook from 'src/events/Hook';
+import HookQueue from 'src/events/HookQueue';
 import Ractive from '../Ractive';
 import subscribe from './helpers/subscribe';
 

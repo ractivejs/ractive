@@ -1,10 +1,10 @@
-import { createDocumentFragment, matches } from '../../utils/dom';
+import { createDocumentFragment, matches } from 'utils/dom';
+import { detachNode } from 'utils/dom';
+import { decodeCharacterReferences } from 'utils/html';
+import runloop from 'src/global/runloop';
 import Mustache from './shared/Mustache';
 import insertHtml from './triple/insertHtml';
-import { decodeCharacterReferences } from '../../utils/html';
-import { detachNode } from '../../utils/dom';
 import { inAttribute } from './element/Attribute';
-import runloop from '../../global/runloop';
 
 export default class Triple extends Mustache {
 	constructor ( options ) {

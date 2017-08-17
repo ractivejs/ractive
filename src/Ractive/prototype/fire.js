@@ -1,5 +1,5 @@
-import fireEvent from '../../events/fireEvent';
-import Context from '../../shared/Context';
+import fireEvent from 'src/events/fireEvent';
+import Context from 'shared/Context';
 
 export default function Ractive$fire ( eventName, ...args ) {
 	let ctx;

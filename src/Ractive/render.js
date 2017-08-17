@@ -1,8 +1,8 @@
-import { doc } from '../config/environment';
-import { applyCSS } from '../global/css';
-import Hook from '../events/Hook';
-import { getElement } from '../utils/dom';
-import runloop from '../global/runloop';
+import { doc } from 'config/environment';
+import { applyCSS } from 'src/global/css';
+import Hook from 'src/events/Hook';
+import { getElement } from 'utils/dom';
+import runloop from 'src/global/runloop';
 import { createFragment } from './initialise';
 
 const renderHook = new Hook( 'render' );

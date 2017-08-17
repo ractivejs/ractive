@@ -1,17 +1,17 @@
-import runloop from '../../global/runloop';
-import { warnIfDebug } from '../../utils/log';
-import { ANCHOR, ATTRIBUTE, BINDING_FLAG, COMPONENT, DECORATOR, EVENT, TRANSITION, YIELDER } from '../../config/types';
+import runloop from 'src/global/runloop';
+import { updateAnchors } from 'shared/anchors';
+import { bind, render as callRender, unbind, unrender, update } from 'shared/methodCallers';
+import { teardown } from 'src/Ractive/prototype/teardown';
+import getRactiveContext from 'shared/getRactiveContext';
+import { warnIfDebug } from 'utils/log';
+import { createDocumentFragment } from 'utils/dom';
+import { ANCHOR, ATTRIBUTE, BINDING_FLAG, COMPONENT, DECORATOR, EVENT, TRANSITION, YIELDER } from 'config/types';
+import construct from 'src/Ractive/construct';
+import initialise from 'src/Ractive/initialise';
+import render from 'src/Ractive/render';
 import Item from './shared/Item';
 import ConditionalAttribute from './element/ConditionalAttribute';
-import construct from '../../Ractive/construct';
-import initialise from '../../Ractive/initialise';
-import render from '../../Ractive/render';
-import { createDocumentFragment } from '../../utils/dom';
 import createItem from './createItem';
-import { bind, render as callRender, unbind, unrender, update } from '../../shared/methodCallers';
-import { updateAnchors } from '../../shared/anchors';
-import { teardown } from '../../Ractive/prototype/teardown';
-import getRactiveContext from '../../shared/getRactiveContext';
 
 export default class Component extends Item {
 	constructor ( options, ComponentConstructor ) {

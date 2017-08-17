@@ -1,8 +1,8 @@
+import { isObject } from 'utils/is';
+import { warnIfDebug } from 'utils/log';
+import resolveReference from 'src/view/resolvers/resolveReference';
 import runloop from '../global/runloop';
 import { splitKeypath } from './keypaths';
-import { isObject } from '../utils/is';
-import { warnIfDebug } from '../utils/log';
-import resolveReference from '../view/resolvers/resolveReference';
 import { FakeFragment } from './getRactiveContext';
 
 export let keep = false;

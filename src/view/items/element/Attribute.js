@@ -1,13 +1,13 @@
-import { INTERPOLATOR } from '../../../config/types';
-import namespaces from '../../../config/namespaces';
+import { INTERPOLATOR } from 'config/types';
+import namespaces from 'config/namespaces';
+import { safeAttributeString } from 'utils/dom';
+import { booleanAttributes } from 'utils/html';
+import hyphenateCamel from 'utils/hyphenateCamel';
 import Fragment from '../../Fragment';
 import Item from '../shared/Item';
 import findElement from '../shared/findElement';
 import getUpdateDelegate from './attribute/getUpdateDelegate';
 import propertyNames from './attribute/propertyNames';
-import { safeAttributeString } from '../../../utils/dom';
-import { booleanAttributes } from '../../../utils/html';
-import hyphenateCamel from '../../../utils/hyphenateCamel';
 import { inAttributes } from './ConditionalAttribute';
 
 function lookupNamespace ( node, prefix ) {

@@ -1,10 +1,10 @@
-import { doc } from '../../../config/environment';
-import { svg } from '../../../config/namespaces';
-import { createElement } from '../../../utils/dom';
-import { toArray } from '../../../utils/array';
+import { doc } from 'config/environment';
+import { svg } from 'config/namespaces';
+import { createElement } from 'utils/dom';
+import { toArray } from 'utils/array';
+import noop from 'utils/noop';
 import Fragment from '../../Fragment';
 import Item from '../shared/Item';
-import noop from '../../../utils/noop';
 
 const div = doc ? createElement( 'div' ) : null;
 

@@ -1,8 +1,8 @@
+import { createDocumentFragment } from 'utils/dom';
+import { isObject } from 'utils/is';
+import { findMap } from 'utils/array';
+import { toEscapedString, toString, destroyed, shuffled, unbind, unrender, unrenderAndDestroy, update } from 'shared/methodCallers';
 import Fragment from './Fragment';
-import { createDocumentFragment } from '../utils/dom';
-import { isObject } from '../utils/is';
-import { findMap } from '../utils/array';
-import { toEscapedString, toString, destroyed, shuffled, unbind, unrender, unrenderAndDestroy, update } from '../shared/methodCallers';
 import findElement from './items/shared/findElement';
 
 export default class RepeatedFragment {

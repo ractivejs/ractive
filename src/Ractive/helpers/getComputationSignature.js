@@ -1,5 +1,5 @@
-import { fatal } from '../../utils/log';
-import bind from '../../utils/bind';
+import { fatal } from 'utils/log';
+import bind from 'utils/bind';
 import { createFunctionFromString } from '../config/runtime-parser';
 
 export default function getComputationSignature ( ractive, key, signature ) {

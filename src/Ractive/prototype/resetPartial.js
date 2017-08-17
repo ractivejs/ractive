@@ -1,5 +1,5 @@
-import runloop from '../../global/runloop';
-import { PARTIAL, COMPONENT, ELEMENT } from '../../config/types';
+import runloop from 'src/global/runloop';
+import { PARTIAL, COMPONENT, ELEMENT } from 'config/types';
 
 function collect( source, name, attr, dest ) {
 	source.forEach( item => {

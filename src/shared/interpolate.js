@@ -1,5 +1,5 @@
-import { fatal } from '../utils/log';
-import { missingPlugin } from '../config/errors';
+import { fatal } from 'utils/log';
+import { missingPlugin } from 'config/errors';
 import interpolators from '../Ractive/static/interpolators';
 import { findInViewHierarchy } from './registry';
 

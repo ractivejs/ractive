@@ -1,4 +1,4 @@
-import { BRACKETED } from '../../../../config/types';
+import { BRACKETED } from 'src/config/types';
 import { expectedExpression, expectedParen } from '../shared/errors';
 import readExpression from '../../readExpression';
 

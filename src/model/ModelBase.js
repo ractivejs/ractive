@@ -1,10 +1,10 @@
 import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
-import { escapeKey, unescapeKey } from '../shared/keypaths';
-import { handleChange } from '../shared/methodCallers';
-import { addToArray, removeFromArray } from '../utils/array';
-import { isObject } from '../utils/is';
-import bind from '../utils/bind';
+import { escapeKey, unescapeKey } from 'shared/keypaths';
+import { handleChange } from 'shared/methodCallers';
+import { addToArray, removeFromArray } from 'utils/array';
+import { isObject } from 'utils/is';
+import bind from 'utils/bind';
 
 const hasProp = Object.prototype.hasOwnProperty;
 

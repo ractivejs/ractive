@@ -1,10 +1,10 @@
-import { findInViewHierarchy } from '../../../shared/registry';
+import { findInViewHierarchy } from 'shared/registry';
+import { warnOnce } from 'utils/log';
+import { missingPlugin } from 'config/errors';
+import noop from 'utils/noop';
+import runloop from 'src/global/runloop';
+import { rebindMatch } from 'src/shared/rebind';
 import findElement from '../shared/findElement';
-import { warnOnce } from '../../../utils/log';
-import { missingPlugin } from '../../../config/errors';
-import noop from '../../../utils/noop';
-import runloop from '../../../global/runloop';
-import { rebindMatch } from '../../../shared/rebind';
 import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
 
 const missingDecorator = {

@@ -1,7 +1,7 @@
-import { ATTRIBUTE } from '../../../../config/types';
+import { ATTRIBUTE } from 'config/types';
+import runloop from 'src/global/runloop';
 import Input from './Input';
 import { isBindable } from '../binding/selectBinding';
-import runloop from '../../../../global/runloop';
 import createItem from '../../createItem';
 import Fragment from '../../../Fragment';
 
