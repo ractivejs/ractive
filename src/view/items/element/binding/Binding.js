@@ -1,7 +1,7 @@
-import runloop from '../../../../global/runloop';
-import { warnOnceIfDebug } from '../../../../utils/log';
+import runloop from 'src/global/runloop';
+import { warnOnceIfDebug } from 'utils/log';
+import noop from 'utils/noop';
 import findElement from '../../shared/findElement';
-import noop from '../../../../utils/noop';
 
 export default class Binding {
 	constructor ( element, name = 'value' ) {

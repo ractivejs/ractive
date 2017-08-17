@@ -1,4 +1,4 @@
-import { PREFIX_OPERATOR } from '../../../config/types';
+import { PREFIX_OPERATOR } from 'config/types';
 import { expectedExpression } from './shared/errors';
 import readMemberOrInvocation from './readMemberOrInvocation';
 import readExpression from '../readExpression';

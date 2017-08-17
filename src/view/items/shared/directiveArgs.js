@@ -1,4 +1,4 @@
-import getFunction from '../../../shared/getFunction';
+import getFunction from 'shared/getFunction';
 import resolveReference from '../../resolvers/resolveReference';
 
 export function setupArgsFn ( item, template, fragment, opts = {} ) {

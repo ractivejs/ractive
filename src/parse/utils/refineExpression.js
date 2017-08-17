@@ -1,4 +1,4 @@
-import { REFERENCE, BRACKETED, MEMBER, REFINEMENT } from '../../config/types';
+import { REFERENCE, BRACKETED, MEMBER, REFINEMENT } from 'config/types';
 import flattenExpression from './flattenExpression';
 
 export default function refineExpression ( expression, mustache ) {

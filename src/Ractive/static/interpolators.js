@@ -1,5 +1,5 @@
-import { isObject, isNumeric } from '../../utils/is';
-import interpolate from '../../shared/interpolate';
+import { isObject, isNumeric } from 'utils/is';
+import interpolate from 'shared/interpolate';
 
 const interpolators = {
 	number ( from, to ) {

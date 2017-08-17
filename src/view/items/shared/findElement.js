@@ -1,4 +1,4 @@
-import { ANCHOR, COMPONENT, ELEMENT } from '../../../config/types';
+import { ANCHOR, COMPONENT, ELEMENT } from 'config/types';
 
 export default function findElement( start, orComponent = true, name ) {
 	while ( start && ( start.type !== ELEMENT || ( name && start.name !== name ) ) && ( !orComponent || ( start.type !== COMPONENT && start.type !== ANCHOR ) ) ) {

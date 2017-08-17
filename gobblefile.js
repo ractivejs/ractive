@@ -7,6 +7,7 @@ const fsPlus = require('fs-plus');
 const gobble = require('gobble');
 const buble = require('buble');
 const rollupLib = require('rollup');
+const rollupAlias = require('rollup-plugin-alias');
 const istanbul = require('rollup-plugin-istanbul');
 const MagicString = require('magic-string');
 
@@ -20,6 +21,17 @@ const banner = `/*
 	Website: http://ractivejs.org
 	License: MIT
 */`;
+
+const ractiveAliases = rollupAlias({
+	resolve: ['.js'],
+
+	src: path.resolve('./src'),
+	config: path.resolve('./src/config'),
+	parse: path.resolve('./src/parse'),
+	shared: path.resolve('./src/shared'),
+	utils: path.resolve('./src/utils')
+});
+
 
 const runtimeModulesToIgnore = ['parse/_parse.js'].map(p => p.split('/').join(path.sep));
 const placeholders = { BUILD_PLACEHOLDER_VERSION: version };
@@ -40,24 +52,24 @@ const sandbox = gobble('sandbox');
 
 module.exports = ({
 	'dev:browser'() {
-		const lib = buildUmdLib('ractive.js', []);
+		const lib = buildUmdLib('ractive.js', [], [ractiveAliases]);
 		const tests = buildBrowserTests();
 		const polyfills = buildUmdPolyfill();
 		return gobble([lib, polyfills, tests, sandbox, qunit]);
 	},
 	'bundle:test'() {
-		const lib = buildUmdLib('ractive.js', [], [istanbul()]);
+		const lib = buildUmdLib('ractive.js', [], [ractiveAliases, istanbul()]);
 		const browserTests = buildBrowserTests();
 		const nodeTests = buildNodeTests();
 		const polyfills = buildUmdPolyfill();
 		return gobble([lib, polyfills, qunit, browserTests, nodeTests]);
 	},
 	'bundle:release'() {
-		const libEsFull = buildESLib('ractive.mjs', []);
-		const libEsRuntime = buildESLib('runtime.mjs', runtimeModulesToIgnore);
+		const libEsFull = buildESLib('ractive.mjs', [], [ractiveAliases]);
+		const libEsRuntime = buildESLib('runtime.mjs', runtimeModulesToIgnore, [ractiveAliases]);
 
-		const libUmdFull = buildUmdLib('ractive.js', []);
-		const libUmdRuntime = buildUmdLib('runtime.js', runtimeModulesToIgnore);
+		const libUmdFull = buildUmdLib('ractive.js', [], [ractiveAliases]);
+		const libUmdRuntime = buildUmdLib('runtime.js', runtimeModulesToIgnore, [ractiveAliases]);
 
 		const libEs = gobble([libEsFull, libEsRuntime]);
 		const libUmd = gobble([libUmdFull, libUmdRuntime]);

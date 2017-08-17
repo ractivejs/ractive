@@ -1,4 +1,4 @@
-import noop from '../utils/noop';
+import noop from 'utils/noop';
 
 export const extern = {};
 

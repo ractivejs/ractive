@@ -1,8 +1,8 @@
-import { getElement } from '../../utils/dom';
-import { toArray } from '../../utils/array';
+import { getElement } from 'utils/dom';
+import { toArray } from 'utils/array';
+import { warnIfDebug } from 'utils/log';
 import render from '../render';
-import { teardown } from '../../shared/methodCallers';
-import { warnIfDebug } from '../../utils/log';
+import { teardown } from 'shared/methodCallers';
 
 export default function Ractive$render ( target, anchor ) {
 	if ( this.torndown ) {

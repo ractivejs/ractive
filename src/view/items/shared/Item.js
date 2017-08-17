@@ -1,5 +1,5 @@
-import { createDocumentFragment } from '../../../utils/dom';
-import noop from '../../../utils/noop';
+import { createDocumentFragment } from 'utils/dom';
+import noop from 'utils/noop';
 
 export default class Item {
 	constructor ( options ) {

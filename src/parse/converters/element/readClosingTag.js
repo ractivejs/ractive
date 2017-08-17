@@ -1,4 +1,4 @@
-import { CLOSING_TAG } from '../../../config/types';
+import { CLOSING_TAG } from 'src/config/types';
 
 const closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
 

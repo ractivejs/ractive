@@ -1,4 +1,4 @@
-import { removeFromArray } from '../../../../utils/array';
+import { removeFromArray } from 'utils/array';
 import Binding from './Binding';
 
 export default function getBindingGroup ( group, model, getValue ) {

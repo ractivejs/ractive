@@ -1,6 +1,6 @@
-import { splitKeypath } from '../../../shared/keypaths';
-import runloop from '../../../global/runloop';
-import getNewIndices from '../../../shared/getNewIndices';
+import { splitKeypath } from 'shared/keypaths';
+import runloop from 'src/global/runloop';
+import getNewIndices from 'shared/getNewIndices';
 
 const arrayProto = Array.prototype;
 

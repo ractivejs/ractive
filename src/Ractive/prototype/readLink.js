@@ -1,4 +1,4 @@
-import { splitKeypath } from '../../shared/keypaths';
+import { splitKeypath } from 'shared/keypaths';
 
 export default function readLink ( keypath, options = {} ) {
 	const path = splitKeypath( keypath );

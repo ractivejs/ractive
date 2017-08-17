@@ -1,5 +1,5 @@
-import { BRACKETED, GLOBAL, REFERENCE } from '../../../../config/types';
-import { normalise } from '../../../../shared/keypaths';
+import { BRACKETED, GLOBAL, REFERENCE } from 'src/config/types';
+import { normalise } from 'src/shared/keypaths';
 import { legalReference, relaxedName } from '../shared/patterns';
 
 // if a reference is a browser global, we don't deference it later, so it needs special treatment

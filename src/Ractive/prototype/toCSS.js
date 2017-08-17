@@ -1,4 +1,4 @@
-import { getCSS } from '../../global/css';
+import { getCSS } from 'src/global/css';
 
 export default function Ractive$toCSS() {
 	const cssIds = [ this.cssId, ...this.findAllComponents().map( c => c.cssId ) ];

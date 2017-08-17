@@ -1,4 +1,4 @@
-import { COMMENT } from '../../config/types';
+import { COMMENT } from 'config/types';
 
 const OPEN_COMMENT = '<!--';
 const CLOSE_COMMENT = '-->';

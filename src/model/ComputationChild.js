@@ -1,6 +1,6 @@
-import { capture } from '../global/capture';
+import { capture } from 'src/global/capture';
 import Model from './Model';
-import { handleChange, mark, marked } from '../shared/methodCallers';
+import { handleChange, mark, marked } from 'shared/methodCallers';
 
 export default class ComputationChild extends Model {
 	constructor ( parent, key ) {

@@ -1,7 +1,7 @@
-import runloop from '../../../../global/runloop';
+import runloop from 'src/global/runloop';
+import getSelectedOptions from 'utils/getSelectedOptions';
 import Binding from './Binding';
 import handleDomEvent from './handleDomEvent';
-import getSelectedOptions from '../../../../utils/getSelectedOptions';
 
 export default class SingleSelectBinding extends Binding {
 	forceUpdate () {

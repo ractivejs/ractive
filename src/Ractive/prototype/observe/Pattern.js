@@ -1,7 +1,7 @@
-import { escapeKey } from '../../../shared/keypaths';
-import { removeFromArray } from '../../../utils/array';
-import { isEqual } from '../../../utils/is';
-import runloop from '../../../global/runloop';
+import { escapeKey } from 'shared/keypaths';
+import { removeFromArray } from 'utils/array';
+import { isEqual } from 'utils/is';
+import runloop from 'src/global/runloop';
 
 const star = /\*+/g;
 

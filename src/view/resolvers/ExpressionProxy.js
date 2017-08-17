@@ -1,12 +1,12 @@
-import Model from '../../model/Model';
-import Computation from '../../model/Computation';
-import getFunction from '../../shared/getFunction';
+import { removeFromArray } from 'utils/array';
+import noop from 'utils/noop';
+import { warnIfDebug } from 'utils/log';
+import Model from 'src/model/Model';
+import Computation from 'src/model/Computation';
+import { startCapturing, stopCapturing } from 'src/global/capture';
+import getFunction from 'shared/getFunction';
+import { rebindMatch } from 'shared/rebind';
 import resolveReference from './resolveReference';
-import { removeFromArray } from '../../utils/array';
-import { startCapturing, stopCapturing } from '../../global/capture';
-import { warnIfDebug } from '../../utils/log';
-import { rebindMatch } from '../../shared/rebind';
-import noop from '../../utils/noop';
 
 export default class ExpressionProxy extends Model {
 	constructor ( fragment, template ) {

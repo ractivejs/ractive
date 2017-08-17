@@ -1,6 +1,6 @@
-import { splitKeypath } from '../../shared/keypaths';
-import SharedModel, { GlobalModel } from '../../model/specials/SharedModel';
-import { warnIfDebug } from '../../utils/log';
+import { splitKeypath } from 'shared/keypaths';
+import SharedModel, { GlobalModel } from 'src/model/specials/SharedModel';
+import { warnIfDebug } from 'utils/log';
 
 export default function resolveReference ( fragment, ref ) {
 	const initialFragment = fragment;
