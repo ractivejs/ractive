@@ -1,11 +1,11 @@
-import { createDocumentFragment } from '../../utils/dom';
-import { SECTION_EACH, SECTION_IF, SECTION_IF_WITH, SECTION_UNLESS, SECTION_WITH } from '../../config/types';
-import { isObject } from '../../utils/is';
+import { SECTION_EACH, SECTION_IF, SECTION_IF_WITH, SECTION_UNLESS, SECTION_WITH } from 'config/types';
+import { createDocumentFragment } from 'utils/dom';
+import { isObject } from 'utils/is';
+import { keep } from 'shared/set';
+import runloop from 'src/global/runloop';
 import Fragment from '../Fragment';
 import RepeatedFragment from '../RepeatedFragment';
 import { MustacheContainer } from './shared/Mustache';
-import { keep } from '../../shared/set';
-import runloop from '../../global/runloop';
 
 function isEmpty ( value ) {
 	return !value ||

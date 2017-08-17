@@ -1,4 +1,4 @@
-import { ELSEIF } from '../../../../config/types';
+import { ELSEIF } from 'config/types';
 import readExpression from '../../readExpression';
 
 const elsePattern = /^\s*elseif\s+/;

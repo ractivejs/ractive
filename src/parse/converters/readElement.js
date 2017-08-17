@@ -1,7 +1,7 @@
-import { ANCHOR, DOCTYPE, ELEMENT } from '../../config/types';
-import { voidElementNames } from '../../utils/html';
+import { ANCHOR, DOCTYPE, ELEMENT } from 'config/types';
+import { voidElementNames } from 'utils/html';
 import { READERS, PARTIAL_READERS } from '../_parse';
-import cleanup from '../utils/cleanup';
+import cleanup from 'parse/utils/cleanup';
 import readMustache from './readMustache';
 import readClosingTag from './element/readClosingTag';
 import readClosing from './mustache/section/readClosing';

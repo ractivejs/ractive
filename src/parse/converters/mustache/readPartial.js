@@ -1,6 +1,6 @@
-import { PARTIAL, YIELDER } from '../../../config/types';
+import { PARTIAL, YIELDER } from 'src/config/types';
 import readExpression from '../readExpression';
-import refineExpression from '../../utils/refineExpression';
+import refineExpression from 'parse/utils/refineExpression';
 import { readAliases } from './readAliases';
 
 export default function readPartial ( parser, tag ) {

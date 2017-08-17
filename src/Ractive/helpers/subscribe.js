@@ -1,4 +1,4 @@
-import { toPairs } from '../../utils/object';
+import { toPairs } from 'utils/object';
 
 export default function subscribe ( instance, options, type ) {
 	const subs = ( instance.constructor[ `_${type}` ] || [] ).concat( toPairs( options[ type ] || [] ) );

@@ -1,4 +1,4 @@
-import { removeFromArray } from '../utils/array';
+import { removeFromArray } from 'utils/array';
 
 export default class TransitionManager {
 	constructor ( callback, parent ) {

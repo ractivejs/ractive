@@ -1,4 +1,4 @@
-import { vendors } from '../../../../config/environment';
+import { vendors } from 'config/environment';
 
 const vendorPattern = new RegExp( '^(?:' + vendors.join( '|' ) + ')([A-Z])' );
 

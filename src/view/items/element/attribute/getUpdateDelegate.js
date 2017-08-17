@@ -1,9 +1,9 @@
-import { html } from '../../../../config/namespaces';
-import { safeToStringValue} from '../../../../utils/dom';
-import { arrayContains } from '../../../../utils/array';
-import noop from '../../../../utils/noop';
-import { readStyle, readClass } from '../../../helpers/specialAttrs';
-import hyphenateCamel from '../../../../utils/hyphenateCamel';
+import { html } from 'config/namespaces';
+import { safeToStringValue} from 'utils/dom';
+import { arrayContains } from 'utils/array';
+import noop from 'utils/noop';
+import hyphenateCamel from 'utils/hyphenateCamel';
+import { readStyle, readClass } from 'src/view/helpers/specialAttrs';
 
 const textTypes = [ undefined, 'text', 'search', 'url', 'email', 'hidden', 'password', 'search', 'reset', 'submit' ];
 

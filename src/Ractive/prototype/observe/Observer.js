@@ -1,7 +1,7 @@
-import { isEqual } from '../../../utils/is';
-import { removeFromArray } from '../../../utils/array';
-import runloop from '../../../global/runloop';
-import { rebindMatch } from '../../../shared/rebind';
+import { isEqual } from 'utils/is';
+import { removeFromArray } from 'utils/array';
+import runloop from 'src/global/runloop';
+import { rebindMatch } from 'shared/rebind';
 
 export default class Observer {
 	constructor ( ractive, model, callback, options ) {

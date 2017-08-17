@@ -1,5 +1,5 @@
 import { fromExpression } from './createFunction';
-import { isObject } from '../../utils/is';
+import { isObject } from 'utils/is';
 
 export default function insertExpressions ( obj, expr ) {
 

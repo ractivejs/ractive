@@ -1,7 +1,7 @@
-import { addToArray, removeFromArray } from '../../utils/array';
-import { unescapeKey } from '../../shared/keypaths';
-import { capture } from '../../global/capture';
-import noop from '../../utils/noop';
+import { addToArray, removeFromArray } from 'utils/array';
+import { unescapeKey } from 'shared/keypaths';
+import { capture } from 'src/global/capture';
+import noop from 'utils/noop';
 
 export default class KeyModel {
 	constructor ( key, parent ) {

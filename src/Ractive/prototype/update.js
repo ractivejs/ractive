@@ -1,6 +1,6 @@
-import Hook from '../../events/Hook';
-import runloop from '../../global/runloop';
-import { splitKeypath } from '../../shared/keypaths';
+import Hook from 'src/events/Hook';
+import runloop from 'src/global/runloop';
+import { splitKeypath } from 'shared/keypaths';
 
 const updateHook = new Hook( 'update' );
 

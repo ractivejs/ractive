@@ -1,5 +1,5 @@
-import { ALIAS, ANCHOR, COMPONENT, DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from '../../config/types';
-import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from '../../config/types';
+import { ALIAS, ANCHOR, COMPONENT, DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from 'config/types';
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from 'config/types';
 import Alias from './Alias';
 import Attribute from './element/Attribute';
 import BindingFlag from './element/BindingFlag';

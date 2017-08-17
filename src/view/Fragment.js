@@ -1,12 +1,12 @@
-import { ELEMENT, YIELDER } from '../config/types';
-import runloop from '../global/runloop';
+import { ELEMENT, YIELDER } from 'config/types';
+import runloop from 'src/global/runloop';
+import { findMap } from 'utils/array';
+import { getContext } from 'shared/getRactiveContext';
+import { bind, destroyed, shuffled, toEscapedString, toString, unbind, unrender, update } from 'shared/methodCallers';
 import createItem from './items/createItem';
-import { bind, destroyed, shuffled, toEscapedString, toString, unbind, unrender, update } from '../shared/methodCallers';
 import processItems from './helpers/processItems';
-import parseJSON from '../utils/parseJSON';
+import parseJSON from 'utils/parseJSON';
 import { createDocumentFragment } from '../utils/dom';
-import { findMap } from '../utils/array';
-import { getContext } from '../shared/getRactiveContext';
 
 function unrenderAndDestroy ( item ) {
 	item.unrender( true );

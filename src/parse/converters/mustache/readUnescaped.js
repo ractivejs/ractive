@@ -1,6 +1,6 @@
-import { TRIPLE } from '../../../config/types';
+import { TRIPLE } from 'config/types';
 import readExpression from '../readExpression';
-import refineExpression from '../../utils/refineExpression';
+import refineExpression from 'parse/utils/refineExpression';
 
 export default function readUnescaped ( parser, tag ) {
 	if ( !parser.matchString( '&' ) ) {

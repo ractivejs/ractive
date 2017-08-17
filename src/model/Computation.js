@@ -1,13 +1,13 @@
 /* global console */
 /* eslint no-console:"off" */
 
-import { capture, startCapturing, stopCapturing } from '../global/capture';
-import { warnIfDebug } from '../utils/log';
+import { capture, startCapturing, stopCapturing } from 'src/global/capture';
+import { warnIfDebug } from 'utils/log';
 import Model from './Model';
 import { maybeBind } from './ModelBase';
 import ComputationChild from './ComputationChild';
-import { hasConsole } from '../config/environment';
-import { isEqual } from '../utils/is';
+import { hasConsole } from 'config/environment';
+import { isEqual } from 'utils/is';
 
 export default class Computation extends Model {
 	constructor ( viewmodel, signature, key ) {

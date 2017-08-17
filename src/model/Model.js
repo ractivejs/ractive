@@ -1,13 +1,13 @@
 import ModelBase, { maybeBind, shuffle } from './ModelBase';
 import LinkModel from './LinkModel'; // eslint-disable-line no-unused-vars
 import KeypathModel from './specials/KeypathModel';
-import { capture } from '../global/capture';
-import { isEqual, isNumeric, isObjectLike } from '../utils/is';
-import { handleChange, mark, markForce, marked, teardown } from '../shared/methodCallers';
-import Ticker from '../shared/Ticker';
+import { capture } from 'src/global/capture';
+import { isEqual, isNumeric, isObjectLike } from 'utils/is';
+import { handleChange, mark, markForce, marked, teardown } from 'shared/methodCallers';
+import Ticker from 'shared/Ticker';
 import getPrefixer from './helpers/getPrefixer';
-import { unescapeKey } from '../shared/keypaths';
-import { warnIfDebug } from '../utils/log';
+import { unescapeKey } from 'shared/keypaths';
+import { warnIfDebug } from 'utils/log';
 
 export default class Model extends ModelBase {
 	constructor ( parent, key ) {

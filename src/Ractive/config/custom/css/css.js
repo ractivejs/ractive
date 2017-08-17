@@ -1,8 +1,8 @@
-import { addCSS } from '../../../../global/css';
+import { addCSS } from 'src/global/css';
 import transformCss from './transform';
-import { uuid } from '../../../../utils/id';
-import { warnIfDebug } from '../../../../utils/log';
-import { getElement } from '../../../../utils/dom';
+import { uuid } from 'utils/id';
+import { warnIfDebug } from 'utils/log';
+import { getElement } from 'utils/dom';
 
 const hasCurly = /\{/;
 export default {

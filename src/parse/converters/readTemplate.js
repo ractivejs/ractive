@@ -1,6 +1,6 @@
-import { TEMPLATE_VERSION } from '../../config/template';
-import { READERS, PARTIAL_READERS } from '../_parse';
-import cleanup from '../utils/cleanup';
+import { TEMPLATE_VERSION } from 'config/template';
+import { READERS, PARTIAL_READERS } from 'parse/_parse';
+import cleanup from 'parse/utils/cleanup';
 
 export default function readTemplate ( parser ) {
 	const fragment = [];

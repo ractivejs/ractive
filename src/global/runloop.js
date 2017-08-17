@@ -1,4 +1,4 @@
-import { addToArray } from '../utils/array';
+import { addToArray } from 'utils/array';
 import TransitionManager from './TransitionManager';
 
 let batch;

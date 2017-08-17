@@ -1,4 +1,4 @@
-import cleanCss from '../../../../utils/cleanCss';
+import cleanCss from 'utils/cleanCss';
 
 const selectorsPattern = /(?:^|\}|\{)\s*([^\{\}\0]+)\s*(?=\{)/g;
 const keyframesDeclarationPattern = /@keyframes\s+[^\{\}]+\s*\{(?:[^{}]+|\{[^{}]+})*}/gi;
