@@ -530,4 +530,19 @@ export default function() {
 		r.attachChild( c, { target: 'anchor' });
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
+
+	test( `binding and unbinding during attachment should not keep repeated sections from rendering (#3060)`, t => {
+		const cmp = Ractive.extend({
+			template: '{{#each [1]}}{{@index}}{{/each}}'
+		});
+
+		const r = new Ractive({
+			target: fixture,
+			template: '<#anchor />'
+		});
+
+		r.attachChild( new cmp(), { target: 'anchor' } );
+
+		t.htmlEqual( fixture.innerHTML, '0' );
+	});
 }

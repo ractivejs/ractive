@@ -132,6 +132,7 @@ export default class Section extends MustacheContainer {
 					this.rendered = true;
 				}
 
+				if ( !this.fragment.bound ) this.fragment.bind( this.model );
 				this.fragment.update();
 			} else {
 				if ( this.sectionType === SECTION_EACH ) {
