@@ -115,6 +115,23 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div></div>text' );
 	});
 
+	test( `kept fragments properly re-render conditional attributes`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '{{#if show}}<div {{#if true}}class-foo{{/if}} />{{/if}}',
+			data: {
+				show: true
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div class="foo"></div>' );
+
+		r.set( 'show', false, { keep: true } );
+		r.toggle( 'show' );
+
+		t.htmlEqual( fixture.innerHTML, '<div class="foo"></div>' );
+	});
+
 	test( `trying to shuffle set a keypath that doesn't exist yet should be equivalent to a plain set`, t => {
 		const r = new Ractive({
 			template: `{{#each list}}{{.}}{{/each}}`,

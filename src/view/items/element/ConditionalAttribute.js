@@ -46,6 +46,10 @@ export default class ConditionalAttribute extends Item {
 		}
 	}
 
+	destroyed () {
+		this.unrender();
+	}
+
 	render () {
 		this.node = this.owner.node;
 		if ( this.node ) {

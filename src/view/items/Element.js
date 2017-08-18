@@ -66,7 +66,7 @@ export default class Element extends ContainerItem {
 					break;
 
 				case DELEGATE_FLAG:
-				  this.delegate = false;
+					this.delegate = false;
 					break;
 
 				default:
@@ -272,6 +272,12 @@ export default class Element extends ContainerItem {
 			}
 		}
 
+		if ( !existing && this.node ) {
+			node = this.node;
+			target.appendChild( node );
+			existing = true;
+		}
+
 		if ( !node ) {
 			const name = this.template.e;
 			node = createElement( this.namespace === html ? name.toLowerCase() : name, this.namespace, this.getAttribute( 'is' ) );
@@ -282,14 +288,9 @@ export default class Element extends ContainerItem {
 		Object.defineProperty( node, '_ractive', {
 			value: {
 				proxy: this
-			}
+			},
+			configurable: true
 		});
-
-		// Is this a top-level node of a component? If so, we may need to add
-		// a data-ractive-css attribute, for CSS encapsulation
-		if ( this.parentFragment.cssIds ) {
-			node.setAttribute( 'data-ractive-css', this.parentFragment.cssIds.map( x => `{${x}}` ).join( ' ' ) );
-		}
 
 		if ( existing && this.foundNode ) this.foundNode( node );
 
@@ -321,6 +322,12 @@ export default class Element extends ContainerItem {
 				const name = node.attributes[i].name;
 				if ( !( name in this.attributeByName ) )node.removeAttribute( name );
 			}
+		}
+
+		// Is this a top-level node of a component? If so, we may need to add
+		// a data-ractive-css attribute, for CSS encapsulation
+		if ( this.parentFragment.cssIds ) {
+			node.setAttribute( 'data-ractive-css', this.parentFragment.cssIds.map( x => `{${x}}` ).join( ' ' ) );
 		}
 
 		if ( this.attributes ) this.attributes.forEach( render );
