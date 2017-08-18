@@ -41,6 +41,7 @@ export default class RepeatedFragment {
 
 	bind ( context ) {
 		this.context = context;
+		this.bound = true;
 		const value = context.get();
 
 		// {{#each array}}...
@@ -202,6 +203,7 @@ export default class RepeatedFragment {
 	}
 
 	unbind () {
+		this.bound = false;
 		this.iterations.forEach( unbind );
 		return this;
 	}
