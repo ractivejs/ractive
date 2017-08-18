@@ -5,7 +5,8 @@ import construct from '../Ractive/construct';
 import initialise from '../Ractive/initialise';
 import Ractive from '../Ractive';
 import isInstance from '../Ractive/static/isInstance';
-import setCSSData from '../Ractive/static/setCSSData';
+import styleSet from '../Ractive/static/styleSet';
+import sharedSet from '../Ractive/static/sharedSet';
 
 const callsSuper = /super\s*\(|\.call\s*\(\s*this/;
 
@@ -66,7 +67,7 @@ function extendOne ( Parent, options = {}, Target ) {
 		Parent: { value: Parent },
 		Ractive: { value: Ractive },
 
-		styleSet: { value: setCSSData.bind( Child ), configurable: true }
+		styleSet: { value: styleSet.bind( Child ), configurable: true }
 	});
 
 	// extend configuration
@@ -106,4 +107,7 @@ function extendOne ( Parent, options = {}, Target ) {
 }
 
 // styleSet for Ractive
-Object.defineProperty( Ractive, 'styleSet', { configurable: true, value: setCSSData.bind( Ractive ) } );
+Object.defineProperty( Ractive, 'styleSet', { configurable: true, value: styleSet.bind( Ractive ) } );
+
+// sharedSet for Ractive
+Object.defineProperty( Ractive, 'sharedSet', { value: sharedSet } );

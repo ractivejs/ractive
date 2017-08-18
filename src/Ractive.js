@@ -23,6 +23,7 @@ import shared from './Ractive/shared';
 import { findPlugin } from './Ractive/static/findPlugin';
 import parseJSON from './utils/parseJSON';
 import CSSModel from './model/specials/CSSModel';
+import { data as sharedData } from './model/specials/SharedModel';
 
 export default function Ractive ( options ) {
 	if ( !( this instanceof Ractive ) ) return new Ractive( options );
@@ -73,7 +74,7 @@ Object.defineProperties( Ractive, {
 	normaliseKeypath: { value: normalise },
 	parse:            { value: parse },
 	splitKeypath:     { value: splitKeypath },
-	// styleSet is in _extend because circular refs
+	// sharedSet and styleSet are in _extend because circular refs
 	unescapeKey:      { value: unescapeKey },
 
 	// support
@@ -96,6 +97,9 @@ Object.defineProperties( Ractive, {
 
 	// CSS variables
 	cssData:          { configurable: true, value: {} },
+
+	// access to @shared without an instance
+	sharedData:       { value: sharedData },
 
 	// for getting the source Ractive lib from a constructor
 	Ractive:          { value: Ractive }
