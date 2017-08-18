@@ -1833,4 +1833,26 @@ export default function() {
 
 		t.equal( fixture.innerHTML, '' );
 	});
+
+	test( `static sharedSet method can be used to updated @shared data without an instance`, t => {
+		Ractive.sharedSet( 'foo', true );
+		Ractive.sharedSet({
+			bar: 'yep',
+			'baz.bat': 'why not'
+		});
+
+		t.equal( Ractive.sharedData.foo, true );
+		t.equal( Ractive.sharedData.bar, 'yep' );
+
+		new Ractive({
+			template: '{{#if @shared.foo}}{{@shared.bar}}, {{@shared.baz.bat}}{{/if}}',
+			target: fixture
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'yep, why not' );
+
+		Ractive.sharedSet( 'bar', 'sure' );
+
+		t.htmlEqual( fixture.innerHTML, 'sure, why not' );
+	});
 }

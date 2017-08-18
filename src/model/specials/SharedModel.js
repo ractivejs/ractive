@@ -1,7 +1,7 @@
 /* global global */
 import Model from '../Model';
 
-const data = {};
+export const data = {};
 
 export class SharedModel extends Model {
 	constructor ( value, name ) {
