@@ -1,4 +1,4 @@
-import { warnIfDebug } from '../utils/log';
+import { warnIfDebug } from 'utils/log';
 
 const leadingWhitespace = /^\s+/;
 

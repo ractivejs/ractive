@@ -1,9 +1,9 @@
-import { SECTION, SECTION_WITH, YIELDER } from '../../config/types';
-import { warnOnceIfDebug, warnIfDebug } from '../../utils/log';
+import { SECTION, SECTION_WITH, YIELDER } from 'config/types';
+import { warnOnceIfDebug, warnIfDebug } from 'utils/log';
+import parser from 'src/Ractive/config/runtime-parser';
 import { MustacheContainer } from './shared/Mustache';
 import Fragment from '../Fragment';
 import getPartialTemplate from './partial/getPartialTemplate';
-import parser from '../../Ractive/config/runtime-parser';
 import { doInAttributes } from './element/ConditionalAttribute';
 import { resolveAliases } from './Alias';
 

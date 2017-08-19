@@ -1,5 +1,5 @@
+import { removeFromArray } from 'utils/array';
 import Element from '../../Element';
-import { removeFromArray } from '../../../../utils/array';
 import findElement from '../../shared/findElement';
 
 export default class Option extends Element {

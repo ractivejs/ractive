@@ -1,6 +1,6 @@
-import Hook from '../../events/Hook';
-import runloop from '../../global/runloop';
-import { unrenderChild, updateAnchors } from '../../shared/anchors';
+import Hook from 'src/events/Hook';
+import runloop from 'src/global/runloop';
+import { unrenderChild, updateAnchors } from 'shared/anchors';
 
 const attachHook = new Hook( 'attachchild' );
 

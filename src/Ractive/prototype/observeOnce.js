@@ -1,4 +1,4 @@
-import { isObject } from '../../utils/is';
+import { isObject } from 'utils/is';
 
 const onceOptions = { init: false, once: true };
 

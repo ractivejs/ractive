@@ -1,5 +1,5 @@
-import { isNumeric } from '../../../utils/is';
-import { build, set } from '../../../shared/set';
+import { isNumeric } from 'utils/is';
+import { build, set } from 'shared/set';
 
 const errorMessage = 'Cannot add to a non-numeric value';
 

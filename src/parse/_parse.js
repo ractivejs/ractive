@@ -1,5 +1,5 @@
-import { TEMPLATE_VERSION } from '../config/template';
-import { ELEMENT } from '../config/types';
+import { TEMPLATE_VERSION } from 'config/template';
+import { ELEMENT } from 'config/types';
 import Parser from './Parser';
 import readMustache from './converters/readMustache';
 import readTriple from './converters/mustache/readTriple';

@@ -1,4 +1,4 @@
-import { warnIfDebug } from '../../utils/log';
+import { warnIfDebug } from 'utils/log';
 
 function getMessage( deprecated, correct, isError ) {
 	return `options.${deprecated} has been deprecated in favour of options.${correct}.`

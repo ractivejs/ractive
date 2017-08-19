@@ -1,14 +1,14 @@
-import { fatal, warnIfDebug, welcome } from '../utils/log';
-import { missingPlugin } from '../config/errors';
-import { ensureArray, combine } from '../utils/array';
-import { findInViewHierarchy } from '../shared/registry';
+import { fatal, warnIfDebug, welcome } from 'utils/log';
+import { missingPlugin } from 'config/errors';
+import { ensureArray, combine } from 'utils/array';
+import { findInViewHierarchy } from 'shared/registry';
 import dataConfigurator from './config/custom/data';
-import RootModel from '../model/RootModel';
-import Hook from '../events/Hook';
+import RootModel from 'src/model/RootModel';
+import Hook from 'src/events/Hook';
 import getComputationSignature from './helpers/getComputationSignature';
 import subscribe from './helpers/subscribe';
 import Ractive from '../Ractive';
-import { ATTRIBUTE, INTERPOLATOR } from '../config/types';
+import { ATTRIBUTE, INTERPOLATOR } from 'config/types';
 
 const constructHook = new Hook( 'construct' );
 

@@ -1,9 +1,9 @@
-import runloop from '../../global/runloop';
-import interpolate from '../../shared/interpolate';
-import { isEqual } from '../../utils/is';
-import { splitKeypath } from '../../shared/keypaths';
-import easing from '../../Ractive/static/easing';
-import noop from '../../utils/noop';
+import runloop from 'src/global/runloop';
+import easing from 'src/Ractive/static/easing';
+import interpolate from 'shared/interpolate';
+import { isEqual } from 'utils/is';
+import noop from 'utils/noop';
+import { splitKeypath } from 'shared/keypaths';
 
 function immediate ( value ) {
 	const result = Promise.resolve( value );

@@ -1,18 +1,18 @@
-import { ATTRIBUTE, BINDING_FLAG, DECORATOR, DELEGATE_FLAG, EVENT, TRANSITION } from '../../config/types';
-import runloop from '../../global/runloop';
-import { win } from '../../config/environment';
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, DELEGATE_FLAG, EVENT, TRANSITION } from 'config/types';
+import { win } from 'config/environment';
+import { html, svg } from 'config/namespaces';
+import { toArray, addToArray, removeFromArray } from 'utils/array';
+import { escapeHtml, voidElementNames } from 'utils/html';
+import { createElement, detachNode, matches, safeAttributeString } from 'utils/dom';
+import runloop from 'src/global/runloop';
+import Context from 'shared/Context';
+import { bind, destroyed, render, unbind, update } from 'shared/methodCallers';
 import { ContainerItem } from './shared/Item';
 import Fragment from '../Fragment';
 import ConditionalAttribute from './element/ConditionalAttribute';
-import { toArray, addToArray, removeFromArray } from '../../utils/array';
-import { escapeHtml, voidElementNames } from '../../utils/html';
-import { bind, destroyed, render, unbind, update } from '../../shared/methodCallers';
-import { createElement, detachNode, matches, safeAttributeString } from '../../utils/dom';
 import createItem from './createItem';
-import { html, svg } from '../../config/namespaces';
 import findElement from './shared/findElement';
 import selectBinding from './element/binding/selectBinding';
-import Context from '../../shared/Context';
 
 const endsWithSemi = /;\s*$/;
 

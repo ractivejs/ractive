@@ -1,4 +1,4 @@
-import { CLOSING } from '../../../../config/types';
+import { CLOSING } from 'config/types';
 
 export default function readClosing ( parser, tag ) {
 	const start = parser.pos;

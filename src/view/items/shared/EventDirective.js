@@ -1,15 +1,15 @@
-import { ANCHOR, COMPONENT } from '../../../config/types';
-import fireEvent from '../../../events/fireEvent';
-import { splitKeypath } from '../../../shared/keypaths';
+import { ANCHOR, COMPONENT } from 'config/types';
+import { warnOnceIfDebug } from 'utils/log';
+import { addToArray, removeFromArray } from 'utils/array';
+import noop from 'utils/noop';
+import fireEvent from 'src/events/fireEvent';
+import { splitKeypath } from 'shared/keypaths';
+import { findInViewHierarchy } from 'shared/registry';
+import runloop from 'src/global/runloop';
 import findElement from './findElement';
-import { findInViewHierarchy } from '../../../shared/registry';
 import { DOMEvent, CustomEvent } from '../element/ElementEvents';
 import RactiveEvent from '../component/RactiveEvent';
-import runloop from '../../../global/runloop';
 import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
-import { warnOnceIfDebug } from '../../../utils/log';
-import { addToArray, removeFromArray } from '../../../utils/array';
-import noop from '../../../utils/noop';
 
 const specialPattern = /^(event|arguments|@node|@event|@context)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;

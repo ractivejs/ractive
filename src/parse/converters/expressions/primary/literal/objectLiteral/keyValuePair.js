@@ -1,4 +1,4 @@
-import { KEY_VALUE_PAIR, REFERENCE } from '../../../../../../config/types';
+import { KEY_VALUE_PAIR, REFERENCE } from 'src/config/types';
 import readKey from '../../../shared/readKey';
 import readExpression from '../../../../readExpression';
 import { name as namePattern, spreadPattern } from '../../../shared/patterns';

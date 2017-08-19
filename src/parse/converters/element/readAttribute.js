@@ -1,11 +1,11 @@
 import { ARRAY_LITERAL, ATTRIBUTE, DECORATOR, DELEGATE_FLAG, BINDING_FLAG, INTERPOLATOR, TRANSITION, EVENT } from '../../../config/types';
 import getLowestIndex from '../utils/getLowestIndex';
 import readMustache from '../readMustache';
-import { decodeCharacterReferences } from '../../../utils/html';
+import { decodeCharacterReferences } from 'src/utils/html';
 import readExpressionList from '../expressions/shared/readExpressionList';
 import readExpressionOrReference from '../readExpressionOrReference';
-import flattenExpression from '../../utils/flattenExpression';
-import refineExpression from '../../utils/refineExpression';
+import flattenExpression from 'parse/utils/flattenExpression';
+import refineExpression from 'parse/utils/refineExpression';
 
 const attributeNamePattern = /^[^\s"'>\/=]+/;
 const onPattern = /^on/;

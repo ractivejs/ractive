@@ -1,6 +1,6 @@
-import { INTERPOLATOR } from '../../../config/types';
+import { INTERPOLATOR } from 'config/types';
 import readExpressionOrReference from '../readExpressionOrReference';
-import refineExpression from '../../utils/refineExpression';
+import refineExpression from 'parse/utils/refineExpression';
 
 export default function readInterpolator ( parser, tag ) {
 	let expression, err;

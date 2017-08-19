@@ -1,5 +1,5 @@
+import { isNumeric } from 'utils/is';
 import Binding from './Binding';
-import { isNumeric } from '../../../../utils/is';
 import handleDomEvent from './handleDomEvent';
 
 function handleBlur () {

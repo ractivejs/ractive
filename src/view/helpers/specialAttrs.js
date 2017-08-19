@@ -1,4 +1,4 @@
-import cleanCss from '../../utils/cleanCss';
+import cleanCss from 'utils/cleanCss';
 
 const space = /\s+/;
 

@@ -1,7 +1,7 @@
-import Hook from '../../events/Hook';
-import { removeFromArray } from '../../utils/array';
-import { cancel } from '../../shared/methodCallers';
-import { warnIfDebug } from '../../utils/log';
+import Hook from 'src/events/Hook';
+import { removeFromArray } from 'utils/array';
+import { cancel } from 'shared/methodCallers';
+import { warnIfDebug } from 'utils/log';
 
 const teardownHook = new Hook( 'teardown' );
 const destructHook = new Hook( 'destruct' );

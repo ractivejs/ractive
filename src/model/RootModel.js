@@ -1,12 +1,12 @@
-import { capture } from '../global/capture';
+import { capture } from 'src/global/capture';
 import Computation from './Computation';
 import Model from './Model';
-import { handleChange, mark } from '../shared/methodCallers';
+import { handleChange, mark } from 'shared/methodCallers';
 import RactiveModel from './specials/RactiveModel';
 import SharedModel, { GlobalModel } from './specials/SharedModel';
-import { splitKeypath, escapeKey, unescapeKey } from '../shared/keypaths';
-import resolveReference from '../view/resolvers/resolveReference';
-import noop from '../utils/noop';
+import { splitKeypath, escapeKey, unescapeKey } from 'shared/keypaths';
+import resolveReference from 'src/view/resolvers/resolveReference';
+import noop from 'utils/noop';
 
 const hasProp = Object.prototype.hasOwnProperty;
 

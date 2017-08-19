@@ -1,15 +1,15 @@
-import { win } from '../../../config/environment';
-import { addToArray, removeFromArray } from '../../../utils/array';
-import { isObject } from '../../../utils/is';
+import { win } from 'config/environment';
+import { addToArray, removeFromArray } from 'utils/array';
+import { isObject } from 'utils/is';
+import noop from 'utils/noop';
+import { warnOnceIfDebug } from 'utils/log';
+import { missingPlugin } from 'config/errors';
+import { findInViewHierarchy } from 'shared/registry';
+import { visible } from 'config/visibility';
 import findElement from '../shared/findElement';
 import prefix from './transitions/prefix';
-import { warnOnceIfDebug } from '../../../utils/log';
-import { missingPlugin } from '../../../config/errors';
-import { findInViewHierarchy } from '../../../shared/registry';
-import { visible } from '../../../config/visibility';
 import createTransitions from './transitions/createTransitions';
 import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
-import noop from '../../../utils/noop';
 
 const getComputedStyle = win && win.getComputedStyle;
 const resolved = Promise.resolve();

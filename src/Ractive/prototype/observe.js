@@ -1,7 +1,7 @@
-import { isObject } from '../../utils/is';
-import { warnOnceIfDebug } from '../../utils/log';
-import { splitKeypath } from '../../shared/keypaths';
-import resolveReference from '../../view/resolvers/resolveReference';
+import { isObject } from 'utils/is';
+import { warnOnceIfDebug } from 'utils/log';
+import { splitKeypath } from 'shared/keypaths';
+import resolveReference from 'src/view/resolvers/resolveReference';
 import Observer from './observe/Observer';
 import PatternObserver from './observe/Pattern';
 import ArrayObserver from './observe/Array';

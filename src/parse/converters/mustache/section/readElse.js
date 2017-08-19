@@ -1,4 +1,4 @@
-import { ELSE } from '../../../../config/types';
+import { ELSE } from 'config/types';
 
 const elsePattern = /^\s*else\s*/;
 
