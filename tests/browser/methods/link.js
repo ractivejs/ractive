@@ -187,4 +187,23 @@ export default function() {
 		r1.link( 'bat', 'baz' );
 		t.htmlEqual( fixture.innerHTML, 'b' );
 	});
+
+	test( `links can be set up to track through shuffles rather than being forced absolute if given a keypath`, t => {
+		const r1 = new Ractive({
+			data: {
+				list: [{ name: 'george' }, { name: 'susan' }, { name: 'pat' }]
+			}
+		});
+
+		const r2 = new Ractive({
+			template: '{{foo}}',
+			target: fixture
+		});
+
+		r2.link( 'list.1.name', 'foo', { instance: r1, keypath: '.name' } );
+
+		t.htmlEqual( fixture.innerHTML, 'susan' );
+		r1.shift( 'list' );
+		t.htmlEqual( fixture.innerHTML, 'susan' );
+	});
 }
