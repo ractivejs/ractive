@@ -37,11 +37,11 @@ export default class ArrayObserver {
 		if ( this.options.once ) this.cancel();
 	}
 
-	handleChange () {
+	handleChange ( path ) {
 		if ( this.pending ) {
 			// post-shuffle
 			runloop.addObserver( this, this.options.defer );
-		} else {
+		} else if ( !path ) {
 			// entire array changed
 			this.shuffle( this.sliced.map( negativeOne ) );
 			this.handleChange();
