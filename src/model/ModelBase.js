@@ -1,7 +1,6 @@
 import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
 import { escapeKey, unescapeKey } from '../shared/keypaths';
-import { handleChange } from '../shared/methodCallers';
 import { addToArray, removeFromArray } from '../utils/array';
 import { isObject } from '../utils/is';
 import bind from '../utils/bind';
@@ -162,7 +161,7 @@ export default class ModelBase {
 			if ( parent.patternObservers.length ) parent.patternObservers.forEach( o => o.notify( path.slice() ) );
 			path.unshift( parent.key );
 			parent.links.forEach( l => l.notifiedUpstream( path, this.root ) );
-			parent.deps.forEach( handleChange );
+			parent.deps.forEach( d => d.handleChange( path ) );
 			parent = parent.parent;
 		}
 	}

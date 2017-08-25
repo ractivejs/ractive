@@ -1557,6 +1557,28 @@ export default function() {
 		t.deepEqual( shuffle.deleted, [ 'apple', 'orange', 'banana' ] );
 	});
 
+	test( 'list observers only fire on actual array modification and not downstream changes', t => {
+		const ractive = new Ractive({
+			data: {
+				fruits: [{ name: 'apple' }]
+			}
+		});
+
+		let step = 1;
+
+		ractive.observe( 'fruits', c => {
+			if ( step === 1 ) t.equal( c.inserted.length, 1 );
+			else if ( step === 2 ) t.ok( false, 'should not fire on downstream changes' );
+			else if ( step === 3 ) t.equal( c.inserted.length, 1 );
+		}, { array: true });
+
+		step = 2;
+		ractive.set( 'fruits.0.name', 'banana' );
+
+		step = 3;
+		ractive.push( 'fruits', { name: 'orange' } );
+	});
+
 	test( 'Pattern observers on arrays fire correctly after mutations', t => {
 		const ractive = new Ractive({
 			data: {
