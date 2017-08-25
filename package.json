@@ -8,7 +8,7 @@
     "npm": ">=2.14.2"
   },
   "devDependencies": {
-    "buble": "^0.15.2",
+    "@evs-chris/buble": "^0.15.2",
     "cheerio": "^0.22.0",
     "coveralls": "^2.12.0",
     "electron": "^1.4.15",
