@@ -5,7 +5,7 @@ const path = require('path');
 
 const fsPlus = require('fs-plus');
 const gobble = require('gobble');
-const buble = require('buble');
+const buble = require('@evs-chris/buble');
 const rollupLib = require('rollup');
 const rollupAlias = require('rollup-plugin-alias');
 const istanbul = require('rollup-plugin-istanbul');
