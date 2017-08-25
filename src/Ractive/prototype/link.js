@@ -22,7 +22,7 @@ export default function link ( there, here, options ) {
 
 	const promise = runloop.start();
 
-	dest.link( src, there );
+	dest.link( src, ( options && options.keypath ) || there );
 
 	runloop.end();
 
