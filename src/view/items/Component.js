@@ -12,19 +12,22 @@ import render from 'src/Ractive/render';
 import Item from './shared/Item';
 import ConditionalAttribute from './element/ConditionalAttribute';
 import createItem from './createItem';
+import parser from 'src/Ractive/config/runtime-parser';
 
 export default class Component extends Item {
 	constructor ( options, ComponentConstructor ) {
 		super( options );
-		this.isAnchor = this.template.t === ANCHOR;
+		let template = options.template;
+		this.isAnchor = template.t === ANCHOR;
 		this.type = this.isAnchor ? ANCHOR : COMPONENT; // override ELEMENT from super
+		let attrs = template.m;
 
-		const partials = options.template.p || {};
-		if ( !( 'content' in partials ) ) partials.content = options.template.f || [];
+		const partials = template.p || {};
+		if ( !( 'content' in partials ) ) partials.content = template.f || [];
 		this._partials = partials; // TEMP
 
 		if ( this.isAnchor ) {
-			this.name = options.template.n;
+			this.name = template.n;
 
 			this.addChild = addChild;
 			this.removeChild = removeChild;
@@ -32,7 +35,7 @@ export default class Component extends Item {
 			const instance = Object.create( ComponentConstructor.prototype );
 
 			this.instance = instance;
-			this.name = options.template.e;
+			this.name = template.e;
 
 			if ( instance.el ) {
 				warnIfDebug( `The <${this.name}> component has a default 'el' property; it has been disregarded` );
@@ -58,6 +61,17 @@ export default class Component extends Item {
 
 			construct( this.instance, { partials });
 
+			// these can be modified during construction
+			template = this.template;
+			attrs = template.m;
+
+			// allow components that are so inclined to add programmatic mappings
+			if ( Array.isArray( this.mappings ) ) {
+				attrs = ( attrs || [] ).concat( this.mappings );
+			} else if ( typeof this.mappings === 'string' ) {
+				attrs = ( attrs || [] ).concat( parser.parse( this.mappings, { attributes: true } ).t );
+			}
+
 			// for hackability, this could be an open option
 			// for any ractive instance, but for now, just
 			// for components and just for ractive...
@@ -65,37 +79,39 @@ export default class Component extends Item {
 		}
 
 		this.attributeByName = {};
-
 		this.attributes = [];
-		const leftovers = [];
-		( this.template.m || [] ).forEach( template => {
-			switch ( template.t ) {
-				case ATTRIBUTE:
-				case EVENT:
-					this.attributes.push( createItem({
-						owner: this,
-						parentFragment: this.parentFragment,
-						template
-					}) );
-					break;
 
-				case TRANSITION:
-				case BINDING_FLAG:
-				case DECORATOR:
-					break;
+		if (attrs) {
+			const leftovers = [];
+			attrs.forEach( template => {
+				switch ( template.t ) {
+					case ATTRIBUTE:
+					case EVENT:
+						this.attributes.push( createItem({
+							owner: this,
+							parentFragment: this.parentFragment,
+							template
+						}) );
+						break;
 
-				default:
-					leftovers.push( template );
-					break;
+					case TRANSITION:
+					case BINDING_FLAG:
+					case DECORATOR:
+						break;
+
+					default:
+						leftovers.push( template );
+						break;
+				}
+			});
+
+			if ( leftovers.length ) {
+				this.attributes.push( new ConditionalAttribute({
+					owner: this,
+					parentFragment: this.parentFragment,
+					template: leftovers
+				}) );
 			}
-		});
-
-		if ( leftovers.length ) {
-			this.attributes.push( new ConditionalAttribute({
-				owner: this,
-				parentFragment: this.parentFragment,
-				template: leftovers
-			}) );
 		}
 
 		this.eventHandlers = [];
