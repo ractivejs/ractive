@@ -1662,4 +1662,39 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '0 dave<button>rm</button>' );
 	});
+
+	test( `components can request additional mappings to be made during construction`, t => {
+		const cmp1 = Ractive.extend({
+			template: '{{foo}}{{#with scope}}{{.foo}}{{/with}}',
+			on: {
+				construct () {
+					if ( this.component ) this.component.mappings = [{ t: 13, n: 'scope', f: [{ t: 2, r: '.' }] }];
+				}
+			},
+			data () { return { foo: 'cmp1' }; }
+		});
+
+		const cmp2 = Ractive.extend({
+			template: '{{foo}}{{#with scope}}{{.foo}}{{/with}}',
+			on: {
+				construct () {
+					if ( this.component ) this.component.mappings = 'bind-scope=.';
+				}
+			},
+			data () { return { foo: 'cmp2' }; }
+		});
+
+		const r = new Ractive({
+			target: fixture,
+			template: '<cmp1 /><cmp2 />',
+			data: { foo: ' outer ' },
+			components: { cmp1, cmp2 }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'cmp1 outer cmp2 outer' );
+
+		r.set( 'foo', ' foo ' );
+
+		t.htmlEqual( fixture.innerHTML, 'cmp1 foo cmp2 foo' );
+	});
 }

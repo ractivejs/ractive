@@ -830,6 +830,14 @@ const parseTests = [
 		parsed: {v:4,t:['<!-- comment -->']}
 	},
 	{
+		name: 'attributes mode',
+		template: 'foo=bar baz="{{bat}}" {{#if wat}}on-click="@.foo()"{{/if}} class-bip',
+		options: {
+			attributes: true
+		},
+		parsed: {v:4,t:[{n:'foo',f:'bar',t:13},{n:'baz',f:[{t:2,r:'bat'}],t:13},{t:4,f:[{n:['click'],t:70,f:{r:['@this'],s:'[_0.foo()]'}}],n:50,r:'wat'},{n:'class-bip',t:13}]}
+	},
+	{
 		name: 'unclosed element',
 		template: '<ul><li>',
 		error: `Missing end tags (</li></ul>) at line 1 character 9:

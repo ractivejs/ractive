@@ -71,6 +71,8 @@ const StandardParser = Parser.extend({
 		this.textOnlyMode = options.textOnlyMode;
 		this.csp = options.csp;
 
+		if ( options.attributes ) this.inTag = true;
+
 		this.transforms = options.transforms || options.parserTransforms;
 		if ( this.transforms ) {
 			this.transforms = this.transforms.concat( shared.defaults.parserTransforms );
