@@ -1,3 +1,4 @@
+/* istanbul ignore if */
 if (typeof window !== 'undefined' && !(window.requestAnimationFrame && window.cancelAnimationFrame)) {
 	let lastTime = 0;
 	window.requestAnimationFrame = function (callback) {

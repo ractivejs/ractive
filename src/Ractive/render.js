@@ -12,7 +12,7 @@ export default function render ( ractive, target, anchor, occupants ) {
 	// set a flag to let any transitions know that this instance is currently rendering
 	ractive.rendering = true;
 
-	const promise = runloop.start( ractive, true );
+	const promise = runloop.start();
 	runloop.scheduleTask( () => renderHook.fire( ractive ), true );
 
 	if ( ractive.fragment.rendered ) {

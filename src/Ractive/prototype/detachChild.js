@@ -19,7 +19,7 @@ export default function detachChild ( child ) {
 
 	if ( !meta || child.parent !== this ) throw new Error( `Instance ${child._guid} is not attached to this instance.` );
 
-	const promise = runloop.start( child, true );
+	const promise = runloop.start();
 
 	if ( meta.anchor ) meta.anchor.removeChild( meta );
 	if ( !child.isolated ) child.viewmodel.detached();

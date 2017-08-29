@@ -1,13 +1,9 @@
-import Model from '../Model';
+import { SharedModel } from './SharedModel';
 import { Missing } from '../LinkModel';
 
-export default class RactiveModel extends Model {
+export default class RactiveModel extends SharedModel {
 	constructor ( ractive ) {
-		super( null, '' );
-		this.value = ractive;
-		this.isRoot = true;
-		this.root = this;
-		this.adaptors = [];
+		super( ractive, '@this' );
 		this.ractive = ractive;
 	}
 
@@ -16,16 +12,9 @@ export default class RactiveModel extends Model {
 
 		if ( ( key === 'root' || key === 'parent' ) && !model.isLink ) return initLink( model, key );
 		else if ( key === 'data' ) return this.ractive.viewmodel;
+		else if ( key === 'cssData' ) return this.ractive.constructor._cssModel;
 
 		return model;
-	}
-
-	getKeypath() {
-		return '@this';
-	}
-
-	retrieve () {
-		return this.ractive;
 	}
 }
 

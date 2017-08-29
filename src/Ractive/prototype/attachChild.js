@@ -43,7 +43,7 @@ export default function attachChild ( child, options = {} ) {
 
 	attachHook.fire( child );
 
-	const promise = runloop.start( child, true );
+	const promise = runloop.start();
 
 	if ( meta.target ) {
 		unrenderChild( meta );

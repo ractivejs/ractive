@@ -10,7 +10,7 @@ export default function add ( ractive, keypath, d, options ) {
 
 	const sets = build( ractive, keypath, d, options && options.isolated );
 
-	return set( ractive, sets.map( pair => {
+	return set( sets.map( pair => {
 		const [ model, add ] = pair;
 		const value = model.get();
 		if ( !isNumeric( add ) || !isNumeric( value ) ) throw new Error( errorMessage );

@@ -1,5 +1,4 @@
 export function fillGaps ( target, ...sources ) {
-
 	for (let i = 0; i < sources.length; i++){
 		const source = sources[i];
 		for ( const key in source ) {

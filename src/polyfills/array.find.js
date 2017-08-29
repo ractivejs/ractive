@@ -1,3 +1,4 @@
+/* istanbul ignore if */
 if (!Array.prototype.find) {
 	Object.defineProperty( Array.prototype, 'find', {
 		value (callback, thisArg) {

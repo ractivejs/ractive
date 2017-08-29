@@ -22,7 +22,7 @@ export default class RadioBinding extends Binding {
 	}
 
 	handleChange () {
-		runloop.start( this.root );
+		runloop.start();
 
 		this.siblings.forEach( binding => {
 			binding.model.set( binding.getValue() );

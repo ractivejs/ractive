@@ -1,7 +1,7 @@
 /* global global */
 import Model from '../Model';
 
-const data = {};
+export const data = {};
 
 export class SharedModel extends Model {
 	constructor ( value, name ) {
@@ -16,6 +16,8 @@ export class SharedModel extends Model {
 	getKeypath() {
 		return this.key;
 	}
+
+	retrieve () { return this.value; }
 }
 
 export default new SharedModel( data, 'shared' );

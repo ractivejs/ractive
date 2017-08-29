@@ -12,7 +12,7 @@ export default function Ractive$unrender () {
 	}
 
 	this.unrendering = true;
-	const promise = runloop.start( this, true );
+	const promise = runloop.start();
 
 	// If this is a component, and the component isn't marked for destruction,
 	// don't detach nodes from the DOM unnecessarily

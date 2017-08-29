@@ -22,6 +22,8 @@ import { joinKeys, splitKeypath } from './Ractive/static/keypaths';
 import shared from './Ractive/shared';
 import { findPlugin } from './Ractive/static/findPlugin';
 import parseJSON from './utils/parseJSON';
+import CSSModel from './model/specials/CSSModel';
+import { data as sharedData } from './model/specials/SharedModel';
 
 export default function Ractive ( options ) {
 	if ( !( this instanceof Ractive ) ) return new Ractive( options );
@@ -37,7 +39,7 @@ if ( win && !win.Ractive ) {
 
 	if ( script ) opts = script.getAttribute( 'data-ractive-options' ) || '';
 
-	/* istanbul iggnore next */
+	/* istanbul ignore next */
 	if ( ~opts.indexOf( 'ForceGlobal' ) ) win.Ractive = Ractive;
 }
 
@@ -62,17 +64,18 @@ Object.defineProperties( Ractive, {
 	extend:           { value: extend },
 	extendWith:       { value: extendWith },
 	escapeKey:        { value: escapeKey },
+	evalObjectString: { value: parseJSON },
+	findPlugin:       { value: findPlugin },
 	getContext:       { value: getContext },
+	getCSS:           { value: getCSS },
 	getNodeInfo:      { value: getNodeInfo },
 	isInstance:       { value: isInstance },
 	joinKeys:         { value: joinKeys },
+	normaliseKeypath: { value: normalise },
 	parse:            { value: parse },
 	splitKeypath:     { value: splitKeypath },
+	// sharedSet and styleSet are in _extend because circular refs
 	unescapeKey:      { value: unescapeKey },
-	getCSS:           { value: getCSS },
-	normaliseKeypath: { value: normalise },
-	findPlugin:       { value: findPlugin },
-	evalObjectString: { value: parseJSON },
 
 	// support
 	enhance:          { writable: true, value: false },
@@ -87,10 +90,19 @@ Object.defineProperties( Ractive, {
 	decorators:       { writable: true, value: {} },
 	easing:           { writable: true, value: easing },
 	events:           { writable: true, value: {} },
+	extensions:       { value: [] },
 	interpolators:    { writable: true, value: interpolators },
 	partials:         { writable: true, value: {} },
 	transitions:      { writable: true, value: {} },
 
+	// CSS variables
+	cssData:          { configurable: true, value: {} },
+
+	// access to @shared without an instance
+	sharedData:       { value: sharedData },
+
 	// for getting the source Ractive lib from a constructor
 	Ractive:          { value: Ractive }
 });
+
+Object.defineProperty( Ractive, '_cssModel', { configurable: true, value: new CSSModel( Ractive ) } );

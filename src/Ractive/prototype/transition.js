@@ -32,7 +32,7 @@ export default function Ractive$transition ( name, node, params ) {
 	const transition = new Transition({ owner, parentFragment: owner.parentFragment, name, params });
 	transition.bind();
 
-	const promise = runloop.start( this, true );
+	const promise = runloop.start();
 	runloop.registerTransition( transition );
 	runloop.end();
 

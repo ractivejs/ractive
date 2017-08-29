@@ -44,7 +44,7 @@ export default function ( name, partial ) {
 	const collection = [];
 	collect( this.fragment.items, name, false, collection );
 
-	const promise = runloop.start( this, true );
+	const promise = runloop.start();
 
 	this.partials[ name ] = partial;
 	collection.forEach( forceResetTemplate );

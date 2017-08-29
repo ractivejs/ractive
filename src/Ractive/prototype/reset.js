@@ -20,7 +20,7 @@ export default function Ractive$reset ( data ) {
 	// TEMP need to tidy this up
 	data = dataConfigurator.init( this.constructor, this, { data });
 
-	const promise = runloop.start( this, true );
+	const promise = runloop.start();
 
 	// If the root object is wrapped, try and use the wrapper's reset value
 	const wrapper = this.viewmodel.wrapper;

@@ -5,6 +5,6 @@ export default function Ractive$set ( keypath, value, options ) {
 
 	const opts = typeof keypath === 'object' ? value : options;
 
-	return set( ractive, build( ractive, keypath, value, opts && opts.isolated ), opts );
+	return set( build( ractive, keypath, value, opts && opts.isolated ), opts );
 }
 

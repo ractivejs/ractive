@@ -21,7 +21,7 @@ const defaultKeys = Object.keys( defaults );
 const isStandardKey = makeObj( defaultKeys.filter( key => !custom[ key ] ) );
 
 // blacklisted keys that we don't double extend
-const isBlacklisted = makeObj( defaultKeys.concat( registries.map( r => r.name ), [ 'on', 'observe', 'attributes' ] ) );
+const isBlacklisted = makeObj( defaultKeys.concat( registries.map( r => r.name ), [ 'on', 'observe', 'attributes', 'cssData' ] ) );
 
 const order = [].concat(
 	defaultKeys.filter( key => !registries[ key ] && !custom[ key ] ),
@@ -32,12 +32,12 @@ const order = [].concat(
 );
 
 const config = {
-	extend: ( Parent, proto, options ) => configure( 'extend', Parent, proto, options ),
+	extend: ( Parent, proto, options, Child ) => configure( 'extend', Parent, proto, options, Child ),
 	init: ( Parent, ractive, options ) => configure( 'init', Parent, ractive, options ),
 	reset: ractive => order.filter( c => c.reset && c.reset( ractive ) ).map( c => c.name )
 };
 
-function configure ( method, Parent, target, options ) {
+function configure ( method, Parent, target, options, Child ) {
 	deprecate( options );
 
 	for ( const key in options ) {
@@ -65,12 +65,12 @@ function configure ( method, Parent, target, options ) {
 	}
 
 	registries.forEach( registry => {
-		registry[ method ]( Parent, target, options );
+		registry[ method ]( Parent, target, options, Child );
 	});
 
-	adaptConfigurator[ method ]( Parent, target, options );
-	templateConfigurator[ method ]( Parent, target, options );
-	cssConfigurator[ method ]( Parent, target, options );
+	adaptConfigurator[ method ]( Parent, target, options, Child );
+	templateConfigurator[ method ]( Parent, target, options, Child );
+	cssConfigurator[ method ]( Parent, target, options, Child );
 
 	extendOtherMethods( Parent.prototype, target, options );
 }
