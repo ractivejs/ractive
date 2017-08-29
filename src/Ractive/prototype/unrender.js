@@ -1,7 +1,7 @@
-import Hook from '../../events/Hook';
-import { warnIfDebug } from '../../utils/log';
-import { removeFromArray } from '../../utils/array';
-import runloop from '../../global/runloop';
+import Hook from 'src/events/Hook';
+import { warnIfDebug } from 'utils/log';
+import { removeFromArray } from 'utils/array';
+import runloop from 'src/global/runloop';
 
 const unrenderHook = new Hook( 'unrender' );
 

@@ -1,7 +1,7 @@
+import noop from 'utils/noop';
 import Binding from './Binding';
 import getBindingGroup from './getBindingGroup';
 import handleDomEvent from './handleDomEvent';
-import noop from '../../../../utils/noop';
 
 function getValue() {
 	const checked = this.bindings.filter( b => b.node.checked );

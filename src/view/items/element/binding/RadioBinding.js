@@ -1,5 +1,5 @@
-import runloop from '../../../../global/runloop';
-import { removeFromArray } from '../../../../utils/array';
+import runloop from 'src/global/runloop';
+import { removeFromArray } from 'utils/array';
 import Binding from './Binding';
 import handleDomEvent from './handleDomEvent';
 

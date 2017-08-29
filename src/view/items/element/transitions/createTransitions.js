@@ -1,9 +1,9 @@
-import { missingPlugin } from '../../../../config/errors';
-import { isClient } from '../../../../config/environment';
-import { warnIfDebug, warnOnceIfDebug } from '../../../../utils/log';
-import { createElement } from '../../../../utils/dom';
-import interpolate from '../../../../shared/interpolate';
-import Ticker from '../../../../shared/Ticker';
+import { missingPlugin } from 'config/errors';
+import { isClient } from 'config/environment';
+import { warnIfDebug, warnOnceIfDebug } from 'utils/log';
+import { createElement } from 'utils/dom';
+import interpolate from 'shared/interpolate';
+import Ticker from 'shared/Ticker';
 import hyphenate from './hyphenate';
 
 let createTransitions;

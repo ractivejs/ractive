@@ -1,7 +1,7 @@
+import { arrayContentsMatch } from 'utils/array';
+import getSelectedOptions from 'utils/getSelectedOptions';
 import Binding from './Binding';
 import handleDomEvent from './handleDomEvent';
-import { arrayContentsMatch } from '../../../../utils/array';
-import getSelectedOptions from '../../../../utils/getSelectedOptions';
 
 export default class MultipleSelectBinding extends Binding {
 	getInitialValue () {

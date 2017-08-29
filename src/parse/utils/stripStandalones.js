@@ -1,5 +1,5 @@
-import { COMMENT, DELIMCHANGE, SECTION, INVERTED } from '../../config/types';
-import { lastItem } from '../../utils/array';
+import { COMMENT, DELIMCHANGE, SECTION, INVERTED } from 'config/types';
+import { lastItem } from 'utils/array';
 
 const leadingLinebreak = /^[ \t\f\r\n]*\r?\n/;
 const trailingLinebreak = /\r?\n[ \t\f\r\n]*$/;

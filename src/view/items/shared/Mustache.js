@@ -1,6 +1,6 @@
+import { rebindMatch } from 'shared/rebind';
 import Item, { ContainerItem } from './Item';
 import resolve from '../../resolvers/resolve';
-import { rebindMatch } from '../../../shared/rebind';
 
 export default class Mustache extends Item {
 	constructor ( options ) {

@@ -1,8 +1,8 @@
 import progressiveText from './shared/progressiveText';
-import { escapeHtml } from '../../utils/html';
-import { safeToStringValue } from '../../utils/dom';
+import { escapeHtml } from 'utils/html';
+import { safeToStringValue } from 'utils/dom';
+import { detachNode } from 'utils/dom';
 import Mustache from './shared/Mustache';
-import { detachNode } from '../../utils/dom';
 import { inAttributes } from './element/ConditionalAttribute';
 
 export default class Interpolator extends Mustache {

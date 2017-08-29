@@ -1,5 +1,5 @@
+import noop from 'utils/noop';
 import Item from './shared/Item';
-import noop from '../../utils/noop';
 
 export default class Doctype extends Item {
 	toString () {

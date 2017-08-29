@@ -1,11 +1,11 @@
-import { ALIAS, SECTION, SECTION_IF, SECTION_UNLESS } from '../../../config/types';
-import { READERS } from '../../_parse';
+import { ALIAS, SECTION, SECTION_IF, SECTION_UNLESS } from 'config/types';
+import { READERS } from 'parse/_parse';
 import readClosing from './section/readClosing';
 import readElse from './section/readElse';
 import readElseIf from './section/readElseIf';
 import handlebarsBlockCodes from './handlebarsBlockCodes';
 import readExpression from '../readExpression';
-import refineExpression from '../../utils/refineExpression';
+import refineExpression from 'parse/utils/refineExpression';
 import { readAlias, readAliases } from './readAliases';
 
 const indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;

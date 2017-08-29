@@ -1,13 +1,13 @@
-import Model from '../../model/Model';
-import { findBoundValue } from '../../model/ModelBase';
-import { REFERENCE } from '../../config/types';
+import Model from 'src/model/Model';
+import { findBoundValue } from 'src/model/ModelBase';
+import { REFERENCE } from 'config/types';
+import { rebindMatch } from 'shared/rebind';
+import { handleChange, mark, marked } from 'shared/methodCallers';
+import { isEqual } from 'utils/is';
+import { escapeKey } from 'shared/keypaths';
 import ExpressionProxy from './ExpressionProxy';
 import resolveReference from './resolveReference';
 import resolve from './resolve';
-import { rebindMatch } from '../../shared/rebind';
-import { handleChange, mark, marked } from '../../shared/methodCallers';
-import { isEqual } from '../../utils/is';
-import { escapeKey } from '../../shared/keypaths';
 
 class ReferenceExpressionChild extends Model {
 	constructor ( parent, key ) {

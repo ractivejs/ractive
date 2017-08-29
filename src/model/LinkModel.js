@@ -1,10 +1,10 @@
 import ModelBase, { fireShuffleTasks, maybeBind, shuffle } from './ModelBase';
 import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
-import { handleChange, marked, markedAll, teardown } from '../shared/methodCallers';
-import { rebindMatch } from '../shared/rebind';
-import resolveReference from '../view/resolvers/resolveReference';
-import noop from '../utils/noop';
+import { handleChange, marked, markedAll, teardown } from 'shared/methodCallers';
+import { rebindMatch } from 'shared/rebind';
+import resolveReference from 'src/view/resolvers/resolveReference';
+import noop from 'src/utils/noop';
 
 // temporary placeholder target for detached implicit links
 export const Missing = {

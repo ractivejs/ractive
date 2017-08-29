@@ -1,4 +1,4 @@
-import { COMMENT, ELEMENT } from '../../config/types';
+import { COMMENT, ELEMENT } from 'config/types';
 import stripStandalones from './stripStandalones';
 import trimWhitespace from './trimWhitespace';
 

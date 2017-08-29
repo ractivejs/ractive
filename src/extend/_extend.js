@@ -1,4 +1,4 @@
-import { toPairs } from '../utils/object';
+import { toPairs } from 'utils/object';
 import config from '../Ractive/config/config';
 import dataConfigurator from '../Ractive/config/custom/data';
 import construct from '../Ractive/construct';

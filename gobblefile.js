@@ -7,6 +7,7 @@ const fsPlus = require('fs-plus');
 const gobble = require('gobble');
 const buble = require('buble');
 const rollupLib = require('rollup');
+const rollupAlias = require('rollup-plugin-alias');
 const istanbul = require('rollup-plugin-istanbul');
 const MagicString = require('magic-string');
 
@@ -20,6 +21,23 @@ const banner = `/*
 	Website: http://ractivejs.org
 	License: MIT
 */`;
+
+/**
+ * Ractive aliases
+ *
+ * @warning keep aliases aligned with jsconfig.json
+ */
+const ractiveAliases = rollupAlias({
+	resolve: ['.js'],
+
+	src: path.resolve('./src'),
+	config: path.resolve('./src/config'),
+	parse: path.resolve('./src/parse'),
+	shared: path.resolve('./src/shared'),
+	utils: path.resolve('./src/utils'),
+});
+
+const ractiveRollupPlugins = [ractiveAliases];
 
 const placeholders = { BUILD_PLACEHOLDER_VERSION: version };
 
@@ -39,12 +57,12 @@ const sandbox = gobble('sandbox');
 
 module.exports = ({
 	'dev:browser'() {
-		const lib = buildUmdLib('ractive.js');
+		const lib = buildUmdLib('ractive.js', ractiveRollupPlugins);
 		const tests = buildBrowserTests();
 		return gobble([lib, tests, sandbox, qunit]);
 	},
 	'bundle:test'() {
-		const lib = buildUmdLib('ractive.js', [istanbul()]);
+		const lib = buildUmdLib('ractive.js', ractiveRollupPlugins.concat(ractiveAliases, istanbul()));
 		const browserTests = buildBrowserTests();
 		const nodeTests = buildNodeTests();
 		return gobble([lib, qunit, browserTests, nodeTests]);
@@ -52,12 +70,12 @@ module.exports = ({
 	'bundle:release'() {
 		const runtimeModulesToIgnore = ['parse/_parse.js'];
 
-		const esRegular = buildESLib('ractive.mjs');
-		const esRuntime = buildESLib('runtime.mjs',  [skipModule(runtimeModulesToIgnore)]);
+		const esRegular = buildESLib('ractive.mjs', ractiveRollupPlugins);
+		const esRuntime = buildESLib('runtime.mjs', ractiveRollupPlugins.concat(skipModule(runtimeModulesToIgnore)));
 		const esPolyfill = buildESPolyfill();
 
-		const umdRegular = buildUmdLib('ractive.js');
-		const umdRuntime = buildUmdLib('runtime.js', [skipModule(runtimeModulesToIgnore)]);
+		const umdRegular = buildUmdLib('ractive.js', ractiveRollupPlugins);
+		const umdRuntime = buildUmdLib('runtime.js', ractiveRollupPlugins.concat(skipModule(runtimeModulesToIgnore)));
 		const umdPolyfill = buildUmdPolyfill();
 
 		const libEs = gobble([esRegular, esRuntime, esPolyfill]);

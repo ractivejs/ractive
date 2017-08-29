@@ -1,4 +1,4 @@
-import { doc } from '../../../config/environment';
+import { doc } from 'config/environment';
 
 export default function progressiveText ( item, target, occupants, text ) {
 	if ( occupants ) {

@@ -1,13 +1,13 @@
-import resolveReference from '../view/resolvers/resolveReference';
+import resolveReference from 'src/view/resolvers/resolveReference';
+import Model from 'src/model/Model';
+import { isNumeric, isObject } from 'utils/is';
+import runloop from 'src/global/runloop';
+import findElement from 'src/view/items/shared/findElement';
 import { set as sharedSet } from './set';
-import { isNumeric, isObject } from '../utils/is';
 import makeArrayMethod from '../Ractive/prototype/shared/makeArrayMethod';
 import { animate as protoAnimate } from '../Ractive/prototype/animate';
 import { update as protoUpdate } from '../Ractive/prototype/update';
-import runloop from '../global/runloop';
-import findElement from '../view/items/shared/findElement';
 import getRactiveContext, { extern } from './getRactiveContext';
-import Model from '../model/Model';
 
 const modelPush = makeArrayMethod( 'push' ).model;
 const modelPop = makeArrayMethod( 'pop' ).model;

@@ -1,6 +1,6 @@
-import { isClient, vendors } from '../../../../config/environment';
-import { createElement } from '../../../../utils/dom';
-import hyphenateCamel from '../../../../utils/hyphenateCamel';
+import { isClient, vendors } from 'config/environment';
+import { createElement } from 'utils/dom';
+import hyphenateCamel from 'utils/hyphenateCamel';
 
 let prefix;
 
