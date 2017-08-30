@@ -206,4 +206,50 @@ export default function() {
 		r1.shift( 'list' );
 		t.htmlEqual( fixture.innerHTML, 'susan' );
 	});
+
+	test( `linked nested models don't rebind incorrectly during a shuffle`, t => {
+		const r = new Ractive({
+			template: `{{#each links}}{{.thing}}{{/each}}`,
+			target: fixture,
+			data: {
+				links: [ {}, {}, {} ],
+				things: [ 1, 2, 3 ]
+			}
+		});
+
+		[ 0, 1, 2 ].forEach( i => r.link( `things.${i}`, `links.${i}.thing` ) );
+
+		t.htmlEqual( fixture.innerHTML, '123' );
+
+		r.splice( 'links', 1, 1 );
+
+		t.htmlEqual( fixture.innerHTML, '12' );
+
+		r.shift( 'links' );
+
+		t.htmlEqual( fixture.innerHTML, '1' );
+	});
+
+	test( `linked nested models don't rebind incorrectly during a shuffle`, t => {
+		const r = new Ractive({
+			template: `{{#each links}}{{.}}{{/each}}`,
+			target: fixture,
+			data: {
+				links: [ 0, 0, 0 ],
+				things: [ 1, 2, 3 ]
+			}
+		});
+
+		[ 0, 1, 2 ].forEach( i => r.link( `things.${i}`, `links.${i}` ) );
+
+		t.htmlEqual( fixture.innerHTML, '123' );
+
+		r.splice( 'links', 1, 1 );
+
+		t.htmlEqual( fixture.innerHTML, '12' );
+
+		r.shift( 'links' );
+
+		t.htmlEqual( fixture.innerHTML, '1' );
+	});
 }
