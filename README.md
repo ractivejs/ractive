@@ -17,7 +17,7 @@ Features include...
 
 ## Getting started
 
-To get a feel for how it will make your life as a web developer easier, head over to the documentation at [ractive.js.org](https://ractive.js.org/) or get a quick hands-on with [interactive tutorials](http://learn.ractivejs.org).
+To get a feel for how it will make your life as a web developer easier, head over to the documentation at [ractive.js.org](https://ractive.js.org/) or get a quick hands-on with [interactive tutorials](https://ractive.js.org/tutorials/hello-world/).
 
 ## Contributing
 
