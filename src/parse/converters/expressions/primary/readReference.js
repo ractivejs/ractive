@@ -79,9 +79,14 @@ export default function readReference ( parser ) {
 		// but only if the reference was actually a member and not a refinement
 		lastDotIndex = reference.lastIndexOf( '.' );
 		if ( lastDotIndex !== -1 && name[ name.length - 1 ] !== ']' ) {
-			const refLength = reference.length;
-			reference = reference.substr( 0, lastDotIndex );
-			parser.pos = startPos + ( actual - ( refLength - lastDotIndex ) );
+			if ( lastDotIndex === 0 ) {
+				reference = '.';
+				parser.pos = startPos;
+			} else {
+				const refLength = reference.length;
+				reference = reference.substr( 0, lastDotIndex );
+				parser.pos = startPos + ( actual - ( refLength - lastDotIndex ) );
+			}
 		} else {
 			parser.pos -= 1;
 		}

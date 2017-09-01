@@ -207,6 +207,16 @@ const parseTests = [
 		parsed: {v:4,t:[{t:2,x:{r:['three','one.two'],s:'_1[_0]()'}}]}
 	},
 	{
+		name: 'Expression with method and local scoped prefix',
+		template: `{{ .fn() }}`,
+		parsed: {v:4,t:[{t:2,x:{r:['.'],s:'_0.fn()'}}]}
+	},
+	{
+		name: 'Expression with method and a deep local scoped prefix',
+		template: `{{ .some.fn() }}`,
+		parsed: {v:4,t:[{t:2,x:{r:['.some'],s:'_0.fn()'}}]}
+	},
+	{
 		name: 'Void tag with spaces',
 		template: `<hr />{{foo}}`,
 		parsed: {v:4,t:[{e:'hr',t:7},{r:'foo',t:2}]}
