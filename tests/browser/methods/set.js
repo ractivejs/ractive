@@ -27,6 +27,8 @@ export default function() {
 
 
 	test( `keep set does not discard vdom or dom, where non-keep does`, t => {
+		const done = t.async();
+
 		const r = new Ractive({
 			target: fixture,
 			template: `{{#if show}}{{#each [1,2]}}<span>{{.}}</span>{{/each}}<cmp />{{/if}}`,
@@ -41,13 +43,18 @@ export default function() {
 		r.toggle( 'show', { keep: true } );
 		t.ok( initFrag === r.fragment.items[0].detached );
 		t.ok( each === r.fragment.items[0].detached.items[0] );
-		t.htmlEqual( fixture.innerHTML, '' );
 
-		r.toggle( 'show' );
-		t.ok( initFrag === r.fragment.items[0].fragment );
-		t.ok( each === r.fragment.items[0].fragment.items[0] );
-		t.htmlEqual( fixture.innerHTML, '<span>1</span><span>2</span>' );
-		t.ok( cmp === r.findComponent( '*' ) );
+		setTimeout(() => {
+			t.htmlEqual( fixture.innerHTML, '' );
+
+			r.toggle( 'show' );
+			t.ok( initFrag === r.fragment.items[0].fragment );
+			t.ok( each === r.fragment.items[0].fragment.items[0] );
+			t.htmlEqual( fixture.innerHTML, '<span>1</span><span>2</span>' );
+			t.ok( cmp === r.findComponent( '*' ) );
+
+			done();
+		});
 	});
 
 	test( `kept fragments aren't considered during find, findAll, and friends`, t => {
@@ -116,6 +123,8 @@ export default function() {
 	});
 
 	test( `kept fragments properly re-render conditional attributes`, t => {
+		const done = t.async();
+
 		const r = new Ractive({
 			target: fixture,
 			template: '{{#if show}}<div {{#if true}}class-foo{{/if}} />{{/if}}',
@@ -126,10 +135,32 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '<div class="foo"></div>' );
 
-		r.set( 'show', false, { keep: true } );
-		r.toggle( 'show' );
+		r.set( 'show', false, { keep: true } ).then( () => {
+			t.htmlEqual( fixture.innerHTML, '' );
 
-		t.htmlEqual( fixture.innerHTML, '<div class="foo"></div>' );
+			r.toggle( 'show' );
+
+			t.htmlEqual( fixture.innerHTML, '<div class="foo"></div>' );
+		}).then( done, done );
+	});
+
+	test( `kept fragments should hang around long enough to transition`, t => {
+		const done = t.async();
+		t.expect( 1 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#if show}}<div go-out />{{/if}}`,
+			data: { show: true },
+			transitions: {
+				go( trans ) {
+					t.ok( !( trans.node.parentNode instanceof DocumentFragment ), 'node is still attached' );
+					trans.complete();
+				}
+			}
+		});
+
+		r.toggle( 'show', { keep: true } ).then( done, done );
 	});
 
 	test( `trying to shuffle set a keypath that doesn't exist yet should be equivalent to a plain set`, t => {

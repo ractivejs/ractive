@@ -157,7 +157,9 @@ export default class Section extends MustacheContainer {
 				} else {
 					this.unrender( false );
 					this.detached = this.fragment;
-					runloop.scheduleTask( () => this.detach() );
+					runloop.promise().then( () => {
+						if ( this.detached ) this.detach();
+					});
 				}
 			} else if ( this.fragment ) {
 				this.fragment.unbind();
