@@ -23,7 +23,7 @@ export default class Decorator {
 		this.name = template.n;
 
 		this.node = null;
-		this.intermediary = null;
+		this.handle = null;
 
 		this.element.decorators.push( this );
 	}
@@ -40,7 +40,10 @@ export default class Decorator {
 	}
 
 	destroyed () {
-		if ( this.intermediary ) this.intermediary.teardown();
+		if ( this.handle ) {
+			this.handle.teardown();
+			this.handle = null;
+		}
 		this.shouldDestroy = true;
 	}
 
@@ -61,12 +64,14 @@ export default class Decorator {
 	}
 
 	render () {
+		this.shouldDestroy = false;
+		if ( this.handle ) this.unrender();
 		runloop.scheduleTask( () => {
 			const fn = findInViewHierarchy( 'decorators', this.ractive, this.name );
 
 			if ( !fn ) {
 				warnOnce( missingPlugin( this.name, 'decorator' ) );
-				this.intermediary = missingDecorator;
+				this.handle = missingDecorator;
 				return;
 			}
 
@@ -82,16 +87,15 @@ export default class Decorator {
 				args = this.fn.apply( this.ractive, args );
 			}
 
-			this.intermediary = fn.apply( this.ractive, [ this.node ].concat( args ) );
+			this.handle = fn.apply( this.ractive, [ this.node ].concat( args ) );
 
-			if ( !this.intermediary || !this.intermediary.teardown ) {
+			if ( !this.handle || !this.handle.teardown ) {
 				throw new Error( `The '${this.name}' decorator must return an object with a teardown method` );
 			}
 
 			// watch out for decorators that cause their host element to be unrendered
 			if ( this.shouldDestroy ) this.destroyed();
 		}, true );
-		this.rendered = true;
 	}
 
 	toString () { return ''; }
@@ -101,12 +105,14 @@ export default class Decorator {
 	}
 
 	unrender ( shouldDestroy ) {
-		if ( ( !shouldDestroy || this.element.rendered ) && this.intermediary ) this.intermediary.teardown();
-		this.rendered = false;
+		if ( ( !shouldDestroy || this.element.rendered ) && this.handle ) {
+			this.handle.teardown();
+			this.handle = null;
+		}
 	}
 
 	update () {
-		const instance = this.intermediary;
+		const instance = this.handle;
 
 		if ( !this.dirty ) {
 			if ( instance && instance.invalidate ) {

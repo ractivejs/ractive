@@ -46,7 +46,7 @@ export default class Context {
 	get decorators () {
 		const items = {};
 		if ( !this.element ) return items;
-		this.element.decorators.forEach( d => items[ d.name ] = d.intermediary );
+		this.element.decorators.forEach( d => items[ d.name ] = d.handle );
 		return items;
 	}
 
