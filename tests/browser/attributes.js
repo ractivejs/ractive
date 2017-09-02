@@ -302,4 +302,22 @@ export default function () {
 		r.toggle( 'foo' );
 		t.equal( r.find( 'div' ).style.width, '20px' );
 	});
+
+	test( `toggling the same attribute to different values in a conditional (#3071)`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '<div {{#if a}}data-foo="a"{{else}}data-foo="b"{{/if}} />',
+			data: { a: true }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div data-foo="a"></div>' );
+
+		r.toggle( 'a' );
+
+		t.htmlEqual( fixture.innerHTML, '<div data-foo="b"></div>' );
+
+		r.toggle( 'a' );
+
+		t.htmlEqual( fixture.innerHTML, '<div data-foo="a"></div>' );
+	});
 }

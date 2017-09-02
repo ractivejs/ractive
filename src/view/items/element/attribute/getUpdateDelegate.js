@@ -316,11 +316,23 @@ function updateBoolean ( reset ) {
 }
 
 function updateAttribute ( reset ) {
-	if ( reset ) this.node.removeAttribute( this.name );
-	else this.node.setAttribute( this.name, safeToStringValue( this.getString() ) );
+	if ( reset ) {
+		if ( this.node.getAttribute( this.name ) === this.value ) {
+			this.node.removeAttribute( this.name );
+		}
+	} else {
+		this.value = safeToStringValue( this.getString() );
+		this.node.setAttribute( this.name, this.value );
+	}
 }
 
 function updateNamespacedAttribute ( reset ) {
-	if ( reset ) this.node.removeAttributeNS( this.namespace, this.name.slice( this.name.indexOf( ':' ) + 1 ) );
-	else this.node.setAttributeNS( this.namespace, this.name.slice( this.name.indexOf( ':' ) + 1 ), safeToStringValue( this.getString() ) );
+	if ( reset ) {
+		if ( this.value === this.node.getAttributeNS( this.namespace, this.name.slice( this.name.indexOf( ':' ) + 1 ) ) ) {
+			this.node.removeAttributeNS( this.namespace, this.name.slice( this.name.indexOf( ':' ) + 1 ) );
+		}
+	} else {
+		this.value = safeToStringValue( this.getString() );
+		this.node.setAttributeNS( this.namespace, this.name.slice( this.name.indexOf( ':' ) + 1 ), this.value );
+	}
 }
