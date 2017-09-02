@@ -226,13 +226,13 @@ const renderTests = [
 	{
 		name: 'Arithmetic expression with missing data',
 		template: '{{ number * 2 }}',
-		result: 'NaN'
+		result: ''
 	},
 	{
 		name: 'Arithmetic expression with missing data and update',
 		template: '{{ number * 2 }}',
 		new_data: { number: 20 },
-		result: 'NaN',
+		result: '',
 		new_result: '40'
 	},
 	{
@@ -469,6 +469,12 @@ const renderTests = [
 		name: 'Null values in the viewmodel',
 		template: '<p>{{foo}}</p>',
 		data: { foo: null },
+		result: '<p></p>'
+	},
+	{
+		name: 'NaN values in the viewmodel',
+		template: '<p>{{foo}}</p>',
+		data: { foo: NaN },
 		result: '<p></p>'
 	},
 	{
