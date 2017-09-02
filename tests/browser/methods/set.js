@@ -163,6 +163,33 @@ export default function() {
 		r.toggle( 'show', { keep: true } ).then( done, done );
 	});
 
+	test( `decorators survive a set cycle with keep`, t => {
+		const done = t.async();
+		t.expect( 2 );
+
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#if show}}<div as-a />{{/if}}`,
+			data: { show: true },
+			decorators: {
+				a ( node ) {
+					node.className = 'yep';
+					return {
+						teardown () { node.className = ''; }
+					};
+				}
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div class="yep"></div>' );
+
+		r.toggle( 'show', { keep: true } ).then( () => {
+			r.toggle( 'show' );
+
+			t.htmlEqual( fixture.innerHTML, '<div class="yep"></div>' );
+		}).then( done, done );
+	});
+
 	test( `trying to shuffle set a keypath that doesn't exist yet should be equivalent to a plain set`, t => {
 		const r = new Ractive({
 			template: `{{#each list}}{{.}}{{/each}}`,
