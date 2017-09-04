@@ -125,10 +125,12 @@ export default class Fragment {
 	findNextNode ( item ) {
 		// search for the next node going forward
 		if ( item ) {
+			let it;
 			for ( let i = item.index + 1; i < this.items.length; i++ ) {
-				if ( !this.items[ i ] ) continue;
+				it = this.items[i];
+				if ( !it || !it.firstNode ) continue;
 
-				const node = this.items[ i ].firstNode( true );
+				const node = it.firstNode( true );
 				if ( node ) return node;
 			}
 		}
