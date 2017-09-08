@@ -364,4 +364,32 @@ export default function() {
 
 		t.equal( r.get( 'foo.bar' ), 'yep' );
 	});
+
+	test( `components can request that proxied events be fired with a specific context (#3067)`, t => {
+		const cmp = Ractive.extend({
+			template: '<span on-click="_click">{{yield}}</span>',
+			on: {
+				_click ( context ) {
+					const ctx = this.getContext( context.node ).getParent( true );
+					ctx.refire = true;
+					this.fire( 'click', ctx );
+				}
+			}
+		});
+
+		const r = new Ractive({
+			template: `{{#with foo.bar}}{{.baz}}<cmp on-click="@context.set('.baz', 'clicked')">click me</cmp>{{/with}}`,
+			target: fixture,
+			data: {
+				foo: { bar: {} }
+			},
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<span>click me</span>' );
+
+		fire( r.find( 'span' ), 'click' );
+
+		t.htmlEqual( fixture.innerHTML, 'clicked<span>click me</span>' );
+	});
 }

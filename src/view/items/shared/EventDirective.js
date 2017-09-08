@@ -10,6 +10,7 @@ import findElement from './findElement';
 import { DOMEvent, CustomEvent } from '../element/ElementEvents';
 import RactiveEvent from '../component/RactiveEvent';
 import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
+import Context from 'src/shared/Context';
 
 const specialPattern = /^(event|arguments|@node|@event|@context)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
@@ -58,7 +59,7 @@ export default class EventDirective {
 	}
 
 	fire ( event, args = [] ) {
-		const context = this.element.getContext( event );
+		const context = event instanceof Context && event.refire ? event : this.element.getContext( event );
 
 		if ( this.fn ) {
 			const values = [];
