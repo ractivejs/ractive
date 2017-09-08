@@ -9,7 +9,7 @@ export default function Ractive$fire ( eventName, ...args ) {
 		const proto = args.shift();
 		ctx = Object.create( proto );
 		Object.assign( ctx, proto );
-	} else if ( typeof args[0] === 'object' && args[0].constructor === Object ) {
+	} else if ( typeof args[0] === 'object' && ( args[0] === null || args[0].constructor === Object ) ) {
 		ctx = Context.forRactive( this, args.shift() );
 	} else {
 		ctx = Context.forRactive( this );
