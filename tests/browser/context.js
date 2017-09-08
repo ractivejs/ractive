@@ -900,4 +900,85 @@ export default function() {
 		Element.prototype.addEventListener = add;
 		Element.prototype.removeEventListener = rem;
 	});
+
+	test( `contexts provide a handle to their parent context`, t => {
+		const r = new Ractive({
+			template: `{{#with foo}}<div>{{#with bar}}{{#if baz}}{{#with baz}}<span />{{/with}}{{/if}}{{/with}}</div>{{/with}}`,
+			target: fixture,
+			data: {
+				foo: { bar: { baz: { bat: true } } }
+			}
+		});
+
+		let ctx = r.getContext( 'span' );
+
+		t.equal( ctx.resolve(), 'foo.bar.baz' );
+		t.strictEqual( ctx.node, r.find( 'span' ) );
+
+		ctx = ctx.getParent();
+		t.equal( ctx.resolve(), 'foo.bar' );
+		t.strictEqual( ctx.node, r.find( 'div' ) );
+
+		ctx = ctx.getParent();
+		t.equal( ctx.resolve(), 'foo' );
+		t.strictEqual( ctx.node, undefined );
+
+		ctx = ctx.getParent();
+		t.equal( ctx.resolve(), '' );
+		t.strictEqual( ctx.node, undefined );
+
+		t.strictEqual( ctx.getParent(), undefined );
+	});
+
+	test( `accessing parent context in an iteration`, t => {
+		const r = new Ractive({
+			template: `{{#each list}}<span />{{/each}}`,
+			target: fixture,
+			data: { list: [ {} ] }
+		});
+
+		let ctx = r.getContext( 'span' );
+		t.equal( ctx.resolve(), 'list.0' );
+
+		ctx = ctx.getParent();
+		t.equal( ctx.resolve(), 'list' );
+
+		ctx = ctx.getParent();
+		t.equal( ctx.resolve(), '' );
+
+		t.strictEqual( ctx.getParent(), undefined );
+	});
+
+	test( `getParent doesn't cross component boundaries unless asked`, t => {
+		const cmp = Ractive.extend({
+			template: `{{#with baz}}<span />{{/with}}`,
+			data () {
+				return { baz: {} };
+			}
+		});
+
+		const r = new Ractive({
+			template: `{{#with foo.bar}}{{#with baz}}<cmp />{{/with}}{{/with}}`,
+			target: fixture,
+			components: { cmp },
+			data: { foo: { bar: { baz: {} } } }
+		});
+
+		let ctx = r.getContext( 'span' );
+		t.equal( ctx.resolve(), 'baz' );
+
+		ctx = ctx.getParent();
+		t.equal( ctx.resolve(), '' );
+		t.strictEqual( ctx.getParent(), undefined );
+
+		ctx = ctx.getParent( true );
+		t.equal( ctx.resolve(), 'foo.bar.baz' );
+
+		ctx = ctx.getParent();
+		t.equal( ctx.resolve(), 'foo.bar' );
+
+		ctx = ctx.getParent();
+		t.equal( ctx.resolve(), '' );
+		t.strictEqual( ctx.getParent(), undefined );
+	});
 }

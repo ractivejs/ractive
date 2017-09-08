@@ -4,6 +4,7 @@ import { findMap } from 'utils/array';
 import { toEscapedString, toString, destroyed, shuffled, unbind, unrender, unrenderAndDestroy, update } from 'shared/methodCallers';
 import Fragment from './Fragment';
 import findElement from './items/shared/findElement';
+import { getContext } from 'shared/getRactiveContext';
 
 export default class RepeatedFragment {
 	constructor ( options ) {
@@ -120,12 +121,16 @@ export default class RepeatedFragment {
 		return this.iterations.forEach( i => i.findAll( selector, options ) );
 	}
 
+	findAllComponents ( name, options ) {
+		return this.iterations.forEach( i => i.findAllComponents( name, options ) );
+	}
+
 	findComponent ( name, options ) {
 		return findMap( this.iterations, i => i.findComponent( name, options ) );
 	}
 
-	findAllComponents ( name, options ) {
-		return this.iterations.forEach( i => i.findAllComponents( name, options ) );
+	findContext () {
+		return this.context;
 	}
 
 	findNextNode ( iteration ) {
@@ -432,6 +437,8 @@ export default class RepeatedFragment {
 		this.shuffled();
 	}
 }
+
+RepeatedFragment.prototype.getContext = getContext;
 
 // find the topmost delegate
 function findDelegate ( start ) {
