@@ -398,4 +398,16 @@ export default function() {
 
 		t.ok( c1 === 1 && c2 === 1 );
 	});
+
+	test( `firing an event with a null context doesn't blow up (#3079)`, t => {
+		t.expect( 1 );
+
+		const r = new Ractive({
+			on: {
+				foo ( ctx, num ) { t.equal( num, 1 ); }
+			}
+		});
+
+		r.fire( 'foo', null, 1 );
+	});
 }
