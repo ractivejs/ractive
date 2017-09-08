@@ -124,7 +124,7 @@ const StandardParser = Parser.extend({
 						}
 
 						// watch for partials
-						if ( node.p ) {
+						if ( node.p && !Array.isArray( node.p ) ) {
 							for ( const k in node.p ) walk( node.p[k] );
 						}
 					}
@@ -137,7 +137,7 @@ const StandardParser = Parser.extend({
 			walk( result[0].t );
 
 			// watch for root partials
-			if ( result[0].p ) {
+			if ( result[0].p && !Array.isArray( result[0].p ) ) {
 				for ( const k in result[0].p ) walk( result[0].p[k] );
 			}
 		}

@@ -1081,4 +1081,18 @@ export default function() {
 		t.deepEqual(instance.partials.bar, [{ r: 'baz', t: 2 }]);
 		t.deepEqual(instance.partials.qux, [{ r: 'qux', t: 2 }]);
 	});
+
+	test('Line positions are not used as inline partials (#3082)', t => {
+		const Component = Ractive.extend({ template: '' });
+
+		try {
+			Component({
+				template: Ractive.parse('<div>{{>sort}}</div>', { includeLinePositions: true })
+			});
+
+			t.ok(true);
+		} catch (e) {
+			t.ok(false);
+		}
+	});
 }
