@@ -1,7 +1,7 @@
 import { ELEMENT, YIELDER } from 'config/types';
 import runloop from 'src/global/runloop';
 import { findMap } from 'utils/array';
-import { getContext } from 'shared/getRactiveContext';
+import { getContext, findParentWithContext } from 'shared/getRactiveContext';
 import { bind, destroyed, shuffled, toEscapedString, toString, unbind, unrender, update } from 'shared/methodCallers';
 import createItem from './items/createItem';
 import processItems from './helpers/processItems';
@@ -116,10 +116,9 @@ export default class Fragment {
 	}
 
 	findContext () {
-		let fragment = this;
-		while ( fragment && !fragment.context ) fragment = fragment.parent;
-		if ( !fragment ) return this.ractive.viewmodel;
-		else return fragment.context;
+		const base = findParentWithContext( this );
+		if ( !base || !base.context ) return this.ractive.viewmodel;
+		else return base.context;
 	}
 
 	findNextNode ( item ) {

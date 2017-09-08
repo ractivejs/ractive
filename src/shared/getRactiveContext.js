@@ -23,3 +23,11 @@ export class FakeFragment {
 const proto = FakeFragment.prototype;
 proto.getContext = getContext;
 proto.find = proto.findComponent = proto.findAll = proto.findAllComponents = noop;
+
+export function findParentWithContext ( fragment ) {
+	let frag = fragment;
+	while ( frag && !frag.context ) frag = frag.parent;
+	if ( !frag ) return fragment && fragment.ractive.fragment;
+	else return frag;
+}
+

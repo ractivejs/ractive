@@ -7,7 +7,7 @@ import { set as sharedSet } from './set';
 import makeArrayMethod from '../Ractive/prototype/shared/makeArrayMethod';
 import { animate as protoAnimate } from '../Ractive/prototype/animate';
 import { update as protoUpdate } from '../Ractive/prototype/update';
-import getRactiveContext, { extern } from './getRactiveContext';
+import getRactiveContext, { extern, findParentWithContext } from './getRactiveContext';
 
 const modelPush = makeArrayMethod( 'push' ).model;
 const modelPop = makeArrayMethod( 'pop' ).model;
@@ -78,6 +78,19 @@ export default class Context {
 		const { model } = findModel( this, keypath );
 
 		return model ? model.get( true ) : undefined;
+	}
+
+	getParent ( component ) {
+		let fragment = this.fragment;
+
+		if ( fragment.context ) fragment = findParentWithContext( fragment.parent || ( component && fragment.componentParent ) );
+		else {
+			fragment = findParentWithContext( fragment.parent || ( component && fragment.componentParent ) );
+			if ( fragment ) fragment = findParentWithContext( fragment.parent || ( component && fragment.componentParent ) );
+		}
+
+		if ( !fragment || fragment === this.fragment ) return;
+		else return fragment.getContext();
 	}
 
 	link ( source, dest ) {
