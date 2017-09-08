@@ -4,6 +4,8 @@ import { fillGaps } from 'utils/object';
 import parser from 'src/Ractive/config/runtime-parser';
 import { findInstance } from 'shared/registry';
 
+const hasOwn = Object.prototype.hasOwnProperty;
+
 export default function getPartialTemplate ( ractive, name, parentFragment ) {
 	// If the partial in instance or view heirarchy instances, great
 	let partial = getPartialFromRegistry( ractive, name, parentFragment || {} );
@@ -89,7 +91,7 @@ function findConstructor ( constructor, key ) {
 
 function findParentPartial( name, parent ) {
 	if ( parent ) {
-		if ( parent.template && parent.template.p && parent.template.p[name] ) {
+		if ( parent.template && parent.template.p && !Array.isArray( parent.template.p ) && hasOwn.call( parent.template.p, name ) ) {
 			return parent.template.p[name];
 		} else if ( parent.parentFragment && parent.parentFragment.owner ) {
 			return findParentPartial( name, parent.parentFragment.owner );
