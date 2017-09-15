@@ -1095,4 +1095,25 @@ export default function() {
 			t.ok(false);
 		}
 	});
+
+	test( `yielding outside of a component context is a noop #3086`, t => {
+		const child = new Ractive({
+			target: fixture,
+			template: '{{yield}}!'
+		});
+
+		t.htmlEqual( fixture.innerHTML, '!' );
+
+		const r = new Ractive({
+			target: fixture,
+			template: `<#anchor>{{name}} content</anchor>`,
+			data: {
+				name: 'default'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '' );
+		r.attachChild( child, { target: 'anchor' } );
+		t.htmlEqual( fixture.innerHTML, 'default content!' );
+	});
 }
