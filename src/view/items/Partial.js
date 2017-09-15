@@ -11,21 +11,38 @@ export default class Partial extends MustacheContainer {
 	constructor ( options ) {
 		super( options );
 
+		this.options = options;
+
 		this.yielder = options.template.t === YIELDER;
+	}
+
+	bind () {
+		let options = this.options;
 
 		if ( this.yielder ) {
 			this.container = options.parentFragment.ractive;
 			this.component = this.container.component;
 
-			this.containerFragment = options.parentFragment;
-			this.parentFragment = this.component.parentFragment;
+			if ( this.component ) {
+				this.containerFragment = options.parentFragment;
+				this.parentFragment = this.component.parentFragment;
 
-			// {{yield}} is equivalent to {{yield content}}
-			if ( !options.template.r && !options.template.rx && !options.template.x ) options.template.r = 'content';
+				// {{yield}} is equivalent to {{yield content}}
+				if ( !options.template.r && !options.template.rx && !options.template.x ) options.template.r = 'content';
+			} else { // this is a plain-ish instance that may be anchored at a later date
+				this.fragment = new Fragment({
+					template: [],
+					owner: this,
+					parentFragment: options.parentFragment,
+					ractive: options.parentFragment.ractive
+				});
+				this.containerFragment = options.parentFragment;
+				this.parentFragment = options.parentFragment;
+				this.fragment.bind();
+				return;
+			}
 		}
-	}
 
-	bind () {
 		// keep track of the reference name for future resets
 		this.refName = this.template.r;
 
@@ -55,7 +72,7 @@ export default class Partial extends MustacheContainer {
 			}
 		}
 
-		const options = {
+		options = {
 			owner: this,
 			template: this.partialTemplate
 		};
