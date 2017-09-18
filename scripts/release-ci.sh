@@ -80,6 +80,11 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 			node -e "var package = JSON.parse(fs.readFileSync('./package.json')); package.version = '${TARGET}'; fs.writeFileSync('./package.json', JSON.stringify(package, null, '  '));"
 			# ...and to npm
 			npm publish --tag $TAG
+
+			# purge cache
+			set +e
+
+			curl http://purge.jsdelivr.net/npm/ractive@$TAG
 		)
 
 		echo 'release complete'
@@ -95,6 +100,12 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 			# ...and to npm
 			npm publish --tag $TAG
 			npm dist-tag add ractive@$TARGET edge
+
+			# purge cache
+			set +e
+
+			curl http://purge.jsdelivr.net/npm/ractive@$TAG
+			curl http://purge.jsdelivr.net/npm/ractive@edge
 		)
 
 		echo 'release complete'
