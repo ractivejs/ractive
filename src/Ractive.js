@@ -24,6 +24,7 @@ import { findPlugin } from './Ractive/static/findPlugin';
 import parseJSON from './utils/parseJSON';
 import CSSModel from './model/specials/CSSModel';
 import { data as sharedData } from './model/specials/SharedModel';
+import { extern } from './shared/getRactiveContext';
 
 export default function Ractive ( options ) {
 	if ( !( this instanceof Ractive ) ) return new Ractive( options );
@@ -102,7 +103,10 @@ Object.defineProperties( Ractive, {
 	sharedData:       { value: sharedData },
 
 	// for getting the source Ractive lib from a constructor
-	Ractive:          { value: Ractive }
+	Ractive:          { value: Ractive },
+
+	// to allow extending contexts
+	Context:          { value: extern.Context.prototype }
 });
 
 Object.defineProperty( Ractive, '_cssModel', { configurable: true, value: new CSSModel( Ractive ) } );
