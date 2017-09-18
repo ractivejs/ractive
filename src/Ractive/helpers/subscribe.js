@@ -8,7 +8,7 @@ export default function subscribe ( instance, options, type ) {
 		if ( typeof config === 'function' ) {
 			instance[type]( target, config );
 		} else if ( typeof config === 'object' && typeof config.handler === 'function' ) {
-			instance[ config.once ? single : type ]( target, config.handler, config );
+			instance[ config.once ? single : type ]( target, config.handler, Object.create( config ) );
 		}
 	});
 }

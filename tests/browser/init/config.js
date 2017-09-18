@@ -217,4 +217,30 @@ export default function() {
 		r.set( 'thing.value', 42 );
 		t.equal( v, 42 );
 	});
+
+	test( `options-style observers don't accidentally carry old fragments forward (#3081)`, t => {
+		let count = 0;
+
+		const cmp = Ractive.extend({
+			observe: {
+				thing: {
+					handler () { count++; }
+				}
+			},
+			data: { thing: 'yep' }
+		});
+
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#unless hide}}<cmp />{{/unless}}`,
+			components: { cmp }
+		});
+
+		r.findComponent().set( 'thing', 'a' );
+		r.toggle( 'hide' );
+		r.toggle( 'hide' );
+		r.findComponent().set( 'thing', 'a' );
+
+		t.equal( count, 4 );
+	});
 }
