@@ -123,6 +123,8 @@ export default class ReferenceExpressionProxy extends Model {
 			return model;
 		});
 
+		this.base.register( intermediary );
+
 		this.bubble();
 	}
 
