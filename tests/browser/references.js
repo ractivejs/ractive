@@ -460,4 +460,18 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '42' );
 	});
+
+	test( `reference expression base shuffles correctly (#3092)`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#each list}}{{.[0]}}{{/each}}`,
+			data: {
+				list: [ [ 'peter' ] ]
+			}
+		});
+
+		r.unshift( 'list', [ 'paul' ] );
+
+		t.htmlEqual( fixture.innerHTML, 'paulpeter' );
+	});
 }
