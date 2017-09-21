@@ -1176,7 +1176,7 @@ export default function() {
 		_.bind = function () {
 			// do nothing
 		};
-		
+
 		_.uppercase = function ( str ) {
 			return str.toUpperCase();
 		};
@@ -1881,5 +1881,19 @@ export default function() {
 		});
 
 		t.equal( r.toHTML(), '<b>&amp; &lt;</b>' );
+	});
+
+	test( `reference expression base shuffles correctly (#3092)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#each list}}{{.[0]}}{{/each}}`,
+			data: {
+				list: [ [ 'peter' ] ]
+			}
+		});
+
+		r.unshift( 'list', [ 'paul' ] );
+
+		t.htmlEqual( fixture.innerHTML, 'paulpeter' );
 	});
 }
