@@ -21,7 +21,7 @@ export function readStyle ( css ) {
 export function readClass ( str ) {
 	const list = str.split( space );
 
-  // remove any empty entries
+	// remove any empty entries
 	let i = list.length;
 	while ( i-- ) {
 		if ( !list[i] ) list.splice( i, 1 );

@@ -94,14 +94,16 @@ module.exports = ({
 function buildUmdLib(dest, plugins = []) {
 	return src.transform(rollup, {
 		plugins: plugins,
-		moduleName: 'Ractive',
-		format: 'umd',
-		entry: 'Ractive.js',
-		dest: dest,
+		input: 'Ractive.js',
+		output: {
+			name: 'Ractive',
+			format: 'umd',
+			file: dest,
+			sourcemap: true
+		},
 		banner: banner,
 		noConflict: true,
-		cache: false,
-		sourceMap: true
+		cache: false
 	}).transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
 }
 
@@ -109,12 +111,14 @@ function buildUmdLib(dest, plugins = []) {
 function buildESLib(dest, plugins = []) {
 	return src.transform(rollup, {
 		plugins: plugins,
-		format: 'es',
-		entry: 'Ractive.js',
-		dest: dest,
+		input: 'Ractive.js',
+		output: {
+			format: 'es',
+			file: dest,
+			sourcemap: true
+		},
 		banner: banner,
-		cache: false,
-		sourceMap: true
+		cache: false
 	}).transform(transpile, { accept: ['.js', '.mjs'] }).transform(replacePlaceholders);
 }
 
@@ -126,17 +130,19 @@ function buildBrowserTests() {
 	])
 		.transform(copy)
 		.transform(rollup, {
-			moduleName: 'RactiveBrowserTests',
-			format: 'iife',
-			entry: 'index.js',
-			dest: 'tests-browser.js',
-			globals: {
-				qunit: 'QUnit',
-				simulant: 'simulant'
+			input: 'index.js',
+			output: {
+				name: 'RactiveBrowserTests',
+				format: 'iife',
+				file: 'tests-browser.js',
+				globals: {
+					qunit: 'QUnit',
+					simulant: 'simulant'
+				},
+				sourcemap: true
 			},
 			external: ['qunit', 'simulant'],
-			cache: false,
-			sourceMap: true
+			cache: false
 		});
 }
 
@@ -148,31 +154,37 @@ function buildNodeTests() {
 	])
 		.transform(copy)
 		.transform(rollup, {
-			format: 'cjs',
-			entry: 'index.js',
-			dest: 'tests-node.js',
+			input: 'index.js',
+			output: {
+				format: 'cjs',
+				file: 'tests-node.js',
+				sourcemap: true
+			},
 			external: ['cheerio'],
 			cache: false,
-			sourceMap: true
 		});
 }
 
 function buildUmdPolyfill() {
 	return polyfills.transform(rollup, {
-		moduleName: 'RactivePolyfills',
-		format: 'umd',
-		entry: 'polyfills.js',
-		dest: 'polyfills.js',
+		input: 'polyfills.js',
+		output: {
+			name: 'RactivePolyfills',
+			format: 'umd',
+			file: 'polyfills.js',
+			sourcemap: true
+		},
 		cache: false,
-		sourceMap: true
 	}).transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
 }
 
 function buildESPolyfill() {
 	return polyfills.transform(rollup, {
-		format: 'es',
-		entry: 'polyfills.js',
-		dest: 'polyfills.mjs',
+		input: 'polyfills.js',
+		output: {
+			format: 'es',
+			file: 'polyfills.mjs',
+		},
 		cache: false
 	}).transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
 }
@@ -238,10 +250,11 @@ function copy(inputdir, outputdir, options) {
 }
 
 function rollup(indir, outdir, options) {
-	if (!options.entry) throw new Error('You must supply `options.entry`');
+	if (!options.input) throw new Error('You must supply `options.input`');
+	if (!options.output || !options.output.file) throw new Error('You must supply `options.output.file`');
 
-	options.dest = path.resolve(outdir, options.dest || options.entry);
-	options.entry = path.resolve(indir, options.entry);
+	options.output.file = path.resolve(outdir, options.output.file);
+	options.input = path.resolve(indir, options.input);
 
-	return rollupLib.rollup(options).then(bundle => bundle.write(options));
+	return rollupLib.rollup(options).then(bundle => bundle.write(options.output));
 }

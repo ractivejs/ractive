@@ -122,7 +122,7 @@ export default function() {
 			const done4 = t.async();
 			const done5 = t.async();
 
-		// Simulate two separate Ractive environments using iframes
+			// Simulate two separate Ractive environments using iframes
 			Promise.all( [ createIsolatedEnv(), createIsolatedEnv() ] ).then( envs => {
 
 				const ComponentA = createComponentDefinition( envs[ 0 ].Ractive );

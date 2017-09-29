@@ -205,7 +205,7 @@ export function readAttributeOrDirective ( parser ) {
 
 	if ( !attribute ) return null;
 
-		// lazy, twoway
+	// lazy, twoway
 	if ( directive = directives[ attribute.n ] ) {
 		attribute.t = directive.t;
 		if ( directive.v ) attribute.v = directive.v;
@@ -214,14 +214,14 @@ export function readAttributeOrDirective ( parser ) {
 		if ( parser.nextChar() === '=' ) attribute.f = readAttributeValue( parser );
 	}
 
-		// decorators
+	// decorators
 	else if ( match = decoratorPattern.exec( attribute.n ) ) {
 		attribute.n = match[1];
 		attribute.t = DECORATOR;
 		readArguments( parser, attribute );
 	}
 
-		// transitions
+	// transitions
 	else if ( match = transitionPattern.exec( attribute.n ) ) {
 		attribute.n = match[1];
 		attribute.t = TRANSITION;
@@ -229,16 +229,16 @@ export function readAttributeOrDirective ( parser ) {
 		attribute.v = match[2] === 'in-out' ? 't0' : match[2] === 'in' ? 't1' : 't2';
 	}
 
-		// on-click etc
+	// on-click etc
 	else if ( match = eventPattern.exec( attribute.n ) ) {
 		attribute.n = splitEvent( match[1] );
 		attribute.t = EVENT;
 
 		parser.inEvent = true;
 
-			// check for a proxy event
+		// check for a proxy event
 		if ( !readProxyEvent( parser, attribute ) ) {
-				// otherwise, it's an expression
+			// otherwise, it's an expression
 			readArguments( parser, attribute, true );
 		} else if ( reservedEventNames.test( attribute.f ) ) {
 			parser.pos -= attribute.f.length;
@@ -248,7 +248,7 @@ export function readAttributeOrDirective ( parser ) {
 		parser.inEvent = false;
 	}
 
-		// bound directives
+	// bound directives
 	else if ( match = boundPattern.exec( attribute.n ) ){
 		const bind = match[2] === 'bind';
 		attribute.n = bind ? match[3] : match[1];

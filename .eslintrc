@@ -24,6 +24,7 @@
 		"prefer-const": "error",
 		"quotes": [ "error", "single", { "avoidEscape": true, "allowTemplateLiterals": true } ],
 		"quote-props": [ "error", "as-needed" ],
-		"semi": [ "error", "always" ]
+		"semi": [ "error", "always" ],
+		"no-useless-escape": 0
 	}
 }
