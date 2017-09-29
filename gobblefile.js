@@ -103,9 +103,11 @@ function buildUmdLib(dest, excludedModules, extraRollupPlugins) {
 }
 
 // Builds an ES bundle of Ractive
-function buildESLib(dest, excludedModules) {
+function buildESLib(dest, excludedModules, extraRollupPlugins) {
+	extraRollupPlugins = (extraRollupPlugins || []).slice();
+	extraRollupPlugins.unshift(skipModule(excludedModules));
 	return src.transform(rollup, {
-		plugins: [skipModule(excludedModules)],
+		plugins: extraRollupPlugins,
 		format: 'es',
 		entry: 'Ractive.js',
 		dest: dest,
