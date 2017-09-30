@@ -6,6 +6,45 @@
 	* There is now an `allowExpressions` parser and init option that disables the parsing of expressions when passed to `parse` or an instance with an unparsed template and disables the evaluation of expessions when passed to an instance. See #3000 for more info.
 
 
+# 0.9.4
+
+* Bug fixes
+	* Various bugs related to attaching child instances to anchors, including inherited partials, certain template constructs, and anchors inside iterative sections (#3060)
+	* Style directives now reset safely e.g. don't change the inline style that they relate to if the value of that style doesn't match the expected value as last set by the directive
+	* Event directives have properly deferred listener subscript (#3050)
+	* Observers subscribed from the `observe` init option are deferred until after the instance fragment is created so that they can observe mapped and non-isolated data (#3053)
+	* **BREAKING**: `{{else}}` and `{{elseif}}` are now considered to be block-closing, meaning that the `div` in `{{#if cond}}<div>{{else}}</div>{{/if}}` would already be closed in the else section, resulting in an error rather than a `div` with an interpolator referencing a keypath named `else` (#3051)
+	* Array observers are now properly `strict` so that downstream modifications don't cause errant observations
+	* Method calls on the immediate context are now correctly handled as `(this).method()` rather than `(this.method)()`
+	* Same-named attributes in different branches of a conditional will now check to make sure the element attribute has an expected value before resetting (#3071)
+	* `null` is considered an empty context when passed to `ractive.fire` (#3079)
+	* The long-form of init events and observers will no longer get stuck in the wrong context after the first use (#3081)
+	* Reference expressions will now shuffle correctly when their base model shuffles (#3092)
+
+* New features (experimental)
+	* `link`s can be supplied with a `keypath` option that allows them to track through shuffles rather than being absolute
+	* The `css` extend option may now be a function that receives a data helper that can retrieve data from a new inherited component data registry `@style`
+		* Any time the `@style` data for a component changes, the Ractive style tag will be updated with the recomputed result of executing the affected css functions.
+		* Component constructors have new methods provided for accessing style data `Component.styleGet(keypath)` and `Component.styleSet(Object | keypath, value)`.
+		* An instance can access its component style data using `@style` e.g. `this.get('@style.some.path')`
+		* Computed styles will still be transformed so that they are scoped to the component unless the component is extended with css transforms disabled.
+		* The root of the style data registry is on the `Ractive` constructor, so global style data can be accessed with `Ractive.getStyle` and `Ractive.setStyle`. Any sets from components override parent data for that part of the inheritance hierarchy.
+		* The bin has been extended to handle dynamic css using `<script rel=css>`, which is transformed by using the content of the script as the body of a function `function (data) { ... }`. The `data` parameter name can be set with the `data-name` attribut on the `script` tag. A Ractive text-only template can also be used for dynamic css from a `<style rel="ractive">` or `<style href="..." type="text/css+ractive">` tag for inline or external templates, respectively. Note that evaluating Ractive style templates requires creating a dummy instance and is thus not as performant as the `<script>` method.
+	* Ractive constructors also have `sharedSet` and `sharedGet` methods for accessing `@shared` data without requiring and instance
+	* Components can request additional mappings during `construct` by setting `this.component.mappings` to an array of AST attributes or a string of mappings e.g. `mapping="{{.}}"` if runtime parsing is available. This is a low-level feature that's more intended for library authors than general users. (#3070)
+	* Context objects now allow access to parent contexts using `context.getParent( crossComponentBoundary )`. This allows finer-grained access to template contexts than the element-only level offered by `ractive.getContext()`.
+	* `ractive.fire` will reuse a context if the context has a truthy `refire` property (`context.refire = true`) (#3067)
+	* `includeLinePositions` will no longer break partials nested within elements (#3082)
+	* You can now access the context object prototype at `Ractive.Context`, so you can supply your own context object extensions (#3090)
+
+* Other changes
+	* The `construct` lifecycle event can now be subscribed from the `on` init hash
+	* The `keep` option of `set` will now also keep DOM nodes, passing them through the progressive enhancement path on re-render
+		* Kept `set`s are also pseudo-async because transitions may be involved, whereas non-kept `set`s will happily create duplicate DOM on the page while the old DOM is transitioning out.
+	* **BREAKING**: `NaN` is considered to be an empty value in interpolators, like `null` and `undefined`.  If you need to render `NaN` on the page, then you can convert it to a string in the interpolator e.g. `{{ NaN + '' }}` or `{{ `${NaN}` }}`.
+	* `{{yield}}` outside of a component context is now a noop
+
+
 # 0.9.3
 
 * Bug fixes
