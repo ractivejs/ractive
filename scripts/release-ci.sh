@@ -43,10 +43,6 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 		cp -r .build/* release-branch
 
 		( cd release-branch
-			echo "Setting credentials..."
-			git remote rm origin
-			git remote add origin https://evs-chris:${GH_TOKEN}@${GH_REF}
-
 			echo "Adding files..."
 			git add -A
 			git commit -m "${VERSION} release"
