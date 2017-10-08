@@ -114,7 +114,7 @@ function buildESLib(dest, excludedModules, extraRollupPlugins) {
 		banner: banner,
 		cache: false,
 		sourceMap: true
-	}).transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
+	}).transform(transpile, { accept: ['.js', '.mjs'] }).transform(replacePlaceholders);
 }
 
 // Builds a UMD bundle for browser/PhantomJS tests.
@@ -173,7 +173,7 @@ function buildESPolyfill() {
 		entry: 'polyfills.js',
 		dest: 'polyfills.mjs',
 		cache: false
-	}).transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
+	}).transform(transpile, { accept: ['.js', '.mjs'] }).transform(replacePlaceholders);
 }
 
 /* Rollup plugins */
