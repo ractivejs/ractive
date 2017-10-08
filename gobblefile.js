@@ -99,10 +99,10 @@ function buildUmdLib(dest, plugins = []) {
 			name: 'Ractive',
 			format: 'umd',
 			file: dest,
-			sourcemap: true
+			sourcemap: true,
+			noConflict: true
 		},
 		banner: banner,
-		noConflict: true,
 		cache: false
 	}).transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
 }
