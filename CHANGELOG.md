@@ -1,5 +1,10 @@
 # changelog
 
+# 0.9.5
+
+* The `mjs` files are once again properly transpiled for those who use a `module` aware bundler with no transpiler.
+
+
 # 0.9.4
 
 * Bug fixes
