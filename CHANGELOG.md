@@ -6,6 +6,11 @@
 	* There is now an `allowExpressions` parser and init option that disables the parsing of expressions when passed to `parse` or an instance with an unparsed template and disables the evaluation of expessions when passed to an instance. See #3000 for more info.
 
 
+# 0.9.5
+
+* The `mjs` files are once again properly transpiled for those who use a `module` aware bundler with no transpiler.
+
+
 # 0.9.4
 
 * Bug fixes
