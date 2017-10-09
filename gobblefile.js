@@ -253,8 +253,10 @@ function rollup(indir, outdir, options) {
 	if (!options.input) throw new Error('You must supply `options.input`');
 	if (!options.output || !options.output.file) throw new Error('You must supply `options.output.file`');
 
-	options.output.file = path.resolve(outdir, options.output.file);
-	options.input = path.resolve(indir, options.input);
+	const opts = Object.create(options);
+	opts.output = Object.create(opts.output);
+	opts.output.file = path.join(outdir, options.output.file);
+	opts.input = path.join(indir, options.input);
 
-	return rollupLib.rollup(options).then(bundle => bundle.write(options.output));
+	return rollupLib.rollup(opts).then(bundle => bundle.write(opts.output));
 }
