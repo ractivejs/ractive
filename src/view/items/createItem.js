@@ -1,8 +1,9 @@
-import { ALIAS, ANCHOR, COMPONENT, DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from 'config/types';
+import { ALIAS, ANCHOR, COMMENT, COMPONENT, DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from 'config/types';
 import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from 'config/types';
 import Alias from './Alias';
 import Attribute from './element/Attribute';
 import BindingFlag from './element/BindingFlag';
+import Comment from './Comment';
 import Component from './Component';
 import Decorator from './element/Decorator';
 import Doctype from './Doctype';
@@ -20,7 +21,6 @@ import Textarea from './element/specials/Textarea';
 import Text from './Text';
 import Transition from './element/Transition';
 import Triple from './Triple';
-//import Yielder from './Yielder';
 import getComponentConstructor from './component/getComponentConstructor';
 import findElement from './shared/findElement';
 
@@ -39,6 +39,7 @@ constructors[ BINDING_FLAG ] = BindingFlag;
 constructors[ DECORATOR ] = Decorator;
 constructors[ EVENT ] = EventDirective;
 constructors[ TRANSITION ] = Transition;
+constructors[ COMMENT ] = Comment;
 
 const specialElements = {
 	doctype: Doctype,
