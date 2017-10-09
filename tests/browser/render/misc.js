@@ -334,4 +334,28 @@ export default function() {
 
 		t.equal( r.toText(), 'no <elements or="attributes" /> or &amp; & entities <any foo="bar"> just text, refs, and sections' );
 	});
+
+	test( `comments are properly rendered if they exist in the template - #3105`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '{{#if first }}<!-- first -->{{/if}}<span>{{#if second}}a{{/if}} <!-- comment -->, why not</span><!-- last -->',
+			stripComments: false,
+			data: {
+				first: true,
+				second: true
+			}
+		});
+
+		t.equal( fixture.innerHTML, '<!-- first --><span>a <!-- comment -->, why not</span><!-- last -->' );
+
+		r.toggle( 'first' );
+		r.toggle( 'second' );
+
+		t.equal( fixture.innerHTML, '<span> <!-- comment -->, why not</span><!-- last -->' );
+
+		r.toggle( 'first' );
+		r.toggle( 'second' );
+
+		t.equal( fixture.innerHTML, '<!-- first --><span>a <!-- comment -->, why not</span><!-- last -->' );
+	});
 }
