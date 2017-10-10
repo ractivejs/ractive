@@ -20,7 +20,6 @@ export default function() {
 			'sanitize',
 			'stripComments',
 			'contextLines',
-			'parserTransforms',
 			'data',
 			'computed',
 			'syncComputedChildren',
@@ -64,7 +63,6 @@ export default function() {
 			'noCssTransform',
 			'noIntro',
 			'noOutro',
-			'parserTransforms',
 			'preserveWhitespace',
 			'resolveInstanceMembers',
 			'sanitize',
@@ -86,6 +84,7 @@ export default function() {
 			'events',
 			'interpolators',
 			'partials',
+			'proxies',
 			'transitions'
 		];
 

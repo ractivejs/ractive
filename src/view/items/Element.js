@@ -1,4 +1,4 @@
-import { ATTRIBUTE, BINDING_FLAG, DECORATOR, DELEGATE_FLAG, EVENT, TRANSITION } from 'config/types';
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, DELEGATE_FLAG, EVENT, PROXY_FLAG, TRANSITION } from 'config/types';
 import { win } from 'config/environment';
 import { html, svg } from 'config/namespaces';
 import { toArray, addToArray, removeFromArray } from 'utils/array';
@@ -69,6 +69,8 @@ export default class Element extends ContainerItem {
 				case DELEGATE_FLAG:
 					this.delegate = false;
 					break;
+
+				case PROXY_FLAG: break;
 
 				default:
 					( leftovers || ( leftovers = [] ) ).push( template );

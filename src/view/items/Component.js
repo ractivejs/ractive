@@ -5,7 +5,7 @@ import { teardown } from 'src/Ractive/prototype/teardown';
 import getRactiveContext from 'shared/getRactiveContext';
 import { warnIfDebug } from 'utils/log';
 import { createDocumentFragment } from 'utils/dom';
-import { ANCHOR, ATTRIBUTE, BINDING_FLAG, COMPONENT, DECORATOR, EVENT, TRANSITION, YIELDER } from 'config/types';
+import { ANCHOR, ATTRIBUTE, BINDING_FLAG, COMPONENT, DECORATOR, EVENT, PROXY_FLAG, TRANSITION, YIELDER } from 'config/types';
 import construct from 'src/Ractive/construct';
 import initialise from 'src/Ractive/initialise';
 import render from 'src/Ractive/render';
@@ -96,9 +96,10 @@ export default class Component extends Item {
 						}) );
 						break;
 
-					case TRANSITION:
 					case BINDING_FLAG:
 					case DECORATOR:
+					case PROXY_FLAG:
+					case TRANSITION:
 						break;
 
 					default:

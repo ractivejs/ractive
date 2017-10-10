@@ -184,7 +184,7 @@ export default class Section extends MustacheContainer {
 	}
 }
 
-function attach ( section, fragment ) {
+export function attach ( section, fragment ) {
 	const anchor = section.up.findNextNode( section );
 
 	if ( anchor ) {

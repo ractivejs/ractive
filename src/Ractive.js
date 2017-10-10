@@ -11,6 +11,7 @@ import interpolators from './Ractive/static/interpolators';
 import { svg, win } from './config/environment';
 import proto from './Ractive/prototype';
 import { extend, extendWith } from './extend/_extend';
+import { proxy } from './extend/_proxy';
 import parse from './parse/_parse';
 import getContext, { getNodeInfo } from './Ractive/static/getContext';
 import isInstance from './Ractive/static/isInstance';
@@ -76,6 +77,7 @@ defineProperties( Ractive, {
 	joinKeys:         { value: joinKeys },
 	normaliseKeypath: { value: normalise },
 	parse:            { value: parse },
+	proxy:            { value: proxy },
 	splitKeypath:     { value: splitKeypath },
 	// sharedSet and styleSet are in _extend because circular refs
 	unescapeKey:      { value: unescapeKey },
@@ -96,6 +98,7 @@ defineProperties( Ractive, {
 	extensions:       { value: [] },
 	interpolators:    { writable: true, value: interpolators },
 	partials:         { writable: true, value: {} },
+	proxies:          { writable: true, value: {} },
 	transitions:      { writable: true, value: {} },
 
 	// CSS variables

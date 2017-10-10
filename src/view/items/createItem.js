@@ -1,5 +1,5 @@
 import { ALIAS, ANCHOR, COMMENT, COMPONENT, DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from 'config/types';
-import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from 'config/types';
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, PROXY_FLAG, TRANSITION } from 'config/types';
 import Alias from './Alias';
 import Attribute from './element/Attribute';
 import BindingFlag from './element/BindingFlag';
@@ -15,6 +15,7 @@ import Input from './element/specials/Input';
 import Mapping from './component/Mapping';
 import Option from './element/specials/Option';
 import Partial from './Partial';
+import Proxy from './Proxy';
 import Section from './Section';
 import Select from './element/specials/Select';
 import Textarea from './element/specials/Textarea';
@@ -23,6 +24,8 @@ import Transition from './element/Transition';
 import Triple from './Triple';
 import getComponentConstructor from './component/getComponentConstructor';
 import findElement from './shared/findElement';
+
+import { findInstance } from 'shared/registry';
 
 const constructors = {};
 constructors[ ALIAS ] = Alias;
@@ -51,21 +54,28 @@ const specialElements = {
 };
 
 export default function createItem ( options ) {
-	if ( typeof options.template === 'string' ) {
+	const tpl = options.template;
+	const parent = options.up;
+
+	if ( typeof tpl === 'string' ) {
 		return new Text( options );
 	}
 
-	if ( options.template.t === ELEMENT ) {
-		// could be component or element
-		const ComponentConstructor = getComponentConstructor( options.up.ractive, options.template.e );
-		if ( ComponentConstructor ) {
-			return new Component( options, ComponentConstructor );
+	if ( tpl.t === ELEMENT ) {
+		// could be proxy or component or element
+		let ctor = getComponentConstructor( parent.ractive, tpl.e );
+		if ( ctor ) {
+			return new Component( options, ctor );
 		}
 
-		const tagName = options.template.e.toLowerCase();
+		ctor = getProxyConstructor( parent.ractive, tpl.e );
+		if ( ctor && ( !tpl.m || !tpl.m.find( a => a.t === PROXY_FLAG ) ) ) {
+			return new Proxy( options, ctor );
+		}
 
-		const ElementConstructor = specialElements[ tagName ] || Element;
-		return new ElementConstructor( options );
+		ctor = specialElements[ options.template.e.toLowerCase() ] || Element;
+
+		return new ctor( options );
 	}
 
 	let Item;
@@ -86,4 +96,9 @@ export default function createItem ( options ) {
 	if ( !Item ) throw new Error( `Unrecognised item type ${options.template.t}` );
 
 	return new Item( options );
+}
+
+function getProxyConstructor ( ractive, name ) {
+	const instance = findInstance( 'proxies', ractive, name );
+	if ( instance ) return instance.proxies[ name ];
 }

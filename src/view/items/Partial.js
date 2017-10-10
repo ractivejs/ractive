@@ -195,7 +195,7 @@ export default class Partial extends MustacheContainer {
 	}
 }
 
-function parsePartial( name, partial, ractive ) {
+export function parsePartial( name, partial, ractive ) {
 	let parsed;
 
 	try {
