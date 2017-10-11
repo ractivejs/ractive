@@ -42,7 +42,7 @@ export default function readSection ( parser, tag ) {
 		return null;
 	}
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	if ( block === 'with' ) {
 		const aliases = readAliases( parser );
@@ -82,7 +82,7 @@ export default function readSection ( parser, tag ) {
 		}
 	}
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	if ( !parser.matchString( tag.close ) ) {
 		parser.error( `Expected closing delimiter '${tag.close}'` );

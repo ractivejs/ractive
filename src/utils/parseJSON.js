@@ -25,7 +25,7 @@ const onlyWhitespace = /^\s*$/;
 const JsonParser = Parser.extend({
 	init ( str, options ) {
 		this.values = options.values;
-		this.allowWhitespace();
+		this.sp();
 	},
 
 	postProcess ( result ) {
@@ -75,7 +75,7 @@ const JsonParser = Parser.extend({
 
 			const result = {};
 
-			parser.allowWhitespace();
+			parser.sp();
 
 			if ( parser.matchString( '}' ) ) {
 				return { v: result };
@@ -85,7 +85,7 @@ const JsonParser = Parser.extend({
 			while ( pair = getKeyValuePair( parser ) ) {
 				result[ pair.key ] = pair.value;
 
-				parser.allowWhitespace();
+				parser.sp();
 
 				if ( parser.matchString( '}' ) ) {
 					return { v: result };
@@ -104,7 +104,7 @@ const JsonParser = Parser.extend({
 
 			const result = [];
 
-			parser.allowWhitespace();
+			parser.sp();
 
 			if ( parser.matchString( ']' ) ) {
 				return { v: result };
@@ -114,7 +114,7 @@ const JsonParser = Parser.extend({
 			while ( valueToken = parser.read() ) {
 				result.push( valueToken.v );
 
-				parser.allowWhitespace();
+				parser.sp();
 
 				if ( parser.matchString( ']' ) ) {
 					return { v: result };
@@ -124,7 +124,7 @@ const JsonParser = Parser.extend({
 					return null;
 				}
 
-				parser.allowWhitespace();
+				parser.sp();
 			}
 
 			return null;
@@ -133,7 +133,7 @@ const JsonParser = Parser.extend({
 });
 
 function getKeyValuePair ( parser ) {
-	parser.allowWhitespace();
+	parser.sp();
 
 	const key = readKey( parser );
 
@@ -141,11 +141,11 @@ function getKeyValuePair ( parser ) {
 
 	const pair = { key };
 
-	parser.allowWhitespace();
+	parser.sp();
 	if ( !parser.matchString( ':' ) ) {
 		return null;
 	}
-	parser.allowWhitespace();
+	parser.sp();
 
 	const valueToken = parser.read();
 

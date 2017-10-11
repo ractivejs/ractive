@@ -9,7 +9,7 @@ export default function readExpressionList ( parser, spread ) {
 	const pos = parser.pos;
 
 	do {
-		parser.allowWhitespace();
+		parser.sp();
 
 		if ( spread ) {
 			isSpread = parser.matchPattern( spreadPattern );
@@ -30,7 +30,7 @@ export default function readExpressionList ( parser, spread ) {
 
 		expressions.push( expr );
 
-		parser.allowWhitespace();
+		parser.sp();
 	} while ( parser.matchString( ',' ) );
 
 	return expressions;

@@ -35,7 +35,7 @@ export default class Section extends MustacheContainer {
 		super.bind();
 
 		if ( this.subordinate ) {
-			this.sibling = this.parentFragment.items[ this.parentFragment.items.indexOf( this ) - 1 ];
+			this.sibling = this.up.items[ this.up.items.indexOf( this ) - 1 ];
 			this.sibling.nextSibling = this;
 		}
 
@@ -185,7 +185,7 @@ export default class Section extends MustacheContainer {
 }
 
 function attach ( section, fragment ) {
-	const anchor = section.parentFragment.findNextNode( section );
+	const anchor = section.up.findNextNode( section );
 
 	if ( anchor ) {
 		const docFrag = createDocumentFragment();
@@ -193,6 +193,6 @@ function attach ( section, fragment ) {
 
 		anchor.parentNode.insertBefore( docFrag, anchor );
 	} else {
-		fragment.render( section.parentFragment.findParentNode() );
+		fragment.render( section.up.findParentNode() );
 	}
 }

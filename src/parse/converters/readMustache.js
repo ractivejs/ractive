@@ -23,7 +23,7 @@ export default function readMustache ( parser ) {
 	if ( parser.inTag && !parser.inAttribute ) {
 		mustache = readAttributeOrDirective( parser );
 		if ( mustache ) {
-			parser.allowWhitespace();
+			parser.sp();
 			return mustache;
 		}
 	}
@@ -57,7 +57,7 @@ function readMustacheOfType ( parser, tag ) {
 		return delimiterChangeToken;
 	}
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	// illegal section closer
 	if ( parser.matchString( '/' ) ) {

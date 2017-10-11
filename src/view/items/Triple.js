@@ -63,15 +63,15 @@ export default class Triple extends Mustache {
 	}
 
 	render ( target, occupants ) {
-		const parentNode = this.parentFragment.findParentNode();
+		const parentNode = this.up.findParentNode();
 
 		if ( !this.nodes ) {
 			const html = this.model ? this.model.get() : '';
-			this.nodes = insertHtml( html, this.parentFragment.findParentNode(), target );
+			this.nodes = insertHtml( html, this.up.findParentNode(), target );
 		}
 
 		let nodes = this.nodes;
-		let anchor = this.parentFragment.findNextNode( this );
+		let anchor = this.up.findNextNode( this );
 
 		// progressive enhancement
 		if ( occupants ) {

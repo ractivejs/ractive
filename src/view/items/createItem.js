@@ -57,7 +57,7 @@ export default function createItem ( options ) {
 
 	if ( options.template.t === ELEMENT ) {
 		// could be component or element
-		const ComponentConstructor = getComponentConstructor( options.parentFragment.ractive, options.template.e );
+		const ComponentConstructor = getComponentConstructor( options.up.ractive, options.template.e );
 		if ( ComponentConstructor ) {
 			return new Component( options, ComponentConstructor );
 		}
@@ -74,7 +74,7 @@ export default function createItem ( options ) {
 	if ( options.template.t === ATTRIBUTE ) {
 		let el = options.owner;
 		if ( !el || ( el.type !== ANCHOR && el.type !== COMPONENT && el.type !== ELEMENT ) ) {
-			el = findElement( options.parentFragment );
+			el = findElement( options.up );
 		}
 		options.element = el;
 

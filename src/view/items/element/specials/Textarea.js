@@ -19,7 +19,7 @@ export default class Textarea extends Input {
 				( this.attributes || ( this.attributes = [] ) ).push( createItem( {
 					owner: this,
 					template: { t: ATTRIBUTE, f: template.f, n: 'value' },
-					parentFragment: this.parentFragment
+					up: this.up
 				} ) );
 			} else {
 				this.fragment = new Fragment({ owner: this, cssIds: null, template: template.f });
@@ -38,7 +38,7 @@ export default class Textarea extends Input {
 				});
 			}
 
-			this.parentFragment.bubble(); // default behaviour
+			this.up.bubble(); // default behaviour
 		}
 	}
 }

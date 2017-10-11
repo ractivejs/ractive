@@ -5,9 +5,9 @@ import parser from 'src/Ractive/config/runtime-parser';
 import { findInstance } from 'shared/registry';
 import { isArray } from 'utils/is';
 
-export default function getPartialTemplate ( ractive, name, parentFragment ) {
+export default function getPartialTemplate ( ractive, name, up ) {
 	// If the partial in instance or view heirarchy instances, great
-	let partial = getPartialFromRegistry( ractive, name, parentFragment || {} );
+	let partial = getPartialFromRegistry( ractive, name, up || {} );
 	if ( partial ) return partial;
 
 	// Does it exist on the page as a script tag?
@@ -24,9 +24,9 @@ export default function getPartialTemplate ( ractive, name, parentFragment ) {
 	}
 }
 
-function getPartialFromRegistry ( ractive, name, parentFragment ) {
+function getPartialFromRegistry ( ractive, name, up ) {
 	// if there was an instance up-hierarchy, cool
-	let partial = findParentPartial( name, parentFragment.owner );
+	let partial = findParentPartial( name, up.owner );
 	if ( partial ) return partial;
 
 	// find first instance in the ractive or view hierarchy that has this partial
@@ -92,8 +92,8 @@ function findParentPartial( name, parent ) {
 	if ( parent ) {
 		if ( parent.template && parent.template.p && !isArray( parent.template.p ) && hasOwn( parent.template.p, name ) ) {
 			return parent.template.p[name];
-		} else if ( parent.parentFragment && parent.parentFragment.owner ) {
-			return findParentPartial( name, parent.parentFragment.owner );
+		} else if ( parent.up && parent.up.owner ) {
+			return findParentPartial( name, parent.up.owner );
 		}
 	}
 }

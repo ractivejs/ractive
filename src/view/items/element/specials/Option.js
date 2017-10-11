@@ -16,7 +16,7 @@ export default class Option extends Element {
 
 		super( options );
 
-		this.select = findElement( this.parent || this.parentFragment, false, 'select' );
+		this.select = findElement( this.parent || this.up, false, 'select' );
 	}
 
 	bind () {

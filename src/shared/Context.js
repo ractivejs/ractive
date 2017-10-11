@@ -244,7 +244,7 @@ export default class Context {
 
 	getBindingModel ( ctx ) {
 		const el = ctx.element;
-		return { model: el.binding && el.binding.model, instance: el.parentFragment.ractive };
+		return { model: el.binding && el.binding.model, instance: el.up.ractive };
 	}
 
 	setBinding ( value ) {

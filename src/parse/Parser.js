@@ -139,7 +139,7 @@ Parser.prototype = {
 		}
 	},
 
-	allowWhitespace () {
+	sp () {
 		this.matchPattern( leadingWhitespace );
 	},
 

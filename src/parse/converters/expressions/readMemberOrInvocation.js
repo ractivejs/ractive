@@ -20,10 +20,10 @@ export default function ( parser ) {
 		}
 
 		else if ( parser.matchString( '(' ) ) {
-			parser.allowWhitespace();
+			parser.sp();
 			const expressionList = readExpressionList( parser, true );
 
-			parser.allowWhitespace();
+			parser.sp();
 
 			if ( !parser.matchString( ')' ) ) {
 				parser.error( expectedParen );

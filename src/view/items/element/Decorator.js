@@ -14,9 +14,9 @@ const missingDecorator = {
 
 export default class Decorator {
 	constructor ( options ) {
-		this.owner = options.owner || options.parentFragment.owner || findElement( options.parentFragment );
-		this.element = this.owner.attributeByName ? this.owner : findElement( options.parentFragment );
-		this.parentFragment = this.owner.parentFragment;
+		this.owner = options.owner || options.up.owner || findElement( options.up );
+		this.element = this.owner.attributeByName ? this.owner : findElement( options.up );
+		this.up = this.owner.up;
 		this.ractive = this.owner.ractive;
 		const template = this.template = options.template;
 
@@ -29,7 +29,7 @@ export default class Decorator {
 	}
 
 	bind () {
-		setupArgsFn( this, this.template, this.parentFragment, { register: true } );
+		setupArgsFn( this, this.template, this.up, { register: true } );
 	}
 
 	bubble () {

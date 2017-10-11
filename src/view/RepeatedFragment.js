@@ -9,11 +9,11 @@ import { keys } from 'utils/object';
 
 export default class RepeatedFragment {
 	constructor ( options ) {
-		this.parent = options.owner.parentFragment;
+		this.parent = options.owner.up;
 
 		// bit of a hack, so reference resolution works without another
 		// layer of indirection
-		this.parentFragment = this;
+		this.up = this;
 		this.owner = options.owner;
 		this.ractive = this.parent.ractive;
 		this.delegate = this.ractive.delegate !== false && ( this.parent.delegate || findDelegate( findElement( options.owner ) ) );

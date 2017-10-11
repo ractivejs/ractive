@@ -32,10 +32,10 @@ export default class Attribute extends Item {
 		this.name = options.template.n;
 		this.namespace = null;
 
-		this.owner = options.owner || options.parentFragment.owner || options.element || findElement( options.parentFragment );
-		this.element = options.element || (this.owner.attributeByName ? this.owner : findElement( options.parentFragment ) );
-		this.parentFragment = options.parentFragment; // shared
-		this.ractive = this.parentFragment.ractive;
+		this.owner = options.owner || options.up.owner || options.element || findElement( options.up );
+		this.element = options.element || (this.owner.attributeByName ? this.owner : findElement( options.up ) );
+		this.up = options.up; // shared
+		this.ractive = this.up.ractive;
 
 		this.rendered = false;
 		this.updateDelegate = null;
@@ -73,7 +73,7 @@ export default class Attribute extends Item {
 
 	bubble () {
 		if ( !this.dirty ) {
-			this.parentFragment.bubble();
+			this.up.bubble();
 			this.element.bubble();
 			this.dirty = true;
 		}

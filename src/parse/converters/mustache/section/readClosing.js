@@ -7,14 +7,14 @@ export default function readClosing ( parser, tag ) {
 		return null;
 	}
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	if ( !parser.matchString( '/' ) ) {
 		parser.pos = start;
 		return null;
 	}
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	const remaining = parser.remaining();
 	const index = remaining.indexOf( tag.close );

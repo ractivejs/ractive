@@ -23,11 +23,11 @@ const names = {
 
 export default class Transition {
 	constructor ( options ) {
-		this.owner = options.owner || options.parentFragment.owner || findElement( options.parentFragment );
-		this.element = this.owner.attributeByName ? this.owner : findElement( options.parentFragment );
+		this.owner = options.owner || options.up.owner || findElement( options.up );
+		this.element = this.owner.attributeByName ? this.owner : findElement( options.up );
 		this.ractive = this.owner.ractive;
 		this.template = options.template;
-		this.parentFragment = options.parentFragment;
+		this.up = options.up;
 		this.options = options;
 		this.onComplete = [];
 	}
@@ -145,7 +145,7 @@ export default class Transition {
 
 		// get expression args if supplied
 		if ( this.fn ) {
-			const values = resolveArgs( this, this.template, this.parentFragment ).map( model => {
+			const values = resolveArgs( this, this.template, this.up ).map( model => {
 				if ( !model ) return undefined;
 
 				return model.get();

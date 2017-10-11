@@ -44,7 +44,7 @@ export default class Component extends Item {
 			}
 
 			// find container
-			let fragment = options.parentFragment;
+			let fragment = options.up;
 			let container;
 			while ( fragment ) {
 				if ( fragment.owner.type === YIELDER ) {
@@ -56,7 +56,7 @@ export default class Component extends Item {
 			}
 
 			// add component-instance-specific properties
-			instance.parent = this.parentFragment.ractive;
+			instance.parent = this.up.ractive;
 			instance.container = container || null;
 			instance.root = instance.parent.root;
 			instance.component = this;
@@ -91,7 +91,7 @@ export default class Component extends Item {
 					case EVENT:
 						this.attributes.push( createItem({
 							owner: this,
-							parentFragment: this.parentFragment,
+							up: this.up,
 							template
 						}) );
 						break;
@@ -110,7 +110,7 @@ export default class Component extends Item {
 			if ( leftovers.length ) {
 				this.attributes.push( new ConditionalAttribute({
 					owner: this,
-					parentFragment: this.parentFragment,
+					up: this.up,
 					template: leftovers
 				}) );
 			}
@@ -126,7 +126,7 @@ export default class Component extends Item {
 			initialise( this.instance, {
 				partials: this._partials
 			}, {
-				cssIds: this.parentFragment.cssIds
+				cssIds: this.up.cssIds
 			});
 
 			this.eventHandlers.forEach( bind );
@@ -138,7 +138,7 @@ export default class Component extends Item {
 	bubble () {
 		if ( !this.dirty ) {
 			this.dirty = true;
-			this.parentFragment.bubble();
+			this.up.bubble();
 		}
 	}
 
@@ -265,12 +265,12 @@ function addChild ( meta ) {
 	const child = meta.instance;
 	meta.anchor = this;
 
-	meta.parentFragment = this.parentFragment;
+	meta.up = this.up;
 	meta.name = meta.nameOption || this.name;
 	this.name = meta.name;
 
 
-	if ( !child.isolated ) child.viewmodel.attached( this.parentFragment );
+	if ( !child.isolated ) child.viewmodel.attached( this.up );
 
 	// render as necessary
 	if ( this.rendered ) {
@@ -290,11 +290,11 @@ function renderItem ( anchor, meta ) {
 	if ( !anchor.rendered ) return;
 
 	meta.shouldDestroy = false;
-	meta.parentFragment = anchor.parentFragment;
+	meta.up = anchor.up;
 
 	anchor.item = meta;
 	anchor.instance = meta.instance;
-	const nextNode = anchor.parentFragment.findNextNode( anchor );
+	const nextNode = anchor.up.findNextNode( anchor );
 
 	if ( meta.instance.fragment.rendered ) {
 		meta.instance.unrender();
@@ -304,7 +304,7 @@ function renderItem ( anchor, meta ) {
 	meta.instance.partials = assign( create( meta.partials ), meta.partials, anchor._partials );
 
 	meta.instance.fragment.unbind();
-	meta.instance.fragment.componentParent = anchor.parentFragment;
+	meta.instance.fragment.componentParent = anchor.up;
 	meta.instance.fragment.bind( meta.instance.viewmodel );
 
 	anchor.attributes.forEach( bind );
@@ -312,7 +312,7 @@ function renderItem ( anchor, meta ) {
 	anchor.attributes.forEach( callRender );
 	anchor.eventHandlers.forEach( callRender );
 
-	const target = anchor.parentFragment.findParentNode();
+	const target = anchor.up.findParentNode();
 	render( meta.instance, target, target.contains( nextNode ) ? nextNode : null, anchor.occupants );
 
 	if ( meta.lastBound !== anchor ) {
@@ -333,7 +333,7 @@ function unrenderItem ( anchor, meta ) {
 
 	meta.instance.el = meta.instance.anchor = null;
 	meta.instance.fragment.componentParent = null;
-	meta.parentFragment = null;
+	meta.up = null;
 	meta.anchor = null;
 	anchor.item = null;
 	anchor.instance = null;

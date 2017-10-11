@@ -9,7 +9,7 @@ export default function link ( there, here, options ) {
 	// may need to allow a mapping to resolve implicitly
 	const sourcePath = splitKeypath( there );
 	if ( !target.viewmodel.has( sourcePath[0] ) && target.component ) {
-		model = resolveReference( target.component.parentFragment, sourcePath[0] );
+		model = resolveReference( target.component.up, sourcePath[0] );
 		model = model.joinAll( sourcePath.slice( 1 ) );
 	}
 

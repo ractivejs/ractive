@@ -9,7 +9,7 @@ export function readAliases( parser ) {
 	let alias;
 	const start = parser.pos;
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	alias = readAlias( parser );
 
@@ -17,7 +17,7 @@ export function readAliases( parser ) {
 		alias.x = refineExpression( alias.x, {} );
 		aliases.push( alias );
 
-		parser.allowWhitespace();
+		parser.sp();
 
 		while ( parser.matchString(',') ) {
 			alias = readAlias( parser );
@@ -29,7 +29,7 @@ export function readAliases( parser ) {
 			alias.x = refineExpression( alias.x, {} );
 			aliases.push( alias );
 
-			parser.allowWhitespace();
+			parser.sp();
 		}
 
 		return aliases;
@@ -42,7 +42,7 @@ export function readAliases( parser ) {
 export function readAlias( parser ) {
 	const start = parser.pos;
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	const expr = readExpression( parser, [] );
 
@@ -51,14 +51,14 @@ export function readAlias( parser ) {
 		return null;
 	}
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	if ( !parser.matchPattern( asRE ) ) {
 		parser.pos = start;
 		return null;
 	}
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	const alias = parser.matchPattern( legalAlias );
 

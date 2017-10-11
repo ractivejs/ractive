@@ -29,7 +29,7 @@ export default class Alias extends ContainerItem {
 			template: this.template.f
 		});
 
-		this.fragment.aliases = resolveAliases( this.template.z, this.parentFragment );
+		this.fragment.aliases = resolveAliases( this.template.z, this.up );
 		this.fragment.bind();
 	}
 

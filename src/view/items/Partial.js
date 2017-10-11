@@ -21,12 +21,12 @@ export default class Partial extends MustacheContainer {
 		let options = this.options;
 
 		if ( this.yielder ) {
-			this.container = options.parentFragment.ractive;
+			this.container = options.up.ractive;
 			this.component = this.container.component;
 
 			if ( this.component ) {
-				this.containerFragment = options.parentFragment;
-				this.parentFragment = this.component.parentFragment;
+				this.containerFragment = options.up;
+				this.up = this.component.up;
 
 				// {{yield}} is equivalent to {{yield content}}
 				if ( !options.template.r && !options.template.rx && !options.template.x ) options.template.r = 'content';
@@ -34,11 +34,11 @@ export default class Partial extends MustacheContainer {
 				this.fragment = new Fragment({
 					template: [],
 					owner: this,
-					parentFragment: options.parentFragment,
-					ractive: options.parentFragment.ractive
+					up: options.up,
+					ractive: options.up.ractive
 				});
-				this.containerFragment = options.parentFragment;
-				this.parentFragment = options.parentFragment;
+				this.containerFragment = options.up;
+				this.up = options.up;
 				this.fragment.bind();
 				return;
 			}
@@ -48,7 +48,7 @@ export default class Partial extends MustacheContainer {
 		this.refName = this.template.r;
 
 		// name matches take priority over expressions
-		const template = this.refName ? getPartialTemplate( this.ractive, this.refName, this.containerFragment || this.parentFragment ) || null : null;
+		const template = this.refName ? getPartialTemplate( this.ractive, this.refName, this.containerFragment || this.up ) || null : null;
 		let templateObj;
 
 		if ( template ) {
@@ -91,7 +91,7 @@ export default class Partial extends MustacheContainer {
 
 		this.fragment = new Fragment(options);
 		if ( this.template.z ) {
-			this.fragment.aliases = resolveAliases( this.template.z, this.yielder ? this.containerFragment : this.parentFragment );
+			this.fragment.aliases = resolveAliases( this.template.z, this.yielder ? this.containerFragment : this.up );
 		}
 		this.fragment.bind();
 	}
@@ -114,12 +114,12 @@ export default class Partial extends MustacheContainer {
 
 		// on reset, check for the reference name first
 		if ( this.refName ) {
-			this.partialTemplate = getPartialTemplate( this.ractive, this.refName, this.parentFragment );
+			this.partialTemplate = getPartialTemplate( this.ractive, this.refName, this.up );
 		}
 
 		// then look for the resolved name
 		if ( !this.partialTemplate ) {
-			this.partialTemplate = getPartialTemplate( this.ractive, this.name, this.parentFragment );
+			this.partialTemplate = getPartialTemplate( this.ractive, this.name, this.up );
 		}
 
 		if ( !this.partialTemplate ) {
@@ -143,7 +143,7 @@ export default class Partial extends MustacheContainer {
 	setTemplate ( name, template ) {
 		this.name = name;
 
-		if ( !template && template !== null ) template = getPartialTemplate( this.ractive, name, this.parentFragment );
+		if ( !template && template !== null ) template = getPartialTemplate( this.ractive, name, this.up );
 
 		if ( !template ) {
 			warnOnceIfDebug( `Could not find template for partial '${name}'` );

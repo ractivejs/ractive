@@ -5,7 +5,7 @@ export default function readExpression ( parser ) {
 	// if eval is false, no expressions
 	if ( parser.allowExpressions === false ) {
 		const ref = readReference( parser );
-		parser.allowWhitespace();
+		parser.sp();
 		return ref;
 	}
 
