@@ -1,5 +1,6 @@
 import { SharedModel } from './SharedModel';
 import { Missing } from '../LinkModel';
+import { create } from 'utils/object';
 
 export default class RactiveModel extends SharedModel {
 	constructor ( ractive ) {
@@ -25,7 +26,7 @@ function initLink ( model, key ) {
 			this.link( value.viewmodel.getRactiveModel(), key );
 			this._link.markedAll();
 		} else {
-			this.link( Object.create( Missing ), key );
+			this.link( create( Missing ), key );
 			this._link.markedAll();
 		}
 	};

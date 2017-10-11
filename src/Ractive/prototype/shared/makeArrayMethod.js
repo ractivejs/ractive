@@ -1,6 +1,7 @@
 import { splitKeypath } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
 import getNewIndices from 'shared/getNewIndices';
+import { isArray } from 'utils/is';
 
 const arrayProto = Array.prototype;
 
@@ -12,7 +13,7 @@ export default function ( methodName ) {
 	function model ( mdl, args ) {
 		let array = mdl.get();
 
-		if ( !Array.isArray( array ) ) {
+		if ( !isArray( array ) ) {
 			if ( array === undefined ) {
 				array = [];
 				const result = arrayProto[ methodName ].apply( array, args );

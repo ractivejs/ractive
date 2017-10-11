@@ -2,10 +2,9 @@ import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
 import { escapeKey, unescapeKey } from 'shared/keypaths';
 import { addToArray, removeFromArray } from 'utils/array';
-import { isObject } from 'utils/is';
+import { isArray, isObject } from 'utils/is';
 import bind from 'utils/bind';
-
-const hasProp = Object.prototype.hasOwnProperty;
+import { hasOwn, keys as objectKeys } from 'utils/object';
 
 const shuffleTasks = { early: [], mark: [] };
 const registerQueue = { early: [], mark: [] };
@@ -80,7 +79,7 @@ export default class ModelBase {
 
 	getValueChildren ( value ) {
 		let children;
-		if ( Array.isArray( value ) ) {
+		if ( isArray( value ) ) {
 			children = [];
 			if ( 'length' in this && this.length !== value.length ) {
 				children.push( this.joinKey( 'length' ) );
@@ -91,7 +90,7 @@ export default class ModelBase {
 		}
 
 		else if ( isObject( value ) || typeof value === 'function' ) {
-			children = Object.keys( value ).map( key => this.joinKey( key ) );
+			children = objectKeys( value ).map( key => this.joinKey( key ) );
 		}
 
 		else if ( value != null ) {
@@ -104,9 +103,9 @@ export default class ModelBase {
 	getVirtual ( shouldCapture ) {
 		const value = this.get( shouldCapture, { virtual: false } );
 		if ( isObject( value ) ) {
-			const result = Array.isArray( value ) ? [] : {};
+			const result = isArray( value ) ? [] : {};
 
-			const keys = Object.keys( value );
+			const keys = objectKeys( value );
 			let i = keys.length;
 			while ( i-- ) {
 				const child = this.childByKey[ keys[i] ];
@@ -134,12 +133,12 @@ export default class ModelBase {
 		if ( !value ) return false;
 
 		key = unescapeKey( key );
-		if ( hasProp.call( value, key ) ) return true;
+		if ( hasOwn( value, key ) ) return true;
 
 		// We climb up the constructor chain to find if one of them contains the key
 		let constructor = value.constructor;
 		while ( constructor !== Function && constructor !== Array && constructor !== Object ) {
-			if ( hasProp.call( constructor.prototype, key ) ) return true;
+			if ( hasOwn( constructor.prototype, key ) ) return true;
 			constructor = constructor.constructor;
 		}
 

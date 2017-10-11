@@ -1,4 +1,5 @@
 import noop from 'utils/noop';
+import { assign, create } from 'utils/object';
 
 export const extern = {};
 
@@ -9,8 +10,8 @@ export default function getRactiveContext ( ractive, ...assigns ) {
 
 export function getContext ( ...assigns ) {
 	if ( !this.ctx ) this.ctx = new extern.Context( this );
-	assigns.unshift( Object.create( this.ctx ) );
-	return Object.assign.apply( null, assigns );
+	assigns.unshift( create( this.ctx ) );
+	return assign.apply( null, assigns );
 }
 
 export class FakeFragment {

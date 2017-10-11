@@ -5,6 +5,8 @@ export function isArrayLike ( obj ) {
 	return arrayLikePattern.test( toString.call( obj ) );
 }
 
+export const isArray = Array.isArray;
+
 export function isEqual ( a, b ) {
 	if ( a === null && b === null ) {
 		return true;

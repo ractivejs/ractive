@@ -1,4 +1,5 @@
 import { warnIfDebug } from 'utils/log';
+import { create, hasOwn } from 'utils/object';
 
 const leadingWhitespace = /^\s+/;
 
@@ -163,10 +164,10 @@ Parser.extend = function ( proto ) {
 		Parser.call( this, str, options );
 	};
 
-	Child.prototype = Object.create( Parent.prototype );
+	Child.prototype = create( Parent.prototype );
 
 	for ( const key in proto ) {
-		if ( proto.hasOwnProperty( key ) ) {
+		if ( hasOwn( proto, key ) ) {
 			Child.prototype[ key ] = proto[ key ];
 		}
 	}

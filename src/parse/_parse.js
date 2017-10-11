@@ -16,6 +16,8 @@ import readTemplate from './converters/readTemplate';
 import cleanup from './utils/cleanup';
 import insertExpressions from './utils/insertExpressions';
 import shared from '../Ractive/shared';
+import { create, keys } from 'utils/object';
+import { isArray } from 'utils/is';
 
 // See https://github.com/ractivejs/template-spec for information
 // about the Ractive template specification
@@ -51,7 +53,7 @@ const StandardParser = Parser.extend({
 		this.sectionDepth = 0;
 		this.elementStack = [];
 
-		this.interpolate = Object.create( options.interpolate || shared.defaults.interpolate || {} );
+		this.interpolate = create( options.interpolate || shared.defaults.interpolate || {} );
 		this.interpolate.textarea = true;
 		defaultInterpolate.forEach( t => this.interpolate[ t ] = !options.interpolate || options.interpolate[ t ] !== false );
 
@@ -113,7 +115,7 @@ const StandardParser = Parser.extend({
 								len--;
 								break;
 							} else if ( res.replace ) {
-								if ( Array.isArray( res.replace ) ) {
+								if ( isArray( res.replace ) ) {
 									fragment.splice( i--, 1, ...res.replace );
 									len += res.replace.length - 1;
 								} else {
@@ -125,7 +127,7 @@ const StandardParser = Parser.extend({
 						}
 
 						// watch for partials
-						if ( node.p && !Array.isArray( node.p ) ) {
+						if ( node.p && !isArray( node.p ) ) {
 							for ( const k in node.p ) walk( node.p[k] );
 						}
 					}
@@ -138,7 +140,7 @@ const StandardParser = Parser.extend({
 			walk( result[0].t );
 
 			// watch for root partials
-			if ( result[0].p && !Array.isArray( result[0].p ) ) {
+			if ( result[0].p && !isArray( result[0].p ) ) {
 				for ( const k in result[0].p ) walk( result[0].p[k] );
 			}
 		}
@@ -146,7 +148,7 @@ const StandardParser = Parser.extend({
 		if ( this.csp !== false ) {
 			const expr = {};
 			insertExpressions( result[0].t, expr );
-			if ( Object.keys( expr ).length ) result[0].e = expr;
+			if ( keys( expr ).length ) result[0].e = expr;
 		}
 
 		return result[0];

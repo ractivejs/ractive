@@ -1,3 +1,5 @@
+import { hasOwn } from 'utils/object';
+
 const prefixers = {};
 
 // TODO this is legacy. sooner we can replace the old adaptor API the better
@@ -12,7 +14,7 @@ function prefixKeypath ( obj, prefix ) {
 	prefix += '.';
 
 	for ( const key in obj ) {
-		if ( obj.hasOwnProperty( key ) ) {
+		if ( hasOwn( obj, key ) ) {
 			prefixed[ prefix + key ] = obj[ key ];
 		}
 	}

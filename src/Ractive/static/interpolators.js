@@ -1,5 +1,6 @@
-import { isObject, isNumeric } from 'utils/is';
+import { isArray, isObject, isNumeric } from 'utils/is';
 import interpolate from 'shared/interpolate';
+import { hasOwn } from 'utils/object';
 
 const interpolators = {
 	number ( from, to ) {
@@ -24,7 +25,7 @@ const interpolators = {
 	array ( from, to ) {
 		let len, i;
 
-		if ( !Array.isArray( from ) || !Array.isArray( to ) ) {
+		if ( !isArray( from ) || !isArray( to ) ) {
 			return null;
 		}
 
@@ -66,8 +67,8 @@ const interpolators = {
 		const interpolators = {};
 
 		for ( const prop in from ) {
-			if ( from.hasOwnProperty( prop ) ) {
-				if ( to.hasOwnProperty( prop ) ) {
+			if ( hasOwn( from, prop ) ) {
+				if ( hasOwn( to, prop ) ) {
 					properties.push( prop );
 					interpolators[ prop ] = interpolate( from[ prop ], to[ prop ] ) || ( () => to[ prop ] );
 				}
@@ -79,7 +80,7 @@ const interpolators = {
 		}
 
 		for ( const prop in to ) {
-			if ( to.hasOwnProperty( prop ) && !from.hasOwnProperty( prop ) ) {
+			if ( hasOwn( to, prop ) && !hasOwn( from, prop ) ) {
 				intermediate[ prop ] = to[ prop ];
 			}
 		}

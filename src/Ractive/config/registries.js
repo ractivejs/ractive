@@ -1,3 +1,5 @@
+import { create, keys } from 'utils/object';
+
 const registryNames = [
 	'adaptors',
 	'components',
@@ -34,7 +36,7 @@ class Registry {
 		const name = this.name;
 		const option = options[ name ];
 
-		const registry = Object.create( Parent[name] );
+		const registry = create( Parent[name] );
 
 		for ( const key in option ) {
 			registry[ key ] = option[ key ];
@@ -47,7 +49,7 @@ class Registry {
 		const registry = ractive[ this.name ];
 		let changed = false;
 
-		Object.keys( registry ).forEach( key => {
+		keys( registry ).forEach( key => {
 			const item = registry[ key ];
 
 			if ( item._fn ) {

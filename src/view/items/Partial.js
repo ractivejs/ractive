@@ -6,6 +6,7 @@ import Fragment from '../Fragment';
 import getPartialTemplate from './partial/getPartialTemplate';
 import { doInAttributes } from './element/ConditionalAttribute';
 import { resolveAliases } from './Alias';
+import { isArray } from 'utils/is';
 
 export default class Partial extends MustacheContainer {
 	constructor ( options ) {
@@ -57,7 +58,7 @@ export default class Partial extends MustacheContainer {
 
 		if ( !template ) {
 			super.bind();
-			if ( ( templateObj = this.model.get() ) && typeof templateObj === 'object' && ( typeof templateObj.template === 'string' || Array.isArray( templateObj.t ) ) ) {
+			if ( ( templateObj = this.model.get() ) && typeof templateObj === 'object' && ( typeof templateObj.template === 'string' || isArray( templateObj.t ) ) ) {
 				if ( templateObj.template ) {
 					this.source = templateObj.template;
 					templateObj = parsePartial( this.template.r, templateObj.template, this.ractive );
@@ -175,7 +176,7 @@ export default class Partial extends MustacheContainer {
 				if ( template && typeof template === 'string' && template !== this.name ) {
 					this.setTemplate( template );
 					this.fragment.resetTemplate( this.partialTemplate );
-				} else if ( template && typeof template === 'object' && ( typeof template.template === 'string' || Array.isArray( template.t ) ) ) {
+				} else if ( template && typeof template === 'object' && ( typeof template.template === 'string' || isArray( template.t ) ) ) {
 					if ( template.t !== this.source && template.template !== this.source ) {
 						if ( template.template ) {
 							this.source = template.template;

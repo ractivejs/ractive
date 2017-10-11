@@ -8,6 +8,7 @@ import makeArrayMethod from '../Ractive/prototype/shared/makeArrayMethod';
 import { animate as protoAnimate } from '../Ractive/prototype/animate';
 import { update as protoUpdate } from '../Ractive/prototype/update';
 import getRactiveContext, { extern, findParentWithContext } from './getRactiveContext';
+import { hasOwn } from 'utils/object';
 
 const modelPush = makeArrayMethod( 'push' ).model;
 const modelPop = makeArrayMethod( 'pop' ).model;
@@ -263,7 +264,7 @@ function build ( ctx, keypath, value ) {
 	// set multiple keypaths in one go
 	if ( isObject( keypath ) ) {
 		for ( const k in keypath ) {
-			if ( keypath.hasOwnProperty( k ) ) {
+			if ( hasOwn( keypath, k ) ) {
 				sets.push( [ findModel( ctx, k ).model, keypath[k] ] );
 			}
 		}

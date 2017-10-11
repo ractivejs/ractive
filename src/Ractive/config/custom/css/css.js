@@ -5,6 +5,7 @@ import { warnIfDebug } from 'utils/log';
 import { getElement } from 'utils/dom';
 import { splitKeypath } from 'shared/keypaths';
 import CSSModel from 'src/model/specials/CSSModel';
+import { assign, create, defineProperty } from 'utils/object';
 
 const hasCurly = /\{/;
 export default {
@@ -14,12 +15,12 @@ export default {
 	extend: ( Parent, proto, options, Child ) => {
 		Child._cssIds = gatherIds( Parent );
 
-		Object.defineProperty( Child, 'cssData', {
+		defineProperty( Child, 'cssData', {
 			configurable: true,
-			value: Object.assign( Object.create( Parent.cssData ), options.cssData || {} )
+			value: assign( create( Parent.cssData ), options.cssData || {} )
 		});
 
-		Object.defineProperty( Child, '_cssModel', {
+		defineProperty( Child, '_cssModel', {
 			configurable: true,
 			value: new CSSModel( Child )
 		});

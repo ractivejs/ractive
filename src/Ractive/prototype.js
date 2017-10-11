@@ -44,6 +44,8 @@ import unshift from './prototype/unshift';
 import update from './prototype/update';
 import updateModel from './prototype/updateModel';
 
+import { defineProperty } from 'utils/object';
+
 const proto = {
 	add,
 	animate,
@@ -95,7 +97,7 @@ const proto = {
 	updateModel
 };
 
-Object.defineProperty( proto, 'target', {
+defineProperty( proto, 'target', {
 	get() { return this.el; }
 });
 

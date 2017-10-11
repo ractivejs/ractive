@@ -1,5 +1,6 @@
 import fireEvent from 'src/events/fireEvent';
 import Context from 'shared/Context';
+import { assign, create } from 'utils/object';
 
 export default function Ractive$fire ( eventName, ...args ) {
 	let ctx;
@@ -7,8 +8,8 @@ export default function Ractive$fire ( eventName, ...args ) {
 	// watch for reproxy
 	if ( args[0] instanceof Context  ) {
 		const proto = args.shift();
-		ctx = Object.create( proto );
-		Object.assign( ctx, proto );
+		ctx = create( proto );
+		assign( ctx, proto );
 	} else if ( typeof args[0] === 'object' && ( args[0] === null || args[0].constructor === Object ) ) {
 		ctx = Context.forRactive( this, args.shift() );
 	} else {

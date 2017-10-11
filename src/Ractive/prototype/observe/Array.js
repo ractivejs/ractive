@@ -1,4 +1,5 @@
 import { removeFromArray } from 'utils/array';
+import { isArray } from 'utils/is';
 import runloop from 'src/global/runloop';
 
 function negativeOne () {
@@ -82,7 +83,7 @@ export default class ArrayObserver {
 
 	slice () {
 		const value = this.model.get();
-		return Array.isArray( value ) ? value.slice() : [];
+		return isArray( value ) ? value.slice() : [];
 	}
 }
 

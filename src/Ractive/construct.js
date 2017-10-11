@@ -9,6 +9,7 @@ import getComputationSignature from './helpers/getComputationSignature';
 import subscribe from './helpers/subscribe';
 import Ractive from '../Ractive';
 import { ATTRIBUTE, INTERPOLATOR } from 'config/types';
+import { assign, create, hasOwn } from 'utils/object';
 
 const constructHook = new Hook( 'construct' );
 
@@ -35,7 +36,7 @@ export default function construct ( ractive, options ) {
 	subscribe( ractive, options, 'on' );
 
 	// if there's not a delegation setting, inherit from parent if it's not default
-	if ( !options.hasOwnProperty( 'delegate' ) && ractive.parent && ractive.parent.delegate !== ractive.delegate ) {
+	if ( !hasOwn( options, 'delegate' ) && ractive.parent && ractive.parent.delegate !== ractive.delegate ) {
 		ractive.delegate = false;
 	}
 
@@ -46,7 +47,7 @@ export default function construct ( ractive, options ) {
 	let i = registryNames.length;
 	while ( i-- ) {
 		const name = registryNames[ i ];
-		ractive[ name ] = Object.assign( Object.create( ractive.constructor[ name ] || null ), options[ name ] );
+		ractive[ name ] = assign( create( ractive.constructor[ name ] || null ), options[ name ] );
 	}
 
 	if ( ractive._attributePartial ) {
@@ -64,7 +65,7 @@ export default function construct ( ractive, options ) {
 	ractive.viewmodel = viewmodel;
 
 	// Add computed properties
-	const computed = Object.assign( Object.create( ractive.constructor.prototype.computed ), options.computed );
+	const computed = assign( create( ractive.constructor.prototype.computed ), options.computed );
 
 	for ( const key in computed ) {
 		if ( key === '__proto__' ) continue;
@@ -103,7 +104,7 @@ function initialiseProperties ( ractive ) {
 	ractive._guid = 'r-' + uid++;
 
 	// events
-	ractive._subs = Object.create( null );
+	ractive._subs = create( null );
 	ractive._nsSubs = 0;
 
 	// storage for item configuration from instantiation to reset,

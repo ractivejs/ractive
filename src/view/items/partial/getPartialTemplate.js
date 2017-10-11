@@ -1,10 +1,9 @@
 import { noRegistryFunctionReturn } from 'config/errors';
 import { warnIfDebug } from 'utils/log';
-import { fillGaps } from 'utils/object';
+import { fillGaps, hasOwn } from 'utils/object';
 import parser from 'src/Ractive/config/runtime-parser';
 import { findInstance } from 'shared/registry';
-
-const hasOwn = Object.prototype.hasOwnProperty;
+import { isArray } from 'utils/is';
 
 export default function getPartialTemplate ( ractive, name, parentFragment ) {
 	// If the partial in instance or view heirarchy instances, great
@@ -41,7 +40,7 @@ function getPartialFromRegistry ( ractive, name, parentFragment ) {
 	let fn;
 	if ( typeof partial === 'function' ) {
 		fn = partial.bind( instance );
-		fn.isOwner = instance.partials.hasOwnProperty(name);
+		fn.isOwner = hasOwn( instance.partials, name );
 		partial = fn.call( ractive, parser );
 	}
 
@@ -77,21 +76,21 @@ function getPartialFromRegistry ( ractive, name, parentFragment ) {
 }
 
 function findOwner ( ractive, key ) {
-	return ractive.partials.hasOwnProperty( key )
+	return hasOwn( ractive.partials, key )
 		? ractive
 		: findConstructor( ractive.constructor, key);
 }
 
 function findConstructor ( constructor, key ) {
 	if ( !constructor ) { return; }
-	return constructor.partials.hasOwnProperty( key )
+	return hasOwn( constructor.partials, key )
 		? constructor
 		: findConstructor( constructor.Parent, key );
 }
 
 function findParentPartial( name, parent ) {
 	if ( parent ) {
-		if ( parent.template && parent.template.p && !Array.isArray( parent.template.p ) && hasOwn.call( parent.template.p, name ) ) {
+		if ( parent.template && parent.template.p && !isArray( parent.template.p ) && hasOwn( parent.template.p, name ) ) {
 			return parent.template.p[name];
 		} else if ( parent.parentFragment && parent.parentFragment.owner ) {
 			return findParentPartial( name, parent.parentFragment.owner );

@@ -4,10 +4,11 @@ import interpolate from 'shared/interpolate';
 import { isEqual } from 'utils/is';
 import noop from 'utils/noop';
 import { splitKeypath } from 'shared/keypaths';
+import { defineProperty, keys as objectKeys } from 'utils/object';
 
 function immediate ( value ) {
 	const result = Promise.resolve( value );
-	Object.defineProperty( result, 'stop', { value: noop });
+	defineProperty( result, 'stop', { value: noop });
 	return result;
 }
 
@@ -58,7 +59,7 @@ export function animate ( ractive, model, to, options ) {
 
 export default function Ractive$animate ( keypath, to, options ) {
 	if ( typeof keypath === 'object' ) {
-		const keys = Object.keys( keypath );
+		const keys = objectKeys( keypath );
 
 		throw new Error( `ractive.animate(...) no longer supports objects. Instead of ractive.animate({
   ${keys.map( key => `'${key}': ${keypath[ key ]}` ).join( '\n  ' )}

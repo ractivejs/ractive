@@ -1,6 +1,7 @@
 import { TEMPLATE_VERSION } from 'config/template';
 import { addFunctions } from 'shared/getFunction';
 import parser from '../runtime-parser';
+import { hasOwn } from 'utils/object';
 
 export default {
 	name: 'template',
@@ -138,7 +139,7 @@ function extendPartials ( existingPartials, newPartials, overwrite ) {
 	// case, but not initially...
 
 	for ( const key in newPartials ) {
-		if ( overwrite || !existingPartials.hasOwnProperty( key ) ) {
+		if ( overwrite || !hasOwn( existingPartials, key ) ) {
 			existingPartials[ key ] = newPartials[ key ];
 		}
 	}

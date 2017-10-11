@@ -1,3 +1,5 @@
+import { isArray } from 'utils/is';
+
 export default function Ractive$findAllComponents ( selector, options ) {
 	if ( !options && typeof selector === 'object' ) {
 		options = selector;
@@ -6,7 +8,7 @@ export default function Ractive$findAllComponents ( selector, options ) {
 
 	options = options || {};
 
-	if ( !Array.isArray( options.result ) ) options.result = [];
+	if ( !isArray( options.result ) ) options.result = [];
 
 	this.fragment.findAllComponents( selector, options );
 

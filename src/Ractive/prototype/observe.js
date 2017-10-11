@@ -5,6 +5,7 @@ import resolveReference from 'src/view/resolvers/resolveReference';
 import Observer from './observe/Observer';
 import PatternObserver from './observe/Pattern';
 import ArrayObserver from './observe/Array';
+import { keys } from 'utils/object';
 
 export default function observe ( keypath, callback, options ) {
 	const observers = [];
@@ -26,7 +27,7 @@ export default function observe ( keypath, callback, options ) {
 	}
 
 	let silent = false;
-	Object.keys( map ).forEach( keypath => {
+	keys( map ).forEach( keypath => {
 		const callback = map[ keypath ];
 		const caller = function ( ...args ) {
 			if ( silent ) return;

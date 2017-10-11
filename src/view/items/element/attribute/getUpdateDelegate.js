@@ -4,6 +4,8 @@ import { arrayContains } from 'utils/array';
 import noop from 'utils/noop';
 import hyphenateCamel from 'utils/hyphenateCamel';
 import { readStyle, readClass } from 'src/view/helpers/specialAttrs';
+import { keys as objectKeys } from 'utils/object';
+import { isArray } from 'utils/is';
 
 const textTypes = [ undefined, 'text', 'search', 'url', 'email', 'hidden', 'password', 'search', 'reset', 'submit' ];
 
@@ -70,7 +72,7 @@ export default function getUpdateDelegate ( attribute ) {
 function updateMultipleSelectValue ( reset ) {
 	let value = this.getValue();
 
-	if ( !Array.isArray( value ) ) value = [ value ];
+	if ( !isArray( value ) ) value = [ value ];
 
 	const options = this.node.options;
 	let i = options.length;
@@ -197,7 +199,7 @@ function updateCheckboxName ( reset ) {
 		// TODO: WAT?
 	}
 
-	if ( !Array.isArray( value ) ) {
+	if ( !isArray( value ) ) {
 		binding.isChecked = node.checked = element.compare( value, valueAttribute );
 	} else {
 		let i = value.length;
@@ -214,7 +216,7 @@ function updateCheckboxName ( reset ) {
 function updateStyleAttribute ( reset ) {
 	const props = reset ? {} : readStyle( this.getValue() || '' );
 	const style = this.node.style;
-	const keys = Object.keys( props );
+	const keys = objectKeys( props );
 	const prev = this.previous || [];
 
 	let i = 0;

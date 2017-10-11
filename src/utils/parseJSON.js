@@ -1,6 +1,7 @@
 import Parser from 'parse/Parser';
 import readStringLiteral from 'parse/converters/expressions/primary/literal/readStringLiteral';
 import readKey from 'parse/converters/expressions/shared/readKey';
+import { hasOwn, keys } from 'utils/object';
 
 // simple JSON parser, without the restrictions of JSON parse
 // (i.e. having to double-quote keys).
@@ -15,7 +16,7 @@ const specials = {
 	undefined
 };
 
-const specialsPattern = new RegExp( '^(?:' + Object.keys( specials ).join( '|' ) + ')' );
+const specialsPattern = new RegExp( '^(?:' + keys( specials ).join( '|' ) + ')' );
 const numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
 const placeholderPattern = /\$\{([^\}]+)\}/g;
 const placeholderAtStartPattern = /^\$\{([^\}]+)\}/;
@@ -41,7 +42,7 @@ const JsonParser = Parser.extend({
 
 			const placeholder = parser.matchPattern( placeholderAtStartPattern );
 
-			if ( placeholder && ( parser.values.hasOwnProperty( placeholder ) ) ) {
+			if ( placeholder && ( hasOwn( parser.values, placeholder ) ) ) {
 				return { v: parser.values[ placeholder ] };
 			}
 		},

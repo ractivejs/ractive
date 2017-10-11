@@ -9,6 +9,7 @@ import findElement from '../shared/findElement';
 import getUpdateDelegate from './attribute/getUpdateDelegate';
 import propertyNames from './attribute/propertyNames';
 import { inAttributes } from './ConditionalAttribute';
+import { isArray } from 'utils/is';
 
 function lookupNamespace ( node, prefix ) {
 	const qualified = `xmlns:${prefix}`;
@@ -42,7 +43,7 @@ export default class Attribute extends Item {
 
 		this.element.attributeByName[ this.name ] = this;
 
-		if ( !Array.isArray( options.template.f ) ) {
+		if ( !isArray( options.template.f ) ) {
 			this.value = options.template.f;
 			if ( this.value === 0 ) {
 				this.value = '';

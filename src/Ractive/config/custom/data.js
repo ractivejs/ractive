@@ -1,5 +1,5 @@
 import { fatal, warnIfDebug, warnOnceIfDebug } from 'utils/log';
-import { isObject } from 'utils/is';
+import { isArray, isObject } from 'utils/is';
 import bind from 'utils/bind';
 
 function validate ( data ) {
@@ -28,7 +28,7 @@ export default {
 				value = options.data[ key ];
 
 				if ( value && typeof value === 'object' ) {
-					if ( isObject( value ) || Array.isArray( value ) ) {
+					if ( isObject( value ) || isArray( value ) ) {
 						warnIfDebug( `Passing a \`data\` option with object and array properties to Ractive.extend() is discouraged, as mutating them is likely to cause bugs. Consider using a data function instead:
 
   // this...

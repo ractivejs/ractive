@@ -5,8 +5,9 @@ import findElement from '../shared/findElement';
 import parseJSON from '../../../utils/parseJSON';
 import resolve from '../../resolvers/resolve';
 import runloop from '../../../global/runloop';
-import { warnIfDebug } from '../../../utils/log';
-import { splitKeypath } from '../../../shared/keypaths';
+import { warnIfDebug } from 'utils/log';
+import { splitKeypath } from 'shared/keypaths';
+import { isArray } from 'utils/is';
 
 export default class Mapping extends Item {
 	constructor ( options ) {
@@ -38,7 +39,7 @@ export default class Mapping extends Item {
 			viewmodel.joinKey( this.name ).set( parsed ? parsed.value : template );
 		}
 
-		else if ( Array.isArray( template ) ) {
+		else if ( isArray( template ) ) {
 			createMapping( this, true );
 		}
 	}

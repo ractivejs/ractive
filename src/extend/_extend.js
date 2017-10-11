@@ -1,4 +1,3 @@
-import { toPairs } from 'utils/object';
 import config from '../Ractive/config/config';
 import dataConfigurator from '../Ractive/config/custom/data';
 import construct from '../Ractive/construct';
@@ -7,6 +6,8 @@ import Ractive from '../Ractive';
 import isInstance from '../Ractive/static/isInstance';
 import styleSet from '../Ractive/static/styleSet';
 import sharedSet from '../Ractive/static/sharedSet';
+import { assign, create, defineProperty, defineProperties, toPairs } from 'utils/object';
+import { isArray } from 'utils/is';
 
 const callsSuper = /super\s*\(|\.call\s*\(\s*this/;
 
@@ -47,14 +48,14 @@ function extendOne ( Parent, options = {}, Target ) {
 			initialise( this, options || {}, {} );
 		};
 
-		proto = Object.create( Parent.prototype );
+		proto = create( Parent.prototype );
 		proto.constructor = Child;
 
 		Child.prototype = proto;
 	}
 
 	// Static properties
-	Object.defineProperties( Child, {
+	defineProperties( Child, {
 		// alias prototype as defaults
 		defaults: { value: proto },
 
@@ -84,15 +85,15 @@ function extendOne ( Parent, options = {}, Target ) {
 		let attrs;
 
 		// allow an array of optional props or an object with arrays for optional and required props
-		if ( Array.isArray( options.attributes ) ) {
+		if ( isArray( options.attributes ) ) {
 			attrs = { optional: options.attributes, required: [] };
 		} else {
 			attrs = options.attributes;
 		}
 
 		// make sure the requisite keys actually store arrays
-		if ( !Array.isArray( attrs.required ) ) attrs.required = [];
-		if ( !Array.isArray( attrs.optional ) ) attrs.optional = [];
+		if ( !isArray( attrs.required ) ) attrs.required = [];
+		if ( !isArray( attrs.optional ) ) attrs.optional = [];
 
 		Child.attributes = attrs;
 	}
@@ -100,14 +101,14 @@ function extendOne ( Parent, options = {}, Target ) {
 	dataConfigurator.extend( Parent, proto, options, Child );
 
 	if ( options.computed ) {
-		proto.computed = Object.assign( Object.create( Parent.prototype.computed ), options.computed );
+		proto.computed = assign( create( Parent.prototype.computed ), options.computed );
 	}
 
 	return Child;
 }
 
 // styleSet for Ractive
-Object.defineProperty( Ractive, 'styleSet', { configurable: true, value: styleSet.bind( Ractive ) } );
+defineProperty( Ractive, 'styleSet', { configurable: true, value: styleSet.bind( Ractive ) } );
 
 // sharedSet for Ractive
-Object.defineProperty( Ractive, 'sharedSet', { value: sharedSet } );
+defineProperty( Ractive, 'sharedSet', { value: sharedSet } );
