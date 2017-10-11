@@ -8,6 +8,7 @@ import registries from './registries';
 import wrapPrototype from './wrapPrototypeMethod';
 import deprecate from './deprecate';
 import RactiveProto from '../prototype';
+import { hasOwn, keys } from 'utils/object';
 
 const custom = {
 	adapt: adaptConfigurator,
@@ -16,7 +17,7 @@ const custom = {
 	template: templateConfigurator
 };
 
-const defaultKeys = Object.keys( defaults );
+const defaultKeys = keys( defaults );
 
 const isStandardKey = makeObj( defaultKeys.filter( key => !custom[ key ] ) );
 
@@ -41,7 +42,7 @@ function configure ( method, Parent, target, options, Child ) {
 	deprecate( options );
 
 	for ( const key in options ) {
-		if ( isStandardKey.hasOwnProperty( key ) ) {
+		if ( hasOwn( isStandardKey, key ) ) {
 			const value = options[ key ];
 
 			// warn the developer if they passed a function and ignore its value
@@ -78,7 +79,7 @@ function configure ( method, Parent, target, options, Child ) {
 const _super = /\b_super\b/;
 function extendOtherMethods ( parent, target, options ) {
 	for ( const key in options ) {
-		if ( !isBlacklisted[ key ] && options.hasOwnProperty( key ) ) {
+		if ( !isBlacklisted[ key ] && hasOwn( options, key ) ) {
 			let member = options[ key ];
 
 			// if this is a method that overwrites a method, wrap it:

@@ -1,4 +1,4 @@
-import { toPairs } from 'utils/object';
+import { create, toPairs } from 'utils/object';
 
 export default function subscribe ( instance, options, type ) {
 	const subs = ( instance.constructor[ `_${type}` ] || [] ).concat( toPairs( options[ type ] || [] ) );
@@ -8,7 +8,7 @@ export default function subscribe ( instance, options, type ) {
 		if ( typeof config === 'function' ) {
 			instance[type]( target, config );
 		} else if ( typeof config === 'object' && typeof config.handler === 'function' ) {
-			instance[ config.once ? single : type ]( target, config.handler, Object.create( config ) );
+			instance[ config.once ? single : type ]( target, config.handler, create( config ) );
 		}
 	});
 }

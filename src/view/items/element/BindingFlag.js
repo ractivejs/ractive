@@ -2,6 +2,7 @@ import { INTERPOLATOR, ELEMENT } from 'config/types';
 import Item from '../shared/Item';
 import Fragment from '../../Fragment';
 import findElement from '../shared/findElement';
+import { isArray } from 'utils/is';
 
 export default class BindingFlag extends Item {
 	constructor ( options ) {
@@ -12,7 +13,7 @@ export default class BindingFlag extends Item {
 		this.flag = options.template.v === 'l' ? 'lazy' : 'twoway';
 
 		if ( this.element.type === ELEMENT ) {
-			if ( Array.isArray( options.template.f ) ) {
+			if ( isArray( options.template.f ) ) {
 				this.fragment = new Fragment({
 					owner: this,
 					template: options.template.f

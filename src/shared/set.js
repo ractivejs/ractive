@@ -1,9 +1,10 @@
-import { isObject } from 'utils/is';
+import { isArray, isObject } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import resolveReference from 'src/view/resolvers/resolveReference';
 import runloop from '../global/runloop';
 import { splitKeypath } from './keypaths';
 import { FakeFragment } from './getRactiveContext';
+import { hasOwn } from 'utils/object';
 
 export let keep = false;
 
@@ -37,7 +38,7 @@ export function set ( pairs, options ) {
 			if ( target === undefined ) {
 				model.set( array );
 			} else {
-				if ( !Array.isArray( target ) || !Array.isArray( array ) ) {
+				if ( !isArray( target ) || !isArray( array ) ) {
 					runloop.end();
 					throw new Error( 'You cannot merge an array with a non-array' );
 				}
@@ -87,7 +88,7 @@ export function build ( ractive, keypath, value, isolated ) {
 	// set multiple keypaths in one go
 	if ( isObject( keypath ) ) {
 		for ( const k in keypath ) {
-			if ( keypath.hasOwnProperty( k ) ) {
+			if ( hasOwn( keypath, k ) ) {
 				sets.push.apply( sets, gather( ractive, k, null, isolated ).map( m => [ m, keypath[k], k ] ) );
 			}
 		}
@@ -110,7 +111,7 @@ function deepSet( model, value ) {
 	if ( typeof dest !== 'object' ) return model.set( value );
 
 	for ( const k in value ) {
-		if ( value.hasOwnProperty( k ) ) {
+		if ( hasOwn( value, k ) ) {
 			deepSet( model.joinKey( k ), value[k] );
 		}
 	}

@@ -1,6 +1,7 @@
 import { createFunction } from '../Ractive/config/runtime-parser';
+import { create, keys } from 'utils/object';
 
-const functions = Object.create( null );
+const functions = create( null );
 
 export default function getFunction ( str, i ) {
 	if ( functions[ str ] ) return functions[ str ];
@@ -14,7 +15,7 @@ export function addFunctions( template ) {
 
 	if ( !exp ) return;
 
-	Object.keys( exp ).forEach( ( str ) => {
+	keys( exp ).forEach( ( str ) => {
 		if ( functions[ str ] ) return;
 		functions[ str ] = exp[ str ];
 	});

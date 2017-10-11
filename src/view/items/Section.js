@@ -1,20 +1,21 @@
 import { SECTION_EACH, SECTION_IF, SECTION_IF_WITH, SECTION_UNLESS, SECTION_WITH } from 'config/types';
 import { createDocumentFragment } from 'utils/dom';
-import { isObject } from 'utils/is';
+import { isArray, isObject } from 'utils/is';
 import { keep } from 'shared/set';
 import runloop from 'src/global/runloop';
 import Fragment from '../Fragment';
 import RepeatedFragment from '../RepeatedFragment';
 import { MustacheContainer } from './shared/Mustache';
+import { keys } from 'utils/object';
 
 function isEmpty ( value ) {
 	return !value ||
-	       ( Array.isArray( value ) && value.length === 0 ) ||
-		   ( isObject( value ) && Object.keys( value ).length === 0 );
+	       ( isArray( value ) && value.length === 0 ) ||
+		   ( isObject( value ) && keys( value ).length === 0 );
 }
 
 function getType ( value, hasIndexRef ) {
-	if ( hasIndexRef || Array.isArray( value ) ) return SECTION_EACH;
+	if ( hasIndexRef || isArray( value ) ) return SECTION_EACH;
 	if ( isObject( value ) || typeof value === 'function' ) return SECTION_IF_WITH;
 	if ( value === undefined ) return null;
 	return SECTION_IF;

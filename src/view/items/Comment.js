@@ -2,14 +2,15 @@ import Item from './shared/Item';
 import noop from 'utils/noop';
 import { detachNode } from 'utils/dom';
 import { doc } from 'config/environment';
+import { assign, create } from 'utils/object';
 
 export default function Comment ( options ) {
 	Item.call( this, options );
 }
 
-const proto = Object.create( Item.prototype );
+const proto = create( Item.prototype );
 
-Object.assign( proto, {
+assign( proto, {
 	bind: noop,
 	unbind: noop,
 	update: noop,

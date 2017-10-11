@@ -1,4 +1,5 @@
 import { warnIfDebug } from 'utils/log';
+import { isArray } from 'utils/is';
 
 function getMessage( deprecated, correct, isError ) {
 	return `options.${deprecated} has been deprecated in favour of options.${correct}.`
@@ -25,7 +26,7 @@ export default function deprecate ( options ) {
 	// Using extend with Component instead of options,
 	// like Human.extend( Spider ) means adaptors as a registry
 	// gets copied to options. So we have to check if actually an array
-	if ( Array.isArray( options.adaptors ) ) {
+	if ( isArray( options.adaptors ) ) {
 		deprecateOption( options, 'adaptors', 'adapt' );
 	}
 }

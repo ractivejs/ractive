@@ -26,6 +26,8 @@ import CSSModel from './model/specials/CSSModel';
 import { data as sharedData } from './model/specials/SharedModel';
 import { extern } from './shared/getRactiveContext';
 
+import { assign, defineProperty, defineProperties } from 'utils/object';
+
 export default function Ractive ( options ) {
 	if ( !( this instanceof Ractive ) ) return new Ractive( options );
 
@@ -44,7 +46,7 @@ if ( win && !win.Ractive ) {
 	if ( ~opts.indexOf( 'ForceGlobal' ) ) win.Ractive = Ractive;
 }
 
-Object.assign( Ractive.prototype, proto, defaults );
+assign( Ractive.prototype, proto, defaults );
 Ractive.prototype.constructor = Ractive;
 
 // alias prototype as `defaults`
@@ -55,7 +57,7 @@ shared.defaults = Ractive.defaults;
 shared.Ractive = Ractive;
 
 // static properties
-Object.defineProperties( Ractive, {
+defineProperties( Ractive, {
 
 	// debug flag
 	DEBUG:            { writable: true, value: true },
@@ -109,4 +111,4 @@ Object.defineProperties( Ractive, {
 	Context:          { value: extern.Context.prototype }
 });
 
-Object.defineProperty( Ractive, '_cssModel', { configurable: true, value: new CSSModel( Ractive ) } );
+defineProperty( Ractive, '_cssModel', { configurable: true, value: new CSSModel( Ractive ) } );

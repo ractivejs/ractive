@@ -1,5 +1,6 @@
 import trim from './shared/trim';
 import notEmptyString from './shared/notEmptyString';
+import { hasOwn } from 'utils/object';
 
 export default function Ractive$on ( eventName, callback ) {
 	// eventName may already be a map
@@ -20,7 +21,7 @@ export default function Ractive$on ( eventName, callback ) {
 			handler: caller
 		};
 
-		if ( map.hasOwnProperty( k ) ) {
+		if ( hasOwn( map, k ) ) {
 			const names = k.split( ' ' ).map( trim ).filter( notEmptyString );
 			names.forEach( n => {
 				( this._subs[ n ] || ( this._subs[ n ] = [] ) ).push( entry );

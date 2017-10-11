@@ -2,6 +2,7 @@ import { isEqual } from 'utils/is';
 import { removeFromArray } from 'utils/array';
 import runloop from 'src/global/runloop';
 import { rebindMatch } from 'shared/rebind';
+import { create } from 'utils/object';
 
 export default class Observer {
 	constructor ( ractive, model, callback, options ) {
@@ -14,7 +15,7 @@ export default class Observer {
 		if ( model ) this.resolved( model );
 
 		if ( typeof options.old === 'function' ) {
-			this.oldContext = Object.create( ractive );
+			this.oldContext = create( ractive );
 			this.old = options.old;
 		} else {
 			this.old = old;

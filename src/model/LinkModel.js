@@ -4,7 +4,8 @@ import { capture } from '../global/capture';
 import { handleChange, marked, markedAll, teardown } from 'shared/methodCallers';
 import { rebindMatch } from 'shared/rebind';
 import resolveReference from 'src/view/resolvers/resolveReference';
-import noop from 'src/utils/noop';
+import noop from 'utils/noop';
+import { hasOwn } from 'utils/object';
 
 // temporary placeholder target for detached implicit links
 export const Missing = {
@@ -99,7 +100,7 @@ export default class LinkModel extends ModelBase {
 		// TODO: handle nested links
 		if ( key === undefined || key === '' ) return this;
 
-		if ( !this.childByKey.hasOwnProperty( key ) ) {
+		if ( !hasOwn( this.childByKey, key ) ) {
 			const child = new LinkModel( this, this, this.target.joinKey( key ), key );
 			this.children.push( child );
 			this.childByKey[ key ] = child;

@@ -1,6 +1,6 @@
 import { win } from 'config/environment';
 import { addToArray, removeFromArray } from 'utils/array';
-import { isObject } from 'utils/is';
+import { isArray, isObject } from 'utils/is';
 import noop from 'utils/noop';
 import { warnOnceIfDebug } from 'utils/log';
 import { missingPlugin } from 'config/errors';
@@ -10,6 +10,7 @@ import findElement from '../shared/findElement';
 import prefix from './transitions/prefix';
 import createTransitions from './transitions/createTransitions';
 import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
+import { assign, hasOwn, keys } from 'utils/object';
 
 const getComputedStyle = win && win.getComputedStyle;
 const resolved = Promise.resolve();
@@ -64,7 +65,7 @@ export default class Transition {
 			}
 
 			// Get a list of the properties we're animating
-			const propertyNames = Object.keys( to );
+			const propertyNames = keys( to );
 			const changedProperties = [];
 
 			// Store the current styles
@@ -160,7 +161,7 @@ export default class Transition {
 			return computedStyle[ prefix( props ) ];
 		}
 
-		if ( !Array.isArray( props ) ) {
+		if ( !isArray( props ) ) {
 			throw new Error( 'Transition$getStyle must be passed a string, or an array of strings representing CSS properties' );
 		}
 
@@ -195,7 +196,7 @@ export default class Transition {
 			params = {};
 		}
 
-		return Object.assign( {}, defaults, params );
+		return assign( {}, defaults, params );
 	}
 
 	registerCompleteHandler ( fn ) {
@@ -205,7 +206,7 @@ export default class Transition {
 	setStyle ( style, value ) {
 		if ( typeof style === 'string' ) {
 			const name = prefix(  style );
-			if ( !this.originals.hasOwnProperty( name ) ) this.originals[ name ] = this.node.style[ name ];
+			if ( !hasOwn( this.originals, name ) ) this.originals[ name ] = this.node.style[ name ];
 			this.node.style[ name ] = value;
 			this.targets[ name ] = this.node.style[ name ];
 		}
@@ -213,7 +214,7 @@ export default class Transition {
 		else {
 			let prop;
 			for ( prop in style ) {
-				if ( style.hasOwnProperty( prop ) ) {
+				if ( hasOwn( style, prop ) ) {
 					this.setStyle( prop, style[ prop ] );
 				}
 			}
@@ -311,7 +312,7 @@ proto.destroyed = proto.render = proto.unrender = proto.update = noop;
 function nearestProp ( prop, ractive, rendering ) {
 	let instance = ractive;
 	while ( instance ) {
-		if ( instance.hasOwnProperty( prop ) && ( rendering === undefined || rendering ? instance.rendering : instance.unrendering ) ) return instance[ prop ];
+		if ( hasOwn( instance, prop ) && ( rendering === undefined || rendering ? instance.rendering : instance.unrendering ) ) return instance[ prop ];
 		instance = instance.component && instance.component.ractive;
 	}
 

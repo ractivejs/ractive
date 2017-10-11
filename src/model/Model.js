@@ -2,12 +2,13 @@ import ModelBase, { maybeBind, shuffle } from './ModelBase';
 import LinkModel from './LinkModel'; // eslint-disable-line no-unused-vars
 import KeypathModel from './specials/KeypathModel';
 import { capture } from 'src/global/capture';
-import { isEqual, isNumeric, isObjectLike } from 'utils/is';
+import { isArray, isEqual, isNumeric, isObjectLike } from 'utils/is';
 import { handleChange, mark, markForce, marked, teardown } from 'shared/methodCallers';
 import Ticker from 'shared/Ticker';
 import getPrefixer from './helpers/getPrefixer';
 import { unescapeKey } from 'shared/keypaths';
 import { warnIfDebug } from 'utils/log';
+import { hasOwn } from 'utils/object';
 
 export default class Model extends ModelBase {
 	constructor ( parent, key ) {
@@ -21,7 +22,7 @@ export default class Model extends ModelBase {
 
 			if ( parent.value ) {
 				this.value = parent.value[ this.key ];
-				if ( Array.isArray( this.value ) ) this.length = this.value.length;
+				if ( isArray( this.value ) ) this.length = this.value.length;
 				this.adapt();
 			}
 		}
@@ -134,7 +135,7 @@ export default class Model extends ModelBase {
 		}
 
 		// keep track of array stuff
-		if ( Array.isArray( value ) ) {
+		if ( isArray( value ) ) {
 			this.length = value.length;
 			this.isArray = true;
 		} else {
@@ -183,7 +184,7 @@ export default class Model extends ModelBase {
 		if ( key === undefined || key === '' ) return this;
 
 
-		if ( !this.childByKey.hasOwnProperty( key ) ) {
+		if ( !hasOwn( this.childByKey, key ) ) {
 			const child = new Model( this, key );
 			this.children.push( child );
 			this.childByKey[ key ] = child;
@@ -210,7 +211,7 @@ export default class Model extends ModelBase {
 			}
 
 			// keep track of array stuff
-			if ( Array.isArray( value ) ) {
+			if ( isArray( value ) ) {
 				this.length = value.length;
 				this.isArray = true;
 			} else {

@@ -7,8 +7,7 @@ import SharedModel, { GlobalModel } from './specials/SharedModel';
 import { splitKeypath, escapeKey, unescapeKey } from 'shared/keypaths';
 import resolveReference from 'src/view/resolvers/resolveReference';
 import noop from 'utils/noop';
-
-const hasProp = Object.prototype.hasOwnProperty;
+import { hasOwn, keys as objectKeys } from 'utils/object';
 
 export default class RootModel extends Model {
 	constructor ( options ) {
@@ -58,7 +57,7 @@ export default class RootModel extends Model {
 
 		if ( !options || options.virtual !== false ) {
 			const result = this.getVirtual();
-			const keys = Object.keys( this.computations );
+			const keys = objectKeys( this.computations );
 			let i = keys.length;
 			while ( i-- ) {
 				result[ keys[i] ] = this.computations[ keys[i] ].get();
@@ -102,7 +101,7 @@ export default class RootModel extends Model {
 
 		if ( unescapedKey === '@this' || unescapedKey === '@global' || unescapedKey === '@shared' || unescapedKey === '@style' ) return true;
 		if ( unescapedKey[0] === '~' && unescapedKey[1] === '/' ) unescapedKey = unescapedKey.slice( 2 );
-		if ( key === '' || hasProp.call( value, unescapedKey ) ) return true;
+		if ( key === '' || hasOwn( value, unescapedKey ) ) return true;
 
 		// mappings/links and computations
 		if ( key in this.computations || this.childByKey[unescapedKey] && this.childByKey[unescapedKey]._link ) return true;
@@ -110,7 +109,7 @@ export default class RootModel extends Model {
 		// We climb up the constructor chain to find if one of them contains the unescapedKey
 		let constructor = value.constructor;
 		while ( constructor !== Function && constructor !== Array && constructor !== Object ) {
-			if ( hasProp.call( constructor.prototype, unescapedKey ) ) return true;
+			if ( hasOwn( constructor.prototype, unescapedKey ) ) return true;
 			constructor = constructor.constructor;
 		}
 
@@ -128,7 +127,7 @@ export default class RootModel extends Model {
 
 		if ( key[0] === '~' && key[1] === '/' ) key = key.slice( 2 );
 
-		return this.computations.hasOwnProperty( key ) ? this.computations[ key ] :
+		return hasOwn( this.computations, key ) ? this.computations[ key ] :
 		       super.joinKey( key, opts );
 	}
 

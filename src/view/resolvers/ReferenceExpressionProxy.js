@@ -8,6 +8,7 @@ import { escapeKey } from 'shared/keypaths';
 import ExpressionProxy from './ExpressionProxy';
 import resolveReference from './resolveReference';
 import resolve from './resolve';
+import { hasOwn } from 'utils/object';
 
 class ReferenceExpressionChild extends Model {
 	constructor ( parent, key ) {
@@ -41,7 +42,7 @@ class ReferenceExpressionChild extends Model {
 	joinKey ( key ) {
 		if ( key === undefined || key === '' ) return this;
 
-		if ( !this.childByKey.hasOwnProperty( key ) ) {
+		if ( !hasOwn( this.childByKey, key ) ) {
 			const child = new ReferenceExpressionChild( this, key );
 			this.children.push( child );
 			this.childByKey[ key ] = child;
@@ -192,7 +193,7 @@ export default class ReferenceExpressionProxy extends Model {
 	joinKey ( key ) {
 		if ( key === undefined || key === '' ) return this;
 
-		if ( !this.childByKey.hasOwnProperty( key ) ) {
+		if ( !hasOwn( this.childByKey, key ) ) {
 			const child = new ReferenceExpressionChild( this, key );
 			this.children.push( child );
 			this.childByKey[ key ] = child;

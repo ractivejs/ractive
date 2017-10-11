@@ -7,6 +7,7 @@ import readClosingTag from './element/readClosingTag';
 import readClosing from './mustache/section/readClosing';
 import readElse from './mustache/section/readElse';
 import readElseIf from './mustache/section/readElseIf';
+import { create } from 'utils/object';
 
 const tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/;
 const anchorPattern = /^[a-zA-Z_$][-a-zA-Z0-9_$]*/;
@@ -132,7 +133,7 @@ function readElement ( parser ) {
 		}
 
 		children = [];
-		partials = Object.create( null );
+		partials = create( null );
 
 		do {
 			pos = parser.pos;

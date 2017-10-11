@@ -13,6 +13,7 @@ import ConditionalAttribute from './element/ConditionalAttribute';
 import createItem from './createItem';
 import findElement from './shared/findElement';
 import selectBinding from './element/binding/selectBinding';
+import { assign, create, defineProperty } from 'utils/object';
 
 const endsWithSemi = /;\s*$/;
 
@@ -183,8 +184,8 @@ export default class Element extends ContainerItem {
 		if ( this.fragment ) return this.fragment.getContext( ...assigns );
 
 		if ( !this.ctx ) this.ctx = new Context( this.parentFragment, this );
-		assigns.unshift( Object.create( this.ctx ) );
-		return Object.assign.apply( null, assigns );
+		assigns.unshift( create( this.ctx ) );
+		return assign.apply( null, assigns );
 	}
 
 	off ( event, callback, capture = false ) {
@@ -285,7 +286,7 @@ export default class Element extends ContainerItem {
 		}
 
 		// tie the node to this vdom element
-		Object.defineProperty( node, '_ractive', {
+		defineProperty( node, '_ractive', {
 			value: {
 				proxy: this
 			},

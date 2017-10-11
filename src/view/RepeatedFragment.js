@@ -1,10 +1,11 @@
 import { createDocumentFragment } from 'utils/dom';
-import { isObject } from 'utils/is';
+import { isArray, isObject } from 'utils/is';
 import { findMap } from 'utils/array';
 import { toEscapedString, toString, destroyed, shuffled, unbind, unrender, unrenderAndDestroy, update } from 'shared/methodCallers';
 import Fragment from './Fragment';
 import findElement from './items/shared/findElement';
 import { getContext } from 'shared/getRactiveContext';
+import { keys } from 'utils/object';
 
 export default class RepeatedFragment {
 	constructor ( options ) {
@@ -46,7 +47,7 @@ export default class RepeatedFragment {
 		const value = context.get();
 
 		// {{#each array}}...
-		if ( this.isArray = Array.isArray( value ) ) {
+		if ( this.isArray = isArray( value ) ) {
 			// we can't use map, because of sparse arrays
 			this.iterations = [];
 			const max = value.length;
@@ -66,7 +67,7 @@ export default class RepeatedFragment {
 				this.indexRef = refs[1];
 			}
 
-			this.iterations = Object.keys( value ).map( ( key, index ) => {
+			this.iterations = keys( value ).map( ( key, index ) => {
 				return this.createIteration( key, index );
 			});
 		}
@@ -244,7 +245,7 @@ export default class RepeatedFragment {
 		let reset = true;
 		let i;
 
-		if ( this.isArray = Array.isArray( value ) ) {
+		if ( this.isArray = isArray( value ) ) {
 			if ( wasArray ) {
 				reset = false;
 				if ( this.iterations.length > value.length ) {
@@ -290,10 +291,10 @@ export default class RepeatedFragment {
 		}
 
 		// add new iterations
-		const newLength = Array.isArray( value ) ?
+		const newLength = isArray( value ) ?
 			value.length :
 			isObject( value ) ?
-				Object.keys( value ).length :
+				keys( value ).length :
 				0;
 
 		let docFrag;
@@ -303,7 +304,7 @@ export default class RepeatedFragment {
 			docFrag = this.rendered ? createDocumentFragment() : null;
 			i = this.iterations.length;
 
-			if ( Array.isArray( value ) ) {
+			if ( isArray( value ) ) {
 				while ( i < value.length ) {
 					fragment = this.createIteration( i, i );
 
@@ -322,7 +323,7 @@ export default class RepeatedFragment {
 					this.indexRef = refs[1];
 				}
 
-				Object.keys( value ).forEach( key => {
+				keys( value ).forEach( key => {
 					if ( !oldKeys || !( key in oldKeys ) ) {
 						fragment = this.createIteration( key, i );
 
@@ -428,7 +429,7 @@ export default class RepeatedFragment {
 		}
 
 		// trigger removal on old nodes
-		Object.keys( removed ).forEach( k => removed[k].unbind().unrender( true ) );
+		keys( removed ).forEach( k => removed[k].unbind().unrender( true ) );
 
 		this.iterations.forEach( update );
 

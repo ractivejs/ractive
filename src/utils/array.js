@@ -1,3 +1,5 @@
+import { isArray } from './is';
+
 export function addToArray ( array, value ) {
 	const index = array.indexOf( value );
 
@@ -19,7 +21,7 @@ export function arrayContains ( array, value ) {
 export function arrayContentsMatch ( a, b ) {
 	let i;
 
-	if ( !Array.isArray( a ) || !Array.isArray( b ) ) {
+	if ( !isArray( a ) || !isArray( b ) ) {
 		return false;
 	}
 

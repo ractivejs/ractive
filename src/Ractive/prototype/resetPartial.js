@@ -1,5 +1,6 @@
 import runloop from 'src/global/runloop';
 import { PARTIAL, COMPONENT, ELEMENT } from 'config/types';
+import { isArray } from 'utils/is';
 
 function collect( source, name, attr, dest ) {
 	source.forEach( item => {
@@ -16,7 +17,7 @@ function collect( source, name, attr, dest ) {
 		}
 
 		// or if it is itself a fragment, process its items
-		else if ( Array.isArray( item.items ) ) {
+		else if ( isArray( item.items ) ) {
 			collect( item.items, name, attr, dest );
 		}
 
@@ -29,7 +30,7 @@ function collect( source, name, attr, dest ) {
 
 		// if the item is an element, process its attributes too
 		if ( item.type === ELEMENT ) {
-			if ( Array.isArray( item.attributes ) ) {
+			if ( isArray( item.attributes ) ) {
 				collect( item.attributes, name, true, dest );
 			}
 		}

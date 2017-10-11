@@ -13,6 +13,8 @@ import Item from './shared/Item';
 import ConditionalAttribute from './element/ConditionalAttribute';
 import createItem from './createItem';
 import parser from 'src/Ractive/config/runtime-parser';
+import { assign, create } from 'utils/object';
+import { isArray } from 'utils/is';
 
 export default class Component extends Item {
 	constructor ( options, ComponentConstructor ) {
@@ -32,7 +34,7 @@ export default class Component extends Item {
 			this.addChild = addChild;
 			this.removeChild = removeChild;
 		} else {
-			const instance = Object.create( ComponentConstructor.prototype );
+			const instance = create( ComponentConstructor.prototype );
 
 			this.instance = instance;
 			this.name = template.e;
@@ -66,7 +68,7 @@ export default class Component extends Item {
 			attrs = template.m;
 
 			// allow components that are so inclined to add programmatic mappings
-			if ( Array.isArray( this.mappings ) ) {
+			if ( isArray( this.mappings ) ) {
 				attrs = ( attrs || [] ).concat( this.mappings );
 			} else if ( typeof this.mappings === 'string' ) {
 				attrs = ( attrs || [] ).concat( parser.parse( this.mappings, { attributes: true } ).t );
@@ -299,7 +301,7 @@ function renderItem ( anchor, meta ) {
 	}
 
 	meta.partials = meta.instance.partials;
-	meta.instance.partials = Object.assign( Object.create( meta.partials ), meta.partials, anchor._partials );
+	meta.instance.partials = assign( create( meta.partials ), meta.partials, anchor._partials );
 
 	meta.instance.fragment.unbind();
 	meta.instance.fragment.componentParent = anchor.parentFragment;
