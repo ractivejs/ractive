@@ -1116,4 +1116,16 @@ export default function() {
 		r.attachChild( child, { target: 'anchor' } );
 		t.htmlEqual( fixture.innerHTML, 'default content!' );
 	});
+
+	test( `inline content partial from outside of component should not override component content`, t => {
+		new Ractive({
+			target: fixture,
+			template: '<p>{{#partial content}}nope{{/partial}}<cmp>yep</cmp></p>',
+			components: {
+				cmp: Ractive.extend({ template: '{{yield}}' })
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<p>yep</p>' );
+	});
 }

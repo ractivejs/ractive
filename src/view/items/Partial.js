@@ -47,7 +47,7 @@ export default class Partial extends MustacheContainer {
 		this.refName = this.template.r;
 
 		// name matches take priority over expressions
-		const template = this.refName ? getPartialTemplate( this.ractive, this.refName, this.parentFragment ) || null : null;
+		const template = this.refName ? getPartialTemplate( this.ractive, this.refName, this.containerFragment || this.parentFragment ) || null : null;
 		let templateObj;
 
 		if ( template ) {
