@@ -26,7 +26,7 @@ export default function readPartialDefinitionSection ( parser ) {
 		parser.error( 'expected legal partial name' );
 	}
 
-	parser.allowWhitespace();
+	parser.sp();
 	if ( !parser.matchString( delimiters[1] ) ) {
 		parser.error( `Expected closing delimiter '${delimiters[1]}'` );
 	}

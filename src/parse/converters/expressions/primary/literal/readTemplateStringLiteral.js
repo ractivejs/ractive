@@ -41,14 +41,14 @@ export default function readTemplateStringLiteral ( parser ) {
 					parts.push({ t: STRING_LITERAL, v: getString( literal ) });
 					literal = '';
 
-					parser.allowWhitespace();
+					parser.sp();
 					const expr = readExpression( parser );
 
 					if ( !expr ) parser.error( 'Expected valid expression' );
 
 					parts.push({ t: BRACKETED, x: expr });
 
-					parser.allowWhitespace();
+					parser.sp();
 					if ( !parser.matchString( '}' ) ) parser.error( `Expected closing '}' after interpolated expression` );
 				} else {
 					literal += '$';

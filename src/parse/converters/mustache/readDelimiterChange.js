@@ -9,7 +9,7 @@ export default function readDelimiterChange ( parser ) {
 	const start = parser.pos;
 
 	// allow whitespace before new opening delimiter
-	parser.allowWhitespace();
+	parser.sp();
 
 	const opening = parser.matchPattern( delimiterChangePattern );
 	if ( !opening ) {
@@ -29,7 +29,7 @@ export default function readDelimiterChange ( parser ) {
 	}
 
 	// allow whitespace before closing '='
-	parser.allowWhitespace();
+	parser.sp();
 
 	if ( !parser.matchString( '=' ) ) {
 		parser.pos = start;

@@ -23,7 +23,7 @@ export default function attachChild ( child, options = {} ) {
 
 	// child is managing itself
 	if ( !meta.target ) {
-		meta.parentFragment = this.fragment;
+		meta.up = this.fragment;
 		meta.external = true;
 	} else {
 		let list;

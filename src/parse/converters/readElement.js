@@ -69,7 +69,7 @@ function readElement ( parser ) {
 	}
 	// check for anchor
 	else if ( anchor = parser.matchString( '#' ) ) {
-		parser.allowWhitespace();
+		parser.sp();
 		element.t = ANCHOR;
 		element.n = parser.matchPattern( anchorPattern );
 	}
@@ -89,7 +89,7 @@ function readElement ( parser ) {
 		parser.error( 'Illegal tag name' );
 	}
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	parser.inTag = true;
 
@@ -100,13 +100,13 @@ function readElement ( parser ) {
 			element.m.push( attribute );
 		}
 
-		parser.allowWhitespace();
+		parser.sp();
 	}
 
 	parser.inTag = false;
 
 	// allow whitespace before closing solidus
-	parser.allowWhitespace();
+	parser.sp();
 
 	// self-closing solidus?
 	if ( parser.matchString( '/' ) ) {
@@ -252,14 +252,14 @@ function readAnchorClose ( parser, name ) {
 	}
 
 	parser.matchString( '#' );
-	parser.allowWhitespace();
+	parser.sp();
 
 	if ( !parser.matchString( name ) ) {
 		parser.pos = pos;
 		return null;
 	}
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	if ( !parser.matchString( '>' ) ) {
 		parser.pos = pos;

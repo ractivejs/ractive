@@ -24,7 +24,7 @@ export default class Element extends ContainerItem {
 		this.name = options.template.e.toLowerCase();
 
 		// find parent element
-		this.parent = findElement( this.parentFragment, false );
+		this.parent = findElement( this.up, false );
 
 		if ( this.parent && this.parent.name === 'option' ) {
 			throw new Error( `An <option> element cannot contain other elements (encountered <${this.name}>)` );
@@ -51,7 +51,7 @@ export default class Element extends ContainerItem {
 				case TRANSITION:
 					attr = createItem({
 						owner: this,
-						parentFragment: this.parentFragment,
+						up: this.up,
 						template
 					});
 
@@ -83,7 +83,7 @@ export default class Element extends ContainerItem {
 		if ( leftovers ) {
 			( attrs || ( this.attributes = [] ) ).push( new ConditionalAttribute({
 				owner: this,
-				parentFragment: this.parentFragment,
+				up: this.up,
 				template: leftovers
 			}) );
 
@@ -131,7 +131,7 @@ export default class Element extends ContainerItem {
 	destroyed () {
 		if ( this.attributes ) this.attributes.forEach( destroyed );
 
-		if ( !this.parentFragment.delegate && this.listeners ) {
+		if ( !this.up.delegate && this.listeners ) {
 			const ls = this.listeners;
 			for ( const k in ls ) {
 				if ( ls[k] && ls[k].length ) this.node.removeEventListener( k, handler );
@@ -183,13 +183,13 @@ export default class Element extends ContainerItem {
 	getContext ( ...assigns ) {
 		if ( this.fragment ) return this.fragment.getContext( ...assigns );
 
-		if ( !this.ctx ) this.ctx = new Context( this.parentFragment, this );
+		if ( !this.ctx ) this.ctx = new Context( this.up, this );
 		assigns.unshift( create( this.ctx ) );
 		return assign.apply( null, assigns );
 	}
 
 	off ( event, callback, capture = false ) {
-		const delegate = this.parentFragment.delegate;
+		const delegate = this.up.delegate;
 		const ref = this.listeners && this.listeners[event];
 
 		if ( !ref ) return;
@@ -213,7 +213,7 @@ export default class Element extends ContainerItem {
 	}
 
 	on ( event, callback, capture = false ) {
-		const delegate = this.parentFragment.delegate;
+		const delegate = this.up.delegate;
 		const ref = ( this.listeners || ( this.listeners = {} ) )[event] || ( this.listeners[event] = [] );
 
 		if ( delegate ) {
@@ -327,14 +327,14 @@ export default class Element extends ContainerItem {
 
 		// Is this a top-level node of a component? If so, we may need to add
 		// a data-ractive-css attribute, for CSS encapsulation
-		if ( this.parentFragment.cssIds ) {
-			node.setAttribute( 'data-ractive-css', this.parentFragment.cssIds.map( x => `{${x}}` ).join( ' ' ) );
+		if ( this.up.cssIds ) {
+			node.setAttribute( 'data-ractive-css', this.up.cssIds.map( x => `{${x}}` ).join( ' ' ) );
 		}
 
 		if ( this.attributes ) this.attributes.forEach( render );
 		if ( this.binding ) this.binding.render();
 
-		if ( !this.parentFragment.delegate && this.listeners ) {
+		if ( !this.up.delegate && this.listeners ) {
 			const ls = this.listeners;
 			for ( const k in ls ) {
 				if ( ls[k] && ls[k].length ) this.node.addEventListener( k, handler, !!ls[k].refs );
@@ -381,8 +381,8 @@ export default class Element extends ContainerItem {
 		if ( style !== undefined ) attrs = ' style' + ( style ? `="${style}"` : '' ) + attrs;
 		if ( cls !== undefined ) attrs = ' class' + (cls ? `="${cls}"` : '') + attrs;
 
-		if ( this.parentFragment.cssIds ) {
-			attrs += ` data-ractive-css="${this.parentFragment.cssIds.map( x => `{${x}}` ).join( ' ' )}"`;
+		if ( this.up.cssIds ) {
+			attrs += ` data-ractive-css="${this.up.cssIds.map( x => `{${x}}` ).join( ' ' )}"`;
 		}
 
 		let str = `<${tagName}${attrs}>`;
@@ -506,7 +506,7 @@ function delegateHandler ( ev ) {
 	// starting with the origin node, walk up the DOM looking for ractive nodes with a matching event listener
 	while ( bubble && node && node !== end ) {
 		const proxy = node._ractive && node._ractive.proxy;
-		if ( proxy && proxy.parentFragment.delegate === endEl && shouldFire( ev, node, end ) ) {
+		if ( proxy && proxy.up.delegate === endEl && shouldFire( ev, node, end ) ) {
 			listeners = proxy.listeners && proxy.listeners[name];
 
 			if ( listeners ) {

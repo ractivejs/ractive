@@ -5,13 +5,13 @@ import readExpression from '../../readExpression';
 export default function readBracketedExpression ( parser ) {
 	if ( !parser.matchString( '(' ) ) return null;
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	const expr = readExpression( parser );
 
 	if ( !expr ) parser.error( expectedExpression );
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	if ( !parser.matchString( ')' ) ) parser.error( expectedParen );
 

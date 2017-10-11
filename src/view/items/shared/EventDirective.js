@@ -18,12 +18,12 @@ const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
 
 export default class EventDirective {
 	constructor ( options ) {
-		this.owner = options.owner || options.parentFragment.owner || findElement( options.parentFragment );
-		this.element = this.owner.attributeByName ? this.owner : findElement( options.parentFragment, true );
+		this.owner = options.owner || options.up.owner || findElement( options.up );
+		this.element = this.owner.attributeByName ? this.owner : findElement( options.up, true );
 		this.template = options.template;
-		this.parentFragment = options.parentFragment;
-		this.ractive = options.parentFragment.ractive;
-		//const delegate = this.delegate = this.ractive.delegate && options.parentFragment.delegate;
+		this.up = options.up;
+		this.ractive = options.up.ractive;
+		//const delegate = this.delegate = this.ractive.delegate && options.up.delegate;
 		this.events = [];
 
 		if ( this.element.type === COMPONENT || this.element.type === ANCHOR ) {
@@ -65,7 +65,7 @@ export default class EventDirective {
 		if ( this.fn ) {
 			const values = [];
 
-			const models = resolveArgs( this, this.template, this.parentFragment, {
+			const models = resolveArgs( this, this.template, this.up, {
 				specialRef ( ref ) {
 					const specialMatch = specialPattern.exec( ref );
 					if ( specialMatch ) {

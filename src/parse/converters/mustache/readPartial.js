@@ -10,7 +10,7 @@ export default function readPartial ( parser, tag ) {
 
 	if ( !type ) return null;
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	if ( type === '>' || !( aliases = parser.matchString( 'with' ) ) ) {
 		// Partial names can include hyphens, so we can't use readExpression
@@ -25,12 +25,12 @@ export default function readPartial ( parser, tag ) {
 
 		if ( expression ) {
 			refineExpression( expression, partial ); // TODO...
-			parser.allowWhitespace();
+			parser.sp();
 			if ( type !== '>' ) aliases = parser.matchString( 'with' );
 		}
 	}
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	// check for alias context e.g. `{{>foo bar as bat, bip as bop}}`
 	if ( aliases || type === '>' ) {
@@ -55,7 +55,7 @@ export default function readPartial ( parser, tag ) {
 		}
 	}
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	if ( !parser.matchString( tag.close ) ) {
 		parser.error( `Expected closing delimiter '${tag.close}'` );

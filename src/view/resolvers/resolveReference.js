@@ -27,7 +27,7 @@ export default function resolveReference ( fragment, ref ) {
 			context = null;
 			while ( frag && !context ) {
 				context = frag.context;
-				frag = frag.parent.component ? frag.parent.component.parentFragment : frag.parent;
+				frag = frag.parent.component ? frag.parent.component.up : frag.parent;
 			}
 		}
 
@@ -89,7 +89,7 @@ export default function resolveReference ( fragment, ref ) {
 
 			// skip over component roots, which provide no context
 			while ( root && context.isRoot && context.ractive.component ) {
-				context = context.ractive.component.parentFragment.findContext();
+				context = context.ractive.component.up.findContext();
 			}
 
 			return context.getKeypathModel( root );
@@ -164,7 +164,7 @@ export default function resolveReference ( fragment, ref ) {
 
 		if ( ( fragment.componentParent || ( !fragment.parent && fragment.ractive.component ) ) && !fragment.ractive.isolated ) {
 			// ascend through component boundary
-			fragment = fragment.componentParent || fragment.ractive.component.parentFragment;
+			fragment = fragment.componentParent || fragment.ractive.component.up;
 			createMapping = true;
 		} else {
 			fragment = fragment.parent;

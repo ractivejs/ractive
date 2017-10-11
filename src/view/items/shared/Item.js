@@ -3,8 +3,8 @@ import noop from 'utils/noop';
 
 export default class Item {
 	constructor ( options ) {
-		this.parentFragment = options.parentFragment;
-		this.ractive = options.parentFragment.ractive;
+		this.up = options.up;
+		this.ractive = options.up.ractive;
 
 		this.template = options.template;
 		this.index = options.index;
@@ -16,7 +16,7 @@ export default class Item {
 	bubble () {
 		if ( !this.dirty ) {
 			this.dirty = true;
-			this.parentFragment.bubble();
+			this.up.bubble();
 		}
 	}
 
@@ -33,7 +33,7 @@ export default class Item {
 	}
 
 	findNextNode () {
-		return this.parentFragment.findNextNode( this );
+		return this.up.findNextNode( this );
 	}
 
 	shuffled () {

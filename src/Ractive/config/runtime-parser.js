@@ -16,7 +16,6 @@ const parseOptions = [
 	'stripComments',
 	'contextLines',
 	'parserTransforms',
-	'allowExpressions',
 	'attributes'
 ];
 

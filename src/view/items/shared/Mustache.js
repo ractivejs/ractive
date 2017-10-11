@@ -6,7 +6,7 @@ export default class Mustache extends Item {
 	constructor ( options ) {
 		super( options );
 
-		this.parentFragment = options.parentFragment;
+		this.up = options.up;
 		this.template = options.template;
 		this.index = options.index;
 		if ( options.owner ) this.parent = options.owner;
@@ -19,7 +19,7 @@ export default class Mustache extends Item {
 
 	bind () {
 		// yield mustaches should resolve in container context
-		const start = this.containerFragment || this.parentFragment;
+		const start = this.containerFragment || this.up;
 		// try to find a model for this view
 		const model = resolve( start, this.template );
 
@@ -41,7 +41,7 @@ export default class Mustache extends Item {
 	}
 
 	rebind ( next, previous, safe ) {
-		next = rebindMatch( this.template, next, previous, this.parentFragment );
+		next = rebindMatch( this.template, next, previous, this.up );
 		if ( next === this.model ) return false;
 
 		if ( this.model ) {

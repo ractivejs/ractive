@@ -15,10 +15,10 @@ export default class Mapping extends Item {
 
 		this.name = options.template.n;
 
-		this.owner = options.owner || options.parentFragment.owner || options.element || findElement( options.parentFragment );
-		this.element = options.element || (this.owner.attributeByName ? this.owner : findElement( options.parentFragment ) );
-		this.parentFragment = this.element.parentFragment; // shared
-		this.ractive = this.parentFragment.ractive;
+		this.owner = options.owner || options.up.owner || options.element || findElement( options.up );
+		this.element = options.element || (this.owner.attributeByName ? this.owner : findElement( options.up ) );
+		this.up = this.element.up; // shared
+		this.ractive = this.up.ractive;
 
 		this.element.attributeByName[ this.name ] = this;
 
@@ -71,7 +71,7 @@ function createMapping ( item ) {
 	const childData = viewmodel.value;
 
 	if ( template.length === 1 && template[0].t === INTERPOLATOR ) {
-		const model = resolve( item.parentFragment, template[0] );
+		const model = resolve( item.up, template[0] );
 		const val = model.get( false );
 
 		// if the interpolator is not static

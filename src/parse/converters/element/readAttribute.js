@@ -43,7 +43,7 @@ function splitEvent ( str ) {
 export default function readAttribute ( parser ) {
 	let name, i, nearest, idx;
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	name = parser.matchPattern( attributeNamePattern );
 	if ( !name ) {
@@ -74,14 +74,14 @@ function readAttributeValue ( parser ) {
 		parser.error( 'Expected `=`, `/`, `>` or whitespace' );
 	}
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	if ( !parser.matchString( '=' ) ) {
 		parser.pos = start;
 		return null;
 	}
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	const valueStart = parser.pos;
 	const startDepth = parser.sectionDepth;
@@ -210,7 +210,7 @@ export function readAttributeOrDirective ( parser ) {
 		attribute.t = directive.t;
 		if ( directive.v ) attribute.v = directive.v;
 		delete attribute.n; // no name necessary
-		parser.allowWhitespace();
+		parser.sp();
 		if ( parser.nextChar() === '=' ) attribute.f = readAttributeValue( parser );
 	}
 
@@ -261,7 +261,7 @@ export function readAttributeOrDirective ( parser ) {
 	}
 
 	else {
-		parser.allowWhitespace();
+		parser.sp();
 		const value = parser.nextChar() === '=' ? readAttributeValue( parser ) : null;
 		attribute.f = value != null ? value : attribute.f;
 
@@ -281,12 +281,12 @@ function readProxyEvent ( parser, attribute ) {
 	if ( !parser.matchString( '=' ) ) parser.error( `Missing required directive arguments` );
 
 	const quote = parser.matchString( `'` ) || parser.matchString( `"` );
-	parser.allowWhitespace();
+	parser.sp();
 	const proxy = parser.matchPattern( proxyEvent );
 
 	if ( proxy !== undefined ) {
 		if ( quote ) {
-			parser.allowWhitespace();
+			parser.sp();
 			if ( !parser.matchString( quote ) ) parser.pos = start;
 			else return ( attribute.f = proxy ) || true;
 		} else if ( !parser.matchPattern( whitespace ) ) {
@@ -300,12 +300,12 @@ function readProxyEvent ( parser, attribute ) {
 }
 
 function readArguments ( parser, attribute, required = false, single = false ) {
-	parser.allowWhitespace();
+	parser.sp();
 	if ( !parser.matchString( '=' ) ) {
 		if ( required ) parser.error( `Missing required directive arguments` );
 		return;
 	}
-	parser.allowWhitespace();
+	parser.sp();
 
 	const quote = parser.matchString( '"' ) || parser.matchString( "'" );
 	const spread = parser.spreadArgs;
@@ -316,7 +316,7 @@ function readArguments ( parser, attribute, required = false, single = false ) {
 	parser.spreadArgs = spread;
 
 	if ( quote ) {
-		parser.allowWhitespace();
+		parser.sp();
 		if ( parser.matchString( quote ) !== quote ) parser.error( `Expected matching quote '${quote}'` );
 	}
 

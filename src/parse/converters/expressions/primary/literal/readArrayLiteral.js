@@ -5,7 +5,7 @@ export default function ( parser ) {
 	const start = parser.pos;
 
 	// allow whitespace before '['
-	parser.allowWhitespace();
+	parser.sp();
 
 	if ( !parser.matchString( '[' ) ) {
 		parser.pos = start;

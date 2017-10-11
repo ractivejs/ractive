@@ -16,11 +16,11 @@ export default class Fragment {
 	constructor ( options ) {
 		this.owner = options.owner; // The item that owns this fragment - an element, section, partial, or attribute
 
-		this.isRoot = !options.owner.parentFragment;
-		this.parent = this.isRoot ? null : this.owner.parentFragment;
+		this.isRoot = !options.owner.up;
+		this.parent = this.isRoot ? null : this.owner.up;
 		this.ractive = options.ractive || ( this.isRoot ? options.owner : this.parent.ractive );
 
-		this.componentParent = ( this.isRoot && this.ractive.component ) ? this.ractive.component.parentFragment : null;
+		this.componentParent = ( this.isRoot && this.ractive.component ) ? this.ractive.component.up : null;
 		this.delegate = ( this.parent ? this.parent.delegate : ( this.componentParent && this.componentParent.delegate ) ) ||
 			( this.owner.containerFragment && this.owner.containerFragment.delegate );
 
@@ -77,7 +77,7 @@ export default class Fragment {
 		const max = this.template.length;
 		this.items = [];
 		for ( let i = 0; i < max; i++ ) {
-			this.items[i] = createItem({ parentFragment: this, template: this.template[i], index: i });
+			this.items[i] = createItem({ up: this, template: this.template[i], index: i });
 		}
 	}
 
@@ -138,7 +138,7 @@ export default class Fragment {
 		// it means we're at the end...
 		if ( this.isRoot ) {
 			if ( this.ractive.component ) {
-				return this.ractive.component.parentFragment.findNextNode( this.ractive.component );
+				return this.ractive.component.up.findNextNode( this.ractive.component );
 			}
 
 			// TODO possible edge case with other content

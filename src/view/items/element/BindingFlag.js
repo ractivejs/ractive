@@ -8,8 +8,8 @@ export default class BindingFlag extends Item {
 	constructor ( options ) {
 		super( options );
 
-		this.owner = options.owner || options.parentFragment.owner || findElement( options.parentFragment );
-		this.element = this.owner.attributeByName ? this.owner : findElement( options.parentFragment );
+		this.owner = options.owner || options.up.owner || findElement( options.up );
+		this.element = this.owner.attributeByName ? this.owner : findElement( options.up );
 		this.flag = options.template.v === 'l' ? 'lazy' : 'twoway';
 
 		if ( this.element.type === ELEMENT ) {

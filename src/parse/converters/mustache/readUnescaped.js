@@ -7,7 +7,7 @@ export default function readUnescaped ( parser, tag ) {
 		return null;
 	}
 
-	parser.allowWhitespace();
+	parser.sp();
 
 	const expression = readExpression( parser );
 

@@ -8,7 +8,7 @@ export default function readKeyValuePair ( parser ) {
 	const start = parser.pos;
 
 	// allow whitespace between '{' and key
-	parser.allowWhitespace();
+	parser.sp();
 
 	const refKey = parser.nextChar() !== '\'' && parser.nextChar() !== '"';
 	if ( refKey ) spread = parser.matchPattern( spreadPattern );
@@ -20,7 +20,7 @@ export default function readKeyValuePair ( parser ) {
 	}
 
 	// allow whitespace between key and ':'
-	parser.allowWhitespace();
+	parser.sp();
 
 	// es2015 shorthand property
 	if ( refKey && ( parser.nextChar() === ',' || parser.nextChar() === '}' ) ) {
@@ -52,7 +52,7 @@ export default function readKeyValuePair ( parser ) {
 	}
 
 	// allow whitespace between ':' and value
-	parser.allowWhitespace();
+	parser.sp();
 
 	// next expression must be a, well... expression
 	const value = readExpression( parser );

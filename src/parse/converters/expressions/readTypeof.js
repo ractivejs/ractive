@@ -17,7 +17,7 @@ const makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 			return null;
 		}
 
-		parser.allowWhitespace();
+		parser.sp();
 
 		expression = readExpression( parser );
 		if ( !expression ) {
