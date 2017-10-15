@@ -57,6 +57,8 @@ export default function Proxy ( options, fn ) {
 				this._attrs[ a.n ] = fragment;
 			});
 		}
+	} else {
+		template.p['extra-attributes'] = template.m;
 	}
 }
 
@@ -151,6 +153,8 @@ assign( proto, {
 
 	unrender ( shouldDestroy ) {
 		if ( !this.rendered ) return;
+
+		if ( shouldDestroy && typeof this.proxy.teardown === 'function' ) this.proxy.teardown();
 
 		this.rendered = false;
 		this.fragment.unrender( shouldDestroy );
