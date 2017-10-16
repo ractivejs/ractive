@@ -18,7 +18,6 @@ export default {
 	sanitize:               false,
 	stripComments:          true,
 	contextLines:           0,
-	parserTransforms:       [],
 
 	// data & binding:
 	data:                   {},

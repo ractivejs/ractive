@@ -15,7 +15,6 @@ const parseOptions = [
 	'sanitize',
 	'stripComments',
 	'contextLines',
-	'parserTransforms',
 	'attributes'
 ];
 

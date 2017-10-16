@@ -1,5 +1,4 @@
 import { TEMPLATE_VERSION } from 'config/template';
-import { ELEMENT } from 'config/types';
 import Parser from './Parser';
 import readMustache from './converters/readMustache';
 import readTriple from './converters/mustache/readTriple';
@@ -17,7 +16,6 @@ import cleanup from './utils/cleanup';
 import insertExpressions from './utils/insertExpressions';
 import shared from '../Ractive/shared';
 import { create, keys } from 'utils/object';
-import { isArray } from 'utils/is';
 
 // See https://github.com/ractivejs/template-spec for information
 // about the Ractive template specification
@@ -74,13 +72,6 @@ const StandardParser = Parser.extend({
 		this.csp = options.csp;
 
 		if ( options.attributes ) this.inTag = true;
-
-		this.transforms = options.transforms || options.parserTransforms;
-		if ( this.transforms ) {
-			this.transforms = this.transforms.concat( shared.defaults.parserTransforms );
-		} else {
-			this.transforms = shared.defaults.parserTransforms;
-		}
 	},
 
 	postProcess ( result ) {
@@ -94,55 +85,6 @@ const StandardParser = Parser.extend({
 		}
 
 		cleanup( result[0].t, this.stripComments, this.preserveWhitespace, !this.preserveWhitespace, !this.preserveWhitespace );
-
-		const transforms = this.transforms;
-		if ( transforms.length ) {
-			const tlen = transforms.length;
-			const walk = function ( fragment ) {
-				let len = fragment.length;
-
-				for ( let i = 0; i < len; i++ ) {
-					let node = fragment[i];
-
-					if ( node.t === ELEMENT ) {
-						for ( let j = 0; j < tlen; j++ ) {
-							const res = transforms[j].call( shared.Ractive, node );
-							if ( !res ) {
-								continue;
-							} else if ( res.remove ) {
-								fragment.splice( i--, 1 );
-								len--;
-								break;
-							} else if ( res.replace ) {
-								if ( isArray( res.replace ) ) {
-									fragment.splice( i--, 1, ...res.replace );
-									len += res.replace.length - 1;
-								} else {
-									fragment[i--] = node = res.replace;
-								}
-
-								break;
-							}
-						}
-
-						// watch for partials
-						if ( node.p && !isArray( node.p ) ) {
-							for ( const k in node.p ) walk( node.p[k] );
-						}
-					}
-
-					if ( node.f ) walk( node.f );
-				}
-			};
-
-			// process the root fragment
-			walk( result[0].t );
-
-			// watch for root partials
-			if ( result[0].p && !isArray( result[0].p ) ) {
-				for ( const k in result[0].p ) walk( result[0].p[k] );
-			}
-		}
 
 		if ( this.csp !== false ) {
 			const expr = {};
