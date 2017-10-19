@@ -181,22 +181,26 @@ assign( proto, {
 	},
 
 	update () {
+		const proxy = this.proxy;
+
 		if ( this.dirtyAttrs ) {
 			this.dirtyAttrs = false;
 			this.refreshAttrs();
-			if ( typeof this.proxy.update === 'function' ) this.proxy.update( this.handle.attributes );
+			if ( typeof proxy.update === 'function' ) proxy.update( this.handle.attributes );
 		}
 
 		if ( this.dirtyTemplate ) {
 			this.updating = 1;
 			this.resetTemplate();
+
 			this.fragment.resetTemplate( this.partial );
+
 			this.updating = 0;
 		}
 
 		if ( this.dirty ) {
 			this.dirty = false;
-			if ( this.proxy && typeof this.proxy.invalidate === 'function' ) this.proxy.invalidate();
+			if ( proxy && typeof proxy.invalidate === 'function' ) proxy.invalidate();
 			this.fragment.update();
 		}
 
