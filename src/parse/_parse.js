@@ -22,7 +22,6 @@ import { create, keys } from 'utils/object';
 
 const STANDARD_READERS = [ readPartial, readUnescaped, readSection, readInterpolator, readMustacheComment ];
 const TRIPLE_READERS = [ readTriple ];
-const STATIC_READERS = [ readUnescaped, readSection, readInterpolator ]; // TODO does it make sense to have a static section?
 
 export const READERS = [ readMustache, readHtmlComment, readElement, readText ];
 export const PARTIAL_READERS = [ readPartialDefinitionSection ];
@@ -40,7 +39,7 @@ const StandardParser = Parser.extend({
 		this.tags = [
 			{ isStatic: false, isTriple: false, open: this.standardDelimiters[0], close: this.standardDelimiters[1], readers: STANDARD_READERS },
 			{ isStatic: false, isTriple: true,  open: tripleDelimiters[0],        close: tripleDelimiters[1],        readers: TRIPLE_READERS },
-			{ isStatic: true,  isTriple: false, open: staticDelimiters[0],        close: staticDelimiters[1],        readers: STATIC_READERS },
+			{ isStatic: true,  isTriple: false, open: staticDelimiters[0],        close: staticDelimiters[1],        readers: STANDARD_READERS },
 			{ isStatic: true,  isTriple: true,  open: staticTripleDelimiters[0],  close: staticTripleDelimiters[1],  readers: TRIPLE_READERS }
 		];
 

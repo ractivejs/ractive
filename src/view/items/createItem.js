@@ -119,7 +119,12 @@ function asyncProxy ( promise, options ) {
 			handle.setTemplate( partials['async-loading'] || [] );
 			promise.then( cmp => {
 				options.up.ractive.components[ name ] = cmp;
-				handle.setTemplate( [ options.template ] );
+				if ( partials['async-loaded'] ) {
+					handle.partials.component = [ options.template ];
+					handle.setTemplate( partials['async-loaded'] );
+				} else {
+					handle.setTemplate( [ options.template ] );
+				}
 			});
 		}
 	});

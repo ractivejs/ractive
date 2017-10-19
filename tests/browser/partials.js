@@ -1128,4 +1128,23 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '<p>yep</p>' );
 	});
+
+	test( `static partials are, in fact, static`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '[[>foo]]',
+			data: {
+				foo: 'bar'
+			},
+			partials: {
+				bar: 'bar',
+				baz: 'baz'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'bar' );
+
+		r.set( 'foo', 'baz' );
+		t.htmlEqual( fixture.innerHTML, 'bar' );
+	});
 }

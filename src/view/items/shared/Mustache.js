@@ -1,6 +1,7 @@
 import { rebindMatch } from 'shared/rebind';
 import Item, { ContainerItem } from './Item';
 import resolve from '../../resolvers/resolve';
+import { assign } from 'utils/object';
 
 export default class Mustache extends Item {
 	constructor ( options ) {
@@ -58,14 +59,10 @@ export default class Mustache extends Item {
 	}
 }
 
-export class MustacheContainer extends ContainerItem {
-	constructor ( options ) {
-		super( options );
-	}
+export function MustacheContainer ( options ) {
+	Mustache.call( this, options );
 }
-const proto = MustacheContainer.prototype;
-const mustache = Mustache.prototype;
-proto.bind = mustache.bind;
-proto.handleChange = mustache.handleChange;
-proto.rebind = mustache.rebind;
-proto.unbind = mustache.unbind;
+
+const proto = MustacheContainer.prototype = Object.create( ContainerItem.prototype );
+
+assign( proto, Mustache.prototype, { constructor: MustacheContainer } );
