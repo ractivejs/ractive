@@ -23,6 +23,7 @@ import Transition from './element/Transition';
 import Triple from './Triple';
 import getComponentConstructor from './component/getComponentConstructor';
 import findElement from './shared/findElement';
+import { findInstance } from 'shared/registry';
 
 const constructors = {};
 constructors[ ALIAS ] = Alias;
@@ -55,23 +56,37 @@ export default function createItem ( options ) {
 		return new Text( options );
 	}
 
-	if ( options.template.t === ELEMENT ) {
-		// could be component or element
-		const ComponentConstructor = getComponentConstructor( options.up.ractive, options.template.e );
-		if ( ComponentConstructor ) {
-			return new Component( options, ComponentConstructor );
+	let ctor;
+	let name;
+	const type = options.template.t;
+
+	if ( type === ELEMENT ) {
+		name = options.template.e;
+
+		// could be a macro partial
+		ctor = findInstance( 'partials', options.up.ractive, name );
+		if ( ctor ) {
+			ctor = ctor.partials[ name ];
+			if ( ctor.styleSet ) {
+				options.macro = ctor;
+				return new Partial( options );
+			}
 		}
 
-		const tagName = options.template.e.toLowerCase();
+		// could be component or element
+		ctor = getComponentConstructor( options.up.ractive, name );
+		if ( ctor ) {
+			return new Component( options, ctor );
+		}
 
-		const ElementConstructor = specialElements[ tagName ] || Element;
-		return new ElementConstructor( options );
+		ctor = specialElements[ name.toLowerCase() ] || Element;
+		return new ctor( options );
 	}
 
 	let Item;
 
 	// component mappings are a special case of attribute
-	if ( options.template.t === ATTRIBUTE ) {
+	if ( type === ATTRIBUTE ) {
 		let el = options.owner;
 		if ( !el || ( el.type !== ANCHOR && el.type !== COMPONENT && el.type !== ELEMENT ) ) {
 			el = findElement( options.up );
@@ -80,10 +95,10 @@ export default function createItem ( options ) {
 
 		Item = el.type === COMPONENT || el.type === ANCHOR ? Mapping : Attribute;
 	} else {
-		Item = constructors[ options.template.t ];
+		Item = constructors[ type ];
 	}
 
-	if ( !Item ) throw new Error( `Unrecognised item type ${options.template.t}` );
+	if ( !Item ) throw new Error( `Unrecognised item type ${type}` );
 
 	return new Item( options );
 }

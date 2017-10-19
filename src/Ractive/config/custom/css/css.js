@@ -25,28 +25,7 @@ export default {
 			value: new CSSModel( Child )
 		});
 
-		if ( !options.css ) return;
-
-		let css = typeof options.css === 'string' && !hasCurly.test( options.css ) ?
-			( getElement( options.css ) || options.css ) :
-			options.css;
-
-		const id = options.cssId || uuid();
-
-		if ( typeof css === 'object' ) {
-			css = 'textContent' in css ? css.textContent : css.innerHTML;
-		} else if ( typeof css === 'function' ) {
-			Child._css = options.css;
-			css = evalCSS( Child, css );
-		}
-
-		const def = Child._cssDef = { transform: !options.noCssTransform };
-
-		def.styles = def.transform ? transformCss( css, id ) : css;
-		def.id = proto.cssId = id;
-		Child._cssIds.push( id );
-
-		addCSS( Child._cssDef );
+		if ( options.css ) initCSS( options, Child, proto );
 	},
 
 	// Called when creating a new component instance
@@ -89,4 +68,27 @@ export function evalCSS ( component, css ) {
 
 	const result = css.call( component, data );
 	return typeof result === 'string' ? result : '';
+}
+
+export function initCSS ( options, target, proto ) {
+	let css = typeof options.css === 'string' && !hasCurly.test( options.css ) ?
+		( getElement( options.css ) || options.css ) :
+		options.css;
+
+	const id = options.cssId || uuid();
+
+	if ( typeof css === 'object' ) {
+		css = 'textContent' in css ? css.textContent : css.innerHTML;
+	} else if ( typeof css === 'function' ) {
+		target._css = options.css;
+		css = evalCSS( target, css );
+	}
+
+	const def = target._cssDef = { transform: !options.noCssTransform };
+
+	def.styles = def.transform ? transformCss( css, id ) : css;
+	def.id = proto.cssId = id;
+	target._cssIds.push( id );
+
+	addCSS( target._cssDef );
 }
