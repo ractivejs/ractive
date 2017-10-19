@@ -32,7 +32,7 @@ export default function link ( there, here, options ) {
 function isUpstream ( check, start ) {
 	let model = start;
 	while ( model ) {
-		if ( model === check ) return true;
+		if ( model === check || model.owner === check ) return true;
 		model = model.target || model.parent;
 	}
 }

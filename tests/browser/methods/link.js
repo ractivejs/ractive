@@ -252,4 +252,17 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '1' );
 	});
+
+	test( `relinking an existing link to itself is verboten - #3107`, t => {
+		const r = new Ractive({
+			data: { foo: true }
+		});
+		const o = new Ractive();
+
+		o.link( 'foo', 'foo', { instance: r } );
+
+		t.throws( () => {
+			o.link( 'foo', 'foo' );
+		}, /cannot be linked to itself/ );
+	});
 }
