@@ -11,6 +11,7 @@ import interpolators from './Ractive/static/interpolators';
 import { svg, win } from './config/environment';
 import proto from './Ractive/prototype';
 import { extend, extendWith } from './extend/_extend';
+import macro from './extend/_macro';
 import parse from './parse/_parse';
 import getContext, { getNodeInfo } from './Ractive/static/getContext';
 import isInstance from './Ractive/static/isInstance';
@@ -74,6 +75,7 @@ defineProperties( Ractive, {
 	getNodeInfo:      { value: getNodeInfo },
 	isInstance:       { value: isInstance },
 	joinKeys:         { value: joinKeys },
+	macro:            { value: macro },
 	normaliseKeypath: { value: normalise },
 	parse:            { value: parse },
 	splitKeypath:     { value: splitKeypath },

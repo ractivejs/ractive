@@ -299,7 +299,7 @@ export default function() {
 	test( 'Partials with expressions may also have context', ( t ) => {
 		new Ractive({
 			el: fixture,
-			template: '{{>(tpl + ".test") ctx}} : {{>"test." + tpl ctx.expr}}',
+			template: '{{>(tpl + ".test") ctx}} : {{>"test." + tpl { ...ctx.expr }}}',
 			data: {
 				ctx: { id: 1, expr: { id: 2 } },
 				tpl: 'foo'
