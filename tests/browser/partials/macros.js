@@ -392,4 +392,92 @@ export default function() {
 
 		t.equal( r.find( 'div' ).clientWidth, 124 );
 	});
+
+	test( `plain partial syntax can resolve to a macro`, t => {
+		new Ractive({
+			target: fixture,
+			template: '{{>macro}}',
+			partials: {
+				macro: Ractive.macro( handle => handle.setTemplate( 'a macro' ) )
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'a macro' );
+	});
+
+	test( `dynamic partial may become a macro and return to plain`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '{{>macro}}',
+			partials: {
+				foo: 'foo',
+				bar: Ractive.macro( handle => handle.setTemplate( [ 'bar' ] ) )
+			},
+			data: {
+				macro: 'foo'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'foo' );
+
+		r.set( 'macro', 'bar' );
+		t.htmlEqual( fixture.innerHTML, 'bar' );
+
+		r.set( 'macro', 'foo' );
+		t.htmlEqual( fixture.innerHTML, 'foo' );
+	});
+
+	test( `dynamic macro partial may become plain and return to macro`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '{{>macro}}',
+			partials: {
+				foo: 'foo',
+				bar: Ractive.macro( handle => handle.setTemplate( [ 'bar' ] ) )
+			},
+			data: {
+				macro: 'bar'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'bar' );
+
+		r.set( 'macro', 'foo' );
+		t.htmlEqual( fixture.innerHTML, 'foo' );
+
+		r.set( 'macro', 'bar' );
+		t.htmlEqual( fixture.innerHTML, 'bar' );
+	});
+
+	test( `macro partial with context`, t => {
+		new Ractive({
+			target: fixture,
+			template: '{{>macro .foo}}',
+			partials: {
+				macro: Ractive.macro( handle => handle.setTemplate( '{{.bar}}' ) )
+			},
+			data: {
+				bar: 'nope',
+				foo: { bar: 'yep' }
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
+
+
+	test( `macro partial with aliases`, t => {
+		new Ractive({
+			target: fixture,
+			template: '{{>macro .foo as it}}',
+			partials: {
+				macro: Ractive.macro( handle => handle.setTemplate( '{{it.bar}}' ) )
+			},
+			data: {
+				foo: { bar: 'yep' }
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
 }

@@ -30,9 +30,10 @@ export default function Partial ( options ) {
 }
 
 const proto = Partial.prototype = create( MustacheContainer.prototype );
-proto.constuctor = Partial;
 
 assign( proto, {
+	constructor: Partial,
+
 	bind () {
 		const template = this.template;
 
@@ -73,19 +74,14 @@ assign( proto, {
 
 			// if the refName exists as a partial, this is a plain old partial reference where no model binding will happen
 			if ( this.refName ) {
-				this.name = this.refName;
-				const partial = getPartialTemplate( this.ractive, this.refName, this.containerFragment || this.up );
-
-				if ( partial ) {
-					createFragment( this, partial );
-					this.fragment.bind();
-					return;
-				}
+				partialFromValue( this, this.refName );
 			}
 
 			// this is a dynamic/inline partial
-			MustacheContainer.prototype.bind.call( this );
-			if ( this.model ) partialFromValue( this, this.model.get() );
+			if ( !this.partial && !this.fn ) {
+				MustacheContainer.prototype.bind.call( this );
+				if ( this.model ) partialFromValue( this, this.model.get() );
+			}
 		}
 
 		// macro/super partial
@@ -111,13 +107,9 @@ assign( proto, {
 		}
 	},
 
-	forceResetTemplate () {
-		this.dirtyTemplate = true;
-		this.bubble();
-	},
-
 	handleChange () {
 		this.dirtyTemplate = true;
+		this.externalChange = true;
 		this.bubble();
 	},
 
@@ -129,9 +121,13 @@ assign( proto, {
 
 	resetTemplate () {
 		if ( this.fn && this.proxy ) {
-			if ( typeof this.proxy.reset === 'function' ) this.proxy.reset();
-			this.partial = this.proxy.template;
-			return;
+			if ( this.externalChange ) {
+				if ( typeof this.proxy.teardown === 'function' ) this.proxy.teardown();
+				this.fn = this.proxy = null;
+			} else {
+				this.partial = this.fnTemplate;
+				return;
+			}
 		}
 
 		this.partial = null;
@@ -156,6 +152,8 @@ assign( proto, {
 		if ( this.fn && this.fn._cssDef && !this.fn._cssDef.applied ) applyCSS();
 
 		this.fragment.render( target, occupants );
+
+		if ( this.proxy && typeof this.proxy.render === 'function' ) this.proxy.render();
 	},
 
 	unbind () {
@@ -178,6 +176,7 @@ assign( proto, {
 
 	unrender ( shouldDestroy ) {
 		if ( this.proxy && typeof this.proxy.teardown === 'function' ) this.proxy.teardown();
+
 		this.fragment.unrender( shouldDestroy );
 	},
 
@@ -189,8 +188,10 @@ assign( proto, {
 		}
 
 		if ( this.dirtyTemplate ) {
+			this.updating = 1;
 			this.resetTemplate();
 			this.fragment.resetTemplate( this.partial );
+			this.updating = 0;
 		}
 
 		if ( this.dirty ) {
@@ -198,6 +199,8 @@ assign( proto, {
 			if ( this.proxy && typeof this.proxy.invalidate === 'function' ) this.proxy.invalidate();
 			this.fragment.update();
 		}
+
+		this.externalChange = false;
 	}
 });
 
@@ -241,7 +244,7 @@ function partialFromValue ( self, value, okToParse ) {
 		self.fn = tpl;
 		if ( self.fragment ) self.fragment.cssIds = tpl._cssIds;
 	} else if ( tpl != null ) {
-		tpl = getPartialTemplate( self.ractive, '' + tpl, self.up );
+		tpl = getPartialTemplate( self.ractive, '' + tpl, self.containerFragment || self.up );
 		if ( tpl ) {
 			self.name = value;
 			if ( tpl.styleSet ) {
@@ -254,6 +257,8 @@ function partialFromValue ( self, value, okToParse ) {
 			self.name = value;
 		}
 	}
+
+	return self.partial;
 }
 
 function setTemplate ( template ) {
@@ -261,7 +266,7 @@ function setTemplate ( template ) {
 	this.dirtyTemplate = true;
 
 	if ( !this.initing ) {
-		this.proxy.template = this.partial;
+		this.fnTemplate = this.partial;
 
 		if ( this.updating ) {
 			this.bubble();
@@ -290,7 +295,7 @@ function initMacro ( self ) {
 	});
 
 	if ( !template.p ) template.p = {};
-	handle.partials = assign( {}, template.p );
+	template.p = handle.partials = assign( {}, template.p );
 	if ( !hasOwn( template.p, 'content' ) ) template.p.content = template.f || [];
 
 	if ( isArray( fn.attributes ) ) {
@@ -329,7 +334,7 @@ function initMacro ( self ) {
 	self.initing = 1;
 	self.proxy = fn( handle, handle.attributes ) || {};
 	if ( !self.partial ) self.partial = [];
-	self.proxy.template = self.partial;
+	self.fnTemplate = self.partial;
 	self.initing = 0;
 }
 

@@ -77,4 +77,22 @@ export default function() {
 			done();
 		});
 	});
+
+	test( `async component with a loading placeholder`, t => {
+		const done = t.async();
+
+		const cmp = Promise.resolve( Ractive.extend({ template: 'hello' }) );
+		new Ractive({
+			target: fixture,
+			template: `<cmp>{{#partial async-loading}}loading...{{/partial}}{{#partial async-loaded}}<div class="loaded">{{>component}}</div>{{/partial}}</cmp>`,
+			components: { cmp }
+		});
+
+		t.equal( fixture.innerHTML, 'loading...' );
+
+		setTimeout( () => {
+			t.equal( fixture.innerHTML, '<div class="loaded">hello</div>' );
+			done();
+		});
+	});
 }
