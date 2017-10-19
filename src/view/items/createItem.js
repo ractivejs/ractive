@@ -76,7 +76,11 @@ export default function createItem ( options ) {
 		// could be component or element
 		ctor = getComponentConstructor( options.up.ractive, name );
 		if ( ctor ) {
-			return new Component( options, ctor );
+			if ( typeof ctor.then === 'function' ) {
+				return asyncProxy( ctor, options );
+			} else {
+				return new Component( options, ctor );
+			}
 		}
 
 		ctor = specialElements[ name.toLowerCase() ] || Element;
@@ -101,4 +105,22 @@ export default function createItem ( options ) {
 	if ( !Item ) throw new Error( `Unrecognised item type ${type}` );
 
 	return new Item( options );
+}
+
+function asyncProxy ( promise, options ) {
+	const partials = options.template.p || {};
+	const name = options.template.e;
+
+	return new Partial({
+		owner: options.owner,
+		up: options.up,
+		template: { t: ELEMENT, e: name },
+		macro ( handle ) {
+			handle.setTemplate( partials['async-loading'] || [] );
+			promise.then( cmp => {
+				options.up.ractive.components[ name ] = cmp;
+				handle.setTemplate( [ options.template ] );
+			});
+		}
+	});
 }
