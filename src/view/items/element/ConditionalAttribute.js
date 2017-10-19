@@ -10,11 +10,6 @@ const div = doc ? createElement( 'div' ) : null;
 
 let attributes = false;
 export function inAttributes() { return attributes; }
-export function doInAttributes( fn ) {
-	attributes = true;
-	fn();
-	attributes = false;
-}
 
 export default class ConditionalAttribute extends Item {
 	constructor ( options ) {
@@ -29,6 +24,7 @@ export default class ConditionalAttribute extends Item {
 			owner: this,
 			template: this.template
 		});
+
 		// this fragment can't participate in node-y things
 		this.fragment.findNextNode = noop;
 

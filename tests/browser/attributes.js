@@ -320,4 +320,24 @@ export default function () {
 
 		t.htmlEqual( fixture.innerHTML, '<div data-foo="a"></div>' );
 	});
+
+	test( `partial with runtime-parsed attributes`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '<div><div {{>attrs}} /></div>',
+			partials: {
+				bar: 'class="joe" {{foo}}',
+				baz: 'class="sam"'
+			},
+			data: {
+				attrs: 'bar',
+				foo: 'data-sure="yep"'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div><div class="joe" data-sure="yep"></div></div>' );
+
+		r.set( 'attrs', 'baz' );
+		t.htmlEqual( fixture.innerHTML, '<div><div class="sam"></div></div>' );
+	});
 }
