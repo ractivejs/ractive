@@ -294,8 +294,9 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div></div><span></span>' );
 	});
 
-	test( `macro teardown callback`, t => {
+	test( `macro init, render, and teardown callback`, t => {
 		let up = 0;
+		let render = 0;
 		let down = 0;
 
 		const r = new Ractive({
@@ -304,7 +305,8 @@ export default function() {
 			partials: {
 				macro: Ractive.macro(
 					() => ++up && {
-						teardown () { down++; }
+						teardown () { down++; },
+						render () { render++; }
 					}
 				)
 			}
@@ -313,21 +315,25 @@ export default function() {
 		r.toggle( 'foo' );
 
 		t.equal( up, 1 );
+		t.equal( render, 1 );
 		t.equal( down, 0 );
 
 		r.toggle( 'foo' );
 
 		t.equal( up, 1 );
+		t.equal( render, 1 );
 		t.equal( down, 1 );
 
 		r.toggle( 'foo' );
 
 		t.equal( up, 2 );
+		t.equal( render, 2 );
 		t.equal( down, 1 );
 
 		r.toggle( 'foo' );
 
 		t.equal( up, 2 );
+		t.equal( render, 2 );
 		t.equal( down, 2 );
 	});
 
@@ -406,12 +412,21 @@ export default function() {
 	});
 
 	test( `dynamic partial may become a macro and return to plain`, t => {
+		let down = 0;
+		let render = 0;
+
 		const r = new Ractive({
 			target: fixture,
 			template: '{{>macro}}',
 			partials: {
 				foo: 'foo',
-				bar: Ractive.macro( handle => handle.setTemplate( [ 'bar' ] ) )
+				bar: Ractive.macro( handle => {
+					handle.setTemplate( [ 'bar' ] );
+					return {
+						teardown () { down++; },
+						render () { render++; }
+					};
+				})
 			},
 			data: {
 				macro: 'foo'
@@ -421,9 +436,12 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'foo' );
 
 		r.set( 'macro', 'bar' );
+		t.equal( render, 1 );
 		t.htmlEqual( fixture.innerHTML, 'bar' );
 
 		r.set( 'macro', 'foo' );
+		t.equal( down, 1 );
+		t.equal( render, 1 );
 		t.htmlEqual( fixture.innerHTML, 'foo' );
 	});
 
@@ -479,5 +497,51 @@ export default function() {
 		});
 
 		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
+
+	test( `dynamic plain partial with macro in data`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '{{>macro}}'
+		});
+
+		r.set( 'macro', Ractive.macro( handle => handle.setTemplate( [ 'hello' ] ) ) );
+
+		t.htmlEqual( fixture.innerHTML, 'hello' );
+	});
+
+	test( `macro template change during attr update`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `<macro foo="{{bar}}" />`,
+			data: {
+				bar: 42
+			},
+			partials: {
+				macro: Ractive.macro(
+					handle => {
+						return {
+							update ( attrs ) {
+								handle.setTemplate( [ '' + attrs.foo ] );
+							}
+						};
+					},
+					{
+						attributes: [ 'foo' ]
+					}
+				)
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '' );
+
+		r.set( 'bar', 99 );
+		t.htmlEqual( fixture.innerHTML, '99' );
+	});
+
+	test( `macros must be functions`, t => {
+		t.throws( () => {
+			Ractive.macro( { attributes: [] } );
+		}, /macro must be a function/ );
 	});
 }

@@ -74,6 +74,42 @@ export default function() {
 
 			t.ok( true );
 		});
+
+		test( 'dynamic partial that fails to resolve warns in debug', t => {
+			t.expect( 1 );
+
+			onWarn( msg => {
+				t.ok( msg );
+			});
+
+			const r = new Ractive({
+				el: fixture,
+				template: '{{>bar}}',
+				data: { bar: 'foo' },
+				debug: true,
+				partials: {
+					foo: 'hello'
+				}
+			});
+
+			r.set( 'bar', 'nope' );
+		});
+
+		test( `dynamic inline partial that fails to parse warns in debug`, t => {
+			t.expect( 1 );
+
+			onWarn( msg => {
+				t.ok( /not parse partial from expression/.test( msg ) );
+			});
+
+			new Ractive({
+				target: fixture,
+				template: '{{>foo}}',
+				data: {
+					foo: { template: '{{#lol, nope}}' }
+				}
+			});
+		});
 	}
 
 	test( '`this` in function refers to ractive instance', t => {
