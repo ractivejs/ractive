@@ -84,14 +84,15 @@ assign( proto, {
 			}
 		}
 
-		// macro/super partial
-		if ( this.fn ) initMacro( this );
-
 		if ( !this.partial && !this.fn ) {
 			warnOnceIfDebug( `Could not find template for partial '${this.name}'` );
 		}
 
-		createFragment( this, this.partial );
+		createFragment( this, this.partial || [] );
+
+		// macro/super partial
+		if ( this.fn ) initMacro( this );
+
 		this.fragment.bind();
 	},
 
@@ -289,14 +290,20 @@ function setTemplate ( template ) {
 
 function initMacro ( self ) {
 	const fn = self.fn;
+	const fragment = self.fragment;
+
 	// defensively copy the template in case it changes
 	const template = self.template = assign( {}, self.template );
-	const handle = self.handle = self.up.getContext({
+	const handle = self.handle = fragment.getContext({
 		proxy: self,
 		name: self.template.e || self.name,
 		attributes: {},
 		setTemplate: setTemplate.bind( self ),
-		template
+		template,
+		aliasLocal ( name ) {
+			if ( !fragment.aliases ) fragment.aliases = {};
+			fragment.aliases[ name ] = handle._data;
+		}
 	});
 
 	if ( !template.p ) template.p = {};
@@ -341,6 +348,9 @@ function initMacro ( self ) {
 	if ( !self.partial ) self.partial = [];
 	self.fnTemplate = self.partial;
 	self.initing = 0;
+
+	contextifyTemplate( self );
+	fragment.resetTemplate( self.partial );
 }
 
 function parsePartial( name, partial, ractive ) {

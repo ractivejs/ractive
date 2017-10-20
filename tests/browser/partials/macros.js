@@ -544,4 +544,46 @@ export default function() {
 			Ractive.macro( { attributes: [] } );
 		}, /macro must be a function/ );
 	});
+
+	test( `macros can set up an alias for @local`, t => {
+		let handle;
+
+		const r = new Ractive({
+			target: fixture,
+			template: '{{@local.foo}}<thing bind-name />',
+			data: {
+				name: 'foo'
+			},
+			partials: {
+				thing: Ractive.macro(
+					h => {
+						handle = h;
+
+						h.aliasLocal( '__thing' );
+						h.set( '@local.foo', 'bar' );
+						h.setTemplate( '{{__thing.foo}}' );
+
+						return {
+							update ( attrs ) {
+								h.aliasLocal( attrs.name );
+								h.set( '@local.foo', 'baz' );
+								h.setTemplate( `{{${attrs.name}.foo}}` );
+							}
+						};
+					},
+					{
+						attributes: [ 'name' ]
+					}
+				)
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'bar' );
+
+		r.set( 'name', 'joe' );
+		t.htmlEqual( fixture.innerHTML, 'baz' );
+
+		handle.set( 'joe.foo', 'yep' );
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
 }
