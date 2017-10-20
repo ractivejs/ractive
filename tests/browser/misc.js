@@ -1855,4 +1855,13 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'sure, why not' );
 	});
+
+	test( `invalid template node type throws`, t => {
+		t.throws( () => {
+			new Ractive({
+				target: fixture,
+				template: { v: 4, t: [{ t: 999 }] }
+			});
+		}, /unrecognised item type 999/i );
+	});
 }

@@ -53,4 +53,10 @@ export default function() {
 		t.ok(  ractive.get( 'items[1].active' ) );
 		t.ok( !ractive.get( 'items[2].active' ) );
 	});
+
+	test( `toggling a non-string keypath throws`, t => {
+		const r = new Ractive();
+
+		t.throws( () => r.toggle( 42 ) );
+	});
 }

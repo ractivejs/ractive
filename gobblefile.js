@@ -62,7 +62,14 @@ module.exports = ({
 		return gobble([lib, tests, sandbox, qunit]);
 	},
 	'bundle:test'() {
-		const lib = buildUmdLib('ractive.js', ractiveRollupPlugins.concat(ractiveAliases, istanbul()));
+		const lib = buildUmdLib('ractive.js', ractiveRollupPlugins.concat(
+			ractiveAliases,
+			istanbul({
+				exclude: [
+					'src/polyfills/*.js'
+				]
+			})
+		));
 		const browserTests = buildBrowserTests();
 		const nodeTests = buildNodeTests();
 		return gobble([lib, qunit, browserTests, nodeTests]);

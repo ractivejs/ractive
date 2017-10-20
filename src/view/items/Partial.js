@@ -142,8 +142,10 @@ assign( proto, {
 
 		this.unbindAttrs();
 
-		if ( this.fn ) initMacro( this );
-		else if ( !this.partial ) {
+		if ( this.fn ) {
+			initMacro( this );
+			if ( typeof this.proxy.render === 'function' ) runloop.scheduleTask( () => this.proxy.render() );
+		} else if ( !this.partial ) {
 			warnOnceIfDebug( `Could not find template for partial '${this.name}'` );
 		}
 	},
@@ -182,6 +184,7 @@ assign( proto, {
 
 	update () {
 		const proxy = this.proxy;
+		this.updating = 1;
 
 		if ( this.dirtyAttrs ) {
 			this.dirtyAttrs = false;
@@ -190,12 +193,9 @@ assign( proto, {
 		}
 
 		if ( this.dirtyTemplate ) {
-			this.updating = 1;
 			this.resetTemplate();
 
-			this.fragment.resetTemplate( this.partial );
-
-			this.updating = 0;
+			this.fragment.resetTemplate( this.partial || [] );
 		}
 
 		if ( this.dirty ) {
@@ -205,6 +205,7 @@ assign( proto, {
 		}
 
 		this.externalChange = false;
+		this.updating = 0;
 	}
 });
 
