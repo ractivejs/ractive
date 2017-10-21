@@ -58,7 +58,6 @@ export default class Model extends ModelBase {
 				}
 			} else {
 				delete this.newWrapperValue;
-				this.wrapperValue = value;
 				this.value = this.wrapper.get();
 				return;
 			}

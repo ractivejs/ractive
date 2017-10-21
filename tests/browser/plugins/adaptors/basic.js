@@ -749,4 +749,78 @@ export default function() {
 		t.equal( count1, 1 );
 		t.equal( count2, 0 );
 	});
+
+	test('Reset should preserve wrapped value if not tearing down', t => {
+		function Box(width, height){
+			let _width = width;
+			let _height = height;
+
+			this.getWidth = function(){ return _width; };
+			this.setWidth = function(width){ _width = width; };
+			this.getHeight = function(){ return _height; };
+			this.setHeight = function(height){ _height = height; };
+		}
+
+		// The Box adaptor in the docs
+		const BoxAdaptor = {
+			filter ( object ) {
+				return object instanceof Box;
+			},
+			wrap ( ractive, box, keypath, prefixer ) {
+				const setWidth = box.setWidth;
+				const setHeight = box.setHeight;
+
+				box.setWidth = function(width){
+					ractive.set(prefixer({ width }));
+				};
+
+				box.setHeight = function(height){
+					ractive.set(prefixer({ height }));
+				};
+
+				return {
+					get(){
+						return {
+							width: box.getWidth(),
+							height: box.getHeight()
+						};
+					},
+					set(property, value){
+						if(property === 'width') setWidth.call(box, value);
+						if(property === 'height') setHeight.call(box, value);
+					},
+					reset(data){
+						if(typeof data !== 'object' || data instanceof Box) return false;
+						if(data.width !== undefined) setWidth.call(box, data.width);
+						if(data.height !== undefined) setHeight.call(box, data.height);
+					},
+					// Delete the monkey-patched methods.
+					teardown(){
+						delete box.setWidth;
+						delete box.setHeight;
+					}
+				};
+			}
+		};
+
+		const model = new Box(1,2);
+		const instance = Ractive({ adapt: [ BoxAdaptor ], data: { model } });
+
+		t.strictEqual(instance.get('model'), model, 'Instance should return model');
+		t.deepEqual(instance.get('model', { unwrap: false }), { width: 1, height: 2 }, 'Instance should return wrapped model');
+		t.strictEqual(instance.get('model.width'), 1, 'Instance has box width of 1');
+		t.strictEqual(instance.get('model.height'), 2, 'Instance has box height of 2');
+		t.strictEqual(model.getWidth(), 1, 'Model has box width of 1');
+		t.strictEqual(model.getHeight(), 2, 'Model has box height of 2');
+
+		instance.set('model', { width: 3, height: 4 });
+
+		t.strictEqual(instance.get('model'), model, 'Instance should still return model');
+		t.deepEqual(instance.get('model', { unwrap: false }), { width: 3, height: 4 }, 'Instance should return wrapped model');
+		t.strictEqual(instance.get('model.width'), 3, 'Instance has box width of 3');
+		t.strictEqual(instance.get('model.height'), 4, 'Instance has box height of 4');
+		t.strictEqual(model.getWidth(), 3, 'Model has box width of 3');
+		t.strictEqual(model.getHeight(), 4, 'Model has box height of 4');
+
+	});
 }
