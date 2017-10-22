@@ -23,7 +23,7 @@ export default function() {
 		});
 	});
 
-	test( `loading a component from a promise with a an async-loading placeholder`, t => {
+	test( `loading a component from a promise with an async-loading placeholder`, t => {
 		const done = t.async();
 
 		const cmp = Promise.resolve( Ractive.extend({ template: 'hello' }) );
@@ -78,7 +78,7 @@ export default function() {
 		});
 	});
 
-	test( `async component with a loading placeholder`, t => {
+	test( `async component with an async-loaded component wrapper`, t => {
 		const done = t.async();
 
 		const cmp = Promise.resolve( Ractive.extend({ template: 'hello' }) );
@@ -92,6 +92,42 @@ export default function() {
 
 		setTimeout( () => {
 			t.equal( fixture.innerHTML, '<div class="loaded">hello</div>' );
+			done();
+		});
+	});
+
+	test( `failed async component doesn't leave the placeholder in place`, t => {
+		const done = t.async();
+
+		const cmp = Promise.reject( new Error( 'lolwut' ) );
+		new Ractive({
+			target: fixture,
+			template: `<cmp>{{#partial async-loading}}loading...{{/partial}}</cmp>`,
+			components: { cmp }
+		});
+
+		t.equal( fixture.innerHTML, 'loading...' );
+
+		setTimeout( () => {
+			t.equal( fixture.innerHTML, '' );
+			done();
+		});
+	});
+
+	test( `failed async component can supply a partial to handle display an error`, t => {
+		const done = t.async();
+
+		const cmp = Promise.reject( new Error( 'lolwut' ) );
+		new Ractive({
+			target: fixture,
+			template: `<cmp>{{#partial async-loading}}loading...{{/partial}}{{#partial async-failed}}no, because {{error.message}}{{/partial}}</cmp>`,
+			components: { cmp }
+		});
+
+		t.equal( fixture.innerHTML, 'loading...' );
+
+		setTimeout( () => {
+			t.equal( fixture.innerHTML, 'no, because lolwut' );
 			done();
 		});
 	});

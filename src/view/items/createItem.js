@@ -24,6 +24,7 @@ import Triple from './Triple';
 import getComponentConstructor from './component/getComponentConstructor';
 import findElement from './shared/findElement';
 import { findInstance } from 'shared/registry';
+import asyncProxy from './asyncProxy';
 
 const constructors = {};
 constructors[ ALIAS ] = Alias;
@@ -105,27 +106,4 @@ export default function createItem ( options ) {
 	if ( !Item ) throw new Error( `Unrecognised item type ${type}` );
 
 	return new Item( options );
-}
-
-function asyncProxy ( promise, options ) {
-	const partials = options.template.p || {};
-	const name = options.template.e;
-
-	return new Partial({
-		owner: options.owner,
-		up: options.up,
-		template: { t: ELEMENT, e: name },
-		macro ( handle ) {
-			handle.setTemplate( partials['async-loading'] || [] );
-			promise.then( cmp => {
-				options.up.ractive.components[ name ] = cmp;
-				if ( partials['async-loaded'] ) {
-					handle.partials.component = [ options.template ];
-					handle.setTemplate( partials['async-loaded'] );
-				} else {
-					handle.setTemplate( [ options.template ] );
-				}
-			});
-		}
-	});
 }

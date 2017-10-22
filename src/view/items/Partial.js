@@ -10,6 +10,7 @@ import { warnOnceIfDebug, warnIfDebug } from 'utils/log';
 import parser from 'src/Ractive/config/runtime-parser';
 import runloop from 'src/global/runloop';
 import { applyCSS } from 'src/global/css';
+import { splitKeypath } from 'shared/keypaths';
 
 export default function Partial ( options ) {
 	MustacheContainer.call( this, options );
@@ -288,6 +289,15 @@ function setTemplate ( template ) {
 	}
 }
 
+function aliasLocal ( ref, name ) {
+	const aliases = this.fragment.aliases || ( this.fragment.aliases = {} );
+	if ( !name ) {
+		aliases[ ref ] = this._data;
+	} else {
+		aliases[ name ] = this._data.joinAll( splitKeypath( ref ) );
+	}
+}
+
 function initMacro ( self ) {
 	const fn = self.fn;
 	const fragment = self.fragment;
@@ -296,14 +306,11 @@ function initMacro ( self ) {
 	const template = self.template = assign( {}, self.template );
 	const handle = self.handle = fragment.getContext({
 		proxy: self,
+		aliasLocal,
 		name: self.template.e || self.name,
 		attributes: {},
 		setTemplate: setTemplate.bind( self ),
-		template,
-		aliasLocal ( name ) {
-			if ( !fragment.aliases ) fragment.aliases = {};
-			fragment.aliases[ name ] = handle._data;
-		}
+		template
 	});
 
 	if ( !template.p ) template.p = {};
