@@ -49,12 +49,14 @@ export default class Model extends ModelBase {
 
 			if ( shouldTeardown ) {
 				this.wrapper.teardown();
-				this.wrapper = null;
+				delete this.wrapper;
+				delete this.wrapperValue;
 
 				// don't branch for undefined values
 				if ( this.value !== undefined ) {
 					const parentValue = this.parent.value || this.parent.createBranch( this.key );
 					if ( parentValue[ this.key ] !== value ) parentValue[ this.key ] = value;
+					this.value = value;
 				}
 			} else {
 				delete this.newWrapperValue;
