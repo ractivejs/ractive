@@ -823,4 +823,84 @@ export default function() {
 		t.strictEqual(model.getHeight(), 4, 'Model has box height of 4');
 
 	});
+
+	test('Teardown to a non-adapted value', t => {
+		const Adaptor = {
+			filter ( object ) {
+				return object && typeof object.then === 'function';
+			},
+			wrap () {
+				const get = () => null;
+				const set = () => {};
+				const reset = () => false;
+				const teardown = () => {};
+				return { get, set, reset, teardown };
+			}
+		};
+
+		const model = Promise.resolve();
+		const instance = Ractive({
+			adapt: [Adaptor],
+			data: { model },
+			el: fixture,
+			template: '<p>{{ model }}</p>'
+		});
+
+		t.strictEqual(instance.get('model'), model);
+		t.strictEqual(instance.get('model', { unwrap: false }), null);
+		t.strictEqual(instance.find('p').innerHTML, '');
+
+		instance.set('model', 1);
+
+		t.strictEqual(instance.get('model'), 1);
+		t.strictEqual(instance.get('model', { unwrap: false }), 1);
+		t.strictEqual(instance.find('p').innerHTML, '1');
+	});
+
+	test('Teardown to a non-adapted value asynchronously', t => {
+		const done = t.async();
+
+		// ractive-adaptor-promise
+		const Adaptor = {
+			filter (object) {
+				return object != null && typeof object.then === 'function';
+			},
+			wrap (ractive, object, keypath) {
+				let removed = false;
+				const get = () => null;
+				const set = () => {};
+				const reset = () => false;
+				const teardown = () => { removed = true; };
+				const setter = result => { removed ? void 0 : ractive.set(keypath, result); };
+
+				object.then(setter, setter);
+
+				return { get, set, reset, teardown };
+			}
+		};
+
+		const value = new Promise(resolve => {
+			setTimeout(() => { resolve(1); }, 2000);
+		});
+
+		const instance = Ractive({
+			adapt: [Adaptor],
+			data: { value },
+			el: fixture,
+			template: '<p>{{ value }}</p>'
+		});
+
+		t.strictEqual(instance.get('value'), value);
+		t.strictEqual(instance.get('value', { unwrap: false }), null);
+		t.strictEqual(instance.find('p').innerHTML, '');
+
+		value.then(() => {
+			t.strictEqual(instance.get('value'), 1);
+			t.strictEqual(instance.get('value', { unwrap: false }), 1);
+			t.strictEqual(instance.find('p').innerHTML, '1');
+			done();
+		});
+
+	});
+
 }
