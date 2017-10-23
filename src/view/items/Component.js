@@ -14,7 +14,7 @@ import ConditionalAttribute from './element/ConditionalAttribute';
 import createItem from './createItem';
 import parser from 'src/Ractive/config/runtime-parser';
 import { assign, create } from 'utils/object';
-import { isArray } from 'utils/is';
+import { isArray, isString } from 'utils/is';
 
 export default class Component extends Item {
 	constructor ( options, ComponentConstructor ) {
@@ -70,7 +70,7 @@ export default class Component extends Item {
 			// allow components that are so inclined to add programmatic mappings
 			if ( isArray( this.mappings ) ) {
 				attrs = ( attrs || [] ).concat( this.mappings );
-			} else if ( typeof this.mappings === 'string' ) {
+			} else if ( isString( this.mappings ) ) {
 				attrs = ( attrs || [] ).concat( parser.parse( this.mappings, { attributes: true } ).t );
 			}
 

@@ -1,6 +1,6 @@
 import { win } from 'config/environment';
 import { addToArray, removeFromArray } from 'utils/array';
-import { isArray, isObject } from 'utils/is';
+import { isArray, isObject, isFunction, isNumber, isString } from 'utils/is';
 import noop from 'utils/noop';
 import { warnOnceIfDebug } from 'utils/log';
 import { missingPlugin } from 'config/errors';
@@ -46,7 +46,7 @@ export default class Transition {
 
 		let to;
 
-		if ( typeof style === 'string' ) {
+		if ( isString( style ) ) {
 			to = {};
 			to[ style ] = value;
 		} else {
@@ -126,7 +126,7 @@ export default class Transition {
 			this.params = options.params;
 		}
 
-		if ( typeof this.name === 'function' ) {
+		if ( isFunction( this.name ) ) {
 			this._fn = this.name;
 			this.name = this._fn.name;
 		} else {
@@ -157,7 +157,7 @@ export default class Transition {
 	getStyle ( props ) {
 		const computedStyle = getComputedStyle( this.node );
 
-		if ( typeof props === 'string' ) {
+		if ( isString( props ) ) {
 			return computedStyle[ prefix( props ) ];
 		}
 
@@ -180,11 +180,11 @@ export default class Transition {
 	}
 
 	processParams ( params, defaults ) {
-		if ( typeof params === 'number' ) {
+		if ( isNumber( params ) ) {
 			params = { duration: params };
 		}
 
-		else if ( typeof params === 'string' ) {
+		else if ( isString( params ) ) {
 			if ( params === 'slow' ) {
 				params = { duration: 600 };
 			} else if ( params === 'fast' ) {
@@ -204,7 +204,7 @@ export default class Transition {
 	}
 
 	setStyle ( style, value ) {
-		if ( typeof style === 'string' ) {
+		if ( isString( style ) ) {
 			const name = prefix(  style );
 			if ( !hasOwn( this.originals, name ) ) this.originals[ name ] = this.node.style[ name ];
 			this.node.style[ name ] = value;

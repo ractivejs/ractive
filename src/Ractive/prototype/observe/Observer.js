@@ -1,4 +1,4 @@
-import { isEqual } from 'utils/is';
+import { isEqual, isFunction } from 'utils/is';
 import { removeFromArray } from 'utils/array';
 import runloop from 'src/global/runloop';
 import { rebindMatch } from 'shared/rebind';
@@ -14,7 +14,7 @@ export default class Observer {
 
 		if ( model ) this.resolved( model );
 
-		if ( typeof options.old === 'function' ) {
+		if ( isFunction( options.old ) ) {
 			this.oldContext = create( ractive );
 			this.old = options.old;
 		} else {

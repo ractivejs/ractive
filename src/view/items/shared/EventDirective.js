@@ -11,7 +11,7 @@ import { DOMEvent, CustomEvent } from '../element/ElementEvents';
 import RactiveEvent from '../component/RactiveEvent';
 import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
 import Context from 'src/shared/Context';
-import { isArray } from 'utils/is';
+import { isArray, isString } from 'utils/is';
 
 const specialPattern = /^(event|arguments|@node|@event|@context)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
@@ -142,7 +142,7 @@ export default class EventDirective {
 			}
 
 			// watch for proxy events
-			else if ( !returned.length && isArray( result ) && typeof result[0] === 'string' ) {
+			else if ( !returned.length && isArray( result ) && isString( result[0] ) ) {
 				result = fireEvent( this.ractive, result.shift(), context, result );
 			}
 

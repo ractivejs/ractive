@@ -1,4 +1,5 @@
 import noop from 'utils/noop';
+import { isFunction } from 'utils/is';
 
 export default function wrap ( parent, name, method ) {
 	if ( !/_super/.test( method ) ) return method;
@@ -31,7 +32,7 @@ function getSuperMethod ( parent, name ) {
 	if ( name in parent ) {
 		const value = parent[ name ];
 
-		return typeof value === 'function' ?
+		return isFunction( value ) ?
 			value :
 			() => value;
 	}

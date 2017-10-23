@@ -12,7 +12,7 @@ export function isEqual ( a, b ) {
 		return true;
 	}
 
-	if ( typeof a === 'object' || typeof b === 'object' ) {
+	if ( isObjectType( a ) || isObjectType( b ) ) {
 		return false;
 	}
 
@@ -29,7 +29,21 @@ export function isObject ( thing ) {
 }
 
 export function isObjectLike ( thing ) {
-	if ( !thing ) return false;
-	const type = typeof thing;
-	if ( type === 'object' || type === 'function' ) return true;
+	return !!( thing && ( isObjectType( thing ) || isFunction( thing ) ) );
+}
+
+export function isObjectType ( thing ) {
+	return typeof thing === 'object';
+}
+
+export function isFunction ( thing ) {
+	return typeof thing === 'function';
+}
+
+export function isString ( thing ) {
+	return typeof thing === 'string';
+}
+
+export function isNumber ( thing ) {
+	return typeof thing === 'number';
 }

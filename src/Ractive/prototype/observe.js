@@ -1,4 +1,4 @@
-import { isObject } from 'utils/is';
+import { isObject, isFunction } from 'utils/is';
 import { warnOnceIfDebug } from 'utils/log';
 import { splitKeypath } from 'shared/keypaths';
 import resolveReference from 'src/view/resolvers/resolveReference';
@@ -16,7 +16,7 @@ export default function observe ( keypath, callback, options ) {
 		map = keypath;
 		opts = callback || {};
 	} else {
-		if ( typeof keypath === 'function' ) {
+		if ( isFunction( keypath ) ) {
 			map = { '': keypath };
 			opts = callback || {};
 		} else {

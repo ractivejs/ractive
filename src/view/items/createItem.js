@@ -25,6 +25,7 @@ import getComponentConstructor from './component/getComponentConstructor';
 import findElement from './shared/findElement';
 import { findInstance } from 'shared/registry';
 import asyncProxy from './asyncProxy';
+import { isString, isFunction } from 'utils/is';
 
 const constructors = {};
 constructors[ ALIAS ] = Alias;
@@ -53,7 +54,7 @@ const specialElements = {
 };
 
 export default function createItem ( options ) {
-	if ( typeof options.template === 'string' ) {
+	if ( isString( options.template ) ) {
 		return new Text( options );
 	}
 
@@ -77,7 +78,7 @@ export default function createItem ( options ) {
 		// could be component or element
 		ctor = getComponentConstructor( options.up.ractive, name );
 		if ( ctor ) {
-			if ( typeof ctor.then === 'function' ) {
+			if ( isFunction( ctor.then ) ) {
 				return asyncProxy( ctor, options );
 			} else {
 				return new Component( options, ctor );

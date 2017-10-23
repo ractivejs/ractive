@@ -2,6 +2,7 @@ import { TEMPLATE_VERSION } from 'config/template';
 import { addFunctions } from 'shared/getFunction';
 import parser from '../runtime-parser';
 import { hasOwn } from 'utils/object';
+import { isFunction, isNumber, isString } from 'utils/is';
 
 export default {
 	name: 'template',
@@ -11,7 +12,7 @@ export default {
 		if ( 'template' in options ) {
 			const template = options.template;
 
-			if ( typeof template === 'function' ) {
+			if ( isFunction ( template ) ) {
 				proto.template = template;
 			} else {
 				proto.template = parseTemplate( template, proto );
@@ -26,7 +27,7 @@ export default {
 		let template = 'template' in options ? options.template : Parent.prototype.template;
 		template = template || { v: TEMPLATE_VERSION, t: [] };
 
-		if ( typeof template === 'function' ) {
+		if ( isFunction ( template ) ) {
 			const fn = template;
 			template = getDynamicTemplate( ractive, fn );
 
@@ -92,7 +93,7 @@ function getDynamicTemplate ( ractive, fn ) {
 }
 
 function parseTemplate ( template, ractive ) {
-	if ( typeof template === 'string' ) {
+	if ( isString ( template ) ) {
 		// parse will validate and add expression functions
 		template = parseAsString( template, ractive );
 	}
@@ -122,7 +123,7 @@ function validate( template ) {
 	}
 
 	// Check the parsed template has a version at all
-	else if ( typeof template.v !== 'number' ) {
+	else if ( !isNumber( template.v ) ) {
 		throw new Error( 'The template parser was passed a non-string template, but the template doesn\'t have a version.  Make sure you\'re passing in the template you think you are.' );
 	}
 

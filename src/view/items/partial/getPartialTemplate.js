@@ -3,7 +3,7 @@ import { warnIfDebug } from 'utils/log';
 import { fillGaps, hasOwn } from 'utils/object';
 import parser from 'src/Ractive/config/runtime-parser';
 import { findInstance } from 'shared/registry';
-import { isArray } from 'utils/is';
+import { isArray, isFunction } from 'utils/is';
 
 export default function getPartialTemplate ( ractive, name, up ) {
 	// If the partial in instance or view heirarchy instances, great
@@ -38,7 +38,7 @@ function getPartialFromRegistry ( ractive, name, up ) {
 
 	// partial is a function?
 	let fn;
-	if ( typeof partial === 'function' ) {
+	if ( isFunction( partial ) ) {
 		fn = partial;
 		// super partial
 		if ( fn.styleSet ) return fn;

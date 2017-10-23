@@ -1,10 +1,10 @@
-import { isNumeric } from 'utils/is';
+import { isNumeric, isString } from 'utils/is';
 import { build, set } from 'shared/set';
 
 const errorMessage = 'Cannot add to a non-numeric value';
 
 export default function add ( ractive, keypath, d, options ) {
-	if ( typeof keypath !== 'string' || !isNumeric( d ) ) {
+	if ( !isString( keypath ) || !isNumeric( d ) ) {
 		throw new Error( 'Bad arguments' );
 	}
 

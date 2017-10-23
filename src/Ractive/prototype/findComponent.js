@@ -1,5 +1,7 @@
+import { isObjectType } from 'utils/is';
+
 export default function Ractive$findComponent ( selector, options = {} ) {
-	if ( typeof selector === 'object' ) {
+	if ( isObjectType( selector ) ) {
 		options = selector;
 		selector = '';
 	}

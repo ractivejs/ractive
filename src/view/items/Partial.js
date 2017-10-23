@@ -1,6 +1,6 @@
 import { ELEMENT, PARTIAL, SECTION, SECTION_WITH, YIELDER } from 'config/types';
 import { assign, create, hasOwn, keys } from 'utils/object';
-import { isArray } from 'utils/is';
+import { isArray, isFunction, isObjectType, isString } from 'utils/is';
 import noop from 'utils/noop';
 import { MustacheContainer } from './shared/Mustache';
 import Fragment from '../Fragment';
@@ -124,7 +124,7 @@ assign( proto, {
 	resetTemplate () {
 		if ( this.fn && this.proxy ) {
 			if ( this.externalChange ) {
-				if ( typeof this.proxy.teardown === 'function' ) this.proxy.teardown();
+				if ( isFunction( this.proxy.teardown ) ) this.proxy.teardown();
 				this.fn = this.proxy = null;
 			} else {
 				this.partial = this.fnTemplate;
@@ -146,7 +146,7 @@ assign( proto, {
 
 		if ( this.fn ) {
 			initMacro( this );
-			if ( typeof this.proxy.render === 'function' ) runloop.scheduleTask( () => this.proxy.render() );
+			if ( isFunction( this.proxy.render ) ) runloop.scheduleTask( () => this.proxy.render() );
 		} else if ( !this.partial ) {
 			warnOnceIfDebug( `Could not find template for partial '${this.name}'` );
 		}
@@ -157,7 +157,7 @@ assign( proto, {
 
 		this.fragment.render( target, occupants );
 
-		if ( this.proxy && typeof this.proxy.render === 'function' ) this.proxy.render();
+		if ( this.proxy && isFunction( this.proxy.render ) ) this.proxy.render();
 	},
 
 	unbind () {
@@ -179,7 +179,7 @@ assign( proto, {
 	},
 
 	unrender ( shouldDestroy ) {
-		if ( this.proxy && typeof this.proxy.teardown === 'function' ) this.proxy.teardown();
+		if ( this.proxy && isFunction( this.proxy.teardown ) ) this.proxy.teardown();
 
 		this.fragment.unrender( shouldDestroy );
 	},
@@ -191,7 +191,7 @@ assign( proto, {
 		if ( this.dirtyAttrs ) {
 			this.dirtyAttrs = false;
 			this.refreshAttrs();
-			if ( typeof proxy.update === 'function' ) proxy.update( this.handle.attributes );
+			if ( isFunction( proxy.update ) ) proxy.update( this.handle.attributes );
 		}
 
 		if ( this.dirtyTemplate ) {
@@ -202,7 +202,7 @@ assign( proto, {
 
 		if ( this.dirty ) {
 			this.dirty = false;
-			if ( proxy && typeof proxy.invalidate === 'function' ) proxy.invalidate();
+			if ( proxy && isFunction( proxy.invalidate ) ) proxy.invalidate();
 			this.fragment.update();
 		}
 
@@ -244,10 +244,10 @@ function partialFromValue ( self, value, okToParse ) {
 
 	if ( isArray( tpl ) ) {
 		self.partial = tpl;
-	} else if ( typeof tpl === 'object' ) {
+	} else if ( isObjectType( tpl ) ) {
 		if ( isArray( tpl.t ) ) self.partial = tpl.t;
-		else if ( typeof tpl.template === 'string' ) self.partial = parsePartial( tpl.template, tpl.template, self.ractive ).t;
-	} else if ( typeof tpl === 'function' && tpl.styleSet ) {
+		else if ( isString( tpl.template ) ) self.partial = parsePartial( tpl.template, tpl.template, self.ractive ).t;
+	} else if ( isFunction( tpl ) && tpl.styleSet ) {
 		self.fn = tpl;
 		if ( self.fragment ) self.fragment.cssIds = tpl._cssIds;
 	} else if ( tpl != null ) {

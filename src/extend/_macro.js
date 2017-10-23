@@ -1,11 +1,12 @@
 import styleSet from '../Ractive/static/styleSet';
 import CSSModel from 'src/model/specials/CSSModel';
 import { assign, create, defineProperties, defineProperty } from 'utils/object';
+import { isFunction } from 'utils/is';
 
 import { initCSS } from 'src/Ractive/config/custom/css/css';
 
 export default function macro ( fn, opts ) {
-	if ( typeof fn !== 'function' ) throw new Error( `The macro must be a function` );
+	if ( !isFunction( fn ) ) throw new Error( `The macro must be a function` );
 
 	assign( fn, opts );
 

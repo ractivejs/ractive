@@ -1,5 +1,6 @@
 import { COMMENT, DELIMCHANGE, SECTION, INVERTED } from 'config/types';
 import { lastItem } from 'utils/array';
+import { isString } from 'utils/is';
 
 const leadingLinebreak = /^[ \t\f\r\n]*\r?\n/;
 const trailingLinebreak = /\r?\n[ \t\f\r\n]*$/;
@@ -48,10 +49,6 @@ export default function ( items ) {
 	}
 
 	return items;
-}
-
-function isString ( item ) {
-	return typeof item === 'string';
 }
 
 function isComment ( item ) {

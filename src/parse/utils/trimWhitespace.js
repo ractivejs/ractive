@@ -1,11 +1,12 @@
 import { lastItem } from 'utils/array';
+import { isString } from 'utils/is';
 
 export default function ( items, leadingPattern, trailingPattern ) {
 	let item;
 
 	if ( leadingPattern ) {
 		item = items[0];
-		if ( typeof item === 'string' ) {
+		if ( isString( item ) ) {
 			item = item.replace( leadingPattern, '' );
 
 			if ( !item ) {
@@ -18,7 +19,7 @@ export default function ( items, leadingPattern, trailingPattern ) {
 
 	if ( trailingPattern ) {
 		item = lastItem( items );
-		if ( typeof item === 'string' ) {
+		if ( isString( item ) ) {
 			item = item.replace( trailingPattern, '' );
 
 			if ( !item ) {

@@ -9,7 +9,7 @@ import findElement from '../shared/findElement';
 import getUpdateDelegate from './attribute/getUpdateDelegate';
 import propertyNames from './attribute/propertyNames';
 import { inAttributes } from './ConditionalAttribute';
-import { isArray } from 'utils/is';
+import { isArray, isString } from 'utils/is';
 
 function lookupNamespace ( node, prefix ) {
 	const qualified = `xmlns:${prefix}`;
@@ -167,7 +167,7 @@ export default class Attribute extends Item {
 			return;
 		}
 
-		if ( booleanAttributes.test( this.name ) ) return value ? ( typeof value === 'string' ? `${this.name}="${safeAttributeString(value)}"` : this.name ) : '';
+		if ( booleanAttributes.test( this.name ) ) return value ? ( isString( value ) ? `${this.name}="${safeAttributeString(value)}"` : this.name ) : '';
 		if ( value == null ) return '';
 
 		const str = safeAttributeString( this.getString() );

@@ -1,4 +1,5 @@
 import Element from '../../Element';
+import { isFunction } from 'utils/is';
 
 export default class Input extends Element {
 	render ( target, occupants ) {
@@ -8,7 +9,7 @@ export default class Input extends Element {
 	compare ( value, attrValue ) {
 		const comparator = this.getAttribute( 'value-comparator' );
 		if ( comparator ) {
-			if ( typeof comparator === 'function' ) {
+			if ( isFunction( comparator ) ) {
 				return comparator( value, attrValue );
 			}
 			if (value && attrValue) {

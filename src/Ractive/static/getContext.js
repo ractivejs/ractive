@@ -1,11 +1,12 @@
 import { doc } from 'config/environment';
 import getRactiveContext from 'shared/getRactiveContext';
 import { warnOnceIfDebug } from 'utils/log';
+import { isString } from 'utils/is';
 
 const query = doc && doc.querySelector;
 
 export default function getContext ( node ) {
-	if ( typeof node === 'string' && query ) {
+	if ( isString( node ) && query ) {
 		node = query.call( document, node );
 	}
 

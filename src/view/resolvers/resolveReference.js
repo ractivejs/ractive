@@ -2,6 +2,7 @@ import { splitKeypath } from 'shared/keypaths';
 import SharedModel, { GlobalModel } from 'src/model/specials/SharedModel';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn } from 'utils/object';
+import { isFunction } from 'utils/is';
 
 export default function resolveReference ( fragment, ref ) {
 	const initialFragment = fragment;
@@ -145,7 +146,7 @@ export default function resolveReference ( fragment, ref ) {
 			const model = fragment.aliases[ base ];
 
 			if ( keys.length === 0 ) return model;
-			else if ( typeof model.joinAll === 'function' ) {
+			else if ( isFunction( model.joinAll ) ) {
 				return model.joinAll( keys );
 			}
 		}

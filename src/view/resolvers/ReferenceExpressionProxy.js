@@ -3,7 +3,7 @@ import { findBoundValue } from 'src/model/ModelBase';
 import { REFERENCE } from 'config/types';
 import { rebindMatch } from 'shared/rebind';
 import { handleChange, mark, marked } from 'shared/methodCallers';
-import { isEqual } from 'utils/is';
+import { isEqual, isString } from 'utils/is';
 import { escapeKey } from 'shared/keypaths';
 import ExpressionProxy from './ExpressionProxy';
 import resolveReference from './resolveReference';
@@ -106,7 +106,7 @@ export default class ReferenceExpressionProxy extends Model {
 		};
 
 		this.members = template.m.map( ( template ) => {
-			if ( typeof template === 'string' ) {
+			if ( isString( template ) ) {
 				return { get: () => template };
 			}
 

@@ -1,3 +1,5 @@
+import { isNumber } from 'utils/is';
+
 // This function takes an array, the name of a mutator method, and the
 // arguments to call that mutator method with, and returns an array that
 // maps the old indices to their new indices.
@@ -77,7 +79,7 @@ function getSpliceEquivalent ( length, methodName, args ) {
 				args.push( length - args[0] );
 			}
 
-			if ( typeof args[1] !== 'number' ) {
+			if ( !isNumber( args[1] ) ) {
 				args[1] = length - args[0];
 			}
 

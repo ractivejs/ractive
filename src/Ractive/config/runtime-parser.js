@@ -3,6 +3,7 @@ import { doc } from 'config/environment';
 import { fatal } from 'utils/log';
 import { addFunctions } from 'shared/getFunction';
 import parse from 'parse/_parse';
+import { isString } from 'utils/is';
 
 const parseOptions = [
 	'delimiters',
@@ -66,7 +67,7 @@ const parser = {
 	},
 
 	isParsed ( template) {
-		return !( typeof template === 'string' );
+		return !isString( template );
 	},
 
 	getParseOptions ( ractive ) {

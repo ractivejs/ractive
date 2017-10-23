@@ -1,6 +1,7 @@
 import Hook from 'src/events/Hook';
 import runloop from 'src/global/runloop';
 import { splitKeypath } from 'shared/keypaths';
+import { isString } from 'utils/is';
 
 const updateHook = new Hook( 'update' );
 
@@ -28,7 +29,7 @@ export function update ( ractive, model, options ) {
 export default function Ractive$update ( keypath, options ) {
 	let opts, path;
 
-	if ( typeof keypath === 'string' ) {
+	if ( isString( keypath ) ) {
 		path = splitKeypath( keypath );
 		opts = options;
 	} else {

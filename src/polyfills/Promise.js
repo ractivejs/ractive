@@ -1,3 +1,5 @@
+import { isFunction, isObjectType } from 'utils/is';
+
 /* istanbul ignore if */
 if (typeof window !== 'undefined' && !window.Promise) {
 	const PENDING = {};
@@ -36,7 +38,7 @@ if (typeof window !== 'undefined' && !window.Promise) {
 				const promise2 = new Promise((fulfill, reject) => {
 
 					const processResolutionHandler = (handler, handlers, forward) => {
-						if (typeof handler === 'function') {
+						if (isFunction( handler )) {
 							handlers.push(p1result => {
 								try {
 									resolve(promise2, handler(p1result), fulfill, reject);
@@ -77,7 +79,7 @@ if (typeof window !== 'undefined' && !window.Promise) {
 			}
 
 			const processPromise = (promise, i) => {
-				if (promise && typeof promise.then === 'function') {
+				if (promise && isFunction( promise.then )) {
 					promise.then(value => {
 						result[i] = value;
 						--pending || fulfil(result);
@@ -128,14 +130,14 @@ if (typeof window !== 'undefined' && !window.Promise) {
 		}
 		if (x instanceof Promise) {
 			x.then(fulfil, reject);
-		} else if (x && (typeof x === 'object' || typeof x === 'function')) {
+		} else if (x && (isObjectType( x ) || isFunction( x ))) {
 			try {
 				then = x.then;
 			} catch (e) {
 				reject(e);
 				return;
 			}
-			if (typeof then === 'function') {
+			if (isFunction( then )) {
 				let called;
 
 				const resolvePromise = function (y) {

@@ -6,6 +6,7 @@ import { getElement } from 'utils/dom';
 import { splitKeypath } from 'shared/keypaths';
 import CSSModel from 'src/model/specials/CSSModel';
 import { assign, create, defineProperty } from 'utils/object';
+import { isString, isFunction, isObjectType } from 'utils/is';
 
 const hasCurly = /\{/;
 export default {
@@ -67,19 +68,19 @@ export function evalCSS ( component, css ) {
 	data.__proto__ = cssData;
 
 	const result = css.call( component, data );
-	return typeof result === 'string' ? result : '';
+	return isString( result ) ? result : '';
 }
 
 export function initCSS ( options, target, proto ) {
-	let css = typeof options.css === 'string' && !hasCurly.test( options.css ) ?
+	let css = isString( options.css ) && !hasCurly.test( options.css ) ?
 		( getElement( options.css ) || options.css ) :
 		options.css;
 
 	const id = options.cssId || uuid();
 
-	if ( typeof css === 'object' ) {
+	if ( isObjectType( css ) ) {
 		css = 'textContent' in css ? css.textContent : css.innerHTML;
-	} else if ( typeof css === 'function' ) {
+	} else if ( isFunction( css ) ) {
 		target._css = options.css;
 		css = evalCSS( target, css );
 	}

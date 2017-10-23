@@ -1,4 +1,5 @@
 import { removeFromArray } from 'utils/array';
+import { isFunction } from 'utils/is';
 
 export default class TransitionManager {
 	constructor ( callback, parent ) {
@@ -93,7 +94,7 @@ function check ( tm ) {
 	// Once everything is done, we can notify parent transition
 	// manager and call the callback
 	if ( !tm.intros.length && !tm.totalChildren ) {
-		if ( typeof tm.callback === 'function' ) {
+		if ( isFunction( tm.callback ) ) {
 			tm.callback();
 		}
 
