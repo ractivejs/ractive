@@ -11,7 +11,6 @@ export default class CSSModel extends SharedModel {
 		if ( this.locked ) return;
 
 		const component = this.component;
-
 		component.extensions.forEach( e => {
 			const model = e._cssModel;
 			model.mark();

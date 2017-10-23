@@ -1,4 +1,4 @@
-import { ARRAY_LITERAL, ATTRIBUTE, DECORATOR, DELEGATE_FLAG, BINDING_FLAG, INTERPOLATOR, TRANSITION, EVENT } from '../../../config/types';
+import { ARRAY_LITERAL, ATTRIBUTE, DECORATOR, DELEGATE_FLAG, BINDING_FLAG, INTERPOLATOR, PROXY_FLAG, TRANSITION, EVENT } from '../../../config/types';
 import getLowestIndex from '../utils/getLowestIndex';
 import readMustache from '../readMustache';
 import { decodeCharacterReferences } from 'src/utils/html';
@@ -17,7 +17,8 @@ const boundPattern = /^((bind|class)-(([-a-zA-Z0-9_])+))$/;
 const directives = {
 	lazy: { t: BINDING_FLAG, v: 'l' },
 	twoway: { t: BINDING_FLAG, v: 't' },
-	'no-delegation': { t: DELEGATE_FLAG }
+	'no-delegation': { t: DELEGATE_FLAG },
+	'no-proxy': { t: PROXY_FLAG }
 };
 const unquotedAttributeValueTextPattern = /^[^\s"'=<>\/`]+/;
 const proxyEvent = /^[^\s"'=<>@\[\]()]*/;

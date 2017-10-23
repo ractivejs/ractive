@@ -21,6 +21,7 @@ const registryNames = [
 	'events',
 	'interpolators',
 	'partials',
+	'proxies',
 	'transitions'
 ];
 

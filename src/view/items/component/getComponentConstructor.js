@@ -11,8 +11,8 @@ export default function getComponentConstructor ( ractive, name ) {
 	if ( instance ) {
 		Component = instance.components[ name ];
 
-		// best test we have for not Ractive.extend
-		if ( Component && !Component.Parent ) {
+		// if not from Ractive.extend, it's a function that will return a constructor
+		if ( Component && !Component.isInstance ) {
 			// function option, execute and store for reset
 			const fn = Component.bind( instance );
 			fn.isOwner = hasOwn( instance.components, name );
