@@ -2,7 +2,7 @@
   "name": "ractive",
   "description": "Next-generation DOM manipulation",
   "version": "BUILD_PLACEHOLDER_VERSION",
-  "homepage": "http://ractivejs.org",
+  "homepage": "https://ractive.js.org",
   "license": "MIT",
   "main": "ractive.js",
   "jsnext:main": "ractive.mjs",

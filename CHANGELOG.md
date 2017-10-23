@@ -1,5 +1,41 @@
 # changelog
 
+# 0.9.6
+
+* Breaking changes
+	* Experimental parser transforms have been removed and replaced with a runtime construct associated with partials (see below)
+
+* Bug fixes
+	* HTML comments will now render (#3103)
+	* Re-linking a linked path to itself will now throw a proper error instead of overflowing the stack (#3107)
+	* Adapted values now reset and teardown correctly (#3100, #3112)
+	* The default data for a component constructor is a function that returns an empty object rather than an empty object so that the component will inherit default data by default.
+	* `sharedGet` and `styleGet` are now _actually implemented_ on Ractive constructors as was erroneously indicated in the notes for 0.9.4
+
+* New features (experimental)
+	* __Async components__: Components added to the component registry may be a promise or a function that returns a promise. While the promise is unresolved, the template will be left blank or display an options `async-loading` partial if supplied. When the promise resolves, the component will be rendered or supplied to an optional `async-loaded` partial as `{{>component}}` if the `async-loaded` partial is supplied. If the promise rejects, the template will be emptied or the `async-failed` partial will be rendered, if supplied.
+	* The low-level construct that enables async components is the super or macro partial, which is also available for general use. A macro partial is one that provides a function that takes a context handle that can set the partial's template at any time.
+		* Macro partials can also have scoped `css` using the same mechanism as components.  
+		* They are created with `Ractive.macro( ( handle, args ) => { ... }, { options } )` and should be passed into a partials registry
+		* They can be invoked using regular partial syntax or using element syntax as a lightweight component e.g. `<macro attr1="{{foo}}">content partial</macro>`
+		* The handle passed to the macro function can be used to:
+			* Do anything a normal context object can e.g. `get`, `set`, `observe`, `listen`, etc
+			* Create aliases to `@local` data for the macro's template e.g. `handle.aliasLocal( 'name' )` and `handle.aliasLocal( 'foo.bar', 'foobar' )`, which creates an alias `name` for `@local` and an alias `foobar` for `@local.foo.bar`, respectively.
+			* Change the template for macro at any point using `handle.setTemplate( newTemplate )` where `newTemplate` can be a string or template script id if runtime parsing is available or a pre-parsed template.
+			* The `template` property of the handle is a safe copy of the template AST containing the macro, and the `partials` property is a safe shared copy of the partials available to the macro.
+		* The options available for `Ractive.macro` are:
+			* `attributes` - an array of attribute names to reserve for the macro. Any attributes _not_ present in this array are collected and made available to the macro as the `{{>extra-attributes}}` partial.
+			* `css` - a string or function used for creating CSS for the macro
+			* `cssId` - the id to use for CSS scoping
+			* `noCssTransform` - if `true`, the CSS will not be scoped
+			* `cssData` - the base dictionary for the macro's style data
+		* The return object from the macro function can include a number of callbacks:
+			* `update(attrs)` - called whenever any reserved attributes change. If `handle.setTemplate` is called from this callback, it will _not_ trigger an additional turn of the runloop, so it's a relatively efficient operation.
+			* `render()` - called when the template is rendered
+			* `invalidate()` - called when any downstream template updates
+			* `teardown()` - called when the macro is being removed from the template e.g. on unrender or if the dynamic name of the partial changes
+
+
 # 0.9.5
 
 * The `mjs` files are once again properly transpiled for those who use a `module` aware bundler with no transpiler.
