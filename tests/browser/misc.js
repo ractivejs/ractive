@@ -1856,6 +1856,16 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'sure, why not' );
 	});
 
+	test( `static sharedGet method can access @shared data without an instance`, t => {
+		Ractive.sharedSet( 'foo', true );
+		t.equal( Ractive.sharedGet( 'foo' ), true );
+
+		const r = new Ractive();
+		r.set( '@shared.baz.bat', 42 );
+
+		t.equal( Ractive.sharedGet( 'baz.bat' ), 42 );
+	});
+
 	test( `invalid template node type throws`, t => {
 		t.throws( () => {
 			new Ractive({

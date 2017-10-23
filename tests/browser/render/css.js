@@ -583,6 +583,15 @@ export default function() {
 		t.equal( style.color, 'rgb(0, 128, 0)' );
 	});
 
+	test( `component constructors provide instance-free access to css data via styleGet`, t => {
+		const cmp = Ractive.extend();
+
+		Ractive.styleSet( 'foo', 42 );
+
+		t.equal( Ractive.styleGet( 'foo' ), 42 );
+		t.equal( cmp.styleGet( 'foo' ), 42 );
+	});
+
 	test( `instances can access component style data via @style and @this.cssData`, t => {
 		let width = '10em';
 		let computedWidth;

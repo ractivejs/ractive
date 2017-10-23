@@ -399,6 +399,16 @@ export default function() {
 		t.equal( r.find( 'div' ).clientWidth, 124 );
 	});
 
+	test( `macro styleGet`, t => {
+		const macro = Ractive.macro( handle => handle.setTemplate( [] ) );
+
+		Ractive.styleSet( 'foo', 99 );
+		t.equal( macro.styleGet( 'foo' ), 99 );
+
+		Ractive.styleSet( 'foo', 'abc' );
+		t.equal( macro.styleGet( 'foo' ), 'abc' );
+	});
+
 	test( `plain partial syntax can resolve to a macro`, t => {
 		new Ractive({
 			target: fixture,
