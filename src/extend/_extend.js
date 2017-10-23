@@ -5,8 +5,10 @@ import initialise from '../Ractive/initialise';
 import Ractive from '../Ractive';
 import isInstance from '../Ractive/static/isInstance';
 import styleSet from '../Ractive/static/styleSet';
+import styleGet from '../Ractive/static/styleGet';
 import sharedSet from '../Ractive/static/sharedSet';
-import { assign, create, defineProperty, defineProperties, toPairs } from 'utils/object';
+import sharedGet from '../Ractive/static/sharedGet';
+import { assign, create, defineProperties, toPairs } from 'utils/object';
 import { isArray, isFunction } from 'utils/is';
 
 const callsSuper = /super\s*\(|\.call\s*\(\s*this/;
@@ -68,6 +70,7 @@ function extendOne ( Parent, options = {}, Target ) {
 		Parent: { value: Parent },
 		Ractive: { value: Ractive },
 
+		styleGet: { value: styleGet.bind( Child ), configurable: true },
 		styleSet: { value: styleSet.bind( Child ), configurable: true }
 	});
 
@@ -107,8 +110,9 @@ function extendOne ( Parent, options = {}, Target ) {
 	return Child;
 }
 
-// styleSet for Ractive
-defineProperty( Ractive, 'styleSet', { configurable: true, value: styleSet.bind( Ractive ) } );
-
-// sharedSet for Ractive
-defineProperty( Ractive, 'sharedSet', { value: sharedSet } );
+defineProperties( Ractive, {
+	sharedGet: { value: sharedGet },
+	sharedSet: { value: sharedSet },
+	styleGet: { configurable: true, value: styleGet.bind( Ractive ) },
+	styleSet: { configurable: true, value: styleSet.bind( Ractive ) }
+});
