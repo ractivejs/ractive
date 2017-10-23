@@ -1,198 +1,363 @@
-import { SECTION, SECTION_WITH, YIELDER } from 'config/types';
-import { warnOnceIfDebug, warnIfDebug } from 'utils/log';
-import parser from 'src/Ractive/config/runtime-parser';
+import { ELEMENT, PARTIAL, SECTION, SECTION_WITH, YIELDER } from 'config/types';
+import { assign, create, hasOwn, keys } from 'utils/object';
+import { isArray } from 'utils/is';
+import noop from 'utils/noop';
 import { MustacheContainer } from './shared/Mustache';
 import Fragment from '../Fragment';
 import getPartialTemplate from './partial/getPartialTemplate';
-import { doInAttributes } from './element/ConditionalAttribute';
 import { resolveAliases } from './Alias';
-import { isArray } from 'utils/is';
+import { warnOnceIfDebug, warnIfDebug } from 'utils/log';
+import parser from 'src/Ractive/config/runtime-parser';
+import runloop from 'src/global/runloop';
+import { applyCSS } from 'src/global/css';
+import { splitKeypath } from 'shared/keypaths';
 
-export default class Partial extends MustacheContainer {
-	constructor ( options ) {
-		super( options );
+export default function Partial ( options ) {
+	MustacheContainer.call( this, options );
 
-		this.options = options;
+	const tpl = options.template;
 
-		this.yielder = options.template.t === YIELDER;
+	// yielder is a special form of partial that will later require special handling
+	if ( tpl.t === YIELDER ) {
+		this.yielder = 1;
 	}
 
+	// this is a macro partial, complete with macro constructor
+	else if ( tpl.t === ELEMENT ) {
+		// leaving this as an element will confuse up-template searches
+		this.type = PARTIAL;
+		this.macro = options.macro;
+	}
+}
+
+const proto = Partial.prototype = create( MustacheContainer.prototype );
+
+assign( proto, {
+	constructor: Partial,
+
 	bind () {
-		let options = this.options;
+		const template = this.template;
 
 		if ( this.yielder ) {
-			this.container = options.up.ractive;
+			// the container is the instance that owns this node
+			this.container = this.up.ractive;
 			this.component = this.container.component;
+			this.containerFragment = this.up;
 
+			// normal component
 			if ( this.component ) {
-				this.containerFragment = options.up;
+				// yields skip the owning instance and go straight to the surrounding context
 				this.up = this.component.up;
 
 				// {{yield}} is equivalent to {{yield content}}
-				if ( !options.template.r && !options.template.rx && !options.template.x ) options.template.r = 'content';
-			} else { // this is a plain-ish instance that may be anchored at a later date
+				if ( !template.r && !template.x && !template.tx ) this.refName = 'content';
+			}
+
+			// plain-ish instance that may be attached to a parent later
+			else {
 				this.fragment = new Fragment({
-					template: [],
 					owner: this,
-					up: options.up,
-					ractive: options.up.ractive
+					template: []
 				});
-				this.containerFragment = options.up;
-				this.up = options.up;
 				this.fragment.bind();
 				return;
 			}
 		}
 
-		// keep track of the reference name for future resets
-		this.refName = this.template.r;
-
-		// name matches take priority over expressions
-		const template = this.refName ? getPartialTemplate( this.ractive, this.refName, this.containerFragment || this.up ) || null : null;
-		let templateObj;
-
-		if ( template ) {
-			this.named = true;
-			this.setTemplate( this.template.r, template );
+		// this is a macro/super partial
+		if ( this.macro ) {
+			this.fn = this.macro;
 		}
 
-		if ( !template ) {
-			super.bind();
-			if ( ( templateObj = this.model.get() ) && typeof templateObj === 'object' && ( typeof templateObj.template === 'string' || isArray( templateObj.t ) ) ) {
-				if ( templateObj.template ) {
-					this.source = templateObj.template;
-					templateObj = parsePartial( this.template.r, templateObj.template, this.ractive );
-				} else {
-					this.source = templateObj.t;
-				}
-				this.setTemplate( this.template.r, templateObj.t );
-			} else if ( typeof this.model.get() !== 'string' && this.refName ) {
-				this.setTemplate( this.refName, template );
-			} else {
-				this.setTemplate( this.model.get() );
+		// this is a plain partial or yielder
+		else {
+			if ( !this.refName ) this.refName = template.r;
+
+			// if the refName exists as a partial, this is a plain old partial reference where no model binding will happen
+			if ( this.refName ) {
+				partialFromValue( this, this.refName );
+			}
+
+			// this is a dynamic/inline partial
+			if ( !this.partial && !this.fn ) {
+				MustacheContainer.prototype.bind.call( this );
+				if ( this.model ) partialFromValue( this, this.model.get() );
 			}
 		}
 
-		options = {
-			owner: this,
-			template: this.partialTemplate
-		};
-
-		if ( this.template.c ) {
-			options.template = [{ t: SECTION, n: SECTION_WITH, f: options.template }];
-			for ( const k in this.template.c ) {
-				options.template[0][k] = this.template.c[k];
-			}
+		if ( !this.partial && !this.fn ) {
+			warnOnceIfDebug( `Could not find template for partial '${this.name}'` );
 		}
 
-		if ( this.yielder ) {
-			options.ractive = this.container.parent;
-		}
+		createFragment( this, this.partial || [] );
 
-		this.fragment = new Fragment(options);
-		if ( this.template.z ) {
-			this.fragment.aliases = resolveAliases( this.template.z, this.yielder ? this.containerFragment : this.up );
-		}
+		// macro/super partial
+		if ( this.fn ) initMacro( this );
+
 		this.fragment.bind();
-	}
+	},
 
 	bubble () {
-		if ( this.yielder && !this.dirty ) {
-			this.containerFragment.bubble();
+		if ( !this.dirty ) {
 			this.dirty = true;
-		} else {
-			super.bubble();
+
+			if ( this.yielder ) {
+				this.containerFragment.bubble();
+			} else {
+				this.up.bubble();
+			}
 		}
-	}
+	},
 
-	findNextNode() {
-		return this.yielder ? this.containerFragment.findNextNode( this ) : super.findNextNode();
-	}
-
-	forceResetTemplate () {
-		this.partialTemplate = undefined;
-
-		// on reset, check for the reference name first
-		if ( this.refName ) {
-			this.partialTemplate = getPartialTemplate( this.ractive, this.refName, this.up );
-		}
-
-		// then look for the resolved name
-		if ( !this.partialTemplate ) {
-			this.partialTemplate = getPartialTemplate( this.ractive, this.name, this.up );
-		}
-
-		if ( !this.partialTemplate ) {
-			warnOnceIfDebug( `Could not find template for partial '${this.name}'` );
-			this.partialTemplate = [];
-		}
-
-		if ( this.inAttribute ) {
-			doInAttributes( () => this.fragment.resetTemplate( this.partialTemplate ) );
-		} else {
-			this.fragment.resetTemplate( this.partialTemplate );
-		}
-
+	handleChange () {
+		this.dirtyTemplate = true;
+		this.externalChange = true;
 		this.bubble();
-	}
+	},
+
+	refreshAttrs () {
+		keys( this._attrs ).forEach( k => {
+			this.handle.attributes[k] = this._attrs[k].valueOf();
+		});
+	},
+
+	resetTemplate () {
+		if ( this.fn && this.proxy ) {
+			if ( this.externalChange ) {
+				if ( typeof this.proxy.teardown === 'function' ) this.proxy.teardown();
+				this.fn = this.proxy = null;
+			} else {
+				this.partial = this.fnTemplate;
+				return;
+			}
+		}
+
+		this.partial = null;
+
+		if ( this.refName ) {
+			this.partial = getPartialTemplate( this.ractive, this.refName, this.up );
+		}
+
+		if ( !this.partial && this.model ) {
+			partialFromValue( this, this.model.get() );
+		}
+
+		this.unbindAttrs();
+
+		if ( this.fn ) {
+			initMacro( this );
+			if ( typeof this.proxy.render === 'function' ) runloop.scheduleTask( () => this.proxy.render() );
+		} else if ( !this.partial ) {
+			warnOnceIfDebug( `Could not find template for partial '${this.name}'` );
+		}
+	},
 
 	render ( target, occupants ) {
-		return this.fragment.render( target, occupants );
-	}
+		if ( this.fn && this.fn._cssDef && !this.fn._cssDef.applied ) applyCSS();
 
-	setTemplate ( name, template ) {
-		this.name = name;
+		this.fragment.render( target, occupants );
 
-		if ( !template && template !== null ) template = getPartialTemplate( this.ractive, name, this.up );
-
-		if ( !template ) {
-			warnOnceIfDebug( `Could not find template for partial '${name}'` );
-		}
-
-		this.partialTemplate = template || [];
-	}
+		if ( this.proxy && typeof this.proxy.render === 'function' ) this.proxy.render();
+	},
 
 	unbind () {
-		super.unbind();
-		this.fragment.aliases = {};
 		this.fragment.unbind();
-	}
+
+		this.fragment.aliases = null;
+
+		this.unbindAttrs();
+
+		MustacheContainer.prototype.unbind.call( this );
+	},
+
+	unbindAttrs () {
+		if ( this._attrs ) {
+			keys( this._attrs ).forEach( k => {
+				this._attrs[k].unbind();
+			});
+		}
+	},
 
 	unrender ( shouldDestroy ) {
+		if ( this.proxy && typeof this.proxy.teardown === 'function' ) this.proxy.teardown();
+
 		this.fragment.unrender( shouldDestroy );
-	}
+	},
 
 	update () {
-		let template;
+		const proxy = this.proxy;
+		this.updating = 1;
+
+		if ( this.dirtyAttrs ) {
+			this.dirtyAttrs = false;
+			this.refreshAttrs();
+			if ( typeof proxy.update === 'function' ) proxy.update( this.handle.attributes );
+		}
+
+		if ( this.dirtyTemplate ) {
+			this.resetTemplate();
+
+			this.fragment.resetTemplate( this.partial || [] );
+		}
 
 		if ( this.dirty ) {
 			this.dirty = false;
-
-			if ( !this.named ) {
-				if ( this.model ) {
-					template = this.model.get();
-				}
-
-				if ( template && typeof template === 'string' && template !== this.name ) {
-					this.setTemplate( template );
-					this.fragment.resetTemplate( this.partialTemplate );
-				} else if ( template && typeof template === 'object' && ( typeof template.template === 'string' || isArray( template.t ) ) ) {
-					if ( template.t !== this.source && template.template !== this.source ) {
-						if ( template.template ) {
-							this.source = template.template;
-							template = parsePartial( this.name, template.template, this.ractive );
-						} else {
-							this.source = template.t;
-						}
-						this.setTemplate( this.name, template.t );
-						this.fragment.resetTemplate( this.partialTemplate );
-					}
-				}
-			}
-
+			if ( proxy && typeof proxy.invalidate === 'function' ) proxy.invalidate();
 			this.fragment.update();
 		}
+
+		this.externalChange = false;
+		this.updating = 0;
 	}
+});
+
+function createFragment ( self, partial ) {
+	self.partial = partial;
+	contextifyTemplate( self );
+
+	const options = {
+		owner: self,
+		template: self.partial
+	};
+
+	if ( self.yielder ) options.ractive = self.container.parent;
+
+	if ( self.fn ) options.cssIds = self.fn._cssIds;
+
+	const fragment = self.fragment = new Fragment( options );
+
+	// partials may have aliases that need to be in place before binding
+	if ( self.template.z ) {
+		fragment.aliases = resolveAliases( self.template.z, self.containerFragment || self.up );
+	}
+}
+
+function contextifyTemplate ( self ) {
+	if ( self.template.c ) {
+		self.partial = [{ t: SECTION, n: SECTION_WITH, f: self.partial }];
+		assign( self.partial[0], self.template.c );
+	}
+}
+
+function partialFromValue ( self, value, okToParse ) {
+	let tpl = value;
+
+	if ( isArray( tpl ) ) {
+		self.partial = tpl;
+	} else if ( typeof tpl === 'object' ) {
+		if ( isArray( tpl.t ) ) self.partial = tpl.t;
+		else if ( typeof tpl.template === 'string' ) self.partial = parsePartial( tpl.template, tpl.template, self.ractive ).t;
+	} else if ( typeof tpl === 'function' && tpl.styleSet ) {
+		self.fn = tpl;
+		if ( self.fragment ) self.fragment.cssIds = tpl._cssIds;
+	} else if ( tpl != null ) {
+		tpl = getPartialTemplate( self.ractive, '' + tpl, self.containerFragment || self.up );
+		if ( tpl ) {
+			self.name = value;
+			if ( tpl.styleSet ) {
+				self.fn = tpl;
+				if ( self.fragment ) self.fragment.cssIds = tpl._cssIds;
+			} else self.partial = tpl;
+		} else if ( okToParse ) {
+			self.partial = parsePartial( '' + value, '' + value, self.ractive ).t;
+		} else {
+			self.name = value;
+		}
+	}
+
+	return self.partial;
+}
+
+function setTemplate ( template ) {
+	partialFromValue( this, template, true );
+	this.dirtyTemplate = true;
+
+	if ( !this.initing ) {
+		this.fnTemplate = this.partial;
+
+		if ( this.updating ) {
+			this.bubble();
+			runloop.promise();
+		} else {
+			const promise = runloop.start();
+
+			this.bubble();
+			runloop.end();
+
+			return promise;
+		}
+	}
+}
+
+function aliasLocal ( ref, name ) {
+	const aliases = this.fragment.aliases || ( this.fragment.aliases = {} );
+	if ( !name ) {
+		aliases[ ref ] = this._data;
+	} else {
+		aliases[ name ] = this._data.joinAll( splitKeypath( ref ) );
+	}
+}
+
+function initMacro ( self ) {
+	const fn = self.fn;
+	const fragment = self.fragment;
+
+	// defensively copy the template in case it changes
+	const template = self.template = assign( {}, self.template );
+	const handle = self.handle = fragment.getContext({
+		proxy: self,
+		aliasLocal,
+		name: self.template.e || self.name,
+		attributes: {},
+		setTemplate: setTemplate.bind( self ),
+		template
+	});
+
+	if ( !template.p ) template.p = {};
+	template.p = handle.partials = assign( {}, template.p );
+	if ( !hasOwn( template.p, 'content' ) ) template.p.content = template.f || [];
+
+	if ( isArray( fn.attributes ) ) {
+		self._attrs = {};
+
+		const invalidate = function () {
+			this.dirty = true;
+			self.dirtyAttrs = true;
+			self.bubble();
+		};
+
+		if ( isArray( template.m ) ) {
+			const attrs = template.m;
+			template.p[ 'extra-attributes' ] = template.m = attrs.filter( a => !~fn.attributes.indexOf( a.n ) );
+			attrs.filter( a => ~fn.attributes.indexOf( a.n ) ).forEach( a => {
+				const fragment = new Fragment({
+					template: a.f,
+					owner: self
+				});
+				fragment.bubble = invalidate;
+				fragment.findFirstNode = noop;
+				self._attrs[ a.n ] = fragment;
+			});
+		}
+	} else {
+		template.p[ 'extra-attributes' ] = template.m;
+	}
+
+	if ( self._attrs ) {
+		keys( self._attrs ).forEach( k => {
+			self._attrs[k].bind();
+		});
+		self.refreshAttrs();
+	}
+
+	self.initing = 1;
+	self.proxy = fn( handle, handle.attributes ) || {};
+	if ( !self.partial ) self.partial = [];
+	self.fnTemplate = self.partial;
+	self.initing = 0;
+
+	contextifyTemplate( self );
+	fragment.resetTemplate( self.partial );
 }
 
 function parsePartial( name, partial, ractive ) {

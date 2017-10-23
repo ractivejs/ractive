@@ -1,6 +1,7 @@
 import runloop from 'src/global/runloop';
 import { PARTIAL, COMPONENT, ELEMENT } from 'config/types';
 import { isArray } from 'utils/is';
+import { handleChange } from 'shared/methodCallers';
 
 function collect( source, name, attr, dest ) {
 	source.forEach( item => {
@@ -37,10 +38,6 @@ function collect( source, name, attr, dest ) {
 	});
 }
 
-function forceResetTemplate ( partial ) {
-	partial.forceResetTemplate();
-}
-
 export default function ( name, partial ) {
 	const collection = [];
 	collect( this.fragment.items, name, false, collection );
@@ -48,7 +45,7 @@ export default function ( name, partial ) {
 	const promise = runloop.start();
 
 	this.partials[ name ] = partial;
-	collection.forEach( forceResetTemplate );
+	collection.forEach( handleChange );
 
 	runloop.end();
 

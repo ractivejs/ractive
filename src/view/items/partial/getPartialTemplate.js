@@ -39,6 +39,10 @@ function getPartialFromRegistry ( ractive, name, up ) {
 	// partial is a function?
 	let fn;
 	if ( typeof partial === 'function' ) {
+		fn = partial;
+		// super partial
+		if ( fn.styleSet ) return fn;
+
 		fn = partial.bind( instance );
 		fn.isOwner = hasOwn( instance.partials, name );
 		partial = fn.call( ractive, parser );

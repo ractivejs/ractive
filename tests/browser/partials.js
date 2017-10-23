@@ -74,6 +74,42 @@ export default function() {
 
 			t.ok( true );
 		});
+
+		test( 'dynamic partial that fails to resolve warns in debug', t => {
+			t.expect( 1 );
+
+			onWarn( msg => {
+				t.ok( msg );
+			});
+
+			const r = new Ractive({
+				el: fixture,
+				template: '{{>bar}}',
+				data: { bar: 'foo' },
+				debug: true,
+				partials: {
+					foo: 'hello'
+				}
+			});
+
+			r.set( 'bar', 'nope' );
+		});
+
+		test( `dynamic inline partial that fails to parse warns in debug`, t => {
+			t.expect( 1 );
+
+			onWarn( msg => {
+				t.ok( /not parse partial from expression/.test( msg ) );
+			});
+
+			new Ractive({
+				target: fixture,
+				template: '{{>foo}}',
+				data: {
+					foo: { template: '{{#lol, nope}}' }
+				}
+			});
+		});
 	}
 
 	test( '`this` in function refers to ractive instance', t => {
@@ -299,7 +335,7 @@ export default function() {
 	test( 'Partials with expressions may also have context', ( t ) => {
 		new Ractive({
 			el: fixture,
-			template: '{{>(tpl + ".test") ctx}} : {{>"test." + tpl ctx.expr}}',
+			template: '{{>(tpl + ".test") ctx}} : {{>"test." + tpl { ...ctx.expr }}}',
 			data: {
 				ctx: { id: 1, expr: { id: 2 } },
 				tpl: 'foo'
@@ -1127,5 +1163,24 @@ export default function() {
 		});
 
 		t.htmlEqual( fixture.innerHTML, '<p>yep</p>' );
+	});
+
+	test( `static partials are, in fact, static`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '[[>foo]]',
+			data: {
+				foo: 'bar'
+			},
+			partials: {
+				bar: 'bar',
+				baz: 'baz'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'bar' );
+
+		r.set( 'foo', 'baz' );
+		t.htmlEqual( fixture.innerHTML, 'bar' );
 	});
 }
