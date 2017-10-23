@@ -298,6 +298,8 @@ function aliasLocal ( ref, name ) {
 	}
 }
 
+const extras = 'extra-attributes';
+
 function initMacro ( self ) {
 	const fn = self.fn;
 	const fragment = self.fragment;
@@ -328,7 +330,7 @@ function initMacro ( self ) {
 
 		if ( isArray( template.m ) ) {
 			const attrs = template.m;
-			template.p[ 'extra-attributes' ] = template.m = attrs.filter( a => !~fn.attributes.indexOf( a.n ) );
+			template.p[ extras ] = template.m = attrs.filter( a => !~fn.attributes.indexOf( a.n ) );
 			attrs.filter( a => ~fn.attributes.indexOf( a.n ) ).forEach( a => {
 				const fragment = new Fragment({
 					template: a.f,
@@ -338,9 +340,11 @@ function initMacro ( self ) {
 				fragment.findFirstNode = noop;
 				self._attrs[ a.n ] = fragment;
 			});
+		} else {
+			template.p[ extras ] = [];
 		}
 	} else {
-		template.p[ 'extra-attributes' ] = template.m;
+		template.p[ extras ] = template.m;
 	}
 
 	if ( self._attrs ) {
