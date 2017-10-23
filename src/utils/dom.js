@@ -1,5 +1,6 @@
 import { isClient, svg, vendors, win, doc } from 'config/environment';
 import { html } from 'config/namespaces';
+import { isString, isNumber } from 'utils/is';
 
 let createElement, matches, div, methodNames, unprefixed, prefixed, i, j, makeFunction;
 
@@ -49,7 +50,7 @@ function getElement ( input ) {
 	}
 
 	// Get node from string
-	if ( typeof input === 'string' ) {
+	if ( isString( input ) ) {
 		// try ID first
 		output = doc.getElementById( input );
 
@@ -148,7 +149,7 @@ function detachNode ( node ) {
 }
 
 function safeToStringValue ( value ) {
-	return ( value == null || ( typeof value === 'number' && isNaN( value ) ) || !value.toString ) ? '' : '' + value;
+	return ( value == null || ( isNumber( value ) && isNaN( value ) ) || !value.toString ) ? '' : '' + value;
 }
 
 function safeAttributeString ( string ) {

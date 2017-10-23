@@ -1,4 +1,4 @@
-import { isArray } from './is';
+import { isArray, isString } from './is';
 
 export function addToArray ( array, value ) {
 	const index = array.indexOf( value );
@@ -40,7 +40,7 @@ export function arrayContentsMatch ( a, b ) {
 }
 
 export function ensureArray ( x ) {
-	if ( typeof x === 'string' ) {
+	if ( isString( x ) ) {
 		return [ x ];
 	}
 

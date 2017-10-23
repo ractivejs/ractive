@@ -6,6 +6,7 @@ import readExpressionList from '../expressions/shared/readExpressionList';
 import readExpressionOrReference from '../readExpressionOrReference';
 import flattenExpression from 'parse/utils/flattenExpression';
 import refineExpression from 'parse/utils/refineExpression';
+import { isString } from 'utils/is';
 
 const attributeNamePattern = /^[^\s"'>\/=]+/;
 const onPattern = /^on/;
@@ -103,7 +104,7 @@ function readAttributeValue ( parser ) {
 		return '';
 	}
 
-	if ( value.length === 1 && typeof value[0] === 'string' ) {
+	if ( value.length === 1 && isString( value[0] ) ) {
 		return decodeCharacterReferences( value[0] );
 	}
 

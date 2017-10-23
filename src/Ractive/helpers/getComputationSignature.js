@@ -1,6 +1,7 @@
 import { fatal } from 'utils/log';
 import bind from 'utils/bind';
 import { createFunctionFromString } from '../config/runtime-parser';
+import { isFunction, isString, isObjectType } from 'utils/is';
 
 export default function getComputationSignature ( ractive, key, signature ) {
 	let getter;
@@ -11,22 +12,22 @@ export default function getComputationSignature ( ractive, key, signature ) {
 	let getterUseStack;
 	let setterString;
 
-	if ( typeof signature === 'function' ) {
+	if ( isFunction( signature ) ) {
 		getter = bind( signature, ractive );
 		getterString = signature.toString();
 		getterUseStack = true;
 	}
 
-	if ( typeof signature === 'string' ) {
+	if ( isString( signature ) ) {
 		getter = createFunctionFromString( signature, ractive );
 		getterString = signature;
 	}
 
-	if ( typeof signature === 'object' ) {
-		if ( typeof signature.get === 'string' ) {
+	if ( isObjectType( signature ) ) {
+		if ( isString( signature.get ) ) {
 			getter = createFunctionFromString( signature.get, ractive );
 			getterString = signature.get;
-		} else if ( typeof signature.get === 'function' ) {
+		} else if ( isFunction( signature.get ) ) {
 			getter = bind( signature.get, ractive );
 			getterString = signature.get.toString();
 			getterUseStack = true;
@@ -34,7 +35,7 @@ export default function getComputationSignature ( ractive, key, signature ) {
 			fatal( '`%s` computation must have a `get()` method', key );
 		}
 
-		if ( typeof signature.set === 'function' ) {
+		if ( isFunction( signature.set ) ) {
 			setter = bind( signature.set, ractive );
 			setterString = signature.set.toString();
 		}

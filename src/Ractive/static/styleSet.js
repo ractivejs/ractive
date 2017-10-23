@@ -3,9 +3,10 @@ import transformCSS from '../config/custom/css/transform';
 import { evalCSS } from '../config/custom/css/css';
 import { build, set } from '../../shared/set';
 import runloop from '../../global/runloop';
+import { isObjectType, isFunction } from 'utils/is';
 
 export default function setCSSData ( keypath, value, options ) {
-	const opts = typeof keypath === 'object' ? value : options;
+	const opts = isObjectType( keypath ) ? value : options;
 	const model = this._cssModel;
 
 	model.locked = true;
@@ -41,7 +42,7 @@ export function applyChanges ( component, apply ) {
 function recomputeCSS ( component ) {
 	const css = component._css;
 
-	if ( typeof css !== 'function' ) return;
+	if ( !isFunction( css ) ) return;
 
 	const def = component._cssDef;
 	const result = evalCSS( component, css );

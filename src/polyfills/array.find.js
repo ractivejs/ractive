@@ -1,4 +1,5 @@
 import { hasOwn, defineProperty } from 'utils/object';
+import { isFunction } from 'utils/is';
 
 /* istanbul ignore if */
 if (!Array.prototype.find) {
@@ -7,7 +8,7 @@ if (!Array.prototype.find) {
 			if (this === null || this === undefined)
 				throw new TypeError('Array.prototype.find called on null or undefined');
 
-			if (typeof callback !== 'function')
+			if (!isFunction( callback ))
 				throw new TypeError(`${callback} is not a function`);
 
 			const array = Object(this);

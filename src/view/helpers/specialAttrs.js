@@ -1,9 +1,10 @@
 import cleanCss from 'utils/cleanCss';
+import { isString } from 'utils/is';
 
 const space = /\s+/;
 
 export function readStyle ( css ) {
-	if ( typeof css !== 'string' ) return {};
+	if ( !isString( css ) ) return {};
 
 	return cleanCss( css, ( css, reconstruct ) => {
 		return css.split( ';' )

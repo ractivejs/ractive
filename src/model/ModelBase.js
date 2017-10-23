@@ -2,7 +2,7 @@ import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
 import { escapeKey, unescapeKey } from 'shared/keypaths';
 import { addToArray, removeFromArray } from 'utils/array';
-import { isArray, isObject } from 'utils/is';
+import { isArray, isObject, isFunction } from 'utils/is';
 import bind from 'utils/bind';
 import { hasOwn, keys as objectKeys } from 'utils/object';
 
@@ -89,7 +89,7 @@ export default class ModelBase {
 			});
 		}
 
-		else if ( isObject( value ) || typeof value === 'function' ) {
+		else if ( isObject( value ) || isFunction( value ) ) {
 			children = objectKeys( value ).map( key => this.joinKey( key ) );
 		}
 
@@ -265,7 +265,7 @@ export default class ModelBase {
 
 // TODO: this may be better handled by overreiding `get` on models with a parent that isRoot
 export function maybeBind ( model, value, shouldBind ) {
-	if ( shouldBind && typeof value === 'function' && model.parent && model.parent.isRoot ) {
+	if ( shouldBind && isFunction( value ) && model.parent && model.parent.isRoot ) {
 		if ( !model.boundValue ) {
 			model.boundValue = bind( value._r_unbound || value, model.parent.ractive );
 		}

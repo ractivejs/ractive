@@ -1,12 +1,13 @@
 import trim from './shared/trim';
 import notEmptyString from './shared/notEmptyString';
 import { hasOwn } from 'utils/object';
+import { isObjectType, isString } from 'utils/is';
 
 export default function Ractive$on ( eventName, callback ) {
 	// eventName may already be a map
-	const map = typeof eventName === 'object' ? eventName : {};
+	const map = isObjectType( eventName ) ? eventName : {};
 	// or it may be a string along with a callback
-	if ( typeof eventName === 'string' ) map[ eventName ] = callback;
+	if ( isString( eventName ) ) map[ eventName ] = callback;
 
 	let silent = false;
 	const events = [];

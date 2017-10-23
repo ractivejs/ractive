@@ -5,6 +5,7 @@ import { createElement } from 'utils/dom';
 import interpolate from 'shared/interpolate';
 import Ticker from 'shared/Ticker';
 import hyphenate from './hyphenate';
+import { isFunction, isString } from 'utils/is';
 
 let createTransitions;
 
@@ -189,14 +190,14 @@ if ( !isClient ) {
 				if ( propertiesToTransitionInJs.length ) {
 					let easing;
 
-					if ( typeof options.easing === 'string' ) {
+					if ( isString( options.easing ) ) {
 						easing = t.ractive.easing[ options.easing ];
 
 						if ( !easing ) {
 							warnOnceIfDebug( missingPlugin( options.easing, 'easing' ) );
 							easing = linear;
 						}
-					} else if ( typeof options.easing === 'function' ) {
+					} else if ( isFunction( options.easing ) ) {
 						easing = options.easing;
 					} else {
 						easing = linear;

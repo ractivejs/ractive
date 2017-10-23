@@ -1,7 +1,7 @@
-import runloop from '../../global/runloop';
+import runloop from 'src/global/runloop';
 import Transition from '../../view/items/element/Transition';
-import { fatal } from '../../utils/log';
-import { isObject } from '../../utils/is';
+import { fatal } from 'utils/log';
+import { isObject } from 'utils/is';
 
 export default function Ractive$transition ( name, node, params ) {
 

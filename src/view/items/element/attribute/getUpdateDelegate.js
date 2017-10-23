@@ -5,7 +5,7 @@ import noop from 'utils/noop';
 import hyphenateCamel from 'utils/hyphenateCamel';
 import { readStyle, readClass } from 'src/view/helpers/specialAttrs';
 import { keys as objectKeys } from 'utils/object';
-import { isArray } from 'utils/is';
+import { isArray, isString } from 'utils/is';
 
 const textTypes = [ undefined, 'text', 'search', 'url', 'email', 'hidden', 'password', 'search', 'reset', 'submit' ];
 
@@ -263,7 +263,7 @@ function updateClassName ( reset ) {
 	const className = value.concat( attr.filter( c => !~prev.indexOf( c ) ) ).join( ' ' );
 
 	if ( className !== cls ) {
-		if ( typeof this.node.className !== 'string' ) {
+		if ( !isString( this.node.className ) ) {
 			this.node.className.baseVal = className;
 		} else {
 			this.node.className = className;
@@ -288,7 +288,7 @@ function updateInlineClass ( reset ) {
 	if ( value && !~attr.indexOf( name ) ) attr.push( name );
 	else if ( !value && ~attr.indexOf( name ) ) attr.splice( attr.indexOf( name ), 1 );
 
-	if ( typeof this.node.className !== 'string' ) {
+	if ( !isString( this.node.className ) ) {
 		this.node.className.baseVal = attr.join( ' ' );
 	} else {
 		this.node.className = attr.join( ' ' );
@@ -308,7 +308,7 @@ function updateBoolean ( reset ) {
 			} else {
 				const val = this.getValue();
 				if ( val ) {
-					this.node.setAttribute( this.propertyName, typeof val === 'string' ? val : '' );
+					this.node.setAttribute( this.propertyName, isString( val ) ? val : '' );
 				} else {
 					this.node.removeAttribute( this.propertyName );
 				}

@@ -1,7 +1,7 @@
 import { toArray } from 'utils/array';
 import getSelectedOptions from 'utils/getSelectedOptions';
 import Element from '../../Element';
-import { isArray } from 'utils/is';
+import { isArray, isFunction } from 'utils/is';
 
 export default class Select extends Element {
 	constructor ( options ) {
@@ -94,7 +94,7 @@ export default class Select extends Element {
 	compare (optionValue, selectValue) {
 		const comparator = this.getAttribute( 'value-comparator' );
 		if ( comparator ) {
-			if (typeof comparator === 'function') {
+			if ( isFunction( comparator ) ) {
 				return comparator( selectValue, optionValue );
 			}
 			if ( selectValue && optionValue ) {

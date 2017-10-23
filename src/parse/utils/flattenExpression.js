@@ -1,5 +1,5 @@
 import { REFERENCE, BOOLEAN_LITERAL, GLOBAL, NUMBER_LITERAL, REGEXP_LITERAL, STRING_LITERAL, ARRAY_LITERAL, OBJECT_LITERAL, KEY_VALUE_PAIR, PREFIX_OPERATOR, INFIX_OPERATOR, INVOCATION, BRACKETED, MEMBER, REFINEMENT, CONDITIONAL } from 'config/types';
-import { isObject } from 'utils/is';
+import { isObject, isString } from 'utils/is';
 
 export default function flattenExpression ( expression ) {
 	let refs;
@@ -22,7 +22,7 @@ export default function flattenExpression ( expression ) {
 	}
 
 	function stringify ( node ) {
-		if ( typeof node === 'string' ) {
+		if ( isString( node ) ) {
 			return node;
 		}
 
@@ -111,7 +111,7 @@ function hasSpread ( list ) {
 
 // TODO maybe refactor this?
 function extractRefs ( node, refs ) {
-	if ( node.t === REFERENCE && typeof node.n === 'string' ) {
+	if ( node.t === REFERENCE && isString( node.n ) ) {
 		if ( !~refs.indexOf( node.n ) ) {
 			refs.unshift( node.n );
 		}
@@ -129,7 +129,7 @@ function extractRefs ( node, refs ) {
 		}
 	}
 
-	if ( node.k && node.t === KEY_VALUE_PAIR && typeof node.k !== 'string' ) {
+	if ( node.k && node.t === KEY_VALUE_PAIR && !isString( node.k ) ) {
 		extractRefs( node.k, refs );
 	}
 

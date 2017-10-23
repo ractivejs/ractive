@@ -1,7 +1,8 @@
 import staticContext, { getNodeInfo as staticInfo } from '../static/getContext';
+import { isString } from 'utils/is';
 
 export default function getContext ( node, options ) {
-	if ( typeof node === 'string' ) {
+	if ( isString( node ) ) {
 		node = this.find( node, options );
 	}
 
@@ -9,7 +10,7 @@ export default function getContext ( node, options ) {
 }
 
 export function getNodeInfo ( node, options ) {
-	if ( typeof node === 'string' ) {
+	if ( isString( node ) ) {
 		node = this.find( node, options );
 	}
 

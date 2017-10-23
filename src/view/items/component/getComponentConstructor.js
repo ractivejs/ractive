@@ -2,6 +2,7 @@ import { noRegistryFunctionReturn } from 'config/errors';
 import { warnIfDebug } from 'utils/log';
 import { findInstance } from 'shared/registry';
 import { hasOwn } from 'utils/object';
+import { isString } from 'utils/is';
 
 // finds the component constructor in the registry or view hierarchy registries
 export default function getComponentConstructor ( ractive, name ) {
@@ -23,7 +24,7 @@ export default function getComponentConstructor ( ractive, name ) {
 				return;
 			}
 
-			if ( typeof Component === 'string' ) {
+			if ( isString( Component ) ) {
 				// allow string lookup
 				Component = getComponentConstructor( ractive, Component );
 			}

@@ -1,4 +1,5 @@
 import { splitKeypath } from './keypaths';
+import { isString } from 'utils/is';
 
 // this is the dry method of checking to see if a rebind applies to
 // a particular keypath because in some cases, a dep may be bound
@@ -8,7 +9,7 @@ export function rebindMatch ( template, next, previous, fragment ) {
 	const keypath = template.r || template;
 
 	// no valid keypath, go with next
-	if ( !keypath || typeof keypath !== 'string' ) return next;
+	if ( !keypath || !isString( keypath ) ) return next;
 
 	// completely contextual ref, go with next
 	if ( keypath === '.' || keypath[0] === '@' || ( next || previous ).isKey || ( next || previous ).isKeypath ) return next;

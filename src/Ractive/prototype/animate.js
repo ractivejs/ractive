@@ -1,7 +1,7 @@
 import runloop from 'src/global/runloop';
 import easing from 'src/Ractive/static/easing';
 import interpolate from 'shared/interpolate';
-import { isEqual } from 'utils/is';
+import { isEqual, isFunction, isObjectType } from 'utils/is';
 import noop from 'utils/noop';
 import { splitKeypath } from 'shared/keypaths';
 import { defineProperty, keys as objectKeys } from 'utils/object';
@@ -19,7 +19,7 @@ function getOptions ( options, instance ) {
 
 	let easing;
 	if ( options.easing ) {
-		easing = typeof options.easing === 'function' ?
+		easing = isFunction( options.easing ) ?
 			options.easing :
 			instance.easing[ options.easing ];
 	}
@@ -58,7 +58,7 @@ export function animate ( ractive, model, to, options ) {
 }
 
 export default function Ractive$animate ( keypath, to, options ) {
-	if ( typeof keypath === 'object' ) {
+	if ( isObjectType( keypath ) ) {
 		const keys = objectKeys( keypath );
 
 		throw new Error( `ractive.animate(...) no longer supports objects. Instead of ractive.animate({

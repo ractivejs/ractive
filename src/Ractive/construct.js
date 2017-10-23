@@ -10,6 +10,7 @@ import subscribe from './helpers/subscribe';
 import Ractive from '../Ractive';
 import { ATTRIBUTE, INTERPOLATOR } from 'config/types';
 import { assign, create, hasOwn } from 'utils/object';
+import { isString } from 'utils/is';
 
 const constructHook = new Hook( 'construct' );
 
@@ -86,7 +87,7 @@ function getAdaptors ( ractive, protoAdapt, options ) {
 	return combine.apply( null, srcs );
 
 	function lookup ( adaptor ) {
-		if ( typeof adaptor === 'string' ) {
+		if ( isString( adaptor ) ) {
 			adaptor = findInViewHierarchy( 'adaptors', ractive, adaptor );
 
 			if ( !adaptor ) {

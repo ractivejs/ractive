@@ -1,6 +1,6 @@
 import resolveReference from 'src/view/resolvers/resolveReference';
 import Model from 'src/model/Model';
-import { isNumeric, isObject } from 'utils/is';
+import { isNumeric, isObject, isNumber, isObjectType, isString } from 'utils/is';
 import runloop from 'src/global/runloop';
 import findElement from 'src/view/items/shared/findElement';
 import { set as sharedSet } from './set';
@@ -57,8 +57,8 @@ export default class Context {
 
 	// the usual mutation suspects
 	add ( keypath, d, options ) {
-		const num = typeof d === 'number' ? +d : 1;
-		const opts = typeof d === 'object' ? d : options;
+		const num = isNumber( d ) ? +d : 1;
+		const opts = isObjectType( d ) ? d : options;
 		return sharedSet( build( this, keypath, num ).map( pair => {
 			const [ model, val ] = pair;
 			const value = model.get();
@@ -183,8 +183,8 @@ export default class Context {
 	}
 
 	subtract ( keypath, d, options ) {
-		const num = typeof d === 'number' ? d : 1;
-		const opts = typeof d === 'object' ? d : options;
+		const num = isNumber( d ) ? d : 1;
+		const opts = isObjectType( d ) ? d : options;
 		return sharedSet( build( this, keypath, num ).map( pair => {
 			const [ model, val ] = pair;
 			const value = model.get();
@@ -281,7 +281,7 @@ function build ( ctx, keypath, value ) {
 function findModel ( ctx, path ) {
 	const frag = ctx.fragment;
 
-	if ( typeof path !== 'string' ) {
+	if ( !isString( path ) ) {
 		return { model: frag.findContext(), instance: path };
 	}
 

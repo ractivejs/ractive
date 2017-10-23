@@ -1,4 +1,4 @@
-import { isArray, isObject } from 'utils/is';
+import { isArray, isObject, isObjectType, isFunction, isString } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import resolveReference from 'src/view/resolvers/resolveReference';
 import runloop from '../global/runloop';
@@ -107,8 +107,8 @@ function deepSet( model, value ) {
 	const dest = model.get( false, deepOpts );
 
 	// if dest doesn't exist, just set it
-	if ( dest == null || typeof value !== 'object' ) return model.set( value );
-	if ( typeof dest !== 'object' ) return model.set( value );
+	if ( dest == null || !isObjectType( value ) ) return model.set( value );
+	if ( !isObjectType( dest ) ) return model.set( value );
 
 	for ( const k in value ) {
 		if ( hasOwn( value, k ) ) {
@@ -120,9 +120,9 @@ function deepSet( model, value ) {
 const comparators = {};
 function getComparator ( option ) {
 	if ( option === true ) return null; // use existing arrays
-	if ( typeof option === 'function' ) return option;
+	if ( isFunction( option ) ) return option;
 
-	if ( typeof option === 'string' ) {
+	if ( isString( option ) ) {
 		return comparators[ option ] || ( comparators[ option ] = thing => thing[ option ] );
 	}
 

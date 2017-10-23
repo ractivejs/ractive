@@ -7,7 +7,7 @@ import resolve from '../../resolvers/resolve';
 import runloop from '../../../global/runloop';
 import { warnIfDebug } from 'utils/log';
 import { splitKeypath } from 'shared/keypaths';
-import { isArray } from 'utils/is';
+import { isArray, isObjectType, isString } from 'utils/is';
 
 export default class Mapping extends Item {
 	constructor ( options ) {
@@ -34,7 +34,7 @@ export default class Mapping extends Item {
 			viewmodel.joinKey( this.name ).set( true );
 		}
 
-		else if ( typeof template === 'string' ) {
+		else if ( isString( template ) ) {
 			const parsed = parseJSON( template );
 			viewmodel.joinKey( this.name ).set( parsed ? parsed.value : template );
 		}
@@ -86,7 +86,7 @@ function createMapping ( item ) {
 		}
 
 		// copy non-object, non-computed vals through
-		else if ( typeof val !== 'object' || template[0].x ) {
+		else if ( !isObjectType( val ) || template[0].x ) {
 			viewmodel.joinKey( splitKeypath( item.name ) ).set( val );
 		}
 

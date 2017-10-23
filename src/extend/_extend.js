@@ -7,7 +7,7 @@ import isInstance from '../Ractive/static/isInstance';
 import styleSet from '../Ractive/static/styleSet';
 import sharedSet from '../Ractive/static/sharedSet';
 import { assign, create, defineProperty, defineProperties, toPairs } from 'utils/object';
-import { isArray } from 'utils/is';
+import { isArray, isFunction } from 'utils/is';
 
 const callsSuper = /super\s*\(|\.call\s*\(\s*this/;
 
@@ -25,7 +25,7 @@ export function extendWith ( Class, options = {} ) {
 
 function extendOne ( Parent, options = {}, Target ) {
 	let proto;
-	let Child = typeof Target === 'function' && Target;
+	let Child = isFunction( Target ) && Target;
 
 	if ( options.prototype instanceof Ractive ) {
 		throw new Error( `Ractive no longer supports multiple inheritance.` );

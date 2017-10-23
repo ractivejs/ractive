@@ -1,9 +1,10 @@
 import { splitKeypath } from 'shared/keypaths';
 import resolveReference from 'src/view/resolvers/resolveReference';
 import { FakeFragment } from 'shared/getRactiveContext';
+import { isString } from 'utils/is';
 
 export default function Ractive$get ( keypath, opts ) {
-	if ( typeof keypath !== 'string' ) return this.viewmodel.get( true, keypath );
+	if ( !isString( keypath ) ) return this.viewmodel.get( true, keypath );
 
 	const keys = splitKeypath( keypath );
 	const key = keys[0];

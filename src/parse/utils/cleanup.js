@@ -1,6 +1,7 @@
 import { COMMENT, ELEMENT } from 'config/types';
 import stripStandalones from './stripStandalones';
 import trimWhitespace from './trimWhitespace';
+import { isString } from 'utils/is';
 
 const contiguousWhitespace = /[ \t\f\r\n]+/g;
 const preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i;
@@ -10,7 +11,7 @@ const leadingNewLine = /^(?:\r\n|\r|\n)/;
 const trailingNewLine = /(?:\r\n|\r|\n)$/;
 
 export default function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace ) {
-	if ( typeof items === 'string' ) return;
+	if ( isString( items ) ) return;
 
 	let i,
 		item,
@@ -60,12 +61,12 @@ export default function cleanup ( items, stripComments, preserveWhitespace, remo
 
 				// if the previous item was a text item with trailing whitespace,
 				// remove leading whitespace inside the fragment
-				if ( !previousItem || ( typeof previousItem === 'string' && trailingWhitespace.test( previousItem ) ) ) {
+				if ( !previousItem || ( isString( previousItem ) && trailingWhitespace.test( previousItem ) ) ) {
 					removeLeadingWhitespaceInsideFragment = true;
 				}
 
 				// and vice versa
-				if ( !nextItem || ( typeof nextItem === 'string' && leadingWhitespace.test( nextItem ) ) ) {
+				if ( !nextItem || ( isString( nextItem ) && leadingWhitespace.test( nextItem ) ) ) {
 					removeTrailingWhitespaceInsideFragment = true;
 				}
 			}
@@ -93,8 +94,8 @@ export default function cleanup ( items, stripComments, preserveWhitespace, remo
 	// final pass - fuse text nodes together
 	i = items.length;
 	while ( i-- ) {
-		if ( typeof items[i] === 'string' ) {
-			if ( typeof items[i+1] === 'string' ) {
+		if ( isString( items[i] ) ) {
+			if ( isString( items[i+1] ) ) {
 				items[i] = items[i] + items[i+1];
 				items.splice( i + 1, 1 );
 			}
