@@ -77,18 +77,22 @@ export default {
 	}
 };
 
+function emptyData () { return {}; }
+
 function combine ( parentValue, childValue ) {
 	validate( childValue );
 
 	const parentIsFn = typeof parentValue === 'function';
-	const childIsFn = typeof childValue === 'function';
 
 	// Very important, otherwise child instance can become
 	// the default data object on Ractive or a component.
 	// then ractive.set() ends up setting on the prototype!
 	if ( !childValue && !parentIsFn ) {
-		childValue = {};
+		// this needs to be a function so that it can still inherit parent defaults
+		childValue = emptyData;
 	}
+
+	const childIsFn = typeof childValue === 'function';
 
 	// Fast path, where we just need to copy properties from
 	// parent to child

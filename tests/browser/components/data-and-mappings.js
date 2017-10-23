@@ -6,6 +6,19 @@ import { fire } from 'simulant';
 export default function() {
 	initModule( 'components/data-and-mappings.js' );
 
+	test( `component with no data init still inherits default data`, t => {
+		const original = Ractive.defaults.data;
+		Ractive.defaults.data = {};
+
+		const Widget = Ractive.extend();
+		Ractive.defaults.data.foo = 'bar';
+		const w = new Widget();
+
+		t.equal( w.get( 'foo' ), 'bar' );
+
+		Ractive.defaults.data = original;
+	});
+
 	test( 'Static data is propagated from parent to child', t => {
 		const Widget = Ractive.extend({
 			template: '<p>{{foo}}</p>'
