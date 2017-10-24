@@ -1,13 +1,12 @@
 import Partial from './Partial';
 import { ELEMENT } from 'config/types';
+import { assign } from 'utils/object';
 
 export default function asyncProxy ( promise, options ) {
 	const partials = options.template.p || {};
 	const name = options.template.e;
 
-	return new Partial({
-		owner: options.owner,
-		up: options.up,
+	const opts = assign( {}, options, {
 		template: { t: ELEMENT, e: name },
 		macro ( handle ) {
 			handle.setTemplate( partials['async-loading'] || [] );
@@ -30,5 +29,6 @@ export default function asyncProxy ( promise, options ) {
 			});
 		}
 	});
+	return new Partial( opts );
 }
 

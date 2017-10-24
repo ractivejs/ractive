@@ -131,4 +131,22 @@ export default function() {
 			done();
 		});
 	});
+
+	test( `async component is loaded in correct dom order`, t => {
+		const done = t.async();
+
+		const cmp = Promise.resolve( Ractive.extend({ template: '<h2>cmp</h2>' }) );
+		new Ractive({
+			target: fixture,
+			template: '<h1>first</h1><cmp>{{#partial async-loading}}<p>loading...</p>{{/partial}}</cmp><h3>last</h3>',
+			components: { cmp }
+		});
+
+		t.equal( fixture.innerHTML, '<h1>first</h1><p>loading...</p><h3>last</h3>' );
+
+		setTimeout( () => {
+			t.htmlEqual( fixture.innerHTML, '<h1>first</h1><h2>cmp</h2><h3>last</h3>' );
+			done();
+		});
+	});
 }
