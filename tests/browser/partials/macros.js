@@ -596,4 +596,33 @@ export default function() {
 		handle.set( 'joe.foo', 'yep' );
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
+
+	test( `partial dirty template flag doesn't get stuck`, t => {
+		let h;
+
+		const macro = Ractive.macro(
+			handle => {
+				h = handle;
+			},
+			{
+				attributes: [ 'foo' ]
+			}
+		);
+
+		const r = new Ractive({
+			target: fixture,
+			template: '<macro bind-foo>{{foo}}</macro>',
+			partials: { macro },
+			data: {
+				foo: 'hello'
+			}
+		});
+
+		h.setTemplate( '<p>{{>content}}</p>' );
+
+		const p = r.find( 'p' );
+
+		r.set( 'foo', 'bar' );
+		t.ok( p === r.find( 'p' ), 'template not reset' );
+	});
 }

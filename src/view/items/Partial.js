@@ -195,6 +195,7 @@ assign( proto, {
 		}
 
 		if ( this.dirtyTemplate ) {
+			this.dirtyTemplate = false;
 			this.resetTemplate();
 
 			this.fragment.resetTemplate( this.partial || [] );
@@ -270,9 +271,9 @@ function partialFromValue ( self, value, okToParse ) {
 
 function setTemplate ( template ) {
 	partialFromValue( this, template, true );
-	this.dirtyTemplate = true;
 
 	if ( !this.initing ) {
+		this.dirtyTemplate = true;
 		this.fnTemplate = this.partial;
 
 		if ( this.updating ) {
