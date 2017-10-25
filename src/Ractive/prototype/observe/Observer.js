@@ -16,16 +16,14 @@ export default class Observer {
 
 		if ( isFunction( options.old ) ) {
 			this.oldContext = create( ractive );
-			this.old = options.old;
-		} else {
-			this.old = old;
+			this.oldFn = options.old;
 		}
 
 		if ( options.init !== false ) {
 			this.dirty = true;
 			this.dispatch();
 		} else {
-			this.oldValue = this.old.call( this.oldContext, undefined, this.newValue );
+			updateOld( this );
 		}
 
 		this.dirty = false;
@@ -44,7 +42,7 @@ export default class Observer {
 	dispatch () {
 		if ( !this.cancelled ) {
 			this.callback.call( this.context, this.newValue, this.oldValue, this.keypath );
-			this.oldValue = this.old.call( this.oldContext, this.oldValue, this.model ? this.model.get() : this.newValue );
+			updateOld( this, true );
 			this.dirty = false;
 		}
 	}
@@ -67,7 +65,6 @@ export default class Observer {
 
 	rebind ( next, previous ) {
 		next = rebindMatch( this.keypath, next, previous );
-		// TODO: set up a resolver if next is undefined?
 		if ( next === this.model ) return false;
 
 		if ( this.model ) this.model.unregister( this );
@@ -84,6 +81,7 @@ export default class Observer {
 	}
 }
 
-function old ( previous, next ) {
-	return next;
+function updateOld( observer, fresh ) {
+	const next = fresh ? ( observer.model ? observer.model.get() : observer.newValue ) : observer.newValue;
+	observer.oldValue = observer.oldFn ? observer.oldFn.call( observer.oldContext, undefined, next, observer.keypath ) : next;
 }

@@ -1702,6 +1702,86 @@ export default function() {
 		r.set( 'foo', 'asdf' );
 	});
 
+	test( `pattern observers allow a hook to set the 'old' value`, t => {
+		t.expect( 18 );
+
+		let target = 0;
+		let path;
+		const paths = {
+			'foo.list': 'foo',
+			'bar.list': 'bar'
+		};
+
+		const r = new Ractive({
+			data: {
+				foo: { list: [] },
+				bar: { list: [] }
+			},
+			observe: {
+				'*.list': {
+					init: false,
+					handler ( v, o, k ) {
+						t.equal( k, path );
+						t.equal( o.length, target );
+						t.equal( v.length, target + 1 );
+					},
+					old ( o, n, k, p ) {
+						t.ok( k && paths[k] === p );
+						return n.slice();
+					}
+				}
+			}
+		});
+
+		path = 'foo.list';
+		r.push( 'foo.list', 1 );
+		path = 'bar.list';
+		r.push( 'bar.list', 1 );
+
+		target = 1;
+		path = 'foo.list';
+		r.push( 'foo.list', 1 );
+		path = 'bar.list';
+		r.push( 'bar.list', 1 );
+	});
+
+	test( `pattern observer old value hook gets a lifelong context on top of the ractive instance`, t => {
+		t.expect( 8 );
+
+		const r = new Ractive({
+			data: {
+				foo: { val: '' },
+				bar: { val: '' }
+			},
+			observe: {
+				'foo.*': {
+					init: false,
+					handler ( v, o ) {
+						t.ok( o === '' && v !== o, 'old value is empty string and new is ' + v );
+					},
+					old ( o, n, k, p ) {
+						t.ok( k === 'foo.val' && p === 'val' );
+						if ( !this.hasOwnProperty( 'old' ) ) this.old = n;
+						return this.old;
+					}
+				},
+				'bar.*': {
+					init: false,
+					handler () {},
+					old ( o, n, k, p ) {
+						t.ok( k === 'bar.val' && p === 'val' );
+						if ( n !== '' ) return;
+						t.ok( typeof this.set === 'function', 'context has a set method' );
+						this.set( 'foo.val', 'yep' );
+					}
+				}
+			}
+		});
+
+		r.set( 'bar.val', '?' );
+		r.set( 'foo.val', 'asdf' );
+	});
+
 	test( `recursive observers from root`, t => {
 		const r = new Ractive();
 		const vals = [
