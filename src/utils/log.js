@@ -26,7 +26,7 @@ To disable debug mode when your app is minified, add this snippet:
   Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});
 
 Get help and support:
-  http://docs.ractivejs.org
+  http://ractive.js.org
   http://stackoverflow.com/questions/tagged/ractivejs
   http://groups.google.com/forum/#!forum/ractive-js
   http://twitter.com/ractivejs
