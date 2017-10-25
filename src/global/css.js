@@ -46,6 +46,7 @@ function style () {
 	if ( doc && !styleElement ) {
 		styleElement = doc.createElement( 'style' );
 		styleElement.type = 'text/css';
+		styleElement.setAttribute( 'data-ractive-css', '' );
 
 		doc.getElementsByTagName( 'head' )[0].appendChild( styleElement );
 
