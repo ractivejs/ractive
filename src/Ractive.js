@@ -26,6 +26,7 @@ import parseJSON from './utils/parseJSON';
 import CSSModel from './model/specials/CSSModel';
 import { data as sharedData } from './model/specials/SharedModel';
 import { extern } from './shared/getRactiveContext';
+import { warn } from 'utils/log';
 
 import { assign, defineProperty, defineProperties } from 'utils/object';
 
@@ -45,6 +46,8 @@ if ( win && !win.Ractive ) {
 
 	/* istanbul ignore next */
 	if ( ~opts.indexOf( 'ForceGlobal' ) ) win.Ractive = Ractive;
+} else if ( win ) {
+	warn( `Ractive already appears to be loaded while loading BUILD_PLACEHOLDER_VERSION.` );
 }
 
 assign( Ractive.prototype, proto, defaults );
