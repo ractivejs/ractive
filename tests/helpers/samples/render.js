@@ -169,6 +169,14 @@ const renderTests = [
 		new_result: '<div>before <em>italic</em> <strong>bold</strong> after</div>'
 	},
 	{
+		name: 'triple rendered after initial render (#3119)',
+		template: '<div>{{#if foo}}before {{{during}}}{{/if}} after</div>',
+		data: { during: 'during' },
+		result: '<div> after</div>',
+		new_data: { during: 'during', foo: true },
+		new_result: '<div>before during after</div>'
+	},
+	{
 		name: 'Static',
 		template: '<div>[[color]]</div>',
 		data: { color: 'purple' },
