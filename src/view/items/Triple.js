@@ -62,16 +62,13 @@ export default class Triple extends Mustache {
 		return this.rendered && this.nodes[0];
 	}
 
-	render ( target, occupants ) {
-		const parentNode = this.up.findParentNode();
-
+	render ( target, occupants, anchor ) {
 		if ( !this.nodes ) {
 			const html = this.model ? this.model.get() : '';
-			this.nodes = insertHtml( html, this.up.findParentNode(), target );
+			this.nodes = insertHtml( html, target );
 		}
 
 		let nodes = this.nodes;
-		let anchor = this.up.findNextNode( this );
 
 		// progressive enhancement
 		if ( occupants ) {
@@ -109,9 +106,9 @@ export default class Triple extends Mustache {
 			nodes.forEach( n => frag.appendChild( n ) );
 
 			if ( anchor ) {
-				anchor.parentNode.insertBefore( frag, anchor );
+				target.insertBefore( frag, anchor );
 			} else {
-				parentNode.appendChild( frag );
+				target.appendChild( frag );
 			}
 		}
 
@@ -139,7 +136,7 @@ export default class Triple extends Mustache {
 			this.dirty = false;
 
 			this.unrender();
-			this.render();
+			this.render( this.up.findParentNode(), null, this.up.findNextNode( this ) );
 		} else {
 			// make sure to reset the dirty flag even if not rendered
 			this.dirty = false;
