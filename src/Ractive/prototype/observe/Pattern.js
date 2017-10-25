@@ -2,7 +2,7 @@ import { escapeKey } from 'shared/keypaths';
 import { removeFromArray } from 'utils/array';
 import { isArray, isEqual } from 'utils/is';
 import runloop from 'src/global/runloop';
-import { keys } from 'utils/object';
+import { create, keys } from 'utils/object';
 
 const star = /\*+/g;
 
@@ -19,6 +19,10 @@ export default class PatternObserver {
 		this.pattern = new RegExp( `^${baseKeypath ? baseKeypath + '\\.' : ''}${pattern}$` );
 		this.recursive = keys.length === 1 && keys[0] === '**';
 		if ( this.recursive ) this.keys = [ '*' ];
+		if ( options.old ) {
+			this.oldContext = create( ractive );
+			this.oldFn = options.old;
+		}
 
 		this.oldValues = {};
 		this.newValues = {};
@@ -41,7 +45,7 @@ export default class PatternObserver {
 		if ( options.init !== false ) {
 			this.dispatch();
 		} else {
-			this.oldValues = this.newValues;
+			updateOld( this, this.newValues );
 		}
 
 		baseModel.registerPatternObserver( this );
@@ -73,13 +77,7 @@ export default class PatternObserver {
 			this.callback.apply( this.context, args );
 		});
 
-		if ( this.partial ) {
-			for ( const k in newValues ) {
-				this.oldValues[k] = newValues[k];
-			}
-		} else {
-			this.oldValues = newValues;
-		}
+		updateOld( this, newValues, this.partial );
 
 		this.dirty = false;
 	}
@@ -154,6 +152,29 @@ export default class PatternObserver {
 			this.changed.length = 0;
 
 			if ( this.once ) this.cancel();
+		}
+	}
+}
+
+function updateOld( observer, vals, partial ) {
+	const olds = observer.oldValues;
+
+	if ( observer.oldFn ) {
+		if ( !partial ) observer.oldValues = {};
+
+		keys( vals ).forEach( k => {
+			const args = [ olds[k], vals[k], k ];
+			const parts = observer.pattern.exec( k );
+			if ( parts ) {
+				args.push.apply( args, parts.slice( 1 ) );
+			}
+			observer.oldValues[k] = observer.oldFn.apply( observer.oldContext, args );
+		});
+	} else {
+		if ( partial ) {
+			keys( vals ).forEach( k => olds[k] = vals[k] );
+		} else {
+			observer.oldValues = vals;
 		}
 	}
 }
