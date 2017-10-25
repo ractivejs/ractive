@@ -1,7 +1,7 @@
 /*
-	Ractive.js v0.9.6
-	Build: 3c241b8a8ba96e061789253599d1ff7caba3607a
-	Date: Mon Oct 23 2017 19:16:56 GMT+0000 (UTC)
+	Ractive.js v0.9.7
+	Build: 4f8f6d6ddae5e47a4c3a8bae804112fc32346985
+	Date: Wed Oct 25 2017 19:08:01 GMT+0000 (UTC)
 	Website: http://ractivejs.org
 	License: MIT
 */
@@ -476,13 +476,13 @@ var welcome;
 
 if ( hasConsole ) {
 	var welcomeIntro = [
-		"%cRactive.js %c0.9.6 %cin debug mode, %cmore...",
+		"%cRactive.js %c0.9.7 %cin debug mode, %cmore...",
 		'color: rgb(114, 157, 52); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 	];
-	var welcomeMessage = "You're running Ractive 0.9.6 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+	var welcomeMessage = "You're running Ractive 0.9.7 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
 	welcome = function () {
 		if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -588,7 +588,7 @@ function warnOnceIfDebug () {
 // Error messages that are used (or could be) in multiple places
 var badArguments = 'Bad arguments';
 var noRegistryFunctionReturn = 'A function was specified for "%s" %s, but no %s was returned';
-var missingPlugin = function ( name, type ) { return ("Missing \"" + name + "\" " + type + " plugin. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#" + type + "s"); };
+var missingPlugin = function ( name, type ) { return ("Missing \"" + name + "\" " + type + " plugin. You may need to download a plugin via http://ractive.js.org/integrations/#" + type + "s"); };
 
 function findInViewHierarchy ( registryName, ractive, name ) {
 	var instance = findInstance( registryName, ractive, name );
@@ -4005,7 +4005,7 @@ if ( !svg ) {
 	/* istanbul ignore next */
 	createElement = function ( type, ns, extend ) {
 		if ( ns && ns !== html ) {
-			throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See http://docs.ractivejs.org/latest/svg-and-older-browsers for more information';
+			throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See http://ractive.js.org/support/#svgs for more information';
 		}
 
 		return extend ?
@@ -4233,16 +4233,14 @@ var Observer = function Observer ( ractive, model, callback, options ) {
 
 	if ( isFunction( options.old ) ) {
 		this.oldContext = create( ractive );
-		this.old = options.old;
-	} else {
-		this.old = old;
+		this.oldFn = options.old;
 	}
 
 	if ( options.init !== false ) {
 		this.dirty = true;
 		this.dispatch();
 	} else {
-		this.oldValue = this.old.call( this.oldContext, undefined, this.newValue );
+		updateOld( this );
 	}
 
 	this.dirty = false;
@@ -4262,7 +4260,7 @@ Observer__proto__.cancel = function cancel () {
 Observer__proto__.dispatch = function dispatch () {
 	if ( !this.cancelled ) {
 		this.callback.call( this.context, this.newValue, this.oldValue, this.keypath );
-		this.oldValue = this.old.call( this.oldContext, this.oldValue, this.model ? this.model.get() : this.newValue );
+		updateOld( this, true );
 		this.dirty = false;
 	}
 };
@@ -4289,7 +4287,6 @@ Observer__proto__.rebind = function rebind ( next, previous ) {
 		var this$1 = this;
 
 	next = rebindMatch( this.keypath, next, previous );
-	// TODO: set up a resolver if next is undefined?
 	if ( next === this.model ) { return false; }
 
 	if ( this.model ) { this.model.unregister( this ); }
@@ -4305,8 +4302,9 @@ Observer__proto__.resolved = function resolved ( model ) {
 	model.register( this );
 };
 
-function old ( previous, next ) {
-	return next;
+function updateOld( observer, fresh ) {
+	var next = fresh ? ( observer.model ? observer.model.get() : observer.newValue ) : observer.newValue;
+	observer.oldValue = observer.oldFn ? observer.oldFn.call( observer.oldContext, undefined, next, observer.keypath ) : next;
 }
 
 var star$1 = /\*+/g;
@@ -4325,6 +4323,10 @@ var PatternObserver = function PatternObserver ( ractive, baseModel, keys$$1, ca
 	this.pattern = new RegExp( ("^" + (baseKeypath ? baseKeypath + '\\.' : '') + pattern + "$") );
 	this.recursive = keys$$1.length === 1 && keys$$1[0] === '**';
 	if ( this.recursive ) { this.keys = [ '*' ]; }
+	if ( options.old ) {
+		this.oldContext = create( ractive );
+		this.oldFn = options.old;
+	}
 
 	this.oldValues = {};
 	this.newValues = {};
@@ -4347,7 +4349,7 @@ var PatternObserver = function PatternObserver ( ractive, baseModel, keys$$1, ca
 	if ( options.init !== false ) {
 		this.dispatch();
 	} else {
-		this.oldValues = this.newValues;
+		updateOld$1( this, this.newValues );
 	}
 
 	baseModel.registerPatternObserver( this );
@@ -4382,13 +4384,7 @@ PatternObserver__proto__.dispatch = function dispatch () {
 		this$1.callback.apply( this$1.context, args );
 	});
 
-	if ( this.partial ) {
-		for ( var k in newValues ) {
-			this$1.oldValues[k] = newValues[k];
-		}
-	} else {
-		this.oldValues = newValues;
-	}
+	updateOld$1( this, newValues, this.partial );
 
 	this.dirty = false;
 };
@@ -4469,6 +4465,29 @@ PatternObserver__proto__.handleChange = function handleChange () {
 		if ( this.once ) { this.cancel(); }
 	}
 };
+
+function updateOld$1( observer, vals, partial ) {
+	var olds = observer.oldValues;
+
+	if ( observer.oldFn ) {
+		if ( !partial ) { observer.oldValues = {}; }
+
+		keys( vals ).forEach( function (k) {
+			var args = [ olds[k], vals[k], k ];
+			var parts = observer.pattern.exec( k );
+			if ( parts ) {
+				args.push.apply( args, parts.slice( 1 ) );
+			}
+			observer.oldValues[k] = observer.oldFn.apply( observer.oldContext, args );
+		});
+	} else {
+		if ( partial ) {
+			keys( vals ).forEach( function (k) { return olds[k] = vals[k]; } );
+		} else {
+			observer.oldValues = vals;
+		}
+	}
+}
 
 function negativeOne () {
 	return -1;
@@ -4828,6 +4847,7 @@ function style () {
 	if ( doc && !styleElement ) {
 		styleElement = doc.createElement( 'style' );
 		styleElement.type = 'text/css';
+		styleElement.setAttribute( 'data-ractive-css', '' );
 
 		doc.getElementsByTagName( 'head' )[0].appendChild( styleElement );
 
@@ -14120,6 +14140,7 @@ assign( proto$5, {
 		}
 
 		if ( this.dirtyTemplate ) {
+			this.dirtyTemplate = false;
 			this.resetTemplate();
 
 			this.fragment.resetTemplate( this.partial || [] );
@@ -14195,9 +14216,9 @@ function partialFromValue ( self, value, okToParse ) {
 
 function setTemplate ( template ) {
 	partialFromValue( this, template, true );
-	this.dirtyTemplate = true;
 
 	if ( !this.initing ) {
+		this.dirtyTemplate = true;
 		this.fnTemplate = this.partial;
 
 		if ( this.updating ) {
@@ -15976,18 +15997,15 @@ var Triple = (function (Mustache) {
 		return this.rendered && this.nodes[0];
 	};
 
-	Triple__proto__.render = function render ( target, occupants ) {
+	Triple__proto__.render = function render ( target, occupants, anchor ) {
 		var this$1 = this;
-
-		var parentNode = this.up.findParentNode();
 
 		if ( !this.nodes ) {
 			var html = this.model ? this.model.get() : '';
-			this.nodes = insertHtml( html, this.up.findParentNode(), target );
+			this.nodes = insertHtml( html, target );
 		}
 
 		var nodes = this.nodes;
-		var anchor = this.up.findNextNode( this );
 
 		// progressive enhancement
 		if ( occupants ) {
@@ -16025,9 +16043,9 @@ var Triple = (function (Mustache) {
 			nodes.forEach( function (n) { return frag.appendChild( n ); } );
 
 			if ( anchor ) {
-				anchor.parentNode.insertBefore( frag, anchor );
+				target.insertBefore( frag, anchor );
 			} else {
-				parentNode.appendChild( frag );
+				target.appendChild( frag );
 			}
 		}
 
@@ -16055,7 +16073,7 @@ var Triple = (function (Mustache) {
 			this.dirty = false;
 
 			this.unrender();
-			this.render();
+			this.render( this.up.findParentNode(), null, this.up.findNextNode( this ) );
 		} else {
 			// make sure to reset the dirty flag even if not rendered
 			this.dirty = false;
@@ -16102,9 +16120,7 @@ function asyncProxy ( promise, options ) {
 	var partials = options.template.p || {};
 	var name = options.template.e;
 
-	return new Partial({
-		owner: options.owner,
-		up: options.up,
+	var opts = assign( {}, options, {
 		template: { t: ELEMENT, e: name },
 		macro: function macro ( handle ) {
 			handle.setTemplate( partials['async-loading'] || [] );
@@ -16127,6 +16143,7 @@ function asyncProxy ( promise, options ) {
 			});
 		}
 	});
+	return new Partial( opts );
 }
 
 var constructors = {};
@@ -17240,6 +17257,8 @@ if ( win && !win.Ractive ) {
 
 	/* istanbul ignore next */
 	if ( ~opts$1.indexOf( 'ForceGlobal' ) ) { win.Ractive = Ractive; }
+} else if ( win ) {
+	warn( "Ractive already appears to be loaded while loading 0.9.7." );
 }
 
 assign( Ractive.prototype, proto, defaults );
@@ -17282,7 +17301,7 @@ defineProperties( Ractive, {
 	svg:              { value: svg },
 
 	// version
-	VERSION:          { value: '0.9.6' },
+	VERSION:          { value: '0.9.7' },
 
 	// plugins
 	adaptors:         { writable: true, value: {} },
