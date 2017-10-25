@@ -1,5 +1,18 @@
 # changelog
 
+# 0.9.7
+
+* Bug fixes
+	* The flag that tells partial templates to update no longer gets stuck causing unnecessary partial re-renders
+	* Async components with sibling nodes are rendered in the correct order
+	* The `old` option is available on pattern observers in addition to plain observers (#3118)
+	* Triples now render correctly if they are rendered after the initial render (#3119)
+
+* Other changes
+	* Ractive will now warn you if it detects another global copy of Ractive during init (#3101)
+	* The managed style element used for component CSS is now tagged with a `data-ractive-css` attribute (#3091)
+
+
 # 0.9.6
 
 * Breaking changes
