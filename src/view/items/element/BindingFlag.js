@@ -11,6 +11,7 @@ export default class BindingFlag extends Item {
 		this.owner = options.owner || options.up.owner || findElement( options.up );
 		this.element = this.owner.attributeByName ? this.owner : findElement( options.up );
 		this.flag = options.template.v === 'l' ? 'lazy' : 'twoway';
+		this.bubbler = this.owner === this.element ? this.element : this.up;
 
 		if ( this.element.type === ELEMENT ) {
 			if ( isArray( options.template.f ) ) {
@@ -34,7 +35,7 @@ export default class BindingFlag extends Item {
 
 	bubble () {
 		if ( !this.dirty ) {
-			this.element.bubble();
+			this.bubbler.bubble();
 			this.dirty = true;
 		}
 	}
@@ -64,6 +65,7 @@ export default class BindingFlag extends Item {
 
 	update () {
 		if ( this.dirty ) {
+			this.dirty = false;
 			if ( this.fragment ) this.fragment.update();
 			set( this, this.getValue(), true );
 		}

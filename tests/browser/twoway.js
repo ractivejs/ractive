@@ -1580,4 +1580,36 @@ export default function() {
 
 		r.set( 'twoway', true );
 	});
+
+	test( `binding flags update correctly when they don't belong directly to an element`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '<input value="{{val}}" {{>partial}} />',
+			partials: {
+				partial: Ractive.parse( 'twoway="{{two}}"', { attributes: true } )
+			},
+			data: {
+				two: false
+			}
+		});
+
+		const input = r.find( 'input' );
+
+		t.ok( r.get( 'val' ) === undefined );
+
+		r.set( 'two', true );
+		input.value = '99';
+		fire( input, 'change' );
+		t.equal( r.get( 'val' ), '99' );
+
+		r.set( 'two', false );
+		input.value = '42';
+		fire( input, 'change' );
+		t.equal( r.get( 'val' ), '99' );
+
+		r.set( 'two', true );
+		input.value = 'yep';
+		fire( input, 'change' );
+		t.equal( r.get( 'val' ), 'yep' );
+	});
 }
