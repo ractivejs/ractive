@@ -516,7 +516,7 @@ function delegateHandler ( ev ) {
 			}
 		}
 
-		node = node.parentNode;
+		node = node.parentNode || node.correspondingUseElement; // SVG with a <use> element in certain environments
 	}
 
 	return bubble;
@@ -528,7 +528,7 @@ function shouldFire ( event, start, end ) {
 		let node = start;
 		while ( node && node !== end ) {
 			if ( node.disabled ) return false;
-			node = node.parentNode;
+			node = node.parentNode || node.correspondingUseElement;
 		}
 	}
 
