@@ -391,4 +391,23 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
+
+	test( `nested component yields render correctly after initial render (#3121)`, t => {
+		const cmp = Ractive.extend({ template: '<div>{{yield}}</div>' });
+
+		const r = new Ractive({
+			target: fixture,
+			template: '<div /><cmp>outer{{#if foo}}<cmp>inner</cmp>{{/if}}</cmp>',
+			data: { foo: true },
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div></div><div>outer<div>inner</div></div>' );
+
+		r.toggle( 'foo' );
+		t.htmlEqual( fixture.innerHTML, '<div></div><div>outer</div>' );
+
+		r.toggle( 'foo' );
+		t.htmlEqual( fixture.innerHTML, '<div></div><div>outer<div>inner</div></div>' );
+	});
 }

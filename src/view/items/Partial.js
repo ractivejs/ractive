@@ -109,6 +109,10 @@ assign( proto, {
 		}
 	},
 
+	findNextNode () {
+		return ( this.containerFragment || this.up ).findNextNode( this );
+	},
+
 	handleChange () {
 		this.dirtyTemplate = true;
 		this.externalChange = true;
