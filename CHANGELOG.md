@@ -1,5 +1,13 @@
 # changelog
 
+# 0.9.8
+
+* Bug fixes
+	* Binding attributes not owned directly by an element (conditional attributes) now behave correctly.
+	* Yielded partials no longer find the wrong anchor node when rendering in certain circumstances (#3121)
+	* Delegated events now play more nicely with `<use>` tags in certain environments (IE, older Safari, etc) (#3122)
+
+
 # 0.9.7
 
 * Bug fixes
