@@ -1,7 +1,7 @@
 /*
-	Ractive.js v0.9.7
-	Build: 4f8f6d6ddae5e47a4c3a8bae804112fc32346985
-	Date: Wed Oct 25 2017 19:08:01 GMT+0000 (UTC)
+	Ractive.js v0.9.8
+	Build: aa108aafd75129703d2f27c6d5a094dc197cf0d1
+	Date: Fri Oct 27 2017 18:29:54 GMT+0000 (UTC)
 	Website: http://ractivejs.org
 	License: MIT
 */
@@ -465,13 +465,13 @@ var welcome;
 
 if ( hasConsole ) {
 	var welcomeIntro = [
-		"%cRactive.js %c0.9.7 %cin debug mode, %cmore...",
+		"%cRactive.js %c0.9.8 %cin debug mode, %cmore...",
 		'color: rgb(114, 157, 52); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 	];
-	var welcomeMessage = "You're running Ractive 0.9.7 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+	var welcomeMessage = "You're running Ractive 0.9.8 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
 	welcome = function () {
 		if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -10324,6 +10324,7 @@ var BindingFlag = (function (Item) {
 		this.owner = options.owner || options.up.owner || findElement( options.up );
 		this.element = this.owner.attributeByName ? this.owner : findElement( options.up );
 		this.flag = options.template.v === 'l' ? 'lazy' : 'twoway';
+		this.bubbler = this.owner === this.element ? this.element : this.up;
 
 		if ( this.element.type === ELEMENT ) {
 			if ( isArray( options.template.f ) ) {
@@ -10351,7 +10352,7 @@ var BindingFlag = (function (Item) {
 
 	BindingFlag__proto__.bubble = function bubble () {
 		if ( !this.dirty ) {
-			this.element.bubble();
+			this.bubbler.bubble();
 			this.dirty = true;
 		}
 	};
@@ -10381,6 +10382,7 @@ var BindingFlag = (function (Item) {
 
 	BindingFlag__proto__.update = function update () {
 		if ( this.dirty ) {
+			this.dirty = false;
 			if ( this.fragment ) { this.fragment.update(); }
 			set$1( this, this.getValue(), true );
 		}
@@ -12961,7 +12963,7 @@ function delegateHandler ( ev ) {
 			}
 		}
 
-		node = node.parentNode;
+		node = node.parentNode || node.correspondingUseElement; // SVG with a <use> element in certain environments
 	}
 
 	return bubble;
@@ -12973,7 +12975,7 @@ function shouldFire ( event, start, end ) {
 		var node = start;
 		while ( node && node !== end ) {
 			if ( node.disabled ) { return false; }
-			node = node.parentNode;
+			node = node.parentNode || node.correspondingUseElement;
 		}
 	}
 
@@ -14035,6 +14037,10 @@ assign( proto$5, {
 				this.up.bubble();
 			}
 		}
+	},
+
+	findNextNode: function findNextNode () {
+		return ( this.containerFragment || this.up ).findNextNode( this );
 	},
 
 	handleChange: function handleChange () {
@@ -17247,7 +17253,7 @@ if ( win && !win.Ractive ) {
 	/* istanbul ignore next */
 	if ( ~opts$1.indexOf( 'ForceGlobal' ) ) { win.Ractive = Ractive; }
 } else if ( win ) {
-	warn( "Ractive already appears to be loaded while loading 0.9.7." );
+	warn( "Ractive already appears to be loaded while loading 0.9.8." );
 }
 
 assign( Ractive.prototype, proto, defaults );
@@ -17290,7 +17296,7 @@ defineProperties( Ractive, {
 	svg:              { value: svg },
 
 	// version
-	VERSION:          { value: '0.9.7' },
+	VERSION:          { value: '0.9.8' },
 
 	// plugins
 	adaptors:         { writable: true, value: {} },
