@@ -222,12 +222,20 @@ export default class ReferenceExpressionProxy extends Model {
 	}
 
 	teardown () {
+		if ( this.base ) {
+			this.base.unregister( this.intermediary );
+		}
 		if ( this.model ) {
 			this.model.unregister( this );
 			this.model.unregisterTwowayBinding( this );
 		}
 		if ( this.members ) {
-			this.members.forEach( m => m && m.unregister && m.unregister( this ) );
+			this.members.forEach( m => {
+				if ( m && m.unregister ) {
+					m.unregister( this );
+					m.unregister( this.intermediary );
+				}
+			} );
 		}
 	}
 
