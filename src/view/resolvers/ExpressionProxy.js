@@ -102,7 +102,6 @@ export default class ExpressionProxy extends Model {
 	}
 
 	teardown () {
-		this.unbind();
 		this.fragment = undefined;
 		if ( this.dependencies ) this.dependencies.forEach( d => d.unregister( this ) );
 		super.teardown();
