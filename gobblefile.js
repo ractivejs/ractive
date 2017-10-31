@@ -33,7 +33,7 @@ const ractiveAliases = rollupAlias({
 });
 
 
-const runtimeModulesToIgnore = ['parse/_parse.js'].map(p => p.split('/').join(path.sep));
+const runtimeModulesToIgnore = skipModule(['parse/_parse.js']);
 const placeholders = { BUILD_PLACEHOLDER_VERSION: version };
 
 const src = gobble('src');
@@ -52,24 +52,24 @@ const sandbox = gobble('sandbox');
 
 module.exports = ({
 	'dev:browser'() {
-		const lib = buildUmdLib('ractive.js', [], [ractiveAliases]);
+		const lib = buildUmdLib('ractive.js', [ractiveAliases]);
 		const tests = buildBrowserTests();
 		const polyfills = buildUmdPolyfill();
 		return gobble([lib, polyfills, tests, sandbox, qunit]);
 	},
 	'bundle:test'() {
-		const lib = buildUmdLib('ractive.js', [], [ractiveAliases, istanbul()]);
+		const lib = buildUmdLib('ractive.js', [ractiveAliases, istanbul()]);
 		const browserTests = buildBrowserTests();
 		const nodeTests = buildNodeTests();
 		const polyfills = buildUmdPolyfill();
 		return gobble([lib, polyfills, qunit, browserTests, nodeTests]);
 	},
 	'bundle:release'() {
-		const libEsFull = buildESLib('ractive.mjs', [], [ractiveAliases]);
-		const libEsRuntime = buildESLib('runtime.mjs', runtimeModulesToIgnore, [ractiveAliases]);
+		const libEsFull = buildESLib('ractive.mjs', [ractiveAliases]);
+		const libEsRuntime = buildESLib('runtime.mjs', [runtimeModulesToIgnore, ractiveAliases]);
 
-		const libUmdFull = buildUmdLib('ractive.js', [], [ractiveAliases]);
-		const libUmdRuntime = buildUmdLib('runtime.js', runtimeModulesToIgnore, [ractiveAliases]);
+		const libUmdFull = buildUmdLib('ractive.js', [ractiveAliases]);
+		const libUmdRuntime = buildUmdLib('runtime.js', [runtimeModulesToIgnore, ractiveAliases]);
 
 		const libEs = gobble([libEsFull, libEsRuntime]);
 		const libUmd = gobble([libUmdFull, libUmdRuntime]);
@@ -88,9 +88,9 @@ module.exports = ({
 /* Bundle builders */
 
 // Builds a UMD bundle of Ractive
-function buildUmdLib(dest, excludedModules, extraRollupPlugins) {
+function buildUmdLib(dest, extraRollupPlugins) {
 	return src.transform(rollup, {
-		plugins: [skipModule(excludedModules)].concat(extraRollupPlugins || []),
+		plugins: extraRollupPlugins,
 		moduleName: 'Ractive',
 		format: 'umd',
 		entry: 'Ractive.js',
@@ -103,9 +103,7 @@ function buildUmdLib(dest, excludedModules, extraRollupPlugins) {
 }
 
 // Builds an ES bundle of Ractive
-function buildESLib(dest, excludedModules, extraRollupPlugins) {
-	extraRollupPlugins = (extraRollupPlugins || []).slice();
-	extraRollupPlugins.unshift(skipModule(excludedModules));
+function buildESLib(dest, extraRollupPlugins) {
 	return src.transform(rollup, {
 		plugins: extraRollupPlugins,
 		format: 'es',
@@ -183,9 +181,7 @@ function skipModule(excludedModules) {
 	return {
 		name: 'skipModule',
 		transform: function (src, modulePath) {
-			// Gobble has a predictable directory structure of gobble/transform/number
-			// so we slice at 3 to slice relative to project root.
-			const moduleRelativePath = path.relative(__dirname, modulePath).split(path.sep).slice(3).join(path.sep);
+			const moduleRelativePath = path.relative(path.join(__dirname, 'src'), modulePath).split(path.sep).join('/');
 			const isModuleExcluded = excludedModules.indexOf(moduleRelativePath) > -1;
 
 			const source = new MagicString(src);
