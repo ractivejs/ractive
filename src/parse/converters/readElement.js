@@ -140,6 +140,13 @@ function readElement ( parser ) {
 			remaining = parser.remaining();
 
 			if ( !remaining ) {
+				// if this happens to be a script tag and there's no content left, it's because
+				// a closing script tag can't appear in a script
+				if ( parser.inside === 'script' ) {
+					closed = true;
+					break;
+				}
+
 				parser.error( `Missing end ${
 					parser.elementStack.length > 1 ? 'tags' : 'tag'
 				} (${
