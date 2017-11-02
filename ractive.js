@@ -1,7 +1,7 @@
 /*
-	Ractive.js v0.9.8
-	Build: aa108aafd75129703d2f27c6d5a094dc197cf0d1
-	Date: Fri Oct 27 2017 18:29:54 GMT+0000 (UTC)
+	Ractive.js v0.9.9
+	Build: 45f61d837bf610970e0bd6591c98587cfd49a024
+	Date: Thu Nov 02 2017 20:19:45 GMT+0000 (UTC)
 	Website: http://ractivejs.org
 	License: MIT
 */
@@ -476,13 +476,13 @@ var welcome;
 
 if ( hasConsole ) {
 	var welcomeIntro = [
-		"%cRactive.js %c0.9.8 %cin debug mode, %cmore...",
+		"%cRactive.js %c0.9.9 %cin debug mode, %cmore...",
 		'color: rgb(114, 157, 52); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 	];
-	var welcomeMessage = "You're running Ractive 0.9.8 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+	var welcomeMessage = "You're running Ractive 0.9.9 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
 	welcome = function () {
 		if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -7956,6 +7956,13 @@ function readElement$1 ( parser ) {
 			remaining = parser.remaining();
 
 			if ( !remaining ) {
+				// if this happens to be a script tag and there's no content left, it's because
+				// a closing script tag can't appear in a script
+				if ( parser.inside === 'script' ) {
+					closed = true;
+					break;
+				}
+
 				parser.error( ("Missing end " + (parser.elementStack.length > 1 ? 'tags' : 'tag') + " (" + (parser.elementStack.reverse().map( function (x) { return ("</" + x + ">"); } ).join( '' )) + ")") );
 			}
 
@@ -9251,7 +9258,6 @@ var ExpressionProxy = (function (Model) {
 	ExpressionProxy__proto__.teardown = function teardown () {
 		var this$1 = this;
 
-		this.unbind();
 		this.fragment = undefined;
 		if ( this.dependencies ) { this.dependencies.forEach( function (d) { return d.unregister( this$1 ); } ); }
 		Model.prototype.teardown.call(this);
@@ -9506,12 +9512,15 @@ var ReferenceExpressionProxy = (function (Model) {
 	ReferenceExpressionProxy__proto__.teardown = function teardown () {
 		var this$1 = this;
 
+		if ( this.base ) {
+			this.base.unregister( this.intermediary );
+		}
 		if ( this.model ) {
 			this.model.unregister( this );
 			this.model.unregisterTwowayBinding( this );
 		}
 		if ( this.members ) {
-			this.members.forEach( function (m) { return m && m.unregister && m.unregister( this$1 ); } );
+			this.members.forEach( function (m) { return m && m.unregister && m.unregister( this$1.intermediary ); } );
 		}
 	};
 
@@ -10316,11 +10325,17 @@ var Attribute = (function (Item) {
 
 	Attribute__proto__.update = function update () {
 		if ( this.dirty ) {
+			var binding;
 			this.dirty = false;
 			if ( this.fragment ) { this.fragment.update(); }
 			if ( this.rendered ) { this.updateDelegate(); }
 			if ( this.isTwoway && !this.locked ) {
 				this.interpolator.twowayBinding.lastVal( true, this.interpolator.model.get() );
+			} else if ( this.name === 'value' && ( binding = this.element.binding ) ) { // special case: name bound element with dynamic value
+				var attr = binding.attribute;
+				if ( attr && !attr.dirty && attr.rendered ) {
+					this.element.binding.attribute.updateDelegate();
+				}
 			}
 		}
 	};
@@ -12516,8 +12531,8 @@ var Element = (function (ContainerItem) {
 			}
 		}
 
-		if ( name ) { attrs.push( name ); }
 		if ( val ) { attrs.push( val ); }
+		if ( name ) { attrs.push( name ); }
 		if ( cls ) { attrs.unshift( cls ); }
 
 		if ( leftovers ) {
@@ -17264,7 +17279,7 @@ if ( win && !win.Ractive ) {
 	/* istanbul ignore next */
 	if ( ~opts$1.indexOf( 'ForceGlobal' ) ) { win.Ractive = Ractive; }
 } else if ( win ) {
-	warn( "Ractive already appears to be loaded while loading 0.9.8." );
+	warn( "Ractive already appears to be loaded while loading 0.9.9." );
 }
 
 assign( Ractive.prototype, proto, defaults );
@@ -17307,7 +17322,7 @@ defineProperties( Ractive, {
 	svg:              { value: svg },
 
 	// version
-	VERSION:          { value: '0.9.8' },
+	VERSION:          { value: '0.9.9' },
 
 	// plugins
 	adaptors:         { writable: true, value: {} },
