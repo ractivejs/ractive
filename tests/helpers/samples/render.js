@@ -578,9 +578,9 @@ const renderTests = [
 		name: 'Two-way radio buttons',
 		template: '<input type="radio" name="{{foo}}" value="one"><input type="radio" name="{{foo}}" value="two">',
 		data: { foo: 'one' },
-		result: '<input type="radio" name="{{foo}}" value="one" checked><input type="radio" name="{{foo}}" value="two">',
+		result: '<input type="radio" value="one" name="{{foo}}" checked><input type="radio" value="two" name="{{foo}}">',
 		new_data: { foo: 'two' },
-		new_result: '<input type="radio" name="{{foo}}" value="one"><input type="radio" name="{{foo}}" value="two" checked>'
+		new_result: '<input type="radio" value="one" name="{{foo}}"><input type="radio" value="two" name="{{foo}}" checked>'
 	},
 
 	//unresolved expressions

@@ -190,11 +190,17 @@ export default class Attribute extends Item {
 
 	update () {
 		if ( this.dirty ) {
+			let binding;
 			this.dirty = false;
 			if ( this.fragment ) this.fragment.update();
 			if ( this.rendered ) this.updateDelegate();
 			if ( this.isTwoway && !this.locked ) {
 				this.interpolator.twowayBinding.lastVal( true, this.interpolator.model.get() );
+			} else if ( this.name === 'value' && ( binding = this.element.binding ) ) { // special case: name bound element with dynamic value
+				const attr = binding.attribute;
+				if ( attr && !attr.dirty && attr.rendered ) {
+					this.element.binding.attribute.updateDelegate();
+				}
 			}
 		}
 	}
