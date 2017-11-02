@@ -76,8 +76,8 @@ export default class Element extends ContainerItem {
 			}
 		}
 
-		if ( name ) attrs.push( name );
 		if ( val ) attrs.push( val );
+		if ( name ) attrs.push( name );
 		if ( cls ) attrs.unshift( cls );
 
 		if ( leftovers ) {

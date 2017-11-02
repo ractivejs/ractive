@@ -1612,4 +1612,22 @@ export default function() {
 		fire( input, 'change' );
 		t.equal( r.get( 'val' ), 'yep' );
 	});
+
+	test( `name-bound checkboxes with bound values should update correctly when the value changes (#3124)`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '{{#each list}}<input type=checkbox bind-value=. bind-name=selected />{{/each}}',
+			data: {
+				list: [ 1, 2, 3 ],
+				selected: [ 2 ]
+			}
+		});
+
+		let inputs = r.findAll( 'input' );
+		t.ok( !inputs[0].checked && inputs[1].checked && !inputs[2].checked );
+
+		r.set( 'list', [ 2, 4 ] );
+		inputs = r.findAll( 'input' );
+		t.ok( inputs[0].checked && !inputs[1].checked );
+	});
 }
