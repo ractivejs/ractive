@@ -6,6 +6,17 @@
 	* There is now an `allowExpressions` parser and init option that disables the parsing of expressions when passed to `parse` or an instance with an unparsed template and disables the evaluation of expessions when passed to an instance. See #3000 for more info.
 
 
+# 0.9.9
+
+* Bug fixes
+	* Reference expressions no longer cause memory leaks (#3123)
+	* Name bound elements that also have a bound value now have special-cased handling for when the value updates to keep the name binding up to date (#3124)
+	* `<script>` tags in templates are automatically closed at the end of input because HTML doesn't special-case nested script tags (#3125)
+
+* Other changes
+	* The runtime build once again excludes the parser code, which managed to sneak back in amidst some build process udpates.
+
+
 # 0.9.8
 
 * Bug fixes
