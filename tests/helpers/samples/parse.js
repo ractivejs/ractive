@@ -333,6 +333,11 @@ const parseTests = [
 		parsed: {v:4,t:[{t:7,e:'script',f:['var html="<p>',{t:2,r:'html'},'</p>";']}]}
 	},
 	{
+		name: 'Script tag with no end closes implicitly (#3125)',
+		template: `<script>\nalert("I can't close);\nconsole.log("I am sad");\n`,
+		parsed: {v:4,t:[{t:7,e:'script',f:[`alert("I can't close);\nconsole.log("I am sad");`]}]}
+	},
+	{
 		name: 'Ampersand mustaches are treated the same as triples',
 		template: `{{&foo}}`,
 		parsed: {v:4,t:[{t:3,r:'foo'}]}
