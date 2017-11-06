@@ -615,6 +615,24 @@ export default function() {
 		r.getContext( 'span' ).raise( 'foo' );
 	});
 
+	test( `context objects can trigger events on components`, t => {
+		t.expect( 1 );
+
+		const cmp = Ractive.extend({
+			template: '<span />'
+		});
+
+		const r = new Ractive({
+			target: fixture,
+			template: '<div on-foo="@.fail()"><cmp on-foo="@.ok()" /></div>',
+			components: { cmp },
+			ok() { t.ok( true ); },
+			fail() { t.ok( false ); }
+		});
+
+		r.getContext( 'span' ).raise( 'foo' );
+	});
+
 	test( `getting node info for a non-ractive element returns undefined (#2819)`, t => {
 		const r = new Ractive({
 			el: fixture
@@ -980,5 +998,41 @@ export default function() {
 		ctx = ctx.getParent();
 		t.equal( ctx.resolve(), '' );
 		t.strictEqual( ctx.getParent(), undefined );
+	});
+
+	test( `context can check for listeners at the template level with hasListener`, t => {
+		const cmp = Ractive.extend({
+			template: '<div on-third="false">{{yield}}{{>other}}</div>',
+		});
+
+		const r = new Ractive({
+			template: `<p on-first="false">
+						<cmp on-second="false">
+						  <i />
+						  {{#partial other}}<b />{{/partial}}
+						</cmp>
+					  </p>`,
+			target: fixture,
+			components: { cmp }
+		});
+
+		const third = r.getContext( 'div' );
+
+		t.ok( third.hasListener( 'third' ), 'element own listener without bubble' );
+		t.ok( !third.hasListener( 'second' ), 'element parent event without bubble' );
+		t.ok( third.hasListener( 'second', true ), 'element component event with bubble' );
+		t.ok( third.hasListener( 'third', true ), 'element plain event with bubble' );
+		t.ok( !third.hasListener( 'nope', true ), 'element no listener with bubble' );
+
+		const yielded = r.getContext( 'i' );
+
+		t.ok( !yielded.hasListener( 'third', true ), 'yielded bubble skips inside component' );
+		t.ok( yielded.hasListener( 'first', true ), 'yielded bubble outside component' );
+
+		const partial = r.getContext( 'b' );
+
+		t.ok( partial.hasListener( 'third', true ) && partial.hasListener( 'second', true ), 'partial bubble does not skip inside component' );
+		t.ok( partial.hasListener( 'first', true ), 'partial bubble outside component' );
+
 	});
 }
