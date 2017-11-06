@@ -9,6 +9,7 @@ import { animate as protoAnimate } from '../Ractive/prototype/animate';
 import { update as protoUpdate } from '../Ractive/prototype/update';
 import getRactiveContext, { extern, findParentWithContext } from './getRactiveContext';
 import { hasOwn } from 'utils/object';
+import { ELEMENT, EVENT } from 'config/types';
 
 const modelPush = makeArrayMethod( 'push' ).model;
 const modelPop = makeArrayMethod( 'pop' ).model;
@@ -94,6 +95,18 @@ export default class Context {
 		else return fragment.getContext();
 	}
 
+	hasListener ( name, bubble ) {
+		let el = this.element || this.fragment.owner;
+
+		do {
+			if ( el.template.t === ELEMENT ) {
+				if ( findEvent( el, name ) ) return true;
+			}
+			el = el.up && el.up.owner;
+			if ( el && el.component ) el = el.component;
+		} while ( el && bubble );
+	}
+
 	link ( source, dest ) {
 		const there = findModel( this, source ).model;
 		const here = findModel( this, dest ).model;
@@ -132,23 +145,23 @@ export default class Context {
 	}
 
 	raise ( name, event, ...args ) {
-		let element = this.element;
-		let events, len, i;
+		let el = this.element;
+		let ev;
 
-		while ( element ) {
-			events = element.events;
-			len = events && events.length;
-			for ( i = 0; i < len; i++ ) {
-				const ev = events[i];
-				if ( ~ev.template.n.indexOf( name ) ) {
-					const ctx = !event || !( 'original' in event ) ?
-						ev.element.getContext( event || {}, { original: {} } ) :
-						ev.element.getContext( event || {} );
-					return ev.fire( ctx, args );
-				}
+		while ( el ) {
+			if ( el.component ) el = el.component;
+			ev = findEvent( el, name );
+			if ( ev ) {
+				return ev.fire(
+					ev.element.getContext(
+						event || {},
+						event && !( 'original' in event ) ? { original: {} } : {}
+					),
+					args
+				);
 			}
 
-			element = element.parent;
+			el = el.up && el.up.owner;
 		}
 	}
 
@@ -286,4 +299,8 @@ function findModel ( ctx, path ) {
 	}
 
 	return { model: resolveReference( frag, path ), instance: frag.ractive };
+}
+
+function findEvent( el, name ) {
+	return el.attributes && el.attributes.find( a => a.template.t === EVENT && ~a.template.n.indexOf( name ) );
 }
