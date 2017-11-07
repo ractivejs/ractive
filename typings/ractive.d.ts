@@ -75,12 +75,12 @@ declare module Ractive {
         original: _RactiveEvent;
     }
 
-	// Since 0.7.1
-	export interface NodeInfo {
-		ractive: Ractive;
-		keypath: string;
-		index: { [key: string]: number };
-	}
+    // Since 0.7.1
+    export interface NodeInfo {
+        ractive: Ractive;
+        keypath: string;
+        index: { [key: string]: number };
+    }
 
     // Return value in ractive.observe and ractive.on
     export interface Observe {
@@ -129,8 +129,8 @@ declare module Ractive {
         init?: boolean;
     }
 
-	// Since 0.7.1
-	export interface ObserveOnceOptions {
+    // Since 0.7.1
+    export interface ObserveOnceOptions {
         // Default Ractive
         context?: any;
         // Default false
@@ -151,17 +151,17 @@ declare module Ractive {
     }
 
     export interface NewOptions {
-	    /*
-	     * @type List of mixed string or Adaptor
-	     */
+        /*
+         * @type List of mixed string or Adaptor
+         */
         adapt?: (string | AdaptorPlugin)[];
 
         adaptors?: AdaptorPlugins;
 
-	    /**
-	     * Default false
-	     * @type boolean or any type that option `el` accepts (HTMLElement or String or jQuery-like collection)
-	     */
+        /**
+         * Default false
+         * @type boolean or any type that option `el` accepts (HTMLElement or String or jQuery-like collection)
+         */
         append?: boolean | any;
 
         complete?: Function;
@@ -171,92 +171,92 @@ declare module Ractive {
         // TODO: unclear in documantation, should this be in ExtendOptions instead?
         css?: string;
 
-	    /**
-	     * @type Object or Function
-	     */
+        /**
+         * @type Object or Function
+         */
         // TODO: undocumented type Function
         data?: Object | Function;
 
         decorators?: DecoratorPlugins;
-	    /**
-	     * @type [open, close]
-	     */
+        /**
+         * @type [open, close]
+         */
         delimiters?: string[];
 
-		// TODO: unsure
+        // TODO: unsure
         easing?: string | Function;
 
-	    /**
-	     * @type HTMLElement or String or jQuery-like collection
-	     */
+        /**
+         * @type HTMLElement or String or jQuery-like collection
+         */
         el?: string | HTMLElement | any;
         // TODO: undocumented in Initialisation options page
         events?: EventPlugins;
-		
+        
         // Since 0.5.5
         // TODO: unclear in documantation
         interpolators?: { [key: string]: any; };
 
         // Since 0.6.0
-		// TODO: undocumented arguments
+        // TODO: undocumented arguments
         onchange?: (options: NewOptions) => void; // TODO: void?
         // Since 0.6.0
-		// TODO: undocumented arguments
+        // TODO: undocumented arguments
         oncomplete?: () => void; // TODO: void?
         // Since 0.6.0
-		// TODO: undocumented arguments
+        // TODO: undocumented arguments
         onconfig?: () => void; // TODO: void?
-		// Since 0.6.0
-		// TODO: undocumented arguments
+        // Since 0.6.0
+        // TODO: undocumented arguments
         onconstruct?: (options: NewOptions) => void; // TODO: void?
-		// Since 0.6.0
-		// TODO: undocumented arguments
+        // Since 0.6.0
+        // TODO: undocumented arguments
         ondetach?: () => void; // TODO: void?
-		// Since 0.6.0
-		// TODO: undocumented arguments
+        // Since 0.6.0
+        // TODO: undocumented arguments
         oninit?: () => void; // TODO: void?
-		// Since 0.6.0
-		// TODO: undocumented arguments
+        // Since 0.6.0
+        // TODO: undocumented arguments
         oninsert?: () => void; // TODO: void?
         // Since 0.6.0
-		// TODO: undocumented arguments
+        // TODO: undocumented arguments
         onrender?: () => void; // TODO: void?
-		// Since 0.6.0
-		// TODO: undocumented arguments
+        // Since 0.6.0
+        // TODO: undocumented arguments
         onunrender?: () => void; // TODO: void?
-		// Since 0.6.0
-		// TODO: undocumented arguments
+        // Since 0.6.0
+        // TODO: undocumented arguments
         onupdate?: () => void; // TODO: void?
-		// Since 0.6.0
-		// TODO: undocumented arguments
+        // Since 0.6.0
+        // TODO: undocumented arguments
         onteardown?: () => void; // TODO: void?
 
-	    /**
-	     * any is same type as template
-	     */
+        /**
+         * any is same type as template
+         */
         partials?: { [key: string]: any; };
-	    /**
-	     * Default false
-	     */
+        /**
+         * Default false
+         */
         sanitize?: boolean | SanitizeOptions;
-	    /**
-	     * Default ['[[', ']]']
-	     * @type [open, close]
-	     */
+        /**
+         * Default ['[[', ']]']
+         * @type [open, close]
+         */
         staticDelimiters?: string[];
-	    /**
-	     * Default ['[[[', ']]]']
-	     * @type [open, close]
-	     */
+        /**
+         * Default ['[[[', ']]]']
+         * @type [open, close]
+         */
         staticTripleDelimiters?: string[];
-	    /**
-	     * @type String or (if preparsing "Ractive.parse") Array or Object
-	     */
+        /**
+         * @type String or (if preparsing "Ractive.parse") Array or Object
+         */
         template?: any;
         transitions?: TransitionPlugins;
-	    /**
-	     * @type [open, close]
-	     */
+        /**
+         * @type [open, close]
+         */
         tripleDelimiters?: string[];
 
         // Default false
@@ -276,9 +276,9 @@ declare module Ractive {
         // Since 0.5.5
         // Default true
         stripComments?: boolean;
-		// Since 0.7.1
-		// Default true
-		transitionsEnabled?: boolean;
+        // Since 0.7.1
+        // Default true
+        transitionsEnabled?: boolean;
         // Default true
         twoway?: boolean;
 
@@ -293,7 +293,7 @@ declare module Ractive {
          * @deprecated
          */
         init?: (options: ExtendOptions) => void;
-		
+        
         // Default false, inherit from Ractive.defaults
         isolated?: boolean;
     }
@@ -315,8 +315,8 @@ declare module Ractive {
 
         extend(options: ExtendOptions): Static;
 
-		// Since 0.7.1
-		getNodeInfo(node: HTMLElement): NodeInfo;
+        // Since 0.7.1
+        getNodeInfo(node: HTMLElement): NodeInfo;
 
         parse(template: string, options?: ParseOptions): any;
 
@@ -326,8 +326,8 @@ declare module Ractive {
         // TODO: undocumented
         components: ComponentPlugins;
 
-		// Since 0.7.1
-		DEBUG: boolean;
+        // Since 0.7.1
+        DEBUG: boolean;
 
         defaults: DefaultsOptions;
 
@@ -373,11 +373,11 @@ declare module Ractive {
 
         findComponent(name?: string): Ractive;
 
-		// Since 0.7.1
-		findContainer(name: string): Ractive; // TODO: Ractive?
+        // Since 0.7.1
+        findContainer(name: string): Ractive; // TODO: Ractive?
 
-		// Since 0.7.1
-		findParent(name: string): Ractive; // TODO: Ractive?
+        // Since 0.7.1
+        findParent(name: string): Ractive; // TODO: Ractive?
 
         fire(eventName: string, ...args: any[]): void; // TODO: void?
 
@@ -394,15 +394,15 @@ declare module Ractive {
         observe(keypath: string, callback: (newValue: any, oldValue: any, keypath: string) => void, options?: ObserveOptions): Observe;
         observe(map: Object, options?: ObserveOptions): Observe;
 
-		// Since 0.7.1
-		observeOnce(keypath: string, callback: (newValue: any, oldValue: any, keypath: string) => void, options?: ObserveOnceOptions): Observe;
-		
+        // Since 0.7.1
+        observeOnce(keypath: string, callback: (newValue: any, oldValue: any, keypath: string) => void, options?: ObserveOnceOptions): Observe;
+        
         // handler context Ractive
         off(eventName?: string, handler?: (event?: Ractive.Event | any, ...args: any[]) => any): Ractive;
         on(eventName: string, handler: (event?: Ractive.Event | any, ...args: any[]) => any): Observe;
         on(map: { [eventName: string]: (event?: Ractive.Event | any, ...args: any[]) => any }): Observe;
-		// Since 0.7.1
-		once(eventName: string, handler: (event?: Ractive.Event | any, ...args: any[]) => any): Observe;
+        // Since 0.7.1
+        once(eventName: string, handler: (event?: Ractive.Event | any, ...args: any[]) => any): Observe;
 
         // Since 0.5.5
         pop(keypath: string): Promise;
@@ -413,15 +413,15 @@ declare module Ractive {
         // target - Node or String or jQuery (see Valid selectors)
         render(target: any): void; // TODO: void?
 
-		// Default {}
+        // Default {}
         reset(data?: Object): Promise;
 
-		// Since 0.7.1
-		resetPartial(name: string, partial: any): Promise;
+        // Since 0.7.1
+        resetPartial(name: string, partial: any): Promise;
 
         // Since 0.5.5
         // TODO: undocumented, mentioned in ractive change log
-		// https://github.com/ractivejs/docs.ractivejs.org/issues/188
+        // https://github.com/ractivejs/docs.ractivejs.org/issues/188
         resetTemplate(): void; // TODO: void?
 
         set(keypath: string, value: any): Promise;
@@ -449,23 +449,23 @@ declare module Ractive {
 
         update(keypath?: string): Promise;
 
-	    /**
-	     * Update out of sync two-way bindings
-	     * @param keypath A string
-	     * @param cascade A boolean with default false
-	     */
+        /**
+         * Update out of sync two-way bindings
+         * @param keypath A string
+         * @param cascade A boolean with default false
+         */
         updateModel(keypath?: string, cascade?: boolean): Promise;
 
         // Properties
-		// Since 0.7.1
-		container: Ractive; // TODO: Ractive?
+        // Since 0.7.1
+        container: Ractive; // TODO: Ractive?
         nodes: Object;
         partials: Object;
-		// Since 0.7.1
-		parent: Ractive; // TODO: Ractive?
-		// Since 0.7.1
-		root: Ractive; // TODO: Ractive?
-		transitions: Object;
+        // Since 0.7.1
+        parent: Ractive; // TODO: Ractive?
+        // Since 0.7.1
+        root: Ractive; // TODO: Ractive?
+        transitions: Object;
     }
 }
 
