@@ -1,13 +1,19 @@
 import { capture } from 'src/global/capture';
-import Computation from './Computation';
 import Model from './Model';
 import { handleChange, mark } from 'shared/methodCallers';
 import RactiveModel from './specials/RactiveModel';
 import SharedModel, { GlobalModel } from './specials/SharedModel';
-import { splitKeypath, escapeKey, unescapeKey } from 'shared/keypaths';
+import { splitKeypath, unescapeKey } from 'shared/keypaths';
 import resolveReference from 'src/view/resolvers/resolveReference';
 import noop from 'utils/noop';
-import { hasOwn, keys as objectKeys } from 'utils/object';
+
+const specialModels = {
+	'@this'( root ) { return root.getRactiveModel(); },
+	'@global'() { return GlobalModel; },
+	'@shared'() { return SharedModel; },
+	'@style'( root ) { return root.getRactiveModel().joinKey( 'cssData' ); }
+};
+specialModels['@'] = specialModels['@this'];
 
 export default class RootModel extends Model {
 	constructor ( options ) {
@@ -20,20 +26,10 @@ export default class RootModel extends Model {
 		this.value = options.data;
 		this.adaptors = options.adapt;
 		this.adapt();
-
-		this.computationContext = options.ractive;
-		this.computations = {};
 	}
 
 	attached ( fragment ) {
 		attachImplicits( this, fragment );
-	}
-
-	compute ( key, signature ) {
-		const computation = new Computation( this, signature, key );
-		this.computations[ escapeKey( key ) ] = computation;
-
-		return computation;
 	}
 
 	createLink ( keypath, target, targetPath, options ) {
@@ -56,14 +52,7 @@ export default class RootModel extends Model {
 		if ( shouldCapture ) capture( this );
 
 		if ( !options || options.virtual !== false ) {
-			const result = this.getVirtual();
-			const keys = objectKeys( this.computations );
-			let i = keys.length;
-			while ( i-- ) {
-				result[ keys[i] ] = this.computations[ keys[i] ].get();
-			}
-
-			return result;
+			return this.getVirtual();
 		} else {
 			return this.value;
 		}
@@ -88,47 +77,32 @@ export default class RootModel extends Model {
 			}
 		});
 
-		for ( const k in this.computations ) {
-			children.push( this.computations[k] );
-		}
-
 		return children;
 	}
 
 	has ( key ) {
-		const value = this.value;
-		let unescapedKey = unescapeKey( key );
+		if ( key[0] === '~' && key[1] === '/' ) key = key.slice( 2 );
+		if ( specialModels[ key ] || key === '' ) return true;
 
-		if ( unescapedKey === '@this' || unescapedKey === '@global' || unescapedKey === '@shared' || unescapedKey === '@style' ) return true;
-		if ( unescapedKey[0] === '~' && unescapedKey[1] === '/' ) unescapedKey = unescapedKey.slice( 2 );
-		if ( key === '' || hasOwn( value, unescapedKey ) ) return true;
+		if ( super.has( key ) ) {
+			return true;
+		} else {
+			const unescapedKey = unescapeKey( key );
 
-		// mappings/links and computations
-		if ( key in this.computations || this.childByKey[unescapedKey] && this.childByKey[unescapedKey]._link ) return true;
-
-		// We climb up the constructor chain to find if one of them contains the unescapedKey
-		let constructor = value.constructor;
-		while ( constructor !== Function && constructor !== Array && constructor !== Object ) {
-			if ( hasOwn( constructor.prototype, unescapedKey ) ) return true;
-			constructor = constructor.constructor;
+			// mappings/links and computations
+			if ( this.childByKey[unescapedKey] && this.childByKey[unescapedKey]._link ) return true;
 		}
-
-		return false;
 	}
 
 	joinKey ( key, opts ) {
-		if ( key[0] === '@' ) {
-			if ( key === '@this' || key === '@' ) return this.getRactiveModel();
-			if ( key === '@global' ) return GlobalModel;
-			if ( key === '@shared' ) return SharedModel;
-			if ( key === '@style' ) return this.getRactiveModel().joinKey( 'cssData' );
-			return;
-		}
-
 		if ( key[0] === '~' && key[1] === '/' ) key = key.slice( 2 );
 
-		return hasOwn( this.computations, key ) ? this.computations[ key ] :
-		       super.joinKey( key, opts );
+		if ( key[0] === '@' ) {
+			const fn = specialModels[key];
+			if ( fn ) return fn( this );
+		} else {
+			return super.joinKey( key, opts );
+		}
 	}
 
 	set ( value ) {
@@ -154,13 +128,6 @@ export default class RootModel extends Model {
 
 	retrieve () {
 		return this.wrapper ? this.wrapper.get() : this.value;
-	}
-
-	teardown () {
-		super.teardown();
-		for ( const k in this.computations ) {
-			this.computations[ k ].teardown();
-		}
 	}
 }
 RootModel.prototype.update = noop;

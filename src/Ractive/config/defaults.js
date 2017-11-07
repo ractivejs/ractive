@@ -1,3 +1,5 @@
+import { create } from 'utils/object';
+
 export default {
 	// render placement:
 	el:                     void 0,
@@ -21,8 +23,8 @@ export default {
 	contextLines:           0,
 
 	// data & binding:
-	data:                   {},
-	computed:               {},
+	data:                   create( null ),
+	computed:               create( null ),
 	syncComputedChildren:   false,
 	resolveInstanceMembers: true,
 	warnAboutAmbiguity:     false,

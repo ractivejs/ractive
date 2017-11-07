@@ -11,8 +11,15 @@ import RactiveProto from '../prototype';
 import { hasOwn, keys } from 'utils/object';
 import { isFunction } from 'utils/is';
 
+const config = {
+	extend: ( Parent, proto, options, Child ) => configure( 'extend', Parent, proto, options, Child ),
+	init: ( Parent, ractive, options ) => configure( 'init', Parent, ractive, options ),
+	reset: ractive => order.filter( c => c.reset && c.reset( ractive ) ).map( c => c.name )
+};
+
 const custom = {
 	adapt: adaptConfigurator,
+	computed: config,
 	css: cssConfigurator,
 	data: dataConfigurator,
 	template: templateConfigurator
@@ -32,12 +39,6 @@ const order = [].concat(
 	custom.template,
 	custom.css
 );
-
-const config = {
-	extend: ( Parent, proto, options, Child ) => configure( 'extend', Parent, proto, options, Child ),
-	init: ( Parent, ractive, options ) => configure( 'init', Parent, ractive, options ),
-	reset: ractive => order.filter( c => c.reset && c.reset( ractive ) ).map( c => c.name )
-};
 
 function configure ( method, Parent, target, options, Child ) {
 	deprecate( options );

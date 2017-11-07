@@ -5,12 +5,12 @@ import { findInViewHierarchy } from 'shared/registry';
 import dataConfigurator from './config/custom/data';
 import RootModel from 'src/model/RootModel';
 import Hook from 'src/events/Hook';
-import getComputationSignature from './helpers/getComputationSignature';
 import subscribe from './helpers/subscribe';
 import Ractive from '../Ractive';
 import { ATTRIBUTE, INTERPOLATOR } from 'config/types';
-import { assign, create, hasOwn } from 'utils/object';
-import { isString } from 'utils/is';
+import { assign, create, hasOwn, keys } from 'utils/object';
+import { isString, isFunction } from 'utils/is';
+import { splitKeypath } from 'shared/keypaths';
 
 const constructHook = new Hook( 'construct' );
 
@@ -51,6 +51,8 @@ export default function construct ( ractive, options ) {
 		ractive[ name ] = assign( create( ractive.constructor[ name ] || null ), options[ name ] );
 	}
 
+	const computed = ractive.computed = assign( create( ractive.constructor.prototype.computed ), options.computed );
+
 	if ( ractive._attributePartial ) {
 		ractive.partials['extra-attributes'] = ractive._attributePartial;
 		delete ractive._attributePartial;
@@ -65,14 +67,15 @@ export default function construct ( ractive, options ) {
 
 	ractive.viewmodel = viewmodel;
 
-	// Add computed properties
-	const computed = assign( create( ractive.constructor.prototype.computed ), options.computed );
+	keys( computed ).forEach( k => {
+		if ( isString( computed[k] ) || isFunction( computed[k] ) ) computed[k] = { get: computed[k] };
 
-	for ( const key in computed ) {
-		if ( key === '__proto__' ) continue;
-		const signature = getComputationSignature( ractive, key, computed[ key ] );
-		viewmodel.compute( key, signature );
-	}
+		if ( splitKeypath( k ).length === 1 ) {
+			viewmodel.compute( k, computed[k] );
+		} else {
+			computed[k].pattern = new RegExp( '^' + k.replace( /\*\*/g, '(.+)' ).replace( /\*/g, '((?:\\.|[^\\.])+)' ) + '$' );
+		}
+	});
 }
 
 function getAdaptors ( ractive, protoAdapt, options ) {

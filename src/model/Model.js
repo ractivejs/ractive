@@ -1,14 +1,17 @@
 import ModelBase, { maybeBind, shuffle } from './ModelBase';
 import LinkModel from './LinkModel'; // eslint-disable-line no-unused-vars
 import KeypathModel from './specials/KeypathModel';
+import getComputationSignature from 'src/Ractive/helpers/getComputationSignature';
 import { capture } from 'src/global/capture';
 import { isArray, isEqual, isNumeric, isObjectLike } from 'utils/is';
 import { handleChange, mark, markForce, marked, teardown } from 'shared/methodCallers';
 import Ticker from 'shared/Ticker';
 import getPrefixer from './helpers/getPrefixer';
-import { unescapeKey } from 'shared/keypaths';
+import { escapeKey, unescapeKey } from 'shared/keypaths';
 import { warnIfDebug } from 'utils/log';
-import { hasOwn } from 'utils/object';
+import { hasOwn, keys } from 'utils/object';
+
+export const shared = {};
 
 export default class Model extends ModelBase {
 	constructor ( parent, key ) {
@@ -156,6 +159,10 @@ export default class Model extends ModelBase {
 		}
 	}
 
+	compute ( key, computed ) {
+		return ( this.computed || ( this.computed = {} ) )[ escapeKey( key ) ] = new shared.Computation( this, getComputationSignature( this.root.ractive, key, computed ), key );
+	}
+
 	createBranch ( key ) {
 		const branch = isNumeric( key ) ? [] : {};
 		this.applyValue( branch, false );
@@ -184,15 +191,34 @@ export default class Model extends ModelBase {
 
 		if ( key === undefined || key === '' ) return this;
 
+		let child;
+		if ( hasOwn( this.childByKey, key ) ) child = this.childByKey[ key ];
+		else child = this.computed && this.computed[ key ];
 
-		if ( !hasOwn( this.childByKey, key ) ) {
-			const child = new Model( this, key );
+		if ( !child ) {
+			let computed;
+			if ( this.isRoot && this.ractive && ( computed = this.ractive.computed[ key ] ) ) {
+				child = this.compute( key, computed );
+			} else if ( !this.isRoot && this.root.ractive ) {
+				const registry = this.root.ractive.computed;
+				for ( const k in registry ) {
+					computed = registry[k];
+					if ( computed.pattern && computed.pattern.test( this.getKeypath() + '.' + key ) ) {
+						child = this.compute( key, computed );
+					}
+				}
+			}
+		}
+
+		if ( !child ) {
+			child = new Model( this, key );
 			this.children.push( child );
 			this.childByKey[ key ] = child;
 		}
 
-		if ( this.childByKey[ key ]._link && ( !opts || opts.lastLink !== false ) ) return this.childByKey[ key ]._link;
-		return this.childByKey[ key ];
+		if (  child._link && ( !opts || opts.lastLink !== false ) ) return child._link;
+
+		return child;
 	}
 
 	mark ( force ) {
@@ -291,6 +317,7 @@ export default class Model extends ModelBase {
 		this.children.forEach( teardown );
 		if ( this.wrapper ) this.wrapper.teardown();
 		if ( this.keypathModel ) this.keypathModel.teardown();
+		if ( this.computed ) keys( this.computed ).forEach( k => this.computed[k].teardown() );
 	}
 }
 

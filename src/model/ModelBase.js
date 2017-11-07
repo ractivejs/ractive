@@ -4,10 +4,11 @@ import { escapeKey, unescapeKey } from 'shared/keypaths';
 import { addToArray, removeFromArray } from 'utils/array';
 import { isArray, isObject, isFunction } from 'utils/is';
 import bind from 'utils/bind';
-import { hasOwn, keys as objectKeys } from 'utils/object';
+import { create, hasOwn, keys as objectKeys } from 'utils/object';
 
 const shuffleTasks = { early: [], mark: [] };
 const registerQueue = { early: [], mark: [] };
+export const noVirtual = { virtual: false };
 
 export default class ModelBase {
 	constructor ( parent ) {
@@ -20,7 +21,6 @@ export default class ModelBase {
 		this.keyModels = {};
 
 		this.bindings = [];
-		this.patternObservers = [];
 
 		if ( parent ) {
 			this.parent = parent;
@@ -97,15 +97,20 @@ export default class ModelBase {
 			return [];
 		}
 
+		const computed = this.computed;
+		if ( computed ) {
+			children.push.apply( children, objectKeys( computed ).map( k => this.joinKey( k ) ) );
+		}
+
 		return children;
 	}
 
 	getVirtual ( shouldCapture ) {
 		const value = this.get( shouldCapture, { virtual: false } );
 		if ( isObject( value ) ) {
-			const result = isArray( value ) ? [] : {};
+			const result = isArray( value ) ? [] : create( null );
 
-			const keys = objectKeys( value );
+			let keys = objectKeys( value );
 			let i = keys.length;
 			while ( i-- ) {
 				const child = this.childByKey[ keys[i] ];
@@ -122,6 +127,14 @@ export default class ModelBase {
 				}
 			}
 
+			if ( this.computed ) {
+				keys = objectKeys( this.computed );
+				i = keys.length;
+				while ( i-- ) {
+					result[ keys[i] ] = this.computed[ keys[i] ].get();
+				}
+			}
+
 			return result;
 		} else return value;
 	}
@@ -129,7 +142,7 @@ export default class ModelBase {
 	has ( key ) {
 		if ( this._link ) return this._link.has( key );
 
-		const value = this.get();
+		const value = this.get( false, noVirtual );
 		if ( !value ) return false;
 
 		key = unescapeKey( key );
@@ -141,6 +154,14 @@ export default class ModelBase {
 			if ( hasOwn( constructor.prototype, key ) ) return true;
 			constructor = constructor.constructor;
 		}
+
+		let computed = this.computed;
+		if ( computed && key in this.computed ) return true;
+
+		computed = this.root.ractive.computed;
+		objectKeys( computed ).forEach( k => {
+			if ( computed[k].pattern && computed[k].pattern.test( this.getKeypath() ) ) return true;
+		});
 
 		return false;
 	}
@@ -159,7 +180,7 @@ export default class ModelBase {
 		let parent = this.parent;
 		const path = startPath || [ this.key ];
 		while ( parent ) {
-			if ( parent.patternObservers.length ) parent.patternObservers.forEach( o => o.notify( path.slice() ) );
+			if ( parent.patterns ) parent.patterns.forEach( o => o.notify( path.slice() ) );
 			path.unshift( parent.key );
 			parent.links.forEach( l => l.notifiedUpstream( path, this.root ) );
 			parent.deps.forEach( d => d.handleChange( path ) );
@@ -213,7 +234,7 @@ export default class ModelBase {
 	}
 
 	registerPatternObserver ( observer ) {
-		this.patternObservers.push( observer );
+		( this.patterns || ( this.patterns = [] ) ).push( observer );
 		this.register( observer );
 	}
 
@@ -234,7 +255,7 @@ export default class ModelBase {
 	}
 
 	unregisterPatternObserver ( observer ) {
-		removeFromArray( this.patternObservers, observer );
+		removeFromArray( this.patterns, observer );
 		this.unregister( observer );
 	}
 
