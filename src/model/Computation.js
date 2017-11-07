@@ -3,26 +3,20 @@
 
 import { capture, startCapturing, stopCapturing } from 'src/global/capture';
 import { warnIfDebug } from 'utils/log';
-import Model from './Model';
-import { maybeBind } from './ModelBase';
+import Model, { shared } from './Model';
+import { maybeBind, noVirtual } from './ModelBase';
 import ComputationChild from './ComputationChild';
 import { hasConsole } from 'config/environment';
 import { isEqual } from 'utils/is';
 import runloop from 'src/global/runloop';
 
 export default class Computation extends Model {
-	constructor ( viewmodel, signature, key ) {
-		super( null, null );
+	constructor ( parent, signature, key ) {
+		super( parent, key );
 
-		this.root = this.parent = viewmodel;
 		this.signature = signature;
 
-		this.key = key; // not actually used, but helps with debugging
-		this.isExpression = key && key[0] === '@';
-
 		this.isReadonly = !this.signature.setter;
-
-		this.context = viewmodel.computationContext;
 
 		this.dependencies = [];
 
@@ -69,12 +63,16 @@ export default class Computation extends Model {
 		);
 	}
 
+	getContext () {
+		return this.parent.isRoot ? this.root.ractive : this.parent.get( false, noVirtual );
+	}
+
 	getValue () {
 		startCapturing();
 		let result;
 
 		try {
-			result = this.signature.getter.call( this.context );
+			result = this.signature.getter.call( this.root.ractive, this.getContext() );
 		} catch ( err ) {
 			warnIfDebug( `Failed to compute ${this.getKeypath()}: ${err.message || err}` );
 
@@ -136,7 +134,7 @@ export default class Computation extends Model {
 		while ( i-- ) {
 			if ( this.dependencies[i] ) this.dependencies[i].unregister( this );
 		}
-		if ( this.root.computations[this.key] === this ) delete this.root.computations[this.key];
+		if ( this.parent.computed[this.key] === this ) delete this.parent.computed[this.key];
 		super.teardown();
 	}
 }
@@ -145,3 +143,5 @@ const prototype = Computation.prototype;
 const child = ComputationChild.prototype;
 prototype.handleChange = child.handleChange;
 prototype.joinKey = child.joinKey;
+
+shared.Computation = Computation;
