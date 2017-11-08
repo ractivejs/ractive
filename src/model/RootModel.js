@@ -2,7 +2,7 @@ import { capture } from 'src/global/capture';
 import Model from './Model';
 import { handleChange, mark } from 'shared/methodCallers';
 import RactiveModel from './specials/RactiveModel';
-import SharedModel, { GlobalModel } from './specials/SharedModel';
+import SharedModel, { GlobalModel, SharedModel as SharedBase } from './specials/SharedModel';
 import { splitKeypath, unescapeKey } from 'shared/keypaths';
 import resolveReference from 'src/view/resolvers/resolveReference';
 import noop from 'utils/noop';
@@ -11,7 +11,8 @@ const specialModels = {
 	'@this'( root ) { return root.getRactiveModel(); },
 	'@global'() { return GlobalModel; },
 	'@shared'() { return SharedModel; },
-	'@style'( root ) { return root.getRactiveModel().joinKey( 'cssData' ); }
+	'@style'( root ) { return root.getRactiveModel().joinKey( 'cssData' ); },
+	'@helpers'(root) { return root.getHelpers(); }
 };
 specialModels['@'] = specialModels['@this'];
 
@@ -56,6 +57,11 @@ export default class RootModel extends Model {
 		} else {
 			return this.value;
 		}
+	}
+
+	getHelpers() {
+		if ( !this.helpers ) this.helpers = new SharedBase( this.ractive.helpers, 'helpers' );
+		return this.helpers;
 	}
 
 	getKeypath () {

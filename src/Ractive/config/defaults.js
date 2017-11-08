@@ -24,6 +24,7 @@ export default {
 
 	// data & binding:
 	data:                   create( null ),
+	helpers:                create( null ),
 	computed:               create( null ),
 	syncComputedChildren:   false,
 	resolveInstanceMembers: true,

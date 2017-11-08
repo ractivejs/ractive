@@ -127,10 +127,21 @@ export default function resolveReference ( fragment, ref ) {
 			return fragment.ractive.constructor._cssModel.joinAll( keys );
 		}
 
+		// @helpers instance model
+		else if ( base === '@helpers' ) {
+			return fragment.ractive.viewmodel.getHelpers().joinAll( keys );
+		}
+
 		// nope
 		else {
 			throw new Error( `Invalid special reference '${base}'` );
 		}
+	}
+
+	// helpers
+	if ( base && !keys.length ) {
+		const helpers = fragment.ractive.viewmodel.getHelpers();
+		if ( helpers.has( base ) ) return helpers.joinKey( base );
 	}
 
 	let context = findContext( fragment );
