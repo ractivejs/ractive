@@ -25,6 +25,11 @@ const registryNames = [
 	'transitions'
 ];
 
+const protoRegistries = [
+	'computed',
+	'helpers'
+];
+
 let uid = 0;
 
 export default function construct ( ractive, options ) {
@@ -51,7 +56,11 @@ export default function construct ( ractive, options ) {
 		ractive[ name ] = assign( create( ractive.constructor[ name ] || null ), options[ name ] );
 	}
 
-	const computed = ractive.computed = assign( create( ractive.constructor.prototype.computed ), options.computed );
+	i = protoRegistries.length;
+	while ( i-- ) {
+		const name = protoRegistries[ i ];
+		ractive[ name ] = assign( create( ractive.constructor.prototype[ name ] ), options[ name ] );
+	}
 
 	if ( ractive._attributePartial ) {
 		ractive.partials['extra-attributes'] = ractive._attributePartial;
@@ -67,6 +76,7 @@ export default function construct ( ractive, options ) {
 
 	ractive.viewmodel = viewmodel;
 
+	const computed = ractive.computed;
 	keys( computed ).forEach( k => {
 		if ( isString( computed[k] ) || isFunction( computed[k] ) ) computed[k] = { get: computed[k] };
 

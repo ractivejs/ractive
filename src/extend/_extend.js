@@ -103,9 +103,8 @@ function extendOne ( Parent, options = {}, Target ) {
 
 	dataConfigurator.extend( Parent, proto, options, Child );
 
-	if ( options.computed ) {
-		proto.computed = assign( create( Parent.prototype.computed ), options.computed );
-	}
+	proto.computed = assign( create( Parent.prototype.computed ), options.computed );
+	proto.helpers = assign( create( Parent.prototype.helpers ), options.helpers );
 
 	return Child;
 }

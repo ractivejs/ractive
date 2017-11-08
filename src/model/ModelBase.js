@@ -4,7 +4,7 @@ import { escapeKey, unescapeKey } from 'shared/keypaths';
 import { addToArray, removeFromArray } from 'utils/array';
 import { isArray, isObject, isFunction } from 'utils/is';
 import bind from 'utils/bind';
-import { create, hasOwn, keys as objectKeys } from 'utils/object';
+import { create, keys as objectKeys } from 'utils/object';
 
 const shuffleTasks = { early: [], mark: [] };
 const registerQueue = { early: [], mark: [] };
@@ -94,7 +94,7 @@ export default class ModelBase {
 		}
 
 		else if ( value != null ) {
-			return [];
+			children = [];
 		}
 
 		const computed = this.computed;
@@ -146,22 +146,17 @@ export default class ModelBase {
 		if ( !value ) return false;
 
 		key = unescapeKey( key );
-		if ( hasOwn( value, key ) ) return true;
-
-		// We climb up the constructor chain to find if one of them contains the key
-		let constructor = value.constructor;
-		while ( constructor !== Function && constructor !== Array && constructor !== Object ) {
-			if ( hasOwn( constructor.prototype, key ) ) return true;
-			constructor = constructor.constructor;
-		}
+		if ( ( isFunction( value ) || isObject( value ) ) && key in value ) return true;
 
 		let computed = this.computed;
 		if ( computed && key in this.computed ) return true;
 
-		computed = this.root.ractive.computed;
-		objectKeys( computed ).forEach( k => {
-			if ( computed[k].pattern && computed[k].pattern.test( this.getKeypath() ) ) return true;
-		});
+		computed = this.root.ractive && this.root.ractive.computed;
+		if ( computed ) {
+			objectKeys( computed ).forEach( k => {
+				if ( computed[k].pattern && computed[k].pattern.test( this.getKeypath() ) ) return true;
+			});
+		}
 
 		return false;
 	}

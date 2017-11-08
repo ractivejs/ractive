@@ -22,6 +22,7 @@ const custom = {
 	computed: config,
 	css: cssConfigurator,
 	data: dataConfigurator,
+	helpers: config,
 	template: templateConfigurator
 };
 

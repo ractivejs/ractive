@@ -15,6 +15,7 @@ export default function() {
 			'staticDelimiters',
 			'staticTripleDelimiters',
 			'csp',
+			'helpers',
 			'interpolate',
 			'preserveWhitespace',
 			'sanitize',
@@ -56,6 +57,7 @@ export default function() {
 			'delegate',
 			'delimiters',
 			'el',
+			'helpers',
 			'interpolate',
 			'isolated',
 			'lazy',
@@ -88,6 +90,7 @@ export default function() {
 		];
 
 		const expectedPrototypeRegistries = [
+			'helpers',
 			'computed'
 		];
 
