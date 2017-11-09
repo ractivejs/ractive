@@ -8,9 +8,9 @@ import Hook from 'src/events/Hook';
 import subscribe from './helpers/subscribe';
 import Ractive from '../Ractive';
 import { ATTRIBUTE, INTERPOLATOR } from 'config/types';
-import { assign, create, hasOwn, keys } from 'utils/object';
-import { isString, isFunction } from 'utils/is';
-import { splitKeypath } from 'shared/keypaths';
+import { assign, create, hasOwn } from 'utils/object';
+import { isString } from 'utils/is';
+import { compute } from 'src/Ractive/prototype/compute';
 
 const constructHook = new Hook( 'construct' );
 
@@ -76,16 +76,9 @@ export default function construct ( ractive, options ) {
 
 	ractive.viewmodel = viewmodel;
 
-	const computed = ractive.computed;
-	keys( computed ).forEach( k => {
-		if ( isString( computed[k] ) || isFunction( computed[k] ) ) computed[k] = { get: computed[k] };
-
-		if ( splitKeypath( k ).length === 1 ) {
-			viewmodel.compute( k, computed[k] );
-		} else {
-			computed[k].pattern = new RegExp( '^' + k.replace( /\*\*/g, '(.+)' ).replace( /\*/g, '((?:\\.|[^\\.])+)' ) + '$' );
-		}
-	});
+	for ( const k in ractive.computed ) {
+		compute.call( ractive, k, ractive.computed[k] );
+	}
 }
 
 function getAdaptors ( ractive, protoAdapt, options ) {

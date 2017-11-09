@@ -1,6 +1,7 @@
 import add from './prototype/add';
 import animate from './prototype/animate';
 import attachChild from './prototype/attachChild';
+import compute from './prototype/compute';
 import detach from './prototype/detach';
 import detachChild from './prototype/detachChild';
 import find from './prototype/find';
@@ -50,6 +51,7 @@ const proto = {
 	add,
 	animate,
 	attachChild,
+	compute,
 	detach,
 	detachChild,
 	find,
