@@ -40,6 +40,8 @@ export default class ComputationChild extends Model {
 			this.dirty = false;
 			const parentValue = this.parent.get();
 			this.value = parentValue ? parentValue[ this.key ] : undefined;
+			if ( this.wrapper ) this.newWrapperValue = this.value;
+			this.adapt();
 		}
 
 		return this.value;
