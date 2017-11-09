@@ -903,4 +903,37 @@ export default function() {
 
 	});
 
+	test( `children of computations are also adapted (#3130)`, t => {
+		const arr = [ 'hello' ];
+		let count = 0;
+
+		const Adaptor = {
+			filter ( v ) { return typeof v === 'string'; },
+			wrap ( ractive, v ) {
+				return {
+					get () { return v + ' adapted'; },
+					teardown () { count++; }
+				};
+			}
+		};
+
+		const r = new Ractive({
+			target: fixture,
+			template: '{{#each list}}{{.}}{{/each}}',
+			adapt: [ Adaptor ],
+			computed: {
+				list: {
+					get () { return arr; },
+				}
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'hello adapted' );
+
+		arr[0] = 'still';
+		r.update( 'list' );
+
+		t.htmlEqual( fixture.innerHTML, 'still adapted' );
+		t.equal( count, 1 );
+	});
 }
