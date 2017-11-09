@@ -284,7 +284,10 @@ export default class Model extends ModelBase {
 	source () { return this; }
 
 	teardown () {
-		if ( this._link ) this._link.teardown();
+		if ( this._link ) {
+			this._link.teardown();
+			this._link = null;
+		}
 		this.children.forEach( teardown );
 		if ( this.wrapper ) this.wrapper.teardown();
 		if ( this.keypathModel ) this.keypathModel.teardown();

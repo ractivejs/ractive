@@ -21,7 +21,6 @@ export default function Ractive$teardown () {
 
 export function teardown ( instance, getPromise ) {
 	instance.torndown = true;
-	instance.viewmodel.teardown();
 	instance.fragment.unbind();
 	instance._observers.slice().forEach( cancel );
 
@@ -32,7 +31,11 @@ export function teardown ( instance, getPromise ) {
 	const promise = getPromise();
 
 	teardownHook.fire( instance );
-	promise.then( () => destructHook.fire( instance ) );
+
+	promise.then( () => {
+		destructHook.fire( instance );
+		instance.viewmodel.teardown();
+	});
 
 	return promise;
 }

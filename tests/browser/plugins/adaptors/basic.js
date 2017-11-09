@@ -152,6 +152,8 @@ export default function() {
 	});
 
 	test( 'Adaptor teardown is called when used in a component (#1190)', t => {
+		const done = t.async();
+
 		function Wrapped () {}
 
 		let torndown = 0;
@@ -183,8 +185,9 @@ export default function() {
 		});
 
 		t.htmlEqual( fixture.innerHTML, 'bar' );
-		ractive.teardown();
-		t.equal( torndown, 1 );
+		ractive.teardown().then( () => {
+			t.equal( torndown, 1 );
+		}).then( done, done );
 	});
 
 
