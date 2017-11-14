@@ -956,22 +956,35 @@ export default function() {
 		const r = new Ractive({
 			adapt: [ Adaptor ],
 			target: fixture,
-			template: '{{scalar}}, {{#each list}}{{.}}{{/each}}',
+			components: {
+				c: Ractive.extend({
+					template: '{{data}}',
+				}),
+			},
+			template: '{{scalar}}, {{#each list}}{{.}}{{/each}}, <c data={{scalar}} />, <c data={{list.0}} />',
 			computed: {
 				scalar() { return value; },
 				list() { return [value]; },
 			}
 		});
 
+		const children = r.findAllComponents('c');
+
 		t.strictEqual(r.get('scalar'), value, 'the computation should be unwrapped by default');
 		t.strictEqual(r.get('list.0'), value, 'the computation children should be unwrapped by default');
+		t.strictEqual(children[0].get('data'), value, 'the linked computation should be unwrapped by default');
+		t.strictEqual(children[1].get('data'), value, 'the linked computation children should be unwrapped by default');
 
 		t.strictEqual(r.get('scalar', {unwrap: false}), 'hello adapted', 'the computation should be wrapped');
 		t.strictEqual(r.get('list.0', {unwrap: false}), 'hello adapted', 'the computation children should be wrapped');
+		t.strictEqual(children[0].get('data', {unwrap: false}), 'hello adapted', 'the linked computation should be wrapped');
+		t.strictEqual(children[1].get('data', {unwrap: false}), 'hello adapted', 'the linked computation children should be wrapped');
 
 		t.strictEqual(r.get('scalar', {unwrap: true}), 'hello', 'the computation should be unwrapped');
 		t.strictEqual(r.get('list.0', {unwrap: true}), 'hello', 'the computation children should be unwrapped');
+		t.strictEqual(children[0].get('data', {unwrap: true}), 'hello', 'the linked computation should be unwrapped');
+		t.strictEqual(children[1].get('data', {unwrap: true}), 'hello', 'the linked computation children should be unwrapped');
 
-		t.htmlEqual( fixture.innerHTML, 'hello adapted, hello adapted', 'the output should use the wrapped value');
+		t.htmlEqual( fixture.innerHTML, 'hello adapted, hello adapted, hello adapted, hello adapted', 'the output should use the wrapped value');
 	});
 }
