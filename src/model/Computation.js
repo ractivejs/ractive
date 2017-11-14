@@ -40,7 +40,7 @@ export default class Computation extends Model {
 		if ( this.signature.setter ) return this;
 	}
 
-	get ( shouldCapture ) {
+	get ( shouldCapture, opts ) {
 		if ( shouldCapture ) capture( this );
 
 		if ( this.dirty ) {
@@ -53,7 +53,7 @@ export default class Computation extends Model {
 		}
 
 		// if capturing, this value needs to be unwrapped because it's for external use
-		return maybeBind( this, shouldCapture && this.wrapper ? this.wrapperValue : this.value );
+		return maybeBind( this, shouldCapture && this.wrapper && !(opts && opts.unwrap === false) ? this.wrapperValue : this.value );
 	}
 
 	getValue () {
