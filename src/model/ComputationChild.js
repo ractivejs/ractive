@@ -33,7 +33,7 @@ export default class ComputationChild extends Model {
 		}
 	}
 
-	get ( shouldCapture ) {
+	get ( shouldCapture, opts ) {
 		if ( shouldCapture ) capture( this );
 
 		if ( this.dirty ) {
@@ -44,7 +44,7 @@ export default class ComputationChild extends Model {
 			this.adapt();
 		}
 
-		return this.value;
+		return shouldCapture && this.wrapper && !(opts && opts.unwrap === false) ? this.wrapperValue : this.value;
 	}
 
 	handleChange () {
