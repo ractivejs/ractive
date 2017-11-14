@@ -53,7 +53,12 @@ export default class Computation extends Model {
 		}
 
 		// if capturing, this value needs to be unwrapped because it's for external use
-		return maybeBind( this, ( ( opts && 'unwrap' in opts ) ? opts.unwrap !== false : shouldCapture ) && this.wrapper ? this.wrapperValue : this.value, !opts || opts.shouldBind !== false );
+		return maybeBind(
+			this,
+			// if unwrap is supplied, it overrides capture
+			this.wrapper && ( ( opts && 'unwrap' in opts ) ? opts.unwrap !== false : shouldCapture ) ? this.wrapperValue : this.value,
+			!opts || opts.shouldBind !== false
+		);
 	}
 
 	getValue () {
