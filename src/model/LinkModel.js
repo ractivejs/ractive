@@ -67,7 +67,7 @@ export default class LinkModel extends ModelBase {
 			capture( this );
 
 			// may need to tell the target to unwrap
-			opts.unwrap = true;
+			opts.unwrap = 'unwrap' in opts ? opts.unwrap : true;
 		}
 
 		const bind = 'shouldBind' in opts ? opts.shouldBind : true;
