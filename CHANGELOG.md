@@ -1,5 +1,17 @@
 # changelog
 
+# 0.9.10
+
+* Bug fixes
+	* Computations and their children now unwrap and adapt correctly thanks to @m-r-r (#3130, #3137)
+	* Computations and linked computations that are spliced will now invalidate rather than breaking the runloop (#3127)
+	* Viewmodel teardown is deferred until lifecycle events are complete to avoid leakage due to mappings being expanded after teardown (#3131)
+
+* Other changes
+	* _Any_ type of event including component events are now targetable using `context.raise`
+	* Context objects now include a `hasListener(name[, bubble])` helper that checks for event listeners available in the template from the context's position. By default, it only checks the immediate parent, but can be told to check all ancestors by passing `true` for the optional `bubble` argument.
+
+
 # 0.9.9
 
 * Bug fixes
