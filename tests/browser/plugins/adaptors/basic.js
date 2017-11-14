@@ -939,4 +939,39 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'still adapted' );
 		t.equal( count, 1 );
 	});
+
+	test( `Children of computed properties should be unwrapped by ractive.get() (#3137)`, (t) => {
+		const value = 'hello';
+
+		const Adaptor = {
+			filter ( v ) { return v === value; },
+			wrap ( ractive, v ) {
+				return {
+					get () { return v + ' adapted'; },
+					teardown () { }
+				};
+			}
+		};
+
+		const r = new Ractive({
+			adapt: [ Adaptor ],
+			target: fixture,
+			template: '{{scalar}}, {{#each list}}{{.}}{{/each}}',
+			computed: {
+				scalar() { return value; },
+				list() { return [value]; },
+			}
+		});
+
+		t.strictEqual(r.get('scalar'), value, 'the computation should be unwrapped by default');
+		t.strictEqual(r.get('list.0'), value, 'the computation children should be unwrapped by default');
+
+		t.strictEqual(r.get('scalar', {unwrap: false}), 'hello adapted', 'the computation should be wrapped');
+		t.strictEqual(r.get('list.0', {unwrap: false}), 'hello adapted', 'the computation children should be wrapped');
+
+		t.strictEqual(r.get('scalar', {unwrap: true}), 'hello', 'the computation should be unwrapped');
+		t.strictEqual(r.get('list.0', {unwrap: true}), 'hello', 'the computation children should be unwrapped');
+
+		t.htmlEqual( fixture.innerHTML, 'hello adapted, hello adapted', 'the output should use the wrapped value');
+	});
 }
