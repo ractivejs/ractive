@@ -173,7 +173,11 @@ export default class LinkModel extends ModelBase {
 
 		// let the real model handle firing off shuffles
 		if ( !this.target.shuffling ) {
-			this.target.shuffle( newIndices );
+			if ( this.target.shuffle ) {
+				this.target.shuffle( newIndices );
+			} else { // the target is a computation, which can't shuffle
+				this.target.mark();
+			}
 		} else {
 			shuffle( this, newIndices, true );
 		}

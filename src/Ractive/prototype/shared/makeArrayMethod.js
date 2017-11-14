@@ -33,7 +33,11 @@ export default function ( methodName ) {
 		promise.result = result;
 
 		if ( newIndices ) {
-			mdl.shuffle( newIndices );
+			if ( mdl.shuffle ) {
+				mdl.shuffle( newIndices );
+			} else { // it's a computation, which don't have a shuffle, so just invalidate
+				mdl.mark();
+			}
 		} else {
 			mdl.set( result );
 		}
