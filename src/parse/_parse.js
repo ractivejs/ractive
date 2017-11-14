@@ -12,8 +12,11 @@ import readElement from './converters/readElement';
 import readText from './converters/readText';
 import readPartialDefinitionSection from './converters/readPartialDefinitionSection';
 import readTemplate from './converters/readTemplate';
+import readExpression from './converters/readExpression';
+import { fromExpression } from './utils/createFunction';
 import cleanup from './utils/cleanup';
 import insertExpressions from './utils/insertExpressions';
+import flattenExpression from './utils/flattenExpression';
 import shared from '../Ractive/shared';
 import { create, keys } from 'utils/object';
 
@@ -71,28 +74,36 @@ const StandardParser = Parser.extend({
 		this.csp = options.csp;
 		this.allowExpressions = options.allowExpressions;
 
+		if ( options.expression ) this.converters = [ readExpression ];
+
 		if ( options.attributes ) this.inTag = true;
 	},
 
-	postProcess ( result ) {
-		// special case - empty string
-		if ( !result.length ) {
-			return { t: [], v: TEMPLATE_VERSION };
+	postProcess ( result, options ) {
+		if ( options.expression ) {
+			const expr = flattenExpression( result[0] );
+			expr.e = fromExpression( expr.s, expr.r.length );
+			return expr;
+		} else {
+			// special case - empty string
+			if ( !result.length ) {
+				return { t: [], v: TEMPLATE_VERSION };
+			}
+
+			if ( this.sectionDepth > 0 ) {
+				this.error( 'A section was left open' );
+			}
+
+			cleanup( result[0].t, this.stripComments, this.preserveWhitespace, !this.preserveWhitespace, !this.preserveWhitespace );
+
+			if ( this.csp !== false ) {
+				const expr = {};
+				insertExpressions( result[0].t, expr );
+				if ( keys( expr ).length ) result[0].e = expr;
+			}
+
+			return result[0];
 		}
-
-		if ( this.sectionDepth > 0 ) {
-			this.error( 'A section was left open' );
-		}
-
-		cleanup( result[0].t, this.stripComments, this.preserveWhitespace, !this.preserveWhitespace, !this.preserveWhitespace );
-
-		if ( this.csp !== false ) {
-			const expr = {};
-			insertExpressions( result[0].t, expr );
-			if ( keys( expr ).length ) result[0].e = expr;
-		}
-
-		return result[0];
 	},
 
 	converters: [

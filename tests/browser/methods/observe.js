@@ -826,7 +826,7 @@ export default function() {
 		const ractive = new Ractive({
 			data: { num: 21 },
 			computed: {
-				doubled: '${num}*2'
+				doubled: 'num*2'
 			}
 		});
 
@@ -934,7 +934,7 @@ export default function() {
 			el: fixture,
 			template: `{{ foo + 2 }}`,
 			data: { foo: 1 },
-			computed: { bar: '${foo} + 1'},
+			computed: { bar: 'foo + 1'},
 			oninit () {
 				this.observe( '*', ( n, o, k ) => {
 					t.ok( k[0] !== '@' );
@@ -1906,7 +1906,7 @@ export default function() {
 				foo: ''
 			},
 			computed: {
-				expr: '${foo}'
+				expr: 'foo'
 			}
 		});
 	});
