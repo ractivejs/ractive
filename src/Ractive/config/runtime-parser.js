@@ -1,4 +1,4 @@
-import { fromExpression, fromComputationString } from 'parse/utils/createFunction';
+import { fromExpression } from 'parse/utils/createFunction';
 import { doc } from 'config/environment';
 import { fatal } from 'utils/log';
 import { addFunctions } from 'shared/getFunction';
@@ -24,7 +24,6 @@ const TEMPLATE_INSTRUCTIONS = `Either preparse or use a ractive runtime source t
 
 const COMPUTATION_INSTRUCTIONS = `Either include a version of Ractive that can parse or convert your computation strings to functions.`;
 
-
 function throwNoParse ( method, error, instructions ) {
 	if ( !method ) {
 		fatal( `Missing Ractive.parse - cannot parse ${error}. ${instructions}` );
@@ -37,8 +36,11 @@ export function createFunction ( body, length ) {
 }
 
 export function createFunctionFromString ( str, bindTo ) {
-	throwNoParse( fromComputationString, 'compution string "${str}"', COMPUTATION_INSTRUCTIONS );
-	return fromComputationString( str, bindTo );
+	throwNoParse( parse, 'compution string "${str}"', COMPUTATION_INSTRUCTIONS );
+	const tpl = parse( str, { expression: true } );
+	return function () {
+		return tpl.e.apply( bindTo, tpl.r.map( r => bindTo.get( r ) ) );
+	};
 }
 
 const parser = {

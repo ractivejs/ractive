@@ -124,7 +124,7 @@ export default function() {
 		const ractive = new Ractive({
 			data: { foo: 'bar' },
 			computed: {
-				bizz: '${foo} + "ftw"'
+				bizz: 'foo + "ftw"'
 			},
 			onconfig () {
 				t.equal( this.get( 'foo' ), 'bar' );
