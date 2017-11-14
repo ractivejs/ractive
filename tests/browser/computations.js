@@ -1183,4 +1183,51 @@ export default function() {
 			t.htmlEqual( fixture.innerHTML, `[1,2,"a","b","c",{"bip":99,"bop":42,"0a":"z","1a":26,"2a":"y","3a":25,"4a":2,"5a":"zip","bif":84},123,2,1]` );
 		});
 	}
+
+	test( `splicing a computation invalidates the computation (#3127)`, t => {
+		const arr = [ 1, 2, 3 ];
+
+		const r = new Ractive({
+			target: fixture,
+			template: '{{#each items}}{{.}}{{/each}}',
+			computed: {
+				items () {
+					return arr;
+				}
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '123' );
+
+		r.splice( 'items', 1, 1 );
+
+		t.equal( arr.length, 2 );
+		t.htmlEqual( fixture.innerHTML, '13' );
+	});
+
+	test( `splicing a link to a computation invalidates the computation (#3127)`, t => {
+		const arr = [ 1, 2, 3 ];
+
+		const cmp = Ractive.extend({
+			template: '{{#each items}}{{.}}{{/each}}'
+		});
+
+		const r = new Ractive({
+			target: fixture,
+			template: '<cmp bind-items />',
+			computed: {
+				items () {
+					return arr;
+				}
+			},
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '123' );
+
+		r.findComponent( 'cmp' ).splice( 'items', 1, 1 );
+
+		t.equal( arr.length, 2 );
+		t.htmlEqual( fixture.innerHTML, '13' );
+	});
 }
