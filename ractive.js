@@ -1,7 +1,7 @@
 /*
-	Ractive.js v0.9.9
-	Build: 45f61d837bf610970e0bd6591c98587cfd49a024
-	Date: Thu Nov 02 2017 20:19:45 GMT+0000 (UTC)
+	Ractive.js v0.9.10
+	Build: d7e22b37fb41c651ffc60d1e2f3770f53a2447a4
+	Date: Tue Nov 14 2017 22:41:48 GMT+0000 (UTC)
 	Website: http://ractivejs.org
 	License: MIT
 */
@@ -476,13 +476,13 @@ var welcome;
 
 if ( hasConsole ) {
 	var welcomeIntro = [
-		"%cRactive.js %c0.9.9 %cin debug mode, %cmore...",
+		"%cRactive.js %c0.9.10 %cin debug mode, %cmore...",
 		'color: rgb(114, 157, 52); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 	];
-	var welcomeMessage = "You're running Ractive 0.9.9 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+	var welcomeMessage = "You're running Ractive 0.9.10 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
 	welcome = function () {
 		if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -1554,7 +1554,7 @@ var LinkModel = (function (ModelBase) {
 			capture( this );
 
 			// may need to tell the target to unwrap
-			opts.unwrap = true;
+			opts.unwrap = 'unwrap' in opts ? opts.unwrap : true;
 		}
 
 		var bind$$1 = 'shouldBind' in opts ? opts.shouldBind : true;
@@ -1664,7 +1664,11 @@ var LinkModel = (function (ModelBase) {
 
 		// let the real model handle firing off shuffles
 		if ( !this.target.shuffling ) {
-			this.target.shuffle( newIndices );
+			if ( this.target.shuffle ) {
+				this.target.shuffle( newIndices );
+			} else { // the target is a computation, which can't shuffle
+				this.target.mark();
+			}
 		} else {
 			shuffle( this, newIndices, true );
 		}
@@ -2398,7 +2402,10 @@ var Model = (function (ModelBase) {
 	Model__proto__.source = function source () { return this; };
 
 	Model__proto__.teardown = function teardown$3 () {
-		if ( this._link ) { this._link.teardown(); }
+		if ( this._link ) {
+			this._link.teardown();
+			this._link = null;
+		}
 		this.children.forEach( teardown );
 		if ( this.wrapper ) { this.wrapper.teardown(); }
 		if ( this.keypathModel ) { this.keypathModel.teardown(); }
@@ -3538,7 +3545,11 @@ var makeArrayMethod = function ( methodName ) {
 		promise.result = result;
 
 		if ( newIndices ) {
-			mdl.shuffle( newIndices );
+			if ( mdl.shuffle ) {
+				mdl.shuffle( newIndices );
+			} else { // it's a computation, which don't have a shuffle, so just invalidate
+				mdl.mark();
+			}
 		} else {
 			mdl.set( result );
 		}
@@ -3681,6 +3692,18 @@ Context__proto__.getParent = function getParent ( component ) {
 	else { return fragment.getContext(); }
 };
 
+Context__proto__.hasListener = function hasListener ( name, bubble ) {
+	var el = this.element || this.fragment.owner;
+
+	do {
+		if ( el.template.t === ELEMENT ) {
+			if ( findEvent( el, name ) ) { return true; }
+		}
+		el = el.up && el.up.owner;
+		if ( el && el.component ) { el = el.component; }
+	} while ( el && bubble );
+};
+
 Context__proto__.link = function link ( source, dest ) {
 	var there = findModel( this, source ).model;
 	var here = findModel( this, dest ).model;
@@ -3726,26 +3749,26 @@ Context__proto__.push = function push ( keypath ) {
 };
 
 Context__proto__.raise = function raise ( name, event ) {
-		var args = [], len$1 = arguments.length - 2;
-		while ( len$1-- > 0 ) args[ len$1 ] = arguments[ len$1 + 2 ];
+		var args = [], len = arguments.length - 2;
+		while ( len-- > 0 ) args[ len ] = arguments[ len + 2 ];
 
-	var element = this.element;
-	var events, len, i;
+	var el = this.element;
+	var ev;
 
-	while ( element ) {
-		events = element.events;
-		len = events && events.length;
-		for ( i = 0; i < len; i++ ) {
-			var ev = events[i];
-			if ( ~ev.template.n.indexOf( name ) ) {
-				var ctx = !event || !( 'original' in event ) ?
-					ev.element.getContext( event || {}, { original: {} } ) :
-					ev.element.getContext( event || {} );
-				return ev.fire( ctx, args );
-			}
+	while ( el ) {
+		if ( el.component ) { el = el.component; }
+		ev = findEvent( el, name );
+		if ( ev ) {
+			return ev.fire(
+				ev.element.getContext(
+					event || {},
+					event && !( 'original' in event ) ? { original: {} } : {}
+				),
+				args
+			);
 		}
 
-		element = element.parent;
+		el = el.up && el.up.owner;
 	}
 };
 
@@ -3900,6 +3923,10 @@ function findModel ( ctx, path ) {
 	}
 
 	return { model: resolveReference( frag, path ), instance: frag.ractive };
+}
+
+function findEvent( el, name ) {
+	return el.attributes && el.attributes.find( function (a) { return a.template.t === EVENT && ~a.template.n.indexOf( name ); } );
 }
 
 function Ractive$fire ( eventName ) {
@@ -8972,16 +8999,18 @@ var ComputationChild = (function (Model) {
 		}
 	};
 
-	ComputationChild__proto__.get = function get ( shouldCapture ) {
+	ComputationChild__proto__.get = function get ( shouldCapture, opts ) {
 		if ( shouldCapture ) { capture( this ); }
 
 		if ( this.dirty ) {
 			this.dirty = false;
 			var parentValue = this.parent.get();
 			this.value = parentValue ? parentValue[ this.key ] : undefined;
+			if ( this.wrapper ) { this.newWrapperValue = this.value; }
+			this.adapt();
 		}
 
-		return this.value;
+		return ( ( opts && 'unwrap' in opts ) ? opts.unwrap !== false : shouldCapture ) && this.wrapper ? this.wrapperValue : this.value;
 	};
 
 	ComputationChild__proto__.handleChange = function handleChange$3 () {
@@ -9051,7 +9080,7 @@ var Computation = (function (Model) {
 		if ( this.signature.setter ) { return this; }
 	};
 
-	Computation__proto__.get = function get ( shouldCapture ) {
+	Computation__proto__.get = function get ( shouldCapture, opts ) {
 		if ( shouldCapture ) { capture( this ); }
 
 		if ( this.dirty ) {
@@ -9064,7 +9093,12 @@ var Computation = (function (Model) {
 		}
 
 		// if capturing, this value needs to be unwrapped because it's for external use
-		return maybeBind( this, shouldCapture && this.wrapper ? this.wrapperValue : this.value );
+		return maybeBind(
+			this,
+			// if unwrap is supplied, it overrides capture
+			this.wrapper && ( ( opts && 'unwrap' in opts ) ? opts.unwrap !== false : shouldCapture ) ? this.wrapperValue : this.value,
+			!opts || opts.shouldBind !== false
+		);
 	};
 
 	Computation__proto__.getValue = function getValue () {
@@ -10495,7 +10529,6 @@ function Ractive$teardown () {
 
 function teardown$1 ( instance, getPromise ) {
 	instance.torndown = true;
-	instance.viewmodel.teardown();
 	instance.fragment.unbind();
 	instance._observers.slice().forEach( cancel );
 
@@ -10506,7 +10539,11 @@ function teardown$1 ( instance, getPromise ) {
 	var promise = getPromise();
 
 	teardownHook.fire( instance );
-	promise.then( function () { return destructHook.fire( instance ); } );
+
+	promise.then( function () {
+		destructHook.fire( instance );
+		instance.viewmodel.teardown();
+	});
 
 	return promise;
 }
@@ -17279,7 +17316,7 @@ if ( win && !win.Ractive ) {
 	/* istanbul ignore next */
 	if ( ~opts$1.indexOf( 'ForceGlobal' ) ) { win.Ractive = Ractive; }
 } else if ( win ) {
-	warn( "Ractive already appears to be loaded while loading 0.9.9." );
+	warn( "Ractive already appears to be loaded while loading 0.9.10." );
 }
 
 assign( Ractive.prototype, proto, defaults );
@@ -17322,7 +17359,7 @@ defineProperties( Ractive, {
 	svg:              { value: svg },
 
 	// version
-	VERSION:          { value: '0.9.9' },
+	VERSION:          { value: '0.9.10' },
 
 	// plugins
 	adaptors:         { writable: true, value: {} },
