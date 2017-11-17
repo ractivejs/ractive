@@ -21,4 +21,24 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'baz' );
 	});
+
+	test( `redefining computations on the fly`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '{{comp}}',
+			data: {
+				foo: 'hel',
+				bar: 'lo'
+			},
+			computed: {
+				comp: 'foo + bar'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'hello' );
+
+		r.compute( 'comp', 'bar + foo' );
+
+		t.htmlEqual( fixture.innerHTML, 'lohel' );
+	});
 }

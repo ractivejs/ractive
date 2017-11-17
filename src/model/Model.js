@@ -7,7 +7,7 @@ import { isArray, isEqual, isNumeric, isObjectLike } from 'utils/is';
 import { handleChange, mark, markForce, marked, teardown } from 'shared/methodCallers';
 import Ticker from 'shared/Ticker';
 import getPrefixer from './helpers/getPrefixer';
-import { escapeKey, unescapeKey } from 'shared/keypaths';
+import { unescapeKey } from 'shared/keypaths';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn, keys } from 'utils/object';
 
@@ -160,7 +160,16 @@ export default class Model extends ModelBase {
 	}
 
 	compute ( key, computed ) {
-		return ( this.computed || ( this.computed = {} ) )[ escapeKey( key ) ] = new shared.Computation( this, getComputationSignature( this.root.ractive, key, computed ), key );
+		const registry = this.computed || ( this.computed = {} );
+
+		if ( registry[key] ) {
+			registry[key].signature = getComputationSignature( this.root.ractive, key, computed );
+			registry[key].mark();
+		} else {
+			registry[key] = new shared.Computation( this, getComputationSignature( this.root.ractive, key, computed ), key );
+		}
+
+		return registry[key];
 	}
 
 	createBranch ( key ) {

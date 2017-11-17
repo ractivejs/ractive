@@ -12,13 +12,13 @@ export function compute ( path, computed ) {
 		const last = keys.pop();
 		return this.viewmodel.joinAll( keys ).compute( last, computed );
 	} else {
-		computed.pattern = new RegExp( '^' + path.replace( /\*\*/g, '(.+)' ).replace( /\*/g, '((?:\\.|[^\\.])+)' ) + '$' );
+		computed.pattern = new RegExp( '^' + keys.map( k => k.replace( /\*\*/g, '(.+)' ).replace( /\*/g, '((?:\\.|[^\\.])+)' ) ).join( '\\.' ) + '$' );
 	}
 }
 
 export default function Ractive$compute ( path, computed ) {
-	const comp = compute.call( this, path, computed );
 	const promise = runloop.start();
+	const comp = compute.call( this, path, computed );
 
 	if ( comp ) {
 		const keys = splitKeypath( path );
