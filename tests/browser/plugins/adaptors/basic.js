@@ -987,4 +987,44 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'hello adapted, hello adapted, hello adapted, hello adapted', 'the output should use the wrapped value');
 	});
+
+	test(`Calling "ractive.get()" on an attribute set to an expression should unwrap the value (#3143)`, t => {
+		const value = 'hello';
+
+		const Adaptor = {
+			filter(v) {
+				return v === value;
+			},
+			wrap(ractive, v) {
+				return {
+					get() {
+						return v + ' adapted';
+					},
+					teardown() {},
+				};
+			},
+		};
+
+		const r = new Ractive({
+			adapt: [Adaptor],
+			el: fixture,
+			data: {
+				index: 0,
+				list: [value],
+			},
+			components: {
+				child: Ractive.extend({
+					template: '{{data}}',
+				}),
+			},
+			template: '<child data={{list[index]}} />',
+		});
+		const child = r.findComponent('child');
+
+		t.strictEqual(child.get('data'), value, 'the value should be unwrapped by default');
+		t.strictEqual(child.get('data', { unwrap: true }), value, 'the value should be unwrapped');
+		t.strictEqual(child.get('data', { unwrap: false }), value + ' adapted', 'the value should be wrapped');
+
+		t.htmlEqual(fixture.innerHTML, 'hello adapted', 'the output should use the wrapped value');
+	});
 }
