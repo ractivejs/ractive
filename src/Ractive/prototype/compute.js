@@ -29,6 +29,7 @@ export default function Ractive$compute ( path, computed ) {
 		const first = keys.reduce( ( a, c ) => a && a.childByKey[c], this.viewmodel );
 		if ( first ) {
 			first.rebind( comp, first, false );
+			if ( first.parent ) delete first.parent.childByKey[ first.key ];
 			fireShuffleTasks();
 		}
 	}

@@ -20,6 +20,7 @@ export default function() {
 		r.set( 'foo', 'baz' );
 
 		t.htmlEqual( fixture.innerHTML, 'baz' );
+		t.equal( r.get( 'comp' ), 'baz' );
 	});
 
 	test( `redefining computations on the fly`, t => {
