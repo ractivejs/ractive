@@ -134,7 +134,7 @@ export default class ReferenceExpressionProxy extends Model {
 		if ( !this.dirty ) this.handleChange();
 	}
 
-	get ( shouldCapture ) {
+	get ( shouldCapture, opts ) {
 		if ( this.dirty ) {
 			this.bubble();
 
@@ -155,12 +155,12 @@ export default class ReferenceExpressionProxy extends Model {
 				if ( this.keypathModel ) this.keypathModel.handleChange();
 			}
 
-			this.value = this.model.get( shouldCapture );
+			this.value = this.model.get( shouldCapture, opts );
 			this.dirty = false;
 			this.mark();
 			return this.value;
 		} else {
-			return this.model ? this.model.get( shouldCapture ) : undefined;
+			return this.model ? this.model.get( shouldCapture, opts ) : undefined;
 		}
 	}
 
