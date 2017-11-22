@@ -21,6 +21,8 @@ export default class KeyModel {
 		return unescapeKey( this.value );
 	}
 
+	has () { return false; }
+
 	rebind ( next, previous ) {
 		let i = this.deps.length;
 		while ( i-- ) this.deps[i].rebind( next, previous, false );

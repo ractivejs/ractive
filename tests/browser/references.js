@@ -474,4 +474,17 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'paulpeter' );
 	});
+
+	test( `key models don't have downstream keypaths (#3145)`, t => {
+		new Ractive({
+			target: fixture,
+			template: `{{#each obj: k}}{{#with k}}{{identity(k)}}{{/with}}{{#with @keypath}}{{identity(.)}}{{/with}}{{/each}}`,
+			data: {
+				identity ( v ) { return v; },
+				obj: { foo: 'bar' }
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'fooobj.foo' );
+	});
 }
