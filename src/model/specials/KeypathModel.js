@@ -42,6 +42,8 @@ export default class KeypathModel {
 		this.deps.forEach( handleChange );
 	}
 
+	has () { return false; }
+
 	rebindChildren ( next ) {
 		const keys = objectKeys( this.children );
 		let i = keys.length;
