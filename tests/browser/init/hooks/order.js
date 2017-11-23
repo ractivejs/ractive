@@ -261,4 +261,40 @@ export default function() {
 		finished = true;
 		finish();
 	});
+
+	test('Child events on render and complete should trigger proxy events', t => {
+		t.expect(2);
+		const done = t.async();
+
+		const Foo = Ractive.extend({
+			template: `this is foo`,
+			onrender() {
+				this.fire('foorender');
+			},
+			oncomplete() {
+				this.fire('foocompleted');
+			}
+		});
+
+		Ractive({
+			components: { Foo },
+			el: fixture,
+			template: `
+				<Foo on-foorender="hellorender" on-foocompleted="hellocomplete" />
+			`,
+			oninit() {
+				this.on({
+					hellorender() {
+						t.ok(true);
+					},
+					hellocomplete() {
+						t.ok(true);
+					}
+				});
+			},
+			oncomplete(){
+				done();
+			}
+		});
+	});
 }

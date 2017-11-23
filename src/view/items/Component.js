@@ -206,10 +206,11 @@ export default class Component extends Item {
 				}
 			}
 		} else {
-			render( this.instance, target, null, occupants );
 
 			this.attributes.forEach( callRender );
 			this.eventHandlers.forEach( callRender );
+
+			render( this.instance, target, null, occupants );
 
 			this.rendered = true;
 		}
