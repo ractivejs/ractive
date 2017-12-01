@@ -145,6 +145,37 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
 	});
 
+	test( 'Decorator in a section with a dynamic argument that changes, with update() method (#3152)', t => {
+		const ractive = new Ractive({
+			el: fixture,
+			template: '<div {{#if true}}as-foo="foo"{{/if}}>this text will be overwritten</div>',
+			data: {
+				foo: 'baz'
+			},
+			decorators: {
+				foo ( node, newContents ) {
+					const contents = node.innerHTML;
+					node.innerHTML = newContents;
+
+					return {
+						update ( newContents ) {
+							node.innerHTML = newContents;
+						},
+						teardown () {
+							node.innerHTML = contents;
+						}
+					};
+				}
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
+		ractive.set( 'foo', 'qux' );
+		t.htmlEqual( fixture.innerHTML, '<div>qux</div>' );
+		ractive.set( 'foo', 'bar' );
+		t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
+	});
+
 	test( 'Decorator without arguments can be torn down (#453)', t => {
 		t.expect( 1 );
 
