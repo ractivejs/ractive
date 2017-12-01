@@ -16,7 +16,7 @@ export default class Decorator {
 	constructor ( options ) {
 		this.owner = options.owner || options.up.owner || findElement( options.up );
 		this.element = this.owner.attributeByName ? this.owner : findElement( options.up );
-		this.up = this.owner.up;
+		this.up = options.up || this.owner.up;
 		this.ractive = this.owner.ractive;
 		const template = this.template = options.template;
 
@@ -35,7 +35,9 @@ export default class Decorator {
 	bubble () {
 		if ( !this.dirty ) {
 			this.dirty = true;
+			// decorators may be owned directly by an element or by a fragment if conditional
 			this.owner.bubble();
+			this.up.bubble();
 		}
 	}
 
