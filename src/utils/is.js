@@ -33,7 +33,7 @@ export function isObjectLike ( thing ) {
 }
 
 export function isObjectType ( thing ) {
-	return typeof thing === 'object';
+	return thing && typeof thing === 'object';
 }
 
 export function isFunction ( thing ) {
