@@ -1027,4 +1027,28 @@ export default function() {
 
 		t.htmlEqual(fixture.innerHTML, 'hello adapted', 'the output should use the wrapped value');
 	});
+
+	test( `let resolved adaptors be added to an instance after init via pushing to adapt (#3147)`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: '{{foo.bar}}',
+			data: { foo: {} }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '' );
+
+		r.adapt.push({
+			filter ( v, k ) { return k === 'foo'; },
+			wrap () {
+				return {
+					get () { return { bar: 'bar' }; },
+					teardown () {}
+				};
+			}
+		});
+
+		r.set( 'foo', {} );
+
+		t.htmlEqual( fixture.innerHTML, 'bar' );
+	});
 }
