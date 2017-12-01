@@ -12,7 +12,7 @@ export function compute ( path, computed ) {
 		const last = keys.pop();
 		return this.viewmodel.joinAll( keys ).compute( last, computed );
 	} else {
-		computed.pattern = new RegExp( '^' + keys.map( k => k.replace( /\*\*/g, '(.+)' ).replace( /\*/g, '((?:\\.|[^\\.])+)' ) ).join( '\\.' ) + '$' );
+		computed.pattern = new RegExp( '^' + keys.map( k => k.replace( /\*\*/g, '(.+)' ).replace( /\*/g, '((?:\\\\.|[^\\.])+)' ) ).join( '\\.' ) + '$' );
 	}
 }
 
