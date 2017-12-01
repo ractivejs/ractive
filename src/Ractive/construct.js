@@ -63,6 +63,9 @@ export default function construct ( ractive, options ) {
 		ractive
 	});
 
+	// once resolved, share the adaptors array between the root model and instance
+	ractive.adapt = viewmodel.adaptors;
+
 	ractive.viewmodel = viewmodel;
 
 	// Add computed properties
