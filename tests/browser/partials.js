@@ -1183,4 +1183,16 @@ export default function() {
 		r.set( 'foo', 'baz' );
 		t.htmlEqual( fixture.innerHTML, 'bar' );
 	});
+	
+	test( `null variable with a name of a missing partial doesn't break anything (#3154)`, t => {
+		new Ractive({
+			target: fixture,
+			template: '1{{>part}}2',
+			data: {
+				part: null
+			}
+		});
+		
+		t.htmlEqual( fixture.innerHTML, '12' );
+	});
 }
