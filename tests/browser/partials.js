@@ -1185,7 +1185,7 @@ export default function() {
 	});
 	
 	test( `null variable with a name of a missing partial doesn't break anything (#3154)`, t => {
-		const r = new Ractive({
+		new Ractive({
 			target: fixture,
 			template: '1{{>part}}2',
 			data: {
