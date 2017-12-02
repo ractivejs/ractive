@@ -249,7 +249,7 @@ function partialFromValue ( self, value, okToParse ) {
 
 	if ( isArray( tpl ) ) {
 		self.partial = tpl;
-	} else if ( isObjectType( tpl ) ) {
+	} else if ( tpl && isObjectType( tpl ) ) {
 		if ( isArray( tpl.t ) ) self.partial = tpl.t;
 		else if ( isString( tpl.template ) ) self.partial = parsePartial( tpl.template, tpl.template, self.ractive ).t;
 	} else if ( isFunction( tpl ) && tpl.styleSet ) {
