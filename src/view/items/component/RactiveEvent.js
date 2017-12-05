@@ -7,7 +7,7 @@ export default class RactiveEvent {
 		this.handler = null;
 	}
 
-	listen ( directive ) {
+	bind ( directive ) {
 		const ractive = this.component.instance;
 
 		this.handler = ractive.on( this.name, ( ...args ) => {
@@ -25,7 +25,11 @@ export default class RactiveEvent {
 		});
 	}
 
-	unlisten () {
+	render () {}
+
+	unbind () {
 		this.handler.cancel();
 	}
+
+	unrender () {}
 }

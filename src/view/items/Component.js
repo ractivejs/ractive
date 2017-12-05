@@ -122,14 +122,13 @@ export default class Component extends Item {
 	bind () {
 		if ( !this.isAnchor ) {
 			this.attributes.forEach( bind );
+			this.eventHandlers.forEach( bind );
 
 			initialise( this.instance, {
 				partials: this._partials
 			}, {
 				cssIds: this.up.cssIds
 			});
-
-			this.eventHandlers.forEach( bind );
 
 			this.bound = true;
 		}

@@ -410,4 +410,18 @@ export default function() {
 
 		r.fire( 'foo', null, 1 );
 	});
+
+	test( `post-construct component event handlers should be bound before initialization (#3159)`, t => {
+		t.expect( 1 );
+
+		const cmp = Ractive.extend();
+		new Ractive({
+			target: fixture,
+			template: '<cmp on-init="check" />',
+			components: { cmp },
+			on: {
+				check () { t.ok( true ); }
+			}
+		});
+	});
 }
