@@ -1183,7 +1183,7 @@ export default function() {
 		r.set( 'foo', 'baz' );
 		t.htmlEqual( fixture.innerHTML, 'bar' );
 	});
-	
+
 	test( `null variable with a name of a missing partial doesn't break anything (#3154)`, t => {
 		new Ractive({
 			target: fixture,
@@ -1192,7 +1192,31 @@ export default function() {
 				part: null
 			}
 		});
-		
+
 		t.htmlEqual( fixture.innerHTML, '12' );
+	});
+
+	test( `partial expressions that change and eval to the same name should not reset the partial (#3151)`, t => {
+		let count = 0;
+		let run = 0;
+		const r = new Ractive({
+			target: fixture,
+			template: '{{>foo+bar+run()}}',
+			partials: {
+				foo: '{{check()}}'
+			},
+			data: {
+				check() { return ++count; },
+				run() { ++run; return ''; },
+				foo: 'fo', bar: 'o'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '1' );
+		t.equal( run, 1 );
+
+		r.set({ foo: 'f', bar: 'oo' });
+		t.equal( run, 2 );
+		t.htmlEqual( fixture.innerHTML, '1' );
 	});
 }
