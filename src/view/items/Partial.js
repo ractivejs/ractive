@@ -132,10 +132,11 @@ assign( proto, {
 				this.fn = this.proxy = null;
 			} else {
 				this.partial = this.fnTemplate;
-				return;
+				return true;
 			}
 		}
 
+		const partial = this.partial;
 		this.partial = null;
 
 		if ( this.refName ) {
@@ -146,6 +147,8 @@ assign( proto, {
 			partialFromValue( this, this.model.get() );
 		}
 
+		if ( !this.fn && partial === this.partial ) return false;
+
 		this.unbindAttrs();
 
 		if ( this.fn ) {
@@ -154,6 +157,8 @@ assign( proto, {
 		} else if ( !this.partial ) {
 			warnOnceIfDebug( `Could not find template for partial '${this.name}'` );
 		}
+
+		return true;
 	},
 
 	render ( target, occupants ) {
@@ -200,9 +205,7 @@ assign( proto, {
 
 		if ( this.dirtyTemplate ) {
 			this.dirtyTemplate = false;
-			this.resetTemplate();
-
-			this.fragment.resetTemplate( this.partial || [] );
+			this.resetTemplate() && this.fragment.resetTemplate( this.partial || [] );
 		}
 
 		if ( this.dirty ) {
