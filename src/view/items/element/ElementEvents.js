@@ -1,4 +1,5 @@
 import { fatal } from 'utils/log';
+import runloop from 'src/global/runloop';
 
 class DOMEvent {
 	constructor ( name, owner ) {
@@ -11,24 +12,31 @@ class DOMEvent {
 		this.handler = null;
 	}
 
-	listen ( directive ) {
-		const node = this.owner.node;
-		const name = this.name;
+	bind () {}
 
-		// this is probably a custom event fired from a decorator or manually
-		if ( !( `on${name}` in node ) ) return;
+	render ( directive ) {
+		// schedule events so that they take place after twoway binding
+		runloop.scheduleTask( () => {
+			const node = this.owner.node;
+			const name = this.name;
 
-		this.owner.on( name, this.handler = ( event ) => {
-			return directive.fire({
-				node,
-				original: event,
-				event,
-				name
+			// this is probably a custom event fired from a decorator or manually
+			if ( !( `on${name}` in node ) ) return;
+
+			this.owner.on( name, this.handler = ( event ) => {
+				return directive.fire({
+					node,
+					original: event,
+					event,
+					name
+				});
 			});
-		});
+		}, true);
 	}
 
-	unlisten () {
+	unbind () {}
+
+	unrender () {
 		if ( this.handler ) this.owner.off( this.name, this.handler );
 	}
 }
@@ -41,20 +49,26 @@ class CustomEvent {
 		this.handler = null;
 	}
 
-	listen ( directive ) {
-		const node = this.owner.node;
+	bind () {}
 
-		this.handler = this.eventPlugin( node, ( event = {} ) => {
-			if ( event.original ) event.event = event.original;
-			else event.original = event.event;
+	render ( directive ) {
+		runloop.scheduleTask( () => {
+			const node = this.owner.node;
 
-			event.name = this.name;
-			event.node = event.node || node;
-			return directive.fire( event );
+			this.handler = this.eventPlugin( node, ( event = {} ) => {
+				if ( event.original ) event.event = event.original;
+				else event.original = event.event;
+
+				event.name = this.name;
+				event.node = event.node || node;
+				return directive.fire( event );
+			});
 		});
 	}
 
-	unlisten () {
+	unbind () {}
+
+	unrender () {
 		this.handler.teardown();
 	}
 }

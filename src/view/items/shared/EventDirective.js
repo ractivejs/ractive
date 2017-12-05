@@ -5,7 +5,6 @@ import noop from 'utils/noop';
 import fireEvent from 'src/events/fireEvent';
 import { splitKeypath } from 'shared/keypaths';
 import { findInViewHierarchy } from 'shared/registry';
-import runloop from 'src/global/runloop';
 import findElement from './findElement';
 import { DOMEvent, CustomEvent } from '../element/ElementEvents';
 import RactiveEvent from '../component/RactiveEvent';
@@ -53,10 +52,12 @@ export default class EventDirective {
 
 		setupArgsFn( this, this.template );
 		if ( !this.fn ) this.action = this.template.f;
+
+		this.events.forEach( e => e.bind( this ) );
 	}
 
 	destroyed () {
-		this.events.forEach( e => e.unlisten() );
+		this.events.forEach( e => e.unrender() );
 	}
 
 	fire ( event, args = [] ) {
@@ -159,18 +160,18 @@ export default class EventDirective {
 	handleChange () {}
 
 	render () {
-		// render events after everything else, so they fire after bindings
-		runloop.scheduleTask( () => this.events.forEach( e => e.listen( this ) ), true );
+		this.events.forEach( e => e.render( this ) );
 	}
 
 	toString() { return ''; }
 
 	unbind () {
 		removeFromArray( this.element.events, this );
+		this.events.forEach( e => e.unbind() );
 	}
 
 	unrender () {
-		this.events.forEach( e => e.unlisten() );
+		this.events.forEach( e => e.unrender() );
 	}
 }
 
