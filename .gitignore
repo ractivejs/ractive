@@ -3,24 +3,10 @@
 
 # Dependencies
 node_modules/
-package-lock.json # for now
 
-# Debugging directory
-sandbox/*
-!sandbox/index.html
-
-# Gobble directories
-.gobble
-.gobble-build
-.gobble-watch
-.build
-.publish
-build
-tmp
-
-# Performance tests
-perf/control/*
-!perf/control/.empty
+# Build directories
+dist/
+tmp/
 
 # Log files
 *.log
