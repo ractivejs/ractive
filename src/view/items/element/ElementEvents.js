@@ -1,5 +1,6 @@
 import { fatal } from 'utils/log';
 import runloop from 'src/global/runloop';
+import { win } from 'config/environment';
 
 class DOMEvent {
 	constructor ( name, owner ) {
@@ -19,9 +20,10 @@ class DOMEvent {
 		runloop.scheduleTask( () => {
 			const node = this.owner.node;
 			const name = this.name;
+			const on = `on${name}`;
 
 			// this is probably a custom event fired from a decorator or manually
-			if ( !( `on${name}` in node ) ) return;
+			if ( !( on in node ) && !( on in win ) ) return;
 
 			this.owner.on( name, this.handler = ( event ) => {
 				return directive.fire({
