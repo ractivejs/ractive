@@ -487,4 +487,34 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'fooobj.foo' );
 	});
+
+	test( `reference expressions should also participate in capture in case they are referenced via alias in an expression (#3163)`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#with foo[bar] as ref}}{{ref}} {{@context.get('ref')}}{{/with}}`,
+			data: {
+				foo: { bar: 'bar', baz: 'baz' },
+				bar: 'bar'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'bar bar' );
+		r.set( 'bar', 'baz' );
+		t.htmlEqual( fixture.innerHTML, 'baz baz' );
+	});
+
+	test( `expressions should also participate in capture in case they are referenced via alias in an expression (#3163)`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `{{#with '' + foo[bar] as ref}}{{ref}} {{@context.get('ref')}}{{/with}}`,
+			data: {
+				foo: { bar: 'bar', baz: 'baz' },
+				bar: 'bar'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'bar bar' );
+		r.set( 'bar', 'baz' );
+		t.htmlEqual( fixture.innerHTML, 'baz baz' );
+	});
 }

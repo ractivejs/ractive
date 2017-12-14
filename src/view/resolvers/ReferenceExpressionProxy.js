@@ -9,6 +9,7 @@ import ExpressionProxy from './ExpressionProxy';
 import resolveReference from './resolveReference';
 import resolve from './resolve';
 import { hasOwn } from 'utils/object';
+import { capture } from 'src/global/capture';
 
 class ReferenceExpressionChild extends Model {
 	constructor ( parent, key ) {
@@ -135,6 +136,7 @@ export default class ReferenceExpressionProxy extends Model {
 	}
 
 	get ( shouldCapture, opts ) {
+		if ( shouldCapture ) capture( this );
 		if ( this.dirty ) {
 			this.bubble();
 
