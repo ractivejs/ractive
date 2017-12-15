@@ -6,19 +6,20 @@ import Hook from 'src/events/Hook';
 import HookQueue from 'src/events/HookQueue';
 import Ractive from '../Ractive';
 import subscribe from './helpers/subscribe';
-import { hasOwn, keys } from 'utils/object';
 
 const configHook = new Hook( 'config' );
 const initHook = new HookQueue( 'init' );
 
 export default function initialise ( ractive, userOptions, options ) {
-	keys( ractive.viewmodel.computations ).forEach( key => {
-		const computation = ractive.viewmodel.computations[ key ];
-
-		if ( hasOwn( ractive.viewmodel.value, key ) ) {
-			computation.set( ractive.viewmodel.value[ key ] );
+	// initialize settable computeds
+	const computed = ractive.viewmodel.computed;
+	if ( computed ) {
+		for ( const k in computed ) {
+			if ( k in ractive.viewmodel.value && computed[k] && !computed[k].isReadonly ) {
+				computed[k].set( ractive.viewmodel.value[k] );
+			}
 		}
-	});
+	}
 
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, userOptions );

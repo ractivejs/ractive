@@ -38,7 +38,7 @@ export default function() {
 				number: 10
 			},
 			computed: {
-				answer: '${foo.bar.qux} * ${number}'
+				answer: 'foo.bar.qux * number'
 			}
 		});
 
@@ -63,7 +63,7 @@ export default function() {
 				height: 10
 			},
 			computed: {
-				area: '${width} * ${height}'
+				area: 'width * height'
 			}
 		});
 
@@ -86,7 +86,7 @@ export default function() {
 			},
 			computed: {
 				full: {
-					get: '${first} + " " + ${last}',
+					get: 'first + " " + last',
 					set ( fullname ) {
 						const parts = fullname.split( ' ' );
 
@@ -115,7 +115,7 @@ export default function() {
 		const Box = Ractive.extend({
 			template: '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
 			computed: {
-				area: '${width} * ${height}'
+				area: 'width * height'
 			}
 		});
 
@@ -140,7 +140,7 @@ export default function() {
 		const Box = Ractive.extend({
 			template: '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
 			computed: {
-				area: '${width} * ${height}'
+				area: 'width * height'
 			}
 		});
 
@@ -166,8 +166,8 @@ export default function() {
 			template: '{{number}} - {{squared}} - {{cubed}}',
 			data: { number: 5 },
 			computed: {
-				squared: '${number} * ${number}',
-				cubed: '${squared} * ${number}'
+				squared: 'number * number',
+				cubed: 'squared * number'
 			}
 		});
 
@@ -209,7 +209,7 @@ export default function() {
 			el: fixture,
 			template: '{{uppercaseBar}}',
 			computed: {
-				uppercaseBar: '${foo}.bar.toUpperCase()'
+				uppercaseBar: 'foo.bar.toUpperCase()'
 			}
 		});
 
@@ -316,7 +316,7 @@ export default function() {
 					component: Ractive.extend({
 						debug: true,
 						computed: {
-							foo: '${bar}'
+							foo: 'bar'
 						}
 					})
 				}
@@ -366,7 +366,7 @@ export default function() {
 		const Component = Ractive.extend({
 			template: '{{FOO}} {{BAR}}',
 			computed: {
-				FOO: '${foo}.toUpperCase()',
+				FOO: 'foo.toUpperCase()',
 				BAR () {
 					return this.get( 'bar' ).toUpperCase();
 				}
@@ -486,8 +486,8 @@ export default function() {
 				count: 1
 			},
 			computed: {
-				foo: '${bar} + 1',
-				bar: '${count} + 1'
+				foo: 'bar + 1',
+				bar: 'count + 1'
 			}
 		});
 
@@ -513,7 +513,7 @@ export default function() {
 		const Component = Base.extend({
 			template: '{{foo}}',
 			computed: {
-				foo: '${base} + 1'
+				foo: 'base + 1'
 			}
 		});
 
@@ -609,7 +609,7 @@ export default function() {
 				items: [ 1, 2, 3 ]
 			},
 			computed: {
-				count: '${items}.length'
+				count: 'items.length'
 			}
 		});
 
@@ -1058,7 +1058,7 @@ export default function() {
 	test( `computations with dotted names can be accessed (#2807)`, t => {
 		const r = new Ractive({
 			computed: {
-				'foo.bar': '${baz} + 1'
+				'foo\\.bar': 'baz + 1'
 			},
 			data: { baz: 1 }
 		});
@@ -1229,5 +1229,23 @@ export default function() {
 
 		t.equal( arr.length, 2 );
 		t.htmlEqual( fixture.innerHTML, '13' );
+	});
+
+	test( `computeds can contain wildcards for keypath matching fun`, t => {
+		let count = 0;
+
+		new Ractive({
+			target: fixture,
+			template: '{{#each list}}{{.wat}}{{/each}}',
+			computed: {
+				'list.*.wat' ( item ) { count++; return item; }
+			},
+			data: {
+				list: [ 1, 2, 3 ]
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '123' );
+		t.equal( count, 3 );
 	});
 }

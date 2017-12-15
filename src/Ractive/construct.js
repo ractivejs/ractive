@@ -5,12 +5,12 @@ import { findInViewHierarchy } from 'shared/registry';
 import dataConfigurator from './config/custom/data';
 import RootModel from 'src/model/RootModel';
 import Hook from 'src/events/Hook';
-import getComputationSignature from './helpers/getComputationSignature';
 import subscribe from './helpers/subscribe';
 import Ractive from '../Ractive';
 import { ATTRIBUTE, INTERPOLATOR } from 'config/types';
 import { assign, create, hasOwn } from 'utils/object';
 import { isString } from 'utils/is';
+import { compute } from 'src/Ractive/prototype/compute';
 
 const constructHook = new Hook( 'construct' );
 
@@ -23,6 +23,11 @@ const registryNames = [
 	'interpolators',
 	'partials',
 	'transitions'
+];
+
+const protoRegistries = [
+	'computed',
+	'helpers'
 ];
 
 let uid = 0;
@@ -51,6 +56,12 @@ export default function construct ( ractive, options ) {
 		ractive[ name ] = assign( create( ractive.constructor[ name ] || null ), options[ name ] );
 	}
 
+	i = protoRegistries.length;
+	while ( i-- ) {
+		const name = protoRegistries[ i ];
+		ractive[ name ] = assign( create( ractive.constructor.prototype[ name ] ), options[ name ] );
+	}
+
 	if ( ractive._attributePartial ) {
 		ractive.partials['extra-attributes'] = ractive._attributePartial;
 		delete ractive._attributePartial;
@@ -68,13 +79,8 @@ export default function construct ( ractive, options ) {
 
 	ractive.viewmodel = viewmodel;
 
-	// Add computed properties
-	const computed = assign( create( ractive.constructor.prototype.computed ), options.computed );
-
-	for ( const key in computed ) {
-		if ( key === '__proto__' ) continue;
-		const signature = getComputationSignature( ractive, key, computed[ key ] );
-		viewmodel.compute( key, signature );
+	for ( const k in ractive.computed ) {
+		compute.call( ractive, k, ractive.computed[k] );
 	}
 }
 

@@ -7,13 +7,15 @@ const registryNames = [
 	'decorators',
 	'easing',
 	'events',
+	'helpers',
 	'interpolators',
 	'partials',
 	'transitions'
 ];
 
 const registriesOnDefaults = [
-	'computed'
+	'computed',
+	'helpers'
 ];
 
 class Registry {
