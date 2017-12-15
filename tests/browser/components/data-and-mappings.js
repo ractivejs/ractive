@@ -1710,4 +1710,24 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'cmp1 foo cmp2 foo' );
 	});
+
+	test( `links to other ractive instances are torn down with components (#3164)`, t => {
+		const done = t.async();
+
+		const cmp = Ractive.extend({
+			template: '{{@.root.foo}}'
+		});
+		const r = new Ractive({
+			target: fixture,
+			template: '{{#unless done}}<cmp />{{/unless}}',
+			components: { cmp },
+			foo: 'bar'
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'bar' );
+		r.toggle( 'done' ).then( () => {
+			t.htmlEqual( fixture.innerHTML, '' );
+			t.equal( r.viewmodel.ractiveModel.links.length, 0 );
+		}).then( done, done );
+	});
 }

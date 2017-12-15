@@ -161,6 +161,7 @@ export default class RootModel extends Model {
 		for ( const k in this.computations ) {
 			this.computations[ k ].teardown();
 		}
+		this.ractiveModel && this.ractiveModel.teardown();
 	}
 }
 RootModel.prototype.update = noop;
