@@ -1,5 +1,22 @@
 # changelog
 
+# 0.9.11
+
+* Bug fixes
+	* Reference expressions now properly handle wrapping or unwrapping values during `get()` thanks to @m-r-r (#3143)
+	* Key and index refs will no longer cause an exception if they happen to become a context (#3145)
+	* Event handlers on components are set up at bind so that any lifecycle events after `construct` can be attached as handlers in the template (#3148, #3159)
+	* Decorators in conditional sections properly update when invalidated (#3152)
+	* Partial expressions can be null again (#3154)
+	* Partial expressions that update and resolve to the same value no longer reset their template (#3151)
+	* IE doesn't have an `onmouseenter` or `onmouseleave` on SVG nodes, so we now check `window` for DOM events too (#3157)
+	* Reference expressions fully participate in capture, so that computations using them via alias update correctly when the reference expression changes (#3163)
+	* Linking to an instance mode e.g. `@.root` will no longer result in a memory leak when the linking instance is torn down (#3164)
+
+* Other changes
+	* The array of adaptors for an instance is now shared with its viewmodel once it has resolved - #3147
+
+
 # 0.9.10
 
 * Bug fixes
