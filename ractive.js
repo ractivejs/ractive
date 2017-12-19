@@ -1,7 +1,7 @@
 /*
-	Ractive.js v0.9.10
-	Build: d7e22b37fb41c651ffc60d1e2f3770f53a2447a4
-	Date: Tue Nov 14 2017 22:41:48 GMT+0000 (UTC)
+	Ractive.js v0.9.11
+	Build: b54d0c8cfccaaa9c53c3d1a04bb5b12df080dcbb
+	Date: Tue Dec 19 2017 18:02:23 GMT+0000 (UTC)
 	Website: http://ractivejs.org
 	License: MIT
 */
@@ -476,13 +476,13 @@ var welcome;
 
 if ( hasConsole ) {
 	var welcomeIntro = [
-		"%cRactive.js %c0.9.10 %cin debug mode, %cmore...",
+		"%cRactive.js %c0.9.11 %cin debug mode, %cmore...",
 		'color: rgb(114, 157, 52); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 	];
-	var welcomeMessage = "You're running Ractive 0.9.10 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+	var welcomeMessage = "You're running Ractive 0.9.11 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
 	welcome = function () {
 		if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -904,6 +904,8 @@ KeyModel__proto__.getKeypath = function getKeypath () {
 	return unescapeKey( this.value );
 };
 
+KeyModel__proto__.has = function has () { return false; };
+
 KeyModel__proto__.rebind = function rebind ( next, previous ) {
 		var this$1 = this;
 
@@ -990,6 +992,8 @@ KeypathModel__proto__.handleChange = function handleChange$1 () {
 
 	this.deps.forEach( handleChange );
 };
+
+KeypathModel__proto__.has = function has () { return false; };
 
 KeypathModel__proto__.rebindChildren = function rebindChildren ( next ) {
 		var this$1 = this;
@@ -9454,7 +9458,8 @@ var ReferenceExpressionProxy = (function (Model) {
 		if ( !this.dirty ) { this.handleChange(); }
 	};
 
-	ReferenceExpressionProxy__proto__.get = function get ( shouldCapture ) {
+	ReferenceExpressionProxy__proto__.get = function get ( shouldCapture, opts ) {
+		if ( shouldCapture ) { capture( this ); }
 		if ( this.dirty ) {
 			this.bubble();
 
@@ -9475,12 +9480,12 @@ var ReferenceExpressionProxy = (function (Model) {
 				if ( this.keypathModel ) { this.keypathModel.handleChange(); }
 			}
 
-			this.value = this.model.get( shouldCapture );
+			this.value = this.model.get( shouldCapture, opts );
 			this.dirty = false;
 			this.mark();
 			return this.value;
 		} else {
-			return this.model ? this.model.get( shouldCapture ) : undefined;
+			return this.model ? this.model.get( shouldCapture, opts ) : undefined;
 		}
 	};
 
@@ -10751,6 +10756,7 @@ var RootModel = (function (Model) {
 		for ( var k in this$1.computations ) {
 			this$1.computations[ k ].teardown();
 		}
+		this.ractiveModel && this.ractiveModel.teardown();
 	};
 
 	return RootModel;
@@ -10898,6 +10904,9 @@ function construct ( ractive, options ) {
 		data: dataConfigurator.init( ractive.constructor, ractive, options ),
 		ractive: ractive
 	});
+
+	// once resolved, share the adaptors array between the root model and instance
+	ractive.adapt = viewmodel.adaptors;
 
 	ractive.viewmodel = viewmodel;
 
@@ -11118,14 +11127,13 @@ var Component = (function (Item) {
 	Component__proto__.bind = function bind$2 () {
 		if ( !this.isAnchor ) {
 			this.attributes.forEach( bind );
+			this.eventHandlers.forEach( bind );
 
 			initialise( this.instance, {
 				partials: this._partials
 			}, {
 				cssIds: this.up.cssIds
 			});
-
-			this.eventHandlers.forEach( bind );
 
 			this.bound = true;
 		}
@@ -11205,10 +11213,11 @@ var Component = (function (Item) {
 				}
 			}
 		} else {
-			render$1( this.instance, target, null, occupants );
 
 			this.attributes.forEach( render );
 			this.eventHandlers.forEach( render );
+
+			render$1( this.instance, target, null, occupants );
 
 			this.rendered = true;
 		}
@@ -11393,7 +11402,7 @@ var missingDecorator = {
 var Decorator = function Decorator ( options ) {
 	this.owner = options.owner || options.up.owner || findElement( options.up );
 	this.element = this.owner.attributeByName ? this.owner : findElement( options.up );
-	this.up = this.owner.up;
+	this.up = options.up || this.owner.up;
 	this.ractive = this.owner.ractive;
 	var template = this.template = options.template;
 
@@ -11413,7 +11422,9 @@ Decorator__proto__.bind = function bind () {
 Decorator__proto__.bubble = function bubble () {
 	if ( !this.dirty ) {
 		this.dirty = true;
+		// decorators may be owned directly by an element or by a fragment if conditional
 		this.owner.bubble();
+		this.up.bubble();
 	}
 };
 
@@ -13099,24 +13110,34 @@ var DOMEvent = function DOMEvent ( name, owner ) {
 };
 var DOMEvent__proto__ = DOMEvent.prototype;
 
-DOMEvent__proto__.listen = function listen ( directive ) {
-	var node = this.owner.node;
-	var name = this.name;
+DOMEvent__proto__.bind = function bind () {};
 
-	// this is probably a custom event fired from a decorator or manually
-	if ( !( ("on" + name) in node ) ) { return; }
+DOMEvent__proto__.render = function render ( directive ) {
+		var this$1 = this;
 
-	this.owner.on( name, this.handler = function ( event ) {
-		return directive.fire({
-			node: node,
-			original: event,
-			event: event,
-			name: name
+	// schedule events so that they take place after twoway binding
+	runloop.scheduleTask( function () {
+		var node = this$1.owner.node;
+		var name = this$1.name;
+		var on = "on" + name;
+
+		// this is probably a custom event fired from a decorator or manually
+		if ( !( on in node ) && !( on in win ) ) { return; }
+
+		this$1.owner.on( name, this$1.handler = function ( event ) {
+			return directive.fire({
+				node: node,
+				original: event,
+				event: event,
+				name: name
+			});
 		});
-	});
+	}, true);
 };
 
-DOMEvent__proto__.unlisten = function unlisten () {
+DOMEvent__proto__.unbind = function unbind () {};
+
+DOMEvent__proto__.unrender = function unrender () {
 	if ( this.handler ) { this.owner.off( this.name, this.handler ); }
 };
 
@@ -13128,24 +13149,30 @@ var CustomEvent = function CustomEvent ( eventPlugin, owner, name ) {
 };
 var CustomEvent__proto__ = CustomEvent.prototype;
 
-CustomEvent__proto__.listen = function listen ( directive ) {
+CustomEvent__proto__.bind = function bind () {};
+
+CustomEvent__proto__.render = function render ( directive ) {
 		var this$1 = this;
 
-	var node = this.owner.node;
+	runloop.scheduleTask( function () {
+		var node = this$1.owner.node;
 
-	this.handler = this.eventPlugin( node, function ( event ) {
-			if ( event === void 0 ) event = {};
+		this$1.handler = this$1.eventPlugin( node, function ( event ) {
+				if ( event === void 0 ) event = {};
 
-		if ( event.original ) { event.event = event.original; }
-		else { event.original = event.event; }
+			if ( event.original ) { event.event = event.original; }
+			else { event.original = event.event; }
 
-		event.name = this$1.name;
-		event.node = event.node || node;
-		return directive.fire( event );
+			event.name = this$1.name;
+			event.node = event.node || node;
+			return directive.fire( event );
+		});
 	});
 };
 
-CustomEvent__proto__.unlisten = function unlisten () {
+CustomEvent__proto__.unbind = function unbind () {};
+
+CustomEvent__proto__.unrender = function unrender () {
 	this.handler.teardown();
 };
 
@@ -13156,7 +13183,7 @@ var RactiveEvent = function RactiveEvent ( component, name ) {
 };
 var RactiveEvent__proto__ = RactiveEvent.prototype;
 
-RactiveEvent__proto__.listen = function listen ( directive ) {
+RactiveEvent__proto__.bind = function bind ( directive ) {
 	var ractive = this.component.instance;
 
 	this.handler = ractive.on( this.name, function () {
@@ -13177,9 +13204,13 @@ RactiveEvent__proto__.listen = function listen ( directive ) {
 	});
 };
 
-RactiveEvent__proto__.unlisten = function unlisten () {
+RactiveEvent__proto__.render = function render () {};
+
+RactiveEvent__proto__.unbind = function unbind () {
 	this.handler.cancel();
 };
+
+RactiveEvent__proto__.unrender = function unrender () {};
 
 var specialPattern = /^(event|arguments|@node|@event|@context)(\..+)?$/;
 var dollarArgsPattern = /^\$(\d+)(\..+)?$/;
@@ -13219,14 +13250,18 @@ var EventDirective = function EventDirective ( options ) {
 var EventDirective__proto__ = EventDirective.prototype;
 
 EventDirective__proto__.bind = function bind () {
+		var this$1 = this;
+
 	addToArray( ( this.element.events || ( this.element.events = [] ) ), this );
 
 	setupArgsFn( this, this.template );
 	if ( !this.fn ) { this.action = this.template.f; }
+
+	this.events.forEach( function (e) { return e.bind( this$1 ); } );
 };
 
 EventDirective__proto__.destroyed = function destroyed () {
-	this.events.forEach( function (e) { return e.unlisten(); } );
+	this.events.forEach( function (e) { return e.unrender(); } );
 };
 
 EventDirective__proto__.fire = function fire ( event, args ) {
@@ -13334,18 +13369,18 @@ EventDirective__proto__.handleChange = function handleChange () {};
 EventDirective__proto__.render = function render () {
 		var this$1 = this;
 
-	// render events after everything else, so they fire after bindings
-	runloop.scheduleTask( function () { return this$1.events.forEach( function (e) { return e.listen( this$1 ); } ); }, true );
+	this.events.forEach( function (e) { return e.render( this$1 ); } );
 };
 
 EventDirective__proto__.toString = function toString () { return ''; };
 
 EventDirective__proto__.unbind = function unbind () {
 	removeFromArray( this.element.events, this );
+	this.events.forEach( function (e) { return e.unbind(); } );
 };
 
 EventDirective__proto__.unrender = function unrender () {
-	this.events.forEach( function (e) { return e.unlisten(); } );
+	this.events.forEach( function (e) { return e.unrender(); } );
 };
 
 EventDirective.prototype.update = noop;
@@ -14129,10 +14164,11 @@ assign( proto$5, {
 				this.fn = this.proxy = null;
 			} else {
 				this.partial = this.fnTemplate;
-				return;
+				return true;
 			}
 		}
 
+		var partial = this.partial;
 		this.partial = null;
 
 		if ( this.refName ) {
@@ -14143,6 +14179,8 @@ assign( proto$5, {
 			partialFromValue( this, this.model.get() );
 		}
 
+		if ( !this.fn && partial === this.partial ) { return false; }
+
 		this.unbindAttrs();
 
 		if ( this.fn ) {
@@ -14151,6 +14189,8 @@ assign( proto$5, {
 		} else if ( !this.partial ) {
 			warnOnceIfDebug( ("Could not find template for partial '" + (this.name) + "'") );
 		}
+
+		return true;
 	},
 
 	render: function render ( target, occupants ) {
@@ -14199,9 +14239,7 @@ assign( proto$5, {
 
 		if ( this.dirtyTemplate ) {
 			this.dirtyTemplate = false;
-			this.resetTemplate();
-
-			this.fragment.resetTemplate( this.partial || [] );
+			this.resetTemplate() && this.fragment.resetTemplate( this.partial || [] );
 		}
 
 		if ( this.dirty ) {
@@ -14248,7 +14286,7 @@ function partialFromValue ( self, value, okToParse ) {
 
 	if ( isArray( tpl ) ) {
 		self.partial = tpl;
-	} else if ( isObjectType( tpl ) ) {
+	} else if ( tpl && isObjectType( tpl ) ) {
 		if ( isArray( tpl.t ) ) { self.partial = tpl.t; }
 		else if ( isString( tpl.template ) ) { self.partial = parsePartial( tpl.template, tpl.template, self.ractive ).t; }
 	} else if ( isFunction( tpl ) && tpl.styleSet ) {
@@ -17316,7 +17354,7 @@ if ( win && !win.Ractive ) {
 	/* istanbul ignore next */
 	if ( ~opts$1.indexOf( 'ForceGlobal' ) ) { win.Ractive = Ractive; }
 } else if ( win ) {
-	warn( "Ractive already appears to be loaded while loading 0.9.10." );
+	warn( "Ractive already appears to be loaded while loading 0.9.11." );
 }
 
 assign( Ractive.prototype, proto, defaults );
@@ -17359,7 +17397,7 @@ defineProperties( Ractive, {
 	svg:              { value: svg },
 
 	// version
-	VERSION:          { value: '0.9.10' },
+	VERSION:          { value: '0.9.11' },
 
 	// plugins
 	adaptors:         { writable: true, value: {} },
