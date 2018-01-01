@@ -107,6 +107,37 @@ export default function() {
 		});
 	});
 
+	test( `multiple updates to climed macro attributes`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `<macro bind-name />`,
+			data: { name: 'joe' },
+			partials: {
+				macro: Ractive.macro(
+					( handle, attrs ) => {
+						handle.setTemplate( [ attrs.name ] );
+						return {
+							update ( attrs ) {
+								handle.setTemplate( [ attrs.name ] );
+							}
+						};
+					},
+					{ attributes: [ 'name' ] }
+				)
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'joe' );
+
+		r.set( 'name', 'larry' );
+
+		t.htmlEqual( fixture.innerHTML, 'larry' );
+
+		r.set( 'name', 'rich' );
+
+		t.htmlEqual( fixture.innerHTML, 'rich' );
+	});
+
 	test( `shuffling claimed macro attributes`, t => {
 		t.expect( 0 );
 

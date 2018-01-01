@@ -199,6 +199,7 @@ assign( proto, {
 
 		if ( this.dirtyAttrs ) {
 			this.dirtyAttrs = false;
+			keys( this._attrs ).forEach( k => this._attrs[k].update() );
 			this.refreshAttrs();
 			if ( isFunction( proxy.update ) ) proxy.update( this.handle.attributes );
 		}
