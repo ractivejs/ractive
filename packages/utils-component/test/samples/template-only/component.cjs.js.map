@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "file": "component.cjs.js",
+  "sources": ["component.ractive.html"],
+  "sourcesContent": [""],
+  "mappings": ""
+}

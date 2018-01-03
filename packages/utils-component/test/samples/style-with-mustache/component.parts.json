@@ -1,0 +1,10 @@
+{
+  "module": "component.ractive.html",
+  "dependencies":  [],
+  "template":  null,
+  "style": {
+    "code": "\n  div {\n    content: '{{uninterpolated}}'\n  }\n",
+    "map": null
+  },
+  "script": null
+}

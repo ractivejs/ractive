@@ -1,0 +1,10 @@
+{
+  "module": "component.ractive.html",
+  "dependencies": [],
+  "template": null,
+  "style": null,
+  "script": {
+    "code": "\n  component.exports = {\n    oninit () {\n      console.log('{{uninterpolated}}')\n    }\n  }\n",
+    "map": null
+  }
+}
