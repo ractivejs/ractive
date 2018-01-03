@@ -1006,14 +1006,15 @@ export default function() {
 		});
 
 		const r = new Ractive({
-			template: `<p on-first="false">
+			template: `<p on-first="false" {{#if nested}}on-nested="false"{{/if}}>
 						<cmp on-second="false">
 						  <i />
 						  {{#partial other}}<b />{{/partial}}
 						</cmp>
 					  </p>`,
 			target: fixture,
-			components: { cmp }
+			components: { cmp },
+			data: { nested: true }
 		});
 
 		const third = r.getContext( 'div' );
@@ -1023,16 +1024,22 @@ export default function() {
 		t.ok( third.hasListener( 'second', true ), 'element component event with bubble' );
 		t.ok( third.hasListener( 'third', true ), 'element plain event with bubble' );
 		t.ok( !third.hasListener( 'nope', true ), 'element no listener with bubble' );
+		t.ok( third.hasListener( 'nested', true ), 'element conditional parent event with bubble' );
 
 		const yielded = r.getContext( 'i' );
 
 		t.ok( !yielded.hasListener( 'third', true ), 'yielded bubble skips inside component' );
 		t.ok( yielded.hasListener( 'first', true ), 'yielded bubble outside component' );
+		t.ok( yielded.hasListener( 'nested', true ), 'yielded bubble conditional parent outside component' );
 
 		const partial = r.getContext( 'b' );
 
 		t.ok( partial.hasListener( 'third', true ) && partial.hasListener( 'second', true ), 'partial bubble does not skip inside component' );
 		t.ok( partial.hasListener( 'first', true ), 'partial bubble outside component' );
 
+		r.toggle( 'nested' );
+
+		t.ok( !third.hasListener( 'nested', true ), 'element conditional off parent event with bubble' );
+		t.ok( !yielded.hasListener( 'nested', true ), 'yielded bubble conditional off parent outside component' );
 	});
 }

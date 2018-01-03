@@ -9,7 +9,7 @@ import { animate as protoAnimate } from '../Ractive/prototype/animate';
 import { update as protoUpdate } from '../Ractive/prototype/update';
 import getRactiveContext, { extern, findParentWithContext } from './getRactiveContext';
 import { hasOwn } from 'utils/object';
-import { ELEMENT, EVENT } from 'config/types';
+import { ELEMENT } from 'config/types';
 
 const modelPush = makeArrayMethod( 'push' ).model;
 const modelPop = makeArrayMethod( 'pop' ).model;
@@ -302,5 +302,5 @@ function findModel ( ctx, path ) {
 }
 
 function findEvent( el, name ) {
-	return el.attributes && el.attributes.find( a => a.template.t === EVENT && ~a.template.n.indexOf( name ) );
+	return el.events && el.events.find( e => ~e.template.n.indexOf( name ) );
 }
