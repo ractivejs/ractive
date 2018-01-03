@@ -1230,4 +1230,23 @@ export default function() {
 		t.equal( arr.length, 2 );
 		t.htmlEqual( fixture.innerHTML, '13' );
 	});
+
+	test( `accessing a dirty computation with a linked root should not break the view (#3169)`, t => {
+		const r1 = new Ractive({
+			computed: {
+				foo() { return 'foo'; }
+			},
+			data: { bar: 'bar' }
+		});
+		new Ractive({
+			on: {
+				config() { this.link( '', 'r1', { instance: r1 } ); }
+			},
+			template: '{{r1["bar"]}}',
+			target: fixture
+		});
+
+		t.equal( r1.get( 'foo' ), 'foo' );
+		t.htmlEqual( fixture.innerHTML, 'bar' );
+	});
 }

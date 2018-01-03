@@ -8,6 +8,7 @@ import { maybeBind } from './ModelBase';
 import ComputationChild from './ComputationChild';
 import { hasConsole } from 'config/environment';
 import { isEqual } from 'utils/is';
+import runloop from 'src/global/runloop';
 
 export default class Computation extends Model {
 	constructor ( viewmodel, signature, key ) {
@@ -47,7 +48,14 @@ export default class Computation extends Model {
 			this.dirty = false;
 			const old = this.value;
 			this.value = this.getValue();
-			if ( !isEqual( old, this.value ) ) this.notifyUpstream();
+			// this may cause a view somewhere to update, so it must be in a runloop
+			if ( !runloop.active() ) {
+				runloop.start();
+				if ( !isEqual( old, this.value ) ) this.notifyUpstream();
+				runloop.end();
+			} else {
+				if ( !isEqual( old, this.value ) ) this.notifyUpstream();
+			}
 			if ( this.wrapper ) this.newWrapperValue = this.value;
 			this.adapt();
 		}

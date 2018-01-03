@@ -4,6 +4,8 @@ import TransitionManager from './TransitionManager';
 let batch;
 
 const runloop = {
+	active () { return !!batch; },
+
 	start () {
 		let fulfilPromise;
 		const promise = new Promise( f => ( fulfilPromise = f ) );
