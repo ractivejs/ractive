@@ -1,0 +1,17 @@
+{
+  "name": "@ractivejs/loader-browser",
+  "version": "1.0.0",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/lib.js",
+  "module": "dist/lib.mjs",
+  "devDependencies": {
+    "@ractivejs/core": "1.0.0",
+    "@ractivejs/utils-component": "1.0.0"
+  },
+  "scripts": {
+    "build": "rollup -c src/rollup.config.js",
+    "_test": "rollup -c test/rollup.config.js && karma start ../../karma.conf.js"
+  }
+}
