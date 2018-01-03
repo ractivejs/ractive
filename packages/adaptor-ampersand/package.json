@@ -1,0 +1,19 @@
+{
+  "name": "@ractivejs/adaptor-ampersand",
+  "version": "1.0.0",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/lib.js",
+  "module": "dist/lib.mjs",
+  "devDependencies": {
+    "@ractivejs/core": "1.0.0",
+    "ampersand-collection": "^2.0.1",
+    "ampersand-model": "^8.0.1",
+    "browserify": "^14.5.0"
+  },
+  "scripts": {
+    "build": "rollup -c src/rollup.config.js",
+    "test": "rm -rf tmp && mkdir tmp && browserify test/ampersand.js -s Ampersand -o tmp/ampersand.js && rollup -c test/rollup.config.js && karma start ../../karma.conf.js"
+  }
+}
