@@ -17,6 +17,8 @@ export const INLINE_PARTIAL    = 17;
 export const DOCTYPE           = 18;
 export const ALIAS             = 19;
 
+export const AWAIT             = 55;
+
 export const NUMBER_LITERAL    = 20;
 export const STRING_LITERAL    = 21;
 export const ARRAY_LITERAL     = 22;
@@ -26,7 +28,6 @@ export const REGEXP_LITERAL    = 25;
 
 export const GLOBAL            = 26;
 export const KEY_VALUE_PAIR    = 27;
-
 
 export const REFERENCE         = 30;
 export const REFINEMENT        = 31;
@@ -46,6 +47,8 @@ export const SECTION_IF_WITH   = 54;
 
 export const ELSE              = 60;
 export const ELSEIF            = 61;
+export const THEN              = 62;
+export const CATCH             = 63;
 
 export const EVENT             = 70;
 export const DECORATOR         = 71;

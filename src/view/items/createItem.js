@@ -1,4 +1,4 @@
-import { ALIAS, ANCHOR, COMMENT, COMPONENT, DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from 'config/types';
+import { ALIAS, ANCHOR, AWAIT, COMMENT, COMPONENT, DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from 'config/types';
 import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from 'config/types';
 import Alias from './Alias';
 import Attribute from './element/Attribute';
@@ -25,11 +25,13 @@ import getComponentConstructor from './component/getComponentConstructor';
 import findElement from './shared/findElement';
 import { findInstance } from 'shared/registry';
 import asyncProxy from './asyncProxy';
+import Await from './Await';
 import { isString, isFunction } from 'utils/is';
 
 const constructors = {};
 constructors[ ALIAS ] = Alias;
 constructors[ ANCHOR ] = Component;
+constructors[ AWAIT ] = Await;
 constructors[ DOCTYPE ] = Doctype;
 constructors[ INTERPOLATOR ] = Interpolator;
 constructors[ PARTIAL ] = Partial;

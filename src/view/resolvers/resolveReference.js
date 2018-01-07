@@ -4,6 +4,12 @@ import { warnIfDebug } from 'utils/log';
 import { hasOwn } from 'utils/object';
 import { isFunction } from 'utils/is';
 
+function findContext ( fragment ) {
+	let frag = fragment;
+	while ( frag && !frag.context && !frag.aliases ) frag = frag.parent;
+	return frag;
+}
+
 export default function resolveReference ( fragment, ref ) {
 	const initialFragment = fragment;
 	// current context ref
@@ -127,11 +133,18 @@ export default function resolveReference ( fragment, ref ) {
 		}
 	}
 
-	const context = fragment.findContext();
+	let context = findContext( fragment );
 
 	// check immediate context for a match
-	if ( context.has( base ) ) {
-		return context.joinKey( base ).joinAll( keys );
+	if ( context ) {
+		if ( context.context ) {
+			context = context.context;
+			if ( context.has( base ) ) return context.joinKey( base ).joinAll( keys );
+		} else { // alias block, so get next full context for later
+			context = fragment.findContext();
+		}
+	} else {
+		context = fragment.findContext();
 	}
 
 	// walk up the fragment hierarchy looking for a matching ref, alias, or key in a context
