@@ -5,8 +5,6 @@ import cleanup from 'parse/utils/cleanup';
 import readMustache from './readMustache';
 import readClosingTag from './element/readClosingTag';
 import readClosing from './mustache/section/readClosing';
-import readElse from './mustache/section/readElse';
-import readElseIf from './mustache/section/readElseIf';
 import { create } from 'utils/object';
 
 const tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/;
@@ -193,8 +191,7 @@ function readElement ( parser ) {
 			else {
 				// implicit close by closing section tag. TODO clean this up
 				const tag = { open: parser.standardDelimiters[0], close: parser.standardDelimiters[1] };
-				const implicitCloseCase = [ readClosing, readElseIf, readElse ];
-				if (  implicitCloseCase.some( r => r( parser, tag ) ) ) {
+				if ( readClosing( parser, tag ) || readInline( parser, tag ) ) {
 					closed = true;
 					parser.pos = pos;
 				}
@@ -274,4 +271,15 @@ function readAnchorClose ( parser, name ) {
 	}
 
 	return true;
+}
+
+const inlines = /^\s*(elseif|else|then|catch)\s*/;
+function readInline ( parser, tag ) {
+	const pos = parser.pos;
+	if ( !parser.matchString( tag.open ) ) return;
+	if ( parser.matchPattern( inlines ) ) {
+		return true;
+	} else {
+		parser.pos = pos;
+	}
 }
