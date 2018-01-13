@@ -13,12 +13,12 @@ const encodeNumber = (num, result = '') => {
 const encodeFields = fields => fields.map(num => encodeNumber(num < 0 ? (-num << 1) | 1 : num << 1)).join('')
 
 // Creates a 1:1 source map.
-export const getSourceMap = (inputFileName, outputFileName, source) => ({
+export const getSourceMap = (inputFileName, outputFileName, source = '') => ({
   version: 3,
   file: outputFileName,
   sources: [inputFileName],
-  // If source is falsy, it returns blank for both sourceContent and  mappings.
-  sourcesContent: [source || ''],
+  // If source is falsy, it returns blank for both sourceContent and mappings.
+  sourcesContent: [source],
   mappings: source ? source.split('\n').map((line, i, a) => {
     const isFirstLine = i === 0
 

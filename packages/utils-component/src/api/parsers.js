@@ -1,5 +1,5 @@
 import Ractive from '@ractivejs/core'
-import {trimEnd, getModuleName, isComponentPath, isComponentName, getRequiredModules} from './strings'
+import { trimEnd, getComponentName, isComponent, isComponentName, getRequiredModules } from './utils'
 
 const containerElements = {
   template: true,
@@ -24,9 +24,9 @@ const getAttribute = (name, node) => {
       : undefined
 }
 
-export function toParts (module, source) {
+export function toParts (component, source) {
   const parts = {
-    module: module,
+    component: component,
     dependencies: [],
     template: null,
     style: null,
@@ -45,9 +45,9 @@ export function toParts (module, source) {
 
       const module = getAttribute('href', item)
       if (!module) throw new Error('Linked components must have the href attribute.')
-      if (!isComponentPath(module)) throw new Error('Linked components must either have a .html or .ractive.html extension')
+      if (!isComponent(module)) throw new Error('Linked components must either have a .html or .ractive.html extension')
 
-      const name = getAttribute('name', item) || getModuleName(module)
+      const name = getAttribute('name', item) || getComponentName(module)
       if (!name) throw new Error('Linked components must have the name attribute.')
       if (!isComponentName(name)) throw new Error(`Cannot use ${name} as component name.`)
 

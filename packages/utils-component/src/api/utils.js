@@ -1,16 +1,23 @@
-import { match } from 'tippex'
+import {match} from 'tippex'
 
-export const getModuleName = path => {
+const componentNamePattern = /^[a-zA-Z$_][a-zA-Z$_0-9]*$/
+const componentExtensionPattern = /(?:\.ractive)?\.html$/
+const trailingWhitespacePattern = /[\s\uFEFF\xA0]+$/
+
+export const trimEnd = string => string.replace(trailingWhitespacePattern, '')
+export const isComponent = path => componentExtensionPattern.test(path)
+export const isComponentName = name => componentNamePattern.test(name)
+export const replaceExtension = (module, ext) => module.replace(componentExtensionPattern, ext)
+
+export const getComponentName = path => {
   const filename = path.split('/').pop()
   const firstDot = filename.indexOf('.')
   return filename.indexOf('.') > -1 ? filename.substr(0, firstDot) : filename
 }
 
-export const getModulePath = (path, base) => {
-  const isPathAbsolute = path.charAt(0) === '/'
-
+export const getComponentPath = (path, base) => {
   // Leave the path alone if we don't know the base or if the path is absolute.
-  if (!base || isPathAbsolute) return path
+  if (!base || path.charAt(0) === '/') return path
 
   const isBaseAbsolute = base.charAt(0) === '/'
 
@@ -31,18 +38,6 @@ export const getModulePath = (path, base) => {
   }, base.split('/').slice(0, -1)).join('/')
 }
 
-export const isComponentPath = path => {
-  return /(?:\.ractive)?\.html$/i.test(path)
-}
-
-export const isComponentName = name => {
-  return /^[a-zA-Z$_][a-zA-Z$_0-9]*$/.test(name)
-}
-
-export const trimEnd = string => {
-  return string.replace(/[\s\uFEFF\xA0]+$/, '')
-}
-
 export const getRequiredModules = string => {
   // We cannot match template strings. Using them would mean something dynamic
   // which we cannot determine when statically scanning the source.
@@ -50,10 +45,11 @@ export const getRequiredModules = string => {
   const modules = []
 
   // TODO: While it gets stuff done, tippex is overkill. We need a simpler parser.
+  // TODO: Edge case, this matches methods named require.
   match(string, pattern, (match, doubleQuoted, singleQuoted) => {
     const module = doubleQuoted || singleQuoted
     if (modules.indexOf(module) === -1) modules.push(module)
   })
 
-  return modules.map(m => ({ name: getModuleName(m), module: m }))
+  return modules.map(m => ({ name: getComponentName(m), module: m }))
 }

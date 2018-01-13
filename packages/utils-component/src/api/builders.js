@@ -1,78 +1,81 @@
-import serialize from 'serialize-javascript'
 import Ractive from '@ractivejs/core'
+import serialize from 'serialize-javascript'
+import { isComponent } from './utils'
 import { getSourceMap, offsetMapStart } from './source-map'
-import { isComponentPath } from './strings'
 
-const esPrefix = `import Ractive from '@ractivejs/core'`
-const esImporter = (n, m) => `import ${n} from '${m}'`
-const esPostfix = `export default Ractive.extend(component.exports)`
+const getComponents = dependencies => dependencies.filter(d => isComponent(d.module))
+const getComponentsInit = components => `component.exports.components = {${components.map(c => `${c.name}:require('${c.module}')`).join(',')}}`
+const getTemplateInit = code => `component.exports.template = ${serialize(Ractive.parse(code))}`
+const getStyleInit = code => `component.exports.css = ${serialize(code)}`
+const getScriptInit = code => code
 
-const cjsPrefix = `var Ractive = require('@ractivejs/core')`
-const cjsImporter = (n, m) => `var ${n} = require('${m}')`
-const cjsPostfix = `module.exports = Ractive.extend(component.exports)`
+const getInit = parts => {
+  const components = getComponents(parts.dependencies)
+  const sections = []
 
-const amdWrap = m => `define(function(require, exports, module){\n${m}})\n`
+  if (parts.script) sections.push(getScriptInit(parts.script.code))
+  if (components.length) sections.push(getComponentsInit(components))
+  if (parts.template) sections.push(getTemplateInit(parts.template.code))
+  if (parts.style) sections.push(getStyleInit(parts.style.code))
 
-export const getComponentDependencies = dependencies => dependencies.filter(d => isComponentPath(d.module))
-export const getComponentImporters = (components, importer) => components.map((c, i) => importer(`__component${i}__`, c.module)).join('\n')
-export const getComponentRegistrations = components => `component.exports.components = {${components.map((c, i) => `${c.name}: __component${i}__`).join(', ')}}`
-export const getTemplate = template => `component.exports.template = ${serialize(Ractive.parse(template.code))}`
-export const getStyle = style => `component.exports.css = ${serialize(style.code)}`
-export const getScript = script => script.code
-
-// Wraps code with Ractive-specific augmentations.
-const getCode = (parts, prefix, postfix, importer) => {
-  const code = []
-  const components = getComponentDependencies(parts.dependencies)
-
-  if (prefix) code.push(prefix)
-  if (components.length) code.push(getComponentImporters(components, importer))
-  code.push(`var component = {exports: {}}`)
-  if (parts.script) code.push(getScript(parts.script))
-  if (components.length) code.push(getComponentRegistrations(components))
-  if (parts.template) code.push(getTemplate(parts.template))
-  if (parts.style) code.push(getStyle(parts.style))
-  if (postfix) code.push(postfix)
-  return `${code.join('\n')}\n`
+  return sections
 }
 
-const getMap = (module, parts, additionalOffset) => {
-  const code = (parts.script && parts.script.code) || ''
-
-  // If a map exists, a third-party tool probably supplied it.
-  // If a map doesn't exist, we're consuming a toParts output directly.
-  const map = (parts.script && parts.script.map) || getSourceMap(parts.module, module, code)
-
-  // For Ractive import and component.exports setup.
-  const prefixOffset = 2
-  const importOffset = getComponentDependencies(parts.dependencies).length
-
-  // Padding is needed to compensate for the wrapper code.
-  // Do not offset if there's no code.
-  return parts.script && parts.script.code ? offsetMapStart(map, prefixOffset + importOffset + additionalOffset) : map
+const getMap = (component, module, script, lineOffset) => {
+  const code = (script && script.code) || ''
+  const map = (script && script.map) || getSourceMap(component, module, code)
+  const offset = (script && script.code) ? lineOffset : 0
+  return offsetMapStart(map, offset)
 }
 
-// Generates a CJS module of the component.
-export const toCJS = (module, parts) => ({
-  code: getCode(parts, cjsPrefix, cjsPostfix, cjsImporter),
-  map: getMap(module, parts, 0)
-})
+export const toCJS = (module, parts) => {
+  const sections = [
+    `var Ractive = require('@ractivejs/core')`,
+    `var component = {exports:{}}`,
+    ...getInit(parts),
+    `module.exports = Ractive.extend(component.exports)`
+  ]
 
-// Generates an AMD module of the component.
-export const toAMD = (module, parts) => ({
-  code: amdWrap(getCode(parts, cjsPrefix, cjsPostfix, cjsImporter)),
-  map: getMap(module, parts, 1)
-})
+  const code = `${sections.join('\n')}\n`
+  const map = getMap(parts.component, module, parts.script, 2)
+  return { code, map }
+}
 
-// Generates an ES module of the component.
-export const toES = (module, parts) => ({
-  code: getCode(parts, esPrefix, esPostfix, esImporter),
-  map: getMap(module, parts, 0)
-})
+export const toAMD = (module, parts) => {
+  const dependencies = ['require', '@ractivejs/core', ...parts.dependencies.map(d => d.module)].map(d => `'${d}'`).join(',')
 
-// Generates a live constructor of the component.
+  const sections = [
+    `define([${dependencies}], function(require, Ractive){`,
+    `var component = {exports:{}}`,
+    ...getInit(parts),
+    `return Ractive.extend(component.exports)`,
+    `})`
+  ]
+
+  const code = `${sections.join('\n')}\n`
+  const map = getMap(parts.component, module, parts.script, 2)
+  return { code, map }
+}
+
+export const toES = (module, parts) => {
+  const imports = parts.dependencies.map((d, i) => `import __ractiveimport${i}__ from '${d.module}'`)
+
+  const sections = [
+    `import Ractive from '@ractivejs/core'`,
+    ...imports,
+    `var require = (function(d){return function(m){return d[m]}})({${parts.dependencies.map((d, i) => `'${d.module}':__ractiveimport${i}__`).join(',')}})`,
+    `var component = {exports:{}}`,
+    ...getInit(parts),
+    `export default Ractive.extend(component.exports)`
+  ]
+
+  const code = `${sections.join('\n')}\n`
+  const map = getMap(parts.component, module, parts.script, parts.dependencies.length + 3)
+  return { code, map }
+}
+
 export const toConstructor = (module, parts, resolver) => {
-  const components = getComponentDependencies(parts.dependencies)
+  const components = getComponents(parts.dependencies)
   const component = { exports: {} }
 
   if (parts.script) (new Function('require', 'exports', 'component', 'Ractive', parts.script.code))(resolver, component.exports, component, Ractive)
