@@ -340,4 +340,51 @@ export default function () {
 		r.set( 'attrs', 'baz' );
 		t.htmlEqual( fixture.innerHTML, '<div><div class="sam"></div></div>' );
 	});
+
+	test( `components can pass-through decorators, transitions, and binding flags in extra-attributes`, t => {
+		t.expect( 5 );
+
+		const cmp = Ractive.extend({
+			attributes: [],
+			on: {
+				init () {
+					const extra = this.partials[ 'extra-attributes' ];
+					t.equal( extra.length, 4 );
+					t.equal( extra[0].t, 13 ); // attribute
+					t.equal( extra[1].t, 72 ); // transition
+					t.equal( extra[2].t, 71 ); // decorator
+					t.equal( extra[3].t, 73 ); // binding flag
+				}
+			}
+		});
+
+		new Ractive({
+			target: fixture,
+			template: '<cmp foo bar-in as-baz lazy />',
+			components: { cmp }
+		});
+	});
+
+	test( `components can't pass-through decorators, transitions, and binding flags in extra-attributes if mapping`, t => {
+		t.expect( 2 );
+
+		const cmp = Ractive.extend({
+			attributes: {
+				mapAll: true
+			},
+			on: {
+				init () {
+					const extra = this.partials[ 'extra-attributes' ];
+					t.equal( extra.length, 1 );
+					t.equal( extra[0].t, 13 ); // attribute
+				}
+			}
+		});
+
+		new Ractive({
+			target: fixture,
+			template: '<cmp foo bar-in as-baz lazy />',
+			components: { cmp }
+		});
+	});
 }

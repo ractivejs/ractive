@@ -8,7 +8,7 @@ import Hook from 'src/events/Hook';
 import getComputationSignature from './helpers/getComputationSignature';
 import subscribe from './helpers/subscribe';
 import Ractive from '../Ractive';
-import { ATTRIBUTE, INTERPOLATOR } from 'config/types';
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, INTERPOLATOR, TRANSITION } from 'config/types';
 import { assign, create, hasOwn } from 'utils/object';
 import { isString } from 'utils/is';
 
@@ -165,6 +165,8 @@ function handleAttributes ( ractive ) {
 					// transfer the attribute to the extra attributes partal
 					partial.unshift( attrs.splice( i, 1 )[0] );
 				}
+			} else if ( !attributes.mapAll && ( a.t === DECORATOR || a.t === TRANSITION || a.t === BINDING_FLAG ) ) {
+				partial.unshift( attrs.splice( i, 1 )[0] );
 			}
 		}
 
