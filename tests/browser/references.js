@@ -517,4 +517,57 @@ export default function() {
 		r.set( 'bar', 'baz' );
 		t.htmlEqual( fixture.innerHTML, 'baz baz' );
 	});
+
+	test( `parent context reference works one level below root`, t => {
+		new Ractive({
+			target: fixture,
+			template: '{{#with foo}}{{^^/bar}}{{/with}}',
+			data: { foo: {}, bar: 'yep' }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
+
+	test( `parent context reference inside iteration jumps immediately out of the iteration context`, t => {
+		new Ractive({
+			target: fixture,
+			template: '{{#with foo}}{{#each bar}}{{^^/baz}}{{/each}}{{/with}}',
+			data: { foo: { bar: [ {} ] }, baz: 'yep' }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
+
+	test( `non-isolated components can reach parent contexts`, t => {
+		const cmp = Ractive.extend({
+			template: '{{^^/foo}} {{#with bar}}{{^^/^^/foo}}{{/with}}',
+			isolated: false,
+			data () { return { bar: {} }; }
+		});
+
+		new Ractive({
+			target: fixture,
+			template: '<cmp />',
+			components: { cmp },
+			data: { foo: 'yep' }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'yep yep' );
+	});
+
+	test( `isolated components can't reach parent contexts`, t => {
+		const cmp = Ractive.extend({
+			template: '{{^^/foo}} {{#with bar}}{{^^/^^/foo}}{{/with}}',
+			data () { return { bar: {} }; }
+		});
+
+		t.throws( () => {
+			new Ractive({
+				target: fixture,
+				template: '<cmp />',
+				components: { cmp },
+				data: { foo: 'yep' }
+			});
+		}, /not context at that level/ );
+	});
 }

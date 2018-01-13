@@ -17,19 +17,30 @@ export default function resolveReference ( fragment, ref ) {
 		let frag = fragment;
 		const parts = ref.split( '/' );
 		const explicitContext = parts[0] === '^^';
-		let context = explicitContext ? null : fragment.findContext();
 
-		// account for the first context hop
-		if ( explicitContext ) parts.unshift( '^^' );
+		// find nearest context node
+		while ( frag && !frag.context ) {
+			frag = up( frag );
+		}
+		let context = frag && frag.context;
 
 		// walk up the context chain
-		while ( parts[0] === '^^' ) {
+		while ( frag && parts[0] === '^^' ) {
 			parts.shift();
-			context = null;
-			while ( frag && !context ) {
-				context = frag.context;
-				frag = frag.parent.component ? frag.parent.component.up : frag.parent;
+
+			// the current fragment should always be a context,
+			// and if it happens to be an iteration, jump above the each block
+			if ( frag.isIteration ) {
+				frag = frag.parent.parent.parent;
+			} else { // otherwise jump above the current fragment
+				frag = up( frag );
 			}
+
+			// walk to the next contexted fragment
+			while ( frag && !frag.context ) {
+				frag = up( frag );
+			}
+			context = frag && frag.context;
 		}
 
 		if ( !context && explicitContext ) {
@@ -184,6 +195,10 @@ export default function resolveReference ( fragment, ref ) {
 
 	// didn't find anything, so go ahead and create the key on the local model
 	return context.joinKey( base ).joinAll( keys );
+}
+
+function up ( fragment ) {
+	return fragment && ( ( !fragment.ractive.isolated && fragment.componentParent ) || fragment.parent );
 }
 
 function badReference ( key ) {
