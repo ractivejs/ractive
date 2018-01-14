@@ -1,5 +1,5 @@
 /* eslint-env browser */
-import { toParts, toConstructor, getModulePath, isComponentPath } from '@ractivejs/utils-component'
+import { toParts, toConstructor, getComponentPath, isComponent } from '@ractivejs/utils-component'
 
 // We need to avoid re-evaluating already-loaded dependencies, hence the cache.
 const resolvedDependencies = {}
@@ -17,9 +17,9 @@ const get = url => new Promise((resolve, reject) => {
 // - Relative to dependent, if it starts with ./ or ../ (i.e. ./path/to/dependency).
 // - Relative to base, if it starts with a segment (i.e. path/to/dependency).
 // - Relative to domain, if it starts with / (i.e. /path/to/dependency).
-// It's not a question of getModulePath's implementation, but a question of what
+// It's not a question of getComponentPath's implementation, but a question of what
 // is the base for the module to be resolved.
-const resolveModulePath = (m, d, b) => getModulePath(m, m.charAt(0) === '.' ? d : b)
+const resolveModulePath = (m, d, b) => getComponentPath(m, m.charAt(0) === '.' ? d : b)
 
 const load = (basePath, dependentPath, modulePath, dependencyMap) => {
   // Determine if module is relative to base or dependent
@@ -28,7 +28,7 @@ const load = (basePath, dependentPath, modulePath, dependencyMap) => {
   // Resolve require calls inside the evaluated code.
   const dependencyResolver = module => {
     const modulePath = resolveModulePath(module, dependentPath, basePath)
-    const resolvedDependency = isComponentPath(modulePath) ? resolvedDependencies[modulePath] : null
+    const resolvedDependency = isComponent(modulePath) ? resolvedDependencies[modulePath] : null
     const dependency = resolvedDependency || dependencyMap[module] || window[module]
 
     if (!dependency) throw new Error(`Could not find dependency ${dependency}`)
@@ -50,7 +50,7 @@ const load = (basePath, dependentPath, modulePath, dependencyMap) => {
 
     // Recursively load subcomponents
     const loadDependencies = dependencies => dependencies
-      .filter(d => isComponentPath(d.module) && !resolvedDependencies[d.module])
+      .filter(d => isComponent(d.module) && !resolvedDependencies[d.module])
       .map(d => load(basePath, resolvedModulePath, d.module, dependencyMap))
 
     const dependenciesPromise = parts.dependencies ? Promise.all(loadDependencies(parts.dependencies)) : Promise.resolve()

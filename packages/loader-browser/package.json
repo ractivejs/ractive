@@ -12,6 +12,6 @@
   },
   "scripts": {
     "build": "rollup -c src/rollup.config.js",
-    "_test": "rollup -c test/rollup.config.js && karma start ../../karma.conf.js"
+    "test": "rollup -c test/rollup.config.js && karma start ../../karma.conf.js"
   }
 }
