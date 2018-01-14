@@ -59,11 +59,12 @@ export const toAMD = (module, parts) => {
 
 export const toES = (module, parts) => {
   const imports = parts.dependencies.map((d, i) => `import __ractiveimport${i}__ from '${d.module}'`)
+  const interop = imports.length ? [`var require = (function(d){return function(m){return d[m]}})({${parts.dependencies.map((d, i) => `'${d.module}':__ractiveimport${i}__`).join(',')}})`] : []
 
   const sections = [
     `import Ractive from '@ractivejs/core'`,
     ...imports,
-    `var require = (function(d){return function(m){return d[m]}})({${parts.dependencies.map((d, i) => `'${d.module}':__ractiveimport${i}__`).join(',')}})`,
+    ...interop,
     `var component = {exports:{}}`,
     ...getInit(parts),
     `export default Ractive.extend(component.exports)`

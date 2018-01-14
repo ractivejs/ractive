@@ -1,5 +1,5 @@
 import Ractive from '@ractivejs/core'
-var component = {exports: {}}
+var component = {exports:{}}
 
   component.exports = {
     oninit () {

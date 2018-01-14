@@ -1,5 +1,5 @@
 {
-  "module": "component.ractive.html",
+  "component": "component.ractive.html",
   "dependencies":  [],
   "template":  null,
   "style": {

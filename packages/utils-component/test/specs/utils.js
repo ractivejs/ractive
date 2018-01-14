@@ -1,9 +1,9 @@
 import { module, test } from 'qunit'
-import { getModuleName, getModulePath, isComponentPath } from '@ractivejs/utils-component'
+import { getComponentName, getComponentPath, isComponent, replaceExtension } from '@ractivejs/utils-component'
 
-module('strings')
+module('utils')
 
-test(`getModuleName`, assert => {
+test(`getComponentName`, assert => {
   const specs = [
     { input: 'MyComponent', expected: 'MyComponent' },
     { input: 'MyComponent.html', expected: 'MyComponent' },
@@ -23,11 +23,11 @@ test(`getModuleName`, assert => {
   ]
 
   specs.forEach(({ input, expected }) => {
-    assert.strictEqual(getModuleName(input), expected)
+    assert.strictEqual(getComponentName(input), expected)
   })
 })
 
-test(`getModulePath valid`, assert => {
+test(`getComponentPath valid`, assert => {
   const specs = [
     // Returns path if base is missing
     { base: '', path: 'MyComponent.ractive.html', expected: 'MyComponent.ractive.html' },
@@ -112,11 +112,11 @@ test(`getModulePath valid`, assert => {
   ]
 
   specs.forEach(({ base, path, expected }, index) => {
-    assert.strictEqual(getModulePath(path, base), expected)
+    assert.strictEqual(getComponentPath(path, base), expected)
   })
 })
 
-test('getModulePath invalid', assert => {
+test('getComponentPath invalid', assert => {
   const specs = [
     { base: 'path/', path: '../../MyComponent.ractive.html' },
     { base: 'path/to/', path: '../../../MyComponent.ractive.html' },
@@ -129,7 +129,7 @@ test('getModulePath invalid', assert => {
   ]
 
   specs.forEach(({ base, path }) => {
-    assert.throws(() => { getModulePath(path, base) }, Error)
+    assert.throws(() => { getComponentPath(path, base) }, Error)
   })
 })
 
@@ -148,6 +148,31 @@ test(`isComponentPath`, assert => {
   ]
 
   specs.forEach(spec => {
-    assert.ok(isComponentPath(spec))
+    assert.ok(isComponent(spec))
+  })
+})
+
+test(`replaceExtension`, assert => {
+  const specs = [
+    { path: 'MyComponent.html', ext: '.js', expected: 'MyComponent.js' },
+    { path: '/MyComponent.html', ext: '.js', expected: '/MyComponent.js' },
+    { path: './MyComponent.html', ext: '.js', expected: './MyComponent.js' },
+    { path: '../MyComponent.html', ext: '.js', expected: '../MyComponent.js' },
+    { path: 'path/to/MyComponent.html', ext: '.js', expected: 'path/to/MyComponent.js' },
+    { path: '/path/to/MyComponent.html', ext: '.js', expected: '/path/to/MyComponent.js' },
+    { path: './path/to/MyComponent.html', ext: '.js', expected: './path/to/MyComponent.js' },
+    { path: '../path/to/MyComponent.html', ext: '.js', expected: '../path/to/MyComponent.js' },
+    { path: 'MyComponent.ractive.html', ext: '.js', expected: 'MyComponent.js' },
+    { path: '/MyComponent.ractive.html', ext: '.js', expected: '/MyComponent.js' },
+    { path: './MyComponent.ractive.html', ext: '.js', expected: './MyComponent.js' },
+    { path: '../MyComponent.ractive.html', ext: '.js', expected: '../MyComponent.js' },
+    { path: 'path/to/MyComponent.ractive.html', ext: '.js', expected: 'path/to/MyComponent.js' },
+    { path: '/path/to/MyComponent.ractive.html', ext: '.js', expected: '/path/to/MyComponent.js' },
+    { path: './path/to/MyComponent.ractive.html', ext: '.js', expected: './path/to/MyComponent.js' },
+    { path: '../path/to/MyComponent.ractive.html', ext: '.js', expected: '../path/to/MyComponent.js' }
+  ]
+
+  specs.forEach(({ path, ext, expected }, index) => {
+    assert.strictEqual(replaceExtension(path, ext), expected)
   })
 })

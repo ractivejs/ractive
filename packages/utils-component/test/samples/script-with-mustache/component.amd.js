@@ -1,6 +1,5 @@
-define(function(require, exports, module){
-var Ractive = require('@ractivejs/core')
-var component = {exports: {}}
+define(['require','@ractivejs/core'], function(require, Ractive){
+var component = {exports:{}}
 
   component.exports = {
     oninit () {
@@ -8,5 +7,5 @@ var component = {exports: {}}
     }
   }
 
-module.exports = Ractive.extend(component.exports)
+return Ractive.extend(component.exports)
 })

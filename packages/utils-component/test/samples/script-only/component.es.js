@@ -1,5 +1,7 @@
 import Ractive from '@ractivejs/core'
-var component = {exports: {}}
+import __ractiveimport0__ from 'hhgttg'
+var require = (function(d){return function(m){return d[m]}})({'hhgttg':__ractiveimport0__})
+var component = {exports:{}}
 
   const answer = require('hhgttg')
 

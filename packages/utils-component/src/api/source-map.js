@@ -44,7 +44,7 @@ export const getInlineSourceMap = map => {
 
 // Prefix an existing source map with empty lines.
 export const offsetMapStart = (map, amount) => {
-  const padding = new Array(amount).join(';')
-  const mappings = `${padding};${map.mappings}`
+  const padding = amount ? new Array(amount + 1).join(';') : ''
+  const mappings = `${padding}${map.mappings}`
   return Object.assign({}, map, { mappings })
 }

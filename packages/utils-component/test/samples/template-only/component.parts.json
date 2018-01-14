@@ -1,5 +1,5 @@
 {
-  "module": "component.ractive.html",
+  "component": "component.ractive.html",
   "dependencies": [],
   "template": {
     "code": "\n  <div>Hello, {{ user }}!</div>\n  <div>Answer to the Ultimate Question of Life, the Universe, and Everything: {{ answer }}</div>\n  <div>Expression {{ a + b }}</div>\n  <MyComponent />\n  <MyOtherComponent />\n  <YetAnotherComponent />\n",

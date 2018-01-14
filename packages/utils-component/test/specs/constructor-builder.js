@@ -50,8 +50,9 @@ test(`duplicate-link-name`, assert => {
 })
 
 test(`duplicate-require`, assert => {
-  // Duplicate require is a test for toParts, ensuring duplicates are only recognized once.
-  // All we can do here is ensure the call is done twice, as per the component file.
+  // Duplicate require is a test for toParts, ensuring duplicates are only
+  // recognized once. All we can do here is ensure the call is done twice, as
+  // per the component file.
   assert.expect(7)
 
   return fetch(`/base/test/samples/duplicate-require/component.ractive.html`).then(r => r.text()).then(sample => {
@@ -251,8 +252,6 @@ test(`style-with-mustache`, assert => {
 })
 
 test(`template-only`, assert => {
-  // NOTE: Parser does not infer dependencies from templates, only from links.
-  // So we don't supply dependencies since there's no links.
   return fetch(`/base/test/samples/template-only/component.ractive.html`).then(r => r.text()).then(sample => {
     const parts = toParts('component.ractive.html', sample)
     const constructor = toConstructor('component.js', parts, id => {
@@ -269,3 +268,25 @@ test(`template-only`, assert => {
     assert.strictEqual(instance.get('b'), 2)
   })
 })
+
+// TODO: implementation matches methods named require
+// test(`non-dependency-requires`, assert => {
+//   // Detection of unwanted requires is part of the toParts test, which is in
+//   // source-builder.js. All we can do here is to ensure that the resolver is
+//   // never called at runtime.
+//   return fetch(`/base/test/samples/non-dependency-requires/component.ractive.html`).then(r => r.text()).then(sample => {
+//     const parts = toParts('component.ractive.html', sample)
+//     const constructor = toConstructor('component.js', parts, id => {
+//       throw new Error('THIS SHOULD NEVER BE CALLED')
+//     })
+
+//     assert.strictEqual(typeof constructor.extend, 'function')
+
+//     const instance = constructor({ el: '#qunit-fixture', data: { a: 1, b: 2 } })
+
+//     assert.htmlEqual(instance.toHTML(), '')
+//     assert.strictEqual(instance.toCSS(), '/* Ractive.js component styles */')
+//     assert.strictEqual(instance.get('a'), 1)
+//     assert.strictEqual(instance.get('b'), 2)
+//   })
+// })

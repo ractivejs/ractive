@@ -1,8 +1,7 @@
-define(function(require, exports, module){
-var Ractive = require('@ractivejs/core')
-var component = {exports: {}}
+define(['require','@ractivejs/core'], function(require, Ractive){
+var component = {exports:{}}
 
 component.exports.template = {"t":[],"v":4}
 component.exports.css = ""
-module.exports = Ractive.extend(component.exports)
+return Ractive.extend(component.exports)
 })

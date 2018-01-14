@@ -1,5 +1,5 @@
 {
-  "module": "component.ractive.html",
+  "component": "component.ractive.html",
   "dependencies": [{
     "name": "MyComponent",
     "module": "./path/to/MyComponent.ractive.html"
