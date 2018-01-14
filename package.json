@@ -28,11 +28,7 @@
   },
   "scripts": {
     "bootstrap": "npm install && lerna bootstrap",
-    "clean": "npm run clean:lerna && npm run clean:deps && npm run clean:dist && npm run clean:tmp",
-    "clean:lerna": "lerna clean --yes",
-    "clean:deps": "rm -r node_modules",
-    "clean:dist": "find . -name dist -type d -exec rm -r {} +",
-    "clean:tmp": "find . -name tmp -type d -exec rm -r {} +",
+    "clean": "find . -type d ( -name dist -o -name tmp -o -name node_modules ) -exec rm -rf {} +",
     "build": "lerna run build",
     "test": "lerna run test"
   }
