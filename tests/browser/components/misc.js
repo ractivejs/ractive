@@ -867,7 +867,8 @@ test( 'Implicit mappings are created by restricted references (#1465)', t => {
 
 	test( 'component @keypath references should shuffle correctly', t => {
 		const cmp = Ractive.extend({
-			template: `{{#with foo.bar}}{{.}} {{@keypath}} {{@rootpath}} {{#each ../list}}{{@keypath}}|{{/each}}{{/with}}`
+			template: `{{#with foo.bar}}{{.}} {{@keypath}} {{@rootpath}} {{#each ../list}}{{@keypath}}|{{/each}}{{/with}}`,
+			isolated: false
 		});
 
 		const r = new Ractive({

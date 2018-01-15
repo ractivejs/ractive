@@ -1,4 +1,3 @@
-import noop from 'utils/noop';
 import Binding from './Binding';
 import getBindingGroup from './getBindingGroup';
 import handleDomEvent from './handleDomEvent';
@@ -20,20 +19,14 @@ export default class RadioNameBinding extends Binding {
 		if ( element.checked ) {
 			this.group.value = this.getValue();
 		}
+
+		this.attribute.interpolator.pathChanged = () => this.updateName();
 	}
 
 	bind () {
 		if ( !this.group.bound ) {
 			this.group.bind();
 		}
-
-		// update name keypath when necessary
-		this.nameAttributeBinding = {
-			handleChange: () => this.node.name = `{{${this.model.getKeypath()}}}`,
-			rebind: noop
-		};
-
-		this.model.getKeypathModel().register( this.nameAttributeBinding );
 	}
 
 	getInitialValue () {
@@ -53,6 +46,8 @@ export default class RadioNameBinding extends Binding {
 			this.group.value = this.getValue();
 			super.handleChange();
 		}
+
+		this.updateName();
 	}
 
 	lastVal ( setting, value ) {
@@ -61,12 +56,17 @@ export default class RadioNameBinding extends Binding {
 		else return this.group.lastValue;
 	}
 
+	rebind ( next, previous ) {
+		super.rebind( next, previous );
+		this.updateName();
+	}
+
 	render () {
 		super.render();
 
 		const node = this.node;
 
-		node.name = `{{${this.model.getKeypath()}}}`;
+		this.updateName();
 		node.checked = this.element.compare ( this.model.get(), this.element.getAttribute( 'value' ) );
 
 		this.element.on( 'change', handleDomEvent );
@@ -84,8 +84,6 @@ export default class RadioNameBinding extends Binding {
 
 	unbind () {
 		this.group.remove( this );
-
-		this.model.getKeypathModel().unregister( this.nameAttributeBinding );
 	}
 
 	unrender () {
@@ -93,5 +91,9 @@ export default class RadioNameBinding extends Binding {
 
 		el.off( 'change', handleDomEvent );
 		el.off( 'click', handleDomEvent );
+	}
+
+	updateName () {
+		if ( this.node ) this.node.name = `{{${this.model.getKeypath()}}}`;
 	}
 }

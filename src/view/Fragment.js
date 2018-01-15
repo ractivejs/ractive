@@ -7,6 +7,7 @@ import createItem from './items/createItem';
 import processItems from './helpers/processItems';
 import parseJSON from 'utils/parseJSON';
 import { createDocumentFragment } from 'utils/dom';
+import KeyModel from 'src/model/specials/KeyModel';
 
 function unrenderAndDestroy ( item ) {
 	item.unrender( true );
@@ -171,22 +172,28 @@ export default class Fragment {
 		throw new Error( 'Could not find parent node' ); // TODO link to issue tracker
 	}
 
-	findRepeatingFragment () {
-		let fragment = this;
-		// TODO better check than fragment.parent.iterations
-		while ( ( fragment.parent || fragment.componentParent ) && !fragment.isIteration ) {
-			fragment = fragment.parent || fragment.componentParent;
-		}
-
-		return fragment;
-	}
-
 	firstNode ( skipParent ) {
 		const node = findMap( this.items, i => i.firstNode( true ) );
 		if ( node ) return node;
 		if ( skipParent ) return null;
 
 		return this.parent.findNextNode( this.owner );
+	}
+
+	getKey () {
+		return this.keyModel || ( this.keyModel = new KeyModel( this.key, this.context ) );
+	}
+
+	getKeypath ( root ) {
+		if ( root ) {
+			return this.rootModel || ( this.rootModel = new KeyModel( this.context.getKeypath( this.ractive.root ), this.context ) );
+		} else {
+			return this.pathModel || ( this.pathModel = new KeyModel( this.context.getKeypath(), this.context ) );
+		}
+	}
+
+	getIndex () {
+		return this.idxModel || ( this.idxModel = new KeyModel( this.index, this.context ) );
 	}
 
 	rebind ( next ) {
@@ -238,6 +245,8 @@ export default class Fragment {
 
 	shuffled () {
 		this.items.forEach( shuffled );
+		if ( this.rootModel ) this.rootModel.applyValue( this.context.getKeypath( this.ractive.root ) );
+		if ( this.pathModel ) this.pathModel.applyValue( this.context.getKeypath() );
 	}
 
 	toString ( escape ) {

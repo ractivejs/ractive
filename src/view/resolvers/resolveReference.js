@@ -84,10 +84,8 @@ export default function resolveReference ( fragment, ref ) {
 		// @index or @key referring to the nearest repeating index or key
 		else if ( base === '@index' || base === '@key' ) {
 			if ( keys.length ) badReference( base );
-			const repeater = fragment.findRepeatingFragment();
-			// make sure the found fragment is actually an iteration
-			if ( !repeater.isIteration ) return;
-			return repeater.context && repeater.context.getKeyModel( repeater[ ref[1] === 'i' ? 'index' : 'key' ] );
+			const repeater = findIter( fragment );
+			return repeater && repeater[ `get${base[1] === 'i' ? 'Index' : 'Key'}` ]();
 		}
 
 		// @global referring to window or global
@@ -103,14 +101,13 @@ export default function resolveReference ( fragment, ref ) {
 		// @keypath or @rootpath, the current keypath string
 		else if ( base === '@keypath' || base === '@rootpath' ) {
 			const root = ref[1] === 'r' ? fragment.ractive.root : null;
-			let context = fragment.findContext();
+			let f = fragment;
 
-			// skip over component roots, which provide no context
-			while ( root && context.isRoot && context.ractive.component ) {
-				context = context.ractive.component.up.findContext();
+			while ( f && ( !f.context || ( f.isRoot && f.ractive.component ) ) ) {
+				f = f.isRoot ? f.componentParent : f.parent;
 			}
 
-			return context.getKeypathModel( root );
+			return f.getKeypath( root );
 		}
 
 		else if ( base === '@context' ) {
@@ -156,11 +153,11 @@ export default function resolveReference ( fragment, ref ) {
 		// repeated fragments
 		if ( fragment.isIteration ) {
 			if ( base === fragment.parent.keyRef ) {
-				model = fragment.context.getKeyModel( fragment.key );
+				model = fragment.getKey();
 			}
 
-			else if ( base === fragment.parent.indexRef ) {
-				model = fragment.context.getKeyModel( fragment.index );
+			if ( base === fragment.parent.indexRef ) {
+				model = fragment.getIndex();
 			}
 
 			if ( model && keys.length ) badReference( base );
@@ -218,6 +215,15 @@ export default function resolveReference ( fragment, ref ) {
 
 function up ( fragment ) {
 	return fragment && ( ( !fragment.ractive.isolated && fragment.componentParent ) || fragment.parent );
+}
+
+function findIter ( start ) {
+	let fragment = start;
+	while ( !fragment.isIteration && ( fragment.parent || ( !fragment.ractive.isolated && fragment.componentParent ) ) ) {
+		fragment = fragment.parent || fragment.componentParent;
+	}
+
+	return fragment.isIteration && fragment;
 }
 
 function badReference ( key ) {

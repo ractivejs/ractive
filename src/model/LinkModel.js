@@ -1,5 +1,4 @@
 import ModelBase, { fireShuffleTasks, maybeBind, shuffle } from './ModelBase';
-import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
 import { handleChange, marked, markedAll, teardown } from 'shared/methodCallers';
 import { rebindMatch } from 'shared/rebind';
@@ -82,12 +81,6 @@ export default class LinkModel extends ModelBase {
 		return super.getKeypath( ractive );
 	}
 
-	getKeypathModel ( ractive ) {
-		if ( !this.keypathModel ) this.keypathModel = new KeypathModel( this );
-		if ( ractive && ractive !== this.root.ractive ) return this.keypathModel.getChild( ractive );
-		return this.keypathModel;
-	}
-
 	handleChange () {
 		this.deps.forEach( handleChange );
 		this.links.forEach( handleChange );
@@ -146,7 +139,6 @@ export default class LinkModel extends ModelBase {
 		if ( !target || this.target === target ) return;
 
 		this.target.unregisterLink( this );
-		if ( this.keypathModel ) this.keypathModel.rebindChildren( target );
 
 		this.target = target;
 		this.children.forEach( c => {

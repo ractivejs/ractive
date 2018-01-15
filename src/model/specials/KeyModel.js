@@ -1,6 +1,7 @@
 import { addToArray, removeFromArray } from 'utils/array';
 import { unescapeKey } from 'shared/keypaths';
 import { capture } from 'src/global/capture';
+import { handleChange } from 'shared/methodCallers';
 import noop from 'utils/noop';
 
 export default class KeyModel {
@@ -10,6 +11,14 @@ export default class KeyModel {
 		this.deps = [];
 		this.links = [];
 		this.parent = parent;
+	}
+
+	applyValue ( value ) {
+		if ( value !== this.value ) {
+			this.value = this.key = value;
+			this.deps.forEach( handleChange );
+			this.links.forEach( handleChange );
+		}
 	}
 
 	get ( shouldCapture ) {

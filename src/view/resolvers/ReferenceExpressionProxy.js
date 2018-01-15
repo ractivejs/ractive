@@ -154,7 +154,7 @@ export default class ReferenceExpressionProxy extends Model {
 				this.model.register( this );
 				this.model.registerTwowayBinding( this );
 
-				if ( this.keypathModel ) this.keypathModel.handleChange();
+				pathChanged( this );
 			}
 
 			this.value = this.model.get( shouldCapture, opts );
@@ -244,5 +244,21 @@ export default class ReferenceExpressionProxy extends Model {
 	unregister( dep ) {
 		super.unregister( dep );
 		if ( !this.deps.length && !this.refs ) this.teardown();
+	}
+}
+
+function pathChanged ( proxy ) {
+	let len = proxy.deps.length;
+	let i, v;
+
+	for ( i = 0 ; i < len; i++ ) {
+		v = proxy.deps[i];
+		if ( v.pathChanged ) v.pathChanged();
+		if ( v.fragment && v.fragment.pathModel ) v.fragment.pathModel.applyValue( proxy.getKeypath() );
+	}
+
+	len = proxy.children.length;
+	for ( i = 0; i < len; i++ ) {
+		pathChanged( proxy.children[i] );
 	}
 }

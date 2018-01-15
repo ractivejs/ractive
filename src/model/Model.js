@@ -1,6 +1,5 @@
 import ModelBase, { maybeBind, shuffle } from './ModelBase';
 import LinkModel from './LinkModel'; // eslint-disable-line no-unused-vars
-import KeypathModel from './specials/KeypathModel';
 import { capture } from 'src/global/capture';
 import { isArray, isEqual, isNumeric, isObjectLike } from 'utils/is';
 import { handleChange, mark, markForce, marked, teardown } from 'shared/methodCallers';
@@ -171,11 +170,6 @@ export default class Model extends ModelBase {
 		return maybeBind( this, ( ( opts && 'unwrap' in opts ) ? opts.unwrap !== false : shouldCapture ) && this.wrapper ? this.wrapperValue : this.value, !opts || opts.shouldBind !== false );
 	}
 
-	getKeypathModel () {
-		if ( !this.keypathModel ) this.keypathModel = new KeypathModel( this );
-		return this.keypathModel;
-	}
-
 	joinKey ( key, opts ) {
 		if ( this._link ) {
 			if ( opts && opts.lastLink !== false && ( key === undefined || key === '' ) ) return this;
@@ -290,7 +284,6 @@ export default class Model extends ModelBase {
 		}
 		this.children.forEach( teardown );
 		if ( this.wrapper ) this.wrapper.teardown();
-		if ( this.keypathModel ) this.keypathModel.teardown();
 	}
 }
 
