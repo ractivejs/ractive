@@ -1,13 +1,11 @@
 import pkg from '../package.json'
 import buble from 'rollup-plugin-buble'
-import commonjs from 'rollup-plugin-commonjs'
 import nodeResolve from 'rollup-plugin-node-resolve'
 
 export default {
   sourcemap: true,
   plugins: [
     nodeResolve(),
-    commonjs(),
     buble({transforms: { modules: false }})
   ],
   input: 'src/index.js',
