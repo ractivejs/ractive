@@ -7,7 +7,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 	VERSION_NUM=$(echo $VERSION | sed 's/[^0-9\./\]//g')
 	echo "$VERSION" | grep "^[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}$" > /dev/null
 	if [ "$?" = "1" ]; then EDGE=0; else EDGE=1; fi
-	TAG="v$(cat package.json | grep "version" | sed 's/"version": "\([0-9]*\.[0-9]\).*",/\1/' | sed 's/[[:space:]]//g')-dev"
+	TAG="v$(cat package.json | grep "version" | sed 's/"version": "\([0-9][0-9]*\.[0-9][0-9]*\).*",/\1/' | sed 's/[[:space:]]//g')-dev"
 
 	if [ "$EDGE" = "0" ]; then
 		# find the last published build number for this series
