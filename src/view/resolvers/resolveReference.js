@@ -150,41 +150,47 @@ export default function resolveReference ( fragment, ref ) {
 	// walk up the fragment hierarchy looking for a matching ref, alias, or key in a context
 	let createMapping = false;
 	const shouldWarn = fragment.ractive.warnAboutAmbiguity;
+	let model;
 
 	while ( fragment ) {
 		// repeated fragments
 		if ( fragment.isIteration ) {
 			if ( base === fragment.parent.keyRef ) {
-				if ( keys.length ) badReference( base );
-				return fragment.context.getKeyModel( fragment.key );
+				model = fragment.context.getKeyModel( fragment.key );
 			}
 
-			if ( base === fragment.parent.indexRef ) {
-				if ( keys.length ) badReference( base );
-				return fragment.context.getKeyModel( fragment.index );
+			else if ( base === fragment.parent.indexRef ) {
+				model = fragment.context.getKeyModel( fragment.index );
 			}
+
+			if ( model && keys.length ) badReference( base );
 		}
 
 		// alias node or iteration
-		if ( fragment.aliases && hasOwn( fragment.aliases, base ) ) {
-			const model = fragment.aliases[ base ];
-
-			if ( keys.length === 0 ) return model;
-			else if ( isFunction( model.joinAll ) ) {
-				return model.joinAll( keys );
-			}
+		if ( !model && fragment.aliases && hasOwn( fragment.aliases, base ) ) {
+			model = fragment.aliases[ base ];
 		}
 
 		// check fragment context to see if it has the key we need
-		if ( fragment.context && fragment.context.has( base ) ) {
+		if ( !model && fragment.context && fragment.context.has( base ) ) {
+			model = fragment.context.joinKey( base );
+
 			// this is an implicit mapping
 			if ( createMapping ) {
 				if ( shouldWarn ) warnIfDebug( `'${ref}' resolved but is ambiguous and will create a mapping to a parent component.` );
-				return context.root.createLink( base, fragment.context.joinKey( base ), base, { implicit: true }).joinAll( keys );
+			} else if ( shouldWarn ) warnIfDebug( `'${ref}' resolved but is ambiguous.` );
+		}
+
+		if ( model ) {
+			if ( createMapping ) {
+				model = initialFragment.ractive.viewmodel.createLink( base, model, base, { implicit: true });
 			}
 
-			if ( shouldWarn ) warnIfDebug( `'${ref}' resolved but is ambiguous.` );
-			return fragment.context.joinKey( base ).joinAll( keys );
+			if ( keys.length > 0 && isFunction( model.joinAll ) ) {
+				model = model.joinAll( keys );
+			}
+
+			return model;
 		}
 
 		if ( ( fragment.componentParent || ( !fragment.parent && fragment.ractive.component ) ) && !fragment.ractive.isolated ) {
