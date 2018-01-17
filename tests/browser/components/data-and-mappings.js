@@ -789,6 +789,25 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'works? yes' );
 	});
 
+	test( `implicit bindings to template context from get (#3174)`, t => {
+		const cmp = Ractive.extend({
+			template: '{{foo}}',
+			isolated: false
+		});
+
+		const r  = new Ractive({
+			target: fixture,
+			components: { cmp },
+			template: `{{#with 'yep' as foo}}<cmp />{{/with}}`,
+			data: { bar: 'sure' }
+		});
+
+		const ref = r.findComponent( 'cmp' );
+
+		t.equal( ref.get( 'foo' ), 'yep' );
+		t.equal( ref.get( 'bar' ), 'sure' );
+	});
+
 	test( 'Reference expressions default to two-way binding (#996)', t => {
 		const ractive = new Ractive({
 			el: fixture,
