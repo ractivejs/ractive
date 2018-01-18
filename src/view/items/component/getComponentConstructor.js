@@ -12,8 +12,8 @@ export default function getComponentConstructor ( ractive, name ) {
 	if ( instance ) {
 		Component = instance.components[ name ];
 
-		// if not from Ractive.extend or a Promise, it's a function that shold return a constructor
-		if ( Component && !Component.isInstance && !Component.then ) {
+		// if not from Ractive.extend or a Promise, it's a function that should return a constructor
+		if ( Component && !Component.isInstance && !Component.then && typeof Component === 'function' ) {
 			// function option, execute and store for reset
 			const fn = Component.bind( instance );
 			fn.isOwner = hasOwn( instance.components, name );
