@@ -2,7 +2,7 @@ import { noRegistryFunctionReturn } from 'config/errors';
 import { warnIfDebug } from 'utils/log';
 import { findInstance } from 'shared/registry';
 import { hasOwn } from 'utils/object';
-import { isString } from 'utils/is';
+import { isString, isFunction } from 'utils/is';
 
 // finds the component constructor in the registry or view hierarchy registries
 export default function getComponentConstructor ( ractive, name ) {
@@ -13,7 +13,7 @@ export default function getComponentConstructor ( ractive, name ) {
 		Component = instance.components[ name ];
 
 		// if not from Ractive.extend or a Promise, it's a function that should return a constructor
-		if ( Component && !Component.isInstance && !Component.then && typeof Component === 'function' ) {
+		if ( Component && !Component.isInstance && !Component.then && isFunction(Component) ) {
 			// function option, execute and store for reset
 			const fn = Component.bind( instance );
 			fn.isOwner = hasOwn( instance.components, name );
