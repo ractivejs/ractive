@@ -15,6 +15,7 @@ import macro from './extend/_macro';
 import parse from './parse/_parse';
 import getContext, { getNodeInfo } from './Ractive/static/getContext';
 import isInstance from './Ractive/static/isInstance';
+import use from './Ractive/static/use';
 import construct from './Ractive/construct';
 import initialise from './Ractive/initialise';
 import { getCSS } from './global/css';
@@ -84,6 +85,7 @@ defineProperties( Ractive, {
 	splitKeypath:     { value: splitKeypath },
 	// sharedSet and styleSet are in _extend because circular refs
 	unescapeKey:      { value: unescapeKey },
+	use:              { value: use },
 
 	// support
 	enhance:          { writable: true, value: false },
