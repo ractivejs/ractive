@@ -1,0 +1,19 @@
+{
+  "name": "@ractivejs/adaptor-backbone",
+  "version": "1.0.0",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/lib.js",
+  "module": "dist/lib.mjs",
+  "devDependencies": {
+    "@ractivejs/core": "1.0.0",
+    "backbone": "^1.3.3",
+    "jquery": "^3.2.1",
+    "underscore": "^1.8.3"
+  },
+  "scripts": {
+    "build": "rollup -c src/rollup.config.js",
+    "test": "rollup -c test/rollup.config.js && karma start ../../karma.conf.js"
+  }
+}

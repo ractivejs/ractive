@@ -1,0 +1,20 @@
+{
+  "name": "@ractivejs/utils-component",
+  "version": "1.0.0",
+  "private": true,
+  "files": [
+    "dist"
+  ],
+  "main": "dist/lib.js",
+  "module": "dist/lib.mjs",
+  "devDependencies": {
+    "@ractivejs/core": "1.0.0",
+    "eval2": "^0.3.3",
+    "serialize-javascript": "^1.4.0",
+    "tippex": "^3.0.0"
+  },
+  "scripts": {
+    "build": "rollup -c src/rollup.config.js",
+    "test": "rollup -c test/rollup.config.js && karma start ../../karma.conf.js"
+  }
+}

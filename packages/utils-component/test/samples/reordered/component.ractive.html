@@ -1,0 +1,31 @@
+<link rel="ractive" name="MyComponent" href="./path/to/MyComponent.ractive.html">
+
+<script>
+  const answer = require('hhgttg')
+
+  component.exports = {
+    data: {
+      user: 'World',
+      answer: answer
+    }
+  }
+</script>
+
+<link rel="ractive" name="MyOtherComponent" href="./path/to/MyOtherComponent.ractive.html">
+
+<style>
+  div {
+    color: red
+  }
+</style>
+
+<link rel="ractive" name="YetAnotherComponent" href="./path/to/YetAnotherComponent.ractive.html">
+
+<template>
+  <div>Hello, {{ user }}!</div>
+  <div>Answer to the Ultimate Question of Life, the Universe, and Everything: {{ answer }}</div>
+  <div>Expression {{ a + b }}</div>
+  <MyComponent />
+  <MyOtherComponent />
+  <YetAnotherComponent />
+</template>

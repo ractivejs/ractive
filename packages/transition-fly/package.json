@@ -1,0 +1,10 @@
+{
+  "name": "@ractivejs/transition-fly",
+  "version": "1.0.0",
+  "files": ["dist"],
+  "main": "dist/lib.js",
+  "module": "dist/lib.mjs",
+  "scripts": {
+    "build": "rollup -c src/rollup.config.js"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "component": "component.ractive.html",
+  "dependencies": [{
+    "name": "hhgttg",
+    "module": "hhgttg"
+  }],
+  "template": null,
+  "style": null,
+  "script": {
+    "code": "\n  const answer = require('hhgttg')\n\n  component.exports = {\n    data: {\n      user: 'World',\n      answer: answer\n    }\n  }\n",
+    "map": null
+  }
+}

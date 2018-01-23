@@ -1,0 +1,13 @@
+{
+  "component": "component.ractive.html",
+  "dependencies": [{
+    "name": "hhgttg",
+    "module": "hhgttg"
+  }],
+  "template": null,
+  "style": null,
+  "script": {
+    "code": "\n  const someth = require('hhgttg')\n  const answer = require('hhgttg')\n",
+    "map": null
+  }
+}
