@@ -2,11 +2,11 @@ import {match} from 'tippex'
 
 const componentNamePattern = /^[a-zA-Z$_][a-zA-Z$_0-9]*$/
 const componentExtensionPattern = /(?:\.ractive)?\.html$/
-const trailingWhitespacePattern = /[\s\uFEFF\xA0]+$/
 
-export const trimEnd = string => string.replace(trailingWhitespacePattern, '')
 export const isComponent = path => componentExtensionPattern.test(path)
+
 export const isComponentName = name => componentNamePattern.test(name)
+
 export const replaceExtension = (module, ext) => module.replace(componentExtensionPattern, ext)
 
 export const getComponentName = path => {
