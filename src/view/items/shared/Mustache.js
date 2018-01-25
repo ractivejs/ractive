@@ -26,6 +26,7 @@ export default class Mustache extends Item {
 
 			if ( this.isStatic ) {
 				this.model = { get: () => value };
+				model.unreference();
 				return;
 			}
 
