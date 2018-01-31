@@ -1962,4 +1962,31 @@ export default function() {
 		expected = 'banana';
 		r.unshift( 'items', { list: [ { name: 'banana' } ] } );
 	});
+
+	test( `observing a computed that gets updated more than once in a runloop (#3184)`, t => {
+		t.expect( 2 );
+
+		const r = new Ractive({
+			computed: {
+				foo() {
+					return this.get( 'bar' ) + this.get( 'baz' );
+				}
+			},
+			data: {
+				bar: 'may',
+				baz: 'be'
+			}
+		});
+
+		let val = 'yep';
+
+		r.observe( 'foo', v => {
+			t.equal( v, val );
+		}, { init: false });
+
+		r.set({ bar: 'ye', baz: 'p' });
+
+		val = 'sure';
+		r.set({ bar: 'su', baz: 're' });
+	});
 }

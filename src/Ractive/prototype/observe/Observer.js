@@ -60,6 +60,9 @@ export default class Observer {
 			this.dirty = true;
 
 			if ( this.options.once ) runloop.scheduleTask( () => this.cancel() );
+		} else {
+			// make sure the newValue stays updated in case this observer gets touched multiple times in one loop
+			this.newValue = this.model.get();
 		}
 	}
 
