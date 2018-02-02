@@ -272,8 +272,7 @@ export default function() {
 
 		ractive.set( 'height', 200 );
 
-		// phantom leaves a trailing space in inline styles... depending on the phase of the moon and what color underwear you're wearing
-		t.htmlEqual( fixture.innerHTML.replace( /\s+/g, '' ), `<div style="height: 200px;"></div>`.replace( /\s+/g, '' ) );
+		t.htmlEqual( fixture.innerHTML, `<div style="height: 200px;"></div>` );
 	});
 
 	test( 'Partial name can be a reference', t => {

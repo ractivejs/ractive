@@ -778,54 +778,49 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '20' );
 	});
 
-	// phantomjs, IE8...
-	try {
-		fire( document.createElement( 'div' ), 'input' );
-		fire( document.createElement( 'div' ), 'blur' );
+	fire( document.createElement( 'div' ), 'input' );
+	fire( document.createElement( 'div' ), 'blur' );
 
-		test( 'Pattern observers used as validators behave correctly on blur (#1475)', t => {
-			const ractive = new Ractive({
-				el: fixture,
-				template: `
-					{{#each items}}
-						<input value='{{value}}'>{{value}}
-					{{/each}}`,
-				data: {
-					items: [
-						{ min: 10, max: 90, value: 0 },
-						{ min: 10, max: 90, value: 100 }
-					]
-				}
-			});
-
-			ractive.observe( 'items.*.value', function ( n, o, k, i ) {
-				const min = this.get( 'items[' + i + '].min' );
-				const max = this.get( 'items[' + i + '].max' );
-
-				if ( n < min ) this.set( k, min );
-				if ( n > max ) this.set( k, max );
-			});
-
-			t.equal( ractive.get( 'items[0].value' ), 10 );
-			t.equal( ractive.get( 'items[1].value' ), 90 );
-
-			const inputs = ractive.findAll( 'input' );
-
-			inputs[0].value = 200;
-			inputs[1].value = -200;
-
-			fire( inputs[0], 'input' );
-			fire( inputs[1], 'input' );
-
-			fire( inputs[0], 'blur' );
-			fire( inputs[1], 'blur' );
-
-			t.equal( ractive.get( 'items[0].value' ), 90 );
-			t.equal( ractive.get( 'items[1].value' ), 10 );
+	test( 'Pattern observers used as validators behave correctly on blur (#1475)', t => {
+		const ractive = new Ractive({
+			el: fixture,
+			template: `
+				{{#each items}}
+					<input value='{{value}}'>{{value}}
+				{{/each}}`,
+			data: {
+				items: [
+					{ min: 10, max: 90, value: 0 },
+					{ min: 10, max: 90, value: 100 }
+				]
+			}
 		});
-	} catch ( err ) {
-		// do nothing
-	}
+
+		ractive.observe( 'items.*.value', function ( n, o, k, i ) {
+			const min = this.get( 'items[' + i + '].min' );
+			const max = this.get( 'items[' + i + '].max' );
+
+			if ( n < min ) this.set( k, min );
+			if ( n > max ) this.set( k, max );
+		});
+
+		t.equal( ractive.get( 'items[0].value' ), 10 );
+		t.equal( ractive.get( 'items[1].value' ), 90 );
+
+		const inputs = ractive.findAll( 'input' );
+
+		inputs[0].value = 200;
+		inputs[1].value = -200;
+
+		fire( inputs[0], 'input' );
+		fire( inputs[1], 'input' );
+
+		fire( inputs[0], 'blur' );
+		fire( inputs[1], 'blur' );
+
+		t.equal( ractive.get( 'items[0].value' ), 90 );
+		t.equal( ractive.get( 'items[1].value' ), 10 );
+	});
 
 	test( 'Observer fires on initialisation for computed properties', t => {
 		const ractive = new Ractive({

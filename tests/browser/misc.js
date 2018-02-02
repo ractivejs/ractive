@@ -1615,165 +1615,163 @@ export default function() {
 	// 	t.htmlEqual( fixture.innerHTML, '<p>one.txt</p><p>two.txt</p><p>three.txt</p>' );
 	// });
 
-	if ( !/phantom/i.test( navigator.userAgent ) ) {
-		test( '<input value="{{foo}}"> where foo === null should not render a value (#390)', t => {
-			const ractive = new Ractive({
-				el: fixture,
-				template: '<input value="{{foo}}">',
-				data: {
-					foo: null
-				}
-			});
-
-			t.equal( ractive.find( 'input' ).value, '' );
+	test( '<input value="{{foo}}"> where foo === null should not render a value (#390)', t => {
+		const ractive = new Ractive({
+			el: fixture,
+			template: '<input value="{{foo}}">',
+			data: {
+				foo: null
+			}
 		});
 
-		test( 'ractive.detach() removes an instance from the DOM and returns a document fragment', t => {
-			const ractive = new Ractive({
-				el: fixture,
-				template: '<p>{{foo}}</p>',
-				data: { foo: 'whee!' }
-			});
+		t.equal( ractive.find( 'input' ).value, '' );
+	});
 
-			const p = ractive.find( 'p' );
-
-			const docFrag = ractive.detach();
-			t.ok( docFrag instanceof DocumentFragment );
-			t.ok( docFrag.contains( p ) );
+	test( 'ractive.detach() removes an instance from the DOM and returns a document fragment', t => {
+		const ractive = new Ractive({
+			el: fixture,
+			template: '<p>{{foo}}</p>',
+			data: { foo: 'whee!' }
 		});
 
-		test( 'ractive.detach() works with a previously unrendered ractive', t => {
-			const ractive = new Ractive({
-				el: fixture,
-				template: '<p>{{foo}}</p>',
-				data: { foo: 'whee!' }
-			});
+		const p = ractive.find( 'p' );
 
-			const p = ractive.find( 'p' );
+		const docFrag = ractive.detach();
+		t.ok( docFrag instanceof DocumentFragment );
+		t.ok( docFrag.contains( p ) );
+	});
 
-			const docFrag = ractive.detach();
-			t.ok( docFrag instanceof DocumentFragment );
-			t.ok( docFrag.contains( p ) );
+	test( 'ractive.detach() works with a previously unrendered ractive', t => {
+		const ractive = new Ractive({
+			el: fixture,
+			template: '<p>{{foo}}</p>',
+			data: { foo: 'whee!' }
 		});
 
-		test( 'Components with two-way bindings set parent values on initialisation', t => {
-			const Dropdown = Ractive.extend({
-				template: '<select value="{{value}}">{{#options}}<option value="{{this}}">{{ this[ display ] }}</option>{{/options}}</select>'
-			});
+		const p = ractive.find( 'p' );
 
-			const ractive = new Ractive({
-				el: fixture,
-				template: '<h2>Select an option:</h2><dropdown options="{{numbers}}" value="{{number}}" display="word"/><p>Selected: {{number.digit}}</p>',
-				data: {
-					numbers: [
-						{ word: 'one', digit: 1 },
-						{ word: 'two', digit: 2 },
-						{ word: 'three', digit: 3 },
-						{ word: 'four', digit: 4 }
-					]
-				},
-				components: {
-					dropdown: Dropdown
-				}
-			});
+		const docFrag = ractive.detach();
+		t.ok( docFrag instanceof DocumentFragment );
+		t.ok( docFrag.contains( p ) );
+	});
 
-			t.deepEqual( ractive.get( 'number' ), { word: 'one', digit: 1 });
+	test( 'Components with two-way bindings set parent values on initialisation', t => {
+		const Dropdown = Ractive.extend({
+			template: '<select value="{{value}}">{{#options}}<option value="{{this}}">{{ this[ display ] }}</option>{{/options}}</select>'
 		});
 
-		test( 'Tearing down expression mustaches and recreating them does\'t throw errors', t => {
-			const ractive = new Ractive({
-				el: fixture,
-				template: '{{#condition}}{{( a+b )}} {{( a+b )}} {{( a+b )}}{{/condition}}',
-				data: { a: 1, b: 2, condition: true }
-			});
-
-			t.equal( fixture.innerHTML, '3 3 3' );
-
-			ractive.set( 'condition', false );
-			t.equal( fixture.innerHTML, '' );
-
-			ractive.set( 'condition', true );
-			t.equal( fixture.innerHTML, '3 3 3' );
+		const ractive = new Ractive({
+			el: fixture,
+			template: '<h2>Select an option:</h2><dropdown options="{{numbers}}" value="{{number}}" display="word"/><p>Selected: {{number.digit}}</p>',
+			data: {
+				numbers: [
+					{ word: 'one', digit: 1 },
+					{ word: 'two', digit: 2 },
+					{ word: 'three', digit: 3 },
+					{ word: 'four', digit: 4 }
+				]
+			},
+			components: {
+				dropdown: Dropdown
+			}
 		});
 
-		test( 'Updating an expression section doesn\'t throw errors', t => {
-			const array = [{ foo: 1 }, { foo: 2 }, { foo: 3 }, { foo: 4 }, { foo: 5 }];
+		t.deepEqual( ractive.get( 'number' ), { word: 'one', digit: 1 });
+	});
 
-			const ractive = new Ractive({
-				el: fixture,
-				template: '{{#( array.slice( 0, 3 ) )}}{{foo}}{{/()}}',
-				data: { array }
-			});
-
-			t.equal( fixture.innerHTML, '123' );
-
-			ractive.push( 'array', { foo: 6 } );
-			t.equal( fixture.innerHTML, '123' );
-
-			ractive.unshift( 'array', { foo: 0 } );
-			t.equal( fixture.innerHTML, '012' );
-
-			ractive.set( 'array', [] );
-			t.equal( array._ractive, undefined );
-			t.equal( fixture.innerHTML, '' );
-
-			ractive.set( 'array', array );
-			t.equal( fixture.innerHTML, '012' );
+	test( 'Tearing down expression mustaches and recreating them does\'t throw errors', t => {
+		const ractive = new Ractive({
+			el: fixture,
+			template: '{{#condition}}{{( a+b )}} {{( a+b )}} {{( a+b )}}{{/condition}}',
+			data: { a: 1, b: 2, condition: true }
 		});
 
-		test( 'noConflict reinstates original Ractive value (#2066)', t => {
-			const r = Ractive;
-			const noConflict = r.noConflict();
+		t.equal( fixture.innerHTML, '3 3 3' );
 
-			t.equal( Ractive, undefined );
-			t.equal( r, noConflict );
+		ractive.set( 'condition', false );
+		t.equal( fixture.innerHTML, '' );
 
-			Ractive = r;
+		ractive.set( 'condition', true );
+		t.equal( fixture.innerHTML, '3 3 3' );
+	});
+
+	test( 'Updating an expression section doesn\'t throw errors', t => {
+		const array = [{ foo: 1 }, { foo: 2 }, { foo: 3 }, { foo: 4 }, { foo: 5 }];
+
+		const ractive = new Ractive({
+			el: fixture,
+			template: '{{#( array.slice( 0, 3 ) )}}{{foo}}{{/()}}',
+			data: { array }
 		});
 
-		test( 'Updating a list section with child list expressions doesn\'t throw errors', t => {
-			const array = [
-				{ foo: [ 1, 2, 3, 4, 5 ] },
-				{ foo: [ 2, 3, 4, 5, 6 ] },
-				{ foo: [ 3, 4, 5, 6, 7 ] },
-				{ foo: [ 4, 5, 6, 7, 8 ] },
-				{ foo: [ 5, 6, 7, 8, 9 ] }
-			];
+		t.equal( fixture.innerHTML, '123' );
 
-			const ractive = new Ractive({
-				el: fixture,
-				template: '{{#array}}<p>{{#( foo.slice( 0, 3 ) )}}{{.}}{{/()}}</p>{{/array}}',
-				data: { array }
-			});
+		ractive.push( 'array', { foo: 6 } );
+		t.equal( fixture.innerHTML, '123' );
 
-			t.htmlEqual( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p>' );
+		ractive.unshift( 'array', { foo: 0 } );
+		t.equal( fixture.innerHTML, '012' );
 
-			ractive.push( 'array', { foo: [ 6, 7, 8, 9, 10 ] } );
-			t.htmlEqual( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
+		ractive.set( 'array', [] );
+		t.equal( array._ractive, undefined );
+		t.equal( fixture.innerHTML, '' );
 
-			ractive.unshift( 'array', { foo: [ 0, 1, 2, 3, 4 ] } );
-			t.htmlEqual( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
+		ractive.set( 'array', array );
+		t.equal( fixture.innerHTML, '012' );
+	});
 
-			ractive.set( 'array', [] );
-			t.equal( array._ractive, undefined );
-			t.htmlEqual( fixture.innerHTML, '' );
+	test( 'noConflict reinstates original Ractive value (#2066)', t => {
+		const r = Ractive;
+		const noConflict = r.noConflict();
 
-			ractive.set( 'array', array );
-			t.htmlEqual( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
+		t.equal( Ractive, undefined );
+		t.equal( r, noConflict );
+
+		Ractive = r;
+	});
+
+	test( 'Updating a list section with child list expressions doesn\'t throw errors', t => {
+		const array = [
+			{ foo: [ 1, 2, 3, 4, 5 ] },
+			{ foo: [ 2, 3, 4, 5, 6 ] },
+			{ foo: [ 3, 4, 5, 6, 7 ] },
+			{ foo: [ 4, 5, 6, 7, 8 ] },
+			{ foo: [ 5, 6, 7, 8, 9 ] }
+		];
+
+		const ractive = new Ractive({
+			el: fixture,
+			template: '{{#array}}<p>{{#( foo.slice( 0, 3 ) )}}{{.}}{{/()}}</p>{{/array}}',
+			data: { array }
 		});
 
-		test( `trying to set a property on a non-object doesn't break the world (#2451)`, t => {
-			t.expect( 1 );
+		t.htmlEqual( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p>' );
 
-			onWarn( w => {
-				t.ok( /non-object/.test( w ) );
-			});
+		ractive.push( 'array', { foo: [ 6, 7, 8, 9, 10 ] } );
+		t.htmlEqual( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
 
-			const r = new Ractive();
-			r.set( 'foo', 'string' );
-			r.set( 'foo.bar', 'nerp' );
+		ractive.unshift( 'array', { foo: [ 0, 1, 2, 3, 4 ] } );
+		t.htmlEqual( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
+
+		ractive.set( 'array', [] );
+		t.equal( array._ractive, undefined );
+		t.htmlEqual( fixture.innerHTML, '' );
+
+		ractive.set( 'array', array );
+		t.htmlEqual( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
+	});
+
+	test( `trying to set a property on a non-object doesn't break the world (#2451)`, t => {
+		t.expect( 1 );
+
+		onWarn( w => {
+			t.ok( /non-object/.test( w ) );
 		});
-	}
+
+		const r = new Ractive();
+		r.set( 'foo', 'string' );
+		r.set( 'foo.bar', 'nerp' );
+	});
 
 	test( `you can request more lines of context for parser errors`, t => {
 		try {

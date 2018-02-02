@@ -1,5 +1,4 @@
 /* global navigator */
-const phantom = typeof navigator !== 'undefined' ? /phantom/i.test( navigator.userAgent ) : false;
 const ie = typeof navigator !== 'undefined' ? /msie/i.test( navigator.userAgent ) : false;
 
 const renderTests = [
@@ -1412,43 +1411,37 @@ const renderTests = [
 				result: 'nope'
 			}
 		]
+	},
+	// ugh, this fails in PhantomJS, which doesn't return namespaced attributes from
+	// innerHTML correctly. Skipping. See https://github.com/ractivejs/ractive/pull/1184
+	// adding the xmlns fails the test in chrome, and leaving it off also fails the test in chrome... meh
+	// {
+	// 	name: 'Element with namespaced attributes',
+	// 	template: `<svg viewBox='0 0 10 10'><use xlink:href='/vector.svg#{{href}}'></use></svg>`,
+	// 	data: {
+	// 		href: 'check'
+	// 	},
+	// 	result: `<svg viewBox='0 0 10 10'><use xlink:href='/vector.svg#check'></use></svg>`
+	// },
+	{
+		name: 'Static mustaches in attributes (#1147)',
+		template: '<img style="width: [[width]]px;">',
+		data: { width: 100 },
+		result: `<img style="width: 100px;">`,
+		new_data: { width: 200 },
+		new_result: `<img style="width: 100px;">`
+	},
+	{
+		name: 'Section in attribute',
+		template: '<div style="{{#red}}color: red;{{/}}">{{#red}}is red{{/red}}</div>',
+		data: { red: true },
+		result: `<div style="color: red;">is red</div>`,
+		new_data: { red: false },
+		new_result: '<div style=""></div>'
 	}
 ];
 
 function max() { return Math.max.apply(Math, Array.prototype.slice.call(arguments, 0)); }
-
-if ( !phantom ) {
-	// ugh, this fails in PhantomJS, which doesn't return namespaced attributes from
-	// innerHTML correctly. Skipping. See https://github.com/ractivejs/ractive/pull/1184
-	// adding the xmlns fails the test in chrome, and leaving it off also fails the test in chrome... meh
-	/*renderTests.push({
-		name: 'Element with namespaced attributes',
-		template: `<svg viewBox='0 0 10 10'><use xlink:href='/vector.svg#{{href}}'></use></svg>`,
-		data: {
-			href: 'check'
-		},
-		result: `<svg viewBox='0 0 10 10'><use xlink:href='/vector.svg#check'></use></svg>`
-	});*/
-
-	renderTests.push(
-		{
-			name: 'Static mustaches in attributes (#1147)',
-			template: '<img style="width: [[width]]px;">',
-			data: { width: 100 },
-			result: `<img style="width: 100px;${ phantom ? ' ' : '' }">`,
-			new_data: { width: 200 },
-			new_result: `<img style="width: 100px;${ phantom ? ' ' : '' }">`
-		},
-		{
-			name: 'Section in attribute',
-			template: '<div style="{{#red}}color: red;{{/}}">{{#red}}is red{{/red}}</div>',
-			data: { red: true },
-			result: `<div style="color: red;${ phantom ? ' ' : '' }">is red</div>`,
-			new_data: { red: false },
-			new_result: '<div style=""></div>'
-		}
-	);
-}
 
 if ( ie ) {
 	// argh, fails in IE because of how it does innerHTML (i.e. wrongly). Skipping

@@ -171,74 +171,69 @@ export default function() {
 		t.equal( ractive.get( 'foo' ), '42' );
 	});
 
-	// phantom and IE8 don't like these tests, but browsers are ok with them
-	try {
-		fire( document.createElement( 'div' ), 'input' );
-		fire( document.createElement( 'div' ), 'blur' );
+	fire( document.createElement( 'div' ), 'input' );
+	fire( document.createElement( 'div' ), 'blur' );
 
-		test( 'lazy may be overridden on a per-element basis', t => {
-			let ractive = new Ractive({
-				el: fixture,
-				template: '<input value="{{foo}}" lazy="true" />',
-				data: { foo: 'test' },
-				lazy: false
-			});
+	test( 'lazy may be overridden on a per-element basis', t => {
+		let ractive = new Ractive({
+			el: fixture,
+			template: '<input value="{{foo}}" lazy="true" />',
+			data: { foo: 'test' },
+			lazy: false
+		});
 
-			let node = ractive.find( 'input' );
-			node.value = 'bar';
-			fire( node, 'input' );
+		let node = ractive.find( 'input' );
+		node.value = 'bar';
+		fire( node, 'input' );
+		t.equal( ractive.get( 'foo' ), 'test' );
+		fire( node, 'blur' );
+		t.equal( ractive.get( 'foo' ), 'bar' );
+
+		ractive = new Ractive({
+			el: fixture,
+			template: '<input value="{{foo}}" lazy="false" />',
+			data: { foo: 'test' },
+			lazy: true
+		});
+
+		node = ractive.find( 'input' );
+		node.value = 'bar';
+		fire( node, 'input' );
+		t.equal( ractive.get( 'foo' ), 'bar' );
+	});
+
+	test( 'lazy may be set to a number to trigger on a timeout', t => {
+		const done = t.async();
+
+		const ractive = new Ractive({
+			el: fixture,
+			template: '<input value="{{foo}}" lazy="20" />',
+			data: { foo: 'test' }
+		});
+
+		const node = ractive.find( 'input' );
+		node.value = 'bar';
+		fire( node, 'input' );
+		t.equal( ractive.get( 'foo' ), 'test' );
+
+		setTimeout( () => {
 			t.equal( ractive.get( 'foo' ), 'test' );
-			fire( node, 'blur' );
+		}, 5 );
+
+		setTimeout( () => {
 			t.equal( ractive.get( 'foo' ), 'bar' );
+			done();
+		}, 30 );
+	});
 
-			ractive = new Ractive({
+	test( 'invalid content in method call event directive should have a reasonable error message', t => {
+		t.throws(() => {
+			new Ractive({
 				el: fixture,
-				template: '<input value="{{foo}}" lazy="false" />',
-				data: { foo: 'test' },
-				lazy: true
+				template: '<button on-click="alert(foo);">Click Me</button>'
 			});
-
-			node = ractive.find( 'input' );
-			node.value = 'bar';
-			fire( node, 'input' );
-			t.equal( ractive.get( 'foo' ), 'bar' );
-		});
-
-		test( 'lazy may be set to a number to trigger on a timeout', t => {
-			const done = t.async();
-
-			const ractive = new Ractive({
-				el: fixture,
-				template: '<input value="{{foo}}" lazy="20" />',
-				data: { foo: 'test' }
-			});
-
-			const node = ractive.find( 'input' );
-			node.value = 'bar';
-			fire( node, 'input' );
-			t.equal( ractive.get( 'foo' ), 'test' );
-
-			setTimeout( () => {
-				t.equal( ractive.get( 'foo' ), 'test' );
-			}, 5 );
-
-			setTimeout( () => {
-				t.equal( ractive.get( 'foo' ), 'bar' );
-				done();
-			}, 30 );
-		});
-
-		test( 'invalid content in method call event directive should have a reasonable error message', t => {
-			t.throws(() => {
-				new Ractive({
-					el: fixture,
-					template: '<button on-click="alert(foo);">Click Me</button>'
-				});
-			}, /expected/i );
-		});
-	} catch ( err ) {
-		// do nothing
-	}
+		}, /expected/i );
+	});
 
 	test( 'events in nested elements are torn down properly (#2608)', t => {
 		let count = 0;
