@@ -14,7 +14,6 @@ npm run lint:tests:node
 npm run bundle:test
 npm run test:phantom
 npm run test:electron
-#npm run test:saucelabs || true # Allow to fail for now
 npm run test:coverage
 
 npm run report:coveralls
