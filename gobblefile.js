@@ -107,9 +107,9 @@ function buildUmdLib(dest, plugins = []) {
 			format: 'umd',
 			file: dest,
 			sourcemap: true,
+			banner: banner,
 			noConflict: true
 		},
-		banner: banner,
 		cache: false
 	}).transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
 }
@@ -122,9 +122,9 @@ function buildESLib(dest, plugins = []) {
 		output: {
 			format: 'es',
 			file: dest,
-			sourcemap: true
+			sourcemap: true,
+			banner: banner
 		},
-		banner: banner,
 		cache: false
 	}).transform(transpile, { accept: ['.js', '.mjs'] }).transform(replacePlaceholders);
 }
@@ -168,7 +168,7 @@ function buildNodeTests() {
 				sourcemap: true
 			},
 			external: ['cheerio'],
-			cache: false,
+			cache: false
 		});
 }
 
@@ -260,10 +260,8 @@ function rollup(indir, outdir, options) {
 	if (!options.input) throw new Error('You must supply `options.input`');
 	if (!options.output || !options.output.file) throw new Error('You must supply `options.output.file`');
 
-	const opts = Object.create(options);
-	opts.output = Object.create(opts.output);
-	opts.output.file = path.join(outdir, options.output.file);
-	opts.input = path.join(indir, options.input);
+	const inputOptions = Object.assign({}, options, { output: undefined, input: path.join(indir, options.input) })
+	const outputOptions = Object.assign({}, options.output, { file: path.join(outdir, options.output.file) })
 
-	return rollupLib.rollup(opts).then(bundle => bundle.write(opts.output));
+	return rollupLib.rollup(inputOptions).then(bundle => bundle.write(outputOptions));
 }

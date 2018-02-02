@@ -6,7 +6,7 @@ rm -rf .build
 mkdir .build
 
 npm run bundle:test
-npm run test:phantom
+npm run test:chrome
 
 echo "build complete"
 

@@ -1,15 +1,15 @@
 /* eslint-env node */
-
+process.env.CHROME_BIN = require('puppeteer').executablePath()
 const base = require('./base.conf');
 
 module.exports = function (config) {
 	config.set(Object.assign({}, base, {
-		plugins: base.plugins.concat(['karma-coverage', 'karma-phantomjs-launcher']),
-		browsers: ['PhantomJS'],
+		plugins: base.plugins.concat(['karma-coverage', 'karma-chrome-launcher']),
+		browsers: ['ChromeHeadlessNoSandbox'],
 		reporters: base.reporters.concat(['coverage']),
 		coverageReporter: {
 			dir: './coverage/',
-			subdir: 'phantom',
+			subdir: 'chrome',
 			reporters: [
 				{ type: 'html' },
 				{ type: 'json' },
@@ -24,6 +24,12 @@ module.exports = function (config) {
 		],
 		proxies: {
 			'/qunit/': '/base/qunit/'
-		}
+		},
+		customLaunchers: {
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox']
+      }
+    }
 	}));
 };
