@@ -3,7 +3,7 @@
 
 # Dependencies
 node_modules/
-package-lock.json # for now
+package-lock.json
 
 # Debugging directory
 sandbox/*
