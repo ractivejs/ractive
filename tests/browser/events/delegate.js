@@ -240,6 +240,7 @@ export default function() {
 		fire( r.find( 'span' ), 'click' );
 	});
 
+	// This test fails in IE.
 	test( `blur events delegate correctly`, t => {
 		t.expect( 2 );
 

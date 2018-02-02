@@ -39,8 +39,7 @@ export default function(){
 					t.deepEqual(parsedKeys, expectedKeys);
 
 					expectedKeys.forEach(key => {
-						// normalize function whitepace for browser vs phantomjs
-						const actual = parsed.e[key].toString().replace( ') \{', ')\{' );
+						const actual = parsed.e[key].toString();
 						t.equal( actual, parseTest.parsed.e[key] );
 					});
 

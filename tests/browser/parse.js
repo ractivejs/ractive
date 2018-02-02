@@ -7,8 +7,6 @@ import { test } from 'qunit';
 export default function() {
 	initModule( 'parse.js' );
 
-	const phantom = /phantomjs/i.test( navigator.userAgent );
-
 	test( 'Mismatched template version causes error', ( t ) => {
 		t.throws( () => {
 			new Ractive({
@@ -18,7 +16,6 @@ export default function() {
 	});
 
 	tests.forEach( theTest => {
-		if ( theTest.skipPhantom && phantom ) return;
 
 		test( theTest.name, ( t ) => {
 			// disable for tests unless explicitly specified
@@ -48,8 +45,7 @@ export default function() {
 					const expectedKeys = Object.keys( theTest.parsed.e );
 					t.deepEqual( Object.keys( parsed.e ),  expectedKeys );
 					expectedKeys.forEach( key => {
-						// normalize function whitepace for browser vs phantomjs
-						const actual = parsed.e[ key ].toString().replace( ') \{', ')\{');
+						const actual = parsed.e[ key ].toString();
 						t.equal( actual, theTest.parsed.e[ key ] );
 					});
 

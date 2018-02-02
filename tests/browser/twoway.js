@@ -69,14 +69,10 @@ export default function() {
 			data: { foo: 'bar' }
 		});
 
-		try {
-			ractive.find( 'input' ).value = 'baz';
-			fire( ractive.find( 'input' ), 'blur' );
+		ractive.find( 'input' ).value = 'baz';
+		fire( ractive.find( 'input' ), 'blur' );
 
-			t.equal( ractive.get( 'foo' ), 'baz' );
-		} catch ( err ) {
-			t.ok( true ); // otherwise phantomjs throws a hissy fit
-		}
+		t.equal( ractive.get( 'foo' ), 'baz' );
 	});
 
 	test( 'Model is validated on blur, and the view reflects the validate model (#644)', t => {
@@ -90,14 +86,10 @@ export default function() {
 			this.set( 'foo', foo.toUpperCase() );
 		});
 
-		try {
-			ractive.find( 'input' ).value = 'baz';
-			fire( ractive.find( 'input' ), 'blur' );
+		ractive.find( 'input' ).value = 'baz';
+		fire( ractive.find( 'input' ), 'blur' );
 
-			t.equal( ractive.find( 'input' ).value, 'BAZ' );
-		} catch ( err ) {
-			t.ok( true ); // phantomjs
-		}
+		t.equal( ractive.find( 'input' ).value, 'BAZ' );
 	});
 
 	test( 'Two-way data binding is not attempted on elements with no mustache binding', t => {
@@ -612,15 +604,11 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<input>BAR' );
 
 		fire( input, 'change' );
-		try {
-			fire( input, 'blur' );
+		fire( input, 'blur' );
 
-			t.equal( input.value, 'BAR' );
-			t.equal( ractive.get( 'foo' ), 'BAR' );
-			t.htmlEqual( fixture.innerHTML, '<input>BAR' );
-		} catch ( err ) {
-			// Oh PhantomJS. You are so very WTF
-		}
+		t.equal( input.value, 'BAR' );
+		t.equal( ractive.get( 'foo' ), 'BAR' );
+		t.htmlEqual( fixture.innerHTML, '<input>BAR' );
 	});
 
 	test( 'Reference expression radio bindings rebind correctly inside reference expression sections (#904)', t => {
@@ -953,12 +941,8 @@ export default function() {
 		const div = ractive.find( 'div' );
 		div.innerHTML = 'foo';
 
-		try {
-			fire( div, 'blur' );
-			t.equal( ractive.get( 'value' ), 'foo' );
-		} catch ( err ) {
-			t.ok( true ); // phantomjs ಠ_ಠ
-		}
+		fire( div, 'blur' );
+		t.equal( ractive.get( 'value' ), 'foo' );
 	});
 
 	test( 'select with no matching value option selects none (#2494)', t => {
@@ -1229,12 +1213,8 @@ export default function() {
 		fire( input, 'input' );
 		t.equal( span.innerHTML, 'foo' );
 
-		try {
-			fire( input, 'blur' );
-			t.equal( span.innerHTML, 'bar' );
-		} catch ( err ) {
-			t.ok( true ); // phantom...
-		}
+		fire( input, 'blur' );
+		t.equal( span.innerHTML, 'bar' );
 	});
 
 	test( 'bound lazy should apply/unapply correctly', t => {
@@ -1259,12 +1239,8 @@ export default function() {
 		fire( input, 'input' );
 		t.equal( span.innerHTML, 'foo' );
 
-		try {
-			fire( input, 'blur' );
-			t.equal( span.innerHTML, 'bar' );
-		} catch ( err ) {
-			t.ok( true ); // phantom...
-		}
+		fire( input, 'blur' );
+		t.equal( span.innerHTML, 'bar' );
 	});
 
 	test( 'textarea with a single static interpolator as content should not set up a twoway binding', t => {
