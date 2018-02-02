@@ -10,7 +10,7 @@ npm run lint:tests:browser
 npm run lint:tests:node
 
 npm run bundle:test
-npm run test:phantom
+npm run test:chrome
 npm run test:electron
 npm run test:coverage
 
