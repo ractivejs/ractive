@@ -7,6 +7,7 @@
     "node": ">=4.0.0",
     "npm": ">=2.14.2"
   },
+  "typings": "typings/ractive.d.ts",
   "devDependencies": {
     "@evs-chris/buble": "^0.15.2",
     "cheerio": "^0.22.0",

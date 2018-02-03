@@ -1,476 +1,465 @@
-// Type definitions for Ractive 0.7.1
-// Project: http://ractivejs.org
-// Definitions by: Han Lin Yap <http://yap.nu>
-// Definitions: https://github.com/codler/Ractive-TypeScript-Definition
-// Version: 0.7.1-1+2015-03-21
-
-declare type _RactiveEvent = Event;
-
-declare module Ractive {
-    export interface Node extends HTMLElement {
-        _ractive: any;
-    }
-
-    // It's functionally identical to the ES6 promise (as currently spec'd) except that Promise.race and Promise.cast are not currently implemented.
-    export interface Promise extends Object {
-        // TODO: Implement interface or wait until typescript include native Promise definition.
-    }
-
-    export interface AnimationPromise extends Promise {
-        stop(): void; // TODO: void?
-    }
-
-    export interface AdaptorPlugin extends Object {
-        // TODO: 
-    }
-
-    export interface ComponentPlugin extends Static {
-        // TODO: 
-    }
-
-    export interface DecoratorPlugin {
-        (node: HTMLElement, ...args: any[]): {
-            // TODO: undocumented GH-429
-            update?: (...args: any[]) => void;
-            teardown: () => void;
-        }
-    }
-
-    export interface EventPlugin extends Function {
-        // TODO: 
-    }
-
-    export interface TransitionPlugin {
-        (t: Transition, params: Object): void;
-    }
-
-    export interface AdaptorPlugins {
-        [key: string]: AdaptorPlugin;
-    }
-
-    export interface ComponentPlugins {
-        [key: string]: ComponentPlugin;
-    }
-
-    export interface DecoratorPlugins {
-        [key: string]: DecoratorPlugin;
-    }
-
-    export interface EventPlugins {
-        [key: string]: EventPlugin;
-    }
-
-    export interface TransitionPlugins {
-        [key: string]: TransitionPlugin;
-    }
-
-    export interface Event {
-        context: any;
-        component?: Ractive;
-        index: { [key: string]: number };
-        keypath: string;
-        // Since 0.6.0
-        name: string;
-        node: HTMLElement;
-        original: _RactiveEvent;
-    }
-
-    // Since 0.7.1
-    export interface NodeInfo {
-        ractive: Ractive;
-        keypath: string;
-        index: { [key: string]: number };
-    }
-
-    // Return value in ractive.observe and ractive.on
-    export interface Observe {
-        cancel(): void;
-    }
-
-    // Comes as first parameter in RactiveTransitionPlugin
-    export interface Transition {
-        isIntro: boolean;
-        name: string;
-        node: HTMLElement;
-
-        animateStyle(prop: string, value: any, options: TransitionAnimateOptions, complete: Function): void;
-        animateStyle(props: Object, options: TransitionAnimateOptions, complete: Function): void;
-        // Default false
-        complete(noReset?: boolean): void;
-        getStyle(prop: string): string;
-        getStyle(props: string[]): Object;
-        processParams(params: any, defaults?: Object): Object;
-        resetStyle(): void;
-        setStyle(prop: string, value: any): Transition;
-        setStyle(props: Object): Transition;
-    }
-
-    export interface TransitionAnimateOptions {
-        // TODO: Do it have default value?
-        duration: number;
-        // Any valid CSS timing function
-        // Default 'linear'
-        easing?: string;
-        // TODO: Do it have default value?
-        delay: number;
-    }
-
-    export interface AnimateOptions {
-        duration?: number;
-        easing?: string | Function;
-        // TODO: number as type correct?
-        step?: (t: number, value: number) => void; // TODO: void?
-        // TODO: number as type correct?
-        complate?: (t: number, value: number) => void; // TODO: void?
-    }
-
-    export interface ObserveOptions extends ObserveOnceOptions {
-        // Default true
-        init?: boolean;
-    }
-
-    // Since 0.7.1
-    export interface ObserveOnceOptions {
-        // Default Ractive
-        context?: any;
-        // Default false
-        defer?: boolean;
-    }
-
-    // Used in Ractive.parse options
-    export interface ParseOptions {
-        preserveWhitespace: boolean;
-        sanitize: any;
-    }
-
-    // Used in Initialisation options
-    export interface SanitizeOptions {
-        elements: string[];
-        // TODO: Undocumented what default value is, but probably false
-        eventAttributes?: boolean;
-    }
-
-    export interface NewOptions {
-        /*
-         * @type List of mixed string or Adaptor
-         */
-        adapt?: (string | AdaptorPlugin)[];
-
-        adaptors?: AdaptorPlugins;
-
-        /**
-         * Default false
-         * @type boolean or any type that option `el` accepts (HTMLElement or String or jQuery-like collection)
-         */
-        append?: boolean | any;
-
-        complete?: Function;
-        components?: ComponentPlugins;
-        computed?: Object;
-        // Since 0.5.5
-        // TODO: unclear in documantation, should this be in ExtendOptions instead?
-        css?: string;
-
-        /**
-         * @type Object or Function
-         */
-        // TODO: undocumented type Function
-        data?: Object | Function;
-
-        decorators?: DecoratorPlugins;
-        /**
-         * @type [open, close]
-         */
-        delimiters?: string[];
-
-        // TODO: unsure
-        easing?: string | Function;
-
-        /**
-         * @type HTMLElement or String or jQuery-like collection
-         */
-        el?: string | HTMLElement | any;
-        // TODO: undocumented in Initialisation options page
-        events?: EventPlugins;
-        
-        // Since 0.5.5
-        // TODO: unclear in documantation
-        interpolators?: { [key: string]: any; };
-
-        // Since 0.6.0
-        // TODO: undocumented arguments
-        onchange?: (options: NewOptions) => void; // TODO: void?
-        // Since 0.6.0
-        // TODO: undocumented arguments
-        oncomplete?: () => void; // TODO: void?
-        // Since 0.6.0
-        // TODO: undocumented arguments
-        onconfig?: () => void; // TODO: void?
-        // Since 0.6.0
-        // TODO: undocumented arguments
-        onconstruct?: (options: NewOptions) => void; // TODO: void?
-        // Since 0.6.0
-        // TODO: undocumented arguments
-        ondetach?: () => void; // TODO: void?
-        // Since 0.6.0
-        // TODO: undocumented arguments
-        oninit?: () => void; // TODO: void?
-        // Since 0.6.0
-        // TODO: undocumented arguments
-        oninsert?: () => void; // TODO: void?
-        // Since 0.6.0
-        // TODO: undocumented arguments
-        onrender?: () => void; // TODO: void?
-        // Since 0.6.0
-        // TODO: undocumented arguments
-        onunrender?: () => void; // TODO: void?
-        // Since 0.6.0
-        // TODO: undocumented arguments
-        onupdate?: () => void; // TODO: void?
-        // Since 0.6.0
-        // TODO: undocumented arguments
-        onteardown?: () => void; // TODO: void?
-
-        /**
-         * any is same type as template
-         */
-        partials?: { [key: string]: any; };
-        /**
-         * Default false
-         */
-        sanitize?: boolean | SanitizeOptions;
-        /**
-         * Default ['[[', ']]']
-         * @type [open, close]
-         */
-        staticDelimiters?: string[];
-        /**
-         * Default ['[[[', ']]]']
-         * @type [open, close]
-         */
-        staticTripleDelimiters?: string[];
-        /**
-         * @type String or (if preparsing "Ractive.parse") Array or Object
-         */
-        template?: any;
-        transitions?: TransitionPlugins;
-        /**
-         * @type [open, close]
-         */
-        tripleDelimiters?: string[];
-
-        // Default false
-        lazy?: boolean;
-        // Default false
-        magic?: boolean;
-        // Default true
-        modifyArrays?: boolean;
-        // Since 0.5.5
-        // TODO: unclear in documentation
-        // Default false
-        noCSSTransform?: boolean;
-        // Default false
-        noIntro?: boolean;
-        // Default false
-        preserveWhitespace?: boolean;
-        // Since 0.5.5
-        // Default true
-        stripComments?: boolean;
-        // Since 0.7.1
-        // Default true
-        transitionsEnabled?: boolean;
-        // Default true
-        twoway?: boolean;
-
-    }
-
-    export interface ExtendOptions extends NewOptions {
-        /**
-         * @deprecated
-         */
-        beforeInit?: (options: ExtendOptions) => void;
-        /**
-         * @deprecated
-         */
-        init?: (options: ExtendOptions) => void;
-        
-        // Default false, inherit from Ractive.defaults
-        isolated?: boolean;
-    }
-
-    // See ractive change log "All configuration options, except plugin registries, can be specified on Ractive.defaults and Component.defaults"
-    export interface DefaultsOptions extends ExtendOptions {
-        /**
-         * @deprecated since 0.7.1
-         */
-        // Default false
-        debug?: boolean;
-    }
-
-    /**
-     * Static members of Ractive
-     */
-    export interface Static {
-        new (options: NewOptions): Ractive;
-
-        extend(options: ExtendOptions): Static;
-
-        // Since 0.7.1
-        getNodeInfo(node: HTMLElement): NodeInfo;
-
-        parse(template: string, options?: ParseOptions): any;
-
-        // TODO: undocumented
-        adaptors: AdaptorPlugins;
-
-        // TODO: undocumented
-        components: ComponentPlugins;
-
-        // Since 0.7.1
-        DEBUG: boolean;
-
-        defaults: DefaultsOptions;
-
-        // TODO: undocumented
-        decorators: DecoratorPlugins;
-
-        easing: { [key: string]: (x: number) => number; };
-
-        // TODO: undocumented
-        events: EventPlugins;
-
-        // TODO: missing static properties documentation
-        partials: { [key: string]: any; };
-
-        // Undocumented method
-        Promise: Promise;
-
-        // TODO: missing static properties documentation
-        transitions: TransitionPlugins;
-    }
-
-    /**
-     * The Ractive instance members
-     */
-    export interface Ractive {
-        add(keypath: string, number?: number): Promise;
-
-        animate(keypath: string, value: any, options?: AnimateOptions): AnimationPromise;
-
-        animate(map: Object, options?: AnimateOptions): AnimationPromise;
-
-        detach(): DocumentFragment;
-
-        find(selector: string): HTMLElement;
-
-        // live default false
-        findAll(selector: string, options?: { live: boolean }): HTMLElement[];
-
-        // live default false
-        findAllComponents(name: string, options?: { live: boolean }): Ractive[];
-        // TODO: maybe exist, in that case it is undocumented
-        // findAllComponents(): Ractive[]
-
-        findComponent(name?: string): Ractive;
-
-        // Since 0.7.1
-        findContainer(name: string): Ractive; // TODO: Ractive?
-
-        // Since 0.7.1
-        findParent(name: string): Ractive; // TODO: Ractive?
-
-        fire(eventName: string, ...args: any[]): void; // TODO: void?
-
-        get(keypath: string): any;
-        get(): Object; // TODO: Object?
-
-        // target - Node or String or jQuery (see Valid selectors)
-        // anchor - Node or String or jQuery
-        insert(target: any, anchor?: any): void; // TODO: void?
-        
-        merge(keypath: string, value: any[], options?: { compare: boolean | string | Function }): Promise;
-
-        // callback context Ractive
-        observe(keypath: string, callback: (newValue: any, oldValue: any, keypath: string) => void, options?: ObserveOptions): Observe;
-        observe(map: Object, options?: ObserveOptions): Observe;
-
-        // Since 0.7.1
-        observeOnce(keypath: string, callback: (newValue: any, oldValue: any, keypath: string) => void, options?: ObserveOnceOptions): Observe;
-        
-        // handler context Ractive
-        off(eventName?: string, handler?: (event?: Ractive.Event | any, ...args: any[]) => any): Ractive;
-        on(eventName: string, handler: (event?: Ractive.Event | any, ...args: any[]) => any): Observe;
-        on(map: { [eventName: string]: (event?: Ractive.Event | any, ...args: any[]) => any }): Observe;
-        // Since 0.7.1
-        once(eventName: string, handler: (event?: Ractive.Event | any, ...args: any[]) => any): Observe;
-
-        // Since 0.5.5
-        pop(keypath: string): Promise;
-
-        // Since 0.5.5
-        push(keypath: string, value: any): Promise;
-
-        // target - Node or String or jQuery (see Valid selectors)
-        render(target: any): void; // TODO: void?
-
-        // Default {}
-        reset(data?: Object): Promise;
-
-        // Since 0.7.1
-        resetPartial(name: string, partial: any): Promise;
-
-        // Since 0.5.5
-        // TODO: undocumented, mentioned in ractive change log
-        // https://github.com/ractivejs/docs.ractivejs.org/issues/188
-        resetTemplate(): void; // TODO: void?
-
-        set(keypath: string, value: any): Promise;
-        set(map: Object): Promise;
-
-        // Since 0.5.5
-        shift(keypath: string): Promise;
-
-        // Since 0.5.5
-        splice(keypath: string, index: number, removeCount: number, ...add: any[]): Promise;
-
-        subtract(keypath: string, number?: number): Promise;
-
-        teardown(): Promise;
-
-        toggle(keypath: string): Promise;
-
-        toHTML(): string;
-
-        // Since 0.6.0
-        unrender(): void; // TODO: void?
-
-        // Since 0.5.5
-        unshift(keypath: string, value: any): Promise;
-
-        update(keypath?: string): Promise;
-
-        /**
-         * Update out of sync two-way bindings
-         * @param keypath A string
-         * @param cascade A boolean with default false
-         */
-        updateModel(keypath?: string, cascade?: boolean): Promise;
-
-        // Properties
-        // Since 0.7.1
-        container: Ractive; // TODO: Ractive?
-        nodes: Object;
-        partials: Object;
-        // Since 0.7.1
-        parent: Ractive; // TODO: Ractive?
-        // Since 0.7.1
-        root: Ractive; // TODO: Ractive?
-        transitions: Object;
-    }
+// Type definitions for Ractive edge
+// Project: https://ractive.js.org/
+// Definitions By: Chris Reeves <https://github.com/evs-chris>
+// Version: 1.0.0-edge+2018-02-02
+
+interface ValueMap {
+	[key: string]: any;
 }
 
-// used for require()
-declare module "ractive" {
-    export = Ractive;
+interface Adaptor {
+	filter: (value: any, keypath: string, ractive: Ractive) => boolean;
+	wrap: (ractive: Ractive, value: any, keypath: string, prefixer: AdaptorPrefixer) => AdaptorHandle
 }
-declare var Ractive: Ractive.Static;
+interface AdaptorHandle {
+	get: () => any;
+	set: (prop: string, value: any) => void;
+	reset: (value: any) => void;
+	teardown: () => void;
+}
+type AdaptorPrefixer = (map: ValueMap) => ValueMap;
+
+interface AnimateOpts {
+	duration?: number;
+	easing?: string | Easing;
+	interpolator?: string | Interpolator;
+	step?: (time: number, value: any) => void;
+	complete?: (value: any) => void;
+}
+interface AnimatePromise extends Promise<void> {
+	stop(): void;
+}
+
+interface ArrayPushPromise extends Promise<number> {
+	result: number;
+}
+
+interface ArrayPopPromise extends Promise<any> {
+	result: any;
+}
+
+interface ArraySplicePromise extends Promise<any[]> {
+	result: any[];
+}
+
+interface AttachOpts {
+	target?: string;
+	append?: boolean;
+	prepend?: boolean;
+	insertAt?: number;
+}
+
+export class ContextHelper {
+	ractive: Ractive;
+	decorators: Registry<DecoratorHandle>;
+	node?: HTMLElement;
+	original?: Event;
+	event?: Event;
+
+	add(keypath: string, amount?: number): Promise<void>;
+	animate(keypath: string, value: any, opts?: AnimateOpts): AnimatePromise;
+	get(opts?: GetOpts): any
+	get(keypath: string, opts?: GetOpts): any;
+	getBinding(): any;
+	getBindingPath(ractive?: Ractive): string;
+	getParent(crossComponentBoundary?: boolean): ContextHelper;
+	hasListener(event: string, bubble?: boolean): boolean;
+	isBound(): boolean;
+	link(source: string, dest: string, opts?: LinkOpts): Promise<void>;
+	listen(event: string, callback: (event: Event) => void): ListenerHandle;
+	observe(keypath: string, callback: ObserverCallback, opts?: ObserverOpts): ObserverHandle;
+	observe(map: { [key: string]: ObserverCallback }, opts?: ObserverOpts): ObserverHandle;
+	observeOnce(keypath: string, callback: ObserverCallback, opts?: ObserverOpts): ObserverHandle;
+	observeOnce(map: { [key: string]: ObserverCallback }, opts?: ObserverOpts): ObserverHandle;
+	pop(keypath: string): ArrayPopPromise;
+	push(keypath: string, ...values: any[]): ArrayPushPromise;
+	raise(event: string, context: ContextHelper | {}, ...args: any[]): void;
+	readLink(keypath: string, opts?: ReadLinkOpts): ReadLinkResult;
+	resolve(keypath: string, ractive?: Ractive): string;
+	reverse(keypath: string): ArraySplicePromise;
+	set(keypath: string, value: any, opts?: SetOpts): Promise<void>;
+	set(map: ValueMap, opts?: SetOpts): Promise<void>;
+	setBinding(value: any): Promise<void>;
+	shift(keypath: string): ArrayPopPromise;
+	sort(keypath: string): ArraySplicePromise;
+	splice(keypath: string, index: number, drop: number, ...add: any[]): ArraySplicePromise;
+	subtract(keypath: string, amount?: number): Promise<void>;
+	toggle(keypath: string): Promise<void>;
+	unlink(keypath: string): Promise<void>;
+	unlisten(event: string, callback: (event: Event) => void): void;
+	update(opts?: UpdateOpts): Promise<void>;
+	update(keypath: string, opts?: UpdateOpts): Promise<void>;
+	updateModel(cascade?: boolean): Promise<void>;
+	updateModel(keypath: string, cascade?: boolean): Promise<void>;
+	unshift(keypath: string, value: any): ArrayPushPromise;
+}
+
+type Component = Static | Promise<Static>;
+
+interface ComputationDescriptor {
+	get: () => any;
+	set?: (value: any) => void;
+}
+type ComputationFn = () => any;
+type Computation = string | ComputationFn | ComputationDescriptor;
+
+type CssFn = (data: DataGetFn) => string;
+
+type Data = ValueMap
+type DataFn = () => ValueMap;
+type DataGetFn = (keypath: string) => any;
+
+interface DecoratorHandle {
+	invalidate?: () => void;
+	teardown: () => void;
+	update?: (...args: any[]) => void;
+}
+type Decorator = (node: HTMLElement, ...args: any[]) => DecoratorHandle;
+
+type Easing = (time: number) => number;
+
+type EventPlugin = (node: HTMLElement, fire: (event: Event) => void) => { teardown: () => void };
+
+interface FindOpts {
+	remote?: boolean;
+}
+
+interface GetOpts {
+	virtual?: boolean;
+	unwrap?: boolean
+}
+
+type Interpolator = <T>(from: T, to: T) => (t: number) => T;
+
+interface LinkOpts {
+	ractive?: Ractive;
+	instance?: Ractive;
+	keypath?: string;
+}
+
+type ListenerCallback = (ctx: ContextHelper, ...args: any[]) => boolean | void;
+interface ListenerDescriptor {
+	handler: ListenerCallback;
+	once?: boolean;
+}
+interface ListenerHandle {
+	cancel: () => void;
+}
+
+interface ObserverHandle {
+	cancel(): void;
+	silence(): void;
+	isSilenced(): boolean;
+	resume(): void;
+}
+
+type ObserverCallback = (value: any, old: any, keypath: string, ...parts: string[]) => void;
+interface ObserverOpts {
+	array?: boolean;
+	context?: any;
+	defer?: boolean;
+	init?: boolean;
+	links?: boolean;
+	old?: ObserverCallback;
+	strict?: boolean;
+}
+interface ObserverDescriptor extends ObserverOpts {
+	handler: ObserverCallback;
+	once?: boolean;
+}
+
+type ParseDelimiters = [ string, string ];
+
+type ParseFn = (helper: ParseHelper) => string | [] | ParsedTemplate;
+
+interface ParseHelper {
+	fromId(id: string): string;
+	isParser(template: any): boolean;
+	parse(template: string, opts?: ParseOpts): ParsedTemplate;
+}
+
+interface ParsedTemplate {
+	v: number;
+	t: any[];
+	e?: { [key: string]: Function };
+	p: { [key: string]: any[] };
+}
+
+type Partial = string | any[] | ParseFn;
+
+interface ReadLinkOpts {
+	canonical?: boolean;
+}
+interface ReadLinkResult {
+	ractive: Ractive;
+	keypath: string;
+}
+
+interface SetOpts {
+	deep?: boolean;
+	keep?: boolean;
+	shuffle?: Shuffler;
+}
+
+type Shuffler = boolean | string | ShuffleFn;
+type ShuffleFn = (left: any, right: any) => (1 | 0 | -1);
+
+type Target = string | HTMLElement | ArrayLike<any>;
+
+type Template = ParsedTemplate | string | any[] | ParseFn;
+
+interface TransitionHelper {
+	isIntro: boolean;
+	isOutro: boolean;
+	name: string;
+	node: HTMLElement;
+
+	animateStyle(prop: string, value: any, opts: TransitionOpts & {}, complete?: () => void): Promise<void>;
+	animateStyle(map: ValueMap, opts: TransitionOpts & {}, complete?: () => void): Promise<void>;
+	complete(reset?: boolean): void;
+	getStyle(prop: string): any;
+	getStyle(props: string[]): ValueMap;
+	processParams(params: number | 'slow' | 'fast' | string | ValueMap, defaults?: ValueMap): ValueMap;
+	setStyle(prop: string, value: any): void;
+	setStyle(map: ValueMap): void;
+}
+type Transition = (helper: TransitionHelper, ...args: any[]) => (void | Promise<void>);
+interface TransitionOpts {
+	duration?: number | 'slow' | 'fast' | string;
+	easing?: string;
+	delay?: number;
+}
+
+interface UpdateOpts {
+	force?: boolean;
+}
+
+interface Registry<T> { [key: string]: T }
+
+interface BaseParseOpts {
+	contextLines?: number;
+	csp?: boolean;
+	delimiters?: ParseDelimiters;
+	preserveWhitespace?: boolean;
+	sanitize?: boolean; //TODO
+	staticDelimiters?: ParseDelimiters;
+	staticTripleDelimiters?: ParseDelimiters;
+	stripComments?: boolean;
+	tripleDelimiters?: ParseDelimiters;
+}
+
+interface ParseOpts extends BaseParseOpts {
+	textOnlyMode?: boolean;
+}
+
+interface BaseInitOpts extends BaseParseOpts {
+	adapt?: (Adaptor | string)[];
+	adaptors?: Registry<Adaptor>;
+	allowExpressions?: boolean;
+	append?: boolean;
+	attributes?: string[] | { optional?: string[], required?: string[] };
+	components?: Registry<Component>;
+	computed?: { [key: string]: Computation };
+	decorators?: Registry<Decorator>;
+	delegate?: boolean;
+	easing?: Registry<Easing>;
+	events?: Registry<EventPlugin>;
+	interpolators?: Registry<Interpolator>;
+	lazy?: boolean;
+	nestedTransitions?: boolean;
+	noIntro?: boolean;
+	noOutro?: boolean;
+	observe?: Registry<ObserverCallback | ObserverDescriptor>;
+	on?: Registry<ListenerCallback | ListenerDescriptor>;
+	partials?: Registry<Partial>;
+	resolveInstanceMembers?: boolean;
+	syncComputedChildren?: boolean;
+	template?: Template;
+	transitions?: Registry<Transition>;
+	transitionsEnabled?: boolean;
+	twoway?: boolean;
+	warnAboutAmbiguity?: boolean;
+}
+
+interface ExtendOpts extends BaseInitOpts {
+	css?: string | CssFn;
+	cssData?: ValueMap;
+	cssId?: string;
+	data?: DataFn;
+	isolated?: boolean;
+	noCssTransform?: boolean;
+}
+
+interface InstanceInitOpts extends BaseInitOpts {
+	data?: Data | DataFn;
+	el?: Target;
+	target?: Target;
+}
+
+interface AppendInitOpts extends InstanceInitOpts {
+	append: true;
+}
+
+interface EnhanceInitOpts extends InstanceInitOpts {
+	enhance: true;
+}
+
+type InitOpts = InstanceInitOpts | AppendInitOpts | EnhanceInitOpts;
+
+interface Registries {
+	adaptors: Registry<Adaptor>;
+	components: Registry<Component>;
+	decorators: Registry<Decorator>;
+	easings: Registry<Easing>;
+	events: Registry<Event>;
+	interpolators: Registry<Interpolator>;
+	partials: Registry<Partial>;
+}
+
+interface Static {
+	new(opts?: InitOpts): Ractive;
+
+	defaults: Registries;
+
+	adaptors: Registry<Adaptor>;
+	components: Registry<Component>;
+	decorators: Registry<Decorator>;
+	easings: Registry<Easing>;
+	events: Registry<EventPlugin>;
+	interpolators: Registry<Interpolator>;
+	partials: Registry<Partial>;
+
+	extend(opts?: ExtendOpts): Static;
+	extendWith<T extends Static>(c: T, opts?: ExtendOpts): void;
+
+	getContext(query: HTMLElement | string): ContextHelper;
+	isInstance(obj: any): boolean;
+	sharedGet(keypath: string): any;
+	sharedSet(keypath: string, value: any): Promise<void>;
+	sharedSet(map: ValueMap): Promise<void>;
+	styleGet(keypath: string): any;
+	styleSet(keypath: string, value: any): Promise<void>;
+	styleSet(map: ValueMap): Promise<void>;
+
+	Ractive: Static;
+	Parent: Static;
+}
+
+export class Ractive {
+	constructor(opts?: InitOpts);
+
+	container?: Ractive;
+	parent?: Ractive;
+	root: Ractive;
+
+	adaptors: Registry<Adaptor>;
+	components: Registry<Component>;
+	decorators: Registry<Decorator>;
+	easings: Registry<Easing>;
+	events: Registry<EventPlugin>;
+	interpolators: Registry<Interpolator>;
+	partials: Registry<Partial>;
+
+	_super(...args: any[]): any;
+
+	add(keypath: string, amount?: number): Promise<void>;
+	animate(keypath: string, value: any, opts?: AnimateOpts): AnimatePromise;
+	attachChild(child: Ractive, opts?: AttachOpts): Promise<void>;
+	detach(): DocumentFragment;
+	detachChild(child: Ractive): Promise<void>;
+	find(selector: string, opts?: FindOpts): HTMLElement;
+	findAll(selector: string, opts?: FindOpts): HTMLElement[];
+	findAllComponents(opts?: FindOpts): Ractive[];
+	findAllComponents(name: string, opts?: FindOpts): Ractive[];
+	findComponent(opts?: FindOpts): Ractive;
+	findComponent(name: string, opts?: FindOpts): Ractive;
+	findContainer(name: string): Ractive;
+	findParent(name: string): Ractive;
+	fire(name: string, ctx: ContextHelper | {}, ...args: any[]): boolean;
+	get(opts?: GetOpts): any
+	get(keypath: string, opts?: GetOpts): any;
+	getContext(query: HTMLElement | string): ContextHelper;
+	insert(target: Target, anchor: Target): void;
+	link(source: string, dest: string, opts?: LinkOpts): Promise<void>;
+	observe(keypath: string, callback: ObserverCallback, opts?: ObserverOpts): ObserverHandle;
+	observe(map: { [key: string]: ObserverCallback }, opts?: ObserverOpts): ObserverHandle;
+	observeOnce(keypath: string, callback: ObserverCallback, opts?: ObserverOpts): ObserverHandle;
+	observeOnce(map: { [key: string]: ObserverCallback }, opts?: ObserverOpts): ObserverHandle;
+	off(event?: string, handler?: ListenerCallback): Ractive;
+	on(event: string, handler: ListenerCallback): ObserverHandle;
+	on(map: { [key: string]: ListenerCallback }): ObserverHandle;
+	once(event: string, handler: ListenerCallback): ObserverHandle;
+	once(map: { [key: string]: ListenerCallback }): ObserverHandle;
+	pop(keypath: string): ArrayPopPromise;
+	push(keypath: string, ...values: any[]): ArrayPushPromise;
+	readLink(keypath: string, opts?: ReadLinkOpts): ReadLinkResult;
+	render(target: Target): Promise<void>;
+	reset(data?: Data): Promise<void>;
+	resetPartial(name: string, partial: Partial): Promise<void>;
+	resetTemplate(template: Template): Promise<void>;
+	reverse(keypath: string): ArraySplicePromise;
+	set(keypath: string, value: any, opts?: SetOpts): Promise<void>;
+	set(map: ValueMap, opts?: SetOpts): Promise<void>;
+	shift(keypath: string): ArrayPopPromise;
+	sort(keypath: string): ArraySplicePromise;
+	splice(keypath: string, index: number, drop: number, ...add: any[]): ArraySplicePromise;
+	subtract(keypath: string, amount?: number): Promise<void>;
+	teardown(): Promise<void>;
+	toCSS(): string;
+	toHTML(): string;
+	toggle(keypath: string): Promise<void>;
+	transition(transition: string | Transition, opts?: TransitionOpts & {}): Promise<void>;
+	transition(transition: string | Transition, node: HTMLElement, opts?: TransitionOpts & {}): Promise<void>;
+	unlink(keypath: string): Promise<void>;
+	unrender(): Promise<void>;
+	update(opts?: UpdateOpts): Promise<void>;
+	update(keypath: string, opts?: UpdateOpts): Promise<void>;
+	updateModel(cascade?: boolean): Promise<void>;
+	updateModel(keypath: string, cascade?: boolean): Promise<void>;
+	unshift(keypath: string, value: any): ArrayPushPromise;
+
+	static defaults: Registries;
+
+	static adaptors: Registry<Adaptor>;
+	static components: Registry<Component>;
+	static decorators: Registry<Decorator>;
+	static easings: Registry<Easing>;
+	static events: Registry<EventPlugin>;
+	static interpolators: Registry<Interpolator>;
+	static partials: Registry<Partial>;
+
+	static extend(opts?: ExtendOpts): Static;
+	static extendWith<T extends Static>(c: T, opts?: ExtendOpts): void;
+
+	static getContext(query: HTMLElement | string): ContextHelper;
+	static isInstance(obj: any): boolean;
+	static sharedGet(keypath: string): any;
+	static sharedSet(keypath: string, value: any): Promise<void>;
+	static sharedSet(map: ValueMap): Promise<void>;
+	static styleGet(keypath: string): any;
+	static styleSet(keypath: string, value: any): Promise<void>;
+	static styleSet(map: ValueMap): Promise<void>;
+
+	static Ractive: Static;
+	static Parent: Static;
+}
+
+export module Ractive {
+	const Context: typeof ContextHelper;
+
+	let DEBUG: boolean;
+	let DEBUG_PROMISES: boolean;
+
+	const svg: boolean;
+
+	const VERSION: string;
+
+	function escapeKey(key: string): string;
+	function getCSS(): string;
+	function joinKeys(...keys: string[]): string;
+	function parse(template: string, opts?: ParseOpts): ParsedTemplate;
+	function splitKeypath(keypath: string): string[];
+	function unescapeKey(key: string): string;
+}
+
+export default Ractive;
