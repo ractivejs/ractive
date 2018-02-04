@@ -8,6 +8,7 @@ import styleSet from '../Ractive/static/styleSet';
 import styleGet from '../Ractive/static/styleGet';
 import sharedSet from '../Ractive/static/sharedSet';
 import sharedGet from '../Ractive/static/sharedGet';
+import use from '../Ractive/static/use';
 import { assign, create, defineProperties, toPairs } from 'utils/object';
 import { isArray, isFunction } from 'utils/is';
 
@@ -64,6 +65,7 @@ function extendOne ( Parent, options = {}, Target ) {
 		extend: { value: extend, writable: true, configurable: true },
 		extendWith: { value: extendWith, writable: true, configurable: true },
 		extensions: { value: [] },
+		use: { value: use },
 
 		isInstance: { value: isInstance },
 

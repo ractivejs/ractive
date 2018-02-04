@@ -43,6 +43,7 @@ import unrender from './prototype/unrender';
 import unshift from './prototype/unshift';
 import update from './prototype/update';
 import updateModel from './prototype/updateModel';
+import use from './prototype/use';
 
 import { defineProperty } from 'utils/object';
 
@@ -94,7 +95,8 @@ const proto = {
 	unrender,
 	unshift,
 	update,
-	updateModel
+	updateModel,
+	use
 };
 
 defineProperty( proto, 'target', {
