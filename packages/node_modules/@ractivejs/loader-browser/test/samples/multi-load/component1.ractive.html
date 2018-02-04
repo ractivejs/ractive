@@ -1,0 +1,28 @@
+<link rel="ractive" name="MyComponent" href="./path/to/MyComponent.ractive.html">
+
+<template>
+  <div class="component-1">
+    <div>Hello, {{ message }}!</div>
+    <div>Answer to the Ultimate Question of Life, the Universe, and Everything: {{ answer }}</div>
+    <MyComponent />
+  </div>
+</template>
+
+<style>
+  div {
+    color: red
+  }
+</style>
+
+<script>
+  const answer = require('answer')
+  const shared = require('shared')
+
+  component.exports = {
+    data: {
+      message: 'World',
+      answer: answer,
+      shared: shared
+    }
+  }
+</script>
