@@ -2,6 +2,17 @@ import { fatal } from 'utils/log';
 import runloop from 'src/global/runloop';
 import { win } from 'config/environment';
 
+// because IE
+const whitelist = {
+	animationend: 1,
+	animationiteration: 1,
+	animationstart: 1,
+	transitioncancel: 1,
+	transitionend: 1,
+	transitionstart: 1,
+	transitionrun: 1
+};
+
 class DOMEvent {
 	constructor ( name, owner ) {
 		if ( name.indexOf( '*' ) !== -1 ) {
@@ -23,7 +34,7 @@ class DOMEvent {
 			const on = `on${name}`;
 
 			// this is probably a custom event fired from a decorator or manually
-			if ( !( on in node ) && !( on in win ) ) return;
+			if ( !( on in node ) && !( on in win ) && !whitelist[name] ) return;
 
 			this.owner.on( name, this.handler = ( event ) => {
 				return directive.fire({
