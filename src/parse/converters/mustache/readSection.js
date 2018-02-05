@@ -7,13 +7,14 @@ import readExpression from '../readExpression';
 import refineExpression from 'parse/utils/refineExpression';
 import { readAlias, readAliases } from './readAliases';
 import { keys } from 'utils/object';
+import { name } from '../expressions/shared/patterns';
 
 const indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
 const keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
 const handlebarsBlockPattern = new RegExp( '^(' + keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' );
 
 export default function readSection ( parser, tag ) {
-	let expression, section, child, children, hasElse, block, unlessBlock, closed, i, expectedClose, hasThen, hasCatch;
+	let expression, section, child, children, hasElse, block, unlessBlock, closed, i, expectedClose, hasThen, hasCatch, inlineThen;
 	let aliasOnly = false;
 
 	const start = parser.pos;
@@ -79,6 +80,11 @@ export default function readSection ( parser, tag ) {
 			} else {
 				section.i = i;
 			}
+		} else if ( block === 'await' && parser.matchString( 'then' ) ) {
+			parser.sp();
+			hasThen = true;
+			inlineThen = parser.matchPattern( name );
+			if ( !inlineThen ) inlineThen = true;
 		}
 
 		if ( !block && expression.n ) {
@@ -130,9 +136,16 @@ export default function readSection ( parser, tag ) {
 				}
 			}
 
-			if ( !unlessBlock && !hasThen && !hasCatch ) {
+			if ( !unlessBlock && (inlineThen || !hasThen) && !hasCatch ) {
 				if ( block === 'await' ) {
-					section.f = [{ t: SECTION, f: children }];
+					const s = { f: children };
+					section.f = [s];
+					if ( inlineThen ) {
+						s.t = THEN;
+						inlineThen !== true && ( s.n = inlineThen );
+					} else {
+						s.t = SECTION;
+					}
 				} else {
 					unlessBlock = [];
 				}
@@ -162,7 +175,7 @@ export default function readSection ( parser, tag ) {
 				if ( hasThen ) parser.error( 'there can only be one {{then}} block per {{#await}}' );
 				mustache.t = THEN;
 				hasThen = true;
-				mustache.n = child.n;
+				child.n && ( mustache.n = child.n );
 				section.f.push( mustache );
 			} else if ( child.t === CATCH ) {
 				if ( hasElse ) parser.error( '{{catch}} block must appear before any {{else}} block' );
@@ -193,8 +206,15 @@ export default function readSection ( parser, tag ) {
 		refineExpression( expression, section );
 	}
 
-	if ( block === 'await' && !hasThen && !hasCatch && !hasElse ) {
-		section.f = [{ t: SECTION, f: section.f }];
+	if ( block === 'await' && ( inlineThen || !hasThen ) && !hasCatch && !hasElse ) {
+		const s = { f: section.f };
+		section.f = [s];
+		if ( inlineThen ) {
+			s.t = THEN;
+			inlineThen !== true && ( s.n = inlineThen );
+		} else {
+			s.t = SECTION;
+		}
 	}
 
 	// TODO if a section is empty it should be discarded. Don't do

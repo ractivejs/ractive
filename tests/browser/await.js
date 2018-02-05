@@ -399,4 +399,118 @@ export default function() {
 			});
 		});
 	});
+
+	test( `await then with a resolution`, t => {
+		const done = t.async();
+		t.expect( 2 );
+
+		const pr = Promise.resolve( 42 );
+		new Ractive({
+			target: fixture,
+			template: '{{#await promise then val}}{{val}}{{catch e}}{{e}}{{/await}}',
+			data: { promise: pr }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '' );
+
+		pr.then( () => {
+			t.htmlEqual( fixture.innerHTML, '42' );
+			done();
+		});
+	});
+
+	test( `await then with a resolution and no error`, t => {
+		const done = t.async();
+		t.expect( 2 );
+
+		const pr = Promise.resolve( 42 );
+		new Ractive({
+			target: fixture,
+			template: '{{#await promise then val}}{{val}}{{/await}}',
+			data: { promise: pr }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '' );
+
+		pr.then( () => {
+			t.htmlEqual( fixture.innerHTML, '42' );
+			done();
+		});
+	});
+
+	test( `await then without alias with a resolution`, t => {
+		const done = t.async();
+		t.expect( 2 );
+
+		const pr = Promise.resolve( 99 );
+		new Ractive({
+			target: fixture,
+			template: '{{#await promise then}}42{{catch e}}{{e}}{{/await}}',
+			data: { promise: pr }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '' );
+
+		pr.then( () => {
+			t.htmlEqual( fixture.innerHTML, '42' );
+			done();
+		});
+	});
+
+	test( `await then without alias with an error`, t => {
+		const done = t.async();
+		t.expect( 2 );
+
+		const pr = Promise.reject( 42 );
+		new Ractive({
+			target: fixture,
+			template: '{{#await promise then}}nope{{catch e}}{{e}}{{/await}}',
+			data: { promise: pr }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '' );
+
+		pr.then( null, () => {
+			t.htmlEqual( fixture.innerHTML, '42' );
+			done();
+		});
+	});
+
+	test( `await with a resolution without alias`, t => {
+		const done = t.async();
+		t.expect( 2 );
+
+		const pr = Promise.resolve( 99 );
+		new Ractive({
+			target: fixture,
+			template: '{{#await promise}}wait{{then}}42{{catch e}}{{e}}{{/await}}',
+			data: { promise: pr }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'wait' );
+
+		pr.then( () => {
+			t.htmlEqual( fixture.innerHTML, '42' );
+			done();
+		});
+	});
+
+	test( `await with an error without alias`, t => {
+		const done = t.async();
+		t.expect( 2 );
+
+		const pr = Promise.reject( 99 );
+		new Ractive({
+			target: fixture,
+			template: '{{#await promise}}wait{{then}}42{{catch e}}{{e}}{{/await}}',
+			data: { promise: pr }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'wait' );
+
+		pr.then( null, () => {
+			t.htmlEqual( fixture.innerHTML, '99' );
+			done();
+		});
+	});
 }
