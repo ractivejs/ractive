@@ -1,0 +1,15 @@
+language: node_js
+node_js:
+- 'node'
+cache:
+  directories:
+  - node_modules
+script: |
+  set -e
+  npm run make
+  npm run test
+  if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    npm run gone:nightly
+  else
+    echo 'This is a PR'
+  fi;

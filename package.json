@@ -40,8 +40,9 @@
   "scripts": {
     "wipe": "find ./packages/node_modules/@ractivejs/ -type d \\( -name dist -o -name tmp -o -name bin \\) -exec rm -rf {} +",
     "exec": "cd ./packages/node_modules/@ractivejs/$npm_config_with && npm run $npm_config_do",
+    "both": "npm run exec --do='make' --with=\"$npm_config_with\" && npm run exec --do='test' --with=\"$npm_config_with\"",
     "make": "< .build xargs -I % npm run exec --do='make' --with=\"%\"",
     "test": "< .build xargs -I % npm run exec --do='test' --with=\"%\"",
-    "both": "npm run exec --do='make' --with=\"$npm_config_with\" && npm run exec --do='test' --with=\"$npm_config_with\""
+    "gone:nightly": "sh ./scripts/gone-nightly.sh"
   }
 }
