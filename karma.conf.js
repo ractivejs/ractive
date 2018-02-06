@@ -6,7 +6,7 @@ module.exports = config => {
     singleRun: true,
     plugins: ['karma-qunit', 'karma-chrome-launcher', 'karma-tape-reporter'],
     frameworks: ['qunit'],
-    browsers: ['ChromeHeadless'],
+    browsers: ['ChromeHeadlessNoSandbox'],
     client: { captureConsole: false },
     autoWatch: false,
     reporters: ['tape'],
