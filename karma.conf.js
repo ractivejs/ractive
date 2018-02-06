@@ -7,10 +7,10 @@ module.exports = config => {
     plugins: ['karma-qunit', 'karma-chrome-launcher', 'karma-tape-reporter'],
     frameworks: ['qunit'],
     browsers: ['ChromeHeadless'],
-    client: { captureConsole: false },
+    client: { captureConsole: true },
     autoWatch: false,
     reporters: ['tape'],
-    logLevel: config.LOG_DISABLE,
+    logLevel: config.LOG_DEBUG,
     files: [
       { pattern: 'tmp/*.map', watched: false, included: false },
       { pattern: 'test/samples/**/*.*', watched: false, included: false },
