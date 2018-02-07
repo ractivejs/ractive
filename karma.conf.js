@@ -4,12 +4,12 @@ module.exports = config => {
   config.set({
     basePath: process.cwd(),
     singleRun: true,
-    plugins: ['karma-qunit', 'karma-chrome-launcher', 'karma-tape-reporter'],
+    plugins: ['karma-qunit', 'karma-coverage', 'karma-chrome-launcher', 'karma-tape-reporter'],
     frameworks: ['qunit'],
     browsers: ['ChromeHeadlessNoSandbox'],
     client: { captureConsole: false },
     autoWatch: false,
-    reporters: ['tape'],
+    reporters: ['tape', 'coverage'],
     logLevel: config.LOG_DISABLED,
     files: [
       { pattern: 'tmp/*.map', watched: false, included: false },
@@ -23,6 +23,14 @@ module.exports = config => {
         base: 'ChromeHeadless',
         flags: ['--no-sandbox']
       }
+    },
+    coverageReporter: {
+      dir: './coverage/',
+      subdir: 'chrome',
+      reporters: [
+        { type: 'html' },
+        { type: 'json' }
+      ]
     }
   })
 }

@@ -10,6 +10,8 @@ script: |
   set -e
   npm run make
   npm run test
+  npm run lcov
+  npm run send
   if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
     npm run gone:nightly
   else
