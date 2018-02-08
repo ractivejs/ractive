@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Server merges ./sandbox and ./packages/node_modules/@ractivejs. -->
+  <!-- To include a script from the packages, do PACKAGE_NAME/dist/lib.js -->
+  <script src="core/dist/lib.js"></script>
+  <script src="transition-fade/dist/lib.js"></script>
+  <script src="transition-fly/dist/lib.js"></script>
+  <script src="transition-scale/dist/lib.js"></script>
+  <script src="transition-slide/dist/lib.js"></script>
+  <script src="transition-typewriter/dist/lib.js"></script>
+</head>
+
+<body>
+  <div id="app"></div>
+
+  <script type="text/ractive" id="template">
+    <h1 fade-in>{{title}}</h1>
+    <p fly-in>{{message1}}</p>
+    <p scale-in>{{message2}}</p>
+    <p slide-in>{{message3}}</p>
+    <p typewriter-in>{{message4}}</p>
+  </script>
+
+  <!-- Your script here -->
+  <script>
+    var r = new Ractive({
+      el: '#app',
+      template: '#template',
+      data: {
+        title: 'This is your basic sandbox setup!',
+        message1: 'The sandbox is useful for testing things out during development.',
+        message2: 'Do what you want, where you want, whenever you want.',
+        message3: 'Or if you just want to read Lipsum, here we go...',
+        message4: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras sem nisi, molestie eget nibh nec, vestibulum dictum sem. Nulla tempus mi aliquam massa commodo, et scelerisque sapien condimentum. Nunc et arcu vitae eros condimentum hendrerit. Ut molestie tellus id lorem dapibus, dapibus lacinia arcu pharetra. Nam porttitor pharetra placerat. Donec imperdiet lacinia vestibulum. Duis sed ligula accumsan elit feugiat tempor. Nunc vulputate, libero ut posuere pellentesque, urna ante dignissim orci, id rutrum dolor libero ac purus.'
+      },
+      transitions: {
+        fade: window['@ractivejs/transition-fade'].fade,
+        fly: window['@ractivejs/transition-fly'].fly,
+        scale: window['@ractivejs/transition-scale'].scale,
+        slide: window['@ractivejs/transition-slide'].slide,
+        typewriter: window['@ractivejs/transition-typewriter'].typewriter
+      }
+    });
+  </script>
+</body>
+
+</html>

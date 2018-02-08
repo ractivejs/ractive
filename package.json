@@ -25,6 +25,7 @@
     "karma-coverage": "^1.1.1",
     "karma-qunit": "^1.2.1",
     "karma-tape-reporter": "^1.0.3",
+    "lite-server": "^2.3.0",
     "nyc": "^11.4.1",
     "puppeteer": "^1.0.0",
     "qunit": "^2.5.0",
@@ -50,6 +51,7 @@
     "test": "< .build xargs -I % npm run exec --do='test' --with=\"%\"",
     "lcov": "istanbul report --root ./packages/node_modules/@ractivejs/ html lcov",
     "send": "< ./coverage/lcov.info coveralls",
+    "srvr": "lite-server",
     "gone:nightly": "sh ./scripts/gone-nightly.sh"
   }
 }
