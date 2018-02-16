@@ -1515,6 +1515,36 @@ export default function() {
 		t.deepEqual( r.get( 'list' ), [ '2', '3' ] );
 	});
 
+	test( `multi select binding set to undefined (#3194)`, t => {
+		const r = new Ractive({
+			target: fixture,
+			template: `<select multiple value="{{list}}"><option value="1">one</option><option value="2" selected>two</option><option value="3">three</option></select>`,
+			data: {
+				list: [ 1, 3 ]
+			}
+		});
+
+		const opts = r.findAll( 'option' );
+
+		t.equal( opts[0].selected, true );
+		t.equal( opts[2].selected, true );
+
+		r.set( 'list', undefined );
+
+		// all unchecked
+		t.equal( opts.reduce( ( a, c ) => c.selected || a, false ), false );
+
+		r.push( 'list', 1 );
+
+		t.equal( opts[0].selected, true );
+
+		r.set( 'list', [ 2 ] );
+
+		t.equal( opts[0].selected, false );
+		t.equal( opts[1].selected, true );
+		t.equal( opts[2].selected, false );
+	});
+
 	test( `radio name bindings survive a shuffle (#2939)`, t => {
 		t.expect( 3 );
 

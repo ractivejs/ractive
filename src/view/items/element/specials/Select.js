@@ -81,7 +81,7 @@ export default class Select extends Element {
 
 		// Otherwise the value should be initialised according to which
 		// <option> element is selected, if twoway binding is in effect
-		else if ( this.binding ) {
+		else if ( this.binding && this.binding.forceUpdate ) {
 			this.binding.forceUpdate();
 		}
 	}

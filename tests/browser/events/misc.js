@@ -347,11 +347,10 @@ export default function() {
 	});
 
 	test( `custom event plugins are called with the instance as the context`, t => {
-		let r;
-		r = new Ractive({
+		const r = new Ractive({
 			template: `<div on-foo="bar" />`,
 			events: {
-				foo ( node, fire ) {
+				foo () {
 					t.strictEqual( this, r );
 					return { teardown () {} };
 				}
