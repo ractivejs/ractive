@@ -346,6 +346,21 @@ export default function() {
 		fire( r.find( 'div' ), 'click' );
 	});
 
+	test( `custom event plugins are called with the instance as the context`, t => {
+		let r;
+		r = new Ractive({
+			template: `<div on-foo="bar" />`,
+			events: {
+				foo ( node, fire ) {
+					t.strictEqual( this, r );
+					return { teardown () {} };
+				}
+			}
+		});
+
+		r.render( fixture );
+	});
+
 	test( `the event directive's node is exposed as @node`, t => {
 		const r = new Ractive({
 			target: fixture,

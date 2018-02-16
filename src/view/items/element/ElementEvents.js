@@ -68,7 +68,7 @@ class CustomEvent {
 		runloop.scheduleTask( () => {
 			const node = this.owner.node;
 
-			this.handler = this.eventPlugin( node, ( event = {} ) => {
+			this.handler = this.eventPlugin.call( this.owner.ractive, node, ( event = {} ) => {
 				if ( event.original ) event.event = event.original;
 				else event.original = event.event;
 
