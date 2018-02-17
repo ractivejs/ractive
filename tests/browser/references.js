@@ -532,10 +532,23 @@ export default function() {
 		new Ractive({
 			target: fixture,
 			template: '{{#with foo}}{{#each bar}}{{^^/baz}}{{/each}}{{/with}}',
-			data: { foo: { bar: [ {} ] }, baz: 'yep' }
+			data: { foo: { bar: [ {} ], baz: 'yep' } }
 		});
 
 		t.htmlEqual( fixture.innerHTML, 'yep' );
+	});
+
+	test( `context popping just above root`, t => {
+		new Ractive({
+			el: fixture,
+			template: '{{#with foo.bar}}{{^^/baz}}{{/with}}{{#each [1]}}{{^^/baz}}{{/each}}',
+			data: {
+				foo: { bar: {} },
+				baz: 'yep'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'yepyep' );
 	});
 
 	test( `non-isolated components can reach parent contexts`, t => {

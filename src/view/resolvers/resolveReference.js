@@ -37,7 +37,7 @@ export default function resolveReference ( fragment, ref ) {
 			// the current fragment should always be a context,
 			// and if it happens to be an iteration, jump above the each block
 			if ( frag.isIteration ) {
-				frag = frag.parent.parent.parent;
+				frag = frag.parent.parent;
 			} else { // otherwise jump above the current fragment
 				frag = up( frag );
 			}
