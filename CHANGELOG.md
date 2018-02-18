@@ -1,5 +1,15 @@
 # changelog
 
+# 0.9.12
+
+* Bug fixes
+	* Computations that manage to update outside of a runloop no longer throw (#3169)
+	* Static mustaches no longer leak memory when they reference data linked in from another instance (#3183)
+	* Obersvers that manage to get updated more than once in a runloop will now update correctly (#3184)
+	* Transition and animation events are now whitelisted because they can't be automatically detected on IE (#3190)
+	* Setting a bound multiple select to `undefined` no longer throws (#3194)
+
+
 # 0.9.11
 
 * Bug fixes
