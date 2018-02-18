@@ -1,7 +1,7 @@
 /*
-	Ractive.js v0.9.11
-	Build: b54d0c8cfccaaa9c53c3d1a04bb5b12df080dcbb
-	Date: Tue Dec 19 2017 18:02:23 GMT+0000 (UTC)
+	Ractive.js v0.9.12
+	Build: e7c3ce0ba87e8aae40beebef721668bb82b67c6c
+	Date: Sun Feb 18 2018 20:55:22 GMT+0000 (UTC)
 	Website: http://ractivejs.org
 	License: MIT
 */
@@ -465,13 +465,13 @@ var welcome;
 
 if ( hasConsole ) {
 	var welcomeIntro = [
-		"%cRactive.js %c0.9.11 %cin debug mode, %cmore...",
+		"%cRactive.js %c0.9.12 %cin debug mode, %cmore...",
 		'color: rgb(114, 157, 52); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 	];
-	var welcomeMessage = "You're running Ractive 0.9.11 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+	var welcomeMessage = "You're running Ractive 0.9.12 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
 	welcome = function () {
 		if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -1863,6 +1863,8 @@ function collectAllOutros ( manager, _list ) {
 var batch;
 
 var runloop = {
+	active: function active () { return !!batch; },
+
 	start: function start () {
 		var fulfilPromise;
 		var promise = new Promise( function (f) { return ( fulfilPromise = f ); } );
@@ -4300,6 +4302,9 @@ Observer__proto__.handleChange = function handleChange () {
 		this.dirty = true;
 
 		if ( this.options.once ) { runloop.scheduleTask( function () { return this$1.cancel(); } ); }
+	} else {
+		// make sure the newValue stays updated in case this observer gets touched multiple times in one loop
+		this.newValue = this.model.get();
 	}
 };
 
@@ -9080,7 +9085,14 @@ var Computation = (function (Model) {
 			this.dirty = false;
 			var old = this.value;
 			this.value = this.getValue();
-			if ( !isEqual( old, this.value ) ) { this.notifyUpstream(); }
+			// this may cause a view somewhere to update, so it must be in a runloop
+			if ( !runloop.active() ) {
+				runloop.start();
+				if ( !isEqual( old, this.value ) ) { this.notifyUpstream(); }
+				runloop.end();
+			} else {
+				if ( !isEqual( old, this.value ) ) { this.notifyUpstream(); }
+			}
 			if ( this.wrapper ) { this.newWrapperValue = this.value; }
 			this.adapt();
 		}
@@ -13088,6 +13100,17 @@ function updateModel ( binding ) {
 	binding.model.set( binding.resetValue );
 }
 
+// because IE
+var whitelist = {
+	animationend: 1,
+	animationiteration: 1,
+	animationstart: 1,
+	transitioncancel: 1,
+	transitionend: 1,
+	transitionstart: 1,
+	transitionrun: 1
+};
+
 var DOMEvent = function DOMEvent ( name, owner ) {
 	if ( name.indexOf( '*' ) !== -1 ) {
 		fatal( ("Only component proxy-events may contain \"*\" wildcards, <" + (owner.name) + " on-" + name + "=\"...\"/> is not valid") );
@@ -13111,7 +13134,7 @@ DOMEvent__proto__.render = function render ( directive ) {
 		var on = "on" + name;
 
 		// this is probably a custom event fired from a decorator or manually
-		if ( !( on in node ) && !( on in win ) ) { return; }
+		if ( !( on in node ) && !( on in win ) && !whitelist[name] ) { return; }
 
 		this$1.owner.on( name, this$1.handler = function ( event ) {
 			return directive.fire({
@@ -13431,6 +13454,7 @@ var Mustache = (function (Item) {
 
 			if ( this.isStatic ) {
 				this.model = { get: function () { return value; } };
+				model.unreference();
 				return;
 			}
 
@@ -15146,7 +15170,7 @@ var Select = (function (Element) {
 
 		// Otherwise the value should be initialised according to which
 		// <option> element is selected, if twoway binding is in effect
-		else if ( this.binding ) {
+		else if ( this.binding && this.binding.forceUpdate ) {
 			this.binding.forceUpdate();
 		}
 	};
@@ -17343,7 +17367,7 @@ if ( win && !win.Ractive ) {
 	/* istanbul ignore next */
 	if ( ~opts$1.indexOf( 'ForceGlobal' ) ) { win.Ractive = Ractive; }
 } else if ( win ) {
-	warn( "Ractive already appears to be loaded while loading 0.9.11." );
+	warn( "Ractive already appears to be loaded while loading 0.9.12." );
 }
 
 assign( Ractive.prototype, proto, defaults );
@@ -17386,7 +17410,7 @@ defineProperties( Ractive, {
 	svg:              { value: svg },
 
 	// version
-	VERSION:          { value: '0.9.11' },
+	VERSION:          { value: '0.9.12' },
 
 	// plugins
 	adaptors:         { writable: true, value: {} },
