@@ -165,7 +165,7 @@ export class ContextHelper {
 	 * @param event the name of DOM event for which to listen
 	 * @param callback the callback to call when the given event is fired
 	 */
-	listen(event: string, callback: (event: Event) => void): ListenerHandle;
+	listen(event: string, callback: (this: HTMLElement, event: Event) => void): ListenerHandle;
 
 	/**
 	 * Create an observer at the given keypath that will be called when the value at that Context-relative keypath mutates.
@@ -333,7 +333,7 @@ export class ContextHelper {
 	 * @param event name of the event for which to stop listening
 	 * @param callback the callback listener to remove
 	 */
-	unlisten(event: string, callback: (event: Event) => void): void;
+	unlisten(event: string, callback: (this: HTMLElement, event: Event) => void): void;
 
 	/**
 	 * Invalidate the model associated with the current Context. This will cause Ractive to check for any changes that may have happened directly to the data without going through a set or array method.
@@ -375,14 +375,14 @@ interface ComputationDescriptor {
 	/**
 	 * Called when Ractive needs to get the computed value. Computations are lazy, so this is only called when a dependency asks for a value.
 	 */
-	get: () => any;
+	get: ComputationFn;
 
 	/**
 	 * Called when Ractive is asked to set a computed keypath.
 	 */
 	set?: (value: any) => void;
 }
-type ComputationFn = () => any;
+type ComputationFn = (this: Ractive) => any;
 type Computation = string | ComputationFn | ComputationDescriptor;
 
 type CssFn = (data: DataGetFn) => string;
@@ -407,11 +407,11 @@ interface DecoratorHandle {
 	 */
 	update?: (...args: any[]) => void;
 }
-type Decorator = (node: HTMLElement, ...args: any[]) => DecoratorHandle;
+type Decorator = (this: Ractive, node: HTMLElement, ...args: any[]) => DecoratorHandle;
 
 type Easing = (time: number) => number;
 
-type EventPlugin = (node: HTMLElement, fire: (event: Event) => void) => { teardown: () => void };
+type EventPlugin = (this: Ractive, node: HTMLElement, fire: (event: Event) => void) => { teardown: () => void };
 
 interface FindOpts {
 	/**
@@ -451,7 +451,7 @@ interface LinkOpts {
 	keypath?: string;
 }
 
-type ListenerCallback = (ctx: ContextHelper, ...args: any[]) => boolean | void;
+type ListenerCallback = (this: Ractive, ctx: ContextHelper, ...args: any[]) => boolean | void;
 interface ListenerDescriptor {
 	/**
 	 * The callback to call when the event is fired.
@@ -498,8 +498,8 @@ interface ObserverHandle {
  * @param keypath the keypath of the observed change
  * @param parts keys for any wildcards in the observer
  */
-type ObserverCallback = (value: any, old: any, keypath: string, ...parts: string[]) => void;
-type ObserverArrayCallback = (changes: ArrayChanges) => void;
+type ObserverCallback = (this: Ractive, value: any, old: any, keypath: string, ...parts: string[]) => void;
+type ObserverArrayCallback = (this: Ractive, changes: ArrayChanges) => void;
 interface ArrayChanges {
 	/**
 	 * The starting index for the changes.
