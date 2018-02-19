@@ -108,6 +108,8 @@ function extendOne ( Parent, options = {}, Target ) {
 	proto.computed = assign( create( Parent.prototype.computed ), options.computed );
 	proto.helpers = assign( create( Parent.prototype.helpers ), options.helpers );
 
+	if ( isArray( options.use ) ) Child.use.apply( Child, options.use );
+
 	return Child;
 }
 

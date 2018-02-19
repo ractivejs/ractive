@@ -1,5 +1,6 @@
 import { logIfDebug, warnIfDebug, warnOnceIfDebug } from 'utils/log';
 import { getElement } from 'utils/dom';
+import { isArray } from 'utils/is';
 import config from './config/config';
 import Fragment from 'src/view/Fragment';
 import Hook from 'src/events/Hook';
@@ -35,6 +36,9 @@ export default function initialise ( ractive, userOptions, options ) {
 
 	// general config done, set up observers
 	subscribe( ractive, userOptions, 'observe' );
+
+	// call any passed in plugins
+	if ( isArray( userOptions.use ) ) ractive.use.apply( ractive, userOptions.use );
 
 	if ( fragment ) {
 		// render automatically ( if `el` is specified )

@@ -45,4 +45,37 @@ export default function() {
 			t.equal( cmp.prototype.foo, 42 );
 		});
 	});
+
+	test( `use extend option applies to component`,  t => {
+		t.expect( 3 );
+
+		function plug ({ proto }) {
+			t.ok( 'plugin called' );
+			proto.foo = 1;
+		}
+
+		const cmp = Ractive.extend({
+			use: [ plug ]
+		});
+
+		t.equal( ( new cmp() ).foo, 1 );
+
+		const r = new Ractive({
+			template: '<cmp />',
+			target: fixture,
+			components: { cmp }
+		});
+
+		t.equal( r.findComponent( 'cmp' ).foo, 1 );
+	});
+
+	test( `use instance option applies to instance`, t => {
+		let count = 0;
+		function plug({ instance }) {
+			instance.foo = count++;
+		}
+
+		t.equal( ( new Ractive({ use: [ plug ] }) ).foo, 0 );
+		t.equal( ( new Ractive({ use: [ plug ] }) ).foo, 1 );
+	});
 }
