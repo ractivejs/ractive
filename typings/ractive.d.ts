@@ -615,6 +615,21 @@ interface ParsedTemplate {
 
 type Partial = string | any[] | ParseFn;
 
+type PluginExtend = (PluginArgsExtend) => void;
+type PluginInstance = (PluginArgsInstance) => void;
+
+interface PluginArgsBase {
+	Ractive: Ractive.type;
+}
+interface PluginArgsInstance {
+	proto: Ractive;
+	instance: Ractive;
+}
+interface PluginArgsExtend {
+	proto: Static;
+	instance: Static;
+}
+
 interface ReadLinkOpts {
 	/** Whether or not to follow through any upstream links when resolving the source. */
 	canonical?: boolean;
@@ -874,6 +889,9 @@ interface ExtendOpts extends BaseInitOpts {
 
 	/** If true, css selectors will not be scoped using the cssId of this component. */
 	noCssTransform?: boolean;
+
+	/** An array of plugins to apply to the component. */
+	use?: PluginExtend[];
 }
 
 interface InstanceInitOpts extends BaseInitOpts {
@@ -885,6 +903,9 @@ interface InstanceInitOpts extends BaseInitOpts {
 
 	/** The target element into which to render this instance. */
 	target?: Target;
+
+	/** An array of plugins to apply to the instance. */
+	use?: PluginInstance[];
 }
 
 interface AppendInitOpts extends InstanceInitOpts {
@@ -897,7 +918,7 @@ interface EnhanceInitOpts extends InstanceInitOpts {
 	enhance: true;
 }
 
-type InitOpts = InstanceInitOpts | AppendInitOpts | EnhanceInitOpts;
+export type InitOpts = InstanceInitOpts | AppendInitOpts | EnhanceInitOpts;
 
 interface Registries {
 	adaptors: Registry<Adaptor>;
@@ -948,6 +969,9 @@ interface Static {
 	styleSet(keypath: string, value: any): Promise<void>;
 	/** Set the given map of values in the css data for this constructor. */
 	styleSet(map: ValueMap): Promise<void>;
+
+	/** Install one or more plugins on the component.  */
+	use(...plugins: PluginExtend[]): Static;
 
 	/** The Ractive constructor used to create this constructor. */
 	Ractive: Static;
@@ -1372,6 +1396,9 @@ export class Ractive {
 	 */
 	unshift(keypath: string, value: any): ArrayPushPromise;
 
+	/** Install one or more plugins on the instance.  */
+	use(...plugins: PluginInstance[]): Ractive;
+
 	/** The registries that are inherited by all instance. */
 	static defaults: Registries;
 
@@ -1408,6 +1435,8 @@ export class Ractive {
 	static styleSet(keypath: string, value: any): Promise<void>;
 	/** Set the given map of values in the css data for this constructor. */
 	static styleSet(map: ValueMap): Promise<void>;
+
+	static use(...args: PluginExtend[]): Ractive.type
 
 	/** The Ractive constructor used to create this constructor. */
 	static Ractive: Static;
