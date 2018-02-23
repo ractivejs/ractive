@@ -40,6 +40,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 		git clone https://evs-chris:${GH_TOKEN}@${GH_REF} -b release --depth 4 release-branch
 
 		rm -r release-branch/*
+		cp README.md .build
 		cp -r .build/* release-branch
 
 		( cd release-branch
