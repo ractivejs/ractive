@@ -1,5 +1,11 @@
 # changelog
 
+# 0.9.13
+
+* Bug fixes
+	* Aliases, key refs, and index refs are now properly implicitly mapped when referenced from a non-isolated component (#3174)
+
+
 # 0.9.12
 
 * Bug fixes
