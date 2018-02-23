@@ -6,6 +6,12 @@
 	* There is now an `allowExpressions` parser and init option that disables the parsing of expressions when passed to `parse` or an instance with an unparsed template and disables the evaluation of expessions when passed to an instance. See #3000 for more info.
 
 
+# 0.9.13
+
+* Bug fixes
+	* Aliases, key refs, and index refs are now properly implicitly mapped when referenced from a non-isolated component (#3174)
+
+
 # 0.9.12
 
 * Bug fixes
