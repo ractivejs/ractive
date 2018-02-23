@@ -1,7 +1,7 @@
 /*
-	Ractive.js v0.9.12
-	Build: e7c3ce0ba87e8aae40beebef721668bb82b67c6c
-	Date: Sun Feb 18 2018 20:55:22 GMT+0000 (UTC)
+	Ractive.js v0.9.13
+	Build: 9a1b712956fa00394c3ec71b4316f113f99994a2
+	Date: Fri Feb 23 2018 03:04:56 GMT+0000 (UTC)
 	Website: http://ractivejs.org
 	License: MIT
 */
@@ -476,13 +476,13 @@ var welcome;
 
 if ( hasConsole ) {
 	var welcomeIntro = [
-		"%cRactive.js %c0.9.12 %cin debug mode, %cmore...",
+		"%cRactive.js %c0.9.13 %cin debug mode, %cmore...",
 		'color: rgb(114, 157, 52); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(85, 85, 85); font-weight: normal;',
 		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
 	];
-	var welcomeMessage = "You're running Ractive 0.9.12 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+	var welcomeMessage = "You're running Ractive 0.9.13 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
 	welcome = function () {
 		if ( Ractive.WELCOME_MESSAGE === false ) {
@@ -2582,41 +2582,47 @@ function resolveReference ( fragment, ref ) {
 	// walk up the fragment hierarchy looking for a matching ref, alias, or key in a context
 	var createMapping = false;
 	var shouldWarn = fragment.ractive.warnAboutAmbiguity;
+	var model;
 
 	while ( fragment ) {
 		// repeated fragments
 		if ( fragment.isIteration ) {
 			if ( base === fragment.parent.keyRef ) {
-				if ( keys$$1.length ) { badReference( base ); }
-				return fragment.context.getKeyModel( fragment.key );
+				model = fragment.context.getKeyModel( fragment.key );
 			}
 
-			if ( base === fragment.parent.indexRef ) {
-				if ( keys$$1.length ) { badReference( base ); }
-				return fragment.context.getKeyModel( fragment.index );
+			else if ( base === fragment.parent.indexRef ) {
+				model = fragment.context.getKeyModel( fragment.index );
 			}
+
+			if ( model && keys$$1.length ) { badReference( base ); }
 		}
 
 		// alias node or iteration
-		if ( fragment.aliases && hasOwn( fragment.aliases, base ) ) {
-			var model = fragment.aliases[ base ];
-
-			if ( keys$$1.length === 0 ) { return model; }
-			else if ( isFunction( model.joinAll ) ) {
-				return model.joinAll( keys$$1 );
-			}
+		if ( !model && fragment.aliases && hasOwn( fragment.aliases, base ) ) {
+			model = fragment.aliases[ base ];
 		}
 
 		// check fragment context to see if it has the key we need
-		if ( fragment.context && fragment.context.has( base ) ) {
+		if ( !model && fragment.context && fragment.context.has( base ) ) {
+			model = fragment.context.joinKey( base );
+
 			// this is an implicit mapping
 			if ( createMapping ) {
 				if ( shouldWarn ) { warnIfDebug( ("'" + ref + "' resolved but is ambiguous and will create a mapping to a parent component.") ); }
-				return context.root.createLink( base, fragment.context.joinKey( base ), base, { implicit: true }).joinAll( keys$$1 );
+			} else if ( shouldWarn ) { warnIfDebug( ("'" + ref + "' resolved but is ambiguous.") ); }
+		}
+
+		if ( model ) {
+			if ( createMapping ) {
+				model = initialFragment.ractive.viewmodel.createLink( base, model, base, { implicit: true });
 			}
 
-			if ( shouldWarn ) { warnIfDebug( ("'" + ref + "' resolved but is ambiguous.") ); }
-			return fragment.context.joinKey( base ).joinAll( keys$$1 );
+			if ( keys$$1.length > 0 && isFunction( model.joinAll ) ) {
+				model = model.joinAll( keys$$1 );
+			}
+
+			return model;
 		}
 
 		if ( ( fragment.componentParent || ( !fragment.parent && fragment.ractive.component ) ) && !fragment.ractive.isolated ) {
@@ -17378,7 +17384,7 @@ if ( win && !win.Ractive ) {
 	/* istanbul ignore next */
 	if ( ~opts$1.indexOf( 'ForceGlobal' ) ) { win.Ractive = Ractive; }
 } else if ( win ) {
-	warn( "Ractive already appears to be loaded while loading 0.9.12." );
+	warn( "Ractive already appears to be loaded while loading 0.9.13." );
 }
 
 assign( Ractive.prototype, proto, defaults );
@@ -17421,7 +17427,7 @@ defineProperties( Ractive, {
 	svg:              { value: svg },
 
 	// version
-	VERSION:          { value: '0.9.12' },
+	VERSION:          { value: '0.9.13' },
 
 	// plugins
 	adaptors:         { writable: true, value: {} },
