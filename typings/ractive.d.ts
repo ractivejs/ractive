@@ -1,7 +1,7 @@
 // Type definitions for Ractive edge
 // Project: https://ractive.js.org/
 // Definitions By: Chris Reeves <https://github.com/evs-chris>
-// Version: 1.0.0-edge+2018-02-02
+// Version: 1.0.0-edge+2018-02-23
 
 interface ValueMap {
 	[key: string]: any;
@@ -371,24 +371,24 @@ export class ContextHelper {
 
 type Component = Static | Promise<Static>;
 
-interface ComputationDescriptor {
+interface ComputationDescriptor<T extends Ractive<T> = Ractive> {
 	/**
 	 * Called when Ractive needs to get the computed value. Computations are lazy, so this is only called when a dependency asks for a value.
 	 */
-	get: ComputationFn;
+	get: ComputationFn<T>;
 
 	/**
 	 * Called when Ractive is asked to set a computed keypath.
 	 */
 	set?: (value: any) => void;
 }
-type ComputationFn = (this: Ractive) => any;
-type Computation = string | ComputationFn | ComputationDescriptor;
+type ComputationFn<T extends Ractive<T> = Ractive> = (this: T) => any;
+type Computation<T extends Ractive<T> = Ractive> = string | ComputationFn<T> | ComputationDescriptor<T>;
 
 type CssFn = (data: DataGetFn) => string;
 
 type Data = ValueMap
-type DataFn = () => ValueMap;
+type DataFn<T extends Ractive<T> = Ractive> = (this: T) => ValueMap;
 type DataGetFn = (keypath: string) => any;
 
 interface DecoratorHandle {
@@ -407,11 +407,11 @@ interface DecoratorHandle {
 	 */
 	update?: (...args: any[]) => void;
 }
-type Decorator = (this: Ractive, node: HTMLElement, ...args: any[]) => DecoratorHandle;
+type Decorator<T extends Ractive<T> = Ractive> = (this: T, node: HTMLElement, ...args: any[]) => DecoratorHandle;
 
 type Easing = (time: number) => number;
 
-type EventPlugin = (this: Ractive, node: HTMLElement, fire: (event: Event) => void) => { teardown: () => void };
+type EventPlugin<T extends Ractive<T> = Ractive> = (this: T, node: HTMLElement, fire: (event: Event) => void) => { teardown: () => void };
 
 interface FindOpts {
 	/**
@@ -451,12 +451,12 @@ interface LinkOpts {
 	keypath?: string;
 }
 
-type ListenerCallback = (this: Ractive, ctx: ContextHelper, ...args: any[]) => boolean | void;
-interface ListenerDescriptor {
+type ListenerCallback<T extends Ractive<T> = Ractive> = (this: T, ctx: ContextHelper, ...args: any[]) => boolean | void;
+interface ListenerDescriptor<T extends Ractive<T> = Ractive> {
 	/**
 	 * The callback to call when the event is fired.
 	 */
-	handler: ListenerCallback;
+	handler: ListenerCallback<T>;
 
 	/**
 	 * Whether or not to immediately cancel the listener after the first firing.
@@ -498,8 +498,8 @@ interface ObserverHandle {
  * @param keypath the keypath of the observed change
  * @param parts keys for any wildcards in the observer
  */
-type ObserverCallback = (this: Ractive, value: any, old: any, keypath: string, ...parts: string[]) => void;
-type ObserverArrayCallback = (this: Ractive, changes: ArrayChanges) => void;
+type ObserverCallback<T extends Ractive<T> = Ractive> = (this: T, value: any, old: any, keypath: string, ...parts: string[]) => void;
+type ObserverArrayCallback<T extends Ractive<T> = Ractive> = (this: T, changes: ArrayChanges) => void;
 interface ArrayChanges {
 	/**
 	 * The starting index for the changes.
@@ -554,33 +554,33 @@ interface ObserverArrayOpts extends ObserverBaseOpts {
 	 */
 	array: boolean;
 }
-interface ObserverBaseDescriptor extends ObserverOpts {
+interface ObserverBaseDescriptor<T extends Ractive<T> = Ractive> extends ObserverOpts {
 	/**
 	 * The observer callback.
 	 */
-	handler: ObserverCallback;
+	handler: ObserverCallback<T>;
 
 	/**
 	 * Whether or not to use observeOnce when subscribing the observer. Defaults to false.
 	 */
 	once?: boolean;
 }
-interface ObserverArrayDescriptor extends ObserverArrayOpts {
+interface ObserverArrayDescriptor<T extends Ractive<T> = Ractive> extends ObserverArrayOpts {
 	/**
 	 * The observer callback.j
 	 */
-	handler: ObserverArrayCallback;
+	handler: ObserverArrayCallback<T>;
 
 	/**
 	 * Whether or not to use observeOnce when subscribing the observer. Defaults to false.
 	 */
 	once?: boolean;
 }
-type ObserverDescriptor = ObserverBaseDescriptor | ObserverArrayDescriptor;
+type ObserverDescriptor<T extends Ractive<T> = Ractive> = ObserverBaseDescriptor<T> | ObserverArrayDescriptor<T>;
 
 type ParseDelimiters = [ string, string ];
 
-type ParseFn = (helper: ParseHelper) => string | [] | ParsedTemplate;
+type ParseFn = (helper: ParseHelper) => string | Array<{} | string> | ParsedTemplate;
 
 interface ParseHelper {
 	/**
@@ -619,7 +619,7 @@ type PluginExtend = (PluginArgsExtend) => void;
 type PluginInstance = (PluginArgsInstance) => void;
 
 interface PluginArgsBase {
-	Ractive: Ractive.type;
+	Ractive: typeof Ractive;
 }
 interface PluginArgsInstance {
 	proto: Ractive;
@@ -791,7 +791,7 @@ interface ParseOpts extends BaseParseOpts {
 	textOnlyMode?: boolean;
 }
 
-interface BaseInitOpts extends BaseParseOpts {
+interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseOpts {
 	/** Adaptors to be applied. */
 	adapt?: (Adaptor | string)[];
 
@@ -808,10 +808,10 @@ interface BaseInitOpts extends BaseParseOpts {
 	components?: Registry<Component>;
 
 	/** A map of computations */
-	computed?: { [key: string]: Computation };
+	computed?: { [key: string]: Computation<T> };
 
 	/** A map of decorators */
-	decorators?: Registry<Decorator>;
+	decorators?: Registry<Decorator<T>>;
 
 	/** Whether or not to use event delegation around suitabe iterative sections. Defaults to true. */
 	delegate?: boolean;
@@ -820,7 +820,7 @@ interface BaseInitOpts extends BaseParseOpts {
 	easing?: Registry<Easing>;
 
 	/** A map of custom events */
-	events?: Registry<EventPlugin>;
+	events?: Registry<EventPlugin<T>>;
 
 	/** A map of interpolators for use with animate */
 	interpolators?: Registry<Interpolator>;
@@ -838,10 +838,10 @@ interface BaseInitOpts extends BaseParseOpts {
 	noOutro?: boolean;
 
 	/** A map of observers */
-	observe?: Registry<ObserverCallback | ObserverDescriptor>;
+	observe?: Registry<ObserverCallback<T> | ObserverDescriptor<T>>;
 
 	/** A map of event listeners */
-	on?: Registry<ListenerCallback | ListenerDescriptor>;
+	on?: Registry<ListenerCallback<T> | ListenerDescriptor<T>>;
 
 	/** A map of partials */
 	partials?: Registry<Partial>;
@@ -868,7 +868,7 @@ interface BaseInitOpts extends BaseParseOpts {
 	warnAboutAmbiguity?: boolean;
 }
 
-interface ExtendOpts extends BaseInitOpts {
+interface ExtendOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T> {
 	/** A list of attributes to be reserved by a component. Any additional attributes are collected into the extra-attributes partial. */
 	attributes?: string[] | { optional?: string[], required?: string[] };
 
@@ -882,7 +882,7 @@ interface ExtendOpts extends BaseInitOpts {
 	cssId?: string;
 
 	/** A function supplying the default data for instances of this component. */
-	data?: DataFn;
+	data?: DataFn<T>;
 
 	/** Whether or not data and plugins can be pulled from parent instances. Defaults to false. */
 	isolated?: boolean;
@@ -894,9 +894,9 @@ interface ExtendOpts extends BaseInitOpts {
 	use?: PluginExtend[];
 }
 
-interface InstanceInitOpts extends BaseInitOpts {
+interface InstanceInitOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T> {
 	/** Initiial data for this instance. */
-	data?: Data | DataFn;
+	data?: Data | DataFn<T>;
 
 	/** The target element into which to render this instance. */
 	el?: Target;
@@ -908,47 +908,51 @@ interface InstanceInitOpts extends BaseInitOpts {
 	use?: PluginInstance[];
 }
 
-interface AppendInitOpts extends InstanceInitOpts {
+interface AppendInitOpts<T extends Ractive<T> = Ractive> extends InstanceInitOpts<T> {
 	/** If true, this instance can occupy the target element with other existing instances rather than cause them to unrender. */
 	append: true;
 }
 
-interface EnhanceInitOpts extends InstanceInitOpts {
+interface EnhanceInitOpts<T extends Ractive<T> = Ractive> extends InstanceInitOpts<T> {
 	/** If true, this instance will try to reuse DOM nodes found in its target rather than discarding and replacing them. */
 	enhance: true;
 }
 
-export type InitOpts = InstanceInitOpts | AppendInitOpts | EnhanceInitOpts;
+export type InitOpts<T extends Ractive<T> = Ractive> = InstanceInitOpts<T> | AppendInitOpts<T> | EnhanceInitOpts<T>;
 
 interface Registries {
 	adaptors: Registry<Adaptor>;
 	components: Registry<Component>;
-	decorators: Registry<Decorator>;
+	decorators: Registry<Decorator<T>>;
 	easings: Registry<Easing>;
 	events: Registry<Event>;
 	interpolators: Registry<Interpolator>;
 	partials: Registry<Partial>;
 }
 
-interface Static {
-	new(opts?: InitOpts): Ractive;
+interface Constructor<T extends Ractive<T>> {
+	new(opts?: InitOpts<T>): T;
+}
+
+interface Static<T extends Ractive<T> = Ractive> {
+	new(opts?: InitOpts<T>): T;
 
 	/** The registries that are inherited by all instance. */
 	defaults: Registries;
 
 	adaptors: Registry<Adaptor>;
 	components: Registry<Component>;
-	decorators: Registry<Decorator>;
+	decorators: Registry<Decorator<T>>;
 	easings: Registry<Easing>;
-	events: Registry<EventPlugin>;
+	events: Registry<EventPlugin<T>>;
 	interpolators: Registry<Interpolator>;
 	partials: Registry<Partial>;
 
 	/** Create a new component with this constructor as a starting point. */
-	extend(opts?: ExtendOpts): Static;
+	extend<U>(opts?: ExtendOpts<T>): Static<Ractive<T & U>>;
 
 	/** Create a new component with this constuuctor as a starting point using the given constructor. */
-	extendWith<T extends Static>(c: T, opts?: ExtendOpts): void;
+	extendWith<U extends Ractive<U>>(c: Constructor<U>, opts?: ExtendOpts<U>): void;
 
 	/** Get a Context for the given node or selector. */
 	getContext(nodeOrQuery: HTMLElement | string): ContextHelper;
@@ -974,7 +978,7 @@ interface Static {
 	use(...plugins: PluginExtend[]): Static;
 
 	/** The Ractive constructor used to create this constructor. */
-	Ractive: Static;
+	Ractive: typeof Ractive;
 	/** The parent constructor used to create this constructor. */
 	Parent: Static;
 }
@@ -983,8 +987,8 @@ interface Children extends Array<Ractive> {
 	/** Lists of instances targetting anchors by name. */
 	byName: { [key: string]: Ractive[] }
 }
-export class Ractive {
-	constructor(opts?: InitOpts);
+export class Ractive<T extends Ractive<T> = Ractive<any>> {
+	constructor(opts?: InitOpts<T>);
 
 	/** If this instance is in a yielded template, the instance that is immediately above it. */
 	container?: Ractive;
@@ -997,9 +1001,9 @@ export class Ractive {
 
 	adaptors: Registry<Adaptor>;
 	components: Registry<Component>;
-	decorators: Registry<Decorator>;
+	decorators: Registry<Decorator<T>>;
 	easings: Registry<Easing>;
-	events: Registry<EventPlugin>;
+	events: Registry<EventPlugin<T>>;
 	interpolators: Registry<Interpolator>;
 	partials: Registry<Partial>;
 
@@ -1138,7 +1142,7 @@ export class Ractive {
 	 * @param callbackk
 	 * @param opts
 	 */
-	observe(keypath: string, callback: ObserverCallback, opts?: ObserverOpts): ObserverHandle;
+	observe(keypath: string, callback: ObserverCallback<T>, opts?: ObserverOpts): ObserverHandle;
 
 	/**
 	 * Create an observer at the given keypath that will be called when the value at that keypath mutates.
@@ -1146,21 +1150,21 @@ export class Ractive {
 	 * @param callbackk
 	 * @param opts
 	 */
-	observe(keypath: string, callback: ObserverArrayCallback, opts?: ObserverArrayOpts): ObserverHandle;
+	observe(keypath: string, callback: ObserverArrayCallback<T>, opts?: ObserverArrayOpts): ObserverHandle;
 
 	/**
 	 * Create a set of observers from the given map.
 	 * @param map keypath -> callback pairs to observe
 	 * @returns an observer handle that controls all of the created observers
 	 */
-	observe(map: { [key: string]: ObserverCallback }, opts?: ObserverOpts): ObserverHandle;
+	observe(map: { [key: string]: ObserverCallback<T> }, opts?: ObserverOpts): ObserverHandle;
 
 	/**
 	 * Create a set of observers from the given map.
 	 * @param map keypath -> callback pairs to observe
 	 * @returns an observer handle that controls all of the created observers
 	 */
-	observe(map: { [key: string]: ObserverArrayCallback }, opts?: ObserverArrayOpts): ObserverHandle;
+	observe(map: { [key: string]: ObserverArrayCallback<T> }, opts?: ObserverArrayOpts): ObserverHandle;
 
 	/**
 	 * Create an observer at the given keypath that will be called the first time the value at that keypath mutates. After that call, the observer will be automatically cancelled.
@@ -1168,7 +1172,7 @@ export class Ractive {
 	 * @param callback
 	 * @param opts
 	 */
-	observeOnce(keypath: string, callback: ObserverCallback, opts?: ObserverOpts): ObserverHandle;
+	observeOnce(keypath: string, callback: ObserverCallback<T>, opts?: ObserverOpts): ObserverHandle;
 
 	/**
 	 * Create an observer at the given keypath that will be called the first time the value at that keypath mutates. After that call, the observer will be automatically cancelled.
@@ -1176,28 +1180,28 @@ export class Ractive {
 	 * @param callback
 	 * @param opts
 	 */
-	observeOnce(keypath: string, callback: ObserverArrayCallback, opts?: ObserverArrayOpts): ObserverHandle;
+	observeOnce(keypath: string, callback: ObserverArrayCallback<T>, opts?: ObserverArrayOpts): ObserverHandle;
 
 	/**
 	 * Create a set of observers from the given map. After the first observed value from any of the set mutates, all of the observers will be cancelled.
 	 * @param map keypath -> callback pairs to observe
 	 * @returns an observer handle that controls all of the created observersj
 	 */
-	observeOnce(map: { [key: string]: ObserverCallback }, opts?: ObserverOpts): ObserverHandle;
+	observeOnce(map: { [key: string]: ObserverCallback<T> }, opts?: ObserverOpts): ObserverHandle;
 
 	/**
 	 * Create a set of observers from the given map. After the first observed value from any of the set mutates, all of the observers will be cancelled.
 	 * @param map keypath -> callback pairs to observe
 	 * @returns an observer handle that controls all of the created observersj
 	 */
-	observeOnce(map: { [key: string]: ObserverArrayCallback }, opts?: ObserverArrayOpts): ObserverHandle;
+	observeOnce(map: { [key: string]: ObserverArrayCallback<T> }, opts?: ObserverArrayOpts): ObserverHandle;
 
 	/**
 	 * Stop listening to instance events. If no name is supplied, all events will have their listeners removed. If no handler is supplied, all listeners for the given event will be removed.
 	 * @param event
 	 * @param handler
 	 */
-	off(event?: string, handler?: ListenerCallback): Ractive;
+	off(event?: string, handler?: ListenerCallback<T>): Ractive;
 
 	/**
 	 * Listen for an optionally namespaced instance event.
@@ -1205,26 +1209,26 @@ export class Ractive {
 	 * @param handler
 	 * @returns an object that can be used to control the attached listeners
 	 */
-	on(event: string, handler: ListenerCallback): ObserverHandle;
+	on(event: string, handler: ListenerCallback<T>): ObserverHandle;
 
 	/**
 	 * Listen for a group of optionally namespaced instance events using the given map.
 	 * @param map event name -> callback pairs to listen
 	 */
-	on(map: { [key: string]: ListenerCallback }): ObserverHandle;
+	on(map: { [key: string]: ListenerCallback<T> }): ObserverHandle;
 
 	/**
 	 * Listen for an optionally namespaced instance event. After the listener has been triggered once, the listener will be automatically unsubscribed.
 	 * @param event
 	 * @param handler
 	 */
-	once(event: string, handler: ListenerCallback): ObserverHandle;
+	once(event: string, handler: ListenerCallback<T>): ObserverHandle;
 
 	/**
 	 * Listen for a group of optionally namespaced instance events using the given map. After a listener has been triggered once, all of the listeners will be automatically unsubscribed.
 	 * @param map event name -> callback pairs to listen
 	 */
-	once(map: { [key: string]: ListenerCallback }): ObserverHandle;
+	once(map: { [key: string]: ListenerCallback<T> }): ObserverHandle;
 
 	/**
 	 * Pop a value off the array at the given keypath.
@@ -1411,10 +1415,10 @@ export class Ractive {
 	static partials: Registry<Partial>;
 
 	/** Create a new component with this constructor as a starting point. */
-	static extend(opts?: ExtendOpts): Static;
+	static extend<U>(opts?: ExtendOpts<Ractive & U>): Static<Ractive<Ractive & U>>;
 
 	/** Create a new component with this constuuctor as a starting point using the given constructor. */
-	static extendWith<T extends Static>(c: T, opts?: ExtendOpts): void;
+	static extendWith<U extends Ractive<U>>(c: Constructor<U>, opts?: ExtendOpts<U>): void;
 
 	/** Get a Context for the given node or selector. */
 	static getContext(nodeOrQuery: HTMLElement | string): ContextHelper;
@@ -1436,10 +1440,10 @@ export class Ractive {
 	/** Set the given map of values in the css data for this constructor. */
 	static styleSet(map: ValueMap): Promise<void>;
 
-	static use(...args: PluginExtend[]): Ractive.type
+	static use(...args: PluginExtend[]): Static;
 
 	/** The Ractive constructor used to create this constructor. */
-	static Ractive: Static;
+	static Ractive: typeof Ractive;
 	/** The parent constructor used to create this constructor. */
 	static Parent: Static;
 }
