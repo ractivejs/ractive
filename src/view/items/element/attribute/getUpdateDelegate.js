@@ -247,7 +247,7 @@ function updateInlineStyle ( reset ) {
 	const value = reset ? '' : safeToStringValue( this.getValue() );
 	const safe = value.replace( '!important', '' );
 	this.node.style.setProperty( this.style, safe, safe.length !== value.length ? 'important' : '' );
-	this.last = safe;
+	this.last = this.node.style.getPropertyValue( this.style );
 }
 
 function updateClassName ( reset ) {
