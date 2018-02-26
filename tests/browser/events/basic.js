@@ -1,3 +1,4 @@
+import { hasUsableConsole, onWarn } from '../../helpers/test-config';
 import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 import { fire } from 'simulant';
@@ -424,4 +425,46 @@ export default function() {
 			}
 		});
 	});
+
+	test( `event plugin init args`, t => {
+		t.expect(3);
+
+		new Ractive({
+			target: fixture, 
+			template: `<div on-one(99)=one on-two(foo, 'test')=two />`,
+			events: {
+				one ( node, fire, arg1 ) {
+					t.equal( arg1, 99 );
+					return { teardown() {} };
+				},
+				two ( node, fire, arg1, arg2 ) {
+					t.equal( arg1, true );
+					t.equal( arg2, 'test' );
+					return { teardown() {} };
+				}
+			},
+			data: {
+				foo: true
+			}
+		});
+	});
+
+	if ( hasUsableConsole ) {
+		test( `event plugin args that throw don't blow up the world`, t => {
+			t.expect( 3 );
+
+			onWarn( msg => t.ok( /failed to compute args for event on-foo/i.test( msg ), 'warns on error' ) );
+
+			new Ractive({
+				target: fixture,
+				template: `<div on-foo(nope.fail())="nope" />`,
+				events: {
+					foo ( node, fire, arg1 ) {
+						t.ok( arg1 === undefined, 'arg1 is undefined' );
+						return { teardown() { t.ok( true ); } };
+					}
+				}
+			});
+		});
+	}
 }

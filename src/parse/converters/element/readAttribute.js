@@ -8,7 +8,7 @@ import flattenExpression from 'parse/utils/flattenExpression';
 import refineExpression from 'parse/utils/refineExpression';
 import { isString } from 'utils/is';
 
-const attributeNamePattern = /^[^\s"'>\/=]+/;
+const attributeNamePattern = /^[^\s"'>\/=(]+/;
 const onPattern = /^on/;
 const eventPattern = /^on-([a-zA-Z\*\.$_]((?:[a-zA-Z\*\.$_0-9\-]|\\-)+))$/;
 const reservedEventNames = /^(?:change|reset|teardown|update|construct|config|init|render|complete|unrender|detach|insert|destruct|attachchild|detachchild)$/;
@@ -234,6 +234,11 @@ export function readAttributeOrDirective ( parser ) {
 	else if ( match = eventPattern.exec( attribute.n ) ) {
 		attribute.n = splitEvent( match[1] );
 		attribute.t = EVENT;
+
+		if ( parser.matchString( '(' ) ) {
+			attribute.a = flattenExpression({ t: ARRAY_LITERAL, m: readExpressionList( parser ) });
+			if ( !parser.matchString( ')' ) ) parser.error( `Expected closing ')'`);
+		}
 
 		parser.inEvent = true;
 

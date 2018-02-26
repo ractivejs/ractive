@@ -1,5 +1,5 @@
 import { ANCHOR, COMPONENT } from 'config/types';
-import { warnOnceIfDebug } from 'utils/log';
+import { warnIfDebug, warnOnceIfDebug } from 'utils/log';
 import { addToArray, removeFromArray } from 'utils/array';
 import noop from 'utils/noop';
 import fireEvent from 'src/events/fireEvent';
@@ -11,6 +11,8 @@ import RactiveEvent from '../component/RactiveEvent';
 import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
 import Context from 'src/shared/Context';
 import { isArray, isString } from 'utils/is';
+import getFunction from 'shared/getFunction';
+import resolveReference from '../../resolvers/resolveReference';
 
 const specialPattern = /^(event|arguments|@node|@event|@context)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
@@ -22,21 +24,33 @@ export default class EventDirective {
 		this.template = options.template;
 		this.up = options.up;
 		this.ractive = options.up.ractive;
-		//const delegate = this.delegate = this.ractive.delegate && options.up.delegate;
 		this.events = [];
+	}
 
+	bind () {
 		if ( this.element.type === COMPONENT || this.element.type === ANCHOR ) {
 			this.template.n.forEach( n => {
 				this.events.push( new RactiveEvent( this.element, n ) );
 			});
 		} else {
-			// make sure the delegate element has a storag object
-			//if ( delegate && !delegate.delegates ) delegate.delegates = {};
+			let args;
+			if ( args = this.template.a ) {
+				const rs = args.r.map( r => {
+					const model = resolveReference( this.up, r );
+					return model ? model.get() : undefined;
+				});
+				try {
+					args = getFunction( args.s, rs.length ).apply( null, rs );
+				} catch ( err ) {
+					args = null;
+					warnIfDebug(`Failed to compute args for event on-${this.template.n.join( '- ')}: ${err.message || err}`);
+				}
+			}
 
 			this.template.n.forEach( n => {
 				const fn = findInViewHierarchy( 'events', this.ractive, n );
 				if ( fn ) {
-					this.events.push( new CustomEvent( fn, this.element, n ) );
+					this.events.push( new CustomEvent( fn, this.element, n, args ) );
 				} else {
 					this.events.push( new DOMEvent( n, this.element ) );
 				}
@@ -45,9 +59,7 @@ export default class EventDirective {
 
 		// method calls
 		this.models = null;
-	}
 
-	bind () {
 		addToArray( ( this.element.events || ( this.element.events = [] ) ), this );
 
 		setupArgsFn( this, this.template );
