@@ -32,7 +32,8 @@
     "qunitjs": "^2.4.1",
     "rollup": "^0.55.3",
     "rollup-plugin-alias": "^1.4.0",
-    "rollup-plugin-istanbul": "^2"
+    "rollup-plugin-istanbul": "^2",
+    "prettier": "^1.11"
   },
   "scripts": {
     "start": "gobble --env=dev:browser serve",
@@ -46,6 +47,7 @@
     "lint:bin": "",
     "lint:perf": "",
     "lint:lib": "",
+    "prettier": "prettier --use-tabs --single-quote --trailing-comma-es5 --write \"{src,tests/browser,tests/node}/**/*.js\"",
     "bundle:test": "gobble --env=bundle:test build .build --force",
     "bundle:release": "gobble --env=bundle:release build .build --force",
     "test:electron": "karma start karma/electron.conf.js",
