@@ -94,6 +94,9 @@ function createMapping ( item ) {
 		else {
 			warnIfDebug( `Cannot copy non-computed object value from static mapping '${item.name}'` );
 		}
+		
+		// if the item isn't going to manage the model, give it a change to tear down if it's computed
+		if ( model !== item.model ) model.unregister();
 	}
 
 	else {
