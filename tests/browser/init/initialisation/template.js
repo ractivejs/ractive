@@ -5,24 +5,24 @@ export default function() {
 	const defaultData = Ractive.defaults.data;
 	const defaultTemplate = Ractive.defaults.template;
 
-	afterEach( () => {
+	afterEach(() => {
 		Ractive.defaults.data = defaultData;
 		Ractive.defaults.template = defaultTemplate;
 	});
 
-	initModule( 'init/initialisation/template.js' );
+	initModule('init/initialisation/template.js');
 
-	function createScriptTemplate ( template ) {
-		const script = document.createElement( 'SCRIPT' );
+	function createScriptTemplate(template) {
+		const script = document.createElement('SCRIPT');
 
-		fixture.appendChild( script );
+		fixture.appendChild(script);
 		script.id = 'template';
-		script.setAttribute( 'type', 'text/ractive' );
+		script.setAttribute('type', 'text/ractive');
 		script.textContent = template;
 	}
 
-	test( 'hash is retrieved from element Id', t => {
-		createScriptTemplate( '{{foo}}' );
+	test('hash is retrieved from element Id', t => {
+		createScriptTemplate('{{foo}}');
 
 		new Ractive({
 			el: fixture,
@@ -30,11 +30,11 @@ export default function() {
 			data: { foo: 'bar' }
 		});
 
-		t.equal( fixture.innerHTML, 'bar' );
+		t.equal(fixture.innerHTML, 'bar');
 	});
 
-	test( 'non-existant element id throws', t => {
-		t.throws( () => {
+	test('non-existant element id throws', t => {
+		t.throws(() => {
 			new Ractive({
 				el: fixture,
 				template: '#nonexistant'
@@ -42,7 +42,7 @@ export default function() {
 		});
 	});
 
-	test( 'Ractive.defaults.template used on initialize', t => {
+	test('Ractive.defaults.template used on initialize', t => {
 		Ractive.defaults.template = '{{foo}}';
 
 		new Ractive({
@@ -50,53 +50,53 @@ export default function() {
 			data: { foo: 'bar' }
 		});
 
-		t.equal( fixture.innerHTML, 'bar' );
+		t.equal(fixture.innerHTML, 'bar');
 	});
 
-	test( 'Ractive.defaults.template function called on initialize', t => {
+	test('Ractive.defaults.template function called on initialize', t => {
 		Ractive.defaults.template = () => '{{foo}}';
 
-		new Ractive( {
+		new Ractive({
 			el: fixture,
 			data: { foo: 'bar' }
 		});
 
-		t.equal( fixture.innerHTML, 'bar' );
+		t.equal(fixture.innerHTML, 'bar');
 	});
 
-	test( 'template function has helper object', t => {
-		t.expect( 3 );
+	test('template function has helper object', t => {
+		t.expect(3);
 
-		createScriptTemplate( '{{foo}}' );
+		createScriptTemplate('{{foo}}');
 
 		Ractive.defaults.template = helper => {
-			let template = helper.fromId( 'template' );
+			let template = helper.fromId('template');
 			template += '{{bar}}';
-			t.ok( !helper.isParsed( template ) );
-			template = helper.parse( template );
-			t.ok( helper.isParsed( template ) );
+			t.ok(!helper.isParsed(template));
+			template = helper.parse(template);
+			t.ok(helper.isParsed(template));
 			return template;
 		};
 
-		new Ractive( {
+		new Ractive({
 			el: fixture,
 			data: { foo: 'fizz', bar: 'bizz' }
 		});
 
-		t.equal( fixture.innerHTML, 'fizzbizz' );
+		t.equal(fixture.innerHTML, 'fizzbizz');
 	});
 
-	test( 'non-script tag for template throws error', t => {
-		const div = document.createElement( 'DIV' );
+	test('non-script tag for template throws error', t => {
+		const div = document.createElement('DIV');
 		div.id = 'template';
-		fixture.appendChild( div );
+		fixture.appendChild(div);
 
-		t.throws( () => {
+		t.throws(() => {
 			new Ractive({
 				el: fixture,
 				template: '#template'
 			});
-		}, /script/ );
+		}, /script/);
 	});
 
 	test('Override empty component template', t => {
@@ -128,14 +128,20 @@ export default function() {
 	});
 
 	test('Uses component parse options on inherited template', t => {
-		const Component = Ractive.extend({ template: '<#foo#>', delimiters: ['<#', '#>'] });
+		const Component = Ractive.extend({
+			template: '<#foo#>',
+			delimiters: ['<#', '#>']
+		});
 		const instance = Component();
 
 		t.deepEqual(instance.template, [{ r: 'foo', t: 2 }]);
 	});
 
 	test('Uses component parse options on overridden template', t => {
-		const Component = Ractive.extend({ template: '<#foo#>', delimiters: ['<#', '#>'] });
+		const Component = Ractive.extend({
+			template: '<#foo#>',
+			delimiters: ['<#', '#>']
+		});
 		const instance = Component({ template: '<#bar#>' });
 
 		t.deepEqual(instance.template, [{ r: 'bar', t: 2 }]);
@@ -149,5 +155,4 @@ export default function() {
 
 		t.deepEqual(instance.template, [{ r: 'bar', t: 2 }]);
 	});
-
 }

@@ -3,12 +3,12 @@ import { onWarn, initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
 export default function() {
-	initModule( 'events/touch-events.js' );
+	initModule('events/touch-events.js');
 
-	test( 'touch events safe to include when they don\'t exist in browser', t => {
-		t.expect( 1 );
+	test("touch events safe to include when they don't exist in browser", t => {
+		t.expect(1);
 
-		onWarn( () => {} ); // suppress
+		onWarn(() => {}); // suppress
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -17,10 +17,10 @@ export default function() {
 				<span id="test2" on-touchstart-mousedown="foo"/>`
 		});
 
-		ractive.on( 'foo', () => {
-			t.ok( true );
+		ractive.on('foo', () => {
+			t.ok(true);
 		});
 
-		fire( ractive.find( '#test2' ), 'mousedown' );
+		fire(ractive.find('#test2'), 'mousedown');
 	});
 }

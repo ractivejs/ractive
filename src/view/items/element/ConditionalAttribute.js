@@ -6,14 +6,16 @@ import noop from 'utils/noop';
 import Fragment from '../../Fragment';
 import Item from '../shared/Item';
 
-const div = doc ? createElement( 'div' ) : null;
+const div = doc ? createElement('div') : null;
 
 let attributes = false;
-export function inAttributes() { return attributes; }
+export function inAttributes() {
+	return attributes;
+}
 
 export default class ConditionalAttribute extends Item {
-	constructor ( options ) {
-		super( options );
+	constructor(options) {
+		super(options);
 
 		this.attributes = [];
 
@@ -31,29 +33,29 @@ export default class ConditionalAttribute extends Item {
 		this.dirty = false;
 	}
 
-	bind () {
+	bind() {
 		this.fragment.bind();
 	}
 
-	bubble () {
-		if ( !this.dirty ) {
+	bubble() {
+		if (!this.dirty) {
 			this.dirty = true;
 			this.owner.bubble();
 		}
 	}
 
-	destroyed () {
+	destroyed() {
 		this.unrender();
 	}
 
-	render () {
+	render() {
 		this.node = this.owner.node;
-		if ( this.node ) {
+		if (this.node) {
 			this.isSvg = this.node.namespaceURI === svg;
 		}
 
 		attributes = true;
-		if ( !this.rendered ) this.fragment.render();
+		if (!this.rendered) this.fragment.render();
 
 		this.rendered = true;
 		this.dirty = true; // TODO this seems hacky, but necessary for tests to pass in browser AND node.js
@@ -61,43 +63,43 @@ export default class ConditionalAttribute extends Item {
 		attributes = false;
 	}
 
-	toString () {
+	toString() {
 		return this.fragment.toString();
 	}
 
-	unbind () {
+	unbind() {
 		this.fragment.unbind();
 	}
 
-	unrender () {
+	unrender() {
 		this.rendered = false;
 		this.fragment.unrender();
 	}
 
-	update () {
+	update() {
 		let str;
 		let attrs;
 
-		if ( this.dirty ) {
+		if (this.dirty) {
 			this.dirty = false;
 
 			const current = attributes;
 			attributes = true;
 			this.fragment.update();
 
-			if ( this.rendered && this.node ) {
+			if (this.rendered && this.node) {
 				str = this.fragment.toString();
 
-				attrs = parseAttributes( str, this.isSvg );
+				attrs = parseAttributes(str, this.isSvg);
 
 				// any attributes that previously existed but no longer do
 				// must be removed
-				this.attributes.filter( a => notIn( attrs, a ) ).forEach( a => {
-					this.node.removeAttribute( a.name );
+				this.attributes.filter(a => notIn(attrs, a)).forEach(a => {
+					this.node.removeAttribute(a.name);
 				});
 
-				attrs.forEach( a => {
-					this.node.setAttribute( a.name, a.value );
+				attrs.forEach(a => {
+					this.node.setAttribute(a.name, a.value);
 				});
 
 				this.attributes = attrs;
@@ -109,20 +111,20 @@ export default class ConditionalAttribute extends Item {
 }
 
 const onlyWhitespace = /^\s*$/;
-function parseAttributes ( str, isSvg ) {
-	if ( onlyWhitespace.test( str ) ) return [];
+function parseAttributes(str, isSvg) {
+	if (onlyWhitespace.test(str)) return [];
 	const tagName = isSvg ? 'svg' : 'div';
 	return str
 		? (div.innerHTML = `<${tagName} ${str}></${tagName}>`) &&
-			toArray(div.childNodes[0].attributes)
+				toArray(div.childNodes[0].attributes)
 		: [];
 }
 
-function notIn ( haystack, needle ) {
+function notIn(haystack, needle) {
 	let i = haystack.length;
 
-	while ( i-- ) {
-		if ( haystack[i].name === needle.name ) {
+	while (i--) {
+		if (haystack[i].name === needle.name) {
 			return false;
 		}
 	}

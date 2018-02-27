@@ -1,10 +1,14 @@
 /* istanbul ignore if */
-if (typeof window !== 'undefined' && window.performance && !window.performance.now) {
+if (
+	typeof window !== 'undefined' &&
+	window.performance &&
+	!window.performance.now
+) {
 	window.performance = window.performance || {};
 
 	const nowOffset = Date.now();
 
-	window.performance.now = function () {
+	window.performance.now = function() {
 		return Date.now() - nowOffset;
 	};
 }

@@ -1,5 +1,24 @@
-import { ALIAS, ANCHOR, AWAIT, COMMENT, COMPONENT, DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from 'config/types';
-import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from 'config/types';
+import {
+	ALIAS,
+	ANCHOR,
+	AWAIT,
+	COMMENT,
+	COMPONENT,
+	DOCTYPE,
+	ELEMENT,
+	INTERPOLATOR,
+	PARTIAL,
+	SECTION,
+	TRIPLE,
+	YIELDER
+} from 'config/types';
+import {
+	ATTRIBUTE,
+	BINDING_FLAG,
+	DECORATOR,
+	EVENT,
+	TRANSITION
+} from 'config/types';
 import Alias from './Alias';
 import Attribute from './element/Attribute';
 import BindingFlag from './element/BindingFlag';
@@ -29,22 +48,22 @@ import Await from './Await';
 import { isString, isFunction } from 'utils/is';
 
 const constructors = {};
-constructors[ ALIAS ] = Alias;
-constructors[ ANCHOR ] = Component;
-constructors[ AWAIT ] = Await;
-constructors[ DOCTYPE ] = Doctype;
-constructors[ INTERPOLATOR ] = Interpolator;
-constructors[ PARTIAL ] = Partial;
-constructors[ SECTION ] = Section;
-constructors[ TRIPLE ] = Triple;
-constructors[ YIELDER ] = Partial;
+constructors[ALIAS] = Alias;
+constructors[ANCHOR] = Component;
+constructors[AWAIT] = Await;
+constructors[DOCTYPE] = Doctype;
+constructors[INTERPOLATOR] = Interpolator;
+constructors[PARTIAL] = Partial;
+constructors[SECTION] = Section;
+constructors[TRIPLE] = Triple;
+constructors[YIELDER] = Partial;
 
-constructors[ ATTRIBUTE ] = Attribute;
-constructors[ BINDING_FLAG ] = BindingFlag;
-constructors[ DECORATOR ] = Decorator;
-constructors[ EVENT ] = EventDirective;
-constructors[ TRANSITION ] = Transition;
-constructors[ COMMENT ] = Comment;
+constructors[ATTRIBUTE] = Attribute;
+constructors[BINDING_FLAG] = BindingFlag;
+constructors[DECORATOR] = Decorator;
+constructors[EVENT] = EventDirective;
+constructors[TRANSITION] = Transition;
+constructors[COMMENT] = Comment;
 
 const specialElements = {
 	doctype: Doctype,
@@ -55,58 +74,61 @@ const specialElements = {
 	textarea: Textarea
 };
 
-export default function createItem ( options ) {
-	if ( isString( options.template ) ) {
-		return new Text( options );
+export default function createItem(options) {
+	if (isString(options.template)) {
+		return new Text(options);
 	}
 
 	let ctor;
 	let name;
 	const type = options.template.t;
 
-	if ( type === ELEMENT ) {
+	if (type === ELEMENT) {
 		name = options.template.e;
 
 		// could be a macro partial
-		ctor = findInstance( 'partials', options.up.ractive, name );
-		if ( ctor ) {
-			ctor = ctor.partials[ name ];
-			if ( ctor.styleSet ) {
+		ctor = findInstance('partials', options.up.ractive, name);
+		if (ctor) {
+			ctor = ctor.partials[name];
+			if (ctor.styleSet) {
 				options.macro = ctor;
-				return new Partial( options );
+				return new Partial(options);
 			}
 		}
 
 		// could be component or element
-		ctor = getComponentConstructor( options.up.ractive, name );
-		if ( ctor ) {
-			if ( isFunction( ctor.then ) ) {
-				return asyncProxy( ctor, options );
+		ctor = getComponentConstructor(options.up.ractive, name);
+		if (ctor) {
+			if (isFunction(ctor.then)) {
+				return asyncProxy(ctor, options);
 			} else {
-				return new Component( options, ctor );
+				return new Component(options, ctor);
 			}
 		}
 
-		ctor = specialElements[ name.toLowerCase() ] || Element;
-		return new ctor( options );
+		ctor = specialElements[name.toLowerCase()] || Element;
+		return new ctor(options);
 	}
 
 	let Item;
 
 	// component mappings are a special case of attribute
-	if ( type === ATTRIBUTE ) {
+	if (type === ATTRIBUTE) {
 		let el = options.owner;
-		if ( !el || ( el.type !== ANCHOR && el.type !== COMPONENT && el.type !== ELEMENT ) ) {
-			el = findElement( options.up );
+		if (
+			!el ||
+			(el.type !== ANCHOR && el.type !== COMPONENT && el.type !== ELEMENT)
+		) {
+			el = findElement(options.up);
 		}
 		options.element = el;
 
 		Item = el.type === COMPONENT || el.type === ANCHOR ? Mapping : Attribute;
 	} else {
-		Item = constructors[ type ];
+		Item = constructors[type];
 	}
 
-	if ( !Item ) throw new Error( `Unrecognised item type ${type}` );
+	if (!Item) throw new Error(`Unrecognised item type ${type}`);
 
-	return new Item( options );
+	return new Item(options);
 }

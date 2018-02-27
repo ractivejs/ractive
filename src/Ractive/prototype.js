@@ -101,8 +101,10 @@ const proto = {
 	use
 };
 
-defineProperty( proto, 'target', {
-	get() { return this.el; }
+defineProperty(proto, 'target', {
+	get() {
+		return this.el;
+	}
 });
 
 export default proto;

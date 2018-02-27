@@ -1,15 +1,15 @@
 import { lastItem } from 'utils/array';
 import { isString } from 'utils/is';
 
-export default function ( items, leadingPattern, trailingPattern ) {
+export default function(items, leadingPattern, trailingPattern) {
 	let item;
 
-	if ( leadingPattern ) {
+	if (leadingPattern) {
 		item = items[0];
-		if ( isString( item ) ) {
-			item = item.replace( leadingPattern, '' );
+		if (isString(item)) {
+			item = item.replace(leadingPattern, '');
 
-			if ( !item ) {
+			if (!item) {
 				items.shift();
 			} else {
 				items[0] = item;
@@ -17,15 +17,15 @@ export default function ( items, leadingPattern, trailingPattern ) {
 		}
 	}
 
-	if ( trailingPattern ) {
-		item = lastItem( items );
-		if ( isString( item ) ) {
-			item = item.replace( trailingPattern, '' );
+	if (trailingPattern) {
+		item = lastItem(items);
+		if (isString(item)) {
+			item = item.replace(trailingPattern, '');
 
-			if ( !item ) {
+			if (!item) {
 				items.pop();
 			} else {
-				items[ items.length - 1 ] = item;
+				items[items.length - 1] = item;
 			}
 		}
 	}

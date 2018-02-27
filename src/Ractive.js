@@ -31,27 +31,33 @@ import { warn } from 'utils/log';
 
 import { assign, defineProperty, defineProperties } from 'utils/object';
 
-export default function Ractive ( options ) {
-	if ( !( this instanceof Ractive ) ) return new Ractive( options );
+export default function Ractive(options) {
+	if (!(this instanceof Ractive)) return new Ractive(options);
 
-	construct( this, options || {} );
-	initialise( this, options || {}, {} );
+	construct(this, options || {});
+	initialise(this, options || {}, {});
 }
 
 // check to see if we're being asked to force Ractive as a global for some weird environments
-if ( win && !win.Ractive ) {
+if (win && !win.Ractive) {
 	let opts = '';
-	const script = document.currentScript || /* istanbul ignore next */ document.querySelector( 'script[data-ractive-options]' );
+	const script =
+		document.currentScript ||
+		/* istanbul ignore next */ document.querySelector(
+			'script[data-ractive-options]'
+		);
 
-	if ( script ) opts = script.getAttribute( 'data-ractive-options' ) || '';
+	if (script) opts = script.getAttribute('data-ractive-options') || '';
 
 	/* istanbul ignore next */
-	if ( ~opts.indexOf( 'ForceGlobal' ) ) win.Ractive = Ractive;
-} else if ( win ) {
-	warn( `Ractive already appears to be loaded while loading BUILD_PLACEHOLDER_VERSION.` );
+	if (~opts.indexOf('ForceGlobal')) win.Ractive = Ractive;
+} else if (win) {
+	warn(
+		`Ractive already appears to be loaded while loading BUILD_PLACEHOLDER_VERSION.`
+	);
 }
 
-assign( Ractive.prototype, proto, defaults );
+assign(Ractive.prototype, proto, defaults);
 Ractive.prototype.constructor = Ractive;
 
 // alias prototype as `defaults`
@@ -62,60 +68,62 @@ shared.defaults = Ractive.defaults;
 shared.Ractive = Ractive;
 
 // static properties
-defineProperties( Ractive, {
-
+defineProperties(Ractive, {
 	// debug flag
-	DEBUG:            { writable: true, value: true },
-	DEBUG_PROMISES:   { writable: true, value: true },
+	DEBUG: { writable: true, value: true },
+	DEBUG_PROMISES: { writable: true, value: true },
 
 	// static methods:
-	extend:           { value: extend },
-	extendWith:       { value: extendWith },
-	escapeKey:        { value: escapeKey },
+	extend: { value: extend },
+	extendWith: { value: extendWith },
+	escapeKey: { value: escapeKey },
 	evalObjectString: { value: parseJSON },
-	findPlugin:       { value: findPlugin },
-	getContext:       { value: getContext },
-	getCSS:           { value: getCSS },
-	getNodeInfo:      { value: getNodeInfo },
-	isInstance:       { value: isInstance },
-	joinKeys:         { value: joinKeys },
-	macro:            { value: macro },
+	findPlugin: { value: findPlugin },
+	getContext: { value: getContext },
+	getCSS: { value: getCSS },
+	getNodeInfo: { value: getNodeInfo },
+	isInstance: { value: isInstance },
+	joinKeys: { value: joinKeys },
+	macro: { value: macro },
 	normaliseKeypath: { value: normalise },
-	parse:            { value: parse },
-	splitKeypath:     { value: splitKeypath },
+	parse: { value: parse },
+	splitKeypath: { value: splitKeypath },
 	// sharedSet and styleSet are in _extend because circular refs
-	unescapeKey:      { value: unescapeKey },
-	use:              { value: use },
+	unescapeKey: { value: unescapeKey },
+	use: { value: use },
 
 	// support
-	enhance:          { writable: true, value: false },
-	svg:              { value: svg },
+	enhance: { writable: true, value: false },
+	svg: { value: svg },
 
 	// version
-	VERSION:          { value: 'BUILD_PLACEHOLDER_VERSION' },
+	VERSION: { value: 'BUILD_PLACEHOLDER_VERSION' },
 
 	// plugins
-	adaptors:         { writable: true, value: {} },
-	components:       { writable: true, value: {} },
-	decorators:       { writable: true, value: {} },
-	easing:           { writable: true, value: easing },
-	events:           { writable: true, value: {} },
-	extensions:       { value: [] },
-	interpolators:    { writable: true, value: interpolators },
-	partials:         { writable: true, value: {} },
-	transitions:      { writable: true, value: {} },
+	adaptors: { writable: true, value: {} },
+	components: { writable: true, value: {} },
+	decorators: { writable: true, value: {} },
+	easing: { writable: true, value: easing },
+	events: { writable: true, value: {} },
+	extensions: { value: [] },
+	interpolators: { writable: true, value: interpolators },
+	partials: { writable: true, value: {} },
+	transitions: { writable: true, value: {} },
 
 	// CSS variables
-	cssData:          { configurable: true, value: {} },
+	cssData: { configurable: true, value: {} },
 
 	// access to @shared without an instance
-	sharedData:       { value: sharedData },
+	sharedData: { value: sharedData },
 
 	// for getting the source Ractive lib from a constructor
-	Ractive:          { value: Ractive },
+	Ractive: { value: Ractive },
 
 	// to allow extending contexts
-	Context:          { value: extern.Context.prototype }
+	Context: { value: extern.Context.prototype }
 });
 
-defineProperty( Ractive, '_cssModel', { configurable: true, value: new CSSModel( Ractive ) } );
+defineProperty(Ractive, '_cssModel', {
+	configurable: true,
+	value: new CSSModel(Ractive)
+});

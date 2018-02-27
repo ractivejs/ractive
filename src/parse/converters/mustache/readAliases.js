@@ -4,30 +4,30 @@ import refineExpression from '../../utils/refineExpression';
 const legalAlias = /^(?:[a-zA-Z$_0-9]|\\\.)+(?:(?:(?:[a-zA-Z$_0-9]|\\\.)+)|(?:\[[0-9]+\]))*/;
 const asRE = /^as/i;
 
-export function readAliases( parser ) {
+export function readAliases(parser) {
 	const aliases = [];
 	let alias;
 	const start = parser.pos;
 
 	parser.sp();
 
-	alias = readAlias( parser );
+	alias = readAlias(parser);
 
-	if ( alias ) {
-		alias.x = refineExpression( alias.x, {} );
-		aliases.push( alias );
+	if (alias) {
+		alias.x = refineExpression(alias.x, {});
+		aliases.push(alias);
 
 		parser.sp();
 
-		while ( parser.matchString(',') ) {
-			alias = readAlias( parser );
+		while (parser.matchString(',')) {
+			alias = readAlias(parser);
 
-			if ( !alias ) {
-				parser.error( 'Expected another alias.' );
+			if (!alias) {
+				parser.error('Expected another alias.');
 			}
 
-			alias.x = refineExpression( alias.x, {} );
-			aliases.push( alias );
+			alias.x = refineExpression(alias.x, {});
+			aliases.push(alias);
 
 			parser.sp();
 		}
@@ -39,31 +39,31 @@ export function readAliases( parser ) {
 	return null;
 }
 
-export function readAlias( parser ) {
+export function readAlias(parser) {
 	const start = parser.pos;
 
 	parser.sp();
 
-	const expr = readExpression( parser, [] );
+	const expr = readExpression(parser, []);
 
-	if ( !expr ) {
+	if (!expr) {
 		parser.pos = start;
 		return null;
 	}
 
 	parser.sp();
 
-	if ( !parser.matchPattern( asRE ) ) {
+	if (!parser.matchPattern(asRE)) {
 		parser.pos = start;
 		return null;
 	}
 
 	parser.sp();
 
-	const alias = parser.matchPattern( legalAlias );
+	const alias = parser.matchPattern(legalAlias);
 
-	if ( !alias ) {
-		parser.error( 'Expected a legal alias name.' );
+	if (!alias) {
+		parser.error('Expected a legal alias name.');
 	}
 
 	return { n: alias, x: expr };

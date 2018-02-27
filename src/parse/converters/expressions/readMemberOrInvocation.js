@@ -4,29 +4,27 @@ import readExpressionList from './shared/readExpressionList';
 import readRefinement from './shared/readRefinement';
 import { expectedParen } from './shared/errors';
 
-export default function ( parser ) {
-	let expression = readPrimary( parser );
+export default function(parser) {
+	let expression = readPrimary(parser);
 
-	if ( !expression ) return null;
+	if (!expression) return null;
 
-	while ( expression ) {
-		const refinement = readRefinement( parser );
-		if ( refinement ) {
+	while (expression) {
+		const refinement = readRefinement(parser);
+		if (refinement) {
 			expression = {
 				t: MEMBER,
 				x: expression,
 				r: refinement
 			};
-		}
-
-		else if ( parser.matchString( '(' ) ) {
+		} else if (parser.matchString('(')) {
 			parser.sp();
-			const expressionList = readExpressionList( parser, true );
+			const expressionList = readExpressionList(parser, true);
 
 			parser.sp();
 
-			if ( !parser.matchString( ')' ) ) {
-				parser.error( expectedParen );
+			if (!parser.matchString(')')) {
+				parser.error(expectedParen);
 			}
 
 			expression = {
@@ -34,10 +32,8 @@ export default function ( parser ) {
 				x: expression
 			};
 
-			if ( expressionList ) expression.o = expressionList;
-		}
-
-		else {
+			if (expressionList) expression.o = expressionList;
+		} else {
 			break;
 		}
 	}

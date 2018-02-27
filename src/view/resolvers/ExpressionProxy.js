@@ -9,8 +9,8 @@ import { rebindMatch } from 'shared/rebind';
 import resolveReference from './resolveReference';
 
 export default class ExpressionProxy extends Model {
-	constructor ( fragment, template ) {
-		super( fragment.ractive.viewmodel, null );
+	constructor(fragment, template) {
+		super(fragment.ractive.viewmodel, null);
 
 		this.fragment = fragment;
 		this.template = template;
@@ -18,12 +18,13 @@ export default class ExpressionProxy extends Model {
 		this.isReadonly = true;
 		this.dirty = true;
 
-		this.fn = fragment.ractive.allowExpressions === false ?
-			noop :
-			getFunction( template.s, template.r.length );
+		this.fn =
+			fragment.ractive.allowExpressions === false
+				? noop
+				: getFunction(template.s, template.r.length);
 
-		this.models = this.template.r.map( ref => {
-			return resolveReference( this.fragment, ref );
+		this.models = this.template.r.map(ref => {
+			return resolveReference(this.fragment, ref);
 		});
 		this.dependencies = [];
 
@@ -32,89 +33,93 @@ export default class ExpressionProxy extends Model {
 		this.bubble();
 	}
 
-	bubble ( actuallyChanged = true ) {
+	bubble(actuallyChanged = true) {
 		// refresh the keypath
 		this.keypath = undefined;
 
-		if ( actuallyChanged ) {
+		if (actuallyChanged) {
 			this.handleChange();
 		}
 	}
 
-	getKeypath () {
-		if ( !this.template ) return '@undefined';
-		if ( !this.keypath ) {
-			this.keypath = '@' + this.template.s.replace( /_(\d+)/g, ( match, i ) => {
-				if ( i >= this.models.length ) return match;
+	getKeypath() {
+		if (!this.template) return '@undefined';
+		if (!this.keypath) {
+			this.keypath =
+				'@' +
+				this.template.s.replace(/_(\d+)/g, (match, i) => {
+					if (i >= this.models.length) return match;
 
-				const model = this.models[i];
-				return model ? model.getKeypath() : '@undefined';
-			});
+					const model = this.models[i];
+					return model ? model.getKeypath() : '@undefined';
+				});
 		}
 
 		return this.keypath;
 	}
 
-	getValue () {
+	getValue() {
 		startCapturing();
 		let result;
 
 		try {
-			const params = this.models.map( m => m ? m.get( true ) : undefined );
-			result = this.fn.apply( this.fragment.ractive, params );
-		} catch ( err ) {
-			warnIfDebug( `Failed to compute ${this.getKeypath()}: ${err.message || err}` );
+			const params = this.models.map(m => (m ? m.get(true) : undefined));
+			result = this.fn.apply(this.fragment.ractive, params);
+		} catch (err) {
+			warnIfDebug(
+				`Failed to compute ${this.getKeypath()}: ${err.message || err}`
+			);
 		}
 
 		const dependencies = stopCapturing();
 		// remove missing deps
-		this.dependencies.filter( d => !~dependencies.indexOf( d ) ).forEach( d => {
-			d.unregister( this );
-			removeFromArray( this.dependencies, d );
+		this.dependencies.filter(d => !~dependencies.indexOf(d)).forEach(d => {
+			d.unregister(this);
+			removeFromArray(this.dependencies, d);
 		});
 		// register new deps
-		dependencies.filter( d => !~this.dependencies.indexOf( d ) ).forEach( d => {
-			d.register( this );
-			this.dependencies.push( d );
+		dependencies.filter(d => !~this.dependencies.indexOf(d)).forEach(d => {
+			d.register(this);
+			this.dependencies.push(d);
 		});
 
 		return result;
 	}
 
-	notifyUpstream () {}
+	notifyUpstream() {}
 
-	rebind ( next, previous, safe ) {
-		const idx = this.models.indexOf( previous );
+	rebind(next, previous, safe) {
+		const idx = this.models.indexOf(previous);
 
-		if ( ~idx ) {
-			next = rebindMatch( this.template.r[idx], next, previous );
-			if ( next !== previous ) {
-				previous.unregister( this );
-				this.models.splice( idx, 1, next );
-				if ( next ) next.addShuffleRegister( this, 'mark' );
+		if (~idx) {
+			next = rebindMatch(this.template.r[idx], next, previous);
+			if (next !== previous) {
+				previous.unregister(this);
+				this.models.splice(idx, 1, next);
+				if (next) next.addShuffleRegister(this, 'mark');
 			}
 		}
-		this.bubble( !safe );
+		this.bubble(!safe);
 	}
 
-	retrieve () {
+	retrieve() {
 		return this.get();
 	}
 
-	teardown () {
+	teardown() {
 		this.fragment = undefined;
-		if ( this.dependencies ) this.dependencies.forEach( d => d.unregister( this ) );
+		if (this.dependencies) this.dependencies.forEach(d => d.unregister(this));
 		super.teardown();
 	}
 
-	unreference () {
+	unreference() {
 		super.unreference();
-		if ( !this.deps.length && !this.refs ) this.teardown();
+		if (!this.deps.length && !this.refs) this.teardown();
 	}
 
-	unregister( dep ) {
-		super.unregister( dep );
-		if ( !this.deps.length && !this.refs ) this.teardown();
+	unregister(dep) {
+		super.unregister(dep);
+		if (!this.deps.length && !this.refs) this.teardown();
 	}
 }
 

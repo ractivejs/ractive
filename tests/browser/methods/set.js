@@ -2,31 +2,30 @@ import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
 export default function() {
-	initModule( 'methods/set.js' );
+	initModule('methods/set.js');
 
-	test( `deep set merges data into the existing model tree`, t => {
+	test(`deep set merges data into the existing model tree`, t => {
 		const r = new Ractive({
 			data: { foo: { bar: 42, bip: 'yep' } }
 		});
 
-		r.set( 'foo', { bar: { bat: 42 }, baz: [ true ] }, { deep: true } );
-		t.deepEqual( r.get( 'foo' ), { bar: { bat: 42 }, bip: 'yep', baz: [ true ] } );
+		r.set('foo', { bar: { bat: 42 }, baz: [true] }, { deep: true });
+		t.deepEqual(r.get('foo'), { bar: { bat: 42 }, bip: 'yep', baz: [true] });
 	});
 
-	test( `deep setting with numeric keys will update array indices`, t => {
+	test(`deep setting with numeric keys will update array indices`, t => {
 		const r = new Ractive({
-			data: { foo: [ 1, 2, 3 ] }
+			data: { foo: [1, 2, 3] }
 		});
 
-		r.set( '', { foo: { 1: 42 } }, { deep: true } );
-		t.deepEqual( r.get( 'foo' ), [ 1, 42, 3 ] );
+		r.set('', { foo: { 1: 42 } }, { deep: true });
+		t.deepEqual(r.get('foo'), [1, 42, 3]);
 
-		r.set( '', { foo: [ 99 ] }, { deep: true } );
-		t.deepEqual( r.get( 'foo' ), [ 99, 42, 3 ] );
+		r.set('', { foo: [99] }, { deep: true });
+		t.deepEqual(r.get('foo'), [99, 42, 3]);
 	});
 
-
-	test( `keep set does not discard vdom or dom, where non-keep does`, t => {
+	test(`keep set does not discard vdom or dom, where non-keep does`, t => {
 		const done = t.async();
 
 		const r = new Ractive({
@@ -38,26 +37,26 @@ export default function() {
 
 		const initFrag = r.fragment.items[0].fragment; // conditional fragment
 		const each = initFrag.items[0];
-		const cmp = r.findComponent( '*' );
+		const cmp = r.findComponent('*');
 
-		r.toggle( 'show', { keep: true } );
-		t.ok( initFrag === r.fragment.items[0].detached );
-		t.ok( each === r.fragment.items[0].detached.items[0] );
+		r.toggle('show', { keep: true });
+		t.ok(initFrag === r.fragment.items[0].detached);
+		t.ok(each === r.fragment.items[0].detached.items[0]);
 
 		setTimeout(() => {
-			t.htmlEqual( fixture.innerHTML, '' );
+			t.htmlEqual(fixture.innerHTML, '');
 
-			r.toggle( 'show' );
-			t.ok( initFrag === r.fragment.items[0].fragment );
-			t.ok( each === r.fragment.items[0].fragment.items[0] );
-			t.htmlEqual( fixture.innerHTML, '<span>1</span><span>2</span>' );
-			t.ok( cmp === r.findComponent( '*' ) );
+			r.toggle('show');
+			t.ok(initFrag === r.fragment.items[0].fragment);
+			t.ok(each === r.fragment.items[0].fragment.items[0]);
+			t.htmlEqual(fixture.innerHTML, '<span>1</span><span>2</span>');
+			t.ok(cmp === r.findComponent('*'));
 
 			done();
 		});
 	});
 
-	test( `kept fragments aren't considered during find, findAll, and friends`, t => {
+	test(`kept fragments aren't considered during find, findAll, and friends`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `{{#if show}}<div /><cmp />{{/if}}`,
@@ -65,21 +64,21 @@ export default function() {
 			components: { cmp: Ractive.extend() }
 		});
 
-		const cmp = r.findComponent( 'cmp' );
+		const cmp = r.findComponent('cmp');
 
-		r.toggle( 'show', { keep: true } );
-		t.ok( cmp );
-		t.ok( r.find( 'div' ) === undefined );
-		t.ok( r.findAll( 'div' ).length === 0 );
-		t.ok( r.findComponent( 'cmp' ) === undefined );
-		t.ok( r.findAllComponents( 'cmp' ).length === 0 );
+		r.toggle('show', { keep: true });
+		t.ok(cmp);
+		t.ok(r.find('div') === undefined);
+		t.ok(r.findAll('div').length === 0);
+		t.ok(r.findComponent('cmp') === undefined);
+		t.ok(r.findAllComponents('cmp').length === 0);
 
-		r.toggle( 'show' );
-		t.ok( r.findAll( 'div' ).length, 'div element reappeared' );
-		t.ok( cmp === r.findComponent( 'cmp' ), 'cmp instance is same' );
+		r.toggle('show');
+		t.ok(r.findAll('div').length, 'div element reappeared');
+		t.ok(cmp === r.findComponent('cmp'), 'cmp instance is same');
 	});
 
-	test( `kept fragments still intro and outro`, t => {
+	test(`kept fragments still intro and outro`, t => {
 		let count = 0;
 
 		const r = new Ractive({
@@ -87,23 +86,23 @@ export default function() {
 			template: `{{#if show}}<div go-in-out />{{/if}}`,
 			data: { show: true },
 			transitions: {
-				go ( trans ) {
+				go(trans) {
 					count++;
 					trans.complete();
 				}
 			}
 		});
 
-		t.equal( count, 1 );
+		t.equal(count, 1);
 
-		r.toggle( 'show', { keep: true } );
-		t.equal( count, 2 );
+		r.toggle('show', { keep: true });
+		t.equal(count, 2);
 
-		r.toggle( 'show' );
-		t.equal( count, 3 );
+		r.toggle('show');
+		t.equal(count, 3);
 	});
 
-	test( `kept fragments with triples work correctly`, t => {
+	test(`kept fragments with triples work correctly`, t => {
 		const r = new Ractive({
 			target: fixture,
 			template: `{{#if show}}{{{html}}}{{/if}}`,
@@ -113,16 +112,16 @@ export default function() {
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div></div>text' );
+		t.htmlEqual(fixture.innerHTML, '<div></div>text');
 
-		r.toggle( 'show', { keep: true } );
-		t.htmlEqual( fixture.innerHTML, '' );
+		r.toggle('show', { keep: true });
+		t.htmlEqual(fixture.innerHTML, '');
 
-		r.toggle( 'show' );
-		t.htmlEqual( fixture.innerHTML, '<div></div>text' );
+		r.toggle('show');
+		t.htmlEqual(fixture.innerHTML, '<div></div>text');
 	});
 
-	test( `kept fragments properly re-render conditional attributes`, t => {
+	test(`kept fragments properly re-render conditional attributes`, t => {
 		const done = t.async();
 
 		const r = new Ractive({
@@ -133,75 +132,86 @@ export default function() {
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div class="foo"></div>' );
+		t.htmlEqual(fixture.innerHTML, '<div class="foo"></div>');
 
-		r.set( 'show', false, { keep: true } ).then( () => {
-			t.htmlEqual( fixture.innerHTML, '' );
+		r
+			.set('show', false, { keep: true })
+			.then(() => {
+				t.htmlEqual(fixture.innerHTML, '');
 
-			r.toggle( 'show' );
+				r.toggle('show');
 
-			t.htmlEqual( fixture.innerHTML, '<div class="foo"></div>' );
-		}).then( done, done );
+				t.htmlEqual(fixture.innerHTML, '<div class="foo"></div>');
+			})
+			.then(done, done);
 	});
 
-	test( `kept fragments should hang around long enough to transition`, t => {
+	test(`kept fragments should hang around long enough to transition`, t => {
 		const done = t.async();
-		t.expect( 1 );
+		t.expect(1);
 
 		const r = new Ractive({
 			target: fixture,
 			template: `{{#if show}}<div go-out />{{/if}}`,
 			data: { show: true },
 			transitions: {
-				go( trans ) {
-					t.ok( !( trans.node.parentNode instanceof DocumentFragment ), 'node is still attached' );
+				go(trans) {
+					t.ok(
+						!(trans.node.parentNode instanceof DocumentFragment),
+						'node is still attached'
+					);
 					trans.complete();
 				}
 			}
 		});
 
-		r.toggle( 'show', { keep: true } ).then( done, done );
+		r.toggle('show', { keep: true }).then(done, done);
 	});
 
-	test( `decorators survive a set cycle with keep`, t => {
+	test(`decorators survive a set cycle with keep`, t => {
 		const done = t.async();
-		t.expect( 2 );
+		t.expect(2);
 
 		const r = new Ractive({
 			target: fixture,
 			template: `{{#if show}}<div as-a />{{/if}}`,
 			data: { show: true },
 			decorators: {
-				a ( node ) {
+				a(node) {
 					node.className = 'yep';
 					return {
-						teardown () { node.className = ''; }
+						teardown() {
+							node.className = '';
+						}
 					};
 				}
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div class="yep"></div>' );
+		t.htmlEqual(fixture.innerHTML, '<div class="yep"></div>');
 
-		r.toggle( 'show', { keep: true } ).then( () => {
-			r.toggle( 'show' );
+		r
+			.toggle('show', { keep: true })
+			.then(() => {
+				r.toggle('show');
 
-			t.htmlEqual( fixture.innerHTML, '<div class="yep"></div>' );
-		}).then( done, done );
+				t.htmlEqual(fixture.innerHTML, '<div class="yep"></div>');
+			})
+			.then(done, done);
 	});
 
-	test( `trying to shuffle set a keypath that doesn't exist yet should be equivalent to a plain set`, t => {
+	test(`trying to shuffle set a keypath that doesn't exist yet should be equivalent to a plain set`, t => {
 		const r = new Ractive({
 			template: `{{#each list}}{{.}}{{/each}}`,
 			target: fixture
 		});
 
-		r.set( 'list', [ 1, 2, 3 ], { shuffle: true } );
+		r.set('list', [1, 2, 3], { shuffle: true });
 
-		t.htmlEqual( fixture.innerHTML, '123' );
+		t.htmlEqual(fixture.innerHTML, '123');
 
-		r.set( 'list', [ 4, 3, 6, 1 ], { shuffle: true } );
+		r.set('list', [4, 3, 6, 1], { shuffle: true });
 
-		t.htmlEqual( fixture.innerHTML, '4361' );
+		t.htmlEqual(fixture.innerHTML, '4361');
 	});
 }

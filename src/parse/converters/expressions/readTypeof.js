@@ -5,23 +5,23 @@ import readExpression from '../readExpression';
 
 let readTypeOf;
 
-const makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
-	return function ( parser ) {
+const makePrefixSequenceMatcher = function(symbol, fallthrough) {
+	return function(parser) {
 		let expression;
 
-		if ( expression = fallthrough( parser ) ) {
+		if ((expression = fallthrough(parser))) {
 			return expression;
 		}
 
-		if ( !parser.matchString( symbol ) ) {
+		if (!parser.matchString(symbol)) {
 			return null;
 		}
 
 		parser.sp();
 
-		expression = readExpression( parser );
-		if ( !expression ) {
-			parser.error( expectedExpression );
+		expression = readExpression(parser);
+		if (!expression) {
+			parser.error(expectedExpression);
 		}
 
 		return {
@@ -36,11 +36,11 @@ const makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 (function() {
 	let i, len, matcher, fallthrough;
 
-	const prefixOperators = '! ~ + - typeof'.split( ' ' );
+	const prefixOperators = '! ~ + - typeof'.split(' ');
 
 	fallthrough = readMemberOrInvocation;
-	for ( i = 0, len = prefixOperators.length; i < len; i += 1 ) {
-		matcher = makePrefixSequenceMatcher( prefixOperators[i], fallthrough );
+	for (i = 0, len = prefixOperators.length; i < len; i += 1) {
+		matcher = makePrefixSequenceMatcher(prefixOperators[i], fallthrough);
 		fallthrough = matcher;
 	}
 
@@ -48,6 +48,6 @@ const makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 	// fallthrough for the multiplication sequence matcher we're about to create
 	// (we're skipping void and delete)
 	readTypeOf = fallthrough;
-}());
+})();
 
 export default readTypeOf;

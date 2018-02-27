@@ -1,14 +1,23 @@
 import { createDocumentFragment } from 'utils/dom';
 import { isArray, isObject } from 'utils/is';
 import { findMap } from 'utils/array';
-import { toEscapedString, toString, destroyed, shuffled, unbind, unrender, unrenderAndDestroy, update } from 'shared/methodCallers';
+import {
+	toEscapedString,
+	toString,
+	destroyed,
+	shuffled,
+	unbind,
+	unrender,
+	unrenderAndDestroy,
+	update
+} from 'shared/methodCallers';
 import Fragment from './Fragment';
 import findElement from './items/shared/findElement';
 import { getContext } from 'shared/getRactiveContext';
 import { keys } from 'utils/object';
 
 export default class RepeatedFragment {
-	constructor ( options ) {
+	constructor(options) {
 		this.parent = options.owner.up;
 
 		// bit of a hack, so reference resolution works without another
@@ -16,14 +25,20 @@ export default class RepeatedFragment {
 		this.up = this;
 		this.owner = options.owner;
 		this.ractive = this.parent.ractive;
-		this.delegate = this.ractive.delegate !== false && ( this.parent.delegate || findDelegate( findElement( options.owner ) ) );
+		this.delegate =
+			this.ractive.delegate !== false &&
+			(this.parent.delegate || findDelegate(findElement(options.owner)));
 		// delegation disabled by directive
-		if ( this.delegate && this.delegate.delegate === false ) this.delegate = false;
+		if (this.delegate && this.delegate.delegate === false)
+			this.delegate = false;
 		// let the element know it's a delegate handler
-		if ( this.delegate ) this.delegate.delegate = this.delegate;
+		if (this.delegate) this.delegate.delegate = this.delegate;
 
 		// encapsulated styles should be inherited until they get applied by an element
-		this.cssIds = 'cssIds' in options ? options.cssIds : ( this.parent ? this.parent.cssIds : null );
+		this.cssIds =
+			'cssIds' in options
+				? options.cssIds
+				: this.parent ? this.parent.cssIds : null;
 
 		this.context = null;
 		this.rendered = false;
@@ -41,48 +56,46 @@ export default class RepeatedFragment {
 		this.isArray = false;
 	}
 
-	bind ( context ) {
+	bind(context) {
 		this.context = context;
 		this.bound = true;
 		const value = context.get();
 
 		// {{#each array}}...
-		if ( this.isArray = isArray( value ) ) {
+		if ((this.isArray = isArray(value))) {
 			// we can't use map, because of sparse arrays
 			this.iterations = [];
 			const max = value.length;
-			for ( let i = 0; i < max; i += 1 ) {
-				this.iterations[i] = this.createIteration( i, i );
+			for (let i = 0; i < max; i += 1) {
+				this.iterations[i] = this.createIteration(i, i);
 			}
-		}
-
-		// {{#each object}}...
-		else if ( isObject( value ) ) {
+		} else if (isObject(value)) {
+			// {{#each object}}...
 			this.isArray = false;
 
 			// TODO this is a dreadful hack. There must be a neater way
-			if ( this.indexRef ) {
-				const refs = this.indexRef.split( ',' );
+			if (this.indexRef) {
+				const refs = this.indexRef.split(',');
 				this.keyRef = refs[0];
 				this.indexRef = refs[1];
 			}
 
-			this.iterations = keys( value ).map( ( key, index ) => {
-				return this.createIteration( key, index );
+			this.iterations = keys(value).map((key, index) => {
+				return this.createIteration(key, index);
 			});
 		}
 
 		return this;
 	}
 
-	bubble ( index ) {
-		if  ( !this.bubbled ) this.bubbled = [];
-		this.bubbled.push( index );
+	bubble(index) {
+		if (!this.bubbled) this.bubbled = [];
+		this.bubbled.push(index);
 
 		this.owner.bubble();
 	}
 
-	createIteration ( key, index ) {
+	createIteration(key, index) {
 		const fragment = new Fragment({
 			owner: this,
 			template: this.template
@@ -93,104 +106,105 @@ export default class RepeatedFragment {
 		fragment.isIteration = true;
 		fragment.delegate = this.delegate;
 
-		const model = this.context.joinKey( key );
+		const model = this.context.joinKey(key);
 
 		// set up an iteration alias if there is one
-		if ( this.owner.template.z ) {
+		if (this.owner.template.z) {
 			fragment.aliases = {};
-			fragment.aliases[ this.owner.template.z[0].n ] = model;
+			fragment.aliases[this.owner.template.z[0].n] = model;
 		}
 
-		return fragment.bind( model );
+		return fragment.bind(model);
 	}
 
-	destroyed () {
-		this.iterations.forEach( destroyed );
+	destroyed() {
+		this.iterations.forEach(destroyed);
 	}
 
-	detach () {
+	detach() {
 		const docFrag = createDocumentFragment();
-		this.iterations.forEach( fragment => docFrag.appendChild( fragment.detach() ) );
+		this.iterations.forEach(fragment => docFrag.appendChild(fragment.detach()));
 		return docFrag;
 	}
 
-	find ( selector, options ) {
-		return findMap( this.iterations, i => i.find( selector, options ) );
+	find(selector, options) {
+		return findMap(this.iterations, i => i.find(selector, options));
 	}
 
-	findAll ( selector, options ) {
-		return this.iterations.forEach( i => i.findAll( selector, options ) );
+	findAll(selector, options) {
+		return this.iterations.forEach(i => i.findAll(selector, options));
 	}
 
-	findAllComponents ( name, options ) {
-		return this.iterations.forEach( i => i.findAllComponents( name, options ) );
+	findAllComponents(name, options) {
+		return this.iterations.forEach(i => i.findAllComponents(name, options));
 	}
 
-	findComponent ( name, options ) {
-		return findMap( this.iterations, i => i.findComponent( name, options ) );
+	findComponent(name, options) {
+		return findMap(this.iterations, i => i.findComponent(name, options));
 	}
 
-	findContext () {
+	findContext() {
 		return this.context;
 	}
 
-	findNextNode ( iteration ) {
-		if ( iteration.index < this.iterations.length - 1 ) {
-			for ( let i = iteration.index + 1; i < this.iterations.length; i++ ) {
-				const node = this.iterations[ i ].firstNode( true );
-				if ( node ) return node;
+	findNextNode(iteration) {
+		if (iteration.index < this.iterations.length - 1) {
+			for (let i = iteration.index + 1; i < this.iterations.length; i++) {
+				const node = this.iterations[i].firstNode(true);
+				if (node) return node;
 			}
 		}
 
 		return this.owner.findNextNode();
 	}
 
-	firstNode ( skipParent ) {
-		return this.iterations[0] ? this.iterations[0].firstNode( skipParent ) : null;
+	firstNode(skipParent) {
+		return this.iterations[0] ? this.iterations[0].firstNode(skipParent) : null;
 	}
 
-	rebind ( next ) {
+	rebind(next) {
 		this.context = next;
-		this.iterations.forEach( fragment => {
-			const model = next ? next.joinKey( fragment.key ) : undefined;
+		this.iterations.forEach(fragment => {
+			const model = next ? next.joinKey(fragment.key) : undefined;
 			fragment.context = model;
-			if ( this.owner.template.z ) {
+			if (this.owner.template.z) {
 				fragment.aliases = {};
-				fragment.aliases[ this.owner.template.z[0].n ] = model;
+				fragment.aliases[this.owner.template.z[0].n] = model;
 			}
 		});
 	}
 
-	render ( target, occupants ) {
+	render(target, occupants) {
 		// TODO use docFrag.cloneNode...
 
 		const xs = this.iterations;
-		if ( xs ) {
+		if (xs) {
 			const len = xs.length;
-			for ( let i = 0; i < len; i++ ) {
-				xs[i].render( target, occupants );
+			for (let i = 0; i < len; i++) {
+				xs[i].render(target, occupants);
 			}
 		}
 
 		this.rendered = true;
 	}
 
-	shuffle ( newIndices ) {
-		if ( !this.pendingNewIndices ) this.previousIterations = this.iterations.slice();
+	shuffle(newIndices) {
+		if (!this.pendingNewIndices)
+			this.previousIterations = this.iterations.slice();
 
-		if ( !this.pendingNewIndices ) this.pendingNewIndices = [];
+		if (!this.pendingNewIndices) this.pendingNewIndices = [];
 
-		this.pendingNewIndices.push( newIndices );
+		this.pendingNewIndices.push(newIndices);
 
 		const iterations = [];
 
-		newIndices.forEach( ( newIndex, oldIndex ) => {
-			if ( newIndex === -1 ) return;
+		newIndices.forEach((newIndex, oldIndex) => {
+			if (newIndex === -1) return;
 
-			const fragment = this.iterations[ oldIndex ];
-			iterations[ newIndex ] = fragment;
+			const fragment = this.iterations[oldIndex];
+			iterations[newIndex] = fragment;
 
-			if ( newIndex !== oldIndex && fragment ) fragment.dirty = true;
+			if (newIndex !== oldIndex && fragment) fragment.dirty = true;
 		});
 
 		this.iterations = iterations;
@@ -198,43 +212,44 @@ export default class RepeatedFragment {
 		this.bubble();
 	}
 
-	shuffled () {
-		this.iterations.forEach( shuffled );
+	shuffled() {
+		this.iterations.forEach(shuffled);
 	}
 
-	toString ( escape ) {
-		return this.iterations ?
-			this.iterations.map( escape ? toEscapedString : toString ).join( '' ) :
-			'';
+	toString(escape) {
+		return this.iterations
+			? this.iterations.map(escape ? toEscapedString : toString).join('')
+			: '';
 	}
 
-	unbind () {
+	unbind() {
 		this.bound = false;
-		this.iterations.forEach( unbind );
+		this.iterations.forEach(unbind);
 		return this;
 	}
 
-	unrender ( shouldDestroy ) {
-		this.iterations.forEach( shouldDestroy ? unrenderAndDestroy : unrender );
-		if ( this.pendingNewIndices && this.previousIterations ) {
-			this.previousIterations.forEach( fragment => {
-				if ( fragment.rendered ) shouldDestroy ? unrenderAndDestroy( fragment ) : unrender( fragment );
+	unrender(shouldDestroy) {
+		this.iterations.forEach(shouldDestroy ? unrenderAndDestroy : unrender);
+		if (this.pendingNewIndices && this.previousIterations) {
+			this.previousIterations.forEach(fragment => {
+				if (fragment.rendered)
+					shouldDestroy ? unrenderAndDestroy(fragment) : unrender(fragment);
 			});
 		}
 		this.rendered = false;
 	}
 
 	// TODO smart update
-	update () {
+	update() {
 		// skip dirty check, since this is basically just a facade
 
-		if ( this.pendingNewIndices ) {
+		if (this.pendingNewIndices) {
 			this.bubbled.length = 0;
 			this.updatePostShuffle();
 			return;
 		}
 
-		if ( this.updating ) return;
+		if (this.updating) return;
 		this.updating = true;
 
 		const value = this.context.get();
@@ -245,114 +260,110 @@ export default class RepeatedFragment {
 		let reset = true;
 		let i;
 
-		if ( this.isArray = isArray( value ) ) {
-			if ( wasArray ) {
+		if ((this.isArray = isArray(value))) {
+			if (wasArray) {
 				reset = false;
-				if ( this.iterations.length > value.length ) {
-					toRemove = this.iterations.splice( value.length );
+				if (this.iterations.length > value.length) {
+					toRemove = this.iterations.splice(value.length);
 				}
 			}
-		} else if ( isObject( value ) && !wasArray ) {
+		} else if (isObject(value) && !wasArray) {
 			reset = false;
 			toRemove = [];
 			oldKeys = {};
 			i = this.iterations.length;
 
-			while ( i-- ) {
+			while (i--) {
 				const fragment = this.iterations[i];
-				if ( fragment.key in value ) {
-					oldKeys[ fragment.key ] = true;
+				if (fragment.key in value) {
+					oldKeys[fragment.key] = true;
 				} else {
-					this.iterations.splice( i, 1 );
-					toRemove.push( fragment );
+					this.iterations.splice(i, 1);
+					toRemove.push(fragment);
 				}
 			}
 		}
 
-		if ( reset ) {
+		if (reset) {
 			toRemove = this.iterations;
 			this.iterations = [];
 		}
 
-		if ( toRemove ) {
-			toRemove.forEach( fragment => {
+		if (toRemove) {
+			toRemove.forEach(fragment => {
 				fragment.unbind();
-				fragment.unrender( true );
+				fragment.unrender(true);
 			});
 		}
 
 		// update the remaining ones
-		if ( !reset && this.isArray && this.bubbled && this.bubbled.length ) {
+		if (!reset && this.isArray && this.bubbled && this.bubbled.length) {
 			const bubbled = this.bubbled;
 			this.bubbled = [];
-			bubbled.forEach( i => this.iterations[i] && this.iterations[i].update() );
+			bubbled.forEach(i => this.iterations[i] && this.iterations[i].update());
 		} else {
-			this.iterations.forEach( update );
+			this.iterations.forEach(update);
 		}
 
 		// add new iterations
-		const newLength = isArray( value ) ?
-			value.length :
-			isObject( value ) ?
-				keys( value ).length :
-				0;
+		const newLength = isArray(value)
+			? value.length
+			: isObject(value) ? keys(value).length : 0;
 
 		let docFrag;
 		let fragment;
 
-		if ( newLength > this.iterations.length ) {
+		if (newLength > this.iterations.length) {
 			docFrag = this.rendered ? createDocumentFragment() : null;
 			i = this.iterations.length;
 
-			if ( isArray( value ) ) {
-				while ( i < value.length ) {
-					fragment = this.createIteration( i, i );
+			if (isArray(value)) {
+				while (i < value.length) {
+					fragment = this.createIteration(i, i);
 
-					this.iterations.push( fragment );
-					if ( this.rendered ) fragment.render( docFrag );
+					this.iterations.push(fragment);
+					if (this.rendered) fragment.render(docFrag);
 
 					i += 1;
 				}
-			}
-
-			else if ( isObject( value ) ) {
+			} else if (isObject(value)) {
 				// TODO this is a dreadful hack. There must be a neater way
-				if ( this.indexRef && !this.keyRef ) {
-					const refs = this.indexRef.split( ',' );
+				if (this.indexRef && !this.keyRef) {
+					const refs = this.indexRef.split(',');
 					this.keyRef = refs[0];
 					this.indexRef = refs[1];
 				}
 
-				keys( value ).forEach( key => {
-					if ( !oldKeys || !( key in oldKeys ) ) {
-						fragment = this.createIteration( key, i );
+				keys(value).forEach(key => {
+					if (!oldKeys || !(key in oldKeys)) {
+						fragment = this.createIteration(key, i);
 
-						this.iterations.push( fragment );
-						if ( this.rendered ) fragment.render( docFrag );
+						this.iterations.push(fragment);
+						if (this.rendered) fragment.render(docFrag);
 
 						i += 1;
 					}
 				});
 			}
 
-			if ( this.rendered ) {
+			if (this.rendered) {
 				const parentNode = this.parent.findParentNode();
-				const anchor = this.parent.findNextNode( this.owner );
+				const anchor = this.parent.findNextNode(this.owner);
 
-				parentNode.insertBefore( docFrag, anchor );
+				parentNode.insertBefore(docFrag, anchor);
 			}
 		}
 
 		this.updating = false;
 	}
 
-	updatePostShuffle () {
-		const newIndices = this.pendingNewIndices[ 0 ];
+	updatePostShuffle() {
+		const newIndices = this.pendingNewIndices[0];
 
 		// map first shuffle through
-		this.pendingNewIndices.slice( 1 ).forEach( indices => {
-			newIndices.forEach( ( newIndex, oldIndex ) => {
-				newIndices[ oldIndex ] = indices[ newIndex ];
+		this.pendingNewIndices.slice(1).forEach(indices => {
+			newIndices.forEach((newIndex, oldIndex) => {
+				newIndices[oldIndex] = indices[newIndex];
 			});
 		});
 
@@ -364,26 +375,26 @@ export default class RepeatedFragment {
 		const removed = {};
 		let i;
 
-		newIndices.forEach( ( newIndex, oldIndex ) => {
-			const fragment = this.previousIterations[ oldIndex ];
-			this.previousIterations[ oldIndex ] = null;
+		newIndices.forEach((newIndex, oldIndex) => {
+			const fragment = this.previousIterations[oldIndex];
+			this.previousIterations[oldIndex] = null;
 
-			if ( newIndex === -1 ) {
-				removed[ oldIndex ] = fragment;
-			} else if ( fragment.index !== newIndex ) {
-				const model = this.context.joinKey( newIndex );
+			if (newIndex === -1) {
+				removed[oldIndex] = fragment;
+			} else if (fragment.index !== newIndex) {
+				const model = this.context.joinKey(newIndex);
 				fragment.index = fragment.key = newIndex;
 				fragment.context = model;
-				if ( this.owner.template.z ) {
+				if (this.owner.template.z) {
 					fragment.aliases = {};
-					fragment.aliases[ this.owner.template.z[0].n ] = model;
+					fragment.aliases[this.owner.template.z[0].n] = model;
 				}
 			}
 		});
 
 		// if the array was spliced outside of ractive, sometimes there are leftover fragments not in the newIndices
-		this.previousIterations.forEach( ( frag, i ) => {
-			if ( frag ) removed[ i ] = frag;
+		this.previousIterations.forEach((frag, i) => {
+			if (frag) removed[i] = frag;
 		});
 
 		// create new/move existing iterations
@@ -393,45 +404,46 @@ export default class RepeatedFragment {
 		const contiguous = 'startIndex' in newIndices;
 		i = contiguous ? newIndices.startIndex : 0;
 
-		for ( i; i < len; i++ ) {
+		for (i; i < len; i++) {
 			const frag = this.iterations[i];
 
-			if ( frag && contiguous ) {
+			if (frag && contiguous) {
 				// attach any built-up iterations
-				if ( this.rendered ) {
-					if ( removed[i] ) docFrag.appendChild( removed[i].detach() );
-					if ( docFrag.childNodes.length  ) parentNode.insertBefore( docFrag, frag.firstNode() );
+				if (this.rendered) {
+					if (removed[i]) docFrag.appendChild(removed[i].detach());
+					if (docFrag.childNodes.length)
+						parentNode.insertBefore(docFrag, frag.firstNode());
 				}
 				continue;
 			}
 
-			if ( !frag ) this.iterations[i] = this.createIteration( i, i );
+			if (!frag) this.iterations[i] = this.createIteration(i, i);
 
-			if ( this.rendered ) {
-				if ( removed[i] ) docFrag.appendChild( removed[i].detach() );
+			if (this.rendered) {
+				if (removed[i]) docFrag.appendChild(removed[i].detach());
 
-				if ( frag ) docFrag.appendChild( frag.detach() );
+				if (frag) docFrag.appendChild(frag.detach());
 				else {
-					this.iterations[i].render( docFrag );
+					this.iterations[i].render(docFrag);
 				}
 			}
 		}
 
 		// append any leftovers
-		if ( this.rendered ) {
-			for ( i = len; i < oldLen; i++ ) {
-				if ( removed[i] ) docFrag.appendChild( removed[i].detach() );
+		if (this.rendered) {
+			for (i = len; i < oldLen; i++) {
+				if (removed[i]) docFrag.appendChild(removed[i].detach());
 			}
 
-			if ( docFrag.childNodes.length ) {
-				parentNode.insertBefore( docFrag, this.owner.findNextNode() );
+			if (docFrag.childNodes.length) {
+				parentNode.insertBefore(docFrag, this.owner.findNextNode());
 			}
 		}
 
 		// trigger removal on old nodes
-		keys( removed ).forEach( k => removed[k].unbind().unrender( true ) );
+		keys(removed).forEach(k => removed[k].unbind().unrender(true));
 
-		this.iterations.forEach( update );
+		this.iterations.forEach(update);
 
 		this.pendingNewIndices = null;
 
@@ -442,12 +454,12 @@ export default class RepeatedFragment {
 RepeatedFragment.prototype.getContext = getContext;
 
 // find the topmost delegate
-function findDelegate ( start ) {
+function findDelegate(start) {
 	let el = start;
 	let delegate = start;
 
-	while ( el ) {
-		if ( el.delegate ) delegate = el;
+	while (el) {
+		if (el.delegate) delegate = el;
 		el = el.parent;
 	}
 

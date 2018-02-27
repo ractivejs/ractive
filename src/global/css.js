@@ -12,43 +12,49 @@ let isDirty = false;
 let styleElement = null;
 let useCssText = null;
 
-export function addCSS ( styleDefinition ) {
-	styleDefinitions.push( styleDefinition );
+export function addCSS(styleDefinition) {
+	styleDefinitions.push(styleDefinition);
 	isDirty = true;
 }
 
-export function applyCSS ( force ) {
+export function applyCSS(force) {
 	const styleElement = style();
 
 	// Apply only seems to make sense when we're in the DOM. Server-side renders
 	// can call toCSS to get the updated CSS.
-	if ( !styleElement || ( !force && !isDirty ) ) return;
+	if (!styleElement || (!force && !isDirty)) return;
 
-	if ( useCssText ) {
-		styleElement.styleSheet.cssText = getCSS( null );
+	if (useCssText) {
+		styleElement.styleSheet.cssText = getCSS(null);
 	} else {
-		styleElement.innerHTML = getCSS( null );
+		styleElement.innerHTML = getCSS(null);
 	}
 
 	isDirty = false;
 }
 
-export function getCSS ( cssIds ) {
-	const filteredStyleDefinitions = cssIds ? styleDefinitions.filter( style => ~cssIds.indexOf( style.id ) ) : styleDefinitions;
+export function getCSS(cssIds) {
+	const filteredStyleDefinitions = cssIds
+		? styleDefinitions.filter(style => ~cssIds.indexOf(style.id))
+		: styleDefinitions;
 
-	filteredStyleDefinitions.forEach( d => d.applied = true );
+	filteredStyleDefinitions.forEach(d => (d.applied = true));
 
-	return filteredStyleDefinitions.reduce( ( styles, style ) => `${ styles ? `${styles}\n\n/* {${style.id}} */\n${style.styles}` : '' }`, PREFIX );
+	return filteredStyleDefinitions.reduce(
+		(styles, style) =>
+			`${styles ? `${styles}\n\n/* {${style.id}} */\n${style.styles}` : ''}`,
+		PREFIX
+	);
 }
 
-function style () {
+function style() {
 	// If we're on the browser, additional setup needed.
-	if ( doc && !styleElement ) {
-		styleElement = doc.createElement( 'style' );
+	if (doc && !styleElement) {
+		styleElement = doc.createElement('style');
 		styleElement.type = 'text/css';
-		styleElement.setAttribute( 'data-ractive-css', '' );
+		styleElement.setAttribute('data-ractive-css', '');
 
-		doc.getElementsByTagName( 'head' )[0].appendChild( styleElement );
+		doc.getElementsByTagName('head')[0].appendChild(styleElement);
 
 		useCssText = !!styleElement.styleSheet;
 	}

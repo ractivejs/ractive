@@ -5,36 +5,34 @@ import hyphenateCamel from 'utils/hyphenateCamel';
 let prefix;
 
 /* istanbul ignore next */
-if ( !isClient ) {
+if (!isClient) {
 	prefix = null;
 } else {
 	const prefixCache = {};
-	const testStyle = createElement( 'div' ).style;
+	const testStyle = createElement('div').style;
 
 	// technically this also normalizes on hyphenated styles as well
-	prefix = function ( prop ) {
-		if ( !prefixCache[ prop ] ) {
-			const name = hyphenateCamel( prop );
+	prefix = function(prop) {
+		if (!prefixCache[prop]) {
+			const name = hyphenateCamel(prop);
 
-			if ( testStyle[ prop ] !== undefined ) {
-				prefixCache[ prop ] = name;
-			}
-
-			/* istanbul ignore next */
-			else {
+			if (testStyle[prop] !== undefined) {
+				prefixCache[prop] = name;
+			} else {
+				/* istanbul ignore next */
 				// test vendors...
 				let i = vendors.length;
-				while ( i-- ) {
+				while (i--) {
 					const vendor = `-${vendors[i]}-${name}`;
-					if ( testStyle[ vendor ] !== undefined ) {
-						prefixCache[ prop ] = vendor;
+					if (testStyle[vendor] !== undefined) {
+						prefixCache[prop] = vendor;
 						break;
 					}
 				}
 			}
 		}
 
-		return prefixCache[ prop ];
+		return prefixCache[prop];
 	};
 }
 

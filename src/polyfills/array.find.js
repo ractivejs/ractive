@@ -3,12 +3,12 @@ import { isFunction } from 'utils/is';
 
 /* istanbul ignore if */
 if (!Array.prototype.find) {
-	defineProperty( Array.prototype, 'find', {
-		value (callback, thisArg) {
+	defineProperty(Array.prototype, 'find', {
+		value(callback, thisArg) {
 			if (this === null || this === undefined)
 				throw new TypeError('Array.prototype.find called on null or undefined');
 
-			if (!isFunction( callback ))
+			if (!isFunction(callback))
 				throw new TypeError(`${callback} is not a function`);
 
 			const array = Object(this);

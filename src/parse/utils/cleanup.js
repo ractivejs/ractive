@@ -10,8 +10,14 @@ const trailingWhitespace = /[ \t\f\r\n]+$/;
 const leadingNewLine = /^(?:\r\n|\r|\n)/;
 const trailingNewLine = /(?:\r\n|\r|\n)$/;
 
-export default function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace ) {
-	if ( isString( items ) ) return;
+export default function cleanup(
+	items,
+	stripComments,
+	preserveWhitespace,
+	removeLeadingWhitespace,
+	removeTrailingWhitespace
+) {
+	if (isString(items)) return;
 
 	let i,
 		item,
@@ -22,90 +28,118 @@ export default function cleanup ( items, stripComments, preserveWhitespace, remo
 		removeTrailingWhitespaceInsideFragment;
 
 	// First pass - remove standalones and comments etc
-	stripStandalones( items );
+	stripStandalones(items);
 
 	i = items.length;
-	while ( i-- ) {
+	while (i--) {
 		item = items[i];
 
 		// Remove delimiter changes, unsafe elements etc
-		if ( item.exclude ) {
-			items.splice( i, 1 );
-		}
-
-		// Remove comments, unless we want to keep them
-		else if ( stripComments && item.t === COMMENT ) {
-			items.splice( i, 1 );
+		if (item.exclude) {
+			items.splice(i, 1);
+		} else if (stripComments && item.t === COMMENT) {
+			// Remove comments, unless we want to keep them
+			items.splice(i, 1);
 		}
 	}
 
 	// If necessary, remove leading and trailing whitespace
-	trimWhitespace( items, removeLeadingWhitespace ? leadingWhitespace : null, removeTrailingWhitespace ? trailingWhitespace : null );
+	trimWhitespace(
+		items,
+		removeLeadingWhitespace ? leadingWhitespace : null,
+		removeTrailingWhitespace ? trailingWhitespace : null
+	);
 
 	i = items.length;
-	while ( i-- ) {
+	while (i--) {
 		item = items[i];
 
 		// Recurse
-		if ( item.f ) {
-			const isPreserveWhitespaceElement = item.t === ELEMENT && preserveWhitespaceElements.test( item.e );
-			preserveWhitespaceInsideFragment = preserveWhitespace || isPreserveWhitespaceElement;
+		if (item.f) {
+			const isPreserveWhitespaceElement =
+				item.t === ELEMENT && preserveWhitespaceElements.test(item.e);
+			preserveWhitespaceInsideFragment =
+				preserveWhitespace || isPreserveWhitespaceElement;
 
-			if ( !preserveWhitespace && isPreserveWhitespaceElement ) {
-				trimWhitespace( item.f, leadingNewLine, trailingNewLine );
+			if (!preserveWhitespace && isPreserveWhitespaceElement) {
+				trimWhitespace(item.f, leadingNewLine, trailingNewLine);
 			}
 
-			if ( !preserveWhitespaceInsideFragment ) {
-				previousItem = items[ i - 1 ];
-				nextItem = items[ i + 1 ];
+			if (!preserveWhitespaceInsideFragment) {
+				previousItem = items[i - 1];
+				nextItem = items[i + 1];
 
 				// if the previous item was a text item with trailing whitespace,
 				// remove leading whitespace inside the fragment
-				if ( !previousItem || ( isString( previousItem ) && trailingWhitespace.test( previousItem ) ) ) {
+				if (
+					!previousItem ||
+					(isString(previousItem) && trailingWhitespace.test(previousItem))
+				) {
 					removeLeadingWhitespaceInsideFragment = true;
 				}
 
 				// and vice versa
-				if ( !nextItem || ( isString( nextItem ) && leadingWhitespace.test( nextItem ) ) ) {
+				if (
+					!nextItem ||
+					(isString(nextItem) && leadingWhitespace.test(nextItem))
+				) {
 					removeTrailingWhitespaceInsideFragment = true;
 				}
 			}
 
-			cleanup( item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
+			cleanup(
+				item.f,
+				stripComments,
+				preserveWhitespaceInsideFragment,
+				removeLeadingWhitespaceInsideFragment,
+				removeTrailingWhitespaceInsideFragment
+			);
 		}
 
 		// Split if-else blocks into two (an if, and an unless)
-		if ( item.l ) {
-			cleanup( item.l, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
+		if (item.l) {
+			cleanup(
+				item.l,
+				stripComments,
+				preserveWhitespace,
+				removeLeadingWhitespaceInsideFragment,
+				removeTrailingWhitespaceInsideFragment
+			);
 
-			item.l.forEach( s => s.l = 1 );
-			item.l.unshift( i + 1, 0 );
-			items.splice.apply( items, item.l );
+			item.l.forEach(s => (s.l = 1));
+			item.l.unshift(i + 1, 0);
+			items.splice.apply(items, item.l);
 			delete item.l; // TODO would be nice if there was a way around this
 		}
 
 		// Clean up conditional attributes
-		if ( item.m ) {
-			cleanup( item.m, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
-			if ( item.m.length < 1 ) delete item.m;
+		if (item.m) {
+			cleanup(
+				item.m,
+				stripComments,
+				preserveWhitespace,
+				removeLeadingWhitespaceInsideFragment,
+				removeTrailingWhitespaceInsideFragment
+			);
+			if (item.m.length < 1) delete item.m;
 		}
 	}
 
 	// final pass - fuse text nodes together
 	i = items.length;
-	while ( i-- ) {
-		if ( isString( items[i] ) ) {
-			if ( isString( items[i+1] ) ) {
-				items[i] = items[i] + items[i+1];
-				items.splice( i + 1, 1 );
+	while (i--) {
+		if (isString(items[i])) {
+			if (isString(items[i + 1])) {
+				items[i] = items[i] + items[i + 1];
+				items.splice(i + 1, 1);
 			}
 
-			if ( !preserveWhitespace ) {
-				items[i] = items[i].replace( contiguousWhitespace, ' ' );
+			if (!preserveWhitespace) {
+				items[i] = items[i].replace(contiguousWhitespace, ' ');
 			}
 
-			if ( items[i] === '' ) {
-				items.splice( i, 1 );
+			if (items[i] === '') {
+				items.splice(i, 1);
 			}
 		}
 	}

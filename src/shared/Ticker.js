@@ -5,7 +5,7 @@ import runloop from 'src/global/runloop';
 const tickers = [];
 let running = false;
 
-function tick () {
+function tick() {
 	runloop.start();
 
 	const now = performance.now();
@@ -13,26 +13,26 @@ function tick () {
 	let i;
 	let ticker;
 
-	for ( i = 0; i < tickers.length; i += 1 ) {
+	for (i = 0; i < tickers.length; i += 1) {
 		ticker = tickers[i];
 
-		if ( !ticker.tick( now ) ) {
+		if (!ticker.tick(now)) {
 			// ticker is complete, remove it from the stack, and decrement i so we don't miss one
-			tickers.splice( i--, 1 );
+			tickers.splice(i--, 1);
 		}
 	}
 
 	runloop.end();
 
-	if ( tickers.length ) {
-		requestAnimationFrame( tick );
+	if (tickers.length) {
+		requestAnimationFrame(tick);
 	} else {
 		running = false;
 	}
 }
 
 export default class Ticker {
-	constructor ( options ) {
+	constructor(options) {
 		this.duration = options.duration;
 		this.step = options.step;
 		this.complete = options.complete;
@@ -43,30 +43,30 @@ export default class Ticker {
 
 		this.running = true;
 
-		tickers.push( this );
-		if ( !running ) requestAnimationFrame( tick );
+		tickers.push(this);
+		if (!running) requestAnimationFrame(tick);
 	}
 
-	tick ( now ) {
-		if ( !this.running ) return false;
+	tick(now) {
+		if (!this.running) return false;
 
-		if ( now > this.end ) {
-			if ( this.step ) this.step( 1 );
-			if ( this.complete ) this.complete( 1 );
+		if (now > this.end) {
+			if (this.step) this.step(1);
+			if (this.complete) this.complete(1);
 
 			return false;
 		}
 
 		const elapsed = now - this.start;
-		const eased = this.easing( elapsed / this.duration );
+		const eased = this.easing(elapsed / this.duration);
 
-		if ( this.step ) this.step( eased );
+		if (this.step) this.step(eased);
 
 		return true;
 	}
 
-	stop () {
-		if ( this.abort ) this.abort();
+	stop() {
+		if (this.abort) this.abort();
 		this.running = false;
 	}
 }

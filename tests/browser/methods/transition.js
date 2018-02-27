@@ -3,9 +3,9 @@ import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
 export default function() {
-	initModule( 'methods/transition.js' );
+	initModule('methods/transition.js');
 
-	test( 'Transitions method', t => {
+	test('Transitions method', t => {
 		const done = t.async();
 		t.expect(3);
 
@@ -15,28 +15,29 @@ export default function() {
 			transitions: { fade }
 		});
 
-		function fade ( t ) {
-			t.setStyle( 'opacity', 0 );
-			return t.animateStyle( 'opacity', t.params.opacity, { duration: 50 } );
+		function fade(t) {
+			t.setStyle('opacity', 0);
+			return t.animateStyle('opacity', t.params.opacity, { duration: 50 });
 		}
 
-		const div = ractive.find( 'div' );
-		t.equal( div.style.opacity, '' );
+		const div = ractive.find('div');
+		t.equal(div.style.opacity, '');
 
 		// string name of transition
-		ractive.transition( 'fade', div, { opacity: 0.5 } )
-			.then( () => {
-				t.equal( div.style.opacity, 0.5 );
+		ractive
+			.transition('fade', div, { opacity: 0.5 })
+			.then(() => {
+				t.equal(div.style.opacity, 0.5);
 				// function
-				return ractive.transition( fade, div, { opacity: 1 } );
+				return ractive.transition(fade, div, { opacity: 1 });
 			})
-			.then( () => {
-				t.equal( div.style.opacity, 1 );
+			.then(() => {
+				t.equal(div.style.opacity, 1);
 				done();
 			});
 	});
 
-	test( 'Use transitions from event with implicit node', t => {
+	test('Use transitions from event with implicit node', t => {
 		const done = t.async();
 		t.expect(2);
 
@@ -46,20 +47,19 @@ export default function() {
 			transitions: { fade }
 		});
 
-		function fade ( t ) {
-			t.setStyle( 'opacity', 1 );
-			return t.animateStyle( 'opacity', 0, { duration: 50 } );
+		function fade(t) {
+			t.setStyle('opacity', 1);
+			return t.animateStyle('opacity', 0, { duration: 50 });
 		}
 
-		const div = ractive.find( 'div' );
-		t.equal( div.style.opacity, '' );
+		const div = ractive.find('div');
+		t.equal(div.style.opacity, '');
 
-		fire( div, 'click' );
+		fire(div, 'click');
 
-		setTimeout( () => {
-			t.equal( div.style.opacity, 0 );
+		setTimeout(() => {
+			t.equal(div.style.opacity, 0);
 			done();
 		}, 100);
-
 	});
 }

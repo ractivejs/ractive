@@ -4,7 +4,7 @@ import { capture } from 'src/global/capture';
 import noop from 'utils/noop';
 
 export default class KeyModel {
-	constructor ( key, parent ) {
+	constructor(key, parent) {
 		this.value = key;
 		this.isReadonly = this.isKey = true;
 		this.deps = [];
@@ -12,39 +12,41 @@ export default class KeyModel {
 		this.parent = parent;
 	}
 
-	get ( shouldCapture ) {
-		if ( shouldCapture ) capture( this );
-		return unescapeKey( this.value );
+	get(shouldCapture) {
+		if (shouldCapture) capture(this);
+		return unescapeKey(this.value);
 	}
 
-	getKeypath () {
-		return unescapeKey( this.value );
+	getKeypath() {
+		return unescapeKey(this.value);
 	}
 
-	has () { return false; }
+	has() {
+		return false;
+	}
 
-	rebind ( next, previous ) {
+	rebind(next, previous) {
 		let i = this.deps.length;
-		while ( i-- ) this.deps[i].rebind( next, previous, false );
+		while (i--) this.deps[i].rebind(next, previous, false);
 
 		i = this.links.length;
-		while ( i-- ) this.links[i].relinking( next, false );
+		while (i--) this.links[i].relinking(next, false);
 	}
 
-	register ( dependant ) {
-		this.deps.push( dependant );
+	register(dependant) {
+		this.deps.push(dependant);
 	}
 
-	registerLink ( link ) {
-		addToArray( this.links, link );
+	registerLink(link) {
+		addToArray(this.links, link);
 	}
 
-	unregister ( dependant ) {
-		removeFromArray( this.deps, dependant );
+	unregister(dependant) {
+		removeFromArray(this.deps, dependant);
 	}
 
-	unregisterLink ( link ) {
-		removeFromArray( this.links, link );
+	unregisterLink(link) {
+		removeFromArray(this.links, link);
 	}
 }
 

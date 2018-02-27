@@ -18,41 +18,47 @@ const specialPattern = /^(event|arguments|@node|@event|@context)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
 
 export default class EventDirective {
-	constructor ( options ) {
-		this.owner = options.owner || options.up.owner || findElement( options.up );
-		this.element = this.owner.attributeByName ? this.owner : findElement( options.up, true );
+	constructor(options) {
+		this.owner = options.owner || options.up.owner || findElement(options.up);
+		this.element = this.owner.attributeByName
+			? this.owner
+			: findElement(options.up, true);
 		this.template = options.template;
 		this.up = options.up;
 		this.ractive = options.up.ractive;
 		this.events = [];
 	}
 
-	bind () {
-		if ( this.element.type === COMPONENT || this.element.type === ANCHOR ) {
-			this.template.n.forEach( n => {
-				this.events.push( new RactiveEvent( this.element, n ) );
+	bind() {
+		if (this.element.type === COMPONENT || this.element.type === ANCHOR) {
+			this.template.n.forEach(n => {
+				this.events.push(new RactiveEvent(this.element, n));
 			});
 		} else {
 			let args;
-			if ( args = this.template.a ) {
-				const rs = args.r.map( r => {
-					const model = resolveReference( this.up, r );
+			if ((args = this.template.a)) {
+				const rs = args.r.map(r => {
+					const model = resolveReference(this.up, r);
 					return model ? model.get() : undefined;
 				});
 				try {
-					args = getFunction( args.s, rs.length ).apply( null, rs );
-				} catch ( err ) {
+					args = getFunction(args.s, rs.length).apply(null, rs);
+				} catch (err) {
 					args = null;
-					warnIfDebug(`Failed to compute args for event on-${this.template.n.join( '- ')}: ${err.message || err}`);
+					warnIfDebug(
+						`Failed to compute args for event on-${this.template.n.join(
+							'- '
+						)}: ${err.message || err}`
+					);
 				}
 			}
 
-			this.template.n.forEach( n => {
-				const fn = findInViewHierarchy( 'events', this.ractive, n );
-				if ( fn ) {
-					this.events.push( new CustomEvent( fn, this.element, n, args ) );
+			this.template.n.forEach(n => {
+				const fn = findInViewHierarchy('events', this.ractive, n);
+				if (fn) {
+					this.events.push(new CustomEvent(fn, this.element, n, args));
 				} else {
-					this.events.push( new DOMEvent( n, this.element ) );
+					this.events.push(new DOMEvent(n, this.element));
 				}
 			});
 		}
@@ -60,62 +66,71 @@ export default class EventDirective {
 		// method calls
 		this.models = null;
 
-		addToArray( ( this.element.events || ( this.element.events = [] ) ), this );
+		addToArray(this.element.events || (this.element.events = []), this);
 
-		setupArgsFn( this, this.template );
-		if ( !this.fn ) this.action = this.template.f;
+		setupArgsFn(this, this.template);
+		if (!this.fn) this.action = this.template.f;
 
-		this.events.forEach( e => e.bind( this ) );
+		this.events.forEach(e => e.bind(this));
 	}
 
-	destroyed () {
-		this.events.forEach( e => e.unrender() );
+	destroyed() {
+		this.events.forEach(e => e.unrender());
 	}
 
-	fire ( event, args = [] ) {
-		const context = event instanceof Context && event.refire ? event : this.element.getContext( event );
+	fire(event, args = []) {
+		const context =
+			event instanceof Context && event.refire
+				? event
+				: this.element.getContext(event);
 
-		if ( this.fn ) {
+		if (this.fn) {
 			const values = [];
 
-			const models = resolveArgs( this, this.template, this.up, {
-				specialRef ( ref ) {
-					const specialMatch = specialPattern.exec( ref );
-					if ( specialMatch ) {
+			const models = resolveArgs(this, this.template, this.up, {
+				specialRef(ref) {
+					const specialMatch = specialPattern.exec(ref);
+					if (specialMatch) {
 						// on-click="foo(event.node)"
 						return {
 							special: specialMatch[1],
-							keys: specialMatch[2] ? splitKeypath( specialMatch[2].substr(1) ) : []
+							keys: specialMatch[2]
+								? splitKeypath(specialMatch[2].substr(1))
+								: []
 						};
 					}
 
-					const dollarMatch = dollarArgsPattern.exec( ref );
-					if ( dollarMatch ) {
+					const dollarMatch = dollarArgsPattern.exec(ref);
+					if (dollarMatch) {
 						// on-click="foo($1)"
 						return {
 							special: 'arguments',
-							keys: [ dollarMatch[1] - 1 ].concat( dollarMatch[2] ? splitKeypath( dollarMatch[2].substr( 1 ) ) : [] )
+							keys: [dollarMatch[1] - 1].concat(
+								dollarMatch[2] ? splitKeypath(dollarMatch[2].substr(1)) : []
+							)
 						};
 					}
 				}
 			});
 
-			if ( models ) {
-				models.forEach( model => {
-					if ( !model ) return values.push( undefined );
+			if (models) {
+				models.forEach(model => {
+					if (!model) return values.push(undefined);
 
-					if ( model.special ) {
+					if (model.special) {
 						const which = model.special;
 						let obj;
 
-						if ( which === '@node' ) {
+						if (which === '@node') {
 							obj = this.element.node;
-						} else if ( which === '@event' ) {
+						} else if (which === '@event') {
 							obj = event && event.event;
-						} else if ( which === 'event' ) {
-							warnOnceIfDebug( `The event reference available to event directives is deprecated and should be replaced with @context and @event` );
+						} else if (which === 'event') {
+							warnOnceIfDebug(
+								`The event reference available to event directives is deprecated and should be replaced with @context and @event`
+							);
 							obj = context;
-						} else if ( which === '@context' ) {
+						} else if (which === '@context') {
 							obj = context;
 						} else {
 							obj = args;
@@ -123,15 +138,15 @@ export default class EventDirective {
 
 						const keys = model.keys.slice();
 
-						while ( obj && keys.length ) obj = obj[ keys.shift() ];
-						return values.push( obj );
+						while (obj && keys.length) obj = obj[keys.shift()];
+						return values.push(obj);
 					}
 
-					if ( model.wrapper ) {
-						return values.push( model.wrapperValue );
+					if (model.wrapper) {
+						return values.push(model.wrapperValue);
 					}
 
-					values.push( model.get() );
+					values.push(model.get());
 				});
 			}
 
@@ -140,50 +155,52 @@ export default class EventDirective {
 			const oldEvent = ractive.event;
 
 			ractive.event = context;
-			const returned = this.fn.apply( ractive, values );
+			const returned = this.fn.apply(ractive, values);
 			let result = returned.pop();
 
 			// Auto prevent and stop if return is explicitly false
-			if ( result === false ) {
+			if (result === false) {
 				const original = event ? event.original : undefined;
-				if ( original ) {
+				if (original) {
 					original.preventDefault && original.preventDefault();
 					original.stopPropagation && original.stopPropagation();
 				} else {
-					warnOnceIfDebug( `handler '${this.template.n.join( ' ' )}' returned false, but there is no event available to cancel` );
+					warnOnceIfDebug(
+						`handler '${this.template.n.join(
+							' '
+						)}' returned false, but there is no event available to cancel`
+					);
 				}
-			}
-
-			// watch for proxy events
-			else if ( !returned.length && isArray( result ) && isString( result[0] ) ) {
-				result = fireEvent( this.ractive, result.shift(), context, result );
+			} else if (!returned.length && isArray(result) && isString(result[0])) {
+				// watch for proxy events
+				result = fireEvent(this.ractive, result.shift(), context, result);
 			}
 
 			ractive.event = oldEvent;
 
 			return result;
-		}
-
-		else {
-			return fireEvent( this.ractive, this.action, context, args);
+		} else {
+			return fireEvent(this.ractive, this.action, context, args);
 		}
 	}
 
-	handleChange () {}
+	handleChange() {}
 
-	render () {
-		this.events.forEach( e => e.render( this ) );
+	render() {
+		this.events.forEach(e => e.render(this));
 	}
 
-	toString() { return ''; }
-
-	unbind () {
-		removeFromArray( this.element.events, this );
-		this.events.forEach( e => e.unbind() );
+	toString() {
+		return '';
 	}
 
-	unrender () {
-		this.events.forEach( e => e.unrender() );
+	unbind() {
+		removeFromArray(this.element.events, this);
+		this.events.forEach(e => e.unbind());
+	}
+
+	unrender() {
+		this.events.forEach(e => e.unrender());
 	}
 }
 
