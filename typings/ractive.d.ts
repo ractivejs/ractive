@@ -754,7 +754,7 @@ interface UpdateOpts {
 
 interface Registry<T> { [key: string]: T }
 
-interface BaseParseOpts {
+export interface BaseParseOpts {
 	/** The number of lines of template above and below a line with an error to include in the error message. */
 	contextLines?: number;
 
@@ -783,7 +783,7 @@ interface BaseParseOpts {
 	tripleDelimiters?: ParseDelimiters;
 }
 
-interface ParseOpts extends BaseParseOpts {
+export interface ParseOpts extends BaseParseOpts {
 	/** If true, the parser will operate as if in a tag e.g. foo="bar" is parsed as an attribute rather than a string. */
 	attributes?: boolean;
 
@@ -791,7 +791,7 @@ interface ParseOpts extends BaseParseOpts {
 	textOnlyMode?: boolean;
 }
 
-interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseOpts {
+export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseOpts {
 	/** Adaptors to be applied. */
 	adapt?: (Adaptor | string)[];
 
@@ -868,7 +868,7 @@ interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseOpts {
 	warnAboutAmbiguity?: boolean;
 }
 
-interface ExtendOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T> {
+export interface ExtendOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T> {
 	/** A list of attributes to be reserved by a component. Any additional attributes are collected into the extra-attributes partial. */
 	attributes?: string[] | { optional?: string[], required?: string[] };
 
@@ -894,7 +894,7 @@ interface ExtendOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T> {
 	use?: PluginExtend[];
 }
 
-interface InstanceInitOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T> {
+export interface InitOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T> {
 	/** Initiial data for this instance. */
 	data?: Data | DataFn<T>;
 
@@ -906,21 +906,15 @@ interface InstanceInitOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<
 
 	/** An array of plugins to apply to the instance. */
 	use?: PluginInstance[];
+
+	/** If true, this instance can occupy the target element with other existing instances rather than cause them to unrender. Cannot be used with enhance. */
+	append?: true;
+
+	/** If true, this instance will try to reuse DOM nodes found in its target rather than discarding and replacing them. Cannot be used with append. */
+	enhance?: true;
 }
 
-interface AppendInitOpts<T extends Ractive<T> = Ractive> extends InstanceInitOpts<T> {
-	/** If true, this instance can occupy the target element with other existing instances rather than cause them to unrender. */
-	append: true;
-}
-
-interface EnhanceInitOpts<T extends Ractive<T> = Ractive> extends InstanceInitOpts<T> {
-	/** If true, this instance will try to reuse DOM nodes found in its target rather than discarding and replacing them. */
-	enhance: true;
-}
-
-export type InitOpts<T extends Ractive<T> = Ractive> = InstanceInitOpts<T> | AppendInitOpts<T> | EnhanceInitOpts<T>;
-
-interface Registries {
+interface Registries<T extends Ractive<T>> {
 	adaptors: Registry<Adaptor>;
 	components: Registry<Component>;
 	decorators: Registry<Decorator<T>>;
@@ -930,15 +924,15 @@ interface Registries {
 	partials: Registry<Partial>;
 }
 
-interface Constructor<T extends Ractive<T>> {
-	new(opts?: InitOpts<T>): T;
+interface Constructor<T extends Ractive<T>, U extends InitOpts<T> = InitOpts<T>> {
+	new(opts?: U): T;
 }
 
 interface Static<T extends Ractive<T> = Ractive> {
-	new(opts?: InitOpts<T>): T;
+	new<V extends InitOpts<T> = InitOpts<T>>(opts?: V): T;
 
 	/** The registries that are inherited by all instance. */
-	defaults: Registries;
+	defaults: Registries<T>;
 
 	adaptors: Registry<Adaptor>;
 	components: Registry<Component>;
@@ -949,10 +943,10 @@ interface Static<T extends Ractive<T> = Ractive> {
 	partials: Registry<Partial>;
 
 	/** Create a new component with this constructor as a starting point. */
-	extend<U>(opts?: ExtendOpts<T>): Static<Ractive<T & U>>;
+	extend<U, V extends ExtendOpts<T> = ExtendOpts<T>>(opts?: V): Static<Ractive<T & U>>;
 
 	/** Create a new component with this constuuctor as a starting point using the given constructor. */
-	extendWith<U extends Ractive<U>>(c: Constructor<U>, opts?: ExtendOpts<U>): void;
+	extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): void;
 
 	/** Get a Context for the given node or selector. */
 	getContext(nodeOrQuery: HTMLElement | string): ContextHelper;
@@ -1404,7 +1398,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	use(...plugins: PluginInstance[]): Ractive;
 
 	/** The registries that are inherited by all instance. */
-	static defaults: Registries;
+	static defaults: Registries<Ractive>;
 
 	static adaptors: Registry<Adaptor>;
 	static components: Registry<Component>;
@@ -1418,7 +1412,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	static extend<U>(opts?: ExtendOpts<Ractive & U>): Static<Ractive<Ractive & U>>;
 
 	/** Create a new component with this constuuctor as a starting point using the given constructor. */
-	static extendWith<U extends Ractive<U>>(c: Constructor<U>, opts?: ExtendOpts<U>): void;
+	static extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): void;
 
 	/** Get a Context for the given node or selector. */
 	static getContext(nodeOrQuery: HTMLElement | string): ContextHelper;
