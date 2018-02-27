@@ -14,9 +14,13 @@ const whitelist = {
 };
 
 class DOMEvent {
-	constructor ( name, owner ) {
-		if ( name.indexOf( '*' ) !== -1 ) {
-			fatal( `Only component proxy-events may contain "*" wildcards, <${owner.name} on-${name}="..."/> is not valid` );
+	constructor(name, owner) {
+		if (name.indexOf('*') !== -1) {
+			fatal(
+				`Only component proxy-events may contain "*" wildcards, <${
+					owner.name
+				} on-${name}="..."/> is not valid`
+			);
 		}
 
 		this.name = name;
@@ -24,38 +28,41 @@ class DOMEvent {
 		this.handler = null;
 	}
 
-	bind () {}
+	bind() {}
 
-	render ( directive ) {
+	render(directive) {
 		// schedule events so that they take place after twoway binding
-		runloop.scheduleTask( () => {
+		runloop.scheduleTask(() => {
 			const node = this.owner.node;
 			const name = this.name;
 			const on = `on${name}`;
 
 			// this is probably a custom event fired from a decorator or manually
-			if ( !( on in node ) && !( on in win ) && !whitelist[name] ) return;
+			if (!(on in node) && !(on in win) && !whitelist[name]) return;
 
-			this.owner.on( name, this.handler = ( event ) => {
-				return directive.fire({
-					node,
-					original: event,
-					event,
-					name
-				});
-			});
+			this.owner.on(
+				name,
+				(this.handler = event => {
+					return directive.fire({
+						node,
+						original: event,
+						event,
+						name
+					});
+				})
+			);
 		}, true);
 	}
 
-	unbind () {}
+	unbind() {}
 
-	unrender () {
-		if ( this.handler ) this.owner.off( this.name, this.handler );
+	unrender() {
+		if (this.handler) this.owner.off(this.name, this.handler);
 	}
 }
 
 class CustomEvent {
-	constructor ( eventPlugin, owner, name, args ) {
+	constructor(eventPlugin, owner, name, args) {
 		this.eventPlugin = eventPlugin;
 		this.owner = owner;
 		this.name = name;
@@ -63,26 +70,32 @@ class CustomEvent {
 		this.args = args;
 	}
 
-	bind () {}
+	bind() {}
 
-	render ( directive ) {
-		runloop.scheduleTask( () => {
+	render(directive) {
+		runloop.scheduleTask(() => {
 			const node = this.owner.node;
 
-			this.handler = this.eventPlugin.apply( this.owner.ractive, [ node, ( event = {} ) => {
-				if ( event.original ) event.event = event.original;
-				else event.original = event.event;
+			this.handler = this.eventPlugin.apply(
+				this.owner.ractive,
+				[
+					node,
+					(event = {}) => {
+						if (event.original) event.event = event.original;
+						else event.original = event.event;
 
-				event.name = this.name;
-				event.node = event.node || node;
-				return directive.fire( event );
-			} ].concat( this.args || [] ) );
+						event.name = this.name;
+						event.node = event.node || node;
+						return directive.fire(event);
+					}
+				].concat(this.args || [])
+			);
 		});
 	}
 
-	unbind () {}
+	unbind() {}
 
-	unrender () {
+	unrender() {
 		this.handler.teardown();
 	}
 }

@@ -2,7 +2,7 @@ import { createDocumentFragment } from 'utils/dom';
 import noop from 'utils/noop';
 
 export default class Item {
-	constructor ( options ) {
+	constructor(options) {
 		this.up = options.up;
 		this.ractive = options.up.ractive;
 
@@ -13,34 +13,34 @@ export default class Item {
 		this.dirty = false;
 	}
 
-	bubble () {
-		if ( !this.dirty ) {
+	bubble() {
+		if (!this.dirty) {
 			this.dirty = true;
 			this.up.bubble();
 		}
 	}
 
-	destroyed () {
-		if ( this.fragment ) this.fragment.destroyed();
+	destroyed() {
+		if (this.fragment) this.fragment.destroyed();
 	}
 
-	find () {
+	find() {
 		return null;
 	}
 
-	findComponent () {
+	findComponent() {
 		return null;
 	}
 
-	findNextNode () {
-		return this.up.findNextNode( this );
+	findNextNode() {
+		return this.up.findNextNode(this);
 	}
 
-	shuffled () {
-		if ( this.fragment ) this.fragment.shuffled();
+	shuffled() {
+		if (this.fragment) this.fragment.shuffled();
 	}
 
-	valueOf () {
+	valueOf() {
 		return this.toString();
 	}
 }
@@ -49,43 +49,43 @@ Item.prototype.findAll = noop;
 Item.prototype.findAllComponents = noop;
 
 export class ContainerItem extends Item {
-	constructor ( options ) {
-		super( options );
+	constructor(options) {
+		super(options);
 	}
 
-	detach () {
+	detach() {
 		return this.fragment ? this.fragment.detach() : createDocumentFragment();
 	}
 
-	find ( selector ) {
-		if ( this.fragment ) {
-			return this.fragment.find( selector );
+	find(selector) {
+		if (this.fragment) {
+			return this.fragment.find(selector);
 		}
 	}
 
-	findAll ( selector, options ) {
-		if ( this.fragment ) {
-			this.fragment.findAll( selector, options );
+	findAll(selector, options) {
+		if (this.fragment) {
+			this.fragment.findAll(selector, options);
 		}
 	}
 
-	findComponent ( name ) {
-		if ( this.fragment ) {
-			return this.fragment.findComponent( name );
+	findComponent(name) {
+		if (this.fragment) {
+			return this.fragment.findComponent(name);
 		}
 	}
 
-	findAllComponents ( name, options ) {
-		if ( this.fragment ) {
-			this.fragment.findAllComponents( name, options );
+	findAllComponents(name, options) {
+		if (this.fragment) {
+			this.fragment.findAllComponents(name, options);
 		}
 	}
 
-	firstNode ( skipParent ) {
-		return this.fragment && this.fragment.firstNode( skipParent );
+	firstNode(skipParent) {
+		return this.fragment && this.fragment.firstNode(skipParent);
 	}
 
-	toString ( escape ) {
-		return this.fragment ? this.fragment.toString( escape ) : '';
+	toString(escape) {
+		return this.fragment ? this.fragment.toString(escape) : '';
 	}
 }

@@ -1,21 +1,24 @@
-import { hasUsableConsole, onWarn, initModule } from '../../helpers/test-config';
+import {
+	hasUsableConsole,
+	onWarn,
+	initModule
+} from '../../helpers/test-config';
 import { test } from 'qunit';
 
 export default function() {
-	initModule( 'plugins/decorators.js' );
+	initModule('plugins/decorators.js');
 
-
-	test( 'Basic decorator', t => {
+	test('Basic decorator', t => {
 		new Ractive({
 			el: fixture,
 			template: '<div as-foo>this text will be overwritten</div>',
 			decorators: {
-				foo ( node ) {
+				foo(node) {
 					const contents = node.innerHTML;
 					node.innerHTML = 'foo';
 
 					return {
-						teardown () {
+						teardown() {
 							node.innerHTML = contents;
 						}
 					};
@@ -23,35 +26,35 @@ export default function() {
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
+		t.htmlEqual(fixture.innerHTML, '<div>foo</div>');
 	});
 
-	if ( hasUsableConsole ) {
-		test( 'Missing decorator', t => {
-			t.expect( 1 );
+	if (hasUsableConsole) {
+		test('Missing decorator', t => {
+			t.expect(1);
 
-			onWarn( msg => {
-				t.ok( /Missing "foo" decorator plugin/.test( msg ) );
+			onWarn(msg => {
+				t.ok(/Missing "foo" decorator plugin/.test(msg));
 			});
 
 			new Ractive({
 				el: fixture,
-				template: '<div as-foo>missing</div>',
+				template: '<div as-foo>missing</div>'
 			});
 		});
 	}
 
-	test( 'Decorator with a static argument', t => {
+	test('Decorator with a static argument', t => {
 		new Ractive({
 			el: fixture,
 			template: '<div as-foo=""bar"">this text will be overwritten</div>',
 			decorators: {
-				foo ( node, newContents ) {
+				foo(node, newContents) {
 					const contents = node.innerHTML;
 					node.innerHTML = newContents;
 
 					return {
-						teardown () {
+						teardown() {
 							node.innerHTML = contents;
 						}
 					};
@@ -59,10 +62,10 @@ export default function() {
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
+		t.htmlEqual(fixture.innerHTML, '<div>bar</div>');
 	});
 
-	test( 'Decorator with a dynamic argument', t => {
+	test('Decorator with a dynamic argument', t => {
 		new Ractive({
 			el: fixture,
 			template: '<div as-foo="foo">this text will be overwritten</div>',
@@ -70,12 +73,12 @@ export default function() {
 				foo: 'baz'
 			},
 			decorators: {
-				foo ( node, newContents ) {
+				foo(node, newContents) {
 					const contents = node.innerHTML;
 					node.innerHTML = newContents;
 
 					return {
-						teardown () {
+						teardown() {
 							node.innerHTML = contents;
 						}
 					};
@@ -83,10 +86,10 @@ export default function() {
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
+		t.htmlEqual(fixture.innerHTML, '<div>baz</div>');
 	});
 
-	test( 'Decorator with a dynamic argument that changes, without update() method', t => {
+	test('Decorator with a dynamic argument that changes, without update() method', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div as-foo="foo">this text will be overwritten</div>',
@@ -94,12 +97,12 @@ export default function() {
 				foo: 'baz'
 			},
 			decorators: {
-				foo ( node, newContents ) {
+				foo(node, newContents) {
 					const contents = node.innerHTML;
 					node.innerHTML = newContents;
 
 					return {
-						teardown () {
+						teardown() {
 							node.innerHTML = contents;
 						}
 					};
@@ -107,14 +110,14 @@ export default function() {
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
-		ractive.set( 'foo', 'qux' );
-		t.htmlEqual( fixture.innerHTML, '<div>qux</div>' );
-		ractive.set( 'foo', 'bar' );
-		t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
+		t.htmlEqual(fixture.innerHTML, '<div>baz</div>');
+		ractive.set('foo', 'qux');
+		t.htmlEqual(fixture.innerHTML, '<div>qux</div>');
+		ractive.set('foo', 'bar');
+		t.htmlEqual(fixture.innerHTML, '<div>bar</div>');
 	});
 
-	test( 'Decorator with a dynamic argument that changes, with update() method', t => {
+	test('Decorator with a dynamic argument that changes, with update() method', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div as-foo="foo">this text will be overwritten</div>',
@@ -122,15 +125,15 @@ export default function() {
 				foo: 'baz'
 			},
 			decorators: {
-				foo ( node, newContents ) {
+				foo(node, newContents) {
 					const contents = node.innerHTML;
 					node.innerHTML = newContents;
 
 					return {
-						update ( newContents ) {
+						update(newContents) {
 							node.innerHTML = newContents;
 						},
-						teardown () {
+						teardown() {
 							node.innerHTML = contents;
 						}
 					};
@@ -138,30 +141,31 @@ export default function() {
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
-		ractive.set( 'foo', 'qux' );
-		t.htmlEqual( fixture.innerHTML, '<div>qux</div>' );
-		ractive.set( 'foo', 'bar' );
-		t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
+		t.htmlEqual(fixture.innerHTML, '<div>baz</div>');
+		ractive.set('foo', 'qux');
+		t.htmlEqual(fixture.innerHTML, '<div>qux</div>');
+		ractive.set('foo', 'bar');
+		t.htmlEqual(fixture.innerHTML, '<div>bar</div>');
 	});
 
-	test( 'Decorator in a section with a dynamic argument that changes, with update() method (#3152)', t => {
+	test('Decorator in a section with a dynamic argument that changes, with update() method (#3152)', t => {
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<div {{#if true}}as-foo="foo"{{/if}}>this text will be overwritten</div>',
+			template:
+				'<div {{#if true}}as-foo="foo"{{/if}}>this text will be overwritten</div>',
 			data: {
 				foo: 'baz'
 			},
 			decorators: {
-				foo ( node, newContents ) {
+				foo(node, newContents) {
 					const contents = node.innerHTML;
 					node.innerHTML = newContents;
 
 					return {
-						update ( newContents ) {
+						update(newContents) {
 							node.innerHTML = newContents;
 						},
-						teardown () {
+						teardown() {
 							node.innerHTML = contents;
 						}
 					};
@@ -169,72 +173,76 @@ export default function() {
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
-		ractive.set( 'foo', 'qux' );
-		t.htmlEqual( fixture.innerHTML, '<div>qux</div>' );
-		ractive.set( 'foo', 'bar' );
-		t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
+		t.htmlEqual(fixture.innerHTML, '<div>baz</div>');
+		ractive.set('foo', 'qux');
+		t.htmlEqual(fixture.innerHTML, '<div>qux</div>');
+		ractive.set('foo', 'bar');
+		t.htmlEqual(fixture.innerHTML, '<div>bar</div>');
 	});
 
-	test( 'Decorator without arguments can be torn down (#453)', t => {
-		t.expect( 1 );
+	test('Decorator without arguments can be torn down (#453)', t => {
+		t.expect(1);
 
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#foo}}<p as-bar>foo</p>{{/foo}}',
 			data: { foo: true },
 			decorators: {
-				bar () {
-					return { teardown () {} };
+				bar() {
+					return { teardown() {} };
 				}
 			}
 		});
 
-		ractive.set( 'foo', false );
-		t.ok( true );
+		ractive.set('foo', false);
+		t.ok(true);
 	});
 
-	test( 'Unnecessary whitespace is trimmed (#810)', t => {
+	test('Unnecessary whitespace is trimmed (#810)', t => {
 		new Ractive({
 			el: fixture,
-			template: '<pre as-show=""blue is the moon""/><pre as-show="" blue is the moon   ""/>',
+			template:
+				'<pre as-show=""blue is the moon""/><pre as-show="" blue is the moon   ""/>',
 			decorators: {
-				show ( node, arg ) {
+				show(node, arg) {
 					node.innerHTML = `|${arg}|`;
-					return { teardown () {} };
+					return { teardown() {} };
 				}
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<pre>|blue is the moon|</pre><pre>| blue is the moon   |</pre>' );
+		t.htmlEqual(
+			fixture.innerHTML,
+			'<pre>|blue is the moon|</pre><pre>| blue is the moon   |</pre>'
+		);
 	});
 
-	test( 'Rebinding causes decorators to update, if arguments are index references', t => {
+	test('Rebinding causes decorators to update, if arguments are index references', t => {
 		t.expect(1);
 
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#each letters :i}}<p as-check="i"></p>{{/each}}',
 			data: {
-				letters: [ 'a', 'b' ]
+				letters: ['a', 'b']
 			},
 			decorators: {
-				check ( node, index ) {
+				check(node, index) {
 					return {
-						update ( newIndex ) {
-							t.equal( newIndex, index - 1 );
+						update(newIndex) {
+							t.equal(newIndex, index - 1);
 							index = newIndex;
 						},
-						teardown () {}
+						teardown() {}
 					};
 				}
 			}
 		});
 
-		ractive.shift( 'letters' );
+		ractive.shift('letters');
 	});
 
-	test( 'Rebinding safe if decorators have no arguments', t => {
+	test('Rebinding safe if decorators have no arguments', t => {
 		// second time is for teardown
 		t.expect(2);
 
@@ -242,24 +250,24 @@ export default function() {
 			el: fixture,
 			template: '{{#each letters :i}}<p as-whatever></p>{{/each}}',
 			data: {
-				letters: [ 'a', 'b' ]
+				letters: ['a', 'b']
 			},
 			decorators: {
-				whatever () {
+				whatever() {
 					return {
-						update () {},
-						teardown () {
-							t.ok( true );
+						update() {},
+						teardown() {
+							t.ok(true);
 						}
 					};
 				}
 			}
 		});
 
-		ractive.shift( 'letters' );
+		ractive.shift('letters');
 	});
 
-	test( 'Teardown before init should work', t => {
+	test('Teardown before init should work', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{# count > 0}}<span as-whatever>foo</span>{{/0}}',
@@ -267,23 +275,22 @@ export default function() {
 				count: 0
 			},
 			decorators: {
-				whatever () {
+				whatever() {
 					return { teardown: Function.prototype };
 				}
 			}
 		});
 
-		ractive.observe( 'boo', () => {
-			ractive.set( 'count', 1 );
-			ractive.set( 'count', 0 );
+		ractive.observe('boo', () => {
+			ractive.set('count', 1);
+			ractive.set('count', 0);
 		});
 
-		ractive.set( 'boo', 1 );
-		t.ok( true );
+		ractive.set('boo', 1);
+		t.ok(true);
 	});
 
-
-	test( 'Decorator teardown should happen after outros have completed (#1481)', t => {
+	test('Decorator teardown should happen after outros have completed (#1481)', t => {
 		const done = t.async();
 
 		let decoratorTorndown;
@@ -298,7 +305,7 @@ export default function() {
 				foo: true
 			},
 			decorators: {
-				red ( node ) {
+				red(node) {
 					const originalColor = node.style.color;
 					node.style.color = 'red';
 
@@ -311,10 +318,10 @@ export default function() {
 				}
 			},
 			transitions: {
-				wait ( tr ) {
-					setTimeout( () => {
-						t.ok( !decoratorTorndown );
-						t.equal( div.style.color, 'red' );
+				wait(tr) {
+					setTimeout(() => {
+						t.ok(!decoratorTorndown);
+						t.equal(div.style.color, 'red');
 
 						tr.complete();
 					});
@@ -322,18 +329,18 @@ export default function() {
 			}
 		});
 
-		const div = ractive.find( 'div' );
+		const div = ractive.find('div');
 
-		ractive.set( 'foo', false ).then( () => {
-			t.ok( decoratorTorndown );
+		ractive.set('foo', false).then(() => {
+			t.ok(decoratorTorndown);
 			done();
 		});
 
-		t.equal( div.style.color, 'red' );
+		t.equal(div.style.color, 'red');
 	});
 
-	test( 'Decorators can have their parameters change before they are rendered (#2278)', t => {
-		t.expect( 0 );
+	test('Decorators can have their parameters change before they are rendered (#2278)', t => {
+		t.expect(0);
 
 		const dec = () => ({ teardown() {} });
 
@@ -345,23 +352,23 @@ export default function() {
 				foo: 1
 			},
 			oninit() {
-				this.set( 'foo', 2 );
+				this.set('foo', 2);
 			}
 		});
 	});
 
-	test( 'basic conditional decorator', t => {
+	test('basic conditional decorator', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '<div {{#if foo}}as-foo{{/if}}>bar</div>',
 			data: { foo: true },
 			decorators: {
-				foo ( node ) {
+				foo(node) {
 					const contents = node.innerHTML;
 					node.innerHTML = 'foo';
 
 					return {
-						teardown () {
+						teardown() {
 							node.innerHTML = contents;
 						}
 					};
@@ -369,35 +376,35 @@ export default function() {
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
-		r.set( 'foo', false );
-		t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
-		r.set( 'foo', true );
-		t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
+		t.htmlEqual(fixture.innerHTML, '<div>foo</div>');
+		r.set('foo', false);
+		t.htmlEqual(fixture.innerHTML, '<div>bar</div>');
+		r.set('foo', true);
+		t.htmlEqual(fixture.innerHTML, '<div>foo</div>');
 	});
 
-	test( 'conditional decorator with else', t => {
+	test('conditional decorator with else', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '<div {{#if foo}}as-foo{{else}}as-baz{{/if}}>bar</div>',
 			data: { foo: true },
 			decorators: {
-				foo ( node ) {
+				foo(node) {
 					const contents = node.innerHTML;
 					node.innerHTML = 'foo';
 
 					return {
-						teardown () {
+						teardown() {
 							node.innerHTML = contents;
 						}
 					};
 				},
-				baz ( node ) {
+				baz(node) {
 					const contents = node.innerHTML;
 					node.innerHTML = 'baz';
 
 					return {
-						teardown () {
+						teardown() {
 							node.innerHTML = contents;
 						}
 					};
@@ -405,26 +412,26 @@ export default function() {
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
-		r.set( 'foo', false );
-		t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
-		r.set( 'foo', true );
-		t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
-		r.set( 'foo', false );
-		t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
+		t.htmlEqual(fixture.innerHTML, '<div>foo</div>');
+		r.set('foo', false);
+		t.htmlEqual(fixture.innerHTML, '<div>baz</div>');
+		r.set('foo', true);
+		t.htmlEqual(fixture.innerHTML, '<div>foo</div>');
+		r.set('foo', false);
+		t.htmlEqual(fixture.innerHTML, '<div>baz</div>');
 	});
 
-	test( 'decorators can be named with as-${name}', t => {
+	test('decorators can be named with as-${name}', t => {
 		new Ractive({
 			el: fixture,
 			template: '<div as-foo>this text will be overwritten</div>',
 			decorators: {
-				foo ( node ) {
+				foo(node) {
 					const contents = node.innerHTML;
 					node.innerHTML = 'foo';
 
 					return {
-						teardown () {
+						teardown() {
 							node.innerHTML = contents;
 						}
 					};
@@ -432,20 +439,20 @@ export default function() {
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
+		t.htmlEqual(fixture.innerHTML, '<div>foo</div>');
 	});
 
-	test( 'decorators can be named with as-${name} with args', t => {
+	test('decorators can be named with as-${name} with args', t => {
 		new Ractive({
 			el: fixture,
 			template: `<div as-foo="bar, 'baz'">this text will be overwritten</div>`,
 			decorators: {
-				foo ( node, t1, t2 ) {
+				foo(node, t1, t2) {
 					const contents = node.innerHTML;
 					node.innerHTML = t1 + ' ' + t2;
 
 					return {
-						teardown () {
+						teardown() {
 							node.innerHTML = contents;
 						}
 					};
@@ -454,23 +461,23 @@ export default function() {
 			data: { bar: 'foo' }
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div>foo baz</div>' );
+		t.htmlEqual(fixture.innerHTML, '<div>foo baz</div>');
 	});
 
-	test( 'named decorators update with their args (#2590)', t => {
+	test('named decorators update with their args (#2590)', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: `<div as-foo="bar">bar here</div>`,
 			decorators: {
-				foo ( node, bar ) {
+				foo(node, bar) {
 					const contents = node.innerHTML;
 					node.innerHTML = bar;
 
 					return {
-						update ( bar ) {
+						update(bar) {
 							node.innerHTML = bar;
 						},
-						teardown ()  {
+						teardown() {
 							node.innerHTML = contents;
 						}
 					};
@@ -479,21 +486,22 @@ export default function() {
 			data: { bar: 'foo' }
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
-		r.set( 'bar', 'baz' );
-		t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
+		t.htmlEqual(fixture.innerHTML, '<div>foo</div>');
+		r.set('bar', 'baz');
+		t.htmlEqual(fixture.innerHTML, '<div>baz</div>');
 	});
 
-	test( 'decorators in nested elements are torn down (#2608)', t => {
+	test('decorators in nested elements are torn down (#2608)', t => {
 		let count = 0;
 		const r = new Ractive({
 			el: fixture,
-			template: '{{#if foo}}<div>{{#if true}}{{#each [1]}}{{>bar}}{{/each}}{{/if}}</div>{{/if}}',
+			template:
+				'{{#if foo}}<div>{{#if true}}{{#each [1]}}{{>bar}}{{/each}}{{/if}}</div>{{/if}}',
 			decorators: {
-				foo () {
+				foo() {
 					count++;
 					return {
-						teardown () {
+						teardown() {
 							count--;
 						}
 					};
@@ -505,16 +513,16 @@ export default function() {
 			}
 		});
 
-		t.equal( count, 1 );
-		r.toggle( 'foo' );
-		t.equal( count, 0 );
-		r.toggle( 'foo' );
-		t.equal( count, 1 );
-		r.toggle( 'foo' );
-		t.equal( count, 0 );
+		t.equal(count, 1);
+		r.toggle('foo');
+		t.equal(count, 0);
+		r.toggle('foo');
+		t.equal(count, 1);
+		r.toggle('foo');
+		t.equal(count, 0);
 	});
 
-	test( 'decorators in nested components are torn down (#2608)', t => {
+	test('decorators in nested components are torn down (#2608)', t => {
 		let count = 0;
 		const cmp = Ractive.extend({
 			template: '<div as-foo />',
@@ -524,10 +532,10 @@ export default function() {
 			el: fixture,
 			template: '{{#if foo}}<div><cmp/></div>{{/if}}',
 			decorators: {
-				foo () {
+				foo() {
 					count++;
 					return {
-						teardown () {
+						teardown() {
 							count--;
 						}
 					};
@@ -537,73 +545,77 @@ export default function() {
 			data: { foo: true }
 		});
 
-		t.equal( count, 1 );
-		r.toggle( 'foo' );
-		t.equal( count, 0 );
-		r.toggle( 'foo' );
-		t.equal( count, 1 );
-		r.toggle( 'foo' );
-		t.equal( count, 0 );
+		t.equal(count, 1);
+		r.toggle('foo');
+		t.equal(count, 0);
+		r.toggle('foo');
+		t.equal(count, 1);
+		r.toggle('foo');
+		t.equal(count, 0);
 	});
 
-	test( 'decorators get applied if the element rendered during onrender (#2697)', t => {
+	test('decorators get applied if the element rendered during onrender (#2697)', t => {
 		new Ractive({
 			el: fixture,
 			template: '{{#if show}}<p as-foo>nope</p>{{/if}}',
 			decorators: {
-				foo ( node ) {
+				foo(node) {
 					node.innerHTML = 'yep';
-					return { teardown () {} };
+					return { teardown() {} };
 				}
 			},
-			onrender () {
-				this.toggle( 'show' );
+			onrender() {
+				this.toggle('show');
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<p>yep</p>' );
+		t.htmlEqual(fixture.innerHTML, '<p>yep</p>');
 	});
 
-	test( 'decorators within a nested alias block are torn down appropriately (#2735)', t => {
+	test('decorators within a nested alias block are torn down appropriately (#2735)', t => {
 		let count = 0;
 
-		function foo () {
+		function foo() {
 			count++;
 			return {
-				teardown () { count--; }
+				teardown() {
+					count--;
+				}
 			};
 		}
 		const r = new Ractive({
 			el: fixture,
-			template: `{{#if show}}<div>{{#with 1 as sure}}<span as-foo />{{/with}}</div>{{/if}}` ,
+			template: `{{#if show}}<div>{{#with 1 as sure}}<span as-foo />{{/with}}</div>{{/if}}`,
 			data: { show: true },
 			decorators: { foo }
 		});
 
-		t.equal( count, 1 );
+		t.equal(count, 1);
 
-		r.toggle( 'show' );
-		t.equal( count, 0 );
+		r.toggle('show');
+		t.equal(count, 0);
 
-		r.toggle( 'show' );
-		t.equal( count, 1 );
+		r.toggle('show');
+		t.equal(count, 1);
 	});
 
-	test( `decorators that cause themselves to be torn down during their init are torn down properly (#2412)`, t => {
+	test(`decorators that cause themselves to be torn down during their init are torn down properly (#2412)`, t => {
 		let go = true;
 		let setup = 0;
 		let teardown = 0;
 
-		const foo = function () {
+		const foo = function() {
 			setup++;
 
-			if ( go ) {
+			if (go) {
 				go = false;
-				this.shift( 'items' );
+				this.shift('items');
 			}
 
 			return {
-				teardown () { teardown++; }
+				teardown() {
+					teardown++;
+				}
 			};
 		};
 
@@ -611,15 +623,15 @@ export default function() {
 			el: fixture,
 			template: '{{#each items}}<div as-foo>{{.}}</div>{{/each}}',
 			decorators: { foo },
-			data: { items: [ 'a', 'b', 'c' ] }
+			data: { items: ['a', 'b', 'c'] }
 		});
 
-		t.equal( setup, 3 );
-		t.equal( teardown, 1 );
-		t.htmlEqual( fixture.innerHTML, '<div>b</div><div>c</div>' );
+		t.equal(setup, 3);
+		t.equal(teardown, 1);
+		t.htmlEqual(fixture.innerHTML, '<div>b</div><div>c</div>');
 	});
 
-	test( `decorators ask to be notified when dom changes in the element's tree`, t => {
+	test(`decorators ask to be notified when dom changes in the element's tree`, t => {
 		let dom = 0;
 		let updated = 0;
 
@@ -628,27 +640,30 @@ export default function() {
 			template: `<div as-watched>{{downstream}}</div>`,
 			data: { downstream: 1 },
 			decorators: {
-				watched () {
+				watched() {
 					return {
-						invalidate () { dom++; },
-						update () { updated++; },
-						teardown () {}
+						invalidate() {
+							dom++;
+						},
+						update() {
+							updated++;
+						},
+						teardown() {}
 					};
 				}
 			}
 		});
 
-		t.equal( dom, 0 );
-		t.equal( updated, 0 );
-		r.add( 'downstream' );
+		t.equal(dom, 0);
+		t.equal(updated, 0);
+		r.add('downstream');
 
-		t.equal( dom, 1 );
-		t.equal( updated, 0 );
+		t.equal(dom, 1);
+		t.equal(updated, 0);
 
-		r.add( 'downstream' );
+		r.add('downstream');
 
-		t.equal( dom, 2 );
-		t.equal( updated, 0 );
-
+		t.equal(dom, 2);
+		t.equal(updated, 0);
 	});
 }

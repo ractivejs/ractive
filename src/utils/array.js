@@ -1,16 +1,16 @@
 import { isArray, isString } from './is';
 
-export function addToArray ( array, value ) {
-	const index = array.indexOf( value );
+export function addToArray(array, value) {
+	const index = array.indexOf(value);
 
-	if ( index === -1 ) {
-		array.push( value );
+	if (index === -1) {
+		array.push(value);
 	}
 }
 
-export function arrayContains ( array, value ) {
-	for ( let i = 0, c = array.length; i < c; i++ ) {
-		if ( array[i] == value ) {
+export function arrayContains(array, value) {
+	for (let i = 0, c = array.length; i < c; i++) {
+		if (array[i] == value) {
 			return true;
 		}
 	}
@@ -18,20 +18,20 @@ export function arrayContains ( array, value ) {
 	return false;
 }
 
-export function arrayContentsMatch ( a, b ) {
+export function arrayContentsMatch(a, b) {
 	let i;
 
-	if ( !isArray( a ) || !isArray( b ) ) {
+	if (!isArray(a) || !isArray(b)) {
 		return false;
 	}
 
-	if ( a.length !== b.length ) {
+	if (a.length !== b.length) {
 		return false;
 	}
 
 	i = a.length;
-	while ( i-- ) {
-		if ( a[i] !== b[i] ) {
+	while (i--) {
+		if (a[i] !== b[i]) {
 			return false;
 		}
 	}
@@ -39,59 +39,59 @@ export function arrayContentsMatch ( a, b ) {
 	return true;
 }
 
-export function ensureArray ( x ) {
-	if ( isString( x ) ) {
-		return [ x ];
+export function ensureArray(x) {
+	if (isString(x)) {
+		return [x];
 	}
 
-	if ( x === undefined ) {
+	if (x === undefined) {
 		return [];
 	}
 
 	return x;
 }
 
-export function lastItem ( array ) {
-	return array[ array.length - 1 ];
+export function lastItem(array) {
+	return array[array.length - 1];
 }
 
-export function removeFromArray ( array, member ) {
-	if ( !array ) {
+export function removeFromArray(array, member) {
+	if (!array) {
 		return;
 	}
 
-	const index = array.indexOf( member );
+	const index = array.indexOf(member);
 
-	if ( index !== -1 ) {
-		array.splice( index, 1 );
+	if (index !== -1) {
+		array.splice(index, 1);
 	}
 }
 
-export function combine ( ...arrays ) {
-	const res = arrays.concat.apply( [], arrays );
+export function combine(...arrays) {
+	const res = arrays.concat.apply([], arrays);
 	let i = res.length;
-	while ( i-- ) {
-		const idx = res.indexOf( res[i] );
-		if ( ~idx && idx < i ) res.splice( i, 1 );
+	while (i--) {
+		const idx = res.indexOf(res[i]);
+		if (~idx && idx < i) res.splice(i, 1);
 	}
 
 	return res;
 }
 
-export function toArray ( arrayLike ) {
+export function toArray(arrayLike) {
 	const array = [];
 	let i = arrayLike.length;
-	while ( i-- ) {
+	while (i--) {
 		array[i] = arrayLike[i];
 	}
 
 	return array;
 }
 
-export function findMap ( array, fn ) {
+export function findMap(array, fn) {
 	const len = array.length;
-	for ( let i = 0; i < len; i++ ) {
-		const result = fn( array[i] );
-		if ( result ) return result;
+	for (let i = 0; i < len; i++) {
+		const result = fn(array[i]);
+		if (result) return result;
 	}
 }

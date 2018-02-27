@@ -2,25 +2,25 @@ import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
 export default function() {
-	initModule( 'methods/link.js' );
+	initModule('methods/link.js');
 
-	test( 'Keypaths can be linked', t => {
+	test('Keypaths can be linked', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{ foo }} {{ bar.baz.bat }}',
 			data: { bar: { baz: { bat: 'linked' } } }
 		});
 
-		t.htmlEqual( fixture.innerHTML, ' linked' );
-		ractive.link( 'bar.baz.bat', 'foo' );
-		t.htmlEqual( fixture.innerHTML, 'linked linked' );
-		ractive.set( 'foo', 'bop' );
-		t.htmlEqual( fixture.innerHTML, 'bop bop' );
-		ractive.set( 'bar.baz.bat', 'bip' );
-		t.htmlEqual( fixture.innerHTML, 'bip bip' );
+		t.htmlEqual(fixture.innerHTML, ' linked');
+		ractive.link('bar.baz.bat', 'foo');
+		t.htmlEqual(fixture.innerHTML, 'linked linked');
+		ractive.set('foo', 'bop');
+		t.htmlEqual(fixture.innerHTML, 'bop bop');
+		ractive.set('bar.baz.bat', 'bip');
+		t.htmlEqual(fixture.innerHTML, 'bip bip');
 	});
 
-	test( 'Deep references on links should work as expected', t => {
+	test('Deep references on links should work as expected', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{ person.name }} is {{ person.status }}',
@@ -32,59 +32,59 @@ export default function() {
 			}
 		});
 
-		t.equal( fixture.innerHTML, ' is ' );
-		ractive.link( 'people.0', 'person' );
-		t.htmlEqual( fixture.innerHTML, 'Rich is The Man' );
-		ractive.unlink( 'person' );
-		t.equal( fixture.innerHTML, ' is ' );
-		ractive.link( 'people.1', 'person' );
-		t.htmlEqual( fixture.innerHTML, 'Marty is Awesome&tm;' );
+		t.equal(fixture.innerHTML, ' is ');
+		ractive.link('people.0', 'person');
+		t.htmlEqual(fixture.innerHTML, 'Rich is The Man');
+		ractive.unlink('person');
+		t.equal(fixture.innerHTML, ' is ');
+		ractive.link('people.1', 'person');
+		t.htmlEqual(fixture.innerHTML, 'Marty is Awesome&tm;');
 	});
 
-	test( 'Re-linking overwrites the existing link', t => {
+	test('Re-linking overwrites the existing link', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{ dog.name }}',
-			data: { dogs: [ { name: 'Abel' }, { name: 'John' } ] }
+			data: { dogs: [{ name: 'Abel' }, { name: 'John' }] }
 		});
 
-		t.equal( fixture.innerHTML, '' );
-		ractive.link( 'dogs.0', 'dog' );
-		t.equal( fixture.innerHTML, 'Abel' );
-		ractive.link( 'dogs.1', 'dog' );
-		t.equal( fixture.innerHTML, 'John' );
-		t.ok( !ractive.viewmodel.childByKey.dog._link._link );
+		t.equal(fixture.innerHTML, '');
+		ractive.link('dogs.0', 'dog');
+		t.equal(fixture.innerHTML, 'Abel');
+		ractive.link('dogs.1', 'dog');
+		t.equal(fixture.innerHTML, 'John');
+		t.ok(!ractive.viewmodel.childByKey.dog._link._link);
 	});
 
 	// only for non-mapped links
-	test( 'Links can be set to nested paths', t => {
+	test('Links can be set to nested paths', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{ foo.baz.bar }}',
 			data: { bippy: { boppy: { bar: 1 } } }
 		});
 
-		t.htmlEqual( fixture.innerHTML, '' );
-		ractive.link( 'bippy.boppy', 'foo.baz' );
-		t.htmlEqual( fixture.innerHTML, '1' );
+		t.htmlEqual(fixture.innerHTML, '');
+		ractive.link('bippy.boppy', 'foo.baz');
+		t.htmlEqual(fixture.innerHTML, '1');
 	});
 
-	test( 'Links cannot have overlapping paths', t => {
+	test('Links cannot have overlapping paths', t => {
 		const ractive = new Ractive({
 			el: fixture,
-			template: '',
+			template: ''
 		});
 
-		t.throws( () => {
-			ractive.link( 'foo.bar.baz', 'foo' );
-		}, /to itself/ );
+		t.throws(() => {
+			ractive.link('foo.bar.baz', 'foo');
+		}, /to itself/);
 
-		t.throws( () => {
-			ractive.link( 'foo', 'foo.bar.baz' );
-		}, /to itself/ );
+		t.throws(() => {
+			ractive.link('foo', 'foo.bar.baz');
+		}, /to itself/);
 	});
 
-	test( 'Links should not outlive their instance', t => {
+	test('Links should not outlive their instance', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{#if foo}}<bar />{{/if}}',
@@ -92,7 +92,7 @@ export default function() {
 				bar: Ractive.extend({
 					template: '{{baz}}',
 					onrender() {
-						this.link( 'bip.bop', 'baz' );
+						this.link('bip.bop', 'baz');
 					}
 				})
 			},
@@ -101,17 +101,17 @@ export default function() {
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, '' );
-		r.set( 'foo', true );
-		t.equal( 'boop', r.findComponent( 'bar' ).get( 'baz' ) );
-		t.htmlEqual( fixture.innerHTML, 'boop' );
-		r.set( 'foo', false );
-		t.htmlEqual( fixture.innerHTML, '' );
-		t.ok( !r.get( 'baz' ) );
-		t.ok( r.viewmodel.joinAll(['bip', 'bop']).deps.length === 0 );
+		t.htmlEqual(fixture.innerHTML, '');
+		r.set('foo', true);
+		t.equal('boop', r.findComponent('bar').get('baz'));
+		t.htmlEqual(fixture.innerHTML, 'boop');
+		r.set('foo', false);
+		t.htmlEqual(fixture.innerHTML, '');
+		t.ok(!r.get('baz'));
+		t.ok(r.viewmodel.joinAll(['bip', 'bop']).deps.length === 0);
 	});
 
-	test( 'deeply nested links can be retrieved', t => {
+	test('deeply nested links can be retrieved', t => {
 		const r = new Ractive({
 			el: fixture,
 			template: '{{ bat.bop.bip }}',
@@ -120,15 +120,15 @@ export default function() {
 			}
 		});
 
-		r.link( 'foo.bar.baz', 'bat.bop.bip' );
-		t.equal( r.get( 'bat.bop.bip' ), 'yep' );
-		t.htmlEqual( fixture.innerHTML, 'yep' );
-		r.unlink( 'bat.bop.bip' );
-		t.equal( r.get( 'bat.bop.bip' ), undefined );
-		t.htmlEqual( fixture.innerHTML, '' );
+		r.link('foo.bar.baz', 'bat.bop.bip');
+		t.equal(r.get('bat.bop.bip'), 'yep');
+		t.htmlEqual(fixture.innerHTML, 'yep');
+		r.unlink('bat.bop.bip');
+		t.equal(r.get('bat.bop.bip'), undefined);
+		t.htmlEqual(fixture.innerHTML, '');
 	});
 
-	test( 'links work with root paths too', t => {
+	test('links work with root paths too', t => {
 		t.expect(2);
 
 		const parent = new Ractive();
@@ -138,14 +138,16 @@ export default function() {
 			}
 		});
 
-		parent.link( '', 'child.path', { ractive: child } );
+		parent.link('', 'child.path', { ractive: child });
 
-		t.equal( parent.get( 'child.path.foo.bar' ), 'baz' );
-		parent.observe( 'child.path.foo', () => t.ok( true, 'parent notified' ), { init: false } );
-		child.set( 'foo.bar', 'yep' );
+		t.equal(parent.get('child.path.foo.bar'), 'baz');
+		parent.observe('child.path.foo', () => t.ok(true, 'parent notified'), {
+			init: false
+		});
+		child.set('foo.bar', 'yep');
 	});
 
-	test( `cross-instance links check actual path rather than just keypath (#2962)`, t => {
+	test(`cross-instance links check actual path rather than just keypath (#2962)`, t => {
 		const r1 = new Ractive({
 			data: { foo: { bar: { baz: 1 } } }
 		});
@@ -153,15 +155,15 @@ export default function() {
 			data: { foo: { bar: { baz: 2 } } }
 		});
 
-		r1.link( 'foo.bar', 'foo.bar', { ractive: r2 });
-		t.equal( r1.get( 'foo.bar.baz' ), 2 );
+		r1.link('foo.bar', 'foo.bar', { ractive: r2 });
+		t.equal(r1.get('foo.bar.baz'), 2);
 
 		t.throws(() => {
-			r2.link( 'foo.bar', 'foo.bar', { ractive: r1 });
+			r2.link('foo.bar', 'foo.bar', { ractive: r1 });
 		}, /keypath cannot be linked to itself/i);
 	});
 
-	test( `unlinking and relinking linked links properly updates deps`, t => {
+	test(`unlinking and relinking linked links properly updates deps`, t => {
 		const r1 = new Ractive({
 			data: { foo: { bar: 'a' }, bat: { bar: 'b' } }
 		});
@@ -170,25 +172,25 @@ export default function() {
 			template: '{{~/link.bar}}'
 		});
 
-		r2.link( 'baz', 'link', { ractive: r1 } );
-		r1.link( 'foo', 'baz' );
+		r2.link('baz', 'link', { ractive: r1 });
+		r1.link('foo', 'baz');
 
-		t.htmlEqual( fixture.innerHTML, 'a' );
+		t.htmlEqual(fixture.innerHTML, 'a');
 
-		r1.unlink( 'baz' );
-		t.equal( fixture.innerHTML, '' );
+		r1.unlink('baz');
+		t.equal(fixture.innerHTML, '');
 
-		r1.link( 'bat', 'baz' );
-		t.htmlEqual( fixture.innerHTML, 'b' );
+		r1.link('bat', 'baz');
+		t.htmlEqual(fixture.innerHTML, 'b');
 
-		r1.unlink( 'baz' );
-		t.equal( fixture.innerHTML, '' );
+		r1.unlink('baz');
+		t.equal(fixture.innerHTML, '');
 
-		r1.link( 'bat', 'baz' );
-		t.htmlEqual( fixture.innerHTML, 'b' );
+		r1.link('bat', 'baz');
+		t.htmlEqual(fixture.innerHTML, 'b');
 	});
 
-	test( `links can be set up to track through shuffles rather than being forced absolute if given a keypath`, t => {
+	test(`links can be set up to track through shuffles rather than being forced absolute if given a keypath`, t => {
 		const r1 = new Ractive({
 			data: {
 				list: [{ name: 'george' }, { name: 'susan' }, { name: 'pat' }]
@@ -200,69 +202,69 @@ export default function() {
 			target: fixture
 		});
 
-		r2.link( 'list.1.name', 'foo', { instance: r1, keypath: '.name' } );
+		r2.link('list.1.name', 'foo', { instance: r1, keypath: '.name' });
 
-		t.htmlEqual( fixture.innerHTML, 'susan' );
-		r1.shift( 'list' );
-		t.htmlEqual( fixture.innerHTML, 'susan' );
+		t.htmlEqual(fixture.innerHTML, 'susan');
+		r1.shift('list');
+		t.htmlEqual(fixture.innerHTML, 'susan');
 	});
 
-	test( `linked nested models don't rebind incorrectly during a shuffle`, t => {
+	test(`linked nested models don't rebind incorrectly during a shuffle`, t => {
 		const r = new Ractive({
 			template: `{{#each links}}{{.thing}}{{/each}}`,
 			target: fixture,
 			data: {
-				links: [ {}, {}, {} ],
-				things: [ 1, 2, 3 ]
+				links: [{}, {}, {}],
+				things: [1, 2, 3]
 			}
 		});
 
-		[ 0, 1, 2 ].forEach( i => r.link( `things.${i}`, `links.${i}.thing` ) );
+		[0, 1, 2].forEach(i => r.link(`things.${i}`, `links.${i}.thing`));
 
-		t.htmlEqual( fixture.innerHTML, '123' );
+		t.htmlEqual(fixture.innerHTML, '123');
 
-		r.splice( 'links', 1, 1 );
+		r.splice('links', 1, 1);
 
-		t.htmlEqual( fixture.innerHTML, '12' );
+		t.htmlEqual(fixture.innerHTML, '12');
 
-		r.shift( 'links' );
+		r.shift('links');
 
-		t.htmlEqual( fixture.innerHTML, '1' );
+		t.htmlEqual(fixture.innerHTML, '1');
 	});
 
-	test( `linked nested models don't rebind incorrectly during a shuffle`, t => {
+	test(`linked nested models don't rebind incorrectly during a shuffle`, t => {
 		const r = new Ractive({
 			template: `{{#each links}}{{.}}{{/each}}`,
 			target: fixture,
 			data: {
-				links: [ 0, 0, 0 ],
-				things: [ 1, 2, 3 ]
+				links: [0, 0, 0],
+				things: [1, 2, 3]
 			}
 		});
 
-		[ 0, 1, 2 ].forEach( i => r.link( `things.${i}`, `links.${i}` ) );
+		[0, 1, 2].forEach(i => r.link(`things.${i}`, `links.${i}`));
 
-		t.htmlEqual( fixture.innerHTML, '123' );
+		t.htmlEqual(fixture.innerHTML, '123');
 
-		r.splice( 'links', 1, 1 );
+		r.splice('links', 1, 1);
 
-		t.htmlEqual( fixture.innerHTML, '12' );
+		t.htmlEqual(fixture.innerHTML, '12');
 
-		r.shift( 'links' );
+		r.shift('links');
 
-		t.htmlEqual( fixture.innerHTML, '1' );
+		t.htmlEqual(fixture.innerHTML, '1');
 	});
 
-	test( `relinking an existing link to itself is verboten - #3107`, t => {
+	test(`relinking an existing link to itself is verboten - #3107`, t => {
 		const r = new Ractive({
 			data: { foo: true }
 		});
 		const o = new Ractive();
 
-		o.link( 'foo', 'foo', { instance: r } );
+		o.link('foo', 'foo', { instance: r });
 
-		t.throws( () => {
-			o.link( 'foo', 'foo' );
-		}, /cannot be linked to itself/ );
+		t.throws(() => {
+			o.link('foo', 'foo');
+		}, /cannot be linked to itself/);
 	});
 }

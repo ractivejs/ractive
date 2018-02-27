@@ -11,38 +11,44 @@ const keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|
 const prefixPattern = /^(?:\@\.|\@|~\/|(?:\^\^\/(?:\^\^\/)*(?:\.\.\/)*)|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/;
 const specials = /^(key|index|keypath|rootpath|this|global|shared|context|event|node|local|style|helpers)/;
 
-export default function readReference ( parser ) {
+export default function readReference(parser) {
 	let prefix, name, global, reference, lastDotIndex;
 
 	const startPos = parser.pos;
 
-	prefix = parser.matchPattern( prefixPattern ) || '';
-	name = ( !prefix && parser.relaxedNames && parser.matchPattern( relaxedName ) ) ||
-			parser.matchPattern( legalReference );
-	const actual = prefix.length + ( ( name && name.length ) || 0 );
+	prefix = parser.matchPattern(prefixPattern) || '';
+	name =
+		(!prefix && parser.relaxedNames && parser.matchPattern(relaxedName)) ||
+		parser.matchPattern(legalReference);
+	const actual = prefix.length + ((name && name.length) || 0);
 
-	if ( prefix === '@.' ) {
+	if (prefix === '@.') {
 		prefix = '@';
-		if ( name ) name = 'this.' + name;
+		if (name) name = 'this.' + name;
 		else name = 'this';
 	}
 
-	if ( !name && prefix ) {
+	if (!name && prefix) {
 		name = prefix;
 		prefix = '';
 	}
 
-	if ( !name ) {
+	if (!name) {
 		return null;
 	}
 
-	if ( prefix === '@' ) {
-		if ( !specials.test( name ) ) {
-			parser.error( `Unrecognized special reference @${name}` );
-		} else if ( ( ~name.indexOf( 'event' ) || ~name.indexOf( 'node' ) ) && !parser.inEvent ) {
-			parser.error( `@event and @node are only valid references within an event directive` );
-		} else if ( ~name.indexOf( 'context' ) ) {
-			parser.pos = parser.pos - ( name.length - 7 );
+	if (prefix === '@') {
+		if (!specials.test(name)) {
+			parser.error(`Unrecognized special reference @${name}`);
+		} else if (
+			(~name.indexOf('event') || ~name.indexOf('node')) &&
+			!parser.inEvent
+		) {
+			parser.error(
+				`@event and @node are only valid references within an event directive`
+			);
+		} else if (~name.indexOf('context')) {
+			parser.pos = parser.pos - (name.length - 7);
 			return {
 				t: BRACKETED,
 				x: {
@@ -54,14 +60,14 @@ export default function readReference ( parser ) {
 	}
 
 	// bug out if it's a keyword (exception for ancestor/restricted refs - see https://github.com/ractivejs/ractive/issues/1497)
-	if ( !prefix && !parser.relaxedNames && keywords.test( name ) ) {
+	if (!prefix && !parser.relaxedNames && keywords.test(name)) {
 		parser.pos = startPos;
 		return null;
 	}
 
 	// if this is a browser global, stop here
-	if ( !prefix && globals.test( name ) ) {
-		global = globals.exec( name )[0];
+	if (!prefix && globals.test(name)) {
+		global = globals.exec(name)[0];
 		parser.pos = startPos + global.length;
 
 		return {
@@ -70,22 +76,22 @@ export default function readReference ( parser ) {
 		};
 	}
 
-	reference = ( prefix || '' ) + normalise( name );
+	reference = (prefix || '') + normalise(name);
 
-	if ( parser.matchString( '(' ) ) {
+	if (parser.matchString('(')) {
 		// if this is a method invocation (as opposed to a function) we need
 		// to strip the method name from the reference combo, else the context
 		// will be wrong
 		// but only if the reference was actually a member and not a refinement
-		lastDotIndex = reference.lastIndexOf( '.' );
-		if ( lastDotIndex !== -1 && name[ name.length - 1 ] !== ']' ) {
-			if ( lastDotIndex === 0 ) {
+		lastDotIndex = reference.lastIndexOf('.');
+		if (lastDotIndex !== -1 && name[name.length - 1] !== ']') {
+			if (lastDotIndex === 0) {
 				reference = '.';
 				parser.pos = startPos;
 			} else {
 				const refLength = reference.length;
-				reference = reference.substr( 0, lastDotIndex );
-				parser.pos = startPos + ( actual - ( refLength - lastDotIndex ) );
+				reference = reference.substr(0, lastDotIndex);
+				parser.pos = startPos + (actual - (refLength - lastDotIndex));
 			}
 		} else {
 			parser.pos -= 1;
@@ -94,6 +100,6 @@ export default function readReference ( parser ) {
 
 	return {
 		t: REFERENCE,
-		n: reference.replace( /^this\./, './' ).replace( /^this$/, '.' )
+		n: reference.replace(/^this\./, './').replace(/^this$/, '.')
 	};
 }

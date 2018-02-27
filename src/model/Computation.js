@@ -11,8 +11,8 @@ import { isEqual } from 'utils/is';
 import runloop from 'src/global/runloop';
 
 export default class Computation extends Model {
-	constructor ( parent, signature, key ) {
-		super( parent, key );
+	constructor(parent, signature, key) {
+		super(parent, key);
 
 		this.signature = signature;
 
@@ -31,26 +31,26 @@ export default class Computation extends Model {
 		this.shuffle = undefined;
 	}
 
-	get setRoot () {
-		if ( this.signature.setter ) return this;
+	get setRoot() {
+		if (this.signature.setter) return this;
 	}
 
-	get ( shouldCapture, opts ) {
-		if ( shouldCapture ) capture( this );
+	get(shouldCapture, opts) {
+		if (shouldCapture) capture(this);
 
-		if ( this.dirty ) {
+		if (this.dirty) {
 			this.dirty = false;
 			const old = this.value;
 			this.value = this.getValue();
 			// this may cause a view somewhere to update, so it must be in a runloop
-			if ( !runloop.active() ) {
+			if (!runloop.active()) {
 				runloop.start();
-				if ( !isEqual( old, this.value ) ) this.notifyUpstream();
+				if (!isEqual(old, this.value)) this.notifyUpstream();
 				runloop.end();
 			} else {
-				if ( !isEqual( old, this.value ) ) this.notifyUpstream();
+				if (!isEqual(old, this.value)) this.notifyUpstream();
 			}
-			if ( this.wrapper ) this.newWrapperValue = this.value;
+			if (this.wrapper) this.newWrapperValue = this.value;
 			this.adapt();
 		}
 
@@ -58,83 +58,99 @@ export default class Computation extends Model {
 		return maybeBind(
 			this,
 			// if unwrap is supplied, it overrides capture
-			this.wrapper && ( ( opts && 'unwrap' in opts ) ? opts.unwrap !== false : shouldCapture ) ? this.wrapperValue : this.value,
+			this.wrapper &&
+			(opts && 'unwrap' in opts ? opts.unwrap !== false : shouldCapture)
+				? this.wrapperValue
+				: this.value,
 			!opts || opts.shouldBind !== false
 		);
 	}
 
-	getContext () {
-		return this.parent.isRoot ? this.root.ractive : this.parent.get( false, noVirtual );
+	getContext() {
+		return this.parent.isRoot
+			? this.root.ractive
+			: this.parent.get(false, noVirtual);
 	}
 
-	getValue () {
+	getValue() {
 		startCapturing();
 		let result;
 
 		try {
-			result = this.signature.getter.call( this.root.ractive, this.getContext() );
-		} catch ( err ) {
-			warnIfDebug( `Failed to compute ${this.getKeypath()}: ${err.message || err}` );
+			result = this.signature.getter.call(this.root.ractive, this.getContext());
+		} catch (err) {
+			warnIfDebug(
+				`Failed to compute ${this.getKeypath()}: ${err.message || err}`
+			);
 
 			// TODO this is all well and good in Chrome, but...
 			// ...also, should encapsulate this stuff better, and only
 			// show it if Ractive.DEBUG
-			if ( hasConsole ) {
-				if ( console.groupCollapsed ) console.groupCollapsed( '%cshow details', 'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;' );
+			if (hasConsole) {
+				if (console.groupCollapsed)
+					console.groupCollapsed(
+						'%cshow details',
+						'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
+					);
 				const sig = this.signature;
-				console.error( `${err.name}: ${err.message}\n\n${sig.getterString}${sig.getterUseStack ? '\n\n' + err.stack : ''}` );
-				if ( console.groupCollapsed ) console.groupEnd();
+				console.error(
+					`${err.name}: ${err.message}\n\n${sig.getterString}${
+						sig.getterUseStack ? '\n\n' + err.stack : ''
+					}`
+				);
+				if (console.groupCollapsed) console.groupEnd();
 			}
 		}
 
 		const dependencies = stopCapturing();
-		this.setDependencies( dependencies );
+		this.setDependencies(dependencies);
 
 		return result;
 	}
 
-	mark () {
+	mark() {
 		this.handleChange();
 	}
 
-	rebind ( next, previous ) {
+	rebind(next, previous) {
 		// computations will grab all of their deps again automagically
-		if ( next !== previous ) this.handleChange();
+		if (next !== previous) this.handleChange();
 	}
 
-	set ( value ) {
-		if ( this.isReadonly ) {
-			throw new Error( `Cannot set read-only computed value '${this.key}'` );
+	set(value) {
+		if (this.isReadonly) {
+			throw new Error(`Cannot set read-only computed value '${this.key}'`);
 		}
 
-		this.signature.setter( value );
+		this.signature.setter(value);
 		this.mark();
 	}
 
-	setDependencies ( dependencies ) {
+	setDependencies(dependencies) {
 		// unregister any soft dependencies we no longer have
 		let i = this.dependencies.length;
-		while ( i-- ) {
+		while (i--) {
 			const model = this.dependencies[i];
-			if ( !~dependencies.indexOf( model ) ) model.unregister( this );
+			if (!~dependencies.indexOf(model)) model.unregister(this);
 		}
 
 		// and add any new ones
 		i = dependencies.length;
-		while ( i-- ) {
+		while (i--) {
 			const model = dependencies[i];
-			if ( !~this.dependencies.indexOf( model ) ) model.register( this );
+			if (!~this.dependencies.indexOf(model)) model.register(this);
 		}
 
 		this.dependencies = dependencies;
 	}
 
-	teardown () {
+	teardown() {
 		let i = this.dependencies.length;
-		while ( i-- ) {
-			if ( this.dependencies[i] ) this.dependencies[i].unregister( this );
+		while (i--) {
+			if (this.dependencies[i]) this.dependencies[i].unregister(this);
 		}
-		if ( this.parent.computed[this.key] === this ) delete this.parent.computed[this.key];
+		if (this.parent.computed[this.key] === this)
+			delete this.parent.computed[this.key];
 		super.teardown();
 	}
 }

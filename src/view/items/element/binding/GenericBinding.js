@@ -2,37 +2,37 @@ import { isNumeric } from 'utils/is';
 import Binding from './Binding';
 import handleDomEvent from './handleDomEvent';
 
-function handleBlur () {
-	handleDomEvent.call( this );
+function handleBlur() {
+	handleDomEvent.call(this);
 
 	const value = this._ractive.binding.model.get();
 	this.value = value == undefined ? '' : value;
 }
 
-function handleDelay ( delay ) {
+function handleDelay(delay) {
 	let timeout;
 
-	return function () {
-		if ( timeout ) clearTimeout( timeout );
+	return function() {
+		if (timeout) clearTimeout(timeout);
 
-		timeout = setTimeout( () => {
+		timeout = setTimeout(() => {
 			const binding = this._ractive.binding;
-			if ( binding.rendered ) handleDomEvent.call( this );
+			if (binding.rendered) handleDomEvent.call(this);
 			timeout = null;
-		}, delay );
+		}, delay);
 	};
 }
 
 export default class GenericBinding extends Binding {
-	getInitialValue () {
+	getInitialValue() {
 		return '';
 	}
 
-	getValue () {
+	getValue() {
 		return this.node.value;
 	}
 
-	render () {
+	render() {
 		super.render();
 
 		// any lazy setting for this element overrides the root
@@ -41,42 +41,42 @@ export default class GenericBinding extends Binding {
 		let timeout = false;
 		const el = this.element;
 
-		if ( 'lazy' in this.element ) {
+		if ('lazy' in this.element) {
 			lazy = this.element.lazy;
 		}
 
-		if ( isNumeric( lazy ) ) {
+		if (isNumeric(lazy)) {
 			timeout = +lazy;
 			lazy = false;
 		}
 
-		this.handler = timeout ? handleDelay( timeout ) : handleDomEvent;
+		this.handler = timeout ? handleDelay(timeout) : handleDomEvent;
 
 		const node = this.node;
 
-		el.on( 'change', handleDomEvent );
+		el.on('change', handleDomEvent);
 
-		if ( node.type !== 'file' ) {
-			if ( !lazy ) {
-				el.on( 'input', this.handler );
+		if (node.type !== 'file') {
+			if (!lazy) {
+				el.on('input', this.handler);
 
 				// IE is a special snowflake
-				if ( node.attachEvent ) {
-					el.on( 'keyup', this.handler );
+				if (node.attachEvent) {
+					el.on('keyup', this.handler);
 				}
 			}
 
-			el.on( 'blur', handleBlur );
+			el.on('blur', handleBlur);
 		}
 	}
 
-	unrender () {
+	unrender() {
 		const el = this.element;
 		this.rendered = false;
 
-		el.off( 'change', handleDomEvent );
-		el.off( 'input', this.handler );
-		el.off( 'keyup', this.handler );
-		el.off( 'blur', handleBlur );
+		el.off('change', handleDomEvent);
+		el.off('input', this.handler);
+		el.off('keyup', this.handler);
+		el.off('blur', handleBlur);
 	}
 }

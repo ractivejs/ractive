@@ -2,33 +2,35 @@ import Partial from './Partial';
 import { ELEMENT } from 'config/types';
 import { assign } from 'utils/object';
 
-export default function asyncProxy ( promise, options ) {
+export default function asyncProxy(promise, options) {
 	const partials = options.template.p || {};
 	const name = options.template.e;
 
-	const opts = assign( {}, options, {
+	const opts = assign({}, options, {
 		template: { t: ELEMENT, e: name },
-		macro ( handle ) {
-			handle.setTemplate( partials['async-loading'] || [] );
-			promise.then( cmp => {
-				options.up.ractive.components[ name ] = cmp;
-				if ( partials['async-loaded'] ) {
-					handle.partials.component = [ options.template ];
-					handle.setTemplate( partials['async-loaded'] );
-				} else {
-					handle.setTemplate( [ options.template ] );
+		macro(handle) {
+			handle.setTemplate(partials['async-loading'] || []);
+			promise.then(
+				cmp => {
+					options.up.ractive.components[name] = cmp;
+					if (partials['async-loaded']) {
+						handle.partials.component = [options.template];
+						handle.setTemplate(partials['async-loaded']);
+					} else {
+						handle.setTemplate([options.template]);
+					}
+				},
+				err => {
+					if (partials['async-failed']) {
+						handle.aliasLocal('error', 'error');
+						handle.set('@local.error', err);
+						handle.setTemplate(partials['async-failed']);
+					} else {
+						handle.setTemplate([]);
+					}
 				}
-			}, err => {
-				if ( partials['async-failed'] ) {
-					handle.aliasLocal( 'error', 'error' );
-					handle.set( '@local.error', err );
-					handle.setTemplate( partials['async-failed'] );
-				} else {
-					handle.setTemplate( [] );
-				}
-			});
+			);
 		}
 	});
-	return new Partial( opts );
+	return new Partial(opts);
 }
-

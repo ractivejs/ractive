@@ -13,49 +13,46 @@ const registryNames = [
 	'transitions'
 ];
 
-const registriesOnDefaults = [
-	'computed',
-	'helpers'
-];
+const registriesOnDefaults = ['computed', 'helpers'];
 
 class Registry {
-	constructor ( name, useDefaults ) {
+	constructor(name, useDefaults) {
 		this.name = name;
 		this.useDefaults = useDefaults;
 	}
 
-	extend ( Parent, proto, options ) {
+	extend(Parent, proto, options) {
 		const parent = this.useDefaults ? Parent.defaults : Parent;
 		const target = this.useDefaults ? proto : proto.constructor;
-		this.configure( parent, target, options );
+		this.configure(parent, target, options);
 	}
 
-	init () {
+	init() {
 		// noop
 	}
 
-	configure ( Parent, target, options ) {
+	configure(Parent, target, options) {
 		const name = this.name;
-		const option = options[ name ];
+		const option = options[name];
 
-		const registry = create( Parent[name] );
+		const registry = create(Parent[name]);
 
-		for ( const key in option ) {
-			registry[ key ] = option[ key ];
+		for (const key in option) {
+			registry[key] = option[key];
 		}
 
-		target[ name ] = registry;
+		target[name] = registry;
 	}
 
-	reset ( ractive ) {
-		const registry = ractive[ this.name ];
+	reset(ractive) {
+		const registry = ractive[this.name];
 		let changed = false;
 
-		keys( registry ).forEach( key => {
-			const item = registry[ key ];
+		keys(registry).forEach(key => {
+			const item = registry[key];
 
-			if ( item._fn ) {
-				if ( item._fn.isOwner ) {
+			if (item._fn) {
+				if (item._fn.isOwner) {
 					registry[key] = item._fn;
 				} else {
 					delete registry[key];
@@ -68,9 +65,9 @@ class Registry {
 	}
 }
 
-const registries = registryNames.map( name => {
+const registries = registryNames.map(name => {
 	const putInDefaults = registriesOnDefaults.indexOf(name) > -1;
-	return new Registry( name, putInDefaults );
+	return new Registry(name, putInDefaults);
 });
 
 export default registries;

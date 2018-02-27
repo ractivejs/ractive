@@ -17,7 +17,7 @@ import { test } from 'qunit';
 // TODO update tests from source
 
 export default function() {
-	initModule( 'render/mustache-compliance/all.js' );
+	initModule('render/mustache-compliance/all.js');
 
 	const testModules = [
 		{
@@ -113,7 +113,8 @@ export default function() {
 					},
 					expected: '(Hey!)',
 					template: '{{=<% %>=}}(<%text%>)',
-					desc: 'The equals sign (used on both sides) should permit delimiter changes.'
+					desc:
+						'The equals sign (used on both sides) should permit delimiter changes.'
 				},
 				{
 					name: 'Special Characters',
@@ -122,7 +123,8 @@ export default function() {
 					},
 					expected: '(It worked!)',
 					template: '({{=[ ]=}}[text])',
-					desc: 'Characters with special meaning regexen should be valid delimiters.'
+					desc:
+						'Characters with special meaning regexen should be valid delimiters.'
 				},
 				{
 					name: 'Sections',
@@ -130,8 +132,10 @@ export default function() {
 						section: true,
 						data: 'I got interpolated.'
 					},
-					expected: '[\n  I got interpolated.\n  |data|\n\n  {{data}}\n  I got interpolated.\n]\n',
-					template: '[\n{{#section}}\n  {{data}}\n  |data|\n{{/section}}\n\n{{= | | =}}\n|#section|\n  {{data}}\n  |data|\n|/section|\n]\n',
+					expected:
+						'[\n  I got interpolated.\n  |data|\n\n  {{data}}\n  I got interpolated.\n]\n',
+					template:
+						'[\n{{#section}}\n  {{data}}\n  |data|\n{{/section}}\n\n{{= | | =}}\n|#section|\n  {{data}}\n  |data|\n|/section|\n]\n',
 					desc: 'Delimiters set outside sections should persist.',
 					oldIe: true
 				},
@@ -141,8 +145,10 @@ export default function() {
 						section: false,
 						data: 'I got interpolated.'
 					},
-					expected: '[\n  I got interpolated.\n  |data|\n\n  {{data}}\n  I got interpolated.\n]\n',
-					template: '[\n{{^section}}\n  {{data}}\n  |data|\n{{/section}}\n\n{{= | | =}}\n|^section|\n  {{data}}\n  |data|\n|/section|\n]\n',
+					expected:
+						'[\n  I got interpolated.\n  |data|\n\n  {{data}}\n  I got interpolated.\n]\n',
+					template:
+						'[\n{{^section}}\n  {{data}}\n  |data|\n{{/section}}\n\n{{= | | =}}\n|^section|\n  {{data}}\n  |data|\n|/section|\n]\n',
 					desc: 'Delimiters set outside inverted sections should persist.',
 					oldIe: true
 				},
@@ -153,7 +159,8 @@ export default function() {
 					},
 					expected: '[ .yes. ]\n[ .yes. ]\n',
 					template: '[ {{>include}} ]\n{{= | | =}}\n[ |>include| ]\n',
-					desc: 'Delimiters set in a parent template should not affect a partial.',
+					desc:
+						'Delimiters set in a parent template should not affect a partial.',
 					partials: {
 						include: '.{{value}}.'
 					},
@@ -166,7 +173,8 @@ export default function() {
 					},
 					expected: '[ .yes.  .yes. ]\n[ .yes.  .|value|. ]\n',
 					template: '[ {{>include}} ]\n[ .{{value}}.  .|value|. ]\n',
-					desc: 'Delimiters set in a partial should not affect the parent template.',
+					desc:
+						'Delimiters set in a partial should not affect the parent template.',
 					partials: {
 						// Note: the original test looked like this:
 						//     include: `.{{value}}. {{= | | =}} .|value|.`
@@ -259,7 +267,8 @@ export default function() {
 					data: {
 						forbidden: `& " < >`
 					},
-					expected: 'These characters should be HTML escaped: &amp; &quot; &lt; &gt;\n',
+					expected:
+						'These characters should be HTML escaped: &amp; &quot; &lt; &gt;\n',
 					template: 'These characters should be HTML escaped: {{forbidden}}\n',
 					desc: 'Basic interpolation should be HTML escaped.'
 				},
@@ -269,7 +278,8 @@ export default function() {
 						forbidden: `& " < >`
 					},
 					expected: `These characters should not be HTML escaped: & " < >\n`,
-					template: 'These characters should not be HTML escaped: {{{forbidden}}}\n',
+					template:
+						'These characters should not be HTML escaped: {{{forbidden}}}\n',
 					desc: 'Triple mustaches should interpolate without HTML escaping.'
 				},
 				{
@@ -278,7 +288,8 @@ export default function() {
 						forbidden: `& " < >`
 					},
 					expected: `These characters should not be HTML escaped: & " < >\n`,
-					template: 'These characters should not be HTML escaped: {{&forbidden}}\n',
+					template:
+						'These characters should not be HTML escaped: {{&forbidden}}\n',
 					desc: 'Ampersand should interpolate without HTML escaping.'
 				},
 				{
@@ -315,7 +326,8 @@ export default function() {
 					},
 					expected: `\"1.21 jiggawatts!\"`,
 					template: `\"{{power}} jiggawatts!\"`,
-					desc: 'Decimals should interpolate seamlessly with proper significance.'
+					desc:
+						'Decimals should interpolate seamlessly with proper significance.'
 				},
 				{
 					name: 'Triple Mustache Decimal Interpolation',
@@ -324,7 +336,8 @@ export default function() {
 					},
 					expected: `\"1.21 jiggawatts!\"`,
 					template: `\"{{{power}}} jiggawatts!\"`,
-					desc: 'Decimals should interpolate seamlessly with proper significance.'
+					desc:
+						'Decimals should interpolate seamlessly with proper significance.'
 				},
 				{
 					name: 'Ampersand Decimal Interpolation',
@@ -333,7 +346,8 @@ export default function() {
 					},
 					expected: `\"1.21 jiggawatts!\"`,
 					template: `\"{{&power}} jiggawatts!\"`,
-					desc: 'Decimals should interpolate seamlessly with proper significance.'
+					desc:
+						'Decimals should interpolate seamlessly with proper significance.'
 				},
 				{
 					name: 'Basic Context Miss Interpolation',
@@ -365,7 +379,8 @@ export default function() {
 					},
 					expected: `\"Joe\" == \"Joe\"`,
 					template: `\"{{person.name}}\" == \"{{#person}}{{name}}{{/person}}\"`,
-					desc: 'Dotted names should be considered a form of shorthand for sections.'
+					desc:
+						'Dotted names should be considered a form of shorthand for sections.'
 				},
 				{
 					name: 'Dotted Names - Triple Mustache Interpolation',
@@ -376,7 +391,8 @@ export default function() {
 					},
 					expected: `\"Joe\" == \"Joe\"`,
 					template: `\"{{{person.name}}}\" == \"{{#person}}{{{name}}}{{/person}}\"`,
-					desc: 'Dotted names should be considered a form of shorthand for sections.'
+					desc:
+						'Dotted names should be considered a form of shorthand for sections.'
 				},
 				{
 					name: 'Dotted Names - Ampersand Interpolation',
@@ -387,7 +403,8 @@ export default function() {
 					},
 					expected: `\"Joe\" == \"Joe\"`,
 					template: `\"{{&person.name}}\" == \"{{#person}}{{&name}}{{/person}}\"`,
-					desc: 'Dotted names should be considered a form of shorthand for sections.'
+					desc:
+						'Dotted names should be considered a form of shorthand for sections.'
 				},
 				{
 					name: 'Dotted Names - Arbitrary Depth',
@@ -429,7 +446,8 @@ export default function() {
 					},
 					expected: `\"\" == \"\"`,
 					template: `\"{{a.b.c.name}}\" == \"\"`,
-					desc: 'Each part of a dotted name should resolve only against its parent.'
+					desc:
+						'Each part of a dotted name should resolve only against its parent.'
 				},
 				{
 					name: 'Dotted Names - Initial Resolution',
@@ -457,7 +475,8 @@ export default function() {
 					},
 					expected: `\"Phil\" == \"Phil\"`,
 					template: `\"{{#a}}{{b.c.d.e.name}}{{/a}}\" == \"Phil\"`,
-					desc: 'The first part of a dotted name should resolve as any other name.'
+					desc:
+						'The first part of a dotted name should resolve as any other name.'
 				},
 				{
 					name: 'Interpolation - Surrounding Whitespace',
@@ -493,7 +512,8 @@ export default function() {
 					},
 					expected: '  ---\n',
 					template: '  {{string}}\n',
-					desc: 'Standalone interpolation should not alter surrounding whitespace.'
+					desc:
+						'Standalone interpolation should not alter surrounding whitespace.'
 				},
 				{
 					name: 'Triple Mustache - Standalone',
@@ -502,7 +522,8 @@ export default function() {
 					},
 					expected: '  ---\n',
 					template: '  {{{string}}}\n',
-					desc: 'Standalone interpolation should not alter surrounding whitespace.'
+					desc:
+						'Standalone interpolation should not alter surrounding whitespace.'
 				},
 				{
 					name: 'Ampersand - Standalone',
@@ -511,7 +532,8 @@ export default function() {
 					},
 					expected: '  ---\n',
 					template: '  {{&string}}\n',
-					desc: 'Standalone interpolation should not alter surrounding whitespace.'
+					desc:
+						'Standalone interpolation should not alter surrounding whitespace.'
 				},
 				{
 					name: 'Interpolation With Padding',
@@ -610,7 +632,8 @@ export default function() {
 						bool: false
 					},
 					expected: '* first\n* second\n* third\n',
-					template: '{{^bool}}\n* first\n{{/bool}}\n* {{two}}\n{{^bool}}\n* third\n{{/bool}}\n',
+					template:
+						'{{^bool}}\n* first\n{{/bool}}\n* {{two}}\n{{^bool}}\n* third\n{{/bool}}\n',
 					desc: `Multiple inverted sections per template should be permitted.`,
 					oldIe: true
 				},
@@ -672,7 +695,8 @@ export default function() {
 					},
 					expected: `\"Not Here\" == \"Not Here\"`,
 					template: `\"{{^a.b.c}}Not Here{{/a.b.c}}\" == \"Not Here\"`,
-					desc: 'Dotted names that cannot be resolved should be considered falsey.'
+					desc:
+						'Dotted names that cannot be resolved should be considered falsey.'
 				},
 				{
 					name: 'Surrounding Whitespace',
@@ -689,7 +713,8 @@ export default function() {
 						boolean: false
 					},
 					expected: ' |  \n  | \n',
-					template: ' | {{^boolean}} {{! Important Whitespace }}\n {{/boolean}} | \n',
+					template:
+						' | {{^boolean}} {{! Important Whitespace }}\n {{/boolean}} | \n',
 					desc: 'Inverted should not alter internal whitespace.'
 				},
 				{
@@ -698,7 +723,8 @@ export default function() {
 						boolean: false
 					},
 					expected: ' NO\n WAY\n',
-					template: ' {{^boolean}}NO{{/boolean}}\n {{^boolean}}WAY{{/boolean}}\n',
+					template:
+						' {{^boolean}}NO{{/boolean}}\n {{^boolean}}WAY{{/boolean}}\n',
 					desc: 'Single-line sections should not alter surrounding whitespace.'
 				},
 				{
@@ -949,8 +975,10 @@ export default function() {
 							five: 5
 						}
 					},
-					expected: '1\n121\n12321\n1234321\n123454321\n1234321\n12321\n121\n1\n',
-					template: '{{#a}}\n{{one}}\n{{#b}}\n{{one}}{{two}}{{one}}\n{{#c}}\n{{one}}{{two}}{{three}}{{two}}{{one}}\n{{#d}}\n{{one}}{{two}}{{three}}{{four}}{{three}}{{two}}{{one}}\n{{#e}}\n{{one}}{{two}}{{three}}{{four}}{{five}}{{four}}{{three}}{{two}}{{one}}\n{{/e}}\n{{one}}{{two}}{{three}}{{four}}{{three}}{{two}}{{one}}\n{{/d}}\n{{one}}{{two}}{{three}}{{two}}{{one}}\n{{/c}}\n{{one}}{{two}}{{one}}\n{{/b}}\n{{one}}\n{{/a}}\n',
+					expected:
+						'1\n121\n12321\n1234321\n123454321\n1234321\n12321\n121\n1\n',
+					template:
+						'{{#a}}\n{{one}}\n{{#b}}\n{{one}}{{two}}{{one}}\n{{#c}}\n{{one}}{{two}}{{three}}{{two}}{{one}}\n{{#d}}\n{{one}}{{two}}{{three}}{{four}}{{three}}{{two}}{{one}}\n{{#e}}\n{{one}}{{two}}{{three}}{{four}}{{five}}{{four}}{{three}}{{two}}{{one}}\n{{/e}}\n{{one}}{{two}}{{three}}{{four}}{{three}}{{two}}{{one}}\n{{/d}}\n{{one}}{{two}}{{three}}{{two}}{{one}}\n{{/c}}\n{{one}}{{two}}{{one}}\n{{/b}}\n{{one}}\n{{/a}}\n',
 					desc: `All elements on the context stack should be accessible.`,
 					oldIe: true
 				},
@@ -971,7 +999,8 @@ export default function() {
 					},
 					expected: `\"123\"`,
 					template: `\"{{#list}}{{item}}{{/list}}\"`,
-					desc: 'Lists should be iterated; list items should visit the context stack.'
+					desc:
+						'Lists should be iterated; list items should visit the context stack.'
 				},
 				{
 					name: 'Empty List',
@@ -989,7 +1018,8 @@ export default function() {
 						bool: true
 					},
 					expected: '* first\n* second\n* third\n',
-					template: '{{#bool}}\n* first\n{{/bool}}\n* {{two}}\n{{#bool}}\n* third\n{{/bool}}\n',
+					template:
+						'{{#bool}}\n* first\n{{/bool}}\n* {{two}}\n{{#bool}}\n* third\n{{/bool}}\n',
 					desc: `Multiple sections per template should be permitted.`,
 					oldIe: true
 				},
@@ -1021,13 +1051,7 @@ export default function() {
 				{
 					name: 'Implicit Iterator - String',
 					data: {
-						list: [
-							'a',
-							'b',
-							'c',
-							'd',
-							'e'
-						]
+						list: ['a', 'b', 'c', 'd', 'e']
 					},
 					expected: `\"(a)(b)(c)(d)(e)\"`,
 					template: `\"{{#list}}({{.}}){{/list}}\"`,
@@ -1036,32 +1060,22 @@ export default function() {
 				{
 					name: 'Implicit Iterator - Integer',
 					data: {
-						list: [
-							1,
-							2,
-							3,
-							4,
-							5
-						]
+						list: [1, 2, 3, 4, 5]
 					},
 					expected: `\"(1)(2)(3)(4)(5)\"`,
 					template: `\"{{#list}}({{.}}){{/list}}\"`,
-					desc: 'Implicit iterators should cast integers to strings and interpolate.'
+					desc:
+						'Implicit iterators should cast integers to strings and interpolate.'
 				},
 				{
 					name: 'Implicit Iterator - Decimal',
 					data: {
-						list: [
-							1.1,
-							2.2,
-							3.3,
-							4.4,
-							5.5
-						]
+						list: [1.1, 2.2, 3.3, 4.4, 5.5]
 					},
 					expected: `"(1.1)(2.2)(3.3)(4.4)(5.5)"`,
 					template: `"{{#list}}({{.}}){{/list}}"`,
-					desc: 'Implicit iterators should cast decimals to strings and interpolate.'
+					desc:
+						'Implicit iterators should cast decimals to strings and interpolate.'
 				},
 				{
 					name: 'Dotted Names - Truthy',
@@ -1096,7 +1110,8 @@ export default function() {
 					},
 					expected: `\"\" == \"\"`,
 					template: `\"{{#a.b.c}}Here{{/a.b.c}}\" == \"\"`,
-					desc: 'Dotted names that cannot be resolved should be considered falsey.'
+					desc:
+						'Dotted names that cannot be resolved should be considered falsey.'
 				},
 				{
 					name: 'Surrounding Whitespace',
@@ -1113,7 +1128,8 @@ export default function() {
 						boolean: true
 					},
 					expected: ' |  \n  | \n',
-					template: ' | {{#boolean}} {{! Important Whitespace }}\n {{/boolean}} | \n',
+					template:
+						' | {{#boolean}} {{! Important Whitespace }}\n {{/boolean}} | \n',
 					desc: 'Sections should not alter internal whitespace.'
 				},
 				{
@@ -1122,7 +1138,8 @@ export default function() {
 						boolean: true
 					},
 					expected: ' YES\n GOOD\n',
-					template: ' {{#boolean}}YES{{/boolean}}\n {{#boolean}}GOOD{{/boolean}}\n',
+					template:
+						' {{#boolean}}YES{{/boolean}}\n {{#boolean}}GOOD{{/boolean}}\n',
 					desc: 'Single-line sections should not alter surrounding whitespace.'
 				},
 				{
@@ -1188,15 +1205,15 @@ export default function() {
 		}
 	];
 
-	const isOldIe = /MSIE [6-8]/.test( navigator.userAgent );
+	const isOldIe = /MSIE [6-8]/.test(navigator.userAgent);
 
-	testModules.forEach( theModule => {
-		theModule.tests.forEach( theTest => {
-			if ( theTest.unpassable || ( isOldIe && theTest.oldIe ) ) return;
+	testModules.forEach(theModule => {
+		theModule.tests.forEach(theTest => {
+			if (theTest.unpassable || (isOldIe && theTest.oldIe)) return;
 
-			test( `[${theModule.name}] ${theTest.name}`, t => {
-				onWarn( msg => {
-					t.ok( /Could not find template/.test( msg ) ); // only warning that should appear
+			test(`[${theModule.name}] ${theTest.name}`, t => {
+				onWarn(msg => {
+					t.ok(/Could not find template/.test(msg)); // only warning that should appear
 				});
 
 				new Ractive({
@@ -1207,7 +1224,11 @@ export default function() {
 					preserveWhitespace: true
 				});
 
-				t.htmlEqual( fixture.innerHTML, theTest.expected, theTest.desc + '\n' + theTest.template + '\n' );
+				t.htmlEqual(
+					fixture.innerHTML,
+					theTest.expected,
+					theTest.desc + '\n' + theTest.template + '\n'
+				);
 			});
 		});
 	});

@@ -5,91 +5,93 @@ import noop from 'utils/noop';
 import { keys as objectKeys } from 'utils/object';
 
 export default class KeypathModel {
-	constructor ( parent, ractive ) {
+	constructor(parent, ractive) {
 		this.parent = parent;
 		this.ractive = ractive;
-		this.value = ractive ? parent.getKeypath( ractive ) : parent.getKeypath();
+		this.value = ractive ? parent.getKeypath(ractive) : parent.getKeypath();
 		this.deps = [];
 		this.children = {};
 		this.isReadonly = this.isKeypath = true;
 	}
 
-	get ( shouldCapture ) {
-		if ( shouldCapture ) capture( this );
+	get(shouldCapture) {
+		if (shouldCapture) capture(this);
 		return this.value;
 	}
 
-	getChild ( ractive ) {
-		if ( !( ractive._guid in this.children ) ) {
-			const model = new KeypathModel( this.parent, ractive );
-			this.children[ ractive._guid ] = model;
+	getChild(ractive) {
+		if (!(ractive._guid in this.children)) {
+			const model = new KeypathModel(this.parent, ractive);
+			this.children[ractive._guid] = model;
 			model.owner = this;
 		}
-		return this.children[ ractive._guid ];
+		return this.children[ractive._guid];
 	}
 
-	getKeypath () {
+	getKeypath() {
 		return this.value;
 	}
 
-	handleChange () {
-		const keys = objectKeys( this.children );
+	handleChange() {
+		const keys = objectKeys(this.children);
 		let i = keys.length;
-		while ( i-- ) {
-			this.children[ keys[i] ].handleChange();
+		while (i--) {
+			this.children[keys[i]].handleChange();
 		}
 
-		this.deps.forEach( handleChange );
+		this.deps.forEach(handleChange);
 	}
 
-	has () { return false; }
+	has() {
+		return false;
+	}
 
-	rebindChildren ( next ) {
-		const keys = objectKeys( this.children );
+	rebindChildren(next) {
+		const keys = objectKeys(this.children);
 		let i = keys.length;
-		while ( i-- ) {
+		while (i--) {
 			const child = this.children[keys[i]];
-			child.value = next.getKeypath( child.ractive );
+			child.value = next.getKeypath(child.ractive);
 			child.handleChange();
 		}
 	}
 
-	rebind ( next, previous ) {
-		const model = next ? next.getKeypathModel( this.ractive ) : undefined;
+	rebind(next, previous) {
+		const model = next ? next.getKeypathModel(this.ractive) : undefined;
 
-		const keys = objectKeys( this.children );
+		const keys = objectKeys(this.children);
 		let i = keys.length;
-		while ( i-- ) {
-			this.children[ keys[i] ].rebind( next, previous, false );
+		while (i--) {
+			this.children[keys[i]].rebind(next, previous, false);
 		}
 
 		i = this.deps.length;
-		while ( i-- ) {
-			this.deps[i].rebind( model, this, false );
+		while (i--) {
+			this.deps[i].rebind(model, this, false);
 		}
 	}
 
-	register ( dep ) {
-		this.deps.push( dep );
+	register(dep) {
+		this.deps.push(dep);
 	}
 
-	removeChild( model ) {
-		if ( model.ractive ) delete this.children[ model.ractive._guid ];
+	removeChild(model) {
+		if (model.ractive) delete this.children[model.ractive._guid];
 	}
 
-	teardown () {
-		if ( this.owner ) this.owner.removeChild( this );
+	teardown() {
+		if (this.owner) this.owner.removeChild(this);
 
-		const keys = objectKeys( this.children );
+		const keys = objectKeys(this.children);
 		let i = keys.length;
-		while ( i-- ) {
-			this.children[ keys[i] ].teardown();
+		while (i--) {
+			this.children[keys[i]].teardown();
 		}
 	}
 
-	unregister ( dep ) {
-		removeFromArray( this.deps, dep );
-		if ( !this.deps.length ) this.teardown();
+	unregister(dep) {
+		removeFromArray(this.deps, dep);
+		if (!this.deps.length) this.teardown();
 	}
 }
 

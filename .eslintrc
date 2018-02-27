@@ -9,7 +9,6 @@
 	},
 	"rules": {
 		"arrow-spacing": "error",
-		"indent": [ "error", "tab", { "SwitchCase": 1 }],
 		"linebreak-style": [ "error", "unix" ],
 		"no-mixed-spaces-and-tabs": [ "error", "smart-tabs" ],
 		"no-class-assign": "error",

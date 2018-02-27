@@ -3,11 +3,11 @@ import { fire } from 'simulant';
 import { test } from 'qunit';
 
 export default function() {
-	initModule( 'methods/unshift.js' );
+	initModule('methods/unshift.js');
 
-	[ true, false ].forEach( modifyArrays => {
-		test( `ractive.unshift() (modifyArrays: ${modifyArrays})`, t => {
-			const items = [ 'alice', 'bob', 'charles' ];
+	[true, false].forEach(modifyArrays => {
+		test(`ractive.unshift() (modifyArrays: ${modifyArrays})`, t => {
+			const items = ['alice', 'bob', 'charles'];
 
 			const ractive = new Ractive({
 				el: fixture,
@@ -20,37 +20,40 @@ export default function() {
 				data: { items }
 			});
 
-			ractive.unshift( 'items', 'dave');
-			t.htmlEqual( fixture.innerHTML, '<ul><li>dave</li><li>alice</li><li>bob</li><li>charles</li></ul>' );
+			ractive.unshift('items', 'dave');
+			t.htmlEqual(
+				fixture.innerHTML,
+				'<ul><li>dave</li><li>alice</li><li>bob</li><li>charles</li></ul>'
+			);
 		});
 	});
 
-	test( 'unshift should make all indices update (#1729)', t => {
+	test('unshift should make all indices update (#1729)', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{foo.0}}',
-			data: { foo: [ 'first' ] }
+			data: { foo: ['first'] }
 		});
 
-		t.htmlEqual( fixture.innerHTML, 'first' );
-		ractive.unshift( 'foo', 'second' );
-		t.htmlEqual( fixture.innerHTML, 'second' );
+		t.htmlEqual(fixture.innerHTML, 'first');
+		ractive.unshift('foo', 'second');
+		t.htmlEqual(fixture.innerHTML, 'second');
 	});
 
-	test( 'array modification with non-shuffle-able deps should update correctly', t => {
+	test('array modification with non-shuffle-able deps should update correctly', t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#foo}}{{.}}{{/}}{{foo.0}}',
-			data: { foo: [ 1, 2 ] }
+			data: { foo: [1, 2] }
 		});
 
-		t.htmlEqual( fixture.innerHTML, '121' );
-		ractive.unshift( 'foo', 0 );
-		t.htmlEqual( fixture.innerHTML, '0120' );
+		t.htmlEqual(fixture.innerHTML, '121');
+		ractive.unshift('foo', 0);
+		t.htmlEqual(fixture.innerHTML, '0120');
 	});
 
-	test( 'Check for this.model existence when rebinding (#2114)', t => {
-		const list = [ {} ];
+	test('Check for this.model existence when rebinding (#2114)', t => {
+		const list = [{}];
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -61,11 +64,11 @@ export default function() {
 			data: { list }
 		});
 
-		ractive.unshift( 'list', { bar: true });
-		t.equal( fixture.innerHTML, 'yepnope' );
+		ractive.unshift('list', { bar: true });
+		t.equal(fixture.innerHTML, 'yepnope');
 	});
 
-	test( 'Nested sections don\'t grow a context on rebind during smart updates #1737', t => {
+	test("Nested sections don't grow a context on rebind during smart updates #1737", t => {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -81,56 +84,62 @@ export default function() {
 			data: {
 				outer: [
 					{
-						inner: [ { foo: true }, 1 ]
+						inner: [{ foo: true }, 1]
 					}
 				],
 				some: { prop: 10 }
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, 'outer.0.inner.0 <span>outer.0.inner.0</span><br/>outer.0.inner.1 <span>outer.0.inner.1</span><br/>' );
+		t.htmlEqual(
+			fixture.innerHTML,
+			'outer.0.inner.0 <span>outer.0.inner.0</span><br/>outer.0.inner.1 <span>outer.0.inner.1</span><br/>'
+		);
 
-		ractive.unshift( 'outer', { inner: [ 0 ] } );
+		ractive.unshift('outer', { inner: [0] });
 
-		t.htmlEqual( fixture.innerHTML, 'outer.0.inner.0 <span>outer.0.inner.0</span><br/>outer.1.inner.0 <span>outer.1.inner.0</span><br/>outer.1.inner.1 <span>outer.1.inner.1</span><br/>' );
+		t.htmlEqual(
+			fixture.innerHTML,
+			'outer.0.inner.0 <span>outer.0.inner.0</span><br/>outer.1.inner.0 <span>outer.1.inner.0</span><br/>outer.1.inner.1 <span>outer.1.inner.1</span><br/>'
+		);
 	});
 
-	test( 'Array updates cause sections to shuffle with correct results', t => {
+	test('Array updates cause sections to shuffle with correct results', t => {
 		const ractive = new Ractive({
 			el: fixture,
-			template: '{{#each items}}{{.title}}{{#each .tags}}{{.}}{{/each}}{{/each}}',
+			template:
+				'{{#each items}}{{.title}}{{#each .tags}}{{.}}{{/each}}{{/each}}',
 			data: {
 				items: [
-					{ title: 'one', tags: [ 'A' ] },
-					{ title: 'two', tags: [ 'B', 'C' ] }
+					{ title: 'one', tags: ['A'] },
+					{ title: 'two', tags: ['B', 'C'] }
 				]
 			}
 		});
 
-		t.htmlEqual( fixture.innerHTML, 'oneAtwoBC' );
-		ractive.unshift( 'items', { title: 'three' } );
-		t.htmlEqual( fixture.innerHTML, 'threeoneAtwoBC' );
+		t.htmlEqual(fixture.innerHTML, 'oneAtwoBC');
+		ractive.unshift('items', { title: 'three' });
+		t.htmlEqual(fixture.innerHTML, 'threeoneAtwoBC');
 	});
 
-	test( 'nested contexts in iterative sections update correctly (#2660)', t => {
-		t.expect( 1 );
+	test('nested contexts in iterative sections update correctly (#2660)', t => {
+		t.expect(1);
 
 		const r = new Ractive({
 			el: fixture,
-			template: '{{#each outer}}{{#each .inner}}<button on-click="@this.check(event)">check</button>{{/each}}{{/each}}',
+			template:
+				'{{#each outer}}{{#each .inner}}<button on-click="@this.check(event)">check</button>{{/each}}{{/each}}',
 			data: {
-				outer: [
-					{ inner: [ {} ] }
-				]
+				outer: [{ inner: [{}] }]
 			},
-			check ( ev ) {
-				t.equal( ev.resolve(), 'outer.1.inner.0' );
+			check(ev) {
+				t.equal(ev.resolve(), 'outer.1.inner.0');
 			}
 		});
 
-		r.unshift( 'outer', { inner: [ {} ] } );
-		const btn = r.findAll( 'button' )[1];
+		r.unshift('outer', { inner: [{}] });
+		const btn = r.findAll('button')[1];
 
-		fire( btn, 'click' );
+		fire(btn, 'click');
 	});
 }

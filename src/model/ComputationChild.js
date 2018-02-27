@@ -4,68 +4,73 @@ import { handleChange, mark, marked } from 'shared/methodCallers';
 import { hasOwn } from 'utils/object';
 
 export default class ComputationChild extends Model {
-	constructor ( parent, key ) {
-		super( parent, key );
+	constructor(parent, key) {
+		super(parent, key);
 
 		this.isReadonly = !this.root.ractive.syncComputedChildren;
 		this.dirty = true;
 	}
 
-	get setRoot () { return this.parent.setRoot; }
+	get setRoot() {
+		return this.parent.setRoot;
+	}
 
-	applyValue ( value ) {
-		super.applyValue( value );
+	applyValue(value) {
+		super.applyValue(value);
 
-		if ( !this.isReadonly ) {
+		if (!this.isReadonly) {
 			let source = this.parent;
 			// computed models don't have a shuffle method
-			while ( source && source.shuffle ) {
+			while (source && source.shuffle) {
 				source = source.parent;
 			}
 
-			if ( source ) {
-				source.dependencies.forEach( mark );
+			if (source) {
+				source.dependencies.forEach(mark);
 			}
 		}
 
-		if ( this.setRoot ) {
-			this.setRoot.set( this.setRoot.value );
+		if (this.setRoot) {
+			this.setRoot.set(this.setRoot.value);
 		}
 	}
 
-	get ( shouldCapture, opts ) {
-		if ( shouldCapture ) capture( this );
+	get(shouldCapture, opts) {
+		if (shouldCapture) capture(this);
 
-		if ( this.dirty ) {
+		if (this.dirty) {
 			this.dirty = false;
 			const parentValue = this.parent.get();
-			this.value = parentValue ? parentValue[ this.key ] : undefined;
-			if ( this.wrapper ) this.newWrapperValue = this.value;
+			this.value = parentValue ? parentValue[this.key] : undefined;
+			if (this.wrapper) this.newWrapperValue = this.value;
 			this.adapt();
 		}
 
-		return ( ( opts && 'unwrap' in opts ) ? opts.unwrap !== false : shouldCapture ) && this.wrapper ? this.wrapperValue : this.value;
+		return (opts && 'unwrap' in opts ? opts.unwrap !== false : shouldCapture) &&
+			this.wrapper
+			? this.wrapperValue
+			: this.value;
 	}
 
-	handleChange () {
+	handleChange() {
 		this.dirty = true;
 
-		if ( this.boundValue ) this.boundValue = null;
+		if (this.boundValue) this.boundValue = null;
 
-		this.links.forEach( marked );
-		this.deps.forEach( handleChange );
-		this.children.forEach( handleChange );
+		this.links.forEach(marked);
+		this.deps.forEach(handleChange);
+		this.children.forEach(handleChange);
 	}
 
-	joinKey ( key ) {
-		if ( key === undefined || key === '' ) return this;
+	joinKey(key) {
+		if (key === undefined || key === '') return this;
 
-		if ( !hasOwn( this.childByKey, key ) ) {
-			const child = new ComputationChild( this, key );
-			this.children.push( child );
-			this.childByKey[ key ] = child;
+		if (!hasOwn(this.childByKey, key)) {
+			const child = new ComputationChild(this, key);
+			this.children.push(child);
+			this.childByKey[key] = child;
 		}
 
-		return this.childByKey[ key ];
+		return this.childByKey[key];
 	}
 }

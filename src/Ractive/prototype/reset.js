@@ -4,58 +4,66 @@ import Hook from '../../events/Hook';
 import dataConfigurator from '../config/custom/data';
 import { isObjectType } from 'utils/is';
 
-const shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ];
+const shouldRerender = [
+	'template',
+	'partials',
+	'components',
+	'decorators',
+	'events'
+];
 
-const completeHook = new Hook( 'complete' );
-const resetHook = new Hook( 'reset' );
-const renderHook = new Hook( 'render' );
-const unrenderHook = new Hook( 'unrender' );
+const completeHook = new Hook('complete');
+const resetHook = new Hook('reset');
+const renderHook = new Hook('render');
+const unrenderHook = new Hook('unrender');
 
-export default function Ractive$reset ( data ) {
+export default function Ractive$reset(data) {
 	data = data || {};
 
-	if ( !isObjectType( data ) ) {
-		throw new Error( 'The reset method takes either no arguments, or an object containing new data' );
+	if (!isObjectType(data)) {
+		throw new Error(
+			'The reset method takes either no arguments, or an object containing new data'
+		);
 	}
 
 	// TEMP need to tidy this up
-	data = dataConfigurator.init( this.constructor, this, { data });
+	data = dataConfigurator.init(this.constructor, this, { data });
 
 	const promise = runloop.start();
 
 	// If the root object is wrapped, try and use the wrapper's reset value
 	const wrapper = this.viewmodel.wrapper;
-	if ( wrapper && wrapper.reset ) {
-		if ( wrapper.reset( data ) === false ) {
+	if (wrapper && wrapper.reset) {
+		if (wrapper.reset(data) === false) {
 			// reset was rejected, we need to replace the object
-			this.viewmodel.set( data );
+			this.viewmodel.set(data);
 		}
 	} else {
-		this.viewmodel.set( data );
+		this.viewmodel.set(data);
 	}
 
 	// reset config items and track if need to rerender
-	const changes = config.reset( this );
+	const changes = config.reset(this);
 	let rerender;
 
 	let i = changes.length;
-	while ( i-- ) {
-		if ( shouldRerender.indexOf( changes[i] ) > -1 ) {
+	while (i--) {
+		if (shouldRerender.indexOf(changes[i]) > -1) {
 			rerender = true;
 			break;
 		}
 	}
 
-	if ( rerender ) {
-		unrenderHook.fire( this );
-		this.fragment.resetTemplate( this.template );
-		renderHook.fire( this );
-		completeHook.fire( this );
+	if (rerender) {
+		unrenderHook.fire(this);
+		this.fragment.resetTemplate(this.template);
+		renderHook.fire(this);
+		completeHook.fire(this);
 	}
 
 	runloop.end();
 
-	resetHook.fire( this, data );
+	resetHook.fire(this, data);
 
 	return promise;
 }

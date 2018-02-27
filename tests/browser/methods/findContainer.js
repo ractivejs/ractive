@@ -2,9 +2,9 @@ import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
 export default function() {
-	initModule( 'methods/findContainer.js' );
+	initModule('methods/findContainer.js');
 
-	test( '.findContainer() finds container component', t => {
+	test('.findContainer() finds container component', t => {
 		const ractive = new Ractive({
 			template: '<Outer><Mid><Inner/></Mid></Outer>',
 			components: {
@@ -14,8 +14,14 @@ export default function() {
 			}
 		});
 
-		t.strictEqual( ractive.findComponent( 'Inner' ).findContainer( 'Mid' ), ractive.findComponent( 'Mid' ) );
-		t.strictEqual( ractive.findComponent( 'Inner' ).findContainer( 'Outer' ), ractive.findComponent( 'Outer' ) );
-		t.strictEqual( ractive.findComponent( 'Inner' ).findContainer( 'nope' ), null );
+		t.strictEqual(
+			ractive.findComponent('Inner').findContainer('Mid'),
+			ractive.findComponent('Mid')
+		);
+		t.strictEqual(
+			ractive.findComponent('Inner').findContainer('Outer'),
+			ractive.findComponent('Outer')
+		);
+		t.strictEqual(ractive.findComponent('Inner').findContainer('nope'), null);
 	});
 }

@@ -2,30 +2,30 @@ import runloop from 'src/global/runloop';
 import Element from '../../Element';
 
 export default class Form extends Element {
-	constructor ( options ) {
-		super( options );
+	constructor(options) {
+		super(options);
 		this.formBindings = [];
 	}
 
-	render ( target, occupants ) {
-		super.render( target, occupants );
-		this.on( 'reset', handleReset );
+	render(target, occupants) {
+		super.render(target, occupants);
+		this.on('reset', handleReset);
 	}
 
-	unrender ( shouldDestroy ) {
-		this.off( 'reset', handleReset );
-		super.unrender( shouldDestroy );
+	unrender(shouldDestroy) {
+		this.off('reset', handleReset);
+		super.unrender(shouldDestroy);
 	}
 }
 
-function handleReset () {
+function handleReset() {
 	const element = this._ractive.proxy;
 
 	runloop.start();
-	element.formBindings.forEach( updateModel );
+	element.formBindings.forEach(updateModel);
 	runloop.end();
 }
 
-function updateModel ( binding ) {
-	binding.model.set( binding.resetValue );
+function updateModel(binding) {
+	binding.model.set(binding.resetValue);
 }
