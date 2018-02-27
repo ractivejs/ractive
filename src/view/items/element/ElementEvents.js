@@ -55,11 +55,12 @@ class DOMEvent {
 }
 
 class CustomEvent {
-	constructor ( eventPlugin, owner, name ) {
+	constructor ( eventPlugin, owner, name, args ) {
 		this.eventPlugin = eventPlugin;
 		this.owner = owner;
 		this.name = name;
 		this.handler = null;
+		this.args = args;
 	}
 
 	bind () {}
@@ -68,14 +69,14 @@ class CustomEvent {
 		runloop.scheduleTask( () => {
 			const node = this.owner.node;
 
-			this.handler = this.eventPlugin.call( this.owner.ractive, node, ( event = {} ) => {
+			this.handler = this.eventPlugin.apply( this.owner.ractive, [ node, ( event = {} ) => {
 				if ( event.original ) event.event = event.original;
 				else event.original = event.event;
 
 				event.name = this.name;
 				event.node = event.node || node;
 				return directive.fire( event );
-			});
+			} ].concat( this.args || [] ) );
 		});
 	}
 
