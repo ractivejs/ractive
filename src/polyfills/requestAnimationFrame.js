@@ -1,6 +1,6 @@
 /* istanbul ignore if */
 if (
-  typeof window !== "undefined" &&
+  typeof window !== 'undefined' &&
   !(window.requestAnimationFrame && window.cancelAnimationFrame)
 ) {
   let lastTime = 0;

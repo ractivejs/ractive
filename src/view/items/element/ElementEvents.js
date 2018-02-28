@@ -1,6 +1,6 @@
-import { fatal } from "utils/log";
-import runloop from "src/global/runloop";
-import { win } from "config/environment";
+import { fatal } from 'utils/log';
+import runloop from 'src/global/runloop';
+import { win } from 'config/environment';
 
 // because IE
 const whitelist = {
@@ -15,7 +15,7 @@ const whitelist = {
 
 class DOMEvent {
   constructor(name, owner) {
-    if (name.indexOf("*") !== -1) {
+    if (name.indexOf('*') !== -1) {
       fatal(
         `Only component proxy-events may contain "*" wildcards, <${
           owner.name

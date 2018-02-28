@@ -7,15 +7,15 @@ import {
   INTERPOLATOR,
   TRANSITION,
   EVENT
-} from "../../../config/types";
-import getLowestIndex from "../utils/getLowestIndex";
-import readMustache from "../readMustache";
-import { decodeCharacterReferences } from "src/utils/html";
-import readExpressionList from "../expressions/shared/readExpressionList";
-import readExpressionOrReference from "../readExpressionOrReference";
-import flattenExpression from "parse/utils/flattenExpression";
-import refineExpression from "parse/utils/refineExpression";
-import { isString } from "utils/is";
+} from '../../../config/types';
+import getLowestIndex from '../utils/getLowestIndex';
+import readMustache from '../readMustache';
+import { decodeCharacterReferences } from 'src/utils/html';
+import readExpressionList from '../expressions/shared/readExpressionList';
+import readExpressionOrReference from '../readExpressionOrReference';
+import flattenExpression from 'parse/utils/flattenExpression';
+import refineExpression from 'parse/utils/refineExpression';
+import { isString } from 'utils/is';
 
 const attributeNamePattern = /^[^\s"'>\/=]+/;
 const onPattern = /^on/;
@@ -25,9 +25,9 @@ const decoratorPattern = /^as-([a-z-A-Z][-a-zA-Z_0-9]*)$/;
 const transitionPattern = /^([a-zA-Z](?:(?!-in-out)[-a-zA-Z_0-9])*)-(in|out|in-out)$/;
 const boundPattern = /^((bind|class)-(([-a-zA-Z0-9_])+))$/;
 const directives = {
-  lazy: { t: BINDING_FLAG, v: "l" },
-  twoway: { t: BINDING_FLAG, v: "t" },
-  "no-delegation": { t: DELEGATE_FLAG }
+  lazy: { t: BINDING_FLAG, v: 'l' },
+  twoway: { t: BINDING_FLAG, v: 't' },
+  'no-delegation': { t: DELEGATE_FLAG }
 };
 const unquotedAttributeValueTextPattern = /^[^\s"'=<>\/`]+/;
 const proxyEvent = /^[^\s"'=<>@\[\]()]*/;
@@ -39,13 +39,13 @@ function splitEvent(str) {
   let s = 0;
 
   for (let i = 0; i < str.length; i++) {
-    if (str[i] === "-" && str[i - 1] !== "\\") {
-      result.push(str.substring(s, i).replace(slashes, ""));
+    if (str[i] === '-' && str[i - 1] !== '\\') {
+      result.push(str.substring(s, i).replace(slashes, ''));
       s = i + 1;
     }
   }
 
-  result.push(str.substring(s).replace(slashes, ""));
+  result.push(str.substring(s).replace(slashes, ''));
 
   return result;
 }
@@ -81,12 +81,12 @@ function readAttributeValue(parser) {
 
   // next character must be `=`, `/`, `>` or whitespace
   if (!/[=\/>\s]/.test(parser.nextChar())) {
-    parser.error("Expected `=`, `/`, `>` or whitespace");
+    parser.error('Expected `=`, `/`, `>` or whitespace');
   }
 
   parser.sp();
 
-  if (!parser.matchString("=")) {
+  if (!parser.matchString('=')) {
     parser.pos = start;
     return null;
   }
@@ -102,18 +102,18 @@ function readAttributeValue(parser) {
     readUnquotedAttributeValue(parser);
 
   if (value === null) {
-    parser.error("Expected valid attribute value");
+    parser.error('Expected valid attribute value');
   }
 
   if (parser.sectionDepth !== startDepth) {
     parser.pos = valueStart;
     parser.error(
-      "An attribute value must contain as many opening section tags as closing section tags"
+      'An attribute value must contain as many opening section tags as closing section tags'
     );
   }
 
   if (!value.length) {
-    return "";
+    return '';
   }
 
   if (value.length === 1 && isString(value[0])) {
@@ -200,7 +200,7 @@ function readQuotedStringToken(parser, quoteMark) {
   const index = getLowestIndex(haystack, needles);
 
   if (index === -1) {
-    parser.error("Quoted attribute value must have a closing quote");
+    parser.error('Quoted attribute value must have a closing quote');
   }
 
   if (!index) {
@@ -224,7 +224,7 @@ export function readAttributeOrDirective(parser) {
     if (directive.v) attribute.v = directive.v;
     delete attribute.n; // no name necessary
     parser.sp();
-    if (parser.nextChar() === "=") attribute.f = readAttributeValue(parser);
+    if (parser.nextChar() === '=') attribute.f = readAttributeValue(parser);
   } else if ((match = decoratorPattern.exec(attribute.n))) {
     // decorators
     attribute.n = match[1];
@@ -235,7 +235,7 @@ export function readAttributeOrDirective(parser) {
     attribute.n = match[1];
     attribute.t = TRANSITION;
     readArguments(parser, attribute);
-    attribute.v = match[2] === "in-out" ? "t0" : match[2] === "in" ? "t1" : "t2";
+    attribute.v = match[2] === 'in-out' ? 't0' : match[2] === 'in' ? 't1' : 't2';
   } else if ((match = eventPattern.exec(attribute.n))) {
     // on-click etc
     attribute.n = splitEvent(match[1]);
@@ -250,14 +250,14 @@ export function readAttributeOrDirective(parser) {
     } else if (reservedEventNames.test(attribute.f)) {
       parser.pos -= attribute.f.length;
       parser.error(
-        "Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, complete, detach, insert, destruct, attachchild, detachchild)"
+        'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, complete, detach, insert, destruct, attachchild, detachchild)'
       );
     }
 
     parser.inEvent = false;
   } else if ((match = boundPattern.exec(attribute.n))) {
     // bound directives
-    const bind = match[2] === "bind";
+    const bind = match[2] === 'bind';
     attribute.n = bind ? match[3] : match[1];
     attribute.t = ATTRIBUTE;
     readArguments(parser, attribute, false, true);
@@ -267,13 +267,13 @@ export function readAttributeOrDirective(parser) {
     }
   } else {
     parser.sp();
-    const value = parser.nextChar() === "=" ? readAttributeValue(parser) : null;
+    const value = parser.nextChar() === '=' ? readAttributeValue(parser) : null;
     attribute.f = value != null ? value : attribute.f;
 
     if (parser.sanitizeEventAttributes && onPattern.test(attribute.n)) {
       return { exclude: true };
     } else {
-      attribute.f = attribute.f || (attribute.f === "" ? "" : 0);
+      attribute.f = attribute.f || (attribute.f === '' ? '' : 0);
       attribute.t = ATTRIBUTE;
     }
   }
@@ -283,7 +283,7 @@ export function readAttributeOrDirective(parser) {
 
 function readProxyEvent(parser, attribute) {
   const start = parser.pos;
-  if (!parser.matchString("=")) parser.error(`Missing required directive arguments`);
+  if (!parser.matchString('=')) parser.error(`Missing required directive arguments`);
 
   const quote = parser.matchString(`'`) || parser.matchString(`"`);
   parser.sp();
@@ -306,7 +306,7 @@ function readProxyEvent(parser, attribute) {
 
 function readArguments(parser, attribute, required = false, single = false) {
   parser.sp();
-  if (!parser.matchString("=")) {
+  if (!parser.matchString('=')) {
     if (required) parser.error(`Missing required directive arguments`);
     return;
   }
@@ -317,7 +317,7 @@ function readArguments(parser, attribute, required = false, single = false) {
   parser.spreadArgs = true;
   parser.inUnquotedAttribute = !quote;
   const expr = single
-    ? readExpressionOrReference(parser, [quote || " ", "/", ">"])
+    ? readExpressionOrReference(parser, [quote || ' ', '/', '>'])
     : { m: readExpressionList(parser), t: ARRAY_LITERAL };
   parser.inUnquotedAttribute = false;
   parser.spreadArgs = spread;

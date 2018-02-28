@@ -1,7 +1,7 @@
-import { REFINEMENT } from "config/types";
-import { expectedExpression } from "./errors";
-import { name as namePattern } from "./patterns";
-import readExpression from "../../readExpression";
+import { REFINEMENT } from 'config/types';
+import { expectedExpression } from './errors';
+import { name as namePattern } from './patterns';
+import readExpression from '../../readExpression';
 
 export default function readRefinement(parser) {
   // some things call for strict refinement (partial names), meaning no space between reference and refinement
@@ -10,7 +10,7 @@ export default function readRefinement(parser) {
   }
 
   // "." name
-  if (parser.matchString(".")) {
+  if (parser.matchString('.')) {
     parser.sp();
 
     const name = parser.matchPattern(namePattern);
@@ -21,11 +21,11 @@ export default function readRefinement(parser) {
       };
     }
 
-    parser.error("Expected a property name");
+    parser.error('Expected a property name');
   }
 
   // "[" expression "]"
-  if (parser.matchString("[")) {
+  if (parser.matchString('[')) {
     parser.sp();
 
     const expr = readExpression(parser);
@@ -33,7 +33,7 @@ export default function readRefinement(parser) {
 
     parser.sp();
 
-    if (!parser.matchString("]")) parser.error(`Expected ']'`);
+    if (!parser.matchString(']')) parser.error(`Expected ']'`);
 
     return {
       t: REFINEMENT,

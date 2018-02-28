@@ -1,7 +1,7 @@
-import trim from "./shared/trim";
-import notEmptyString from "./shared/notEmptyString";
-import { hasOwn } from "utils/object";
-import { isObjectType, isString } from "utils/is";
+import trim from './shared/trim';
+import notEmptyString from './shared/notEmptyString';
+import { hasOwn } from 'utils/object';
+import { isObjectType, isString } from 'utils/is';
 
 export default function Ractive$on(eventName, callback) {
   // eventName may already be a map
@@ -24,12 +24,12 @@ export default function Ractive$on(eventName, callback) {
 
     if (hasOwn(map, k)) {
       const names = k
-        .split(" ")
+        .split(' ')
         .map(trim)
         .filter(notEmptyString);
       names.forEach(n => {
         (this._subs[n] || (this._subs[n] = [])).push(entry);
-        if (n.indexOf(".")) this._nsSubs++;
+        if (n.indexOf('.')) this._nsSubs++;
         events.push([n, entry]);
       });
     }

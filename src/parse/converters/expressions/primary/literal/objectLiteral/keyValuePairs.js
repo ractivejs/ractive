@@ -1,4 +1,4 @@
-import getKeyValuePair from "./keyValuePair";
+import getKeyValuePair from './keyValuePair';
 
 export default function readKeyValuePairs(parser) {
   const start = parser.pos;
@@ -10,7 +10,7 @@ export default function readKeyValuePairs(parser) {
 
   const pairs = [pair];
 
-  if (parser.matchString(",")) {
+  if (parser.matchString(',')) {
     const keyValuePairs = readKeyValuePairs(parser);
 
     if (!keyValuePairs) {

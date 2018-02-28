@@ -1,7 +1,7 @@
-import { rebindMatch } from "shared/rebind";
-import Item, { ContainerItem } from "./Item";
-import resolve from "../../resolvers/resolve";
-import { assign } from "utils/object";
+import { rebindMatch } from 'shared/rebind';
+import Item, { ContainerItem } from './Item';
+import resolve from '../../resolvers/resolve';
+import { assign } from 'utils/object';
 
 export default class Mustache extends Item {
   constructor(options) {
@@ -46,7 +46,7 @@ export default class Mustache extends Item {
     if (this.model) {
       this.model.unregister(this);
     }
-    if (next) next.addShuffleRegister(this, "mark");
+    if (next) next.addShuffleRegister(this, 'mark');
     this.model = next;
     if (!safe) this.handleChange();
     return true;

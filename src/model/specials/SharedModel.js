@@ -1,5 +1,5 @@
 /* global global */
-import Model from "../Model";
+import Model from '../Model';
 
 export const data = {};
 
@@ -22,9 +22,9 @@ export class SharedModel extends Model {
   }
 }
 
-export default new SharedModel(data, "shared");
+export default new SharedModel(data, 'shared');
 
 export const GlobalModel = new SharedModel(
-  typeof global !== "undefined" ? global : window,
-  "global"
+  typeof global !== 'undefined' ? global : window,
+  'global'
 );

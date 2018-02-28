@@ -1,6 +1,6 @@
-import { removeFromArray } from "utils/array";
-import { isArray } from "utils/is";
-import runloop from "src/global/runloop";
+import { removeFromArray } from 'utils/array';
+import { isArray } from 'utils/is';
+import runloop from 'src/global/runloop';
 
 function negativeOne() {
   return -1;

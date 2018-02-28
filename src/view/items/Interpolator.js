@@ -1,9 +1,9 @@
-import progressiveText from "./shared/progressiveText";
-import { escapeHtml } from "utils/html";
-import { safeToStringValue } from "utils/dom";
-import { detachNode } from "utils/dom";
-import Mustache from "./shared/Mustache";
-import { inAttributes } from "./element/ConditionalAttribute";
+import progressiveText from './shared/progressiveText';
+import { escapeHtml } from 'utils/html';
+import { safeToStringValue } from 'utils/dom';
+import { detachNode } from 'utils/dom';
+import Mustache from './shared/Mustache';
+import { inAttributes } from './element/ConditionalAttribute';
 
 export default class Interpolator extends Mustache {
   bubble() {
@@ -20,7 +20,7 @@ export default class Interpolator extends Mustache {
   }
 
   getString() {
-    return this.model ? safeToStringValue(this.model.get()) : "";
+    return this.model ? safeToStringValue(this.model.get()) : '';
   }
 
   render(target, occupants) {

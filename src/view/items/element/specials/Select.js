@@ -1,7 +1,7 @@
-import { toArray } from "utils/array";
-import getSelectedOptions from "utils/getSelectedOptions";
-import Element from "../../Element";
-import { isArray, isFunction } from "utils/is";
+import { toArray } from 'utils/array';
+import getSelectedOptions from 'utils/getSelectedOptions';
+import Element from '../../Element';
+import { isArray, isFunction } from 'utils/is';
 
 export default class Select extends Element {
   constructor(options) {
@@ -50,8 +50,8 @@ export default class Select extends Element {
       return;
     }
 
-    const selectValue = this.getAttribute("value");
-    const isMultiple = this.getAttribute("multiple");
+    const selectValue = this.getAttribute('value');
+    const isMultiple = this.getAttribute('multiple');
     const array = isMultiple && isArray(selectValue);
 
     // If the <select> has a specified value, that should override
@@ -90,7 +90,7 @@ export default class Select extends Element {
     }
   }
   compare(optionValue, selectValue) {
-    const comparator = this.getAttribute("value-comparator");
+    const comparator = this.getAttribute('value-comparator');
     if (comparator) {
       if (isFunction(comparator)) {
         return comparator(selectValue, optionValue);

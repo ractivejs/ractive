@@ -1,17 +1,17 @@
-import { ALIAS, SECTION, SECTION_IF, SECTION_UNLESS } from "config/types";
-import { READERS } from "parse/_parse";
-import readClosing from "./section/readClosing";
-import readElse from "./section/readElse";
-import readElseIf from "./section/readElseIf";
-import handlebarsBlockCodes from "./handlebarsBlockCodes";
-import readExpression from "../readExpression";
-import refineExpression from "parse/utils/refineExpression";
-import { readAlias, readAliases } from "./readAliases";
-import { keys } from "utils/object";
+import { ALIAS, SECTION, SECTION_IF, SECTION_UNLESS } from 'config/types';
+import { READERS } from 'parse/_parse';
+import readClosing from './section/readClosing';
+import readElse from './section/readElse';
+import readElseIf from './section/readElseIf';
+import handlebarsBlockCodes from './handlebarsBlockCodes';
+import readExpression from '../readExpression';
+import refineExpression from 'parse/utils/refineExpression';
+import { readAlias, readAliases } from './readAliases';
+import { keys } from 'utils/object';
 
 const indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
 const keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
-const handlebarsBlockPattern = new RegExp("^(" + keys(handlebarsBlockCodes).join("|") + ")\\b");
+const handlebarsBlockPattern = new RegExp('^(' + keys(handlebarsBlockCodes).join('|') + ')\\b');
 
 export default function readSection(parser, tag) {
   let expression, section, child, children, hasElse, block, unlessBlock, closed, i, expectedClose;
@@ -19,20 +19,20 @@ export default function readSection(parser, tag) {
 
   const start = parser.pos;
 
-  if (parser.matchString("^")) {
+  if (parser.matchString('^')) {
     // watch out for parent context refs - {{^^/^^/foo}}
-    if (parser.matchString("^/")) {
+    if (parser.matchString('^/')) {
       parser.pos = start;
       return null;
     }
     section = { t: SECTION, f: [], n: SECTION_UNLESS };
-  } else if (parser.matchString("#")) {
+  } else if (parser.matchString('#')) {
     section = { t: SECTION, f: [] };
 
-    if (parser.matchString("partial")) {
+    if (parser.matchString('partial')) {
       parser.pos = start - parser.standardDelimiters[0].length;
       parser.error(
-        "Partial definitions can only be at the top level of the template, or immediately inside components"
+        'Partial definitions can only be at the top level of the template, or immediately inside components'
       );
     }
 
@@ -46,17 +46,17 @@ export default function readSection(parser, tag) {
 
   parser.sp();
 
-  if (block === "with") {
+  if (block === 'with') {
     const aliases = readAliases(parser);
     if (aliases) {
       aliasOnly = true;
       section.z = aliases;
       section.t = ALIAS;
     }
-  } else if (block === "each") {
+  } else if (block === 'each') {
     const alias = readAlias(parser);
     if (alias) {
-      section.z = [{ n: alias.n, x: { r: "." } }];
+      section.z = [{ n: alias.n, x: { r: '.' } }];
       expression = alias.x;
     }
   }
@@ -65,7 +65,7 @@ export default function readSection(parser, tag) {
     if (!expression) expression = readExpression(parser);
 
     if (!expression) {
-      parser.error("Expected expression");
+      parser.error('Expected expression');
     }
 
     // optional index and key references
@@ -73,7 +73,7 @@ export default function readSection(parser, tag) {
       let extra;
 
       if ((extra = parser.matchPattern(keyIndexRefPattern))) {
-        section.i = i + "," + extra;
+        section.i = i + ',' + extra;
       } else {
         section.i = i;
       }
@@ -115,11 +115,11 @@ export default function readSection(parser, tag) {
       closed = true;
     } else if (!aliasOnly && (child = readElseIf(parser, tag))) {
       if (section.n === SECTION_UNLESS) {
-        parser.error("{{else}} not allowed in {{#unless}}");
+        parser.error('{{else}} not allowed in {{#unless}}');
       }
 
       if (hasElse) {
-        parser.error("illegal {{elseif...}} after {{else}}");
+        parser.error('illegal {{elseif...}} after {{else}}');
       }
 
       if (!unlessBlock) {
@@ -136,11 +136,11 @@ export default function readSection(parser, tag) {
       unlessBlock.push(mustache);
     } else if (!aliasOnly && (child = readElse(parser, tag))) {
       if (section.n === SECTION_UNLESS) {
-        parser.error("{{else}} not allowed in {{#unless}}");
+        parser.error('{{else}} not allowed in {{#unless}}');
       }
 
       if (hasElse) {
-        parser.error("there can only be one {{else}} block, at the end of a section");
+        parser.error('there can only be one {{else}} block, at the end of a section');
       }
 
       hasElse = true;

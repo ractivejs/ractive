@@ -1,4 +1,4 @@
-import GenericBinding from "./GenericBinding";
+import GenericBinding from './GenericBinding';
 
 export default class NumericBinding extends GenericBinding {
   getInitialValue() {

@@ -1,14 +1,14 @@
-import ModelBase, { maybeBind, shuffle } from "./ModelBase";
-import LinkModel from "./LinkModel"; // eslint-disable-line no-unused-vars
-import KeypathModel from "./specials/KeypathModel";
-import { capture } from "src/global/capture";
-import { isArray, isEqual, isNumeric, isObjectLike } from "utils/is";
-import { handleChange, mark, markForce, marked, teardown } from "shared/methodCallers";
-import Ticker from "shared/Ticker";
-import getPrefixer from "./helpers/getPrefixer";
-import { unescapeKey } from "shared/keypaths";
-import { warnIfDebug } from "utils/log";
-import { hasOwn } from "utils/object";
+import ModelBase, { maybeBind, shuffle } from './ModelBase';
+import LinkModel from './LinkModel'; // eslint-disable-line no-unused-vars
+import KeypathModel from './specials/KeypathModel';
+import { capture } from 'src/global/capture';
+import { isArray, isEqual, isNumeric, isObjectLike } from 'utils/is';
+import { handleChange, mark, markForce, marked, teardown } from 'shared/methodCallers';
+import Ticker from 'shared/Ticker';
+import getPrefixer from './helpers/getPrefixer';
+import { unescapeKey } from 'shared/keypaths';
+import { warnIfDebug } from 'utils/log';
+import { hasOwn } from 'utils/object';
 
 export default class Model extends ModelBase {
   constructor(parent, key) {
@@ -38,7 +38,7 @@ export default class Model extends ModelBase {
     if (len === 0) return;
 
     const value = this.wrapper
-      ? "newWrapperValue" in this ? this.newWrapperValue : this.wrapperValue
+      ? 'newWrapperValue' in this ? this.newWrapperValue : this.wrapperValue
       : this.value;
 
     // TODO remove this legacy nonsense
@@ -156,8 +156,8 @@ export default class Model extends ModelBase {
     if (notify) this.notifyUpstream();
 
     if (this.parent.isArray) {
-      if (this.key === "length") this.parent.length = value;
-      else this.parent.joinKey("length").mark();
+      if (this.key === 'length') this.parent.length = value;
+      else this.parent.joinKey('length').mark();
     }
   }
 
@@ -175,7 +175,7 @@ export default class Model extends ModelBase {
     if (opts && opts.virtual) return this.getVirtual(false);
     return maybeBind(
       this,
-      (opts && "unwrap" in opts ? opts.unwrap !== false : shouldCapture) && this.wrapper
+      (opts && 'unwrap' in opts ? opts.unwrap !== false : shouldCapture) && this.wrapper
         ? this.wrapperValue
         : this.value,
       !opts || opts.shouldBind !== false
@@ -189,11 +189,11 @@ export default class Model extends ModelBase {
 
   joinKey(key, opts) {
     if (this._link) {
-      if (opts && opts.lastLink !== false && (key === undefined || key === "")) return this;
+      if (opts && opts.lastLink !== false && (key === undefined || key === '')) return this;
       return this._link.joinKey(key);
     }
 
-    if (key === undefined || key === "") return this;
+    if (key === undefined || key === '') return this;
 
     if (!hasOwn(this.childByKey, key)) {
       const child = new Model(this, key);

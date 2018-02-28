@@ -1,5 +1,5 @@
-import { createDocumentFragment } from "utils/dom";
-import noop from "utils/noop";
+import { createDocumentFragment } from 'utils/dom';
+import noop from 'utils/noop';
 
 export default class Item {
   constructor(options) {
@@ -86,6 +86,6 @@ export class ContainerItem extends Item {
   }
 
   toString(escape) {
-    return this.fragment ? this.fragment.toString(escape) : "";
+    return this.fragment ? this.fragment.toString(escape) : '';
   }
 }

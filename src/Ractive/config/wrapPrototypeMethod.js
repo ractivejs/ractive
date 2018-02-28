@@ -1,12 +1,12 @@
-import noop from "utils/noop";
-import { isFunction } from "utils/is";
+import noop from 'utils/noop';
+import { isFunction } from 'utils/is';
 
 export default function wrap(parent, name, method) {
   if (!/_super/.test(method)) return method;
 
   function wrapper() {
     const superMethod = getSuperMethod(wrapper._parent, name);
-    const hasSuper = "_super" in this;
+    const hasSuper = '_super' in this;
     const oldSuper = this._super;
 
     this._super = superMethod;

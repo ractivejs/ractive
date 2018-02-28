@@ -1,6 +1,6 @@
-import Fragment from "../Fragment";
-import { ContainerItem } from "./shared/Item";
-import resolve from "../resolvers/resolve";
+import Fragment from '../Fragment';
+import { ContainerItem } from './shared/Item';
+import resolve from '../resolvers/resolve';
 
 export function resolveAliases(aliases, fragment) {
   const resolved = {};

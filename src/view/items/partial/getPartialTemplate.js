@@ -1,9 +1,9 @@
-import { noRegistryFunctionReturn } from "config/errors";
-import { warnIfDebug } from "utils/log";
-import { fillGaps, hasOwn } from "utils/object";
-import parser from "src/Ractive/config/runtime-parser";
-import { findInstance } from "shared/registry";
-import { isArray, isFunction } from "utils/is";
+import { noRegistryFunctionReturn } from 'config/errors';
+import { warnIfDebug } from 'utils/log';
+import { fillGaps, hasOwn } from 'utils/object';
+import parser from 'src/Ractive/config/runtime-parser';
+import { findInstance } from 'shared/registry';
+import { isArray, isFunction } from 'utils/is';
 
 export default function getPartialTemplate(ractive, name, up) {
   // If the partial in instance or view heirarchy instances, great
@@ -30,7 +30,7 @@ function getPartialFromRegistry(ractive, name, up) {
   if (partial) return partial;
 
   // find first instance in the ractive or view hierarchy that has this partial
-  const instance = findInstance("partials", ractive, name);
+  const instance = findInstance('partials', ractive, name);
 
   if (!instance) {
     return;
@@ -50,8 +50,8 @@ function getPartialFromRegistry(ractive, name, up) {
     partial = fn.call(ractive, parser);
   }
 
-  if (!partial && partial !== "") {
-    warnIfDebug(noRegistryFunctionReturn, name, "partial", "partial", {
+  if (!partial && partial !== '') {
+    warnIfDebug(noRegistryFunctionReturn, name, 'partial', 'partial', {
       ractive
     });
     return;
@@ -66,7 +66,7 @@ function getPartialFromRegistry(ractive, name, up) {
     // Partials cannot contain nested partials!
     // TODO add a test for this
     if (parsed.p) {
-      warnIfDebug("Partials ({{>%s}}) cannot contain nested inline partials", name, { ractive });
+      warnIfDebug('Partials ({{>%s}}) cannot contain nested inline partials', name, { ractive });
     }
 
     // if fn, use instance to store result, otherwise needs to go

@@ -1,20 +1,20 @@
-import noop from "utils/noop";
-import Binding from "./Binding";
-import getBindingGroup from "./getBindingGroup";
-import handleDomEvent from "./handleDomEvent";
+import noop from 'utils/noop';
+import Binding from './Binding';
+import getBindingGroup from './getBindingGroup';
+import handleDomEvent from './handleDomEvent';
 
 function getValue() {
   const checked = this.bindings.filter(b => b.node.checked);
   if (checked.length > 0) {
-    return checked[0].element.getAttribute("value");
+    return checked[0].element.getAttribute('value');
   }
 }
 
 export default class RadioNameBinding extends Binding {
   constructor(element) {
-    super(element, "name");
+    super(element, 'name');
 
-    this.group = getBindingGroup("radioname", this.model, getValue);
+    this.group = getBindingGroup('radioname', this.model, getValue);
     this.group.add(this);
 
     if (element.checked) {
@@ -37,13 +37,13 @@ export default class RadioNameBinding extends Binding {
   }
 
   getInitialValue() {
-    if (this.element.getAttribute("checked")) {
-      return this.element.getAttribute("value");
+    if (this.element.getAttribute('checked')) {
+      return this.element.getAttribute('value');
     }
   }
 
   getValue() {
-    return this.element.getAttribute("value");
+    return this.element.getAttribute('value');
   }
 
   handleChange() {
@@ -67,18 +67,18 @@ export default class RadioNameBinding extends Binding {
     const node = this.node;
 
     node.name = `{{${this.model.getKeypath()}}}`;
-    node.checked = this.element.compare(this.model.get(), this.element.getAttribute("value"));
+    node.checked = this.element.compare(this.model.get(), this.element.getAttribute('value'));
 
-    this.element.on("change", handleDomEvent);
+    this.element.on('change', handleDomEvent);
 
     if (node.attachEvent) {
-      this.element.on("click", handleDomEvent);
+      this.element.on('click', handleDomEvent);
     }
   }
 
   setFromNode(node) {
     if (node.checked) {
-      this.group.model.set(this.element.getAttribute("value"));
+      this.group.model.set(this.element.getAttribute('value'));
     }
   }
 
@@ -91,7 +91,7 @@ export default class RadioNameBinding extends Binding {
   unrender() {
     const el = this.element;
 
-    el.off("change", handleDomEvent);
-    el.off("click", handleDomEvent);
+    el.off('change', handleDomEvent);
+    el.off('click', handleDomEvent);
   }
 }

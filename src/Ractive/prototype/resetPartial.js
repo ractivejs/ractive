@@ -1,7 +1,7 @@
-import runloop from "src/global/runloop";
-import { PARTIAL, COMPONENT, ELEMENT } from "config/types";
-import { isArray } from "utils/is";
-import { handleChange } from "shared/methodCallers";
+import runloop from 'src/global/runloop';
+import { PARTIAL, COMPONENT, ELEMENT } from 'config/types';
+import { isArray } from 'utils/is';
+import { handleChange } from 'shared/methodCallers';
 
 function collect(source, name, attr, dest) {
   source.forEach(item => {

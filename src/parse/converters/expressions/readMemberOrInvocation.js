@@ -1,8 +1,8 @@
-import { MEMBER, INVOCATION } from "config/types";
-import readPrimary from "./readPrimary";
-import readExpressionList from "./shared/readExpressionList";
-import readRefinement from "./shared/readRefinement";
-import { expectedParen } from "./shared/errors";
+import { MEMBER, INVOCATION } from 'config/types';
+import readPrimary from './readPrimary';
+import readExpressionList from './shared/readExpressionList';
+import readRefinement from './shared/readRefinement';
+import { expectedParen } from './shared/errors';
 
 export default function(parser) {
   let expression = readPrimary(parser);
@@ -17,13 +17,13 @@ export default function(parser) {
         x: expression,
         r: refinement
       };
-    } else if (parser.matchString("(")) {
+    } else if (parser.matchString('(')) {
       parser.sp();
       const expressionList = readExpressionList(parser, true);
 
       parser.sp();
 
-      if (!parser.matchString(")")) {
+      if (!parser.matchString(')')) {
         parser.error(expectedParen);
       }
 

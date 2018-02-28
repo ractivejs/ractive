@@ -1,4 +1,4 @@
-import { CLOSING } from "config/types";
+import { CLOSING } from 'config/types';
 
 export default function readClosing(parser, tag) {
   const start = parser.pos;
@@ -9,7 +9,7 @@ export default function readClosing(parser, tag) {
 
   parser.sp();
 
-  if (!parser.matchString("/")) {
+  if (!parser.matchString('/')) {
     parser.pos = start;
     return null;
   }
@@ -22,7 +22,7 @@ export default function readClosing(parser, tag) {
   if (index !== -1) {
     const closing = {
       t: CLOSING,
-      r: remaining.substr(0, index).split(" ")[0]
+      r: remaining.substr(0, index).split(' ')[0]
     };
 
     parser.pos += index;

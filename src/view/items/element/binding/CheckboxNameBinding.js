@@ -1,14 +1,14 @@
-import Binding from "./Binding";
-import getBindingGroup from "./getBindingGroup";
-import handleDomEvent from "./handleDomEvent";
-import { isArray } from "utils/is";
+import Binding from './Binding';
+import getBindingGroup from './getBindingGroup';
+import handleDomEvent from './handleDomEvent';
+import { isArray } from 'utils/is';
 
 const push = [].push;
 
 function getValue() {
   const all = this.bindings
     .filter(b => b.node && b.node.checked)
-    .map(b => b.element.getAttribute("value"));
+    .map(b => b.element.getAttribute('value'));
   const res = [];
   all.forEach(v => {
     if (!this.bindings[0].arrayContains(res, v)) res.push(v);
@@ -18,14 +18,14 @@ function getValue() {
 
 export default class CheckboxNameBinding extends Binding {
   constructor(element) {
-    super(element, "name");
+    super(element, 'name');
 
     this.checkboxName = true; // so that ractive.updateModel() knows what to do with this
 
     // Each input has a reference to an array containing it and its
     // group, as two-way binding depends on being able to ascertain
     // the status of all inputs within the group
-    this.group = getBindingGroup("checkboxes", this.model, getValue);
+    this.group = getBindingGroup('checkboxes', this.model, getValue);
     this.group.add(this);
 
     if (this.noInitialValue) {
@@ -34,9 +34,9 @@ export default class CheckboxNameBinding extends Binding {
 
     // If no initial value was set, and this input is checked, we
     // update the model
-    if (this.group.noInitialValue && this.element.getAttribute("checked")) {
+    if (this.group.noInitialValue && this.element.getAttribute('checked')) {
       const existingValue = this.model.get();
-      const bindingValue = this.element.getAttribute("value");
+      const bindingValue = this.element.getAttribute('value');
 
       if (!this.arrayContains(existingValue, bindingValue)) {
         push.call(existingValue, bindingValue); // to avoid triggering runloop with array adaptor
@@ -69,7 +69,7 @@ export default class CheckboxNameBinding extends Binding {
   handleChange() {
     this.isChecked = this.element.node.checked;
     this.group.value = this.model.get();
-    const value = this.element.getAttribute("value");
+    const value = this.element.getAttribute('value');
     if (this.isChecked && !this.arrayContains(this.group.value, value)) {
       this.group.value.push(value);
     } else if (!this.isChecked && this.arrayContains(this.group.value, value)) {
@@ -86,21 +86,21 @@ export default class CheckboxNameBinding extends Binding {
     const node = this.node;
 
     const existingValue = this.model.get();
-    const bindingValue = this.element.getAttribute("value");
+    const bindingValue = this.element.getAttribute('value');
 
     if (isArray(existingValue)) {
       this.isChecked = this.arrayContains(existingValue, bindingValue);
     } else {
       this.isChecked = this.element.compare(existingValue, bindingValue);
     }
-    node.name = "{{" + this.model.getKeypath() + "}}";
+    node.name = '{{' + this.model.getKeypath() + '}}';
     node.checked = this.isChecked;
 
-    this.element.on("change", handleDomEvent);
+    this.element.on('change', handleDomEvent);
 
     // in case of IE emergency, bind to click event as well
     if (this.node.attachEvent) {
-      this.element.on("click", handleDomEvent);
+      this.element.on('click', handleDomEvent);
     }
   }
 
@@ -109,7 +109,7 @@ export default class CheckboxNameBinding extends Binding {
 
     if (node.checked) {
       const valueSoFar = this.group.getValue();
-      valueSoFar.push(this.element.getAttribute("value"));
+      valueSoFar.push(this.element.getAttribute('value'));
 
       this.group.model.set(valueSoFar);
     }
@@ -122,8 +122,8 @@ export default class CheckboxNameBinding extends Binding {
   unrender() {
     const el = this.element;
 
-    el.off("change", handleDomEvent);
-    el.off("click", handleDomEvent);
+    el.off('change', handleDomEvent);
+    el.off('click', handleDomEvent);
   }
 
   arrayContains(selectValue, optionValue) {

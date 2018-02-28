@@ -8,10 +8,10 @@ export default {
   template: null,
 
   // parse:
-  delimiters: ["{{", "}}"],
-  tripleDelimiters: ["{{{", "}}}"],
-  staticDelimiters: ["[[", "]]"],
-  staticTripleDelimiters: ["[[[", "]]]"],
+  delimiters: ['{{', '}}'],
+  tripleDelimiters: ['{{{', '}}}'],
+  staticDelimiters: ['[[', ']]'],
+  staticTripleDelimiters: ['[[[', ']]]'],
   csp: true,
   interpolate: false,
   preserveWhitespace: false,

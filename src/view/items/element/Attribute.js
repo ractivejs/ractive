@@ -1,15 +1,15 @@
-import { INTERPOLATOR } from "config/types";
-import namespaces from "config/namespaces";
-import { safeAttributeString } from "utils/dom";
-import { booleanAttributes } from "utils/html";
-import hyphenateCamel from "utils/hyphenateCamel";
-import Fragment from "../../Fragment";
-import Item from "../shared/Item";
-import findElement from "../shared/findElement";
-import getUpdateDelegate from "./attribute/getUpdateDelegate";
-import propertyNames from "./attribute/propertyNames";
-import { inAttributes } from "./ConditionalAttribute";
-import { isArray, isString } from "utils/is";
+import { INTERPOLATOR } from 'config/types';
+import namespaces from 'config/namespaces';
+import { safeAttributeString } from 'utils/dom';
+import { booleanAttributes } from 'utils/html';
+import hyphenateCamel from 'utils/hyphenateCamel';
+import Fragment from '../../Fragment';
+import Item from '../shared/Item';
+import findElement from '../shared/findElement';
+import getUpdateDelegate from './attribute/getUpdateDelegate';
+import propertyNames from './attribute/propertyNames';
+import { inAttributes } from './ConditionalAttribute';
+import { isArray, isString } from 'utils/is';
 
 function lookupNamespace(node, prefix) {
   const qualified = `xmlns:${prefix}`;
@@ -49,7 +49,7 @@ export default class Attribute extends Item {
     if (!isArray(options.template.f)) {
       this.value = options.template.f;
       if (this.value === 0) {
-        this.value = "";
+        this.value = '';
       } else if (this.value === undefined) {
         this.value = true;
       }
@@ -89,7 +89,7 @@ export default class Attribute extends Item {
     attribute = true;
     const value = this.fragment
       ? this.fragment.toString()
-      : this.value != null ? "" + this.value : "";
+      : this.value != null ? '' + this.value : '';
     attribute = false;
     return value;
   }
@@ -123,13 +123,13 @@ export default class Attribute extends Item {
         this.isBoolean = true;
       }
 
-      if (this.propertyName === "value") {
+      if (this.propertyName === 'value') {
         node._ractive.value = this.value;
       }
     }
 
     if (node.namespaceURI) {
-      const index = this.name.indexOf(":");
+      const index = this.name.indexOf(':');
       if (index !== -1) {
         this.namespace = lookupNamespace(node, this.name.slice(0, index));
       } else {
@@ -143,26 +143,26 @@ export default class Attribute extends Item {
   }
 
   toString() {
-    if (inAttributes()) return "";
+    if (inAttributes()) return '';
     attribute = true;
 
     const value = this.getValue();
 
     // Special case - select and textarea values (should not be stringified)
     if (
-      this.name === "value" &&
-      (this.element.getAttribute("contenteditable") !== undefined ||
-        (this.element.name === "select" || this.element.name === "textarea"))
+      this.name === 'value' &&
+      (this.element.getAttribute('contenteditable') !== undefined ||
+        (this.element.name === 'select' || this.element.name === 'textarea'))
     ) {
       return;
     }
 
     // Special case – bound radio `name` attributes
     if (
-      this.name === "name" &&
-      this.element.name === "input" &&
+      this.name === 'name' &&
+      this.element.name === 'input' &&
       this.interpolator &&
-      this.element.getAttribute("type") === "radio"
+      this.element.getAttribute('type') === 'radio'
     ) {
       return `name="{{${this.interpolator.model.getKeypath()}}}"`;
     }
@@ -170,7 +170,7 @@ export default class Attribute extends Item {
     // Special case - style and class attributes and directives
     if (
       this.owner === this.element &&
-      (this.name === "style" || this.name === "class" || this.style || this.inlineClass)
+      (this.name === 'style' || this.name === 'class' || this.style || this.inlineClass)
     ) {
       return;
     }
@@ -178,9 +178,9 @@ export default class Attribute extends Item {
     if (
       !this.rendered &&
       this.owner === this.element &&
-      (!this.name.indexOf("style-") || !this.name.indexOf("class-"))
+      (!this.name.indexOf('style-') || !this.name.indexOf('class-'))
     ) {
-      if (!this.name.indexOf("style-")) {
+      if (!this.name.indexOf('style-')) {
         this.style = hyphenateCamel(this.name.substr(6));
       } else {
         this.inlineClass = this.name.substr(6);
@@ -192,8 +192,8 @@ export default class Attribute extends Item {
     if (booleanAttributes.test(this.name))
       return value
         ? isString(value) ? `${this.name}="${safeAttributeString(value)}"` : this.name
-        : "";
-    if (value == null) return "";
+        : '';
+    if (value == null) return '';
 
     const str = safeAttributeString(this.getString());
     attribute = false;
@@ -219,7 +219,7 @@ export default class Attribute extends Item {
       if (this.rendered) this.updateDelegate();
       if (this.isTwoway && !this.locked) {
         this.interpolator.twowayBinding.lastVal(true, this.interpolator.model.get());
-      } else if (this.name === "value" && (binding = this.element.binding)) {
+      } else if (this.name === 'value' && (binding = this.element.binding)) {
         // special case: name bound element with dynamic value
         const attr = binding.attribute;
         if (attr && !attr.dirty && attr.rendered) {

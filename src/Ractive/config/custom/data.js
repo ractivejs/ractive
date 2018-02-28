@@ -1,6 +1,6 @@
-import { fatal, warnIfDebug, warnOnceIfDebug } from "utils/log";
-import { isArray, isObject, isFunction, isObjectType } from "utils/is";
-import bind from "utils/bind";
+import { fatal, warnIfDebug, warnOnceIfDebug } from 'utils/log';
+import { isArray, isObject, isFunction, isObjectType } from 'utils/is';
+import bind from 'utils/bind';
 
 function validate(data) {
   // Warn if userOptions.data is a non-POJO
@@ -11,14 +11,14 @@ function validate(data) {
       fatal(`data option must be an object or a function, \`${data}\` is not valid`);
     } else {
       warnIfDebug(
-        "If supplied, options.data should be a plain JavaScript object - using a non-POJO as the root object may work, but is discouraged"
+        'If supplied, options.data should be a plain JavaScript object - using a non-POJO as the root object may work, but is discouraged'
       );
     }
   }
 }
 
 export default {
-  name: "data",
+  name: 'data',
 
   extend: (Parent, proto, options) => {
     let key;
@@ -118,12 +118,12 @@ function callDataFunction(fn, context) {
   if (!data) return;
 
   if (!isObjectType(data)) {
-    fatal("Data function must return an object");
+    fatal('Data function must return an object');
   }
 
   if (data.constructor !== Object) {
     warnOnceIfDebug(
-      "Data function returned something other than a plain JavaScript object. This might work, but is strongly discouraged"
+      'Data function returned something other than a plain JavaScript object. This might work, but is strongly discouraged'
     );
   }
 

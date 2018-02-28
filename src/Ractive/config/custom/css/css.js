@@ -1,27 +1,27 @@
-import { addCSS } from "src/global/css";
-import transformCss from "./transform";
-import { uuid } from "utils/id";
-import { warnIfDebug } from "utils/log";
-import { getElement } from "utils/dom";
-import { splitKeypath } from "shared/keypaths";
-import CSSModel from "src/model/specials/CSSModel";
-import { assign, create, defineProperty } from "utils/object";
-import { isString, isFunction, isObjectType } from "utils/is";
+import { addCSS } from 'src/global/css';
+import transformCss from './transform';
+import { uuid } from 'utils/id';
+import { warnIfDebug } from 'utils/log';
+import { getElement } from 'utils/dom';
+import { splitKeypath } from 'shared/keypaths';
+import CSSModel from 'src/model/specials/CSSModel';
+import { assign, create, defineProperty } from 'utils/object';
+import { isString, isFunction, isObjectType } from 'utils/is';
 
 const hasCurly = /\{/;
 export default {
-  name: "css",
+  name: 'css',
 
   // Called when creating a new component definition
   extend: (Parent, proto, options, Child) => {
     Child._cssIds = gatherIds(Parent);
 
-    defineProperty(Child, "cssData", {
+    defineProperty(Child, 'cssData', {
       configurable: true,
       value: assign(create(Parent.cssData), options.cssData || {})
     });
 
-    defineProperty(Child, "_cssModel", {
+    defineProperty(Child, '_cssModel', {
       configurable: true,
       value: new CSSModel(Child)
     });
@@ -68,7 +68,7 @@ export function evalCSS(component, css) {
   data.__proto__ = cssData;
 
   const result = css.call(component, data);
-  return isString(result) ? result : "";
+  return isString(result) ? result : '';
 }
 
 export function initCSS(options, target, proto) {
@@ -80,7 +80,7 @@ export function initCSS(options, target, proto) {
   const id = options.cssId || uuid();
 
   if (isObjectType(css)) {
-    css = "textContent" in css ? css.textContent : css.innerHTML;
+    css = 'textContent' in css ? css.textContent : css.innerHTML;
   } else if (isFunction(css)) {
     target._css = options.css;
     css = evalCSS(target, css);

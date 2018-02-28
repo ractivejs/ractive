@@ -1,9 +1,9 @@
-import { BRACKETED } from "src/config/types";
-import { expectedExpression, expectedParen } from "../shared/errors";
-import readExpression from "../../readExpression";
+import { BRACKETED } from 'src/config/types';
+import { expectedExpression, expectedParen } from '../shared/errors';
+import readExpression from '../../readExpression';
 
 export default function readBracketedExpression(parser) {
-  if (!parser.matchString("(")) return null;
+  if (!parser.matchString('(')) return null;
 
   parser.sp();
 
@@ -13,7 +13,7 @@ export default function readBracketedExpression(parser) {
 
   parser.sp();
 
-  if (!parser.matchString(")")) parser.error(expectedParen);
+  if (!parser.matchString(')')) parser.error(expectedParen);
 
   return {
     t: BRACKETED,

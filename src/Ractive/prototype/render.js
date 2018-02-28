@@ -1,12 +1,12 @@
-import { getElement } from "utils/dom";
-import { toArray } from "utils/array";
-import { warnIfDebug } from "utils/log";
-import render from "../render";
-import { teardown } from "shared/methodCallers";
+import { getElement } from 'utils/dom';
+import { toArray } from 'utils/array';
+import { warnIfDebug } from 'utils/log';
+import render from '../render';
+import { teardown } from 'shared/methodCallers';
 
 export default function Ractive$render(target, anchor) {
   if (this.torndown) {
-    warnIfDebug("ractive.render() was called on a Ractive instance that was already torn down");
+    warnIfDebug('ractive.render() was called on a Ractive instance that was already torn down');
     return Promise.resolve();
   }
 
@@ -20,7 +20,7 @@ export default function Ractive$render(target, anchor) {
 
     // make sure we are the only occupants
     if (!this.enhance) {
-      target.innerHTML = ""; // TODO is this quicker than removeChild? Initial research inconclusive
+      target.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
     }
   }
 

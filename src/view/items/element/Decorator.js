@@ -1,11 +1,11 @@
-import { findInViewHierarchy } from "shared/registry";
-import { warnOnce } from "utils/log";
-import { missingPlugin } from "config/errors";
-import noop from "utils/noop";
-import runloop from "src/global/runloop";
-import { rebindMatch } from "src/shared/rebind";
-import findElement from "../shared/findElement";
-import { setupArgsFn, teardownArgsFn } from "../shared/directiveArgs";
+import { findInViewHierarchy } from 'shared/registry';
+import { warnOnce } from 'utils/log';
+import { missingPlugin } from 'config/errors';
+import noop from 'utils/noop';
+import runloop from 'src/global/runloop';
+import { rebindMatch } from 'src/shared/rebind';
+import findElement from '../shared/findElement';
+import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
 
 const missingDecorator = {
   update: noop,
@@ -62,7 +62,7 @@ export default class Decorator {
 
     previous.unregister(this);
     this.models.splice(idx, 1, next);
-    if (next) next.addShuffleRegister(this, "mark");
+    if (next) next.addShuffleRegister(this, 'mark');
 
     if (!safe) this.bubble();
   }
@@ -71,10 +71,10 @@ export default class Decorator {
     this.shouldDestroy = false;
     if (this.handle) this.unrender();
     runloop.scheduleTask(() => {
-      const fn = findInViewHierarchy("decorators", this.ractive, this.name);
+      const fn = findInViewHierarchy('decorators', this.ractive, this.name);
 
       if (!fn) {
-        warnOnce(missingPlugin(this.name, "decorator"));
+        warnOnce(missingPlugin(this.name, 'decorator'));
         this.handle = missingDecorator;
         return;
       }
@@ -105,7 +105,7 @@ export default class Decorator {
   }
 
   toString() {
-    return "";
+    return '';
   }
 
   unbind() {

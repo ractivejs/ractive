@@ -1,7 +1,7 @@
-import { CONDITIONAL } from "config/types";
-import readLogicalOr from "./readLogicalOr";
-import { expectedExpression } from "./shared/errors";
-import readExpression from "../readExpression";
+import { CONDITIONAL } from 'config/types';
+import readLogicalOr from './readLogicalOr';
+import { expectedExpression } from './shared/errors';
+import readExpression from '../readExpression';
 
 // The conditional operator is the lowest precedence operator, so we start here
 export default function getConditional(parser) {
@@ -14,7 +14,7 @@ export default function getConditional(parser) {
 
   parser.sp();
 
-  if (!parser.matchString("?")) {
+  if (!parser.matchString('?')) {
     parser.pos = start;
     return expression;
   }
@@ -28,7 +28,7 @@ export default function getConditional(parser) {
 
   parser.sp();
 
-  if (!parser.matchString(":")) {
+  if (!parser.matchString(':')) {
     parser.error('Expected ":"');
   }
 

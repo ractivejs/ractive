@@ -1,16 +1,16 @@
-import { ANCHOR, COMPONENT } from "config/types";
-import { warnOnceIfDebug } from "utils/log";
-import { addToArray, removeFromArray } from "utils/array";
-import noop from "utils/noop";
-import fireEvent from "src/events/fireEvent";
-import { splitKeypath } from "shared/keypaths";
-import { findInViewHierarchy } from "shared/registry";
-import findElement from "./findElement";
-import { DOMEvent, CustomEvent } from "../element/ElementEvents";
-import RactiveEvent from "../component/RactiveEvent";
-import { resolveArgs, setupArgsFn } from "../shared/directiveArgs";
-import Context from "src/shared/Context";
-import { isArray, isString } from "utils/is";
+import { ANCHOR, COMPONENT } from 'config/types';
+import { warnOnceIfDebug } from 'utils/log';
+import { addToArray, removeFromArray } from 'utils/array';
+import noop from 'utils/noop';
+import fireEvent from 'src/events/fireEvent';
+import { splitKeypath } from 'shared/keypaths';
+import { findInViewHierarchy } from 'shared/registry';
+import findElement from './findElement';
+import { DOMEvent, CustomEvent } from '../element/ElementEvents';
+import RactiveEvent from '../component/RactiveEvent';
+import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
+import Context from 'src/shared/Context';
+import { isArray, isString } from 'utils/is';
 
 const specialPattern = /^(event|arguments|@node|@event|@context)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
@@ -34,7 +34,7 @@ export default class EventDirective {
       //if ( delegate && !delegate.delegates ) delegate.delegates = {};
 
       this.template.n.forEach(n => {
-        const fn = findInViewHierarchy("events", this.ractive, n);
+        const fn = findInViewHierarchy('events', this.ractive, n);
         if (fn) {
           this.events.push(new CustomEvent(fn, this.element, n));
         } else {
@@ -82,7 +82,7 @@ export default class EventDirective {
           if (dollarMatch) {
             // on-click="foo($1)"
             return {
-              special: "arguments",
+              special: 'arguments',
               keys: [dollarMatch[1] - 1].concat(
                 dollarMatch[2] ? splitKeypath(dollarMatch[2].substr(1)) : []
               )
@@ -99,16 +99,16 @@ export default class EventDirective {
             const which = model.special;
             let obj;
 
-            if (which === "@node") {
+            if (which === '@node') {
               obj = this.element.node;
-            } else if (which === "@event") {
+            } else if (which === '@event') {
               obj = event && event.event;
-            } else if (which === "event") {
+            } else if (which === 'event') {
               warnOnceIfDebug(
                 `The event reference available to event directives is deprecated and should be replaced with @context and @event`
               );
               obj = context;
-            } else if (which === "@context") {
+            } else if (which === '@context') {
               obj = context;
             } else {
               obj = args;
@@ -145,7 +145,7 @@ export default class EventDirective {
         } else {
           warnOnceIfDebug(
             `handler '${this.template.n.join(
-              " "
+              ' '
             )}' returned false, but there is no event available to cancel`
           );
         }
@@ -169,7 +169,7 @@ export default class EventDirective {
   }
 
   toString() {
-    return "";
+    return '';
   }
 
   unbind() {

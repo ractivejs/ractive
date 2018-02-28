@@ -1,5 +1,5 @@
-import cleanCss from "utils/cleanCss";
-import { isString } from "utils/is";
+import cleanCss from 'utils/cleanCss';
+import { isString } from 'utils/is';
 
 const space = /\s+/;
 
@@ -8,11 +8,11 @@ export function readStyle(css) {
 
   return cleanCss(css, (css, reconstruct) => {
     return css
-      .split(";")
+      .split(';')
       .filter(rule => !!rule.trim())
       .map(reconstruct)
       .reduce((rules, rule) => {
-        const i = rule.indexOf(":");
+        const i = rule.indexOf(':');
         const name = rule.substr(0, i).trim();
         rules[name] = rule.substr(i + 1).trim();
         return rules;

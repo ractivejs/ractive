@@ -1,5 +1,5 @@
-import { STRING_LITERAL } from "../../../../../config/types";
-import makeQuotedStringMatcher from "./stringLiteral/makeQuotedStringMatcher";
+import { STRING_LITERAL } from '../../../../../config/types';
+import makeQuotedStringMatcher from './stringLiteral/makeQuotedStringMatcher';
 
 const singleMatcher = makeQuotedStringMatcher(`"`);
 const doubleMatcher = makeQuotedStringMatcher(`'`);

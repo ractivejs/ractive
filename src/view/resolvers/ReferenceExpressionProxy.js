@@ -1,15 +1,15 @@
-import Model from "src/model/Model";
-import { findBoundValue } from "src/model/ModelBase";
-import { REFERENCE } from "config/types";
-import { rebindMatch } from "shared/rebind";
-import { handleChange, mark, marked } from "shared/methodCallers";
-import { isEqual, isString } from "utils/is";
-import { escapeKey } from "shared/keypaths";
-import ExpressionProxy from "./ExpressionProxy";
-import resolveReference from "./resolveReference";
-import resolve from "./resolve";
-import { hasOwn } from "utils/object";
-import { capture } from "src/global/capture";
+import Model from 'src/model/Model';
+import { findBoundValue } from 'src/model/ModelBase';
+import { REFERENCE } from 'config/types';
+import { rebindMatch } from 'shared/rebind';
+import { handleChange, mark, marked } from 'shared/methodCallers';
+import { isEqual, isString } from 'utils/is';
+import { escapeKey } from 'shared/keypaths';
+import ExpressionProxy from './ExpressionProxy';
+import resolveReference from './resolveReference';
+import resolve from './resolve';
+import { hasOwn } from 'utils/object';
+import { capture } from 'src/global/capture';
 
 class ReferenceExpressionChild extends Model {
   constructor(parent, key) {
@@ -41,7 +41,7 @@ class ReferenceExpressionChild extends Model {
   }
 
   joinKey(key) {
-    if (key === undefined || key === "") return this;
+    if (key === undefined || key === '') return this;
 
     if (!hasOwn(this.childByKey, key)) {
       const child = new ReferenceExpressionChild(this, key);
@@ -184,7 +184,7 @@ export default class ReferenceExpressionProxy extends Model {
   }
 
   getKeypath() {
-    return this.model ? this.model.getKeypath() : "@undefined";
+    return this.model ? this.model.getKeypath() : '@undefined';
   }
 
   handleChange() {
@@ -193,7 +193,7 @@ export default class ReferenceExpressionProxy extends Model {
   }
 
   joinKey(key) {
-    if (key === undefined || key === "") return this;
+    if (key === undefined || key === '') return this;
 
     if (!hasOwn(this.childByKey, key)) {
       const child = new ReferenceExpressionChild(this, key);

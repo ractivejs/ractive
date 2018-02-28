@@ -1,12 +1,12 @@
-import { onWarn, initModule } from "../../helpers/test-config";
-import { test } from "qunit";
+import { onWarn, initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
-  initModule("components/attributes.js");
+  initModule('components/attributes.js');
 
   test(`by default all attributes are mapped`, t => {
     const cmp = Ractive.extend({
-      template: "{{foo}} {{bar}}"
+      template: '{{foo}} {{bar}}'
     });
 
     t.equal(cmp.attributes, undefined);
@@ -21,41 +21,41 @@ export default function() {
       }
     });
 
-    t.htmlEqual(fixture.innerHTML, "1 2");
+    t.htmlEqual(fixture.innerHTML, '1 2');
   });
 
   test(`attributes as an array of strings are all optional`, t => {
     const cmp = Ractive.extend({
-      attributes: ["foo", "bar"]
+      attributes: ['foo', 'bar']
     });
 
-    t.deepEqual(cmp.attributes, { optional: ["foo", "bar"], required: [] });
+    t.deepEqual(cmp.attributes, { optional: ['foo', 'bar'], required: [] });
   });
 
   test(`attributes may contain optional, required, neither, or both`, t => {
     const optional = Ractive.extend({
-      attributes: { optional: ["foo"] }
+      attributes: { optional: ['foo'] }
     });
     const required = Ractive.extend({
-      attributes: { required: ["bar"] }
+      attributes: { required: ['bar'] }
     });
     const both = Ractive.extend({
-      attributes: { optional: ["foo"], required: ["bar"] }
+      attributes: { optional: ['foo'], required: ['bar'] }
     });
     const neither = Ractive.extend({
       attributes: {}
     });
 
-    t.deepEqual(optional.attributes, { optional: ["foo"], required: [] });
-    t.deepEqual(required.attributes, { optional: [], required: ["bar"] });
-    t.deepEqual(both.attributes, { optional: ["foo"], required: ["bar"] });
+    t.deepEqual(optional.attributes, { optional: ['foo'], required: [] });
+    t.deepEqual(required.attributes, { optional: [], required: ['bar'] });
+    t.deepEqual(both.attributes, { optional: ['foo'], required: ['bar'] });
     t.deepEqual(neither.attributes, { optional: [], required: [] });
   });
 
   test(`only named attributes are mapped into component`, t => {
     const cmp = Ractive.extend({
-      attributes: ["foo", "bar"],
-      template: "{{foo}} {{bar}} {{baz}}",
+      attributes: ['foo', 'bar'],
+      template: '{{foo}} {{bar}} {{baz}}',
       isolated: true
     });
     new Ractive({
@@ -63,13 +63,13 @@ export default function() {
       template: `<cmp foo="{{foo}}" bar="{{bar}}" baz="{{baz}}" />`,
       components: { cmp },
       data: {
-        foo: "foo",
-        bar: "bar",
-        baz: "baz"
+        foo: 'foo',
+        bar: 'bar',
+        baz: 'baz'
       }
     });
 
-    t.htmlEqual(fixture.innerHTML, "foo bar");
+    t.htmlEqual(fixture.innerHTML, 'foo bar');
   });
 
   test(`leaving off a required attribute issues a warning`, t => {
@@ -77,9 +77,9 @@ export default function() {
     onWarn(msg => t.ok(/.*cmp.*requires attribute.*foo.*/.test(msg)));
     const cmp = Ractive.extend({
       attributes: {
-        required: ["foo"]
+        required: ['foo']
       },
-      template: "yep"
+      template: 'yep'
     });
     new Ractive({
       target: fixture,
@@ -87,12 +87,12 @@ export default function() {
       components: { cmp }
     });
 
-    t.htmlEqual(fixture.innerHTML, "yep");
+    t.htmlEqual(fixture.innerHTML, 'yep');
   });
 
   test(`extra attributes are collected into a partial and attached to the instance`, t => {
     const cmp = Ractive.extend({
-      attributes: ["item", "color"],
+      attributes: ['item', 'color'],
       template: `<div {{yield extra-attributes}} style-color="{{color}}">{{item}}</div>`,
       data: { bar: 21 }
     });
@@ -101,7 +101,7 @@ export default function() {
       target: fixture,
       template: `<cmp class="big" data-foo="{{bar}}" item="{{item}}" color="green" />`,
       components: { cmp },
-      data: { bar: "yep", item: "thing" }
+      data: { bar: 'yep', item: 'thing' }
     });
 
     t.htmlEqual(
@@ -109,14 +109,14 @@ export default function() {
       '<div class="big" data-foo="yep" style="color: green;">thing</div>'
     );
 
-    const inst = r.findComponent("cmp");
-    t.ok(inst.get("data-foo") === undefined);
+    const inst = r.findComponent('cmp');
+    t.ok(inst.get('data-foo') === undefined);
   });
 
   test(`extra attributes may be mapped if requested and the partial will refer to the mapping`, t => {
     const cmp = Ractive.extend({
       attributes: {
-        optional: ["item"],
+        optional: ['item'],
         mapAll: true
       },
       template: `<div {{> extra-attributes}}>{{item}}</div>`
@@ -126,23 +126,23 @@ export default function() {
       target: fixture,
       template: `<cmp class="big" item="{{item}}" data-foo="{{foo}}" />`,
       components: { cmp },
-      data: { foo: "yep", item: "thing" }
+      data: { foo: 'yep', item: 'thing' }
     });
 
     t.htmlEqual(fixture.innerHTML, '<div class="big" data-foo="yep">thing</div>');
 
-    const inst = r.findComponent("cmp");
-    t.equal(inst.get("class"), "big");
-    t.equal(inst.get("data-foo"), "yep");
+    const inst = r.findComponent('cmp');
+    t.equal(inst.get('class'), 'big');
+    t.equal(inst.get('data-foo'), 'yep');
 
-    inst.set("data-foo", "still yep");
-    t.equal(r.get("foo"), "still yep");
+    inst.set('data-foo', 'still yep');
+    t.equal(r.get('foo'), 'still yep');
   });
 
   test(`multiple component renders with attributes all start with the initial template`, t => {
     const cmp = Ractive.extend({
       attributes: [],
-      template: "<div {{yield extra-attributes}} />"
+      template: '<div {{yield extra-attributes}} />'
     });
 
     new Ractive({

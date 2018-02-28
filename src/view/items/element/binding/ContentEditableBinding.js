@@ -1,9 +1,9 @@
-import Binding from "./Binding";
-import handleDomEvent from "./handleDomEvent";
+import Binding from './Binding';
+import handleDomEvent from './handleDomEvent';
 
 export default class ContentEditableBinding extends Binding {
   getInitialValue() {
-    return this.element.fragment ? this.element.fragment.toString() : "";
+    return this.element.fragment ? this.element.fragment.toString() : '';
   }
 
   getValue() {
@@ -15,14 +15,14 @@ export default class ContentEditableBinding extends Binding {
 
     const el = this.element;
 
-    el.on("change", handleDomEvent);
-    el.on("blur", handleDomEvent);
+    el.on('change', handleDomEvent);
+    el.on('blur', handleDomEvent);
 
     if (!this.ractive.lazy) {
-      el.on("input", handleDomEvent);
+      el.on('input', handleDomEvent);
 
       if (this.node.attachEvent) {
-        el.on("keyup", handleDomEvent);
+        el.on('keyup', handleDomEvent);
       }
     }
   }
@@ -34,9 +34,9 @@ export default class ContentEditableBinding extends Binding {
   unrender() {
     const el = this.element;
 
-    el.off("blur", handleDomEvent);
-    el.off("change", handleDomEvent);
-    el.off("input", handleDomEvent);
-    el.off("keyup", handleDomEvent);
+    el.off('blur', handleDomEvent);
+    el.off('change', handleDomEvent);
+    el.off('input', handleDomEvent);
+    el.off('keyup', handleDomEvent);
   }
 }

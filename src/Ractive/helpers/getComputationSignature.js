@@ -1,7 +1,7 @@
-import { fatal } from "utils/log";
-import bind from "utils/bind";
-import { createFunctionFromString } from "../config/runtime-parser";
-import { isFunction, isString, isObjectType } from "utils/is";
+import { fatal } from 'utils/log';
+import bind from 'utils/bind';
+import { createFunctionFromString } from '../config/runtime-parser';
+import { isFunction, isString, isObjectType } from 'utils/is';
 
 export default function getComputationSignature(ractive, key, signature) {
   let getter;
@@ -32,7 +32,7 @@ export default function getComputationSignature(ractive, key, signature) {
       getterString = signature.get.toString();
       getterUseStack = true;
     } else {
-      fatal("`%s` computation must have a `get()` method", key);
+      fatal('`%s` computation must have a `get()` method', key);
     }
 
     if (isFunction(signature.set)) {

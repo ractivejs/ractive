@@ -1,12 +1,12 @@
-import { removeFromArray } from "utils/array";
-import noop from "utils/noop";
-import { warnIfDebug } from "utils/log";
-import Model from "src/model/Model";
-import Computation from "src/model/Computation";
-import { startCapturing, stopCapturing } from "src/global/capture";
-import getFunction from "shared/getFunction";
-import { rebindMatch } from "shared/rebind";
-import resolveReference from "./resolveReference";
+import { removeFromArray } from 'utils/array';
+import noop from 'utils/noop';
+import { warnIfDebug } from 'utils/log';
+import Model from 'src/model/Model';
+import Computation from 'src/model/Computation';
+import { startCapturing, stopCapturing } from 'src/global/capture';
+import getFunction from 'shared/getFunction';
+import { rebindMatch } from 'shared/rebind';
+import resolveReference from './resolveReference';
 
 export default class ExpressionProxy extends Model {
   constructor(fragment, template) {
@@ -40,15 +40,15 @@ export default class ExpressionProxy extends Model {
   }
 
   getKeypath() {
-    if (!this.template) return "@undefined";
+    if (!this.template) return '@undefined';
     if (!this.keypath) {
       this.keypath =
-        "@" +
+        '@' +
         this.template.s.replace(/_(\d+)/g, (match, i) => {
           if (i >= this.models.length) return match;
 
           const model = this.models[i];
-          return model ? model.getKeypath() : "@undefined";
+          return model ? model.getKeypath() : '@undefined';
         });
     }
 
@@ -91,7 +91,7 @@ export default class ExpressionProxy extends Model {
       if (next !== previous) {
         previous.unregister(this);
         this.models.splice(idx, 1, next);
-        if (next) next.addShuffleRegister(this, "mark");
+        if (next) next.addShuffleRegister(this, 'mark');
       }
     }
     this.bubble(!safe);

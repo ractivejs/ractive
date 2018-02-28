@@ -1,6 +1,6 @@
-import { isArray, isObject, isNumeric } from "utils/is";
-import interpolate from "shared/interpolate";
-import { hasOwn } from "utils/object";
+import { isArray, isObject, isNumeric } from 'utils/is';
+import interpolate from 'shared/interpolate';
+import { hasOwn } from 'utils/object';
 
 const interpolators = {
   number(from, to) {

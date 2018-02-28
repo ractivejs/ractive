@@ -1,7 +1,7 @@
-import { doc } from "config/environment";
-import getRactiveContext from "shared/getRactiveContext";
-import { warnOnceIfDebug } from "utils/log";
-import { isString } from "utils/is";
+import { doc } from 'config/environment';
+import getRactiveContext from 'shared/getRactiveContext';
+import { warnOnceIfDebug } from 'utils/log';
+import { isString } from 'utils/is';
 
 const query = doc && doc.querySelector;
 

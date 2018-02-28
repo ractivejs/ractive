@@ -1,6 +1,6 @@
-import { COMMENT, DELIMCHANGE, SECTION, INVERTED } from "config/types";
-import { lastItem } from "utils/array";
-import { isString } from "utils/is";
+import { COMMENT, DELIMCHANGE, SECTION, INVERTED } from 'config/types';
+import { lastItem } from 'utils/array';
+import { isString } from 'utils/is';
 
 const leadingLinebreak = /^[ \t\f\r\n]*\r?\n/;
 const trailingLinebreak = /\r?\n[ \t\f\r\n]*$/;
@@ -18,10 +18,10 @@ export default function(items) {
       // ... and the comment is a standalone (i.e. line breaks either side)...
       if (trailingLinebreak.test(backTwo) && leadingLinebreak.test(current)) {
         // ... then we want to remove the whitespace after the first line break
-        items[i - 2] = backTwo.replace(trailingLinebreak, "\n");
+        items[i - 2] = backTwo.replace(trailingLinebreak, '\n');
 
         // and the leading line break of the second text token
-        items[i] = current.replace(leadingLinebreak, "");
+        items[i] = current.replace(leadingLinebreak, '');
       }
     }
 
@@ -33,8 +33,8 @@ export default function(items) {
         isString(current.f[0]) &&
         leadingLinebreak.test(current.f[0])
       ) {
-        items[i - 1] = backOne.replace(trailingLinebreak, "\n");
-        current.f[0] = current.f[0].replace(leadingLinebreak, "");
+        items[i - 1] = backOne.replace(trailingLinebreak, '\n');
+        current.f[0] = current.f[0].replace(leadingLinebreak, '');
       }
     }
 
@@ -48,8 +48,8 @@ export default function(items) {
         trailingLinebreak.test(lastSectionItem) &&
         leadingLinebreak.test(current)
       ) {
-        backOne.f[backOne.f.length - 1] = lastSectionItem.replace(trailingLinebreak, "\n");
-        items[i] = current.replace(leadingLinebreak, "");
+        backOne.f[backOne.f.length - 1] = lastSectionItem.replace(trailingLinebreak, '\n');
+        items[i] = current.replace(leadingLinebreak, '');
       }
     }
   }

@@ -1,7 +1,7 @@
-import { removeFromArray } from "utils/array";
-import Element from "../../Element";
-import findElement from "../../shared/findElement";
-import { isArray } from "utils/is";
+import { removeFromArray } from 'utils/array';
+import Element from '../../Element';
+import findElement from '../../shared/findElement';
+import { isArray } from 'utils/is';
 
 export default class Option extends Element {
   constructor(options) {
@@ -10,13 +10,13 @@ export default class Option extends Element {
 
     // If the value attribute is missing, use the element's content,
     // as long as it isn't disabled
-    if (template.a.value === undefined && !("disabled" in template.a)) {
-      template.a.value = template.f || "";
+    if (template.a.value === undefined && !('disabled' in template.a)) {
+      template.a.value = template.f || '';
     }
 
     super(options);
 
-    this.select = findElement(this.parent || this.up, false, "select");
+    this.select = findElement(this.parent || this.up, false, 'select');
   }
 
   bind() {
@@ -28,7 +28,7 @@ export default class Option extends Element {
     // If the select has a value, it overrides the `selected` attribute on
     // this option - so we delete the attribute
     const selectedAttribute = this.attributeByName.selected;
-    if (selectedAttribute && this.select.getAttribute("value") !== undefined) {
+    if (selectedAttribute && this.select.getAttribute('value') !== undefined) {
       const index = this.attributes.indexOf(selectedAttribute);
       this.attributes.splice(index, 1);
       delete this.attributeByName.selected;
@@ -40,7 +40,7 @@ export default class Option extends Element {
 
   bubble() {
     // if we're using content as value, may need to update here
-    const value = this.getAttribute("value");
+    const value = this.getAttribute('value');
     if (this.node && this.node.value !== value) {
       this.node._ractive.value = value;
     }
@@ -51,23 +51,23 @@ export default class Option extends Element {
     const attribute = this.attributeByName[name];
     return attribute
       ? attribute.getValue()
-      : name === "value" && this.fragment ? this.fragment.valueOf() : undefined;
+      : name === 'value' && this.fragment ? this.fragment.valueOf() : undefined;
   }
 
   isSelected() {
-    const optionValue = this.getAttribute("value");
+    const optionValue = this.getAttribute('value');
 
     if (optionValue === undefined || !this.select) {
       return false;
     }
 
-    const selectValue = this.select.getAttribute("value");
+    const selectValue = this.select.getAttribute('value');
 
     if (this.select.compare(selectValue, optionValue)) {
       return true;
     }
 
-    if (this.select.getAttribute("multiple") && isArray(selectValue)) {
+    if (this.select.getAttribute('multiple') && isArray(selectValue)) {
       let i = selectValue.length;
       while (i--) {
         if (this.select.compare(selectValue[i], optionValue)) {
@@ -81,7 +81,7 @@ export default class Option extends Element {
     super.render(target, occupants);
 
     if (!this.attributeByName.value) {
-      this.node._ractive.value = this.getAttribute("value");
+      this.node._ractive.value = this.getAttribute('value');
     }
   }
 

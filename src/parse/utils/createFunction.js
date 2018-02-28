@@ -12,19 +12,19 @@ export function fromExpression(body, length = 0) {
   //
   // With this workaround, we get a little more compact:
   //     function (_0){return _0*2}
-  return new Function([], `return function (${args.join(",")}){return(${body});};`)();
+  return new Function([], `return function (${args.join(',')}){return(${body});};`)();
 }
 
 export function fromComputationString(str, bindTo) {
   let hasThis;
 
   let functionBody =
-    "return (" +
+    'return (' +
     str.replace(pattern, (match, keypath) => {
       hasThis = true;
       return `__ractive.get("${keypath}")`;
     }) +
-    ");";
+    ');';
 
   if (hasThis) functionBody = `var __ractive = this; ${functionBody}`;
   const fn = new Function(functionBody);

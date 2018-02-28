@@ -1,11 +1,11 @@
-import { isObject, isFunction } from "utils/is";
-import { warnOnceIfDebug } from "utils/log";
-import { splitKeypath } from "shared/keypaths";
-import resolveReference from "src/view/resolvers/resolveReference";
-import Observer from "./observe/Observer";
-import PatternObserver from "./observe/Pattern";
-import ArrayObserver from "./observe/Array";
-import { keys } from "utils/object";
+import { isObject, isFunction } from 'utils/is';
+import { warnOnceIfDebug } from 'utils/log';
+import { splitKeypath } from 'shared/keypaths';
+import resolveReference from 'src/view/resolvers/resolveReference';
+import Observer from './observe/Observer';
+import PatternObserver from './observe/Pattern';
+import ArrayObserver from './observe/Array';
+import { keys } from 'utils/object';
 
 export default function observe(keypath, callback, options) {
   const observers = [];
@@ -17,7 +17,7 @@ export default function observe(keypath, callback, options) {
     opts = callback || {};
   } else {
     if (isFunction(keypath)) {
-      map = { "": keypath };
+      map = { '': keypath };
       opts = callback || {};
     } else {
       map = {};
@@ -34,7 +34,7 @@ export default function observe(keypath, callback, options) {
       return callback.apply(this, args);
     };
 
-    let keypaths = keypath.split(" ");
+    let keypaths = keypath.split(' ');
     if (keypaths.length > 1) keypaths = keypaths.filter(k => k);
 
     keypaths.forEach(keypath => {
@@ -58,8 +58,8 @@ export default function observe(keypath, callback, options) {
 
 function createObserver(ractive, keypath, callback, options) {
   const keys = splitKeypath(keypath);
-  let wildcardIndex = keys.indexOf("*");
-  if (!~wildcardIndex) wildcardIndex = keys.indexOf("**");
+  let wildcardIndex = keys.indexOf('*');
+  if (!~wildcardIndex) wildcardIndex = keys.indexOf('**');
 
   options.fragment = options.fragment || ractive.fragment;
 
@@ -68,7 +68,7 @@ function createObserver(ractive, keypath, callback, options) {
     model = ractive.viewmodel.joinKey(keys[0]);
   } else {
     // .*.whatever relative wildcard is a special case because splitkeypath doesn't handle the leading .
-    if (~keys[0].indexOf(".*")) {
+    if (~keys[0].indexOf('.*')) {
       model = options.fragment.findContext();
       wildcardIndex = 0;
       keys[0] = keys[0].slice(1);
@@ -91,9 +91,9 @@ function createObserver(ractive, keypath, callback, options) {
       return new Observer(ractive, model, callback, options);
     }
   } else {
-    const double = keys.indexOf("**");
+    const double = keys.indexOf('**');
     if (~double) {
-      if (double + 1 !== keys.length || ~keys.indexOf("*")) {
+      if (double + 1 !== keys.length || ~keys.indexOf('*')) {
         warnOnceIfDebug(
           `Recursive observers may only specify a single '**' at the end of the path.`
         );

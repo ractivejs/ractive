@@ -1,19 +1,19 @@
-import { ATTRIBUTE, BINDING_FLAG, DECORATOR, DELEGATE_FLAG, EVENT, TRANSITION } from "config/types";
-import { win } from "config/environment";
-import { html, svg } from "config/namespaces";
-import { toArray, addToArray, removeFromArray } from "utils/array";
-import { escapeHtml, voidElementNames } from "utils/html";
-import { createElement, detachNode, matches, safeAttributeString } from "utils/dom";
-import runloop from "src/global/runloop";
-import Context from "shared/Context";
-import { bind, destroyed, render, unbind, update } from "shared/methodCallers";
-import { ContainerItem } from "./shared/Item";
-import Fragment from "../Fragment";
-import ConditionalAttribute from "./element/ConditionalAttribute";
-import createItem from "./createItem";
-import findElement from "./shared/findElement";
-import selectBinding from "./element/binding/selectBinding";
-import { assign, create, defineProperty } from "utils/object";
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, DELEGATE_FLAG, EVENT, TRANSITION } from 'config/types';
+import { win } from 'config/environment';
+import { html, svg } from 'config/namespaces';
+import { toArray, addToArray, removeFromArray } from 'utils/array';
+import { escapeHtml, voidElementNames } from 'utils/html';
+import { createElement, detachNode, matches, safeAttributeString } from 'utils/dom';
+import runloop from 'src/global/runloop';
+import Context from 'shared/Context';
+import { bind, destroyed, render, unbind, update } from 'shared/methodCallers';
+import { ContainerItem } from './shared/Item';
+import Fragment from '../Fragment';
+import ConditionalAttribute from './element/ConditionalAttribute';
+import createItem from './createItem';
+import findElement from './shared/findElement';
+import selectBinding from './element/binding/selectBinding';
+import { assign, create, defineProperty } from 'utils/object';
 
 const endsWithSemi = /;\s*$/;
 
@@ -26,7 +26,7 @@ export default class Element extends ContainerItem {
     // find parent element
     this.parent = findElement(this.up, false);
 
-    if (this.parent && this.parent.name === "option") {
+    if (this.parent && this.parent.name === 'option') {
       throw new Error(
         `An <option> element cannot contain other elements (encountered <${this.name}>)`
       );
@@ -61,9 +61,9 @@ export default class Element extends ContainerItem {
 
           attrs = attrs || (attrs = this.attributes = []);
 
-          if (n === "value") val = attr;
-          else if (n === "name") name = attr;
-          else if (n === "class") cls = attr;
+          if (n === 'value') val = attr;
+          else if (n === 'name') name = attr;
+          else if (n === 'class') cls = attr;
           else attrs.push(attr);
 
           break;
@@ -123,7 +123,7 @@ export default class Element extends ContainerItem {
   }
 
   createTwowayBinding() {
-    if ("twoway" in this ? this.twoway : this.ractive.twoway) {
+    if ('twoway' in this ? this.twoway : this.ractive.twoway) {
       const Binding = selectBinding(this);
       if (Binding) {
         const binding = new Binding(this);
@@ -295,13 +295,13 @@ export default class Element extends ContainerItem {
       node = createElement(
         this.namespace === html ? name.toLowerCase() : name,
         this.namespace,
-        this.getAttribute("is")
+        this.getAttribute('is')
       );
       this.node = node;
     }
 
     // tie the node to this vdom element
-    defineProperty(node, "_ractive", {
+    defineProperty(node, '_ractive', {
       value: {
         proxy: this
       },
@@ -312,7 +312,7 @@ export default class Element extends ContainerItem {
 
     // register intro before rendering content so children can find the intro
     const intro = this.intro;
-    if (intro && intro.shouldFire("intro")) {
+    if (intro && intro.shouldFire('intro')) {
       intro.isIntro = true;
       intro.isOutro = false;
       runloop.registerTransition(intro);
@@ -343,7 +343,7 @@ export default class Element extends ContainerItem {
     // Is this a top-level node of a component? If so, we may need to add
     // a data-ractive-css attribute, for CSS encapsulation
     if (this.up.cssIds) {
-      node.setAttribute("data-ractive-css", this.up.cssIds.map(x => `{${x}}`).join(" "));
+      node.setAttribute('data-ractive-css', this.up.cssIds.map(x => `{${x}}`).join(' '));
     }
 
     if (this.attributes) this.attributes.forEach(render);
@@ -366,42 +366,42 @@ export default class Element extends ContainerItem {
   toString() {
     const tagName = this.template.e;
 
-    let attrs = (this.attributes && this.attributes.map(stringifyAttribute).join("")) || "";
+    let attrs = (this.attributes && this.attributes.map(stringifyAttribute).join('')) || '';
 
     // Special case - selected options
-    if (this.name === "option" && this.isSelected()) {
-      attrs += " selected";
+    if (this.name === 'option' && this.isSelected()) {
+      attrs += ' selected';
     }
 
     // Special case - two-way radio name bindings
-    if (this.name === "input" && inputIsCheckedRadio(this)) {
-      attrs += " checked";
+    if (this.name === 'input' && inputIsCheckedRadio(this)) {
+      attrs += ' checked';
     }
 
     // Special case style and class attributes and directives
     let style, cls;
     this.attributes &&
       this.attributes.forEach(attr => {
-        if (attr.name === "class") {
-          cls = (cls || "") + (cls ? " " : "") + safeAttributeString(attr.getString());
-        } else if (attr.name === "style") {
-          style = (style || "") + (style ? " " : "") + safeAttributeString(attr.getString());
-          if (style && !endsWithSemi.test(style)) style += ";";
+        if (attr.name === 'class') {
+          cls = (cls || '') + (cls ? ' ' : '') + safeAttributeString(attr.getString());
+        } else if (attr.name === 'style') {
+          style = (style || '') + (style ? ' ' : '') + safeAttributeString(attr.getString());
+          if (style && !endsWithSemi.test(style)) style += ';';
         } else if (attr.style) {
           style =
-            (style || "") +
-            (style ? " " : "") +
+            (style || '') +
+            (style ? ' ' : '') +
             `${attr.style}: ${safeAttributeString(attr.getString())};`;
         } else if (attr.inlineClass && attr.getValue()) {
-          cls = (cls || "") + (cls ? " " : "") + attr.inlineClass;
+          cls = (cls || '') + (cls ? ' ' : '') + attr.inlineClass;
         }
       });
     // put classes first, then inline style
-    if (style !== undefined) attrs = " style" + (style ? `="${style}"` : "") + attrs;
-    if (cls !== undefined) attrs = " class" + (cls ? `="${cls}"` : "") + attrs;
+    if (style !== undefined) attrs = ' style' + (style ? `="${style}"` : '') + attrs;
+    if (cls !== undefined) attrs = ' class' + (cls ? `="${cls}"` : '') + attrs;
 
     if (this.up.cssIds) {
-      attrs += ` data-ractive-css="${this.up.cssIds.map(x => `{${x}}`).join(" ")}"`;
+      attrs += ` data-ractive-css="${this.up.cssIds.map(x => `{${x}}`).join(' ')}"`;
     }
 
     let str = `<${tagName}${attrs}>`;
@@ -409,11 +409,11 @@ export default class Element extends ContainerItem {
     if (voidElementNames.test(this.name)) return str;
 
     // Special case - textarea
-    if (this.name === "textarea" && this.getAttribute("value") !== undefined) {
-      str += escapeHtml(this.getAttribute("value"));
-    } else if (this.getAttribute("contenteditable") !== undefined) {
+    if (this.name === 'textarea' && this.getAttribute('value') !== undefined) {
+      str += escapeHtml(this.getAttribute('value'));
+    } else if (this.getAttribute('contenteditable') !== undefined) {
       // Special case - contenteditable
-      str += this.getAttribute("value") || "";
+      str += this.getAttribute('value') || '';
     }
 
     if (this.fragment) {
@@ -446,7 +446,7 @@ export default class Element extends ContainerItem {
     if (transition && transition.complete) transition.complete();
 
     // Detach as soon as we can
-    if (this.name === "option") {
+    if (this.name === 'option') {
       // <option> elements detach immediately, so that
       // their parent <select> element syncs correctly, and
       // since option elements can't have transitions anyway
@@ -457,7 +457,7 @@ export default class Element extends ContainerItem {
 
     // outro transition
     const outro = this.outro;
-    if (outro && outro.shouldFire("outro")) {
+    if (outro && outro.shouldFire('outro')) {
       outro.isIntro = false;
       outro.isOutro = true;
       runloop.registerTransition(outro);
@@ -482,30 +482,30 @@ export default class Element extends ContainerItem {
 function inputIsCheckedRadio(element) {
   const nameAttr = element.attributeByName.name;
   return (
-    element.getAttribute("type") === "radio" &&
+    element.getAttribute('type') === 'radio' &&
     (nameAttr || {}).interpolator &&
-    element.getAttribute("value") === nameAttr.interpolator.model.get()
+    element.getAttribute('value') === nameAttr.interpolator.model.get()
   );
 }
 
 function stringifyAttribute(attribute) {
   const str = attribute.toString();
-  return str ? " " + str : "";
+  return str ? ' ' + str : '';
 }
 
 function getNamespace(element) {
   // Use specified namespace...
-  const xmlns = element.getAttribute("xmlns");
+  const xmlns = element.getAttribute('xmlns');
   if (xmlns) return xmlns;
 
   // ...or SVG namespace, if this is an <svg> element
-  if (element.name === "svg") return svg;
+  if (element.name === 'svg') return svg;
 
   const parent = element.parent;
 
   if (parent) {
     // ...or HTML, if the parent is a <foreignObject>
-    if (parent.name === "foreignobject") return html;
+    if (parent.name === 'foreignobject') return html;
 
     // ...or inherit from the parent node
     return parent.node.namespaceURI;

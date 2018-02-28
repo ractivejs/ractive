@@ -1,12 +1,12 @@
-import { noRegistryFunctionReturn } from "config/errors";
-import { warnIfDebug } from "utils/log";
-import { findInstance } from "shared/registry";
-import { hasOwn } from "utils/object";
-import { isString } from "utils/is";
+import { noRegistryFunctionReturn } from 'config/errors';
+import { warnIfDebug } from 'utils/log';
+import { findInstance } from 'shared/registry';
+import { hasOwn } from 'utils/object';
+import { isString } from 'utils/is';
 
 // finds the component constructor in the registry or view hierarchy registries
 export default function getComponentConstructor(ractive, name) {
-  const instance = findInstance("components", ractive, name);
+  const instance = findInstance('components', ractive, name);
   let Component;
 
   if (instance) {
@@ -20,7 +20,7 @@ export default function getComponentConstructor(ractive, name) {
       Component = fn();
 
       if (!Component) {
-        warnIfDebug(noRegistryFunctionReturn, name, "component", "component", {
+        warnIfDebug(noRegistryFunctionReturn, name, 'component', 'component', {
           ractive
         });
         return;

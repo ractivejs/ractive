@@ -1,8 +1,8 @@
-import { INTERPOLATOR, ELEMENT } from "config/types";
-import Item from "../shared/Item";
-import Fragment from "../../Fragment";
-import findElement from "../shared/findElement";
-import { isArray } from "utils/is";
+import { INTERPOLATOR, ELEMENT } from 'config/types';
+import Item from '../shared/Item';
+import Fragment from '../../Fragment';
+import findElement from '../shared/findElement';
+import { isArray } from 'utils/is';
 
 export default class BindingFlag extends Item {
   constructor(options) {
@@ -10,7 +10,7 @@ export default class BindingFlag extends Item {
 
     this.owner = options.owner || options.up.owner || findElement(options.up);
     this.element = this.owner.attributeByName ? this.owner : findElement(options.up);
-    this.flag = options.template.v === "l" ? "lazy" : "twoway";
+    this.flag = options.template.v === 'l' ? 'lazy' : 'twoway';
     this.bubbler = this.owner === this.element ? this.element : this.up;
 
     if (this.element.type === ELEMENT) {
@@ -43,8 +43,8 @@ export default class BindingFlag extends Item {
 
   getValue() {
     if (this.fragment) return this.fragment.valueOf();
-    else if ("value" in this) return this.value;
-    else if ("f" in this.template) return this.template.f;
+    else if ('value' in this) return this.value;
+    else if ('f' in this.template) return this.template.f;
     else return true;
   }
 
@@ -53,7 +53,7 @@ export default class BindingFlag extends Item {
   }
 
   toString() {
-    return "";
+    return '';
   }
 
   unbind() {
@@ -78,9 +78,9 @@ export default class BindingFlag extends Item {
 function set(flag, value, update) {
   if (value === 0) {
     flag.value = true;
-  } else if (value === "true") {
+  } else if (value === 'true') {
     flag.value = true;
-  } else if (value === "false" || value === "0") {
+  } else if (value === 'false' || value === '0') {
     flag.value = false;
   } else {
     flag.value = value;

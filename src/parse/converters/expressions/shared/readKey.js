@@ -1,6 +1,6 @@
-import readStringLiteral from "../primary/literal/readStringLiteral";
-import readNumberLiteral from "../primary/literal/readNumberLiteral";
-import { name as namePattern } from "./patterns";
+import readStringLiteral from '../primary/literal/readStringLiteral';
+import readNumberLiteral from '../primary/literal/readNumberLiteral';
+import { name as namePattern } from './patterns';
 
 const identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 

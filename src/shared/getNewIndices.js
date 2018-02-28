@@ -1,4 +1,4 @@
-import { isNumber } from "utils/is";
+import { isNumber } from 'utils/is';
 
 // This function takes an array, the name of a mutator method, and the
 // arguments to call that mutator method with, and returns an array that
@@ -67,7 +67,7 @@ export default function getNewIndices(length, methodName, args) {
 // as an equivalent splice
 function getSpliceEquivalent(length, methodName, args) {
   switch (methodName) {
-    case "splice":
+    case 'splice':
       if (args[0] !== undefined && args[0] < 0) {
         args[0] = length + Math.max(args[0], -length);
       }
@@ -87,23 +87,23 @@ function getSpliceEquivalent(length, methodName, args) {
 
       return args;
 
-    case "sort":
-    case "reverse":
+    case 'sort':
+    case 'reverse':
       return null;
 
-    case "pop":
+    case 'pop':
       if (length) {
         return [length - 1, 1];
       }
       return [0, 0];
 
-    case "push":
+    case 'push':
       return [length, 0].concat(args);
 
-    case "shift":
+    case 'shift':
       return [0, length ? 1 : 0];
 
-    case "unshift":
+    case 'unshift':
       return [0, 0].concat(args);
   }
 }

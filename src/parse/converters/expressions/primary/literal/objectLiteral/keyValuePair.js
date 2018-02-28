@@ -1,7 +1,7 @@
-import { KEY_VALUE_PAIR, REFERENCE } from "src/config/types";
-import readKey from "../../../shared/readKey";
-import readExpression from "../../../../readExpression";
-import { name as namePattern, spreadPattern } from "../../../shared/patterns";
+import { KEY_VALUE_PAIR, REFERENCE } from 'src/config/types';
+import readKey from '../../../shared/readKey';
+import readExpression from '../../../../readExpression';
+import { name as namePattern, spreadPattern } from '../../../shared/patterns';
 
 export default function readKeyValuePair(parser) {
   let spread;
@@ -23,7 +23,7 @@ export default function readKeyValuePair(parser) {
   parser.sp();
 
   // es2015 shorthand property
-  if (refKey && (parser.nextChar() === "," || parser.nextChar() === "}")) {
+  if (refKey && (parser.nextChar() === ',' || parser.nextChar() === '}')) {
     if (!spread && !namePattern.test(key)) {
       parser.error(`Expected a valid reference, but found '${key}' instead.`);
     }
@@ -45,7 +45,7 @@ export default function readKeyValuePair(parser) {
   }
 
   // next character must be ':'
-  if (!parser.matchString(":")) {
+  if (!parser.matchString(':')) {
     parser.pos = start;
     return null;
   }

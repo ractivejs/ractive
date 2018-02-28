@@ -1,10 +1,10 @@
-import runloop from "src/global/runloop";
-import { warnOnceIfDebug } from "utils/log";
-import noop from "utils/noop";
-import findElement from "../../shared/findElement";
+import runloop from 'src/global/runloop';
+import { warnOnceIfDebug } from 'utils/log';
+import noop from 'utils/noop';
+import findElement from '../../shared/findElement';
 
 export default class Binding {
-  constructor(element, name = "value") {
+  constructor(element, name = 'value') {
     this.element = element;
     this.ractive = element.ractive;
     this.attribute = element.attributeByName[name];
@@ -15,7 +15,7 @@ export default class Binding {
     const model = interpolator.model;
 
     if (model.isReadonly && !model.setRoot) {
-      const keypath = model.getKeypath().replace(/^@/, "");
+      const keypath = model.getKeypath().replace(/^@/, '');
       warnOnceIfDebug(
         `Cannot use two-way binding on <${
           element.name
@@ -40,7 +40,7 @@ export default class Binding {
     }
     this.lastVal(true, value);
 
-    const parentForm = findElement(this.element, false, "form");
+    const parentForm = findElement(this.element, false, 'form');
     if (parentForm) {
       this.resetValue = value;
       parentForm.formBindings.push(this);

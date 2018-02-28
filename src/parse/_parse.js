@@ -1,21 +1,21 @@
-import { TEMPLATE_VERSION } from "config/template";
-import Parser from "./Parser";
-import readMustache from "./converters/readMustache";
-import readTriple from "./converters/mustache/readTriple";
-import readUnescaped from "./converters/mustache/readUnescaped";
-import readPartial from "./converters/mustache/readPartial";
-import readMustacheComment from "./converters/mustache/readMustacheComment";
-import readInterpolator from "./converters/mustache/readInterpolator";
-import readSection from "./converters/mustache/readSection";
-import readHtmlComment from "./converters/readHtmlComment";
-import readElement from "./converters/readElement";
-import readText from "./converters/readText";
-import readPartialDefinitionSection from "./converters/readPartialDefinitionSection";
-import readTemplate from "./converters/readTemplate";
-import cleanup from "./utils/cleanup";
-import insertExpressions from "./utils/insertExpressions";
-import shared from "../Ractive/shared";
-import { create, keys } from "utils/object";
+import { TEMPLATE_VERSION } from 'config/template';
+import Parser from './Parser';
+import readMustache from './converters/readMustache';
+import readTriple from './converters/mustache/readTriple';
+import readUnescaped from './converters/mustache/readUnescaped';
+import readPartial from './converters/mustache/readPartial';
+import readMustacheComment from './converters/mustache/readMustacheComment';
+import readInterpolator from './converters/mustache/readInterpolator';
+import readSection from './converters/mustache/readSection';
+import readHtmlComment from './converters/readHtmlComment';
+import readElement from './converters/readElement';
+import readText from './converters/readText';
+import readPartialDefinitionSection from './converters/readPartialDefinitionSection';
+import readTemplate from './converters/readTemplate';
+import cleanup from './utils/cleanup';
+import insertExpressions from './utils/insertExpressions';
+import shared from '../Ractive/shared';
+import { create, keys } from 'utils/object';
 
 // See https://github.com/ractivejs/template-spec for information
 // about the Ractive template specification
@@ -32,7 +32,7 @@ const TRIPLE_READERS = [readTriple];
 export const READERS = [readMustache, readHtmlComment, readElement, readText];
 export const PARTIAL_READERS = [readPartialDefinitionSection];
 
-const defaultInterpolate = ["script", "style", "template"];
+const defaultInterpolate = ['script', 'style', 'template'];
 
 const StandardParser = Parser.extend({
   init(str, options) {
@@ -90,8 +90,8 @@ const StandardParser = Parser.extend({
     if (options.sanitize === true) {
       options.sanitize = {
         // blacklist from https://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/lang/html/html4-elements-whitelist.json
-        elements: "applet base basefont body frame frameset head html isindex link meta noframes noscript object param script style title".split(
-          " "
+        elements: 'applet base basefont body frame frameset head html isindex link meta noframes noscript object param script style title'.split(
+          ' '
         ),
         eventAttributes: true
       };
@@ -115,7 +115,7 @@ const StandardParser = Parser.extend({
     }
 
     if (this.sectionDepth > 0) {
-      this.error("A section was left open");
+      this.error('A section was left open');
     }
 
     cleanup(

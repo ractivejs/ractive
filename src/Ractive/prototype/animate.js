@@ -1,14 +1,14 @@
-import runloop from "src/global/runloop";
-import easing from "src/Ractive/static/easing";
-import interpolate from "shared/interpolate";
-import { isEqual, isFunction, isObjectType } from "utils/is";
-import noop from "utils/noop";
-import { splitKeypath } from "shared/keypaths";
-import { defineProperty, keys as objectKeys } from "utils/object";
+import runloop from 'src/global/runloop';
+import easing from 'src/Ractive/static/easing';
+import interpolate from 'shared/interpolate';
+import { isEqual, isFunction, isObjectType } from 'utils/is';
+import noop from 'utils/noop';
+import { splitKeypath } from 'shared/keypaths';
+import { defineProperty, keys as objectKeys } from 'utils/object';
 
 function immediate(value) {
   const result = Promise.resolve(value);
-  defineProperty(result, "stop", { value: noop });
+  defineProperty(result, 'stop', { value: noop });
   return result;
 }
 
@@ -24,7 +24,7 @@ function getOptions(options, instance) {
 
   return {
     easing: easing || linear,
-    duration: "duration" in options ? options.duration : 400,
+    duration: 'duration' in options ? options.duration : 400,
     complete: options.complete || noop,
     step: options.step || noop,
     interpolator: options.interpolator
@@ -60,10 +60,10 @@ export default function Ractive$animate(keypath, to, options) {
     const keys = objectKeys(keypath);
 
     throw new Error(`ractive.animate(...) no longer supports objects. Instead of ractive.animate({
-  ${keys.map(key => `'${key}': ${keypath[key]}`).join("\n  ")}
+  ${keys.map(key => `'${key}': ${keypath[key]}`).join('\n  ')}
 }, {...}), do
 
-${keys.map(key => `ractive.animate('${key}', ${keypath[key]}, {...});`).join("\n")}
+${keys.map(key => `ractive.animate('${key}', ${keypath[key]}, {...});`).join('\n')}
 `);
   }
 

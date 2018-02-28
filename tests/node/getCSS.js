@@ -2,14 +2,14 @@ const { module, test } = QUnit;
 
 function createComponentDefinition(Ractive) {
   return Ractive.extend({
-    css: "\n\t\t\t.green {\n\t\t\t\tcolor: green\n\t\t\t}\n\t\t"
+    css: '\n\t\t\t.green {\n\t\t\t\tcolor: green\n\t\t\t}\n\t\t'
   });
 }
 
 export default function() {
-  module("ractive.toCSS()");
+  module('ractive.toCSS()');
 
-  test("should render CSS with a single component definition", t => {
+  test('should render CSS with a single component definition', t => {
     const Component = createComponentDefinition(Ractive);
 
     const cssId = Component.prototype.cssId;
@@ -18,12 +18,12 @@ export default function() {
     t.ok(
       !!~css.indexOf(
         '.green[data-ractive-css~="{' + cssId + '}"], [data-ractive-css~="{' + cssId + '}"] .green',
-        ".green selector for " + cssId + " should exist"
+        '.green selector for ' + cssId + ' should exist'
       )
     );
   });
 
-  test("should render CSS with multiple components definition", t => {
+  test('should render CSS with multiple components definition', t => {
     const ComponentA = createComponentDefinition(Ractive);
 
     const ComponentB = createComponentDefinition(Ractive);
@@ -41,7 +41,7 @@ export default function() {
           cssIdA +
           '}"] .green'
       ),
-      ".green selector for " + cssIdA + " should exist"
+      '.green selector for ' + cssIdA + ' should exist'
     );
     t.ok(
       !!~css.indexOf(
@@ -51,7 +51,7 @@ export default function() {
           cssIdB +
           '}"] .green'
       ),
-      ".green selector for " + cssIdB + " should exist"
+      '.green selector for ' + cssIdB + ' should exist'
     );
   });
 }

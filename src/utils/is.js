@@ -25,7 +25,7 @@ export function isNumeric(thing) {
 }
 
 export function isObject(thing) {
-  return thing && toString.call(thing) === "[object Object]";
+  return thing && toString.call(thing) === '[object Object]';
 }
 
 export function isObjectLike(thing) {
@@ -33,17 +33,17 @@ export function isObjectLike(thing) {
 }
 
 export function isObjectType(thing) {
-  return typeof thing === "object";
+  return typeof thing === 'object';
 }
 
 export function isFunction(thing) {
-  return typeof thing === "function";
+  return typeof thing === 'function';
 }
 
 export function isString(thing) {
-  return typeof thing === "string";
+  return typeof thing === 'string';
 }
 
 export function isNumber(thing) {
-  return typeof thing === "number";
+  return typeof thing === 'number';
 }

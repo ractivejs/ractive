@@ -1,4 +1,4 @@
-import { TEXT } from "config/types";
+import { TEXT } from 'config/types';
 
 // TODO all this code needs to die
 export default function processItems(items, values, guid, counter = 0) {
@@ -14,7 +14,7 @@ export default function processItems(items, values, guid, counter = 0) {
             .map(fragment => {
               return processItems(fragment.items, values, guid, counter);
             })
-            .join("");
+            .join('');
         } else {
           return processItems(item.fragment.items, values, guid, counter);
         }
@@ -27,7 +27,7 @@ export default function processItems(items, values, guid, counter = 0) {
         ? model.wrapper ? model.wrapperValue : model.get()
         : undefined;
 
-      return "${" + placeholderId + "}";
+      return '${' + placeholderId + '}';
     })
-    .join("");
+    .join('');
 }

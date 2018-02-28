@@ -1,7 +1,7 @@
-import { ELEMENT, YIELDER } from "config/types";
-import runloop from "src/global/runloop";
-import { findMap } from "utils/array";
-import { getContext, findParentWithContext } from "shared/getRactiveContext";
+import { ELEMENT, YIELDER } from 'config/types';
+import runloop from 'src/global/runloop';
+import { findMap } from 'utils/array';
+import { getContext, findParentWithContext } from 'shared/getRactiveContext';
 import {
   bind,
   destroyed,
@@ -11,11 +11,11 @@ import {
   unbind,
   unrender,
   update
-} from "shared/methodCallers";
-import createItem from "./items/createItem";
-import processItems from "./helpers/processItems";
-import parseJSON from "utils/parseJSON";
-import { createDocumentFragment } from "utils/dom";
+} from 'shared/methodCallers';
+import createItem from './items/createItem';
+import processItems from './helpers/processItems';
+import parseJSON from 'utils/parseJSON';
+import { createDocumentFragment } from 'utils/dom';
 
 function unrenderAndDestroy(item) {
   item.unrender(true);
@@ -40,7 +40,7 @@ export default class Fragment {
     this.rendered = false;
 
     // encapsulated styles should be inherited until they get applied by an element
-    if ("cssIds" in options) {
+    if ('cssIds' in options) {
       this.cssIds = options.cssIds && options.cssIds.length && options.cssIds;
     } else {
       this.cssIds = this.parent ? this.parent.cssIds : null;
@@ -186,7 +186,7 @@ export default class Fragment {
       }
     } while (fragment);
 
-    throw new Error("Could not find parent node"); // TODO link to issue tracker
+    throw new Error('Could not find parent node'); // TODO link to issue tracker
   }
 
   findRepeatingFragment() {
@@ -212,7 +212,7 @@ export default class Fragment {
   }
 
   render(target, occupants) {
-    if (this.rendered) throw new Error("Fragment is already rendered!");
+    if (this.rendered) throw new Error('Fragment is already rendered!');
     this.rendered = true;
 
     const xs = this.items;
@@ -259,7 +259,7 @@ export default class Fragment {
   }
 
   toString(escape) {
-    return this.items.map(escape ? toEscapedString : toString).join("");
+    return this.items.map(escape ? toEscapedString : toString).join('');
   }
 
   unbind() {

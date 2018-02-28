@@ -1,7 +1,7 @@
 /* istanbul ignore if */
 if (!Object.assign) {
   Object.assign = function(target, ...sources) {
-    if (target == null) throw new TypeError("Cannot convert undefined or null to object");
+    if (target == null) throw new TypeError('Cannot convert undefined or null to object');
 
     const to = Object(target);
     const sourcesLength = sources.length;

@@ -1,8 +1,8 @@
-import { removeFromArray } from "utils/array";
-import { handleChange } from "shared/methodCallers";
-import { capture } from "src/global/capture";
-import noop from "utils/noop";
-import { keys as objectKeys } from "utils/object";
+import { removeFromArray } from 'utils/array';
+import { handleChange } from 'shared/methodCallers';
+import { capture } from 'src/global/capture';
+import noop from 'utils/noop';
+import { keys as objectKeys } from 'utils/object';
 
 export default class KeypathModel {
   constructor(parent, ractive) {

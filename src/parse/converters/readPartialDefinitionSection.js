@@ -1,6 +1,6 @@
-import { INLINE_PARTIAL } from "config/types";
-import { READERS } from "../_parse";
-import readClosing from "./mustache/section/readClosing";
+import { INLINE_PARTIAL } from 'config/types';
+import { READERS } from '../_parse';
+import readClosing from './mustache/section/readClosing';
 
 const partialDefinitionSectionPattern = /^\s*#\s*partial\s+/;
 
@@ -23,7 +23,7 @@ export default function readPartialDefinitionSection(parser) {
   const name = parser.matchPattern(/^[a-zA-Z_$][a-zA-Z_$0-9\-\/]*/);
 
   if (!name) {
-    parser.error("expected legal partial name");
+    parser.error('expected legal partial name');
   }
 
   parser.sp();
@@ -37,7 +37,7 @@ export default function readPartialDefinitionSection(parser) {
 
   do {
     if ((child = readClosing(parser, { open, close }))) {
-      if (child.r !== "partial") {
+      if (child.r !== 'partial') {
         parser.error(`Expected ${open}/partial${close}`);
       }
 

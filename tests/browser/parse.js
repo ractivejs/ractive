@@ -1,18 +1,18 @@
-import tests from "../helpers/samples/parse";
-import { initModule } from "../helpers/test-config";
-import { test } from "qunit";
+import tests from '../helpers/samples/parse';
+import { initModule } from '../helpers/test-config';
+import { test } from 'qunit';
 
 /* global navigator */
 
 export default function() {
-  initModule("parse.js");
+  initModule('parse.js');
 
   const phantom = /phantomjs/i.test(navigator.userAgent);
 
-  test("Mismatched template version causes error", t => {
+  test('Mismatched template version causes error', t => {
     t.throws(() => {
       new Ractive({
-        template: { v: "nope", t: [] }
+        template: { v: 'nope', t: [] }
       });
     });
   });
@@ -24,7 +24,7 @@ export default function() {
       // disable for tests unless explicitly specified
       // we can just test the signatures, so set false
       theTest.options = theTest.options || { csp: false };
-      if (!theTest.options.hasOwnProperty("csp")) {
+      if (!theTest.options.hasOwnProperty('csp')) {
         theTest.options.csp = false;
       }
       if (theTest.error) {
@@ -33,7 +33,7 @@ export default function() {
             Ractive.parse(theTest.template, theTest.options);
           },
           error => {
-            if (error.name !== "ParseError") {
+            if (error.name !== 'ParseError') {
               throw error;
             }
             if (theTest.error.test) {
@@ -43,7 +43,7 @@ export default function() {
             }
             return true;
           },
-          "Expected ParseError"
+          'Expected ParseError'
         );
       } else {
         const parsed = Ractive.parse(theTest.template, theTest.options);
@@ -53,7 +53,7 @@ export default function() {
           t.deepEqual(Object.keys(parsed.e), expectedKeys);
           expectedKeys.forEach(key => {
             // normalize function whitepace for browser vs phantomjs
-            const actual = parsed.e[key].toString().replace(") {", "){");
+            const actual = parsed.e[key].toString().replace(') {', '){');
             t.equal(actual, theTest.parsed.e[key]);
           });
 

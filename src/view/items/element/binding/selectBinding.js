@@ -1,15 +1,15 @@
-import { INTERPOLATOR, TRIPLE } from "config/types";
-import { warnIfDebug } from "utils/log";
-import CheckboxBinding from "./CheckboxBinding";
-import CheckboxNameBinding from "./CheckboxNameBinding";
-import ContentEditableBinding from "./ContentEditableBinding";
-import FileBinding from "./FileBinding";
-import GenericBinding from "./GenericBinding";
-import MultipleSelectBinding from "./MultipleSelectBinding";
-import NumericBinding from "./NumericBinding";
-import RadioBinding from "./RadioBinding";
-import RadioNameBinding from "./RadioNameBinding";
-import SingleSelectBinding from "./SingleSelectBinding";
+import { INTERPOLATOR, TRIPLE } from 'config/types';
+import { warnIfDebug } from 'utils/log';
+import CheckboxBinding from './CheckboxBinding';
+import CheckboxNameBinding from './CheckboxNameBinding';
+import ContentEditableBinding from './ContentEditableBinding';
+import FileBinding from './FileBinding';
+import GenericBinding from './GenericBinding';
+import MultipleSelectBinding from './MultipleSelectBinding';
+import NumericBinding from './NumericBinding';
+import RadioBinding from './RadioBinding';
+import RadioNameBinding from './RadioNameBinding';
+import SingleSelectBinding from './SingleSelectBinding';
 
 export function isBindable(attribute) {
   // The fragment must be a single non-string fragment
@@ -29,7 +29,7 @@ export function isBindable(attribute) {
 
   // You can't bind a triple curly. HTML values on an attribute makes no sense.
   if (attribute.template.f[0].t === TRIPLE)
-    warnIfDebug("It is not possible create a binding using a triple mustache.");
+    warnIfDebug('It is not possible create a binding using a triple mustache.');
 
   return false;
 }
@@ -39,7 +39,7 @@ export default function selectBinding(element) {
   const attributes = element.attributeByName;
   const isBindableByValue = isBindable(attributes.value);
   const isBindableByContentEditable = isBindable(attributes.contenteditable);
-  const isContentEditable = element.getAttribute("contenteditable");
+  const isContentEditable = element.getAttribute('contenteditable');
 
   // contenteditable
   // Bind if the contenteditable is true or a binding that may become true.
@@ -47,10 +47,10 @@ export default function selectBinding(element) {
     return ContentEditableBinding;
 
   // <input>
-  if (name === "input") {
-    const type = element.getAttribute("type");
+  if (name === 'input') {
+    const type = element.getAttribute('type');
 
-    if (type === "radio") {
+    if (type === 'radio') {
       const isBindableByName = isBindable(attributes.name);
       const isBindableByChecked = isBindable(attributes.checked);
 
@@ -58,7 +58,7 @@ export default function selectBinding(element) {
       // Name binding is handed instead.
       if (isBindableByName && isBindableByChecked) {
         warnIfDebug(
-          "A radio input can have two-way binding on its name attribute, or its checked attribute - not both",
+          'A radio input can have two-way binding on its name attribute, or its checked attribute - not both',
           { ractive: element.root }
         );
         return RadioNameBinding;
@@ -72,7 +72,7 @@ export default function selectBinding(element) {
       return null;
     }
 
-    if (type === "checkbox") {
+    if (type === 'checkbox') {
       const isBindableByName = isBindable(attributes.name);
       const isBindableByChecked = isBindable(attributes.checked);
 
@@ -90,11 +90,11 @@ export default function selectBinding(element) {
       return null;
     }
 
-    if (type === "file" && isBindableByValue) return FileBinding;
+    if (type === 'file' && isBindableByValue) return FileBinding;
 
-    if (type === "number" && isBindableByValue) return NumericBinding;
+    if (type === 'number' && isBindableByValue) return NumericBinding;
 
-    if (type === "range" && isBindableByValue) return NumericBinding;
+    if (type === 'range' && isBindableByValue) return NumericBinding;
 
     // Some input of unknown type (browser usually falls back to text).
     if (isBindableByValue) return GenericBinding;
@@ -104,12 +104,12 @@ export default function selectBinding(element) {
   }
 
   // <select>
-  if (name === "select" && isBindableByValue) {
-    return element.getAttribute("multiple") ? MultipleSelectBinding : SingleSelectBinding;
+  if (name === 'select' && isBindableByValue) {
+    return element.getAttribute('multiple') ? MultipleSelectBinding : SingleSelectBinding;
   }
 
   // <textarea>
-  if (name === "textarea" && isBindableByValue) return GenericBinding;
+  if (name === 'textarea' && isBindableByValue) return GenericBinding;
 
   // Dead end. Some unbindable element.
   return null;

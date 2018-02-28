@@ -1,23 +1,23 @@
-import resolveReference from "src/view/resolvers/resolveReference";
-import Model from "src/model/Model";
-import { isNumeric, isObject, isNumber, isObjectType, isString } from "utils/is";
-import runloop from "src/global/runloop";
-import findElement from "src/view/items/shared/findElement";
-import { set as sharedSet } from "./set";
-import makeArrayMethod from "../Ractive/prototype/shared/makeArrayMethod";
-import { animate as protoAnimate } from "../Ractive/prototype/animate";
-import { update as protoUpdate } from "../Ractive/prototype/update";
-import getRactiveContext, { extern, findParentWithContext } from "./getRactiveContext";
-import { hasOwn } from "utils/object";
-import { ELEMENT, EVENT } from "config/types";
+import resolveReference from 'src/view/resolvers/resolveReference';
+import Model from 'src/model/Model';
+import { isNumeric, isObject, isNumber, isObjectType, isString } from 'utils/is';
+import runloop from 'src/global/runloop';
+import findElement from 'src/view/items/shared/findElement';
+import { set as sharedSet } from './set';
+import makeArrayMethod from '../Ractive/prototype/shared/makeArrayMethod';
+import { animate as protoAnimate } from '../Ractive/prototype/animate';
+import { update as protoUpdate } from '../Ractive/prototype/update';
+import getRactiveContext, { extern, findParentWithContext } from './getRactiveContext';
+import { hasOwn } from 'utils/object';
+import { ELEMENT, EVENT } from 'config/types';
 
-const modelPush = makeArrayMethod("push").model;
-const modelPop = makeArrayMethod("pop").model;
-const modelShift = makeArrayMethod("shift").model;
-const modelUnshift = makeArrayMethod("unshift").model;
-const modelSort = makeArrayMethod("sort").model;
-const modelSplice = makeArrayMethod("splice").model;
-const modelReverse = makeArrayMethod("reverse").model;
+const modelPush = makeArrayMethod('push').model;
+const modelPop = makeArrayMethod('pop').model;
+const modelShift = makeArrayMethod('shift').model;
+const modelUnshift = makeArrayMethod('unshift').model;
+const modelSort = makeArrayMethod('sort').model;
+const modelSplice = makeArrayMethod('splice').model;
+const modelReverse = makeArrayMethod('reverse').model;
 
 class ContextData extends Model {
   constructor(options) {
@@ -32,7 +32,7 @@ class ContextData extends Model {
   }
 
   getKeypath() {
-    return "@context.data";
+    return '@context.data';
   }
 }
 
@@ -70,7 +70,7 @@ export default class Context {
       build(this, keypath, num).map(pair => {
         const [model, val] = pair;
         const value = model.get();
-        if (!isNumeric(val) || !isNumeric(value)) throw new Error("Cannot add non-numeric value");
+        if (!isNumeric(val) || !isNumeric(value)) throw new Error('Cannot add non-numeric value');
         return [model, value + val];
       }),
       opts
@@ -170,7 +170,7 @@ export default class Context {
         return ev.fire(
           ev.element.getContext(
             event || {},
-            event && !("original" in event) ? { original: {} } : {}
+            event && !('original' in event) ? { original: {} } : {}
           ),
           args
         );
@@ -217,7 +217,7 @@ export default class Context {
       build(this, keypath, num).map(pair => {
         const [model, val] = pair;
         const value = model.get();
-        if (!isNumeric(val) || !isNumeric(value)) throw new Error("Cannot add non-numeric value");
+        if (!isNumeric(val) || !isNumeric(value)) throw new Error('Cannot add non-numeric value');
         return [model, value - val];
       }),
       opts

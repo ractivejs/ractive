@@ -1,7 +1,7 @@
-import runloop from "src/global/runloop";
-import getSelectedOptions from "utils/getSelectedOptions";
-import Binding from "./Binding";
-import handleDomEvent from "./handleDomEvent";
+import runloop from 'src/global/runloop';
+import getSelectedOptions from 'utils/getSelectedOptions';
+import Binding from './Binding';
+import handleDomEvent from './handleDomEvent';
 
 export default class SingleSelectBinding extends Binding {
   forceUpdate() {
@@ -15,7 +15,7 @@ export default class SingleSelectBinding extends Binding {
   }
 
   getInitialValue() {
-    if (this.element.getAttribute("value") !== undefined) {
+    if (this.element.getAttribute('value') !== undefined) {
       return;
     }
 
@@ -32,9 +32,9 @@ export default class SingleSelectBinding extends Binding {
     while (i--) {
       const option = options[i];
 
-      if (option.getAttribute("selected")) {
-        if (!option.getAttribute("disabled")) {
-          value = option.getAttribute("value");
+      if (option.getAttribute('selected')) {
+        if (!option.getAttribute('disabled')) {
+          value = option.getAttribute('value');
         }
 
         optionWasSelected = true;
@@ -45,8 +45,8 @@ export default class SingleSelectBinding extends Binding {
     // or the first non-disabled option, if none are selected
     if (!optionWasSelected) {
       while (++i < len) {
-        if (!options[i].getAttribute("disabled")) {
-          value = options[i].getAttribute("value");
+        if (!options[i].getAttribute('disabled')) {
+          value = options[i].getAttribute('value');
           break;
         }
       }
@@ -78,7 +78,7 @@ export default class SingleSelectBinding extends Binding {
 
   render() {
     super.render();
-    this.element.on("change", handleDomEvent);
+    this.element.on('change', handleDomEvent);
   }
 
   setFromNode(node) {
@@ -87,6 +87,6 @@ export default class SingleSelectBinding extends Binding {
   }
 
   unrender() {
-    this.element.off("change", handleDomEvent);
+    this.element.off('change', handleDomEvent);
   }
 }

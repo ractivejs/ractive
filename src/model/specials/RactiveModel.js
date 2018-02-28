@@ -1,19 +1,19 @@
-import { SharedModel } from "./SharedModel";
-import { Missing } from "../LinkModel";
-import { create } from "utils/object";
+import { SharedModel } from './SharedModel';
+import { Missing } from '../LinkModel';
+import { create } from 'utils/object';
 
 export default class RactiveModel extends SharedModel {
   constructor(ractive) {
-    super(ractive, "@this");
+    super(ractive, '@this');
     this.ractive = ractive;
   }
 
   joinKey(key) {
     const model = super.joinKey(key);
 
-    if ((key === "root" || key === "parent") && !model.isLink) return initLink(model, key);
-    else if (key === "data") return this.ractive.viewmodel;
-    else if (key === "cssData") return this.ractive.constructor._cssModel;
+    if ((key === 'root' || key === 'parent') && !model.isLink) return initLink(model, key);
+    else if (key === 'data') return this.ractive.viewmodel;
+    else if (key === 'cssData') return this.ractive.constructor._cssModel;
 
     return model;
   }

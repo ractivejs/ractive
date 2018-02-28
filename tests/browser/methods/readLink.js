@@ -1,30 +1,30 @@
-import { initModule } from "../../helpers/test-config";
-import { test } from "qunit";
+import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
-  initModule("methods/readLink.js");
+  initModule('methods/readLink.js');
 
   test(`readLink returns the immediately linked path by default`, t => {
     const r = new Ractive({
       target: fixture
     });
-    r.set("foo.bar.baz.bat", true);
-    r.link("foo.bar.baz.bat", "bop");
+    r.set('foo.bar.baz.bat', true);
+    r.link('foo.bar.baz.bat', 'bop');
 
-    t.equal(r.get("foo.bar.baz.bat"), true);
-    t.equal(r.get("bop"), true);
+    t.equal(r.get('foo.bar.baz.bat'), true);
+    t.equal(r.get('bop'), true);
 
-    t.equal(r.readLink("bop").keypath, "foo.bar.baz.bat");
-    t.ok(r.readLink("bop").ractive === r);
+    t.equal(r.readLink('bop').keypath, 'foo.bar.baz.bat');
+    t.ok(r.readLink('bop').ractive === r);
   });
 
   test(`readLink on a non-link returns undefined`, t => {
     const r = new Ractive({
       target: fixture
     });
-    r.set("bop", true);
+    r.set('bop', true);
 
-    t.ok(r.readLink("bop") === undefined);
+    t.ok(r.readLink('bop') === undefined);
   });
 
   test(`readLink with a mapped path returns the source instance`, t => {
@@ -32,7 +32,7 @@ export default function() {
     const r = new Ractive({
       on: {
         init() {
-          this.set("foo.bar.baz.bat", true);
+          this.set('foo.bar.baz.bat', true);
         }
       },
       target: fixture,
@@ -40,9 +40,9 @@ export default function() {
       template: `<cmp bop="{{foo.bar.baz.bat}}" />`
     });
 
-    const child = r.findComponent("cmp");
-    t.equal(child.readLink("bop").keypath, "foo.bar.baz.bat");
-    t.ok(child.readLink("bop").ractive === r);
+    const child = r.findComponent('cmp');
+    t.equal(child.readLink('bop').keypath, 'foo.bar.baz.bat');
+    t.ok(child.readLink('bop').ractive === r);
   });
 
   test(`readLink is canonical by default`, t => {
@@ -54,7 +54,7 @@ export default function() {
     const r = new Ractive({
       on: {
         init() {
-          this.set("foo.bar.baz.bat", true);
+          this.set('foo.bar.baz.bat', true);
         }
       },
       target: fixture,
@@ -62,9 +62,9 @@ export default function() {
       template: `<cmp1 bop="{{foo.bar.baz.bat}}" />`
     });
 
-    const child = r.findComponent("cmp2");
-    t.equal(child.readLink("fizz").keypath, "foo.bar.baz.bat");
-    t.ok(child.readLink("fizz").ractive === r);
+    const child = r.findComponent('cmp2');
+    t.equal(child.readLink('fizz').keypath, 'foo.bar.baz.bat');
+    t.ok(child.readLink('fizz').ractive === r);
   });
 
   test(`readLink can optionally be uncanonical`, t => {
@@ -76,7 +76,7 @@ export default function() {
     const r = new Ractive({
       on: {
         init() {
-          this.set("foo.bar.baz.bat", true);
+          this.set('foo.bar.baz.bat', true);
         }
       },
       target: fixture,
@@ -84,8 +84,8 @@ export default function() {
       template: `<cmp1 bop="{{foo.bar.baz.bat}}" />`
     });
 
-    const child = r.findComponent("cmp2");
-    t.equal(child.readLink("fizz", { canonical: false }).keypath, "bop");
-    t.ok(child.readLink("fizz", { canonical: false }).ractive === r.findComponent("cmp1"));
+    const child = r.findComponent('cmp2');
+    t.equal(child.readLink('fizz', { canonical: false }).keypath, 'bop');
+    t.ok(child.readLink('fizz', { canonical: false }).ractive === r.findComponent('cmp1'));
   });
 }

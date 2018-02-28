@@ -1,4 +1,4 @@
-import GenericBinding from "./GenericBinding";
+import GenericBinding from './GenericBinding';
 
 export default class FileBinding extends GenericBinding {
   getInitialValue() {

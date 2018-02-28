@@ -1,7 +1,7 @@
-import { DELIMCHANGE } from "config/types";
-import readDelimiterChange from "./mustache/readDelimiterChange";
-import readRegexpLiteral from "./expressions/primary/literal/readRegexpLiteral";
-import { readAttributeOrDirective } from "./element/readAttribute";
+import { DELIMCHANGE } from 'config/types';
+import readDelimiterChange from './mustache/readDelimiterChange';
+import readRegexpLiteral from './expressions/primary/literal/readRegexpLiteral';
+import { readAttributeOrDirective } from './element/readAttribute';
 
 const delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
 
@@ -34,8 +34,8 @@ function readMustacheOfType(parser, tag) {
 
   const start = parser.pos;
 
-  if (parser.matchString("\\" + tag.open)) {
-    if (start === 0 || parser.str[start - 1] !== "\\") {
+  if (parser.matchString('\\' + tag.open)) {
+    if (start === 0 || parser.str[start - 1] !== '\\') {
       return tag.open;
     }
   } else if (!parser.matchString(tag.open)) {
@@ -60,7 +60,7 @@ function readMustacheOfType(parser, tag) {
   parser.sp();
 
   // illegal section closer
-  if (parser.matchString("/")) {
+  if (parser.matchString('/')) {
     parser.pos -= 1;
     const rewind = parser.pos;
     if (!readRegexpLiteral(parser)) {

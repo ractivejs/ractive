@@ -1,18 +1,18 @@
-import { create, keys } from "utils/object";
+import { create, keys } from 'utils/object';
 
 const registryNames = [
-  "adaptors",
-  "components",
-  "computed",
-  "decorators",
-  "easing",
-  "events",
-  "interpolators",
-  "partials",
-  "transitions"
+  'adaptors',
+  'components',
+  'computed',
+  'decorators',
+  'easing',
+  'events',
+  'interpolators',
+  'partials',
+  'transitions'
 ];
 
-const registriesOnDefaults = ["computed"];
+const registriesOnDefaults = ['computed'];
 
 class Registry {
   constructor(name, useDefaults) {

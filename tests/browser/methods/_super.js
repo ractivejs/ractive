@@ -1,10 +1,10 @@
-import { initModule } from "../../helpers/test-config";
-import { test } from "qunit";
+import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
-  initModule("super.js");
+  initModule('super.js');
 
-  test("_super can call parent method", t => {
+  test('_super can call parent method', t => {
     const Parent = Ractive.extend({
       foo() {
         t.ok(true);
@@ -20,7 +20,7 @@ export default function() {
     instance.foo();
   });
 
-  test("_super can call parent through prototype chain", t => {
+  test('_super can call parent through prototype chain', t => {
     const GrandParent = Ractive.extend({
       foo() {
         t.ok(true);
@@ -37,7 +37,7 @@ export default function() {
     instance.foo();
   });
 
-  test("_super can be called with a parent added dynamically", t => {
+  test('_super can be called with a parent added dynamically', t => {
     const Parent = Ractive.extend({});
     const Child = Parent.extend({
       foo() {
@@ -52,7 +52,7 @@ export default function() {
     instance.foo();
   });
 
-  test("_super can be called without a parent", t => {
+  test('_super can be called without a parent', t => {
     const Child = Ractive.extend({
       foo() {
         this._super();
@@ -64,7 +64,7 @@ export default function() {
     instance.foo();
   });
 
-  test("_super context is the current instance", t => {
+  test('_super context is the current instance', t => {
     const Parent = Ractive.extend({
       foo() {
         t.strictEqual(this, instance);
@@ -80,8 +80,8 @@ export default function() {
     instance.foo();
   });
 
-  test("_super returns a value if parent is a property", t => {
-    const data = { message: "Hello World!" };
+  test('_super returns a value if parent is a property', t => {
+    const data = { message: 'Hello World!' };
     const Parent = Ractive.extend({ foo: data });
     const Child = Parent.extend({
       foo() {
@@ -93,7 +93,7 @@ export default function() {
     t.strictEqual(instance.foo(), data);
   });
 
-  test("_super wrapping is not applied when not used", t => {
+  test('_super wrapping is not applied when not used', t => {
     const fn = function() {};
 
     const Parent = Ractive.extend({ foo() {} });
@@ -103,7 +103,7 @@ export default function() {
     t.strictEqual(instance.foo, fn);
   });
 
-  test("_super wrapping is applied when used", t => {
+  test('_super wrapping is applied when used', t => {
     const fn = function() {
       this._super();
     };
@@ -115,7 +115,7 @@ export default function() {
     t.notEqual(instance.foo, fn);
   });
 
-  test("_super gives access to unwrapped version of method", t => {
+  test('_super gives access to unwrapped version of method', t => {
     const fn = function() {
       this._super();
     };
@@ -127,7 +127,7 @@ export default function() {
     t.strictEqual(instance.foo._method, fn);
   });
 
-  test("_super parent can be changed dynamically", t => {
+  test('_super parent can be changed dynamically', t => {
     const Father = Ractive.extend({
       foo() {
         t.ok(false);

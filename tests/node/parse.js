@@ -1,14 +1,14 @@
 const { module, test } = QUnit;
-import parseTests from "../helpers/samples/parse";
+import parseTests from '../helpers/samples/parse';
 
 export default function() {
-  module("Ractive.parse()");
+  module('Ractive.parse()');
 
   parseTests.forEach(parseTest => {
     // disable for tests unless explicitly specified
     // we can just test the signatures, so set csp false
     parseTest.options = parseTest.options || { csp: false };
-    if (!parseTest.options.hasOwnProperty("csp")) {
+    if (!parseTest.options.hasOwnProperty('csp')) {
       parseTest.options.csp = false;
     }
 
@@ -19,7 +19,7 @@ export default function() {
             Ractive.parse(parseTest.template, parseTest.options);
           },
           error => {
-            if (error.name !== "ParseError") {
+            if (error.name !== 'ParseError') {
               throw error;
             }
             if (parseTest.error.test) {
@@ -29,7 +29,7 @@ export default function() {
             }
             return true;
           },
-          "Expected ParseError"
+          'Expected ParseError'
         );
       } else {
         const parsed = Ractive.parse(parseTest.template, parseTest.options);
@@ -42,7 +42,7 @@ export default function() {
 
           expectedKeys.forEach(key => {
             // normalize function whitepace for browser vs phantomjs
-            const actual = parsed.e[key].toString().replace(") {", "){");
+            const actual = parsed.e[key].toString().replace(') {', '){');
             t.equal(actual, parseTest.parsed.e[key]);
           });
 

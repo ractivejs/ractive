@@ -1,5 +1,5 @@
-import { isObject, isFunction } from "utils/is";
-import { assign } from "utils/object";
+import { isObject, isFunction } from 'utils/is';
+import { assign } from 'utils/object';
 
 const onceOptions = { init: false, once: true };
 

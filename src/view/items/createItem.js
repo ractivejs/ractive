@@ -10,34 +10,34 @@ import {
   SECTION,
   TRIPLE,
   YIELDER
-} from "config/types";
-import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from "config/types";
-import Alias from "./Alias";
-import Attribute from "./element/Attribute";
-import BindingFlag from "./element/BindingFlag";
-import Comment from "./Comment";
-import Component from "./Component";
-import Decorator from "./element/Decorator";
-import Doctype from "./Doctype";
-import Form from "./element/specials/Form";
-import Element from "./Element";
-import EventDirective from "./shared/EventDirective";
-import Interpolator from "./Interpolator";
-import Input from "./element/specials/Input";
-import Mapping from "./component/Mapping";
-import Option from "./element/specials/Option";
-import Partial from "./Partial";
-import Section from "./Section";
-import Select from "./element/specials/Select";
-import Textarea from "./element/specials/Textarea";
-import Text from "./Text";
-import Transition from "./element/Transition";
-import Triple from "./Triple";
-import getComponentConstructor from "./component/getComponentConstructor";
-import findElement from "./shared/findElement";
-import { findInstance } from "shared/registry";
-import asyncProxy from "./asyncProxy";
-import { isString, isFunction } from "utils/is";
+} from 'config/types';
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from 'config/types';
+import Alias from './Alias';
+import Attribute from './element/Attribute';
+import BindingFlag from './element/BindingFlag';
+import Comment from './Comment';
+import Component from './Component';
+import Decorator from './element/Decorator';
+import Doctype from './Doctype';
+import Form from './element/specials/Form';
+import Element from './Element';
+import EventDirective from './shared/EventDirective';
+import Interpolator from './Interpolator';
+import Input from './element/specials/Input';
+import Mapping from './component/Mapping';
+import Option from './element/specials/Option';
+import Partial from './Partial';
+import Section from './Section';
+import Select from './element/specials/Select';
+import Textarea from './element/specials/Textarea';
+import Text from './Text';
+import Transition from './element/Transition';
+import Triple from './Triple';
+import getComponentConstructor from './component/getComponentConstructor';
+import findElement from './shared/findElement';
+import { findInstance } from 'shared/registry';
+import asyncProxy from './asyncProxy';
+import { isString, isFunction } from 'utils/is';
 
 const constructors = {};
 constructors[ALIAS] = Alias;
@@ -78,7 +78,7 @@ export default function createItem(options) {
     name = options.template.e;
 
     // could be a macro partial
-    ctor = findInstance("partials", options.up.ractive, name);
+    ctor = findInstance('partials', options.up.ractive, name);
     if (ctor) {
       ctor = ctor.partials[name];
       if (ctor.styleSet) {

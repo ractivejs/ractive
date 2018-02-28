@@ -1,5 +1,5 @@
-import { hasUsableConsole, afterEach, onWarn, initModule } from "../../../helpers/test-config";
-import { test } from "qunit";
+import { hasUsableConsole, afterEach, onWarn, initModule } from '../../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
   const defaultData = Ractive.defaults.data;
@@ -10,10 +10,10 @@ export default function() {
     Ractive.defaults.template = defaultTemplate;
   });
 
-  initModule("init/initialisation/data.js");
+  initModule('init/initialisation/data.js');
 
-  test("default data function called on initialize", t => {
-    const data = { foo: "bar" };
+  test('default data function called on initialize', t => {
+    const data = { foo: 'bar' };
 
     Ractive.defaults.data = function() {
       return data;
@@ -22,8 +22,8 @@ export default function() {
     t.strictEqual(ractive.viewmodel.value, data);
   });
 
-  test("instance data function called on initialize", t => {
-    const data = { foo: "bar" };
+  test('instance data function called on initialize', t => {
+    const data = { foo: 'bar' };
 
     const ractive = new Ractive({
       data() {
@@ -56,21 +56,21 @@ export default function() {
   // 	t.equal( ractive.get('bizz'), 'bop' );
   // });
 
-  test("instance data function is added to default data function", t => {
-    Ractive.defaults.data = () => ({ foo: "fizz" });
+  test('instance data function is added to default data function', t => {
+    Ractive.defaults.data = () => ({ foo: 'fizz' });
 
     const ractive = new Ractive({
       data() {
-        return { bar: "bizz" };
+        return { bar: 'bizz' };
       }
     });
 
-    t.equal(ractive.get("bar"), "bizz");
-    t.equal(ractive.get("foo"), "fizz");
+    t.equal(ractive.get('bar'), 'bizz');
+    t.equal(ractive.get('foo'), 'fizz');
   });
 
   if (hasUsableConsole) {
-    test("initing data with a non-POJO results in a warning", t => {
+    test('initing data with a non-POJO results in a warning', t => {
       t.expect(2);
 
       onWarn(warning => {
@@ -78,73 +78,73 @@ export default function() {
       });
 
       function Foo() {
-        this.foo = "bar";
+        this.foo = 'bar';
       }
 
       new Ractive({
         el: fixture,
-        template: "{{foo}}",
+        template: '{{foo}}',
         data: new Foo()
       });
 
-      t.equal(fixture.innerHTML, "bar");
+      t.equal(fixture.innerHTML, 'bar');
     });
   }
 
-  test("instance data takes precedence over default data but includes unique properties", t => {
+  test('instance data takes precedence over default data but includes unique properties', t => {
     Ractive.defaults.data = {
       unique() {
         return;
       },
       format() {
-        return "not me";
+        return 'not me';
       }
     };
 
     const ractive = new Ractive({
       data: {
-        foo: "bar",
+        foo: 'bar',
         format() {
-          return "foo";
+          return 'foo';
         }
       }
     });
 
-    t.ok(ractive.get("foo"), "has instance data");
-    t.ok(ractive.get("format"), "has default data");
-    t.ok(ractive.get("unique"), "has default data");
-    t.equal(ractive.get("format")(), "foo");
+    t.ok(ractive.get('foo'), 'has instance data');
+    t.ok(ractive.get('format'), 'has default data');
+    t.ok(ractive.get('unique'), 'has default data');
+    t.equal(ractive.get('format')(), 'foo');
   });
 
-  test("initing data with a primitive results in an error", t => {
+  test('initing data with a primitive results in an error', t => {
     t.expect(1);
 
     try {
       new Ractive({
         el: fixture,
-        template: "{{ test }}",
+        template: '{{ test }}',
         data: 1
       });
     } catch (err) {
-      t.equal(err.message, "data option must be an object or a function, `1` is not valid");
+      t.equal(err.message, 'data option must be an object or a function, `1` is not valid');
     }
   });
 
-  test("data and computed properties available in onconfig and later", t => {
+  test('data and computed properties available in onconfig and later', t => {
     t.expect(3);
 
     const ractive = new Ractive({
-      data: { foo: "bar" },
+      data: { foo: 'bar' },
       computed: {
         bizz: '${foo} + "ftw"'
       },
       onconfig() {
-        t.equal(this.get("foo"), "bar");
-        t.equal(this.get("bizz"), "barftw");
-        this.set("qux", "config");
+        t.equal(this.get('foo'), 'bar');
+        t.equal(this.get('bizz'), 'barftw');
+        this.set('qux', 'config');
       }
     });
 
-    t.equal(ractive.get("qux"), "config");
+    t.equal(ractive.get('qux'), 'config');
   });
 }

@@ -1,14 +1,14 @@
 /* global console */
 /* eslint no-console:"off" */
 
-import { capture, startCapturing, stopCapturing } from "src/global/capture";
-import { warnIfDebug } from "utils/log";
-import Model from "./Model";
-import { maybeBind } from "./ModelBase";
-import ComputationChild from "./ComputationChild";
-import { hasConsole } from "config/environment";
-import { isEqual } from "utils/is";
-import runloop from "src/global/runloop";
+import { capture, startCapturing, stopCapturing } from 'src/global/capture';
+import { warnIfDebug } from 'utils/log';
+import Model from './Model';
+import { maybeBind } from './ModelBase';
+import ComputationChild from './ComputationChild';
+import { hasConsole } from 'config/environment';
+import { isEqual } from 'utils/is';
+import runloop from 'src/global/runloop';
 
 export default class Computation extends Model {
   constructor(viewmodel, signature, key) {
@@ -18,7 +18,7 @@ export default class Computation extends Model {
     this.signature = signature;
 
     this.key = key; // not actually used, but helps with debugging
-    this.isExpression = key && key[0] === "@";
+    this.isExpression = key && key[0] === '@';
 
     this.isReadonly = !this.signature.setter;
 
@@ -64,7 +64,7 @@ export default class Computation extends Model {
     return maybeBind(
       this,
       // if unwrap is supplied, it overrides capture
-      this.wrapper && (opts && "unwrap" in opts ? opts.unwrap !== false : shouldCapture)
+      this.wrapper && (opts && 'unwrap' in opts ? opts.unwrap !== false : shouldCapture)
         ? this.wrapperValue
         : this.value,
       !opts || opts.shouldBind !== false
@@ -86,13 +86,13 @@ export default class Computation extends Model {
       if (hasConsole) {
         if (console.groupCollapsed)
           console.groupCollapsed(
-            "%cshow details",
-            "color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;"
+            '%cshow details',
+            'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
           );
         const sig = this.signature;
         console.error(
           `${err.name}: ${err.message}\n\n${sig.getterString}${
-            sig.getterUseStack ? "\n\n" + err.stack : ""
+            sig.getterUseStack ? '\n\n' + err.stack : ''
           }`
         );
         if (console.groupCollapsed) console.groupEnd();

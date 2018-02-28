@@ -1,15 +1,15 @@
-import { warnIfDebug } from "utils/log";
-import adaptConfigurator from "./custom/adapt";
-import cssConfigurator from "./custom/css/css";
-import dataConfigurator from "./custom/data";
-import templateConfigurator from "./custom/template";
-import defaults from "./defaults";
-import registries from "./registries";
-import wrapPrototype from "./wrapPrototypeMethod";
-import deprecate from "./deprecate";
-import RactiveProto from "../prototype";
-import { hasOwn, keys } from "utils/object";
-import { isFunction } from "utils/is";
+import { warnIfDebug } from 'utils/log';
+import adaptConfigurator from './custom/adapt';
+import cssConfigurator from './custom/css/css';
+import dataConfigurator from './custom/data';
+import templateConfigurator from './custom/template';
+import defaults from './defaults';
+import registries from './registries';
+import wrapPrototype from './wrapPrototypeMethod';
+import deprecate from './deprecate';
+import RactiveProto from '../prototype';
+import { hasOwn, keys } from 'utils/object';
+import { isFunction } from 'utils/is';
 
 const custom = {
   adapt: adaptConfigurator,
@@ -24,7 +24,7 @@ const isStandardKey = makeObj(defaultKeys.filter(key => !custom[key]));
 
 // blacklisted keys that we don't double extend
 const isBlacklisted = makeObj(
-  defaultKeys.concat(registries.map(r => r.name), ["on", "observe", "attributes", "cssData"])
+  defaultKeys.concat(registries.map(r => r.name), ['on', 'observe', 'attributes', 'cssData'])
 );
 
 const order = [].concat(
@@ -36,8 +36,8 @@ const order = [].concat(
 );
 
 const config = {
-  extend: (Parent, proto, options, Child) => configure("extend", Parent, proto, options, Child),
-  init: (Parent, ractive, options) => configure("init", Parent, ractive, options),
+  extend: (Parent, proto, options, Child) => configure('extend', Parent, proto, options, Child),
+  init: (Parent, ractive, options) => configure('init', Parent, ractive, options),
   reset: ractive => order.filter(c => c.reset && c.reset(ractive)).map(c => c.name)
 };
 
@@ -53,10 +53,10 @@ function configure(method, Parent, target, options, Child) {
       // NOTE: we allow some functions on "el" because we duck type element lists
       // and some libraries or ef'ed-up virtual browsers (phantomJS) return a
       // function object as the result of querySelector methods
-      if (key !== "el" && isFunction(value)) {
+      if (key !== 'el' && isFunction(value)) {
         warnIfDebug(
           `${key} is a Ractive option that does not expect a function and will be ignored`,
-          method === "init" ? target : null
+          method === 'init' ? target : null
         );
       } else {
         target[key] = value;
@@ -66,7 +66,7 @@ function configure(method, Parent, target, options, Child) {
 
   // disallow combination of `append` and `enhance`
   if (options.append && options.enhance) {
-    throw new Error("Cannot use append and enhance at the same time");
+    throw new Error('Cannot use append and enhance at the same time');
   }
 
   registries.forEach(registry => {

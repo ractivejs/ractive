@@ -1,7 +1,7 @@
-import runloop from "src/global/runloop";
-import { removeFromArray } from "utils/array";
-import Binding from "./Binding";
-import handleDomEvent from "./handleDomEvent";
+import runloop from 'src/global/runloop';
+import { removeFromArray } from 'utils/array';
+import Binding from './Binding';
+import handleDomEvent from './handleDomEvent';
 
 const siblings = {};
 
@@ -11,9 +11,9 @@ function getSiblings(hash) {
 
 export default class RadioBinding extends Binding {
   constructor(element) {
-    super(element, "checked");
+    super(element, 'checked');
 
-    this.siblings = getSiblings(this.ractive._guid + this.element.getAttribute("name"));
+    this.siblings = getSiblings(this.ractive._guid + this.element.getAttribute('name'));
     this.siblings.push(this);
   }
 
@@ -34,10 +34,10 @@ export default class RadioBinding extends Binding {
   render() {
     super.render();
 
-    this.element.on("change", handleDomEvent);
+    this.element.on('change', handleDomEvent);
 
     if (this.node.attachEvent) {
-      this.element.on("click", handleDomEvent);
+      this.element.on('click', handleDomEvent);
     }
   }
 
@@ -50,7 +50,7 @@ export default class RadioBinding extends Binding {
   }
 
   unrender() {
-    this.element.off("change", handleDomEvent);
-    this.element.off("click", handleDomEvent);
+    this.element.off('change', handleDomEvent);
+    this.element.off('click', handleDomEvent);
   }
 }

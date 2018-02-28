@@ -1,50 +1,50 @@
-import { html } from "config/namespaces";
-import { safeToStringValue } from "utils/dom";
-import { arrayContains } from "utils/array";
-import noop from "utils/noop";
-import hyphenateCamel from "utils/hyphenateCamel";
-import { readStyle, readClass } from "src/view/helpers/specialAttrs";
-import { keys as objectKeys } from "utils/object";
-import { isArray, isString } from "utils/is";
+import { html } from 'config/namespaces';
+import { safeToStringValue } from 'utils/dom';
+import { arrayContains } from 'utils/array';
+import noop from 'utils/noop';
+import hyphenateCamel from 'utils/hyphenateCamel';
+import { readStyle, readClass } from 'src/view/helpers/specialAttrs';
+import { keys as objectKeys } from 'utils/object';
+import { isArray, isString } from 'utils/is';
 
 const textTypes = [
   undefined,
-  "text",
-  "search",
-  "url",
-  "email",
-  "hidden",
-  "password",
-  "search",
-  "reset",
-  "submit"
+  'text',
+  'search',
+  'url',
+  'email',
+  'hidden',
+  'password',
+  'search',
+  'reset',
+  'submit'
 ];
 
 export default function getUpdateDelegate(attribute) {
   const { element, name } = attribute;
 
-  if (name === "value") {
+  if (name === 'value') {
     if (attribute.interpolator) attribute.interpolator.bound = true;
 
     // special case - selects
-    if (element.name === "select" && name === "value") {
-      return element.getAttribute("multiple") ? updateMultipleSelectValue : updateSelectValue;
+    if (element.name === 'select' && name === 'value') {
+      return element.getAttribute('multiple') ? updateMultipleSelectValue : updateSelectValue;
     }
 
-    if (element.name === "textarea") return updateStringValue;
+    if (element.name === 'textarea') return updateStringValue;
 
     // special case - contenteditable
-    if (element.getAttribute("contenteditable") != null) return updateContentEditableValue;
+    if (element.getAttribute('contenteditable') != null) return updateContentEditableValue;
 
     // special case - <input>
-    if (element.name === "input") {
-      const type = element.getAttribute("type");
+    if (element.name === 'input') {
+      const type = element.getAttribute('type');
 
       // type='file' value='{{fileList}}'>
-      if (type === "file") return noop; // read-only
+      if (type === 'file') return noop; // read-only
 
       // type='radio' name='{{twoway}}'
-      if (type === "radio" && element.binding && element.binding.attribute.name === "name")
+      if (type === 'radio' && element.binding && element.binding.attribute.name === 'name')
         return updateRadioValue;
 
       if (~textTypes.indexOf(type)) return updateStringValue;
@@ -56,24 +56,24 @@ export default function getUpdateDelegate(attribute) {
   const node = element.node;
 
   // special case - <input type='radio' name='{{twoway}}' value='foo'>
-  if (attribute.isTwoway && name === "name") {
-    if (node.type === "radio") return updateRadioName;
-    if (node.type === "checkbox") return updateCheckboxName;
+  if (attribute.isTwoway && name === 'name') {
+    if (node.type === 'radio') return updateRadioName;
+    if (node.type === 'checkbox') return updateCheckboxName;
   }
 
-  if (name === "style") return updateStyleAttribute;
+  if (name === 'style') return updateStyleAttribute;
 
-  if (name.indexOf("style-") === 0) return updateInlineStyle;
+  if (name.indexOf('style-') === 0) return updateInlineStyle;
 
   // special case - class names. IE fucks things up, again
-  if (name === "class" && (!node.namespaceURI || node.namespaceURI === html))
+  if (name === 'class' && (!node.namespaceURI || node.namespaceURI === html))
     return updateClassName;
 
-  if (name.indexOf("class-") === 0) return updateInlineClass;
+  if (name.indexOf('class-') === 0) return updateInlineClass;
 
   if (attribute.isBoolean) {
-    const type = element.getAttribute("type");
-    if (attribute.interpolator && name === "checked" && (type === "checkbox" || type === "radio"))
+    const type = element.getAttribute('type');
+    if (attribute.interpolator && name === 'checked' && (type === 'checkbox' || type === 'radio'))
       attribute.interpolator.bound = true;
     return updateBoolean;
   }
@@ -139,8 +139,8 @@ function updateContentEditableValue(reset) {
   const value = this.getValue();
 
   if (!this.locked) {
-    if (reset) this.node.innerHTML = "";
-    else this.node.innerHTML = value === undefined ? "" : value;
+    if (reset) this.node.innerHTML = '';
+    else this.node.innerHTML = value === undefined ? '' : value;
   }
 }
 
@@ -154,7 +154,7 @@ function updateRadioValue(reset) {
 
   //node.value = this.element.getAttribute( 'value' );
   node.value = this.node._ractive.value = value;
-  node.checked = this.element.compare(value, this.element.getAttribute("name"));
+  node.checked = this.element.compare(value, this.element.getAttribute('name'));
 
   // This is a special case - if the input was checked, and the value
   // changed so that it's no longer checked, the twoway binding is
@@ -168,13 +168,13 @@ function updateRadioValue(reset) {
 function updateValue(reset) {
   if (!this.locked) {
     if (reset) {
-      this.node.removeAttribute("value");
+      this.node.removeAttribute('value');
       this.node.value = this.node._ractive.value = null;
     } else {
       const value = this.getValue();
 
       this.node.value = this.node._ractive.value = value;
-      this.node.setAttribute("value", safeToStringValue(value));
+      this.node.setAttribute('value', safeToStringValue(value));
     }
   }
 }
@@ -182,15 +182,15 @@ function updateValue(reset) {
 function updateStringValue(reset) {
   if (!this.locked) {
     if (reset) {
-      this.node._ractive.value = "";
-      this.node.removeAttribute("value");
+      this.node._ractive.value = '';
+      this.node.removeAttribute('value');
     } else {
       const value = this.getValue();
 
       this.node._ractive.value = value;
 
       this.node.value = safeToStringValue(value);
-      this.node.setAttribute("value", safeToStringValue(value));
+      this.node.setAttribute('value', safeToStringValue(value));
     }
   }
 }
@@ -205,7 +205,7 @@ function updateCheckboxName(reset) {
   const binding = element.binding;
 
   const value = this.getValue();
-  const valueAttribute = element.getAttribute("value");
+  const valueAttribute = element.getAttribute('value');
 
   if (reset) {
     // TODO: WAT?
@@ -226,7 +226,7 @@ function updateCheckboxName(reset) {
 }
 
 function updateStyleAttribute(reset) {
-  const props = reset ? {} : readStyle(this.getValue() || "");
+  const props = reset ? {} : readStyle(this.getValue() || '');
   const style = this.node.style;
   const keys = objectKeys(props);
   const prev = this.previous || [];
@@ -234,8 +234,8 @@ function updateStyleAttribute(reset) {
   let i = 0;
   while (i < keys.length) {
     if (keys[i] in style) {
-      const safe = props[keys[i]].replace("!important", "");
-      style.setProperty(keys[i], safe, safe.length !== props[keys[i]].length ? "important" : "");
+      const safe = props[keys[i]].replace('!important', '');
+      style.setProperty(keys[i], safe, safe.length !== props[keys[i]].length ? 'important' : '');
     }
     i++;
   }
@@ -243,7 +243,7 @@ function updateStyleAttribute(reset) {
   // remove now-missing attrs
   i = prev.length;
   while (i--) {
-    if (!~keys.indexOf(prev[i]) && prev[i] in style) style.setProperty(prev[i], "", "");
+    if (!~keys.indexOf(prev[i]) && prev[i] in style) style.setProperty(prev[i], '', '');
   }
 
   this.previous = keys;
@@ -256,9 +256,9 @@ function updateInlineStyle(reset) {
 
   if (reset && this.node.style.getPropertyValue(this.style) !== this.last) return;
 
-  const value = reset ? "" : safeToStringValue(this.getValue());
-  const safe = value.replace("!important", "");
-  this.node.style.setProperty(this.style, safe, safe.length !== value.length ? "important" : "");
+  const value = reset ? '' : safeToStringValue(this.getValue());
+  const safe = value.replace('!important', '');
+  this.node.style.setProperty(this.style, safe, safe.length !== value.length ? 'important' : '');
   this.last = safe;
 }
 
@@ -272,7 +272,7 @@ function updateClassName(reset) {
   const attr = readClass(cls);
   const prev = this.previous || attr.slice(0);
 
-  const className = value.concat(attr.filter(c => !~prev.indexOf(c))).join(" ");
+  const className = value.concat(attr.filter(c => !~prev.indexOf(c))).join(' ');
 
   if (className !== cls) {
     if (!isString(this.node.className)) {
@@ -301,9 +301,9 @@ function updateInlineClass(reset) {
   else if (!value && ~attr.indexOf(name)) attr.splice(attr.indexOf(name), 1);
 
   if (!isString(this.node.className)) {
-    this.node.className.baseVal = attr.join(" ");
+    this.node.className.baseVal = attr.join(' ');
   } else {
-    this.node.className = attr.join(" ");
+    this.node.className = attr.join(' ');
   }
 }
 
@@ -320,7 +320,7 @@ function updateBoolean(reset) {
       } else {
         const val = this.getValue();
         if (val) {
-          this.node.setAttribute(this.propertyName, isString(val) ? val : "");
+          this.node.setAttribute(this.propertyName, isString(val) ? val : '');
         } else {
           this.node.removeAttribute(this.propertyName);
         }
@@ -344,15 +344,15 @@ function updateNamespacedAttribute(reset) {
   if (reset) {
     if (
       this.value ===
-      this.node.getAttributeNS(this.namespace, this.name.slice(this.name.indexOf(":") + 1))
+      this.node.getAttributeNS(this.namespace, this.name.slice(this.name.indexOf(':') + 1))
     ) {
-      this.node.removeAttributeNS(this.namespace, this.name.slice(this.name.indexOf(":") + 1));
+      this.node.removeAttributeNS(this.namespace, this.name.slice(this.name.indexOf(':') + 1));
     }
   } else {
     this.value = safeToStringValue(this.getString());
     this.node.setAttributeNS(
       this.namespace,
-      this.name.slice(this.name.indexOf(":") + 1),
+      this.name.slice(this.name.indexOf(':') + 1),
       this.value
     );
   }

@@ -1,10 +1,10 @@
-import { isArray, isObject, isObjectType, isFunction, isString } from "utils/is";
-import { warnIfDebug } from "utils/log";
-import resolveReference from "src/view/resolvers/resolveReference";
-import runloop from "../global/runloop";
-import { splitKeypath } from "./keypaths";
-import { FakeFragment } from "./getRactiveContext";
-import { hasOwn } from "utils/object";
+import { isArray, isObject, isObjectType, isFunction, isString } from 'utils/is';
+import { warnIfDebug } from 'utils/log';
+import resolveReference from 'src/view/resolvers/resolveReference';
+import runloop from '../global/runloop';
+import { splitKeypath } from './keypaths';
+import { FakeFragment } from './getRactiveContext';
+import { hasOwn } from 'utils/object';
 
 export let keep = false;
 
@@ -14,7 +14,7 @@ export function set(pairs, options) {
   const deep = options && options.deep;
   const shuffle = options && options.shuffle;
   const promise = runloop.start();
-  if (options && "keep" in options) keep = options.keep;
+  if (options && 'keep' in options) keep = options.keep;
 
   let i = pairs.length;
   while (i--) {
@@ -40,7 +40,7 @@ export function set(pairs, options) {
       } else {
         if (!isArray(target) || !isArray(array)) {
           runloop.end();
-          throw new Error("You cannot merge an array with a non-array");
+          throw new Error('You cannot merge an array with a non-array');
         }
 
         const comparator = getComparator(shuffle);
@@ -58,7 +58,7 @@ export function set(pairs, options) {
 
 const star = /\*/;
 export function gather(ractive, keypath, base, isolated) {
-  if (!base && (keypath[0] === "." || keypath[1] === "^")) {
+  if (!base && (keypath[0] === '.' || keypath[1] === '^')) {
     warnIfDebug(
       `Attempted to set a relative keypath from a non-relative context. You can use a context object to set relative keypaths.`
     );
@@ -77,7 +77,7 @@ export function gather(ractive, keypath, base, isolated) {
         ractive.component &&
         !ractive.isolated &&
         !model.has(keys[0]) &&
-        keypath[0] !== "@" &&
+        keypath[0] !== '@' &&
         keypath[0] &&
         !isolated
       ) {
@@ -133,5 +133,5 @@ function getComparator(option) {
     return comparators[option] || (comparators[option] = thing => thing[option]);
   }
 
-  throw new Error("If supplied, options.compare must be a string, function, or true"); // TODO link to docs
+  throw new Error('If supplied, options.compare must be a string, function, or true'); // TODO link to docs
 }

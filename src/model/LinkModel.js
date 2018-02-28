@@ -1,15 +1,15 @@
-import ModelBase, { fireShuffleTasks, maybeBind, shuffle } from "./ModelBase";
-import KeypathModel from "./specials/KeypathModel";
-import { capture } from "../global/capture";
-import { handleChange, marked, markedAll, teardown } from "shared/methodCallers";
-import { rebindMatch } from "shared/rebind";
-import resolveReference from "src/view/resolvers/resolveReference";
-import noop from "utils/noop";
-import { hasOwn } from "utils/object";
+import ModelBase, { fireShuffleTasks, maybeBind, shuffle } from './ModelBase';
+import KeypathModel from './specials/KeypathModel';
+import { capture } from '../global/capture';
+import { handleChange, marked, markedAll, teardown } from 'shared/methodCallers';
+import { rebindMatch } from 'shared/rebind';
+import resolveReference from 'src/view/resolvers/resolveReference';
+import noop from 'utils/noop';
+import { hasOwn } from 'utils/object';
 
 // temporary placeholder target for detached implicit links
 export const Missing = {
-  key: "@missing",
+  key: '@missing',
   animate: noop,
   applyValue: noop,
   get: noop,
@@ -74,10 +74,10 @@ export default class LinkModel extends ModelBase {
       capture(this);
 
       // may need to tell the target to unwrap
-      opts.unwrap = "unwrap" in opts ? opts.unwrap : true;
+      opts.unwrap = 'unwrap' in opts ? opts.unwrap : true;
     }
 
-    const bind = "shouldBind" in opts ? opts.shouldBind : true;
+    const bind = 'shouldBind' in opts ? opts.shouldBind : true;
     opts.shouldBind = this.mapping && this.target.parent && this.target.parent.isRoot;
 
     return maybeBind(this, this.target.get(false, opts), bind);
@@ -107,7 +107,7 @@ export default class LinkModel extends ModelBase {
 
   joinKey(key) {
     // TODO: handle nested links
-    if (key === undefined || key === "") return this;
+    if (key === undefined || key === '') return this;
 
     if (!hasOwn(this.childByKey, key)) {
       const child = new LinkModel(this, this, this.target.joinKey(key), key);

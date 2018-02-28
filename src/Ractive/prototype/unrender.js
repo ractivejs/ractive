@@ -1,13 +1,13 @@
-import Hook from "src/events/Hook";
-import { warnIfDebug } from "utils/log";
-import { removeFromArray } from "utils/array";
-import runloop from "src/global/runloop";
+import Hook from 'src/events/Hook';
+import { warnIfDebug } from 'utils/log';
+import { removeFromArray } from 'utils/array';
+import runloop from 'src/global/runloop';
 
-const unrenderHook = new Hook("unrender");
+const unrenderHook = new Hook('unrender');
 
 export default function Ractive$unrender() {
   if (!this.fragment.rendered) {
-    warnIfDebug("ractive.unrender() was called on a Ractive instance that was not rendered");
+    warnIfDebug('ractive.unrender() was called on a Ractive instance that was not rendered');
     return Promise.resolve();
   }
 

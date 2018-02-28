@@ -1,41 +1,41 @@
-import { hasUsableConsole, onWarn, onLog, initModule } from "../../../helpers/test-config";
-import { test } from "qunit";
+import { hasUsableConsole, onWarn, onLog, initModule } from '../../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
-  initModule("init/hooks/misc.js");
+  initModule('init/hooks/misc.js');
 
-  test("detach and insert hooks fire", t => {
+  test('detach and insert hooks fire', t => {
     const fired = [];
 
     const ractive = new Ractive({
       el: fixture,
-      template: "foo",
+      template: 'foo',
       oninsert() {
-        fired.push("oninsert");
+        fired.push('oninsert');
       },
       ondetach() {
-        fired.push("ondetach");
+        fired.push('ondetach');
       }
     });
 
     ractive.detach();
     ractive.insert(fixture);
 
-    t.deepEqual(fired, ["ondetach", "oninsert"]);
+    t.deepEqual(fired, ['ondetach', 'oninsert']);
   });
 
-  test("late-comer components on render still fire init", t => {
+  test('late-comer components on render still fire init', t => {
     const Widget = Ractive.extend({
-      template: "{{~/init}}",
+      template: '{{~/init}}',
       oninit() {
-        this.set("init", "yes");
+        this.set('init', 'yes');
       }
     });
 
     const Widget2 = Ractive.extend({
-      template: "",
+      template: '',
       oninit() {
-        this.set("show", true);
+        this.set('show', true);
       }
     });
 
@@ -45,32 +45,32 @@ export default function() {
       components: { Widget, Widget2 }
     });
 
-    t.equal(fixture.innerHTML, "yes");
+    t.equal(fixture.innerHTML, 'yes');
   });
 
-  test("component with data dependency can be found in oninit", t => {
+  test('component with data dependency can be found in oninit', t => {
     const Component = Ractive.extend();
     let component = null;
 
     new Ractive({
       el: fixture,
       data: { show: true },
-      template: "{{#show}}<Component/>{{/}}",
+      template: '{{#show}}<Component/>{{/}}',
       components: { Component },
       oninit() {
-        component = this.findComponent("Component");
+        component = this.findComponent('Component');
       }
     });
 
     t.ok(component);
   });
 
-  test("render hooks are not fired until after DOM updates (#1367)", t => {
+  test('render hooks are not fired until after DOM updates (#1367)', t => {
     t.expect(0);
 
     const ractive = new Ractive({
       el: fixture,
-      template: "<one/>",
+      template: '<one/>',
       components: {
         one: Ractive.extend({
           template: `
@@ -84,7 +84,7 @@ export default function() {
         }),
         two: Ractive.extend({
           onrender() {
-            this.parent.find("whatever");
+            this.parent.find('whatever');
           }
         })
       }
@@ -92,10 +92,10 @@ export default function() {
 
     // If the `<one>` component is not rendered, the `<two>` component's
     // render handler will cause an error
-    ractive.set("bool", true);
+    ractive.set('bool', true);
   });
 
-  test("correct behaviour of deprecated beforeInit hook (#1395)", t => {
+  test('correct behaviour of deprecated beforeInit hook (#1395)', t => {
     t.expect(6);
 
     let count;
@@ -139,7 +139,7 @@ export default function() {
   });
 
   if (hasUsableConsole) {
-    test("error in oncomplete sent to console", t => {
+    test('error in oncomplete sent to console', t => {
       t.expect(2);
 
       const done = t.async();
@@ -163,21 +163,21 @@ export default function() {
 
       new Ractive({
         el: fixture,
-        template: "foo",
+        template: 'foo',
         oncomplete() {
-          throw new Error("evil handler");
+          throw new Error('evil handler');
         }
       });
     });
   }
 
-  test("oncomplete should not be fired if teardown is invoked while the rendering phase is still in progress (#2945)", t => {
+  test('oncomplete should not be fired if teardown is invoked while the rendering phase is still in progress (#2945)', t => {
     t.expect(1);
 
     const done = t.async();
 
     const ractive = new Ractive({
-      template: "<p>foo</p>",
+      template: '<p>foo</p>',
 
       oncomplete() {
         t.ok(false);
@@ -192,24 +192,24 @@ export default function() {
     });
   });
 
-  test("hooks include the source ractive instance as the last argument", t => {
+  test('hooks include the source ractive instance as the last argument', t => {
     const done = t.async();
     t.expect(3);
 
     const cmp = Ractive.extend();
     const r = new Ractive({
-      template: "<cmp />",
+      template: '<cmp />',
       components: { cmp }
     });
-    const c = r.findComponent("cmp");
+    const c = r.findComponent('cmp');
 
-    r.on("cmp.render", (ctx, inst) => {
+    r.on('cmp.render', (ctx, inst) => {
       t.ok(c === inst);
     });
-    r.on("cmp.complete", (ctx, inst) => {
+    r.on('cmp.complete', (ctx, inst) => {
       t.ok(c === inst);
     });
-    r.on("cmp.teardown", (ctx, inst) => {
+    r.on('cmp.teardown', (ctx, inst) => {
       t.ok(c === inst);
     });
 

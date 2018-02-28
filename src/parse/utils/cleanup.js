@@ -1,7 +1,7 @@
-import { COMMENT, ELEMENT } from "config/types";
-import stripStandalones from "./stripStandalones";
-import trimWhitespace from "./trimWhitespace";
-import { isString } from "utils/is";
+import { COMMENT, ELEMENT } from 'config/types';
+import stripStandalones from './stripStandalones';
+import trimWhitespace from './trimWhitespace';
+import { isString } from 'utils/is';
 
 const contiguousWhitespace = /[ \t\f\r\n]+/g;
 const preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i;
@@ -128,10 +128,10 @@ export default function cleanup(
       }
 
       if (!preserveWhitespace) {
-        items[i] = items[i].replace(contiguousWhitespace, " ");
+        items[i] = items[i].replace(contiguousWhitespace, ' ');
       }
 
-      if (items[i] === "") {
+      if (items[i] === '') {
         items.splice(i, 1);
       }
     }

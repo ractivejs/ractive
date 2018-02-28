@@ -1,8 +1,8 @@
-import Hook from "src/events/Hook";
-import runloop from "src/global/runloop";
-import { unrenderChild, updateAnchors } from "shared/anchors";
+import Hook from 'src/events/Hook';
+import runloop from 'src/global/runloop';
+import { unrenderChild, updateAnchors } from 'shared/anchors';
 
-const attachHook = new Hook("attachchild");
+const attachHook = new Hook('attachchild');
 
 export default function attachChild(child, options = {}) {
   const children = this._children;
@@ -20,7 +20,7 @@ export default function attachChild(child, options = {}) {
   const meta = {
     instance: child,
     ractive: this,
-    name: options.name || child.constructor.name || "Ractive",
+    name: options.name || child.constructor.name || 'Ractive',
     target: options.target || false,
     bubble,
     findNextNode
@@ -41,8 +41,8 @@ export default function attachChild(child, options = {}) {
   }
 
   child.set({
-    "@this.parent": this,
-    "@this.root": this.root
+    '@this.parent': this,
+    '@this.root': this.root
   });
   child.component = meta;
   children.push(meta);

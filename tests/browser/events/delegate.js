@@ -1,9 +1,9 @@
-import { initModule } from "../../helpers/test-config";
-import { fire } from "simulant";
-import { test } from "qunit";
+import { initModule } from '../../helpers/test-config';
+import { fire } from 'simulant';
+import { test } from 'qunit';
 
 export default function() {
-  initModule("events/delegate.js");
+  initModule('events/delegate.js');
 
   test(`basic delegation`, t => {
     t.expect(6);
@@ -19,10 +19,10 @@ export default function() {
       template: `<div>{{#each [1]}}<div on-click="ev" /><div on-click="other" />{{/each}}</div>`,
       on: {
         ev() {
-          t.ok(true, "event fired");
+          t.ok(true, 'event fired');
         },
         other() {
-          t.ok(true, "other event fired");
+          t.ok(true, 'other event fired');
         }
       }
     });
@@ -30,16 +30,16 @@ export default function() {
     t.equal(count, 1);
     Element.prototype.addEventListener = addEventListener;
 
-    const [top, ev, other] = r.findAll("div");
+    const [top, ev, other] = r.findAll('div');
     t.ok(
       top._ractive.proxy.listeners.click.length === 1 &&
         top._ractive.proxy.listeners.click.refs === 2
     );
     t.ok(ev._ractive.proxy.listeners.click.length === 1);
     t.ok(other._ractive.proxy.listeners.click.length === 1);
-    fire(top, "click");
-    fire(ev, "click");
-    fire(other, "click");
+    fire(top, 'click');
+    fire(ev, 'click');
+    fire(other, 'click');
   });
 
   test(`delegated method event`, t => {
@@ -49,9 +49,9 @@ export default function() {
       data: { foo: {} }
     });
 
-    const div = r.findAll("div")[1];
-    fire(div, "click");
-    t.equal(r.get("foo.bar"), 42);
+    const div = r.findAll('div')[1];
+    fire(div, 'click');
+    t.equal(r.get('foo.bar'), 42);
   });
 
   test(`library delegated event cancellation`, t => {
@@ -62,17 +62,17 @@ export default function() {
       template: `<div>{{#each [1]}}<div on-click="nope"><div on-click="yep" /></div>{{/each}}</div>`,
       on: {
         nope() {
-          t.ok(false, "should not fire");
+          t.ok(false, 'should not fire');
         },
         yep() {
-          t.ok(true, "should fire");
+          t.ok(true, 'should fire');
           return false;
         }
       }
     });
 
-    const yep = r.findAll("div")[2];
-    fire(yep, "click");
+    const yep = r.findAll('div')[2];
+    fire(yep, 'click');
   });
 
   test(`multiple delegated events don't interfere with each other`, t => {
@@ -83,16 +83,16 @@ export default function() {
       template: `<div>{{#each [1]}}<div on-mouseenter="yep" /><div on-mouseleave="nope" />{{/each}}</div>`,
       on: {
         nope() {
-          t.ok(false, "should not fire");
+          t.ok(false, 'should not fire');
         },
         yep() {
-          t.ok(true, "should fire");
+          t.ok(true, 'should fire');
         }
       }
     });
 
-    const yep = r.findAll("div")[1];
-    simulant.fire(yep, "mouseenter");
+    const yep = r.findAll('div')[1];
+    simulant.fire(yep, 'mouseenter');
   });
 
   test(`delegated event context is correct`, t => {
@@ -104,16 +104,16 @@ export default function() {
       data: { foo: { bar: {} } },
       on: {
         outer(ev) {
-          t.equal(ev.resolve(), "foo");
+          t.equal(ev.resolve(), 'foo');
         },
         inner(ev) {
-          t.equal(ev.resolve(), "foo.bar");
+          t.equal(ev.resolve(), 'foo.bar');
         }
       }
     });
 
-    const inner = r.findAll("div")[2];
-    fire(inner, "click");
+    const inner = r.findAll('div')[2];
+    fire(inner, 'click');
   });
 
   test(`delegated events can also be raised`, t => {
@@ -124,12 +124,12 @@ export default function() {
       template: '<div>{{#each [1]}}<div on-click="yep" />{{/each}}</div>',
       on: {
         yep() {
-          t.ok(true, "event should fire");
+          t.ok(true, 'event should fire');
         }
       }
     });
 
-    r.getContext(r.findAll("div")[1]).raise("click", {});
+    r.getContext(r.findAll('div')[1]).raise('click', {});
   });
 
   test(`dom events within components can also be delegated`, t => {
@@ -146,11 +146,11 @@ export default function() {
       target: fixture,
       template: `<div>{{#each [1]}}<cmp />{{/each}}</div>`,
       on: {
-        "*.ev"() {
-          t.ok(true, "event fired");
+        '*.ev'() {
+          t.ok(true, 'event fired');
         },
-        "*.other"() {
-          t.ok(true, "other event fired");
+        '*.other'() {
+          t.ok(true, 'other event fired');
         }
       },
       components: { cmp }
@@ -159,16 +159,16 @@ export default function() {
     t.equal(count, 1);
     Element.prototype.addEventListener = addEventListener;
 
-    const [top, ev, other] = r.findAll("div");
+    const [top, ev, other] = r.findAll('div');
     t.ok(
       top._ractive.proxy.listeners.click.length === 1 &&
         top._ractive.proxy.listeners.click.refs === 2
     );
     t.ok(ev._ractive.proxy.listeners.click.length === 1);
     t.ok(other._ractive.proxy.listeners.click.length === 1);
-    fire(top, "click");
-    fire(ev, "click");
-    fire(other, "click");
+    fire(top, 'click');
+    fire(ev, 'click');
+    fire(other, 'click');
   });
 
   test(`delegation can be turned off`, t => {
@@ -215,7 +215,7 @@ export default function() {
     t.equal(count, 2);
     Element.prototype.addEventListener = addEventListener;
 
-    const [top, , wrap] = r.findAll("div");
+    const [top, , wrap] = r.findAll('div');
     t.ok(!top._ractive.proxy.listeners);
     t.ok(wrap._ractive.proxy.listeners.click.refs === 2);
   });
@@ -228,7 +228,7 @@ export default function() {
       data: { foo: {} },
       decorators: {
         foo(node) {
-          div = document.createElement("div");
+          div = document.createElement('div');
           node.appendChild(div);
           return {
             teardown() {
@@ -239,8 +239,8 @@ export default function() {
       }
     });
 
-    fire(div, "click");
-    t.equal(r.get("foo.bar"), 42);
+    fire(div, 'click');
+    t.equal(r.get('foo.bar'), 42);
   });
 
   test(`delegation in a yielder`, t => {
@@ -255,12 +255,12 @@ export default function() {
       components: { cmp },
       on: {
         foo() {
-          t.ok(this.event.event.currentTarget === r.find("div"));
+          t.ok(this.event.event.currentTarget === r.find('div'));
         }
       }
     });
 
-    fire(r.find("span"), "click");
+    fire(r.find('span'), 'click');
   });
 
   test(`blur events delegate correctly`, t => {
@@ -271,14 +271,14 @@ export default function() {
       template:
         '<div>{{#each [1]}}<input on-focus="@.focus()" on-blur="@.blur()" />{{/each}}</div>',
       focus() {
-        t.ok(true, "got focus");
+        t.ok(true, 'got focus');
       },
       blur() {
-        t.ok(true, "got blur");
+        t.ok(true, 'got blur');
       }
     });
 
-    const input = r.find("input");
+    const input = r.find('input');
     input.focus();
     input.blur();
   });
@@ -293,9 +293,9 @@ export default function() {
       }
     });
 
-    fire(r.find("button"), "click");
+    fire(r.find('button'), 'click');
 
-    t.equal(r.findAll("button").length, 1);
+    t.equal(r.findAll('button').length, 1);
   });
 
   test(`delegated bindings fire in the correct order (#2988)`, t => {
@@ -310,20 +310,20 @@ export default function() {
         items: [{}]
       },
       check() {
-        t.equal(this.get("items.0.option"), selected);
+        t.equal(this.get('items.0.option'), selected);
       }
     });
 
-    const select = r.find("select");
-    const options = r.findAll("option");
+    const select = r.find('select');
+    const options = r.findAll('option');
 
     selected = 2;
     options[1].selected = true;
-    fire(select, "change");
+    fire(select, 'change');
 
     selected = 3;
     options[2].selected = true;
-    fire(select, "change");
+    fire(select, 'change');
   });
 
   test(`non-delegated listeners should not fire when inside a delegation target (#3012)`, t => {
@@ -339,7 +339,7 @@ export default function() {
       }
     });
 
-    fire(r.find("#btn"), "click");
+    fire(r.find('#btn'), 'click');
   });
 
   test(`delegates that happen to contain child and grandchild iterations should not duplicate events (#3036)`, t => {
@@ -354,7 +354,7 @@ export default function() {
       }
     });
 
-    fire(r.find("button"), "click");
+    fire(r.find('button'), 'click');
 
     t.equal(count, 1);
   });
@@ -371,7 +371,7 @@ export default function() {
       }
     });
 
-    r.findAll("button").forEach(b => fire(b, "click"));
+    r.findAll('button').forEach(b => fire(b, 'click'));
 
     t.equal(count, 2);
   });
@@ -389,15 +389,15 @@ export default function() {
       }
     });
 
-    fire(r.find("span"), "click");
+    fire(r.find('span'), 'click');
 
     t.ok(!events.target && !events.inner);
 
-    fire(r.find("button"), "click");
+    fire(r.find('button'), 'click');
 
     t.ok(!events.target && !events.inner);
 
-    fire(r.find("div.outer"), "click");
+    fire(r.find('div.outer'), 'click');
 
     t.ok(!events.target && !events.inner);
 

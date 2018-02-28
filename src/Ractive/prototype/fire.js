@@ -1,7 +1,7 @@
-import fireEvent from "src/events/fireEvent";
-import Context from "shared/Context";
-import { assign, create } from "utils/object";
-import { isObjectType } from "utils/is";
+import fireEvent from 'src/events/fireEvent';
+import Context from 'shared/Context';
+import { assign, create } from 'utils/object';
+import { isObjectType } from 'utils/is';
 
 export default function Ractive$fire(eventName, ...args) {
   let ctx;

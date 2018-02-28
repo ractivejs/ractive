@@ -1,5 +1,5 @@
-import Element from "../../Element";
-import { isFunction } from "utils/is";
+import Element from '../../Element';
+import { isFunction } from 'utils/is';
 
 export default class Input extends Element {
   render(target, occupants) {
@@ -7,7 +7,7 @@ export default class Input extends Element {
     this.node.defaultValue = this.node.value;
   }
   compare(value, attrValue) {
-    const comparator = this.getAttribute("value-comparator");
+    const comparator = this.getAttribute('value-comparator');
     if (comparator) {
       if (isFunction(comparator)) {
         return comparator(value, attrValue);

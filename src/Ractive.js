@@ -1,34 +1,34 @@
-import "./polyfills/Object.assign";
-import "./polyfills/array.find";
-import "./polyfills/node.contains";
-import "./polyfills/performance.now";
-import "./polyfills/Promise";
-import "./polyfills/requestAnimationFrame";
+import './polyfills/Object.assign';
+import './polyfills/array.find';
+import './polyfills/node.contains';
+import './polyfills/performance.now';
+import './polyfills/Promise';
+import './polyfills/requestAnimationFrame';
 
-import defaults from "./Ractive/config/defaults";
-import easing from "./Ractive/static/easing";
-import interpolators from "./Ractive/static/interpolators";
-import { svg, win } from "./config/environment";
-import proto from "./Ractive/prototype";
-import { extend, extendWith } from "./extend/_extend";
-import macro from "./extend/_macro";
-import parse from "./parse/_parse";
-import getContext, { getNodeInfo } from "./Ractive/static/getContext";
-import isInstance from "./Ractive/static/isInstance";
-import construct from "./Ractive/construct";
-import initialise from "./Ractive/initialise";
-import { getCSS } from "./global/css";
-import { escapeKey, unescapeKey, normalise } from "./shared/keypaths";
-import { joinKeys, splitKeypath } from "./Ractive/static/keypaths";
-import shared from "./Ractive/shared";
-import { findPlugin } from "./Ractive/static/findPlugin";
-import parseJSON from "./utils/parseJSON";
-import CSSModel from "./model/specials/CSSModel";
-import { data as sharedData } from "./model/specials/SharedModel";
-import { extern } from "./shared/getRactiveContext";
-import { warn } from "utils/log";
+import defaults from './Ractive/config/defaults';
+import easing from './Ractive/static/easing';
+import interpolators from './Ractive/static/interpolators';
+import { svg, win } from './config/environment';
+import proto from './Ractive/prototype';
+import { extend, extendWith } from './extend/_extend';
+import macro from './extend/_macro';
+import parse from './parse/_parse';
+import getContext, { getNodeInfo } from './Ractive/static/getContext';
+import isInstance from './Ractive/static/isInstance';
+import construct from './Ractive/construct';
+import initialise from './Ractive/initialise';
+import { getCSS } from './global/css';
+import { escapeKey, unescapeKey, normalise } from './shared/keypaths';
+import { joinKeys, splitKeypath } from './Ractive/static/keypaths';
+import shared from './Ractive/shared';
+import { findPlugin } from './Ractive/static/findPlugin';
+import parseJSON from './utils/parseJSON';
+import CSSModel from './model/specials/CSSModel';
+import { data as sharedData } from './model/specials/SharedModel';
+import { extern } from './shared/getRactiveContext';
+import { warn } from 'utils/log';
 
-import { assign, defineProperty, defineProperties } from "utils/object";
+import { assign, defineProperty, defineProperties } from 'utils/object';
 
 export default function Ractive(options) {
   if (!(this instanceof Ractive)) return new Ractive(options);
@@ -39,15 +39,15 @@ export default function Ractive(options) {
 
 // check to see if we're being asked to force Ractive as a global for some weird environments
 if (win && !win.Ractive) {
-  let opts = "";
+  let opts = '';
   const script =
     document.currentScript ||
-    /* istanbul ignore next */ document.querySelector("script[data-ractive-options]");
+    /* istanbul ignore next */ document.querySelector('script[data-ractive-options]');
 
-  if (script) opts = script.getAttribute("data-ractive-options") || "";
+  if (script) opts = script.getAttribute('data-ractive-options') || '';
 
   /* istanbul ignore next */
-  if (~opts.indexOf("ForceGlobal")) win.Ractive = Ractive;
+  if (~opts.indexOf('ForceGlobal')) win.Ractive = Ractive;
 } else if (win) {
   warn(`Ractive already appears to be loaded while loading BUILD_PLACEHOLDER_VERSION.`);
 }
@@ -91,7 +91,7 @@ defineProperties(Ractive, {
   svg: { value: svg },
 
   // version
-  VERSION: { value: "BUILD_PLACEHOLDER_VERSION" },
+  VERSION: { value: 'BUILD_PLACEHOLDER_VERSION' },
 
   // plugins
   adaptors: { writable: true, value: {} },
@@ -117,7 +117,7 @@ defineProperties(Ractive, {
   Context: { value: extern.Context.prototype }
 });
 
-defineProperty(Ractive, "_cssModel", {
+defineProperty(Ractive, '_cssModel', {
   configurable: true,
   value: new CSSModel(Ractive)
 });

@@ -1,17 +1,17 @@
-import Hook from "src/events/Hook";
-import { removeFromArray } from "utils/array";
-import { cancel } from "shared/methodCallers";
-import { warnIfDebug } from "utils/log";
+import Hook from 'src/events/Hook';
+import { removeFromArray } from 'utils/array';
+import { cancel } from 'shared/methodCallers';
+import { warnIfDebug } from 'utils/log';
 
-const teardownHook = new Hook("teardown");
-const destructHook = new Hook("destruct");
+const teardownHook = new Hook('teardown');
+const destructHook = new Hook('destruct');
 
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself
 
 export default function Ractive$teardown() {
   if (this.torndown) {
-    warnIfDebug("ractive.teardown() was called on a Ractive instance that was already torn down");
+    warnIfDebug('ractive.teardown() was called on a Ractive instance that was already torn down');
     return Promise.resolve();
   }
 

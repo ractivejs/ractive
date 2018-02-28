@@ -1,10 +1,10 @@
-import { warnIfDebug } from "utils/log";
-import { create, hasOwn } from "utils/object";
+import { warnIfDebug } from 'utils/log';
+import { create, hasOwn } from 'utils/object';
 
 const leadingWhitespace = /^\s+/;
 
 const ParseError = function(message) {
-  this.name = "ParseError";
+  this.name = 'ParseError';
   this.message = message;
   try {
     throw new Error(message);
@@ -23,7 +23,7 @@ const Parser = function(str, options) {
   this.options = options || {};
   this.pos = 0;
 
-  this.lines = this.str.split("\n");
+  this.lines = this.str.split('\n');
   this.lineEnds = this.lines.map(line => {
     const lineEnd = lineStart + line.length + 1; // +1 for the newline
 
@@ -72,24 +72,24 @@ Parser.prototype = {
 
     const line = this.lines[lineNum - 1];
 
-    let contextUp = "";
-    let contextDown = "";
+    let contextUp = '';
+    let contextDown = '';
     if (this.options.contextLines) {
       const start =
         lineNum - 1 - this.options.contextLines < 0 ? 0 : lineNum - 1 - this.options.contextLines;
       contextUp = this.lines
         .slice(start, lineNum - 1 - start)
-        .join("\n")
-        .replace(/\t/g, "  ");
+        .join('\n')
+        .replace(/\t/g, '  ');
       contextDown = this.lines
         .slice(lineNum, lineNum + this.options.contextLines)
-        .join("\n")
-        .replace(/\t/g, "  ");
+        .join('\n')
+        .replace(/\t/g, '  ');
       if (contextUp) {
-        contextUp += "\n";
+        contextUp += '\n';
       }
       if (contextDown) {
-        contextDown = "\n" + contextDown;
+        contextDown = '\n' + contextDown;
       }
     }
 
@@ -101,11 +101,11 @@ Parser.prototype = {
           numTabs += 1;
         }
 
-        return "  ";
+        return '  ';
       }) +
-      "\n" +
-      new Array(columnNum + numTabs).join(" ") +
-      "^----" +
+      '\n' +
+      new Array(columnNum + numTabs).join(' ') +
+      '^----' +
       contextDown;
 
     return [

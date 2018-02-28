@@ -1,4 +1,4 @@
-import { isArray } from "utils/is";
+import { isArray } from 'utils/is';
 
 export default function Ractive$findAll(selector, options = {}) {
   if (!this.el)

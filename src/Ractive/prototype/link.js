@@ -1,6 +1,6 @@
-import { splitKeypath } from "shared/keypaths";
-import resolveReference from "src/view/resolvers/resolveReference";
-import runloop from "src/global/runloop";
+import { splitKeypath } from 'shared/keypaths';
+import resolveReference from 'src/view/resolvers/resolveReference';
+import runloop from 'src/global/runloop';
 
 export default function link(there, here, options) {
   let model;
@@ -17,7 +17,7 @@ export default function link(there, here, options) {
   const dest = this.viewmodel.joinAll(splitKeypath(here), { lastLink: false });
 
   if (isUpstream(src, dest) || isUpstream(dest, src)) {
-    throw new Error("A keypath cannot be linked to itself.");
+    throw new Error('A keypath cannot be linked to itself.');
   }
 
   const promise = runloop.start();

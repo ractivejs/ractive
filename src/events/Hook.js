@@ -1,10 +1,10 @@
-import fireEvent from "./fireEvent";
-import getRactiveContext from "../shared/getRactiveContext";
+import fireEvent from './fireEvent';
+import getRactiveContext from '../shared/getRactiveContext';
 
 export default class Hook {
   constructor(event) {
     this.event = event;
-    this.method = "on" + event;
+    this.method = 'on' + event;
   }
 
   fire(ractive, arg) {

@@ -1,93 +1,93 @@
-import { initModule } from "../../helpers/test-config";
-import { test } from "qunit";
+import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
-  initModule("init/config.js");
+  initModule('init/config.js');
 
-  test("Ractive.defaults", t => {
+  test('Ractive.defaults', t => {
     const expectedDefaults = [
-      "el",
-      "append",
-      "delegate",
-      "template",
-      "delimiters",
-      "tripleDelimiters",
-      "staticDelimiters",
-      "staticTripleDelimiters",
-      "csp",
-      "interpolate",
-      "preserveWhitespace",
-      "sanitize",
-      "stripComments",
-      "contextLines",
-      "data",
-      "computed",
-      "syncComputedChildren",
-      "resolveInstanceMembers",
-      "warnAboutAmbiguity",
-      "adapt",
-      "isolated",
-      "twoway",
-      "lazy",
-      "noIntro",
-      "noOutro",
-      "transitionsEnabled",
-      "complete",
-      "nestedTransitions",
-      "css",
-      "noCssTransform"
+      'el',
+      'append',
+      'delegate',
+      'template',
+      'delimiters',
+      'tripleDelimiters',
+      'staticDelimiters',
+      'staticTripleDelimiters',
+      'csp',
+      'interpolate',
+      'preserveWhitespace',
+      'sanitize',
+      'stripComments',
+      'contextLines',
+      'data',
+      'computed',
+      'syncComputedChildren',
+      'resolveInstanceMembers',
+      'warnAboutAmbiguity',
+      'adapt',
+      'isolated',
+      'twoway',
+      'lazy',
+      'noIntro',
+      'noOutro',
+      'transitionsEnabled',
+      'complete',
+      'nestedTransitions',
+      'css',
+      'noCssTransform'
     ];
 
     const actualDefaults = expectedDefaults.filter(key => Ractive.defaults.hasOwnProperty(key));
 
-    t.strictEqual(Ractive.defaults, Ractive.prototype, "defaults aliases prototype");
-    t.deepEqual(actualDefaults, expectedDefaults, "defaults contain expected keys");
+    t.strictEqual(Ractive.defaults, Ractive.prototype, 'defaults aliases prototype');
+    t.deepEqual(actualDefaults, expectedDefaults, 'defaults contain expected keys');
   });
 
-  test("instance has config options", t => {
+  test('instance has config options', t => {
     const ractive = new Ractive();
 
     const expectedConfig = [
-      "append",
-      "complete",
-      "computed",
-      "contextLines",
-      "csp",
-      "delegate",
-      "delimiters",
-      "el",
-      "interpolate",
-      "isolated",
-      "lazy",
-      "nestedTransitions",
-      "noCssTransform",
-      "noIntro",
-      "noOutro",
-      "preserveWhitespace",
-      "resolveInstanceMembers",
-      "sanitize",
-      "staticDelimiters",
-      "staticTripleDelimiters",
-      "stripComments",
-      "syncComputedChildren",
-      "transitionsEnabled",
-      "tripleDelimiters",
-      "twoway",
-      "warnAboutAmbiguity"
+      'append',
+      'complete',
+      'computed',
+      'contextLines',
+      'csp',
+      'delegate',
+      'delimiters',
+      'el',
+      'interpolate',
+      'isolated',
+      'lazy',
+      'nestedTransitions',
+      'noCssTransform',
+      'noIntro',
+      'noOutro',
+      'preserveWhitespace',
+      'resolveInstanceMembers',
+      'sanitize',
+      'staticDelimiters',
+      'staticTripleDelimiters',
+      'stripComments',
+      'syncComputedChildren',
+      'transitionsEnabled',
+      'tripleDelimiters',
+      'twoway',
+      'warnAboutAmbiguity'
     ];
 
     const expectedInstanceRegistries = [
-      "adaptors",
-      "components",
-      "decorators",
-      "easing",
-      "events",
-      "interpolators",
-      "partials",
-      "transitions"
+      'adaptors',
+      'components',
+      'decorators',
+      'easing',
+      'events',
+      'interpolators',
+      'partials',
+      'transitions'
     ];
 
-    const expectedPrototypeRegistries = ["computed"];
+    const expectedPrototypeRegistries = ['computed'];
 
     expectedInstanceRegistries.forEach(registry => {
       t.ok(ractive.hasOwnProperty(registry), `Instance has ${registry} registry`);
@@ -112,30 +112,30 @@ export default function() {
     });
   });
 
-  test("non-configurations options are added to instance", t => {
+  test('non-configurations options are added to instance', t => {
     const ractive = new Ractive({
-      foo: "bar",
+      foo: 'bar',
       fumble() {
         return true;
       }
     });
 
-    t.equal(ractive.foo, "bar");
+    t.equal(ractive.foo, 'bar');
     t.ok(ractive.fumble());
   });
 
-  test("target element can be specified with target as well as el (#1848)", t => {
+  test('target element can be specified with target as well as el (#1848)', t => {
     const r = new Ractive({
       target: fixture,
-      template: "yep"
+      template: 'yep'
     });
 
-    t.htmlEqual(fixture.innerHTML, "yep");
+    t.htmlEqual(fixture.innerHTML, 'yep');
     t.strictEqual(fixture, r.target);
     t.strictEqual(fixture, r.el);
   });
 
-  test("events can be subscribed with the on option", t => {
+  test('events can be subscribed with the on option', t => {
     t.expect(2);
 
     const r = new Ractive({
@@ -152,12 +152,12 @@ export default function() {
       }
     });
 
-    r.fire("foo");
-    r.fire("bar");
-    r.fire("bar");
+    r.fire('foo');
+    r.fire('bar');
+    r.fire('bar');
   });
 
-  test("observers can be subscribed with the observe option", t => {
+  test('observers can be subscribed with the observe option', t => {
     t.expect(4);
 
     const r = new Ractive({
@@ -181,10 +181,10 @@ export default function() {
     });
 
     // foo has already run once, because init defaults to true
-    r.toggle("foo");
-    r.toggle("bar");
-    r.toggle("bar");
-    r.toggle("baz");
+    r.toggle('foo');
+    r.toggle('bar');
+    r.toggle('bar');
+    r.toggle('baz');
   });
 
   test(`lifecycle events can be subscribed with the on option`, t => {
@@ -192,31 +192,31 @@ export default function() {
     const r = new Ractive({
       on: {
         construct() {
-          ev.push("construct");
+          ev.push('construct');
         },
         config() {
-          ev.push("config");
+          ev.push('config');
         },
         init() {
-          ev.push("init");
+          ev.push('init');
         },
         render() {
-          ev.push("render");
+          ev.push('render');
         },
         unrender() {
-          ev.push("unrender");
+          ev.push('unrender');
         },
         teardown() {
-          ev.push("teardown");
+          ev.push('teardown');
         }
       },
-      template: "hello",
+      template: 'hello',
       target: fixture
     });
 
     r.teardown();
 
-    t.equal(ev.join(" "), "construct config init render unrender teardown");
+    t.equal(ev.join(' '), 'construct config init render unrender teardown');
   });
 
   test(`observers subscribe after the root fragment is created (#3053)`, t => {
@@ -225,21 +225,21 @@ export default function() {
     const cmp = Ractive.extend({
       isolated: false,
       observe: {
-        "thing.value"(val) {
+        'thing.value'(val) {
           v = val;
         }
       }
     });
 
     const r = new Ractive({
-      template: "<cmp />",
+      template: '<cmp />',
       data: { thing: {} },
       components: { cmp },
       target: fixture
     });
 
     t.ok(v === undefined);
-    r.set("thing.value", 42);
+    r.set('thing.value', 42);
     t.equal(v, 42);
   });
 
@@ -254,7 +254,7 @@ export default function() {
           }
         }
       },
-      data: { thing: "yep" }
+      data: { thing: 'yep' }
     });
 
     const r = new Ractive({
@@ -263,10 +263,10 @@ export default function() {
       components: { cmp }
     });
 
-    r.findComponent().set("thing", "a");
-    r.toggle("hide");
-    r.toggle("hide");
-    r.findComponent().set("thing", "a");
+    r.findComponent().set('thing', 'a');
+    r.toggle('hide');
+    r.toggle('hide');
+    r.findComponent().set('thing', 'a');
 
     t.equal(count, 4);
   });

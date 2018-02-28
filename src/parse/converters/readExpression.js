@@ -1,4 +1,4 @@
-import readConditional from "./expressions/readConditional";
+import readConditional from './expressions/readConditional';
 
 export default function readExpression(parser) {
   // The conditional operator is the lowest precedence operator (except yield,

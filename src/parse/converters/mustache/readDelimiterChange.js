@@ -2,7 +2,7 @@ const delimiterChangePattern = /^[^\s=]+/;
 const whitespacePattern = /^\s+/;
 
 export default function readDelimiterChange(parser) {
-  if (!parser.matchString("=")) {
+  if (!parser.matchString('=')) {
     return null;
   }
 
@@ -31,7 +31,7 @@ export default function readDelimiterChange(parser) {
   // allow whitespace before closing '='
   parser.sp();
 
-  if (!parser.matchString("=")) {
+  if (!parser.matchString('=')) {
     parser.pos = start;
     return null;
   }

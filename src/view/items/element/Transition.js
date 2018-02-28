@@ -1,24 +1,24 @@
-import { win } from "config/environment";
-import { addToArray, removeFromArray } from "utils/array";
-import { isArray, isObject, isFunction, isNumber, isString } from "utils/is";
-import noop from "utils/noop";
-import { warnOnceIfDebug } from "utils/log";
-import { missingPlugin } from "config/errors";
-import { findInViewHierarchy } from "shared/registry";
-import { visible } from "config/visibility";
-import findElement from "../shared/findElement";
-import prefix from "./transitions/prefix";
-import createTransitions from "./transitions/createTransitions";
-import { resolveArgs, setupArgsFn } from "../shared/directiveArgs";
-import { assign, hasOwn, keys } from "utils/object";
+import { win } from 'config/environment';
+import { addToArray, removeFromArray } from 'utils/array';
+import { isArray, isObject, isFunction, isNumber, isString } from 'utils/is';
+import noop from 'utils/noop';
+import { warnOnceIfDebug } from 'utils/log';
+import { missingPlugin } from 'config/errors';
+import { findInViewHierarchy } from 'shared/registry';
+import { visible } from 'config/visibility';
+import findElement from '../shared/findElement';
+import prefix from './transitions/prefix';
+import createTransitions from './transitions/createTransitions';
+import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
+import { assign, hasOwn, keys } from 'utils/object';
 
 const getComputedStyle = win && win.getComputedStyle;
 const resolved = Promise.resolve();
 
 const names = {
-  t0: "intro-outro",
-  t1: "intro",
-  t2: "outro"
+  t0: 'intro-outro',
+  t1: 'intro',
+  t2: 'outro'
 };
 
 export default class Transition {
@@ -35,7 +35,7 @@ export default class Transition {
   animateStyle(style, value, options) {
     if (arguments.length === 4) {
       throw new Error(
-        "t.animateStyle() returns a promise - use .then() instead of passing a callback"
+        't.animateStyle() returns a promise - use .then() instead of passing a callback'
       );
     }
 
@@ -116,8 +116,8 @@ export default class Transition {
     const options = this.options;
     const type = options.template && options.template.v;
     if (type) {
-      if (type === "t0" || type === "t1") this.element.intro = this;
-      if (type === "t0" || type === "t2") this.element.outro = this;
+      if (type === 't0' || type === 't1') this.element.intro = this;
+      if (type === 't0' || type === 't2') this.element.outro = this;
       this.eventName = names[type];
     }
 
@@ -133,11 +133,11 @@ export default class Transition {
       this._fn = this.name;
       this.name = this._fn.name;
     } else {
-      this._fn = findInViewHierarchy("transitions", ractive, this.name);
+      this._fn = findInViewHierarchy('transitions', ractive, this.name);
     }
 
     if (!this._fn) {
-      warnOnceIfDebug(missingPlugin(this.name, "transition"), { ractive });
+      warnOnceIfDebug(missingPlugin(this.name, 'transition'), { ractive });
     }
 
     setupArgsFn(this, options.template);
@@ -166,7 +166,7 @@ export default class Transition {
 
     if (!isArray(props)) {
       throw new Error(
-        "Transition$getStyle must be passed a string, or an array of strings representing CSS properties"
+        'Transition$getStyle must be passed a string, or an array of strings representing CSS properties'
       );
     }
 
@@ -177,7 +177,7 @@ export default class Transition {
       const prop = props[i];
       let value = computedStyle[prefix(prop)];
 
-      if (value === "0px") value = 0;
+      if (value === '0px') value = 0;
       styles[prop] = value;
     }
 
@@ -188,9 +188,9 @@ export default class Transition {
     if (isNumber(params)) {
       params = { duration: params };
     } else if (isString(params)) {
-      if (params === "slow") {
+      if (params === 'slow') {
         params = { duration: 600 };
-      } else if (params === "fast") {
+      } else if (params === 'fast') {
         params = { duration: 200 };
       } else {
         params = { duration: 400 };
@@ -228,9 +228,9 @@ export default class Transition {
     if (!this.ractive.transitionsEnabled) return false;
 
     // check for noIntro and noOutro cases, which only apply when the owner ractive is rendering and unrendering, respectively
-    if (type === "intro" && this.ractive.rendering && nearestProp("noIntro", this.ractive, true))
+    if (type === 'intro' && this.ractive.rendering && nearestProp('noIntro', this.ractive, true))
       return false;
-    if (type === "outro" && this.ractive.unrendering && nearestProp("noOutro", this.ractive, false))
+    if (type === 'outro' && this.ractive.unrendering && nearestProp('noOutro', this.ractive, false))
       return false;
 
     const params = this.getParams(); // this is an array, the params object should be the first member
@@ -238,12 +238,12 @@ export default class Transition {
     if (!this.element.parent) return true;
 
     // if there is a local param, it takes precedent
-    if (params && params[0] && isObject(params[0]) && "nested" in params[0]) {
+    if (params && params[0] && isObject(params[0]) && 'nested' in params[0]) {
       if (params[0].nested !== false) return true;
     } else {
       // use the nearest instance setting
       // find the nearest instance that actually has a nested setting
-      if (nearestProp("nestedTransitions", this.ractive) !== false) return true;
+      if (nearestProp('nestedTransitions', this.ractive) !== false) return true;
     }
 
     // check to see if this is actually a nested transition
@@ -296,14 +296,14 @@ export default class Transition {
   }
 
   toString() {
-    return "";
+    return '';
   }
 
   unbind() {
     if (!this.element.attributes.unbinding) {
       const type = this.options && this.options.template && this.options.template.v;
-      if (type === "t0" || type === "t1") this.element.intro = null;
-      if (type === "t0" || type === "t2") this.element.outro = null;
+      if (type === 't0' || type === 't1') this.element.intro = null;
+      if (type === 't0' || type === 't2') this.element.outro = null;
     }
   }
 

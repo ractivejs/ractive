@@ -1,5 +1,5 @@
-import { OBJECT_LITERAL } from "../../../../../config/types";
-import readKeyValuePairs from "./objectLiteral/keyValuePairs";
+import { OBJECT_LITERAL } from '../../../../../config/types';
+import readKeyValuePairs from './objectLiteral/keyValuePairs';
 
 export default function(parser) {
   const start = parser.pos;
@@ -7,7 +7,7 @@ export default function(parser) {
   // allow whitespace
   parser.sp();
 
-  if (!parser.matchString("{")) {
+  if (!parser.matchString('{')) {
     parser.pos = start;
     return null;
   }
@@ -17,7 +17,7 @@ export default function(parser) {
   // allow whitespace between final value and '}'
   parser.sp();
 
-  if (!parser.matchString("}")) {
+  if (!parser.matchString('}')) {
     parser.pos = start;
     return null;
   }

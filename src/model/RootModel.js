@@ -1,13 +1,13 @@
-import { capture } from "src/global/capture";
-import Computation from "./Computation";
-import Model from "./Model";
-import { handleChange, mark } from "shared/methodCallers";
-import RactiveModel from "./specials/RactiveModel";
-import SharedModel, { GlobalModel } from "./specials/SharedModel";
-import { splitKeypath, escapeKey, unescapeKey } from "shared/keypaths";
-import resolveReference from "src/view/resolvers/resolveReference";
-import noop from "utils/noop";
-import { hasOwn, keys as objectKeys } from "utils/object";
+import { capture } from 'src/global/capture';
+import Computation from './Computation';
+import Model from './Model';
+import { handleChange, mark } from 'shared/methodCallers';
+import RactiveModel from './specials/RactiveModel';
+import SharedModel, { GlobalModel } from './specials/SharedModel';
+import { splitKeypath, escapeKey, unescapeKey } from 'shared/keypaths';
+import resolveReference from 'src/view/resolvers/resolveReference';
+import noop from 'utils/noop';
+import { hasOwn, keys as objectKeys } from 'utils/object';
 
 export default class RootModel extends Model {
   constructor(options) {
@@ -70,7 +70,7 @@ export default class RootModel extends Model {
   }
 
   getKeypath() {
-    return "";
+    return '';
   }
 
   getRactiveModel() {
@@ -100,14 +100,14 @@ export default class RootModel extends Model {
     let unescapedKey = unescapeKey(key);
 
     if (
-      unescapedKey === "@this" ||
-      unescapedKey === "@global" ||
-      unescapedKey === "@shared" ||
-      unescapedKey === "@style"
+      unescapedKey === '@this' ||
+      unescapedKey === '@global' ||
+      unescapedKey === '@shared' ||
+      unescapedKey === '@style'
     )
       return true;
-    if (unescapedKey[0] === "~" && unescapedKey[1] === "/") unescapedKey = unescapedKey.slice(2);
-    if (key === "" || hasOwn(value, unescapedKey)) return true;
+    if (unescapedKey[0] === '~' && unescapedKey[1] === '/') unescapedKey = unescapedKey.slice(2);
+    if (key === '' || hasOwn(value, unescapedKey)) return true;
 
     // mappings/links and computations
     if (
@@ -127,15 +127,15 @@ export default class RootModel extends Model {
   }
 
   joinKey(key, opts) {
-    if (key[0] === "@") {
-      if (key === "@this" || key === "@") return this.getRactiveModel();
-      if (key === "@global") return GlobalModel;
-      if (key === "@shared") return SharedModel;
-      if (key === "@style") return this.getRactiveModel().joinKey("cssData");
+    if (key[0] === '@') {
+      if (key === '@this' || key === '@') return this.getRactiveModel();
+      if (key === '@global') return GlobalModel;
+      if (key === '@shared') return SharedModel;
+      if (key === '@style') return this.getRactiveModel().joinKey('cssData');
       return;
     }
 
-    if (key[0] === "~" && key[1] === "/") key = key.slice(2);
+    if (key[0] === '~' && key[1] === '/') key = key.slice(2);
 
     return hasOwn(this.computations, key) ? this.computations[key] : super.joinKey(key, opts);
   }

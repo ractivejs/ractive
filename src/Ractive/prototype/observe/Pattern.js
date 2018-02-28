@@ -1,8 +1,8 @@
-import { escapeKey } from "shared/keypaths";
-import { removeFromArray } from "utils/array";
-import { isArray, isEqual } from "utils/is";
-import runloop from "src/global/runloop";
-import { create, keys } from "utils/object";
+import { escapeKey } from 'shared/keypaths';
+import { removeFromArray } from 'utils/array';
+import { isArray, isEqual } from 'utils/is';
+import runloop from 'src/global/runloop';
+import { create, keys } from 'utils/object';
 
 const star = /\*+/g;
 
@@ -14,11 +14,11 @@ export default class PatternObserver {
     this.keys = keys;
     this.callback = callback;
 
-    const pattern = keys.join("\\.").replace(star, "(.+)");
+    const pattern = keys.join('\\.').replace(star, '(.+)');
     const baseKeypath = (this.baseKeypath = baseModel.getKeypath(ractive));
-    this.pattern = new RegExp(`^${baseKeypath ? baseKeypath + "\\." : ""}${pattern}$`);
-    this.recursive = keys.length === 1 && keys[0] === "**";
-    if (this.recursive) this.keys = ["*"];
+    this.pattern = new RegExp(`^${baseKeypath ? baseKeypath + '\\.' : ''}${pattern}$`);
+    this.recursive = keys.length === 1 && keys[0] === '**';
+    if (this.recursive) this.keys = ['*'];
     if (options.old) {
       this.oldContext = create(ractive);
       this.oldFn = options.old;
@@ -123,17 +123,17 @@ export default class PatternObserver {
           });
         } else {
           const ok = this.baseModel.isRoot
-            ? this.changed.map(keys => keys.map(escapeKey).join("."))
-            : this.changed.map(keys => this.baseKeypath + "." + keys.map(escapeKey).join("."));
+            ? this.changed.map(keys => keys.map(escapeKey).join('.'))
+            : this.changed.map(keys => this.baseKeypath + '.' + keys.map(escapeKey).join('.'));
 
           this.baseModel.findMatches(this.keys).forEach(model => {
             const keypath = model.getKeypath(this.ractive);
             const check = k => {
               return (
                 (k.indexOf(keypath) === 0 &&
-                  (k.length === keypath.length || k[keypath.length] === ".")) ||
+                  (k.length === keypath.length || k[keypath.length] === '.')) ||
                 (keypath.indexOf(k) === 0 &&
-                  (k.length === keypath.length || keypath[k.length] === "."))
+                  (k.length === keypath.length || keypath[k.length] === '.'))
               );
             };
 

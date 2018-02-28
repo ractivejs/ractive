@@ -1,8 +1,8 @@
-import Hook from "src/events/Hook";
-import runloop from "src/global/runloop";
-import { updateAnchors } from "shared/anchors";
+import Hook from 'src/events/Hook';
+import runloop from 'src/global/runloop';
+import { updateAnchors } from 'shared/anchors';
 
-const detachHook = new Hook("detachchild");
+const detachHook = new Hook('detachchild');
 
 export default function detachChild(child) {
   const children = this._children;
@@ -37,8 +37,8 @@ export default function detachChild(child) {
     updateAnchors(this, meta.target);
   }
   child.set({
-    "@this.parent": undefined,
-    "@this.root": child
+    '@this.parent': undefined,
+    '@this.root': child
   });
   child.component = null;
 

@@ -4,15 +4,15 @@ import {
   SECTION_IF_WITH,
   SECTION_UNLESS,
   SECTION_WITH
-} from "config/types";
-import { createDocumentFragment } from "utils/dom";
-import { isArray, isObject, isObjectLike } from "utils/is";
-import { keep } from "shared/set";
-import runloop from "src/global/runloop";
-import Fragment from "../Fragment";
-import RepeatedFragment from "../RepeatedFragment";
-import { MustacheContainer } from "./shared/Mustache";
-import { keys } from "utils/object";
+} from 'config/types';
+import { createDocumentFragment } from 'utils/dom';
+import { isArray, isObject, isObjectLike } from 'utils/is';
+import { keep } from 'shared/set';
+import runloop from 'src/global/runloop';
+import Fragment from '../Fragment';
+import RepeatedFragment from '../RepeatedFragment';
+import { MustacheContainer } from './shared/Mustache';
+import { keys } from 'utils/object';
 
 function isEmpty(value) {
   return (

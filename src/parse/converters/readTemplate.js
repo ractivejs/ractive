@@ -1,7 +1,7 @@
-import { TEMPLATE_VERSION } from "config/template";
-import { READERS, PARTIAL_READERS } from "parse/_parse";
-import cleanup from "parse/utils/cleanup";
-import { create } from "utils/object";
+import { TEMPLATE_VERSION } from 'config/template';
+import { READERS, PARTIAL_READERS } from 'parse/_parse';
+import cleanup from 'parse/utils/cleanup';
+import { create } from 'utils/object';
 
 export default function readTemplate(parser) {
   const fragment = [];
@@ -17,7 +17,7 @@ export default function readTemplate(parser) {
     if ((partial = parser.read(PARTIAL_READERS))) {
       if (partials[partial.n]) {
         parser.pos = pos;
-        parser.error("Duplicated partial definition");
+        parser.error('Duplicated partial definition');
       }
 
       cleanup(
@@ -33,7 +33,7 @@ export default function readTemplate(parser) {
     } else if ((item = parser.read(READERS))) {
       fragment.push(item);
     } else {
-      parser.error("Unexpected template content");
+      parser.error('Unexpected template content');
     }
   }
 

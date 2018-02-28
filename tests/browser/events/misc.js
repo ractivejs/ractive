@@ -1,13 +1,13 @@
-import { fire } from "simulant";
-import { initModule } from "../../helpers/test-config";
-import { test } from "qunit";
+import { fire } from 'simulant';
+import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
-  initModule("events/misc.js");
+  initModule('events/misc.js');
 
   // TODO finish moving these into more sensible locations
 
-  test("Grandchild component teardown when nested in element (#1360)", t => {
+  test('Grandchild component teardown when nested in element (#1360)', t => {
     const torndown = [];
 
     const Child = Ractive.extend({
@@ -24,7 +24,7 @@ export default function() {
     });
 
     const Grandchild = Ractive.extend({
-      template: "{{title}}",
+      template: '{{title}}',
       onteardown() {
         torndown.push(this);
       },
@@ -37,33 +37,33 @@ export default function() {
       data: {
         model: {
           show: true,
-          items: [{ title: "one" }, { title: "two" }, { title: "three" }]
+          items: [{ title: 'one' }, { title: 'two' }, { title: 'three' }]
         }
       },
       components: { Child, Grandchild }
     });
 
-    ractive.set("model", {});
+    ractive.set('model', {});
     t.equal(torndown.length, 4);
   });
 
-  test("event references in method call handler should not create a null resolver (#1438)", t => {
+  test('event references in method call handler should not create a null resolver (#1438)', t => {
     const ractive = new Ractive({
       el: fixture,
       template: `{{#foo}}<button on-click="@this.test(event.keypath + '.foo')">Click</button>{{/}}`,
       test: function() {} // eslint-disable-line object-shorthand
     });
 
-    ractive.set("foo", true);
+    ractive.set('foo', true);
 
     // NOTE: if this throws and you're testing in browser, it will probably cause a half-ton of
     // other unrelated tests to fail as well
-    ractive.set("foo", false);
+    ractive.set('foo', false);
 
-    t.htmlEqual(fixture.innerHTML, "");
+    t.htmlEqual(fixture.innerHTML, '');
   });
 
-  test("event actions and parameter references have context", t => {
+  test('event actions and parameter references have context', t => {
     t.expect(1);
 
     const ractive = new Ractive({
@@ -71,79 +71,79 @@ export default function() {
       template:
         '{{#items:i}}<span id="test{{i}}" on-click="@this.fire(eventName, event, eventName)"/>{{/}}',
       data: {
-        items: [{ eventName: "foo" }, { eventName: "bar" }, { eventName: "biz" }]
+        items: [{ eventName: 'foo' }, { eventName: 'bar' }, { eventName: 'biz' }]
       }
     });
 
-    ractive.on("bar", (event, parameter) => {
-      t.equal(parameter, "bar");
+    ractive.on('bar', (event, parameter) => {
+      t.equal(parameter, 'bar');
     });
 
-    fire(ractive.find("#test1"), "click");
+    fire(ractive.find('#test1'), 'click');
   });
 
-  test("Attribute directives on fragments that get re-used (partials) should stick around for re-use", t => {
+  test('Attribute directives on fragments that get re-used (partials) should stick around for re-use', t => {
     const ractive = new Ractive({
       el: fixture,
-      template: "{{#list}}{{>partial}}{{/}}",
+      template: '{{#list}}{{>partial}}{{/}}',
       partials: {
         partial: '<input value="{{.foo}}" twoway="false" />'
       },
-      data: { list: [{ foo: "a" }, { foo: "b" }] },
+      data: { list: [{ foo: 'a' }, { foo: 'b' }] },
       twoway: true
     });
 
     // this should have no effect
-    const inputs = ractive.findAll("input");
-    inputs[0].value = "c";
-    inputs[1].value = "c";
-    fire(inputs[0], "change");
-    fire(inputs[1], "change");
+    const inputs = ractive.findAll('input');
+    inputs[0].value = 'c';
+    inputs[1].value = 'c';
+    fire(inputs[0], 'change');
+    fire(inputs[1], 'change');
 
-    t.equal(ractive.get("list.0.foo"), "a");
-    t.equal(ractive.get("list.1.foo"), "b");
+    t.equal(ractive.get('list.0.foo'), 'a');
+    t.equal(ractive.get('list.1.foo'), 'b');
   });
 
-  test("Regression test for #2046", t => {
+  test('Regression test for #2046', t => {
     t.expect(1);
 
     const ractive = new Ractive({
       el: fixture,
       template: '<button on-click="@this.onClick(eventName)">{{eventName}}</button>',
-      data: { eventName: "foo" },
+      data: { eventName: 'foo' },
       onClick(eventName) {
-        t.equal(eventName, "foo");
+        t.equal(eventName, 'foo');
       }
     });
 
     // this should have no effect
-    const el = ractive.find("button");
-    fire(el, "click");
+    const el = ractive.find('button');
+    fire(el, 'click');
   });
 
-  test("Regression test for #1971", t => {
+  test('Regression test for #1971', t => {
     t.expect(1);
 
     const ractive = new Ractive({
       el: fixture,
       template: '<Button buttonName="{{foo}}"></Button>',
-      data: { foo: "foo" },
+      data: { foo: 'foo' },
       components: {
         Button: Ractive.extend({
           template: '<button on-click="@this.onClick(event)"></button>',
           onClick(event) {
-            t.deepEqual(event.get(), { buttonName: "foo" });
+            t.deepEqual(event.get(), { buttonName: 'foo' });
           }
         })
       }
     });
 
     // this should have no effect
-    const el = ractive.find("button");
-    fire(el, "click");
+    const el = ractive.find('button');
+    fire(el, 'click');
   });
 
-  test("correct function scope for this.bar() in template", t => {
+  test('correct function scope for this.bar() in template', t => {
     const ractive = new Ractive({
       el: fixture,
       template: `
@@ -151,77 +151,77 @@ export default function() {
 				<p>foo: {{foo}}</p>
 			`,
       data: {
-        foo: "nope",
+        foo: 'nope',
         bar() {
-          return this.get("answer");
+          return this.get('answer');
         },
         answer: 42
       }
     });
 
-    fire(ractive.find("button"), "click");
+    fire(ractive.find('button'), 'click');
 
-    t.equal(ractive.get("foo"), "42");
+    t.equal(ractive.get('foo'), '42');
   });
 
   // phantom and IE8 don't like these tests, but browsers are ok with them
   try {
-    fire(document.createElement("div"), "input");
-    fire(document.createElement("div"), "blur");
+    fire(document.createElement('div'), 'input');
+    fire(document.createElement('div'), 'blur');
 
-    test("lazy may be overridden on a per-element basis", t => {
+    test('lazy may be overridden on a per-element basis', t => {
       let ractive = new Ractive({
         el: fixture,
         template: '<input value="{{foo}}" lazy="true" />',
-        data: { foo: "test" },
+        data: { foo: 'test' },
         lazy: false
       });
 
-      let node = ractive.find("input");
-      node.value = "bar";
-      fire(node, "input");
-      t.equal(ractive.get("foo"), "test");
-      fire(node, "blur");
-      t.equal(ractive.get("foo"), "bar");
+      let node = ractive.find('input');
+      node.value = 'bar';
+      fire(node, 'input');
+      t.equal(ractive.get('foo'), 'test');
+      fire(node, 'blur');
+      t.equal(ractive.get('foo'), 'bar');
 
       ractive = new Ractive({
         el: fixture,
         template: '<input value="{{foo}}" lazy="false" />',
-        data: { foo: "test" },
+        data: { foo: 'test' },
         lazy: true
       });
 
-      node = ractive.find("input");
-      node.value = "bar";
-      fire(node, "input");
-      t.equal(ractive.get("foo"), "bar");
+      node = ractive.find('input');
+      node.value = 'bar';
+      fire(node, 'input');
+      t.equal(ractive.get('foo'), 'bar');
     });
 
-    test("lazy may be set to a number to trigger on a timeout", t => {
+    test('lazy may be set to a number to trigger on a timeout', t => {
       const done = t.async();
 
       const ractive = new Ractive({
         el: fixture,
         template: '<input value="{{foo}}" lazy="20" />',
-        data: { foo: "test" }
+        data: { foo: 'test' }
       });
 
-      const node = ractive.find("input");
-      node.value = "bar";
-      fire(node, "input");
-      t.equal(ractive.get("foo"), "test");
+      const node = ractive.find('input');
+      node.value = 'bar';
+      fire(node, 'input');
+      t.equal(ractive.get('foo'), 'test');
 
       setTimeout(() => {
-        t.equal(ractive.get("foo"), "test");
+        t.equal(ractive.get('foo'), 'test');
       }, 5);
 
       setTimeout(() => {
-        t.equal(ractive.get("foo"), "bar");
+        t.equal(ractive.get('foo'), 'bar');
         done();
       }, 30);
     });
 
-    test("invalid content in method call event directive should have a reasonable error message", t => {
+    test('invalid content in method call event directive should have a reasonable error message', t => {
       t.throws(() => {
         new Ractive({
           el: fixture,
@@ -233,7 +233,7 @@ export default function() {
     // do nothing
   }
 
-  test("events in nested elements are torn down properly (#2608)", t => {
+  test('events in nested elements are torn down properly (#2608)', t => {
     let count = 0;
     const r = new Ractive({
       el: fixture,
@@ -253,13 +253,13 @@ export default function() {
     });
 
     t.equal(count, 1);
-    r.toggle("foo");
+    r.toggle('foo');
     t.equal(count, 0);
-    r.toggle("foo");
+    r.toggle('foo');
     t.equal(count, 1);
-    r.toggle("foo");
+    r.toggle('foo');
     t.equal(count, 0);
-    r.toggle("foo");
+    r.toggle('foo');
   });
 
   test(`a subscriber that cancels during event firing should not fire (#2698)`, t => {
@@ -267,11 +267,11 @@ export default function() {
 
     const r = new Ractive();
 
-    r.on("foo", () => cancellable.cancel());
+    r.on('foo', () => cancellable.cancel());
 
-    const cancellable = r.on("foo", () => t.ok(false, "this should not fire"));
+    const cancellable = r.on('foo', () => t.ok(false, 'this should not fire'));
 
-    r.fire("foo");
+    r.fire('foo');
   });
 
   test(`re-fired event names get the new name`, t => {
@@ -282,12 +282,12 @@ export default function() {
       template: `<div on-click="@.fire('foo', @context)" />`,
       on: {
         foo(ctx) {
-          t.equal(ctx.name, "foo");
+          t.equal(ctx.name, 'foo');
         }
       }
     });
 
-    fire(r.find("div"), "click");
+    fire(r.find('div'), 'click');
   });
 
   test(`special ref @context is available to events and replaces event`, t => {
@@ -295,14 +295,14 @@ export default function() {
       target: fixture,
       template: `<div on-click="@.check(@context)" />`,
       check(ctx) {
-        t.ok(ctx.node === this.find("div"));
-        t.equal(ctx.name, "click");
+        t.ok(ctx.node === this.find('div'));
+        t.equal(ctx.name, 'click');
         t.ok(ctx.ractive === this);
-        t.ok("set" in ctx);
+        t.ok('set' in ctx);
       }
     });
 
-    fire(r.find("div"), "click");
+    fire(r.find('div'), 'click');
   });
 
   test(`the actual dom event is available as @event and event and original in @context`, t => {
@@ -310,13 +310,13 @@ export default function() {
       target: fixture,
       template: '<div on-click="@.check(@event, @context)" />',
       check(ev, ctx) {
-        t.ok(ev.target === r.find("div"));
+        t.ok(ev.target === r.find('div'));
         t.ok(ev === ctx.event);
         t.ok(ev === ctx.original);
       }
     });
 
-    fire(r.find("div"), "click");
+    fire(r.find('div'), 'click');
   });
 
   test(`custom event plugins can pass along a source dom event`, t => {
@@ -328,30 +328,30 @@ export default function() {
       events: {
         foo(node, fire) {
           const listener = ev => fire({ node, original: ev });
-          node.addEventListener("click", listener);
+          node.addEventListener('click', listener);
           return {
             teardown() {
-              node.removeEventListener("click", listener);
+              node.removeEventListener('click', listener);
             }
           };
         },
         bar(node, fire) {
           const listener = ev => fire({ node, event: ev });
-          node.addEventListener("click", listener);
+          node.addEventListener('click', listener);
           return {
             teardown() {
-              node.removeEventListener("click", listener);
+              node.removeEventListener('click', listener);
             }
           };
         }
       },
       check(ev, ctx) {
         t.ok(ev === ctx.event && ev === ctx.original);
-        t.ok(ev.target === ctx.node && ev.target === this.find("div"));
+        t.ok(ev.target === ctx.node && ev.target === this.find('div'));
       }
     });
 
-    fire(r.find("div"), "click");
+    fire(r.find('div'), 'click');
   });
 
   test(`the event directive's node is exposed as @node`, t => {
@@ -361,11 +361,11 @@ export default function() {
       data: { foo: {} }
     });
 
-    const input = r.find("input");
-    input.value = "yep";
-    fire(input, "change");
+    const input = r.find('input');
+    input.value = 'yep';
+    fire(input, 'change');
 
-    t.equal(r.get("foo.bar"), "yep");
+    t.equal(r.get('foo.bar'), 'yep');
   });
 
   test(`components can request that proxied events be fired with a specific context (#3067)`, t => {
@@ -375,7 +375,7 @@ export default function() {
         _click(context) {
           const ctx = this.getContext(context.node).getParent(true);
           ctx.refire = true;
-          this.fire("click", ctx);
+          this.fire('click', ctx);
         }
       }
     });
@@ -389,10 +389,10 @@ export default function() {
       components: { cmp }
     });
 
-    t.htmlEqual(fixture.innerHTML, "<span>click me</span>");
+    t.htmlEqual(fixture.innerHTML, '<span>click me</span>');
 
-    fire(r.find("span"), "click");
+    fire(r.find('span'), 'click');
 
-    t.htmlEqual(fixture.innerHTML, "clicked<span>click me</span>");
+    t.htmlEqual(fixture.innerHTML, 'clicked<span>click me</span>');
   });
 }
