@@ -97,6 +97,9 @@ function createMapping(item) {
           item.name
         }'`
       );
+
+      // if the item isn't going to manage the model, give it a chance to tear down if it's computed
+      if (model !== item.model) model.unregister();
     }
   } else {
     item.boundFragment = new Fragment({
