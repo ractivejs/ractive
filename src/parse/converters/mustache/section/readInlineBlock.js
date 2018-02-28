@@ -1,6 +1,6 @@
-import { CATCH, ELSE, ELSEIF, THEN } from "config/types";
-import readExpression from "../../readExpression";
-import { name } from "../../expressions/shared/patterns";
+import { CATCH, ELSE, ELSEIF, THEN } from 'config/types';
+import readExpression from '../../readExpression';
+import { name } from '../../expressions/shared/patterns';
 
 const patterns = {
   else: /^\s*else\s*/,
@@ -30,9 +30,9 @@ export default function readInlineBlock(parser, tag, type) {
 
   const res = { t: types[type] };
 
-  if (type === "elseif") {
+  if (type === 'elseif') {
     res.x = readExpression(parser);
-  } else if (type === "catch" || type === "then") {
+  } else if (type === 'catch' || type === 'then') {
     const nm = parser.matchPattern(name);
     if (nm) res.n = nm;
   }

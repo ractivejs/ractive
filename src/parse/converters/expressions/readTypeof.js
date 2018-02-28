@@ -1,7 +1,7 @@
-import { PREFIX_OPERATOR } from "config/types";
-import { expectedExpression } from "./shared/errors";
-import readMemberOrInvocation from "./readMemberOrInvocation";
-import readExpression from "../readExpression";
+import { PREFIX_OPERATOR } from 'config/types';
+import { expectedExpression } from './shared/errors';
+import readMemberOrInvocation from './readMemberOrInvocation';
+import readExpression from '../readExpression';
 
 let readTypeOf;
 
@@ -36,7 +36,7 @@ const makePrefixSequenceMatcher = function(symbol, fallthrough) {
 (function() {
   let i, len, matcher, fallthrough;
 
-  const prefixOperators = "! ~ + - typeof".split(" ");
+  const prefixOperators = '! ~ + - typeof'.split(' ');
 
   fallthrough = readMemberOrInvocation;
   for (i = 0, len = prefixOperators.length; i < len; i += 1) {

@@ -1,10 +1,10 @@
-import { createDocumentFragment, matches } from "utils/dom";
-import { detachNode } from "utils/dom";
-import { decodeCharacterReferences } from "utils/html";
-import runloop from "src/global/runloop";
-import Mustache from "./shared/Mustache";
-import insertHtml from "./triple/insertHtml";
-import { inAttribute } from "./element/Attribute";
+import { createDocumentFragment, matches } from 'utils/dom';
+import { detachNode } from 'utils/dom';
+import { decodeCharacterReferences } from 'utils/html';
+import runloop from 'src/global/runloop';
+import Mustache from './shared/Mustache';
+import insertHtml from './triple/insertHtml';
+import { inAttribute } from './element/Attribute';
 
 export default class Triple extends Mustache {
   constructor(options) {
@@ -64,7 +64,7 @@ export default class Triple extends Mustache {
 
   render(target, occupants, anchor) {
     if (!this.nodes) {
-      const html = this.model ? this.model.get() : "";
+      const html = this.model ? this.model.get() : '';
       this.nodes = insertHtml(html, target);
     }
 
@@ -121,7 +121,7 @@ export default class Triple extends Mustache {
 
   toString() {
     let value = this.model && this.model.get();
-    value = value != null ? "" + value : "";
+    value = value != null ? '' + value : '';
 
     return inAttribute() ? decodeCharacterReferences(value) : value;
   }

@@ -1,4 +1,4 @@
-import { create } from "utils/object";
+import { create } from 'utils/object';
 
 export default {
   // render placement:
@@ -11,10 +11,10 @@ export default {
 
   // parse:
   allowExpressions: true,
-  delimiters: ["{{", "}}"],
-  tripleDelimiters: ["{{{", "}}}"],
-  staticDelimiters: ["[[", "]]"],
-  staticTripleDelimiters: ["[[[", "]]]"],
+  delimiters: ['{{', '}}'],
+  tripleDelimiters: ['{{{', '}}}'],
+  staticDelimiters: ['[[', ']]'],
+  staticTripleDelimiters: ['[[[', ']]]'],
   csp: true,
   interpolate: false,
   preserveWhitespace: false,

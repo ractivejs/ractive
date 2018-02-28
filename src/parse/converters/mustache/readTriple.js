@@ -1,6 +1,6 @@
-import { TRIPLE } from "config/types";
-import readExpression from "../readExpression";
-import refineExpression from "parse/utils/refineExpression";
+import { TRIPLE } from 'config/types';
+import readExpression from '../readExpression';
+import refineExpression from 'parse/utils/refineExpression';
 
 export default function readTriple(parser, tag) {
   const expression = readExpression(parser);

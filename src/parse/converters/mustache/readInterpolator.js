@@ -1,6 +1,6 @@
-import { INTERPOLATOR } from "config/types";
-import readExpressionOrReference from "../readExpressionOrReference";
-import refineExpression from "parse/utils/refineExpression";
+import { INTERPOLATOR } from 'config/types';
+import readExpressionOrReference from '../readExpressionOrReference';
+import refineExpression from 'parse/utils/refineExpression';
 
 export default function readInterpolator(parser, tag) {
   let expression, err;
@@ -15,7 +15,7 @@ export default function readInterpolator(parser, tag) {
   }
 
   if (!expression) {
-    if (parser.str.charAt(start) === "!") {
+    if (parser.str.charAt(start) === '!') {
       // special case - comment
       parser.pos = start;
       return null;
@@ -31,7 +31,7 @@ export default function readInterpolator(parser, tag) {
 
     if (!expression) {
       // special case - comment
-      if (parser.nextChar() === "!") {
+      if (parser.nextChar() === '!') {
         return null;
       }
 

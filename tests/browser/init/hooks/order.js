@@ -1,15 +1,15 @@
-import { initModule } from "../../../helpers/test-config";
-import { test } from "qunit";
+import { initModule } from '../../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
-  initModule("init/hooks/order.js");
+  initModule('init/hooks/order.js');
 
-  const hooks = ["onconfig", "oninit", "onrender", "onunrender", "onteardown"];
+  const hooks = ['onconfig', 'oninit', 'onrender', 'onunrender', 'onteardown'];
 
-  test("basic order", t => {
+  test('basic order', t => {
     const options = {
       el: fixture,
-      template: "foo"
+      template: 'foo'
     };
 
     function addHook(hook) {
@@ -26,16 +26,16 @@ export default function() {
     ractive.teardown();
     t.deepEqual(fired, hooks);
 
-    addHook("onconstruct");
+    addHook('onconstruct');
     fired = [];
 
     const Component = Ractive.extend(options);
     ractive = new Component();
     ractive.teardown();
-    t.deepEqual(fired, ["onconstruct"].concat(hooks));
+    t.deepEqual(fired, ['onconstruct'].concat(hooks));
   });
 
-  test("hooks call _super", t => {
+  test('hooks call _super', t => {
     const superOptions = {};
     let options = {};
 
@@ -43,7 +43,7 @@ export default function() {
 
     hooks.forEach(hook => {
       superOptions[hook] = function() {
-        fired.push("super" + hook);
+        fired.push('super' + hook);
       };
     });
 
@@ -51,13 +51,13 @@ export default function() {
 
     options = {
       el: fixture,
-      template: "foo"
+      template: 'foo'
     };
 
     hooks.forEach(hook => {
       options[hook] = function(arg) {
         this._super(arg);
-        fired.push("instance" + hook);
+        fired.push('instance' + hook);
       };
     });
 
@@ -65,12 +65,12 @@ export default function() {
     ractive.teardown();
 
     hooks.forEach(hook => {
-      t.equal(fired.shift(), "super" + hook);
-      t.equal(fired.shift(), "instance" + hook);
+      t.equal(fired.shift(), 'super' + hook);
+      t.equal(fired.shift(), 'instance' + hook);
     });
   });
 
-  test("Component hooks called in consistent order (gh #589)", t => {
+  test('Component hooks called in consistent order (gh #589)', t => {
     const done = t.async();
 
     // construct and config temporarily commented out, see #1381
@@ -90,41 +90,41 @@ export default function() {
       teardown: []
     };
 
-    const simpsons = ["Homer", "Marge", "Lisa", "Bart", "Maggie"];
+    const simpsons = ['Homer', 'Marge', 'Lisa', 'Bart', 'Maggie'];
 
     const Simpson = Ractive.extend({
-      template: "{{simpson}}",
+      template: '{{simpson}}',
       onconstruct() {
-        this.on("init", () => {
-          event.init.push(this.get("simpson"));
+        this.on('init', () => {
+          event.init.push(this.get('simpson'));
         });
-        this.on("render", () => {
-          event.render.push(this.get("simpson"));
+        this.on('render', () => {
+          event.render.push(this.get('simpson'));
         });
-        this.on("complete", () => {
-          event.complete.push(this.get("simpson"));
+        this.on('complete', () => {
+          event.complete.push(this.get('simpson'));
         });
-        this.on("unrender", () => {
-          event.unrender.push(this.get("simpson"));
+        this.on('unrender', () => {
+          event.unrender.push(this.get('simpson'));
         });
-        this.on("teardown", () => {
-          event.teardown.push(this.get("simpson"));
+        this.on('teardown', () => {
+          event.teardown.push(this.get('simpson'));
         });
       },
       oninit() {
-        method.init.push(this.get("simpson"));
+        method.init.push(this.get('simpson'));
       },
       onrender() {
-        method.render.push(this.get("simpson"));
+        method.render.push(this.get('simpson'));
       },
       oncomplete() {
-        method.complete.push(this.get("simpson"));
+        method.complete.push(this.get('simpson'));
       },
       onunrender() {
-        method.unrender.push(this.get("simpson"));
+        method.unrender.push(this.get('simpson'));
       },
       onteardown() {
-        method.teardown.push(this.get("simpson"));
+        method.teardown.push(this.get('simpson'));
       }
     });
 
@@ -135,13 +135,13 @@ export default function() {
       components: { Simpson }
     });
 
-    t.equal(fixture.innerHTML, simpsons.join(""));
+    t.equal(fixture.innerHTML, simpsons.join(''));
 
     setTimeout(() => {
       ractive.teardown().then(() => {
         function testHooks(name, order) {
           Object.keys(order).forEach(hook => {
-            if (hook === "complete") {
+            if (hook === 'complete') {
               t.equal(order.complete.length, simpsons.length);
             } else {
               t.deepEqual(order[hook], simpsons, `${hook} ${name} order`);
@@ -149,8 +149,8 @@ export default function() {
           });
         }
 
-        testHooks("method", method);
-        testHooks("event", event);
+        testHooks('method', method);
+        testHooks('event', event);
         done();
       });
     });
@@ -170,24 +170,24 @@ export default function() {
         return options;
       }
 
-      let options = getOptions("grandchild");
-      options.template = "{{foo}}";
+      let options = getOptions('grandchild');
+      options.template = '{{foo}}';
       const GrandChild = Ractive.extend(options);
 
-      options = getOptions("child");
-      options.template = "<GrandChild/>";
+      options = getOptions('child');
+      options.template = '<GrandChild/>';
       options.components = { GrandChild };
       const Child = Ractive.extend(options);
 
-      options = getOptions("parent");
+      options = getOptions('parent');
       options.el = fixture;
-      options.template = "<Child/>";
-      options.data = { foo: "bar" };
+      options.template = '<Child/>';
+      options.data = { foo: 'bar' };
       options.components = { Child };
       const ractive = new Ractive(options);
 
-      const grandchild = ractive.findComponent("GrandChild");
-      grandchild.set("foo", "fizz");
+      const grandchild = ractive.findComponent('GrandChild');
+      grandchild.set('foo', 'fizz');
 
       setTimeout(() => {
         ractive.teardown().then(() => {
@@ -198,19 +198,19 @@ export default function() {
     });
   }
 
-  const topDown = ["parent", "child", "grandchild"];
-  const bottomUp = ["grandchild", "child", "parent"];
+  const topDown = ['parent', 'child', 'grandchild'];
+  const bottomUp = ['grandchild', 'child', 'parent'];
 
-  testHierarchy("onconstruct", ["child", "grandchild"]);
-  testHierarchy("onconfig", topDown);
-  testHierarchy("oninit", topDown);
-  testHierarchy("onrender", topDown);
+  testHierarchy('onconstruct', ['child', 'grandchild']);
+  testHierarchy('onconfig', topDown);
+  testHierarchy('oninit', topDown);
+  testHierarchy('onrender', topDown);
   //testHierarchy( 'onchange', bottomUp ); commented out temporarily, see #1381
-  testHierarchy("oncomplete", bottomUp);
-  testHierarchy("onunrender", bottomUp);
-  testHierarchy("onteardown", bottomUp);
+  testHierarchy('oncomplete', bottomUp);
+  testHierarchy('onunrender', bottomUp);
+  testHierarchy('onteardown', bottomUp);
 
-  test("destruct hook fires after everything is completely torn down, including element removal after transitions", t => {
+  test('destruct hook fires after everything is completely torn down, including element removal after transitions', t => {
     const done = t.async();
 
     let finish;
@@ -219,14 +219,14 @@ export default function() {
       finish = t.complete;
     };
     const cmp = Ractive.extend({
-      template: "<div foo-out />",
+      template: '<div foo-out />',
       onteardown() {
         t.ok(!finished);
-        t.ok(this.find("*"));
+        t.ok(this.find('*'));
       },
       ondestruct() {
         t.ok(finished);
-        t.ok(!fixture.querySelector("*"));
+        t.ok(!fixture.querySelector('*'));
       },
       isolated: false
     });
@@ -235,37 +235,37 @@ export default function() {
       target: fixture,
       transitions: { foo },
       components: { cmp },
-      template: "{{#if show}}<cmp />{{/if}}",
+      template: '{{#if show}}<cmp />{{/if}}',
       data: { show: true }
     });
 
-    r.on("cmp.teardown", function() {
+    r.on('cmp.teardown', function() {
       t.ok(!finished);
-      t.ok(this.find("*"));
+      t.ok(this.find('*'));
     });
 
-    r.on("cmp.destruct", () => {
+    r.on('cmp.destruct', () => {
       t.ok(finished);
-      t.ok(!fixture.querySelector("*"));
+      t.ok(!fixture.querySelector('*'));
       done();
     });
 
-    r.toggle("show");
+    r.toggle('show');
     finished = true;
     finish();
   });
 
-  test("Child events on render and complete should trigger proxy events", t => {
+  test('Child events on render and complete should trigger proxy events', t => {
     t.expect(2);
     const done = t.async();
 
     const Foo = Ractive.extend({
       template: `this is foo`,
       onrender() {
-        this.fire("foorender");
+        this.fire('foorender');
       },
       oncomplete() {
-        this.fire("foocompleted");
+        this.fire('foocompleted');
       }
     });
 

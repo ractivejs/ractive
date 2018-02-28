@@ -1,12 +1,12 @@
-import { doc } from "config/environment";
-import { applyCSS } from "src/global/css";
-import Hook from "src/events/Hook";
-import { getElement } from "utils/dom";
-import runloop from "src/global/runloop";
-import { createFragment } from "./initialise";
+import { doc } from 'config/environment';
+import { applyCSS } from 'src/global/css';
+import Hook from 'src/events/Hook';
+import { getElement } from 'utils/dom';
+import runloop from 'src/global/runloop';
+import { createFragment } from './initialise';
 
-const renderHook = new Hook("render");
-const completeHook = new Hook("complete");
+const renderHook = new Hook('render');
+const completeHook = new Hook('complete');
 
 export default function render(ractive, target, anchor, occupants) {
   // set a flag to let any transitions know that this instance is currently rendering
@@ -17,7 +17,7 @@ export default function render(ractive, target, anchor, occupants) {
 
   if (ractive.fragment.rendered) {
     throw new Error(
-      "You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first"
+      'You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first'
     );
   }
 

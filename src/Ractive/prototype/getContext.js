@@ -1,5 +1,5 @@
-import staticContext, { getNodeInfo as staticInfo } from "../static/getContext";
-import { isString } from "utils/is";
+import staticContext, { getNodeInfo as staticInfo } from '../static/getContext';
+import { isString } from 'utils/is';
 
 export default function getContext(node, options) {
   if (isString(node)) {

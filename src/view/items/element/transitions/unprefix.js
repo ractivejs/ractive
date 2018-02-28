@@ -1,7 +1,7 @@
-import { vendors } from "config/environment";
+import { vendors } from 'config/environment';
 
-const unprefixPattern = new RegExp("^-(?:" + vendors.join("|") + ")-");
+const unprefixPattern = new RegExp('^-(?:' + vendors.join('|') + ')-');
 
 export default function(prop) {
-  return prop.replace(unprefixPattern, "");
+  return prop.replace(unprefixPattern, '');
 }

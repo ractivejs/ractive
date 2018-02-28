@@ -1,5 +1,5 @@
-import { splitKeypath } from "./keypaths";
-import { isString } from "utils/is";
+import { splitKeypath } from './keypaths';
+import { isString } from 'utils/is';
 
 // this is the dry method of checking to see if a rebind applies to
 // a particular keypath because in some cases, a dep may be bound
@@ -13,14 +13,14 @@ export function rebindMatch(template, next, previous, fragment) {
 
   // completely contextual ref, go with next
   if (
-    keypath === "." ||
-    keypath[0] === "@" ||
+    keypath === '.' ||
+    keypath[0] === '@' ||
     (next || previous).isKey ||
     (next || previous).isKeypath
   )
     return next;
 
-  const parts = keypath.split("/");
+  const parts = keypath.split('/');
   let keys = splitKeypath(parts[parts.length - 1]);
   const last = keys[keys.length - 1];
 
@@ -60,7 +60,7 @@ function findAlias(name, fragment) {
         if (aliases[i].n === name) {
           const alias = aliases[i].x;
           if (!alias.r) return false;
-          const parts = alias.r.split("/");
+          const parts = alias.r.split('/');
           return splitKeypath(parts[parts.length - 1]);
         }
       }

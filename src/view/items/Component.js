@@ -1,10 +1,10 @@
-import runloop from "src/global/runloop";
-import { updateAnchors } from "shared/anchors";
-import { bind, render as callRender, unbind, unrender, update } from "shared/methodCallers";
-import { teardown } from "src/Ractive/prototype/teardown";
-import getRactiveContext from "shared/getRactiveContext";
-import { warnIfDebug } from "utils/log";
-import { createDocumentFragment } from "utils/dom";
+import runloop from 'src/global/runloop';
+import { updateAnchors } from 'shared/anchors';
+import { bind, render as callRender, unbind, unrender, update } from 'shared/methodCallers';
+import { teardown } from 'src/Ractive/prototype/teardown';
+import getRactiveContext from 'shared/getRactiveContext';
+import { warnIfDebug } from 'utils/log';
+import { createDocumentFragment } from 'utils/dom';
 import {
   ANCHOR,
   ATTRIBUTE,
@@ -14,16 +14,16 @@ import {
   EVENT,
   TRANSITION,
   YIELDER
-} from "config/types";
-import construct from "src/Ractive/construct";
-import initialise from "src/Ractive/initialise";
-import render from "src/Ractive/render";
-import Item from "./shared/Item";
-import ConditionalAttribute from "./element/ConditionalAttribute";
-import createItem from "./createItem";
-import parser from "src/Ractive/config/runtime-parser";
-import { assign, create } from "utils/object";
-import { isArray, isString } from "utils/is";
+} from 'config/types';
+import construct from 'src/Ractive/construct';
+import initialise from 'src/Ractive/initialise';
+import render from 'src/Ractive/render';
+import Item from './shared/Item';
+import ConditionalAttribute from './element/ConditionalAttribute';
+import createItem from './createItem';
+import parser from 'src/Ractive/config/runtime-parser';
+import { assign, create } from 'utils/object';
+import { isArray, isString } from 'utils/is';
 
 export default class Component extends Item {
   constructor(options, ComponentConstructor) {
@@ -34,7 +34,7 @@ export default class Component extends Item {
     let attrs = template.m;
 
     const partials = template.p || {};
-    if (!("content" in partials)) partials.content = template.f || [];
+    if (!('content' in partials)) partials.content = template.f || [];
     this._partials = partials; // TEMP
 
     if (this.isAnchor) {

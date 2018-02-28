@@ -1,5 +1,5 @@
-import readConditional from "./expressions/readConditional";
-import readReference from "./expressions/primary/readReference";
+import readConditional from './expressions/readConditional';
+import readReference from './expressions/primary/readReference';
 
 export default function readExpression(parser) {
   // if eval is false, no expressions

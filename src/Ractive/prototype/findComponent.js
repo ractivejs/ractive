@@ -1,9 +1,9 @@
-import { isObjectType } from "utils/is";
+import { isObjectType } from 'utils/is';
 
 export default function Ractive$findComponent(selector, options = {}) {
   if (isObjectType(selector)) {
     options = selector;
-    selector = "";
+    selector = '';
   }
 
   let child = this.fragment.findComponent(selector, options);

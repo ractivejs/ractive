@@ -1,9 +1,9 @@
-import { initModule } from "../helpers/test-config";
-import { createIsolatedEnv } from "../helpers/Environment";
-import QUnit, { test } from "qunit";
+import { initModule } from '../helpers/test-config';
+import { createIsolatedEnv } from '../helpers/Environment';
+import QUnit, { test } from 'qunit';
 
 export default function() {
-  initModule("getCss.js");
+  initModule('getCss.js');
 
   function createComponentDefinition(Ractive) {
     return Ractive.extend({
@@ -15,7 +15,7 @@ export default function() {
     });
   }
 
-  test("getCSS with a single component definition", t => {
+  test('getCSS with a single component definition', t => {
     const Component = createComponentDefinition(Ractive);
 
     const cssId = Component.prototype.cssId;
@@ -29,7 +29,7 @@ export default function() {
     );
   });
 
-  test("getCSS with multiple components definition", t => {
+  test('getCSS with multiple components definition', t => {
     const ComponentA = createComponentDefinition(Ractive);
 
     const ComponentB = createComponentDefinition(Ractive);
@@ -53,10 +53,10 @@ export default function() {
     );
   });
 
-  test("getCSS with a single component definition and an update", t => {
+  test('getCSS with a single component definition and an update', t => {
     const Component = Ractive.extend({
       css(d) {
-        return `.green { color: ${d.color || "green"}; }`;
+        return `.green { color: ${d.color || 'green'}; }`;
       }
     });
 
@@ -69,7 +69,7 @@ export default function() {
       )
     );
 
-    Component.styleSet("color", "red");
+    Component.styleSet('color', 'red');
 
     t.ok(
       !!~Ractive.getCSS().indexOf(
@@ -79,15 +79,15 @@ export default function() {
     );
   });
 
-  test("getCSS with multiple components definition and an update", t => {
+  test('getCSS with multiple components definition and an update', t => {
     const ComponentA = Ractive.extend({
       css(d) {
-        return `.green { color: ${d.color || "green"}; }`;
+        return `.green { color: ${d.color || 'green'}; }`;
       }
     });
     const ComponentB = Ractive.extend({
       css(d) {
-        return `.green { color: ${d.color || "green"}; }`;
+        return `.green { color: ${d.color || 'green'}; }`;
       }
     });
 
@@ -108,8 +108,8 @@ export default function() {
       )
     );
 
-    ComponentA.styleSet("color", "red");
-    ComponentB.styleSet("color", "red");
+    ComponentA.styleSet('color', 'red');
+    ComponentB.styleSet('color', 'red');
 
     t.ok(
       !!~Ractive.getCSS().indexOf(
@@ -126,7 +126,7 @@ export default function() {
   });
 
   if (!window.__karma__) {
-    test("getCSS with component definitions constructed from Ractive of different environments", t => {
+    test('getCSS with component definitions constructed from Ractive of different environments', t => {
       t.expect(5);
 
       // this test takes a while sometimes

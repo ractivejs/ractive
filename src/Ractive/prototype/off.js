@@ -1,6 +1,6 @@
-import { removeFromArray } from "utils/array";
-import trim from "./shared/trim";
-import notEmptyString from "./shared/notEmptyString";
+import { removeFromArray } from 'utils/array';
+import trim from './shared/trim';
+import notEmptyString from './shared/notEmptyString';
 
 export default function Ractive$off(eventName, callback) {
   // if no event is specified, remove _all_ event listeners
@@ -9,7 +9,7 @@ export default function Ractive$off(eventName, callback) {
   } else {
     // Handle multiple space-separated event names
     const eventNames = eventName
-      .split(" ")
+      .split(' ')
       .map(trim)
       .filter(notEmptyString);
 
@@ -22,11 +22,11 @@ export default function Ractive$off(eventName, callback) {
           removeFromArray(subs, entry);
           entry.off = true;
 
-          if (event.indexOf(".")) this._nsSubs--;
+          if (event.indexOf('.')) this._nsSubs--;
         }
       } else if (subs) {
         // otherwise, remove all listeners for this event
-        if (event.indexOf(".")) this._nsSubs -= subs.length;
+        if (event.indexOf('.')) this._nsSubs -= subs.length;
         subs.length = 0;
       }
     });

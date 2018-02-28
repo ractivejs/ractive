@@ -1,6 +1,6 @@
-import { isClient, vendors } from "config/environment";
-import { createElement } from "utils/dom";
-import hyphenateCamel from "utils/hyphenateCamel";
+import { isClient, vendors } from 'config/environment';
+import { createElement } from 'utils/dom';
+import hyphenateCamel from 'utils/hyphenateCamel';
 
 let prefix;
 
@@ -9,7 +9,7 @@ if (!isClient) {
   prefix = null;
 } else {
   const prefixCache = {};
-  const testStyle = createElement("div").style;
+  const testStyle = createElement('div').style;
 
   // technically this also normalizes on hyphenated styles as well
   prefix = function(prop) {

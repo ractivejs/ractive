@@ -1,12 +1,12 @@
-import { INFIX_OPERATOR } from "config/types";
-import readTypeof from "./readTypeof";
+import { INFIX_OPERATOR } from 'config/types';
+import readTypeof from './readTypeof';
 
 let readLogicalOr;
 
 const makeInfixSequenceMatcher = function(symbol, fallthrough) {
   return function(parser) {
     // > and / have to be quoted
-    if (parser.inUnquotedAttribute && (symbol === ">" || symbol === "/"))
+    if (parser.inUnquotedAttribute && (symbol === '>' || symbol === '/'))
       return fallthrough(parser);
 
     let start, left, right;
@@ -30,7 +30,7 @@ const makeInfixSequenceMatcher = function(symbol, fallthrough) {
       }
 
       // special case - in operator must not be followed by [a-zA-Z_$0-9]
-      if (symbol === "in" && /[a-zA-Z_$0-9]/.test(parser.remaining().charAt(0))) {
+      if (symbol === 'in' && /[a-zA-Z_$0-9]/.test(parser.remaining().charAt(0))) {
         parser.pos = start;
         return left;
       }
@@ -64,8 +64,8 @@ const makeInfixSequenceMatcher = function(symbol, fallthrough) {
   // Each sequence matcher will initially fall through to its higher precedence
   // neighbour, and only attempt to match if one of the higher precedence operators
   // (or, ultimately, a literal, reference, or bracketed expression) already matched
-  const infixOperators = "* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||".split(
-    " "
+  const infixOperators = '* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||'.split(
+    ' '
   );
 
   // A typeof operator is higher precedence than multiplication

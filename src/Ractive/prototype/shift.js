@@ -1,2 +1,2 @@
-import makeArrayMethod from "./shared/makeArrayMethod";
-export default makeArrayMethod("shift").path;
+import makeArrayMethod from './shared/makeArrayMethod';
+export default makeArrayMethod('shift').path;

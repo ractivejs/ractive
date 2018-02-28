@@ -1,38 +1,38 @@
-import { hasUsableConsole, onWarn, initModule } from "../../helpers/test-config";
-import { test } from "qunit";
+import { hasUsableConsole, onWarn, initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
-  initModule("init/extend.js");
+  initModule('init/extend.js');
 
-  test("multiple options arguments applied left to right", t => {
+  test('multiple options arguments applied left to right', t => {
     const X = Ractive.extend(
       {
-        template: "ignore",
-        data: { foo: "foo" }
+        template: 'ignore',
+        data: { foo: 'foo' }
       },
       {
-        template: "ignore",
-        data: { bar: "bar" }
+        template: 'ignore',
+        data: { bar: 'bar' }
       },
       {
-        template: "good",
-        data: { qux: "qux" }
+        template: 'good',
+        data: { qux: 'qux' }
       }
     );
 
     const ractive = new X();
 
-    t.equal(ractive.get("foo"), "foo");
-    t.equal(ractive.get("bar"), "bar");
-    t.equal(ractive.get("qux"), "qux");
+    t.equal(ractive.get('foo'), 'foo');
+    t.equal(ractive.get('bar'), 'bar');
+    t.equal(ractive.get('qux'), 'qux');
 
-    t.equal(ractive.template, "good");
+    t.equal(ractive.template, 'good');
   });
 
-  test("data is inherited from grand parent extend (#923)", t => {
+  test('data is inherited from grand parent extend (#923)', t => {
     const Child = Ractive.extend({
       append: true,
-      template: "title:{{format(title)}}",
+      template: 'title:{{format(title)}}',
       data: {
         format(title) {
           return title.toUpperCase();
@@ -44,19 +44,19 @@ export default function() {
 
     new Child({
       el: fixture,
-      data: { title: "child" }
+      data: { title: 'child' }
     });
 
     new Grandchild({
       el: fixture,
-      data: { title: "grandchild" }
+      data: { title: 'grandchild' }
     });
 
-    t.equal(fixture.innerHTML, "title:CHILDtitle:GRANDCHILD");
+    t.equal(fixture.innerHTML, 'title:CHILDtitle:GRANDCHILD');
   });
 
-  test("instantiated .extend() component with data function called on initialize", t => {
-    const data = { foo: "bar" };
+  test('instantiated .extend() component with data function called on initialize', t => {
+    const data = { foo: 'bar' };
 
     const Component = Ractive.extend({
       data() {
@@ -68,11 +68,11 @@ export default function() {
     t.strictEqual(ractive.viewmodel.value, data);
   });
 
-  test("extend data option includes Ractive defaults.data", t => {
+  test('extend data option includes Ractive defaults.data', t => {
     const defaultData = Ractive.defaults.data;
     Ractive.defaults.data = {
       format() {
-        return "default";
+        return 'default';
       },
       defaultOnly: {}
     };
@@ -80,7 +80,7 @@ export default function() {
     const Component = Ractive.extend({
       data: () => ({
         format() {
-          return "component";
+          return 'component';
         },
         componentOnly: {}
       })
@@ -88,51 +88,51 @@ export default function() {
 
     const ractive = new Component({
       el: fixture,
-      template: "{{format()}}",
-      data: { foo: "bar" }
+      template: '{{format()}}',
+      data: { foo: 'bar' }
     });
 
-    t.ok(ractive.get("foo"), "has instance data");
-    t.ok(ractive.get("componentOnly"), "has Component data");
-    t.ok(ractive.get("defaultOnly"), "has Ractive.default data");
-    t.equal(fixture.innerHTML, "component");
+    t.ok(ractive.get('foo'), 'has instance data');
+    t.ok(ractive.get('componentOnly'), 'has Component data');
+    t.ok(ractive.get('defaultOnly'), 'has Ractive.default data');
+    t.equal(fixture.innerHTML, 'component');
 
     Ractive.defaults.data = defaultData;
   });
 
-  test("instantiated .extend() with template function called on initialize", t => {
+  test('instantiated .extend() with template function called on initialize', t => {
     const Component = Ractive.extend({
       template() {
-        return "{{foo}}";
+        return '{{foo}}';
       }
     });
 
     new Component({
       el: fixture,
-      data: { foo: "bar" }
+      data: { foo: 'bar' }
     });
 
-    t.equal(fixture.innerHTML, "bar");
+    t.equal(fixture.innerHTML, 'bar');
   });
 
-  test("extend template replaces Ractive defaults.template", t => {
+  test('extend template replaces Ractive defaults.template', t => {
     const defaultTemplate = Ractive.defaults.template;
     Ractive.defaults.template = function() {
-      return "{{fizz}}";
+      return '{{fizz}}';
     };
 
     const Component = Ractive.extend({
       template() {
-        return "{{foo}}";
+        return '{{foo}}';
       }
     });
 
     new Component({
       el: fixture,
-      data: { foo: "bar", fizz: "bizz" }
+      data: { foo: 'bar', fizz: 'bizz' }
     });
 
-    t.equal(fixture.innerHTML, "bar");
+    t.equal(fixture.innerHTML, 'bar');
 
     Ractive.defaults.template = defaultTemplate;
   });
@@ -167,22 +167,22 @@ export default function() {
 
   test('"parent" and "root" properties are correctly set', t => {
     const GrandChild = Ractive.extend({
-      template: "this space for rent"
+      template: 'this space for rent'
     });
 
     const Child = Ractive.extend({
-      template: "<GrandChild/>",
+      template: '<GrandChild/>',
       components: { GrandChild }
     });
 
     const ractive = new Ractive({
       el: fixture,
-      template: "<Child/>",
+      template: '<Child/>',
       components: { Child }
     });
 
-    const child = ractive.findComponent("Child");
-    const grandchild = ractive.findComponent("GrandChild");
+    const child = ractive.findComponent('Child');
+    const grandchild = ractive.findComponent('GrandChild');
 
     t.equal(ractive.root, ractive);
     t.ok(!ractive.parent);
@@ -195,11 +195,11 @@ export default function() {
   });
 
   if (hasUsableConsole) {
-    test("data function returning wrong value causes error/warning", t => {
+    test('data function returning wrong value causes error/warning', t => {
       // non-objects are an error
       const Bad = Ractive.extend({
         data() {
-          return "disallowed";
+          return 'disallowed';
         }
       });
 
@@ -222,7 +222,7 @@ export default function() {
     });
   }
 
-  test("children inherit subscribers", t => {
+  test('children inherit subscribers', t => {
     t.expect(7);
 
     const cmp = Ractive.extend({
@@ -255,10 +255,10 @@ export default function() {
 
     const r = new two();
 
-    r.fire("foo");
-    r.fire("bar");
-    r.toggle("foo");
-    r.toggle("bar");
+    r.fire('foo');
+    r.fire('bar');
+    r.toggle('foo');
+    r.toggle('bar');
   });
 
   test(`inherited lifecycle events fire in the correct order`, t => {
@@ -266,22 +266,22 @@ export default function() {
     const cmp = Ractive.extend({
       on: {
         construct() {
-          ev.push("construct1");
+          ev.push('construct1');
         },
         config() {
-          ev.push("config1");
+          ev.push('config1');
         },
         init() {
-          ev.push("init1");
+          ev.push('init1');
         },
         render() {
-          ev.push("render1");
+          ev.push('render1');
         },
         unrender() {
-          ev.push("unrender1");
+          ev.push('unrender1');
         },
         teardown() {
-          ev.push("teardown1");
+          ev.push('teardown1');
         }
       }
     });
@@ -289,47 +289,47 @@ export default function() {
     const two = cmp.extend({
       on: {
         construct() {
-          ev.push("construct2");
+          ev.push('construct2');
         },
         config() {
-          ev.push("config2");
+          ev.push('config2');
         },
         init() {
-          ev.push("init2");
+          ev.push('init2');
         },
         render() {
-          ev.push("render2");
+          ev.push('render2');
         },
         unrender() {
-          ev.push("unrender2");
+          ev.push('unrender2');
         },
         teardown() {
-          ev.push("teardown2");
+          ev.push('teardown2');
         }
       }
     });
 
     const r = new two({
-      template: "hello",
+      template: 'hello',
       target: fixture,
       on: {
         construct() {
-          ev.push("construct3");
+          ev.push('construct3');
         },
         config() {
-          ev.push("config3");
+          ev.push('config3');
         },
         init() {
-          ev.push("init3");
+          ev.push('init3');
         },
         render() {
-          ev.push("render3");
+          ev.push('render3');
         },
         unrender() {
-          ev.push("unrender3");
+          ev.push('unrender3');
         },
         teardown() {
-          ev.push("teardown3");
+          ev.push('teardown3');
         }
       }
     });
@@ -337,8 +337,8 @@ export default function() {
     r.teardown();
 
     t.equal(
-      ev.join(" "),
-      "construct1 construct2 construct3 config1 config2 config3 init1 init2 init3 render1 render2 render3 unrender1 unrender2 unrender3 teardown1 teardown2 teardown3"
+      ev.join(' '),
+      'construct1 construct2 construct3 config1 config2 config3 init1 init2 init3 render1 render2 render3 unrender1 unrender2 unrender3 teardown1 teardown2 teardown3'
     );
   });
 
@@ -349,12 +349,12 @@ export default function() {
       }
 
       go() {
-        this.set("name", "classy");
+        this.set('name', 'classy');
       }
     }
 
     Ractive.extendWith(Foo, {
-      template: "hello, {{name}}"
+      template: 'hello, {{name}}'
     });
 
     const f = new Foo({
@@ -362,7 +362,7 @@ export default function() {
     });
 
     f.go();
-    t.htmlEqual(fixture.innerHTML, "hello, classy");
+    t.htmlEqual(fixture.innerHTML, 'hello, classy');
   });
 
   test(`existing constructors supplied to extend should inherit from Ractive`, t => {
@@ -417,10 +417,10 @@ export default function() {
 
     new cmp({
       target: fixture,
-      template: "{{foo}} {{bar}}"
+      template: '{{foo}} {{bar}}'
     });
 
-    t.htmlEqual(fixture.innerHTML, "1 2");
+    t.htmlEqual(fixture.innerHTML, '1 2');
   });
 
   test(`trying to extend with a component  arg throws`, t => {
@@ -430,54 +430,54 @@ export default function() {
     }, /no longer supports multiple inheritance/);
   });
 
-  test("Default template", t => {
-    const Component = Ractive.extend({ template: "" });
+  test('Default template', t => {
+    const Component = Ractive.extend({ template: '' });
     const template = Component.prototype.template;
 
-    t.ok(template, "on prototype");
-    t.ok(Object.prototype.toString.call(template), "is an object");
-    t.ok(template.v, "has a version");
-    t.ok(template.t, "has a template");
-    t.strictEqual(template.t.length, 0, "has no items");
+    t.ok(template, 'on prototype');
+    t.ok(Object.prototype.toString.call(template), 'is an object');
+    t.ok(template.v, 'has a version');
+    t.ok(template.t, 'has a template');
+    t.strictEqual(template.t.length, 0, 'has no items');
   });
 
-  test("Empty template", t => {
-    const Parent = Ractive.extend({ template: "" });
+  test('Empty template', t => {
+    const Parent = Ractive.extend({ template: '' });
     const Child = Parent.extend();
     const template = Child.prototype.template;
 
-    t.ok(template, "on prototype");
-    t.ok(Object.prototype.toString.call(template), "is an object");
-    t.ok(template.v, "has a version");
-    t.ok(template.t, "has a template");
-    t.strictEqual(template.t.length, 0, "has no items");
+    t.ok(template, 'on prototype');
+    t.ok(Object.prototype.toString.call(template), 'is an object');
+    t.ok(template.v, 'has a version');
+    t.ok(template.t, 'has a template');
+    t.strictEqual(template.t.length, 0, 'has no items');
   });
 
-  test("Non-empty template", t => {
-    const Parent = Ractive.extend({ template: "" });
-    const Child = Parent.extend({ template: "{{ foo }}" });
+  test('Non-empty template', t => {
+    const Parent = Ractive.extend({ template: '' });
+    const Child = Parent.extend({ template: '{{ foo }}' });
     const template = Child.prototype.template;
 
-    t.deepEqual(template, { v: 4, t: [{ r: "foo", t: 2 }] });
+    t.deepEqual(template, { v: 4, t: [{ r: 'foo', t: 2 }] });
   });
 
-  test("Multiple configuration", t => {
-    const Parent = Ractive.extend({ template: "" });
-    const Child = Parent.extend({ template: "{{ foo }}" }, { template: "{{ bar }}" });
+  test('Multiple configuration', t => {
+    const Parent = Ractive.extend({ template: '' });
+    const Child = Parent.extend({ template: '{{ foo }}' }, { template: '{{ bar }}' });
     const template = Child.prototype.template;
 
-    t.deepEqual(template, { v: 4, t: [{ r: "bar", t: 2 }] });
+    t.deepEqual(template, { v: 4, t: [{ r: 'bar', t: 2 }] });
   });
 
-  test("Child parse options", t => {
-    const Parent = Ractive.extend({ template: "" });
+  test('Child parse options', t => {
+    const Parent = Ractive.extend({ template: '' });
     const Child = Parent.extend({
-      template: "<#foo#>",
-      delimiters: ["<#", "#>"]
+      template: '<#foo#>',
+      delimiters: ['<#', '#>']
     });
     const template = Child.prototype.template;
 
-    t.deepEqual(template, { v: 4, t: [{ r: "foo", t: 2 }] });
+    t.deepEqual(template, { v: 4, t: [{ r: 'foo', t: 2 }] });
   });
 
   test(`Ractive and Parent are exposed`, t => {

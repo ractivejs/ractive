@@ -1,16 +1,16 @@
-import { ELEMENT, PARTIAL, SECTION, SECTION_WITH, YIELDER } from "config/types";
-import { assign, create, hasOwn, keys } from "utils/object";
-import { isArray, isFunction, isObjectType, isString } from "utils/is";
-import noop from "utils/noop";
-import { MustacheContainer } from "./shared/Mustache";
-import Fragment from "../Fragment";
-import getPartialTemplate from "./partial/getPartialTemplate";
-import { resolveAliases } from "./Alias";
-import { warnOnceIfDebug, warnIfDebug } from "utils/log";
-import parser from "src/Ractive/config/runtime-parser";
-import runloop from "src/global/runloop";
-import { applyCSS } from "src/global/css";
-import { splitKeypath } from "shared/keypaths";
+import { ELEMENT, PARTIAL, SECTION, SECTION_WITH, YIELDER } from 'config/types';
+import { assign, create, hasOwn, keys } from 'utils/object';
+import { isArray, isFunction, isObjectType, isString } from 'utils/is';
+import noop from 'utils/noop';
+import { MustacheContainer } from './shared/Mustache';
+import Fragment from '../Fragment';
+import getPartialTemplate from './partial/getPartialTemplate';
+import { resolveAliases } from './Alias';
+import { warnOnceIfDebug, warnIfDebug } from 'utils/log';
+import parser from 'src/Ractive/config/runtime-parser';
+import runloop from 'src/global/runloop';
+import { applyCSS } from 'src/global/css';
+import { splitKeypath } from 'shared/keypaths';
 
 export default function Partial(options) {
   MustacheContainer.call(this, options);
@@ -48,7 +48,7 @@ assign(proto, {
         this.up = this.component.up;
 
         // {{yield}} is equivalent to {{yield content}}
-        if (!template.r && !template.x && !template.tx) this.refName = "content";
+        if (!template.r && !template.x && !template.tx) this.refName = 'content';
       } else {
         // plain-ish instance that may be attached to a parent later
         this.fragment = new Fragment({
@@ -255,7 +255,7 @@ function partialFromValue(self, value, okToParse) {
     self.fn = tpl;
     if (self.fragment) self.fragment.cssIds = tpl._cssIds;
   } else if (tpl != null) {
-    tpl = getPartialTemplate(self.ractive, "" + tpl, self.containerFragment || self.up);
+    tpl = getPartialTemplate(self.ractive, '' + tpl, self.containerFragment || self.up);
     if (tpl) {
       self.name = value;
       if (tpl.styleSet) {
@@ -263,7 +263,7 @@ function partialFromValue(self, value, okToParse) {
         if (self.fragment) self.fragment.cssIds = tpl._cssIds;
       } else self.partial = tpl;
     } else if (okToParse) {
-      self.partial = parsePartial("" + value, "" + value, self.ractive).t;
+      self.partial = parsePartial('' + value, '' + value, self.ractive).t;
     } else {
       self.name = value;
     }
@@ -302,7 +302,7 @@ function aliasLocal(ref, name) {
   }
 }
 
-const extras = "extra-attributes";
+const extras = 'extra-attributes';
 
 function initMacro(self) {
   const fn = self.fn;
@@ -321,7 +321,7 @@ function initMacro(self) {
 
   if (!template.p) template.p = {};
   template.p = handle.partials = assign({}, template.p);
-  if (!hasOwn(template.p, "content")) template.p.content = template.f || [];
+  if (!hasOwn(template.p, 'content')) template.p.content = template.f || [];
 
   if (isArray(fn.attributes)) {
     self._attrs = {};

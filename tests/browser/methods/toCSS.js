@@ -1,9 +1,9 @@
-import { initModule } from "../../helpers/test-config";
-import { createIsolatedEnv } from "../../helpers/Environment";
-import QUnit, { test } from "qunit";
+import { initModule } from '../../helpers/test-config';
+import { createIsolatedEnv } from '../../helpers/Environment';
+import QUnit, { test } from 'qunit';
 
 export default function() {
-  initModule("methods/toCSS.js");
+  initModule('methods/toCSS.js');
 
   function createComponentDefinition(Ractive) {
     return Ractive.extend({
@@ -17,7 +17,7 @@ export default function() {
     });
   }
 
-  test("toCSS with a single component instance", t => {
+  test('toCSS with a single component instance', t => {
     const Component = Ractive.extend({
       template: `<div></div>`,
       css: `
@@ -45,7 +45,7 @@ export default function() {
     app.teardown();
   });
 
-  test("toCSS with nested component instances", t => {
+  test('toCSS with nested component instances', t => {
     const GrandChildComponent = Ractive.extend({
       template: `<div></div>`,
       css: `
@@ -120,7 +120,7 @@ export default function() {
   });
 
   if (!window.__karma__) {
-    test("toCSS with components constructed from Ractive of different environments", t => {
+    test('toCSS with components constructed from Ractive of different environments', t => {
       t.expect(5);
 
       // this test takes a while sometimes
@@ -201,7 +201,7 @@ export default function() {
     });
   }
 
-  test("toCSS with a Ractive instance", t => {
+  test('toCSS with a Ractive instance', t => {
     const app = new Ractive({
       el: fixture,
       template: `<div></div>`,

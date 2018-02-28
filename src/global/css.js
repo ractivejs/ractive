@@ -1,6 +1,6 @@
-import { doc } from "../config/environment";
+import { doc } from '../config/environment';
 
-const PREFIX = "/* Ractive.js component styles */";
+const PREFIX = '/* Ractive.js component styles */';
 
 // Holds current definitions of styles.
 const styleDefinitions = [];
@@ -41,7 +41,7 @@ export function getCSS(cssIds) {
   filteredStyleDefinitions.forEach(d => (d.applied = true));
 
   return filteredStyleDefinitions.reduce(
-    (styles, style) => `${styles ? `${styles}\n\n/* {${style.id}} */\n${style.styles}` : ""}`,
+    (styles, style) => `${styles ? `${styles}\n\n/* {${style.id}} */\n${style.styles}` : ''}`,
     PREFIX
   );
 }
@@ -49,11 +49,11 @@ export function getCSS(cssIds) {
 function style() {
   // If we're on the browser, additional setup needed.
   if (doc && !styleElement) {
-    styleElement = doc.createElement("style");
-    styleElement.type = "text/css";
-    styleElement.setAttribute("data-ractive-css", "");
+    styleElement = doc.createElement('style');
+    styleElement.type = 'text/css';
+    styleElement.setAttribute('data-ractive-css', '');
 
-    doc.getElementsByTagName("head")[0].appendChild(styleElement);
+    doc.getElementsByTagName('head')[0].appendChild(styleElement);
 
     useCssText = !!styleElement.styleSheet;
   }

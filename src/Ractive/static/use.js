@@ -1,4 +1,4 @@
-import { isFunction } from "utils/is";
+import { isFunction } from 'utils/is';
 
 export default function use(...plugins) {
   plugins.forEach(p => {

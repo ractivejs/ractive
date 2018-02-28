@@ -1,4 +1,4 @@
-import { isString } from "utils/is";
+import { isString } from 'utils/is';
 
 const refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 const splitPattern = /([^\\](?:\\\\)*)\./;
@@ -7,14 +7,14 @@ const unescapeKeyPattern = /((?:\\)+)\1|\\(\.)/g;
 
 export function escapeKey(key) {
   if (isString(key)) {
-    return key.replace(escapeKeyPattern, "\\$&");
+    return key.replace(escapeKeyPattern, '\\$&');
   }
 
   return key;
 }
 
 export function normalise(ref) {
-  return ref ? ref.replace(refPattern, ".$1") : "";
+  return ref ? ref.replace(refPattern, '.$1') : '';
 }
 
 export function splitKeypath(keypath) {
@@ -36,7 +36,7 @@ export function splitKeypath(keypath) {
 
 export function unescapeKey(key) {
   if (isString(key)) {
-    return key.replace(unescapeKeyPattern, "$1$2");
+    return key.replace(unescapeKeyPattern, '$1$2');
   }
 
   return key;

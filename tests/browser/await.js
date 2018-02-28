@@ -1,17 +1,17 @@
-import { initModule } from "../helpers/test-config";
-import { test } from "qunit";
+import { initModule } from '../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
-  initModule("await");
+  initModule('await');
 
   test(`await with non-promise`, t => {
     new Ractive({
       target: fixture,
-      template: "{{#await foo}}wait{{then val}}done: {{val}}{{/await}}",
+      template: '{{#await foo}}wait{{then val}}done: {{val}}{{/await}}',
       data: { foo: 42 }
     });
 
-    t.htmlEqual(fixture.innerHTML, "done: 42");
+    t.htmlEqual(fixture.innerHTML, 'done: 42');
   });
 
   test(`await with a swapped out promise`, t => {
@@ -20,32 +20,32 @@ export default function() {
 
     const r = new Ractive({
       target: fixture,
-      template: "{{#await promise}}wait{{then}}done{{catch}}error{{/await}}",
+      template: '{{#await promise}}wait{{then}}done{{catch}}error{{/await}}',
       data: {
         promise: 42
       }
     });
 
-    t.htmlEqual(fixture.innerHTML, "done");
+    t.htmlEqual(fixture.innerHTML, 'done');
 
     let ok;
     let pr = new Promise(y => {
       ok = y;
     });
 
-    r.set("promise", pr);
+    r.set('promise', pr);
 
-    t.htmlEqual(fixture.innerHTML, "wait");
+    t.htmlEqual(fixture.innerHTML, 'wait');
     ok(99);
 
     pr.then(() => {
-      t.htmlEqual(fixture.innerHTML, "done");
+      t.htmlEqual(fixture.innerHTML, 'done');
 
-      pr = Promise.reject("nope");
-      r.set("promise", pr);
+      pr = Promise.reject('nope');
+      r.set('promise', pr);
 
       pr.then(null, () => {
-        t.htmlEqual(fixture.innerHTML, "error");
+        t.htmlEqual(fixture.innerHTML, 'error');
         done();
       });
     });
@@ -58,14 +58,14 @@ export default function() {
     const pr = Promise.resolve(42);
     new Ractive({
       target: fixture,
-      template: "{{#await promise}}wait{{then val}}{{val}}{{catch e}}{{e}}{{/await}}",
+      template: '{{#await promise}}wait{{then val}}{{val}}{{catch e}}{{e}}{{/await}}',
       data: { promise: pr }
     });
 
-    t.htmlEqual(fixture.innerHTML, "wait");
+    t.htmlEqual(fixture.innerHTML, 'wait');
 
     pr.then(() => {
-      t.htmlEqual(fixture.innerHTML, "42");
+      t.htmlEqual(fixture.innerHTML, '42');
       done();
     });
   });
@@ -77,14 +77,14 @@ export default function() {
     const pr = Promise.reject(42);
     new Ractive({
       target: fixture,
-      template: "{{#await promise}}wait{{then val}}{{val}}{{catch e}}{{e}}{{/await}}",
+      template: '{{#await promise}}wait{{then val}}{{val}}{{catch e}}{{e}}{{/await}}',
       data: { promise: pr }
     });
 
-    t.htmlEqual(fixture.innerHTML, "wait");
+    t.htmlEqual(fixture.innerHTML, 'wait');
 
     pr.then(null, () => {
-      t.htmlEqual(fixture.innerHTML, "42");
+      t.htmlEqual(fixture.innerHTML, '42');
       done();
     });
   });
@@ -96,14 +96,14 @@ export default function() {
     const pr = Promise.resolve(42);
     new Ractive({
       target: fixture,
-      template: "{{#await promise}}wait{{catch e}}{{e}}{{/await}}",
+      template: '{{#await promise}}wait{{catch e}}{{e}}{{/await}}',
       data: { promise: pr }
     });
 
-    t.htmlEqual(fixture.innerHTML, "wait");
+    t.htmlEqual(fixture.innerHTML, 'wait');
 
     pr.then(() => {
-      t.htmlEqual(fixture.innerHTML, "");
+      t.htmlEqual(fixture.innerHTML, '');
       done();
     });
   });
@@ -115,14 +115,14 @@ export default function() {
     const pr = Promise.reject(42);
     new Ractive({
       target: fixture,
-      template: "{{#await promise}}wait{{then val}}{{val}}{{/await}}",
+      template: '{{#await promise}}wait{{then val}}{{val}}{{/await}}',
       data: { promise: pr }
     });
 
-    t.htmlEqual(fixture.innerHTML, "wait");
+    t.htmlEqual(fixture.innerHTML, 'wait');
 
     pr.then(null, () => {
-      t.htmlEqual(fixture.innerHTML, "");
+      t.htmlEqual(fixture.innerHTML, '');
       done();
     });
   });
@@ -134,14 +134,14 @@ export default function() {
     const pr = Promise.resolve(42);
     new Ractive({
       target: fixture,
-      template: "{{#await promise}}{{then val}}{{val}}{{/await}}",
+      template: '{{#await promise}}{{then val}}{{val}}{{/await}}',
       data: { promise: pr }
     });
 
-    t.htmlEqual(fixture.innerHTML, "");
+    t.htmlEqual(fixture.innerHTML, '');
 
     pr.then(() => {
-      t.htmlEqual(fixture.innerHTML, "42");
+      t.htmlEqual(fixture.innerHTML, '42');
       done();
     });
   });
@@ -154,16 +154,16 @@ export default function() {
     const pr = new Promise(y => (ok = y));
     const r = new Ractive({
       target: fixture,
-      template: "{{#await promise}}wait{{else}}undefined{{/await}}"
+      template: '{{#await promise}}wait{{else}}undefined{{/await}}'
     });
 
-    t.htmlEqual(fixture.innerHTML, "undefined");
-    r.set("promise", pr);
-    t.htmlEqual(fixture.innerHTML, "wait");
+    t.htmlEqual(fixture.innerHTML, 'undefined');
+    r.set('promise', pr);
+    t.htmlEqual(fixture.innerHTML, 'wait');
     ok(42);
 
     pr.then(() => {
-      t.htmlEqual(fixture.innerHTML, "");
+      t.htmlEqual(fixture.innerHTML, '');
       done();
     });
   });
@@ -175,14 +175,14 @@ export default function() {
     const pr = Promise.resolve(42);
     new Ractive({
       target: fixture,
-      template: "{{#await promise}}wait{{then}}done{{/await}}",
+      template: '{{#await promise}}wait{{then}}done{{/await}}',
       data: { promise: pr }
     });
 
-    t.htmlEqual(fixture.innerHTML, "wait");
+    t.htmlEqual(fixture.innerHTML, 'wait');
 
     pr.then(() => {
-      t.htmlEqual(fixture.innerHTML, "done");
+      t.htmlEqual(fixture.innerHTML, 'done');
       done();
     });
   });
@@ -194,14 +194,14 @@ export default function() {
     const pr = Promise.reject(42);
     new Ractive({
       target: fixture,
-      template: "{{#await promise}}wait{{catch}}error{{/await}}",
+      template: '{{#await promise}}wait{{catch}}error{{/await}}',
       data: { promise: pr }
     });
 
-    t.htmlEqual(fixture.innerHTML, "wait");
+    t.htmlEqual(fixture.innerHTML, 'wait');
 
     pr.then(null, () => {
-      t.htmlEqual(fixture.innerHTML, "error");
+      t.htmlEqual(fixture.innerHTML, 'error');
       done();
     });
   });
@@ -210,7 +210,7 @@ export default function() {
     t.throws(() => {
       new Ractive({
         target: fixture,
-        template: "{{#await promise}}wait{{catch e}}error{{then}}nope{{/await}}"
+        template: '{{#await promise}}wait{{catch e}}error{{then}}nope{{/await}}'
       });
     }, /block must appear before/);
   });
@@ -219,7 +219,7 @@ export default function() {
     t.throws(() => {
       new Ractive({
         target: fixture,
-        template: "{{#await promise}}wait{{then one}}ok{{then}}nope{{/await}}"
+        template: '{{#await promise}}wait{{then one}}ok{{then}}nope{{/await}}'
       });
     }, /there can only be one/);
   });
@@ -228,7 +228,7 @@ export default function() {
     t.throws(() => {
       new Ractive({
         target: fixture,
-        template: "{{#await promise}}wait{{then ok}}ok{{catch one}}ok err{{catch}}nope{{/await}}"
+        template: '{{#await promise}}wait{{then ok}}ok{{catch one}}ok err{{catch}}nope{{/await}}'
       });
     }, /there can only be one/);
   });
@@ -237,7 +237,7 @@ export default function() {
     t.throws(() => {
       new Ractive({
         target: fixture,
-        template: "{{#await promise}}wait{{else}}ok{{then}}nope{{/await}}"
+        template: '{{#await promise}}wait{{else}}ok{{then}}nope{{/await}}'
       });
     }, /block must appear before/);
   });
@@ -246,7 +246,7 @@ export default function() {
     t.throws(() => {
       new Ractive({
         target: fixture,
-        template: "{{#await promise}}wait{{else}}ok{{catch}}nope{{/await}}"
+        template: '{{#await promise}}wait{{else}}ok{{catch}}nope{{/await}}'
       });
     }, /block must appear before/);
   });
@@ -255,7 +255,7 @@ export default function() {
     t.throws(() => {
       new Ractive({
         target: fixture,
-        template: "{{#await promise}}wait{{else}}ok{{else}}nope{{/await}}"
+        template: '{{#await promise}}wait{{else}}ok{{else}}nope{{/await}}'
       });
     }, /there can only be one/);
   });
@@ -264,17 +264,17 @@ export default function() {
     const done = t.async();
     t.expect(2);
 
-    const pr = Promise.resolve("yep");
+    const pr = Promise.resolve('yep');
     new Ractive({
       target: fixture,
-      template: "{{#await promise}}wait{{then bar}}{{bar}}{{/await}}",
-      data: { promise: pr, bar: "nope" }
+      template: '{{#await promise}}wait{{then bar}}{{bar}}{{/await}}',
+      data: { promise: pr, bar: 'nope' }
     });
 
-    t.htmlEqual(fixture.innerHTML, "wait");
+    t.htmlEqual(fixture.innerHTML, 'wait');
 
     pr.then(() => {
-      t.htmlEqual(fixture.innerHTML, "yep");
+      t.htmlEqual(fixture.innerHTML, 'yep');
       done();
     });
   });
@@ -306,7 +306,7 @@ export default function() {
 
     t.htmlEqual(
       fixture.innerHTML,
-      "<h1>Promises</h1><h2>See my list</h2><div>1</div><div>2</div><div>3</div> etc"
+      '<h1>Promises</h1><h2>See my list</h2><div>1</div><div>2</div><div>3</div> etc'
     );
 
     let ok;
@@ -314,24 +314,24 @@ export default function() {
       ok = y;
     });
 
-    r.set("promise", pr);
+    r.set('promise', pr);
 
     t.htmlEqual(fixture.innerHTML, `<h1>Promises</h1><i>I'm probably</i> waiting... etc`);
-    r.toggle("something");
+    r.toggle('something');
     t.htmlEqual(fixture.innerHTML, `<h1>Promises</h1><b>I'm</b> waiting... etc`);
-    ok(["a", "b", "c"]);
+    ok(['a', 'b', 'c']);
 
     pr.then(() => {
       t.htmlEqual(
         fixture.innerHTML,
-        "<h1>Promises</h1><h2>See my list</h2><div>a</div><div>b</div><div>c</div> etc"
+        '<h1>Promises</h1><h2>See my list</h2><div>a</div><div>b</div><div>c</div> etc'
       );
 
-      pr = Promise.reject(new Error("nope"));
-      r.set("promise", pr);
+      pr = Promise.reject(new Error('nope'));
+      r.set('promise', pr);
 
       pr.then(null, () => {
-        t.htmlEqual(fixture.innerHTML, "<h1>Promises</h1><h2>Uh oh</h2> This went wrong: nope etc");
+        t.htmlEqual(fixture.innerHTML, '<h1>Promises</h1><h2>Uh oh</h2> This went wrong: nope etc');
         done();
       });
     });
@@ -343,29 +343,29 @@ export default function() {
 
     const r = new Ractive({
       target: fixture,
-      template: "{{#await promise}}wait{{then}}done{{catch}}error{{/await}}"
+      template: '{{#await promise}}wait{{then}}done{{catch}}error{{/await}}'
     });
 
-    t.htmlEqual(fixture.innerHTML, "");
+    t.htmlEqual(fixture.innerHTML, '');
 
     let ok;
     let pr = new Promise(y => {
       ok = y;
     });
 
-    r.set("promise", pr);
+    r.set('promise', pr);
 
-    t.htmlEqual(fixture.innerHTML, "wait");
+    t.htmlEqual(fixture.innerHTML, 'wait');
     ok(99);
 
     pr.then(() => {
-      t.htmlEqual(fixture.innerHTML, "done");
+      t.htmlEqual(fixture.innerHTML, 'done');
 
-      pr = Promise.reject("nope");
-      r.set("promise", pr);
+      pr = Promise.reject('nope');
+      r.set('promise', pr);
 
       pr.then(null, () => {
-        t.htmlEqual(fixture.innerHTML, "error");
+        t.htmlEqual(fixture.innerHTML, 'error');
         done();
       });
     });
@@ -377,29 +377,29 @@ export default function() {
 
     const r = new Ractive({
       target: fixture,
-      template: "{{#await promise}}wait{{then}}done{{catch}}error{{else}}undefined{{/await}}"
+      template: '{{#await promise}}wait{{then}}done{{catch}}error{{else}}undefined{{/await}}'
     });
 
-    t.htmlEqual(fixture.innerHTML, "undefined");
+    t.htmlEqual(fixture.innerHTML, 'undefined');
 
     let ok;
     let pr = new Promise(y => {
       ok = y;
     });
 
-    r.set("promise", pr);
+    r.set('promise', pr);
 
-    t.htmlEqual(fixture.innerHTML, "wait");
+    t.htmlEqual(fixture.innerHTML, 'wait');
     ok(99);
 
     pr.then(() => {
-      t.htmlEqual(fixture.innerHTML, "done");
+      t.htmlEqual(fixture.innerHTML, 'done');
 
-      pr = Promise.reject("nope");
-      r.set("promise", pr);
+      pr = Promise.reject('nope');
+      r.set('promise', pr);
 
       pr.then(null, () => {
-        t.htmlEqual(fixture.innerHTML, "error");
+        t.htmlEqual(fixture.innerHTML, 'error');
         done();
       });
     });
@@ -412,14 +412,14 @@ export default function() {
     const pr = Promise.resolve(42);
     new Ractive({
       target: fixture,
-      template: "{{#await promise then val}}{{val}}{{catch e}}{{e}}{{/await}}",
+      template: '{{#await promise then val}}{{val}}{{catch e}}{{e}}{{/await}}',
       data: { promise: pr }
     });
 
-    t.htmlEqual(fixture.innerHTML, "");
+    t.htmlEqual(fixture.innerHTML, '');
 
     pr.then(() => {
-      t.htmlEqual(fixture.innerHTML, "42");
+      t.htmlEqual(fixture.innerHTML, '42');
       done();
     });
   });
@@ -431,14 +431,14 @@ export default function() {
     const pr = Promise.resolve(42);
     new Ractive({
       target: fixture,
-      template: "{{#await promise then val}}{{val}}{{/await}}",
+      template: '{{#await promise then val}}{{val}}{{/await}}',
       data: { promise: pr }
     });
 
-    t.htmlEqual(fixture.innerHTML, "");
+    t.htmlEqual(fixture.innerHTML, '');
 
     pr.then(() => {
-      t.htmlEqual(fixture.innerHTML, "42");
+      t.htmlEqual(fixture.innerHTML, '42');
       done();
     });
   });
@@ -450,14 +450,14 @@ export default function() {
     const pr = Promise.resolve(99);
     new Ractive({
       target: fixture,
-      template: "{{#await promise then}}42{{catch e}}{{e}}{{/await}}",
+      template: '{{#await promise then}}42{{catch e}}{{e}}{{/await}}',
       data: { promise: pr }
     });
 
-    t.htmlEqual(fixture.innerHTML, "");
+    t.htmlEqual(fixture.innerHTML, '');
 
     pr.then(() => {
-      t.htmlEqual(fixture.innerHTML, "42");
+      t.htmlEqual(fixture.innerHTML, '42');
       done();
     });
   });
@@ -469,14 +469,14 @@ export default function() {
     const pr = Promise.reject(42);
     new Ractive({
       target: fixture,
-      template: "{{#await promise then}}nope{{catch e}}{{e}}{{/await}}",
+      template: '{{#await promise then}}nope{{catch e}}{{e}}{{/await}}',
       data: { promise: pr }
     });
 
-    t.htmlEqual(fixture.innerHTML, "");
+    t.htmlEqual(fixture.innerHTML, '');
 
     pr.then(null, () => {
-      t.htmlEqual(fixture.innerHTML, "42");
+      t.htmlEqual(fixture.innerHTML, '42');
       done();
     });
   });
@@ -488,14 +488,14 @@ export default function() {
     const pr = Promise.resolve(99);
     new Ractive({
       target: fixture,
-      template: "{{#await promise}}wait{{then}}42{{catch e}}{{e}}{{/await}}",
+      template: '{{#await promise}}wait{{then}}42{{catch e}}{{e}}{{/await}}',
       data: { promise: pr }
     });
 
-    t.htmlEqual(fixture.innerHTML, "wait");
+    t.htmlEqual(fixture.innerHTML, 'wait');
 
     pr.then(() => {
-      t.htmlEqual(fixture.innerHTML, "42");
+      t.htmlEqual(fixture.innerHTML, '42');
       done();
     });
   });
@@ -507,14 +507,14 @@ export default function() {
     const pr = Promise.reject(99);
     new Ractive({
       target: fixture,
-      template: "{{#await promise}}wait{{then}}42{{catch e}}{{e}}{{/await}}",
+      template: '{{#await promise}}wait{{then}}42{{catch e}}{{e}}{{/await}}',
       data: { promise: pr }
     });
 
-    t.htmlEqual(fixture.innerHTML, "wait");
+    t.htmlEqual(fixture.innerHTML, 'wait');
 
     pr.then(null, () => {
-      t.htmlEqual(fixture.innerHTML, "99");
+      t.htmlEqual(fixture.innerHTML, '99');
       done();
     });
   });

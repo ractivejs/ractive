@@ -1,13 +1,13 @@
-import Hook from "src/events/Hook";
-import { getElement } from "utils/dom";
+import Hook from 'src/events/Hook';
+import { getElement } from 'utils/dom';
 
-const insertHook = new Hook("insert");
+const insertHook = new Hook('insert');
 
 export default function Ractive$insert(target, anchor) {
   if (!this.fragment.rendered) {
     // TODO create, and link to, documentation explaining this
     throw new Error(
-      "The API has changed - you must call `ractive.render(target[, anchor])` to render your Ractive instance. Once rendered you can use `ractive.insert()`."
+      'The API has changed - you must call `ractive.render(target[, anchor])` to render your Ractive instance. Once rendered you can use `ractive.insert()`.'
     );
   }
 
@@ -15,7 +15,7 @@ export default function Ractive$insert(target, anchor) {
   anchor = getElement(anchor) || null;
 
   if (!target) {
-    throw new Error("You must specify a valid target to insert into");
+    throw new Error('You must specify a valid target to insert into');
   }
 
   target.insertBefore(this.detach(), anchor);
@@ -30,7 +30,7 @@ export default function Ractive$insert(target, anchor) {
 function fireInsertHook(ractive) {
   insertHook.fire(ractive);
 
-  ractive.findAllComponents("*").forEach(child => {
+  ractive.findAllComponents('*').forEach(child => {
     fireInsertHook(child.instance);
   });
 }

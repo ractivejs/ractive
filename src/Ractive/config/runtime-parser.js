@@ -1,23 +1,23 @@
-import { fromExpression } from "parse/utils/createFunction";
-import { doc } from "config/environment";
-import { fatal } from "utils/log";
-import { addFunctions } from "shared/getFunction";
-import parse from "parse/_parse";
-import { isString } from "utils/is";
+import { fromExpression } from 'parse/utils/createFunction';
+import { doc } from 'config/environment';
+import { fatal } from 'utils/log';
+import { addFunctions } from 'shared/getFunction';
+import parse from 'parse/_parse';
+import { isString } from 'utils/is';
 
 const parseOptions = [
-  "delimiters",
-  "tripleDelimiters",
-  "staticDelimiters",
-  "staticTripleDelimiters",
-  "csp",
-  "interpolate",
-  "preserveWhitespace",
-  "sanitize",
-  "stripComments",
-  "contextLines",
-  "allowExpressions",
-  "attributes"
+  'delimiters',
+  'tripleDelimiters',
+  'staticDelimiters',
+  'staticTripleDelimiters',
+  'csp',
+  'interpolate',
+  'preserveWhitespace',
+  'sanitize',
+  'stripComments',
+  'contextLines',
+  'allowExpressions',
+  'attributes'
 ];
 
 const TEMPLATE_INSTRUCTIONS = `Either preparse or use a ractive runtime source that includes the parser. `;
@@ -31,7 +31,7 @@ function throwNoParse(method, error, instructions) {
 }
 
 export function createFunction(body, length) {
-  throwNoParse(fromExpression, "new expression function", TEMPLATE_INSTRUCTIONS);
+  throwNoParse(fromExpression, 'new expression function', TEMPLATE_INSTRUCTIONS);
   return fromExpression(body, length);
 }
 
@@ -52,7 +52,7 @@ const parser = {
       throw new Error(`Cannot retrieve template #${id} as Ractive is not running in a browser.`);
     }
 
-    if (id) id = id.replace(/^#/, "");
+    if (id) id = id.replace(/^#/, '');
 
     let template;
 
@@ -63,14 +63,14 @@ const parser = {
       throw new Error(`Could not find template element with id #${id}`);
     }
 
-    if (template.tagName.toUpperCase() !== "SCRIPT") {
+    if (template.tagName.toUpperCase() !== 'SCRIPT') {
       if (options && options.noThrow) {
         return;
       }
       throw new Error(`Template element with id #${id}, must be a <script> element`);
     }
 
-    return "textContent" in template ? template.textContent : template.innerHTML;
+    return 'textContent' in template ? template.textContent : template.innerHTML;
   },
 
   isParsed(template) {
@@ -90,7 +90,7 @@ const parser = {
   },
 
   parse(template, options) {
-    throwNoParse(parse, "template", TEMPLATE_INSTRUCTIONS);
+    throwNoParse(parse, 'template', TEMPLATE_INSTRUCTIONS);
     const parsed = parse(template, options);
     addFunctions(parsed);
     return parsed;

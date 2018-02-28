@@ -1,4 +1,4 @@
-import { isArray, isString } from "./is";
+import { isArray, isString } from './is';
 
 export function addToArray(array, value) {
   const index = array.indexOf(value);

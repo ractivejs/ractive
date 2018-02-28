@@ -1,4 +1,4 @@
-import Context from "../../../shared/Context";
+import Context from '../../../shared/Context';
 
 export default class RactiveEvent {
   constructor(component, name) {

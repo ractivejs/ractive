@@ -1,9 +1,9 @@
-import readExpression from "../../../readExpression";
-import { STRING_LITERAL, BRACKETED, INFIX_OPERATOR } from "../../../../../config/types";
+import readExpression from '../../../readExpression';
+import { STRING_LITERAL, BRACKETED, INFIX_OPERATOR } from '../../../../../config/types';
 import {
   escapeSequencePattern,
   lineContinuationPattern
-} from "./stringLiteral/makeQuotedStringMatcher";
+} from './stringLiteral/makeQuotedStringMatcher';
 
 // Match one or more characters until: ", ', or \
 const stringMiddlePattern = /^[^`"\\\$]+?(?:(?=[`"\\\$]))/;
@@ -15,23 +15,23 @@ function getString(literal) {
 
 function escapeChar(c) {
   switch (c) {
-    case "\n":
-      return "\\n";
-    case "\r":
-      return "\\r";
-    case "\t":
-      return "\\t";
-    case "\b":
-      return "\\b";
-    case "\f":
-      return "\\f";
+    case '\n':
+      return '\\n';
+    case '\r':
+      return '\\r';
+    case '\t':
+      return '\\t';
+    case '\b':
+      return '\\b';
+    case '\f':
+      return '\\f';
   }
 }
 
 export default function readTemplateStringLiteral(parser) {
-  if (!parser.matchString("`")) return null;
+  if (!parser.matchString('`')) return null;
 
-  let literal = "";
+  let literal = '';
   let done = false;
   let next;
   const parts = [];
@@ -40,30 +40,30 @@ export default function readTemplateStringLiteral(parser) {
     next =
       parser.matchPattern(stringMiddlePattern) ||
       parser.matchPattern(escapeSequencePattern) ||
-      parser.matchString("$") ||
+      parser.matchString('$') ||
       parser.matchString('"');
     if (next) {
       if (next === `"`) {
         literal += `\\"`;
-      } else if (next === "\\`") {
-        literal += "`";
-      } else if (next === "$") {
-        if (parser.matchString("{")) {
+      } else if (next === '\\`') {
+        literal += '`';
+      } else if (next === '$') {
+        if (parser.matchString('{')) {
           parts.push({ t: STRING_LITERAL, v: getString(literal) });
-          literal = "";
+          literal = '';
 
           parser.sp();
           const expr = readExpression(parser);
 
-          if (!expr) parser.error("Expected valid expression");
+          if (!expr) parser.error('Expected valid expression');
 
           parts.push({ t: BRACKETED, x: expr });
 
           parser.sp();
-          if (!parser.matchString("}"))
+          if (!parser.matchString('}'))
             parser.error(`Expected closing '}' after interpolated expression`);
         } else {
-          literal += "$";
+          literal += '$';
         }
       } else {
         literal += next;
@@ -72,7 +72,7 @@ export default function readTemplateStringLiteral(parser) {
       next = parser.matchPattern(lineContinuationPattern);
       if (next) {
         // convert \(newline-like) into a \u escape, which is allowed in JSON
-        literal += "\\u" + ("000" + next.charCodeAt(1).toString(16)).slice(-4);
+        literal += '\\u' + ('000' + next.charCodeAt(1).toString(16)).slice(-4);
       } else {
         done = true;
       }
@@ -81,7 +81,7 @@ export default function readTemplateStringLiteral(parser) {
 
   if (literal.length) parts.push({ t: STRING_LITERAL, v: getString(literal) });
 
-  if (!parser.matchString("`")) parser.error("Expected closing '`'");
+  if (!parser.matchString('`')) parser.error("Expected closing '`'");
 
   if (parts.length === 1) {
     return parts[0];
@@ -92,7 +92,7 @@ export default function readTemplateStringLiteral(parser) {
     while ((part = parts.pop())) {
       result = {
         t: INFIX_OPERATOR,
-        s: "+",
+        s: '+',
         o: [part, result]
       };
     }

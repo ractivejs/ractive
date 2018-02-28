@@ -15,8 +15,8 @@ import {
   MEMBER,
   REFINEMENT,
   CONDITIONAL
-} from "config/types";
-import { isObject, isString } from "utils/is";
+} from 'config/types';
+import { isObject, isString } from 'utils/is';
 
 export default function flattenExpression(expression) {
   let refs;
@@ -35,7 +35,7 @@ export default function flattenExpression(expression) {
     for (let i = count - 1; i >= 0; i--) {
       vars.push(`x$${i}`);
     }
-    return vars.length ? `(function(){var ${vars.join(",")};return(${expr});})()` : expr;
+    return vars.length ? `(function(){var ${vars.join(',')};return(${expr});})()` : expr;
   }
 
   function stringify(node) {
@@ -55,25 +55,25 @@ export default function flattenExpression(expression) {
 
       case ARRAY_LITERAL:
         if (node.m && hasSpread(node.m)) {
-          return `[].concat(${makeSpread(node.m, "[", "]", stringify)})`;
+          return `[].concat(${makeSpread(node.m, '[', ']', stringify)})`;
         } else {
-          return "[" + (node.m ? node.m.map(stringify).join(",") : "") + "]";
+          return '[' + (node.m ? node.m.map(stringify).join(',') : '') + ']';
         }
 
       case OBJECT_LITERAL:
         if (node.m && hasSpread(node.m)) {
-          return `Object.assign({},${makeSpread(node.m, "{", "}", stringifyPair)})`;
+          return `Object.assign({},${makeSpread(node.m, '{', '}', stringifyPair)})`;
         } else {
-          return "{" + (node.m ? node.m.map(n => `${n.k}:${stringify(n.v)}`).join(",") : "") + "}";
+          return '{' + (node.m ? node.m.map(n => `${n.k}:${stringify(n.v)}`).join(',') : '') + '}';
         }
 
       case PREFIX_OPERATOR:
-        return (node.s === "typeof" ? "typeof " : node.s) + stringify(node.o);
+        return (node.s === 'typeof' ? 'typeof ' : node.s) + stringify(node.o);
 
       case INFIX_OPERATOR:
         return (
           stringify(node.o[0]) +
-          (node.s.substr(0, 2) === "in" ? " " + node.s + " " : node.s) +
+          (node.s.substr(0, 2) === 'in' ? ' ' + node.s + ' ' : node.s) +
           stringify(node.o[1])
         );
 
@@ -85,26 +85,26 @@ export default function flattenExpression(expression) {
             m: node.o
           })})`;
         } else {
-          return stringify(node.x) + "(" + (node.o ? node.o.map(stringify).join(",") : "") + ")";
+          return stringify(node.x) + '(' + (node.o ? node.o.map(stringify).join(',') : '') + ')';
         }
 
       case BRACKETED:
-        return "(" + stringify(node.x) + ")";
+        return '(' + stringify(node.x) + ')';
 
       case MEMBER:
         return stringify(node.x) + stringify(node.r);
 
       case REFINEMENT:
-        return node.n ? "." + node.n : "[" + stringify(node.x) + "]";
+        return node.n ? '.' + node.n : '[' + stringify(node.x) + ']';
 
       case CONDITIONAL:
-        return stringify(node.o[0]) + "?" + stringify(node.o[1]) + ":" + stringify(node.o[2]);
+        return stringify(node.o[0]) + '?' + stringify(node.o[1]) + ':' + stringify(node.o[2]);
 
       case REFERENCE:
-        return "_" + refs.indexOf(node.n);
+        return '_' + refs.indexOf(node.n);
 
       default:
-        throw new Error("Expected legal JavaScript");
+        throw new Error('Expected legal JavaScript');
     }
   }
 
@@ -116,14 +116,14 @@ export default function flattenExpression(expression) {
     const out = list.reduce(
       (a, c) => {
         if (c.p) {
-          a.str += `${a.open ? close + "," : a.str.length ? "," : ""}${fn(c)}`;
+          a.str += `${a.open ? close + ',' : a.str.length ? ',' : ''}${fn(c)}`;
         } else {
-          a.str += `${!a.str.length ? open : !a.open ? "," + open : ","}${fn(c)}`;
+          a.str += `${!a.str.length ? open : !a.open ? ',' + open : ','}${fn(c)}`;
         }
         a.open = !c.p;
         return a;
       },
-      { open: false, str: "" }
+      { open: false, str: '' }
     );
     if (out.open) out.str += close;
     return out.str;

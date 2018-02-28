@@ -1,6 +1,6 @@
-import { REFERENCE } from "config/types";
-import readExpression from "./readExpression";
-import readReference from "./expressions/primary/readReference";
+import { REFERENCE } from 'config/types';
+import readExpression from './readExpression';
+import readReference from './expressions/primary/readReference';
 
 export default function readExpressionOrReference(parser, expectedFollowers) {
   const start = parser.pos;

@@ -1,4 +1,4 @@
-import Hook from "./Hook";
+import Hook from './Hook';
 
 function getChildQueue(queue, ractive) {
   return queue[ractive._guid] || (queue[ractive._guid] = []);

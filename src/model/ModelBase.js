@@ -1,8 +1,8 @@
-import { escapeKey, unescapeKey } from "shared/keypaths";
-import { addToArray, removeFromArray } from "utils/array";
-import { isArray, isObject, isFunction } from "utils/is";
-import bind from "utils/bind";
-import { create, keys as objectKeys } from "utils/object";
+import { escapeKey, unescapeKey } from 'shared/keypaths';
+import { addToArray, removeFromArray } from 'utils/array';
+import { isArray, isObject, isFunction } from 'utils/is';
+import bind from 'utils/bind';
+import { create, keys as objectKeys } from 'utils/object';
 
 const shuffleTasks = { early: [], mark: [] };
 const registerQueue = { early: [], mark: [] };
@@ -24,10 +24,10 @@ export default class ModelBase {
     }
   }
 
-  addShuffleTask(task, stage = "early") {
+  addShuffleTask(task, stage = 'early') {
     shuffleTasks[stage].push(task);
   }
-  addShuffleRegister(item, stage = "early") {
+  addShuffleRegister(item, stage = 'early') {
     registerQueue[stage].push({ model: this, item });
   }
 
@@ -43,7 +43,7 @@ export default class ModelBase {
     for (i = 0; i < len; i += 1) {
       const key = keys[i];
 
-      if (key === "*") {
+      if (key === '*') {
         matches = [];
         existingMatches.forEach(model => {
           matches.push.apply(matches, model.getValueChildren(model.get()));
@@ -75,8 +75,8 @@ export default class ModelBase {
     let children;
     if (isArray(value)) {
       children = [];
-      if ("length" in this && this.length !== value.length) {
-        children.push(this.joinKey("length"));
+      if ('length' in this && this.length !== value.length) {
+        children.push(this.joinKey('length'));
       }
       value.forEach((m, i) => {
         children.push(this.joinKey(i));
@@ -212,7 +212,7 @@ export default class ModelBase {
   }
 
   reference() {
-    "refs" in this ? this.refs++ : (this.refs = 1);
+    'refs' in this ? this.refs++ : (this.refs = 1);
   }
 
   register(dep) {
@@ -233,7 +233,7 @@ export default class ModelBase {
   }
 
   unreference() {
-    if ("refs" in this) this.refs--;
+    if ('refs' in this) this.refs--;
   }
 
   unregister(dep) {
@@ -297,7 +297,7 @@ export function findBoundValue(list) {
     if (list[i].bound) {
       const owner = list[i].owner;
       if (owner) {
-        const value = owner.name === "checked" ? owner.node.checked : owner.node.value;
+        const value = owner.name === 'checked' ? owner.node.checked : owner.node.value;
         return { value };
       }
     }
@@ -306,8 +306,8 @@ export function findBoundValue(list) {
 
 export function fireShuffleTasks(stage) {
   if (!stage) {
-    fireShuffleTasks("early");
-    fireShuffleTasks("mark");
+    fireShuffleTasks('early');
+    fireShuffleTasks('mark');
   } else {
     const tasks = shuffleTasks[stage];
     shuffleTasks[stage] = [];
@@ -344,15 +344,15 @@ export function shuffle(model, newIndices, link, unsafe) {
   const upstream = model.source().length !== model.source().value.length;
 
   model.links.forEach(l => l.shuffle(newIndices));
-  if (!link) fireShuffleTasks("early");
+  if (!link) fireShuffleTasks('early');
 
   i = model.deps.length;
   while (i--) {
     if (model.deps[i].shuffle) model.deps[i].shuffle(newIndices);
   }
 
-  model[link ? "marked" : "mark"]();
-  if (!link) fireShuffleTasks("mark");
+  model[link ? 'marked' : 'mark']();
+  if (!link) fireShuffleTasks('mark');
 
   if (upstream) model.notifyUpstream();
 

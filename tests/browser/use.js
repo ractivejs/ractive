@@ -1,8 +1,8 @@
-import { initModule } from "../helpers/test-config";
-import { test } from "qunit";
+import { initModule } from '../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
-  initModule("use.js");
+  initModule('use.js');
 
   test(`Ractive.use gets access to appropriate args`, t => {
     Ractive.use(({ Ractive, proto, instance }) => {
@@ -30,7 +30,7 @@ export default function() {
       t.ok(Ractive === Ractive);
       t.ok(proto === cmp.prototype);
       t.ok(instance === cmp);
-      t.ok("tmp" in instance.decorators);
+      t.ok('tmp' in instance.decorators);
       proto.foo = 42;
     });
 
@@ -39,7 +39,7 @@ export default function() {
       t.ok(Ractive === Ractive);
       t.ok(proto === r);
       t.ok(instance === r);
-      t.ok("tmp" in instance.decorators);
+      t.ok('tmp' in instance.decorators);
       t.equal(r.foo, 42);
       proto.foo = 99;
       t.equal(cmp.prototype.foo, 42);
@@ -50,7 +50,7 @@ export default function() {
     t.expect(3);
 
     function plug({ proto }) {
-      t.ok("plugin called");
+      t.ok('plugin called');
       proto.foo = 1;
     }
 
@@ -61,12 +61,12 @@ export default function() {
     t.equal(new cmp().foo, 1);
 
     const r = new Ractive({
-      template: "<cmp />",
+      template: '<cmp />',
       target: fixture,
       components: { cmp }
     });
 
-    t.equal(r.findComponent("cmp").foo, 1);
+    t.equal(r.findComponent('cmp').foo, 1);
   });
 
   test(`use instance option applies to instance`, t => {

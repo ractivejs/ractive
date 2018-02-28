@@ -1,4 +1,4 @@
-import { enqueue, dequeue } from "./eventStack";
+import { enqueue, dequeue } from './eventStack';
 
 const initStars = {};
 const bubbleStars = {};
@@ -9,13 +9,13 @@ function variants(name, initial) {
   const map = initial ? initStars : bubbleStars;
   if (map[name]) return map[name];
 
-  const parts = name.split(".");
+  const parts = name.split('.');
   const result = [];
   let base = false;
 
   // initial events the implicit namespace of 'this'
   if (initial) {
-    parts.unshift("this");
+    parts.unshift('this');
     base = true;
   }
 
@@ -25,9 +25,9 @@ function variants(name, initial) {
   for (let i = 0; i < max; i++) {
     const join = [];
     for (let j = 0; j < parts.length; j++) {
-      join.push(1 & (i >> j) ? "*" : parts[j]);
+      join.push(1 & (i >> j) ? '*' : parts[j]);
     }
-    result.unshift(join.join("."));
+    result.unshift(join.join('.'));
   }
 
   if (base) {
@@ -35,7 +35,7 @@ function variants(name, initial) {
     if (parts.length > 2) {
       result.push.apply(result, variants(name, false));
     } else {
-      result.push("*");
+      result.push('*');
       result.push(name);
     }
   }
@@ -52,7 +52,7 @@ export default function fireEvent(ractive, eventName, context, args = []) {
   context.name = eventName;
   args.unshift(context);
 
-  const eventNames = ractive._nsSubs ? variants(eventName, true) : ["*", eventName];
+  const eventNames = ractive._nsSubs ? variants(eventName, true) : ['*', eventName];
 
   return fireEventAs(ractive, eventNames, context, args, true);
 }
@@ -75,7 +75,7 @@ function fireEventAs(ractive, eventNames, context, args, initialFire = false) {
 
   if (ractive.parent && bubble) {
     if (initialFire && ractive.component) {
-      const fullName = ractive.component.name + "." + eventNames[eventNames.length - 1];
+      const fullName = ractive.component.name + '.' + eventNames[eventNames.length - 1];
       eventNames = variants(fullName, false);
 
       if (context && !context.component) {

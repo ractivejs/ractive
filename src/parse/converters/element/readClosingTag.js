@@ -1,4 +1,4 @@
-import { CLOSING_TAG } from "src/config/types";
+import { CLOSING_TAG } from 'src/config/types';
 
 const closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
 
@@ -8,7 +8,7 @@ export default function readClosingTag(parser) {
   const start = parser.pos;
 
   // are we looking at a closing tag?
-  if (!parser.matchString("</")) {
+  if (!parser.matchString('</')) {
     return null;
   }
 
@@ -26,5 +26,5 @@ export default function readClosingTag(parser) {
 
   // We have an illegal closing tag, report it
   parser.pos -= 2;
-  parser.error("Illegal closing tag");
+  parser.error('Illegal closing tag');
 }

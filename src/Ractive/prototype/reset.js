@@ -1,21 +1,21 @@
-import runloop from "src/global/runloop";
-import config from "../config/config";
-import Hook from "../../events/Hook";
-import dataConfigurator from "../config/custom/data";
-import { isObjectType } from "utils/is";
+import runloop from 'src/global/runloop';
+import config from '../config/config';
+import Hook from '../../events/Hook';
+import dataConfigurator from '../config/custom/data';
+import { isObjectType } from 'utils/is';
 
-const shouldRerender = ["template", "partials", "components", "decorators", "events"];
+const shouldRerender = ['template', 'partials', 'components', 'decorators', 'events'];
 
-const completeHook = new Hook("complete");
-const resetHook = new Hook("reset");
-const renderHook = new Hook("render");
-const unrenderHook = new Hook("unrender");
+const completeHook = new Hook('complete');
+const resetHook = new Hook('reset');
+const renderHook = new Hook('render');
+const unrenderHook = new Hook('unrender');
 
 export default function Ractive$reset(data) {
   data = data || {};
 
   if (!isObjectType(data)) {
-    throw new Error("The reset method takes either no arguments, or an object containing new data");
+    throw new Error('The reset method takes either no arguments, or an object containing new data');
   }
 
   // TEMP need to tidy this up

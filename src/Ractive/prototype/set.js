@@ -1,5 +1,5 @@
-import { build, set } from "shared/set";
-import { isObjectType } from "utils/is";
+import { build, set } from 'shared/set';
+import { isObjectType } from 'utils/is';
 
 export default function Ractive$set(keypath, value, options) {
   const ractive = this;

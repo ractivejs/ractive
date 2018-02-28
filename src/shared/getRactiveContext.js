@@ -1,5 +1,5 @@
-import noop from "utils/noop";
-import { assign, create } from "utils/object";
+import noop from 'utils/noop';
+import { assign, create } from 'utils/object';
 
 export const extern = {};
 

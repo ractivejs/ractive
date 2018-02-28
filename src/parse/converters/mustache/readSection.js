@@ -8,20 +8,20 @@ import {
   SECTION_IF,
   SECTION_UNLESS,
   THEN
-} from "config/types";
-import { READERS } from "parse/_parse";
-import readClosing from "./section/readClosing";
-import readInlineBlock from "./section/readInlineBlock";
-import handlebarsBlockCodes from "./handlebarsBlockCodes";
-import readExpression from "../readExpression";
-import refineExpression from "parse/utils/refineExpression";
-import { readAlias, readAliases } from "./readAliases";
-import { keys } from "utils/object";
-import { name } from "../expressions/shared/patterns";
+} from 'config/types';
+import { READERS } from 'parse/_parse';
+import readClosing from './section/readClosing';
+import readInlineBlock from './section/readInlineBlock';
+import handlebarsBlockCodes from './handlebarsBlockCodes';
+import readExpression from '../readExpression';
+import refineExpression from 'parse/utils/refineExpression';
+import { readAlias, readAliases } from './readAliases';
+import { keys } from 'utils/object';
+import { name } from '../expressions/shared/patterns';
 
 const indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
 const keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
-const handlebarsBlockPattern = new RegExp("^(" + keys(handlebarsBlockCodes).join("|") + ")\\b");
+const handlebarsBlockPattern = new RegExp('^(' + keys(handlebarsBlockCodes).join('|') + ')\\b');
 
 export default function readSection(parser, tag) {
   let expression,
@@ -41,24 +41,24 @@ export default function readSection(parser, tag) {
 
   const start = parser.pos;
 
-  if (parser.matchString("^")) {
+  if (parser.matchString('^')) {
     // watch out for parent context refs - {{^^/^^/foo}}
-    if (parser.matchString("^/")) {
+    if (parser.matchString('^/')) {
       parser.pos = start;
       return null;
     }
     section = { t: SECTION, f: [], n: SECTION_UNLESS };
-  } else if (parser.matchString("#")) {
+  } else if (parser.matchString('#')) {
     section = { t: SECTION, f: [] };
 
-    if (parser.matchString("partial")) {
+    if (parser.matchString('partial')) {
       parser.pos = start - parser.standardDelimiters[0].length;
       parser.error(
-        "Partial definitions can only be at the top level of the template, or immediately inside components"
+        'Partial definitions can only be at the top level of the template, or immediately inside components'
       );
     }
 
-    if ((block = parser.matchString("await"))) {
+    if ((block = parser.matchString('await'))) {
       expectedClose = block;
       section.t = AWAIT;
     } else if ((block = parser.matchPattern(handlebarsBlockPattern))) {
@@ -71,17 +71,17 @@ export default function readSection(parser, tag) {
 
   parser.sp();
 
-  if (block === "with") {
+  if (block === 'with') {
     const aliases = readAliases(parser);
     if (aliases) {
       aliasOnly = true;
       section.z = aliases;
       section.t = ALIAS;
     }
-  } else if (block === "each") {
+  } else if (block === 'each') {
     const alias = readAlias(parser);
     if (alias) {
-      section.z = [{ n: alias.n, x: { r: "." } }];
+      section.z = [{ n: alias.n, x: { r: '.' } }];
       expression = alias.x;
     }
   }
@@ -90,19 +90,19 @@ export default function readSection(parser, tag) {
     if (!expression) expression = readExpression(parser);
 
     if (!expression) {
-      parser.error("Expected expression");
+      parser.error('Expected expression');
     }
 
     // optional index and key references
-    if ((block === "each" || !block) && (i = parser.matchPattern(indexRefPattern))) {
+    if ((block === 'each' || !block) && (i = parser.matchPattern(indexRefPattern))) {
       let extra;
 
       if ((extra = parser.matchPattern(keyIndexRefPattern))) {
-        section.i = i + "," + extra;
+        section.i = i + ',' + extra;
       } else {
         section.i = i;
       }
-    } else if (block === "await" && parser.matchString("then")) {
+    } else if (block === 'await' && parser.matchString('then')) {
       parser.sp();
       hasThen = true;
       inlineThen = parser.matchPattern(name);
@@ -145,26 +145,26 @@ export default function readSection(parser, tag) {
       closed = true;
     } else if (
       !aliasOnly &&
-      ((child = readInlineBlock(parser, tag, "elseif")) ||
-        (child = readInlineBlock(parser, tag, "else")) ||
-        (block === "await" &&
-          ((child = readInlineBlock(parser, tag, "then")) ||
-            (child = readInlineBlock(parser, tag, "catch")))))
+      ((child = readInlineBlock(parser, tag, 'elseif')) ||
+        (child = readInlineBlock(parser, tag, 'else')) ||
+        (block === 'await' &&
+          ((child = readInlineBlock(parser, tag, 'then')) ||
+            (child = readInlineBlock(parser, tag, 'catch')))))
     ) {
       if (section.n === SECTION_UNLESS) {
-        parser.error("{{else}} not allowed in {{#unless}}");
+        parser.error('{{else}} not allowed in {{#unless}}');
       }
 
       if (hasElse) {
         if (child.t === ELSE) {
-          parser.error("there can only be one {{else}} block, at the end of a section");
+          parser.error('there can only be one {{else}} block, at the end of a section');
         } else if (child.t === ELSEIF) {
-          parser.error("illegal {{elseif...}} after {{else}}");
+          parser.error('illegal {{elseif...}} after {{else}}');
         }
       }
 
       if (!unlessBlock && (inlineThen || !hasThen) && !hasCatch) {
-        if (block === "await") {
+        if (block === 'await') {
           const s = { f: children };
           section.f = [s];
           if (inlineThen) {
@@ -184,7 +184,7 @@ export default function readSection(parser, tag) {
       };
 
       if (child.t === ELSE) {
-        if (block === "await") {
+        if (block === 'await') {
           section.f.push(mustache);
           mustache.t = ELSE;
         } else {
@@ -197,16 +197,16 @@ export default function readSection(parser, tag) {
         refineExpression(child.x, mustache);
         unlessBlock.push(mustache);
       } else if (child.t === THEN) {
-        if (hasElse) parser.error("{{then}} block must appear before any {{else}} block");
-        if (hasCatch) parser.error("{{then}} block must appear before any {{catch}} block");
-        if (hasThen) parser.error("there can only be one {{then}} block per {{#await}}");
+        if (hasElse) parser.error('{{then}} block must appear before any {{else}} block');
+        if (hasCatch) parser.error('{{then}} block must appear before any {{catch}} block');
+        if (hasThen) parser.error('there can only be one {{then}} block per {{#await}}');
         mustache.t = THEN;
         hasThen = true;
         child.n && (mustache.n = child.n);
         section.f.push(mustache);
       } else if (child.t === CATCH) {
-        if (hasElse) parser.error("{{catch}} block must appear before any {{else}} block");
-        if (hasCatch) parser.error("there can only be one {{catch}} block per {{#await}}");
+        if (hasElse) parser.error('{{catch}} block must appear before any {{else}} block');
+        if (hasCatch) parser.error('there can only be one {{catch}} block per {{#await}}');
         mustache.t = CATCH;
         hasCatch = true;
         mustache.n = child.n;
@@ -231,7 +231,7 @@ export default function readSection(parser, tag) {
     refineExpression(expression, section);
   }
 
-  if (block === "await" && (inlineThen || !hasThen) && !hasCatch && !hasElse) {
+  if (block === 'await' && (inlineThen || !hasThen) && !hasCatch && !hasElse) {
     const s = { f: section.f };
     section.f = [s];
     if (inlineThen) {

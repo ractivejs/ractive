@@ -1,31 +1,31 @@
-import { fatal, warnIfDebug, welcome } from "utils/log";
-import { missingPlugin } from "config/errors";
-import { ensureArray, combine } from "utils/array";
-import { findInViewHierarchy } from "shared/registry";
-import dataConfigurator from "./config/custom/data";
-import RootModel from "src/model/RootModel";
-import Hook from "src/events/Hook";
-import subscribe from "./helpers/subscribe";
-import Ractive from "../Ractive";
-import { ATTRIBUTE, BINDING_FLAG, DECORATOR, INTERPOLATOR, TRANSITION } from "config/types";
-import { assign, create, hasOwn } from "utils/object";
-import { isString } from "utils/is";
-import { compute } from "src/Ractive/prototype/compute";
+import { fatal, warnIfDebug, welcome } from 'utils/log';
+import { missingPlugin } from 'config/errors';
+import { ensureArray, combine } from 'utils/array';
+import { findInViewHierarchy } from 'shared/registry';
+import dataConfigurator from './config/custom/data';
+import RootModel from 'src/model/RootModel';
+import Hook from 'src/events/Hook';
+import subscribe from './helpers/subscribe';
+import Ractive from '../Ractive';
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, INTERPOLATOR, TRANSITION } from 'config/types';
+import { assign, create, hasOwn } from 'utils/object';
+import { isString } from 'utils/is';
+import { compute } from 'src/Ractive/prototype/compute';
 
-const constructHook = new Hook("construct");
+const constructHook = new Hook('construct');
 
 const registryNames = [
-  "adaptors",
-  "components",
-  "decorators",
-  "easing",
-  "events",
-  "interpolators",
-  "partials",
-  "transitions"
+  'adaptors',
+  'components',
+  'decorators',
+  'easing',
+  'events',
+  'interpolators',
+  'partials',
+  'transitions'
 ];
 
-const protoRegistries = ["computed", "helpers"];
+const protoRegistries = ['computed', 'helpers'];
 
 let uid = 0;
 
@@ -36,11 +36,11 @@ export default function construct(ractive, options) {
   handleAttributes(ractive);
 
   // set up event subscribers
-  subscribe(ractive, options, "on");
+  subscribe(ractive, options, 'on');
 
   // if there's not a delegation setting, inherit from parent if it's not default
   if (
-    !hasOwn(options, "delegate") &&
+    !hasOwn(options, 'delegate') &&
     ractive.parent &&
     ractive.parent.delegate !== ractive.delegate
   ) {
@@ -64,7 +64,7 @@ export default function construct(ractive, options) {
   }
 
   if (ractive._attributePartial) {
-    ractive.partials["extra-attributes"] = ractive._attributePartial;
+    ractive.partials['extra-attributes'] = ractive._attributePartial;
     delete ractive._attributePartial;
   }
 
@@ -98,10 +98,10 @@ function getAdaptors(ractive, protoAdapt, options) {
 
   function lookup(adaptor) {
     if (isString(adaptor)) {
-      adaptor = findInViewHierarchy("adaptors", ractive, adaptor);
+      adaptor = findInViewHierarchy('adaptors', ractive, adaptor);
 
       if (!adaptor) {
-        fatal(missingPlugin(adaptor, "adaptor"));
+        fatal(missingPlugin(adaptor, 'adaptor'));
       }
     }
 
@@ -112,7 +112,7 @@ function getAdaptors(ractive, protoAdapt, options) {
 function initialiseProperties(ractive) {
   // Generate a unique identifier, for places where you'd use a weak map if it
   // existed
-  ractive._guid = "r-" + uid++;
+  ractive._guid = 'r-' + uid++;
 
   // events
   ractive._subs = create(null);

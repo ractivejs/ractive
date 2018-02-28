@@ -1,6 +1,6 @@
-import { createDocumentFragment } from "utils/dom";
-import { isArray, isObject } from "utils/is";
-import { findMap } from "utils/array";
+import { createDocumentFragment } from 'utils/dom';
+import { isArray, isObject } from 'utils/is';
+import { findMap } from 'utils/array';
 import {
   toEscapedString,
   toString,
@@ -10,12 +10,12 @@ import {
   unrender,
   unrenderAndDestroy,
   update
-} from "shared/methodCallers";
-import Fragment from "./Fragment";
-import findElement from "./items/shared/findElement";
-import { getContext } from "shared/getRactiveContext";
-import { keys } from "utils/object";
-import KeyModel from "src/model/specials/KeyModel";
+} from 'shared/methodCallers';
+import Fragment from './Fragment';
+import findElement from './items/shared/findElement';
+import { getContext } from 'shared/getRactiveContext';
+import { keys } from 'utils/object';
+import KeyModel from 'src/model/specials/KeyModel';
 
 export default class RepeatedFragment {
   constructor(options) {
@@ -35,7 +35,7 @@ export default class RepeatedFragment {
     if (this.delegate) this.delegate.delegate = this.delegate;
 
     // encapsulated styles should be inherited until they get applied by an element
-    this.cssIds = "cssIds" in options ? options.cssIds : this.parent ? this.parent.cssIds : null;
+    this.cssIds = 'cssIds' in options ? options.cssIds : this.parent ? this.parent.cssIds : null;
 
     this.context = null;
     this.rendered = false;
@@ -72,7 +72,7 @@ export default class RepeatedFragment {
 
       // TODO this is a dreadful hack. There must be a neater way
       if (this.indexRef) {
-        const refs = this.indexRef.split(",");
+        const refs = this.indexRef.split(',');
         this.keyRef = refs[0];
         this.indexRef = refs[1];
       }
@@ -220,7 +220,7 @@ export default class RepeatedFragment {
   }
 
   toString(escape) {
-    return this.iterations ? this.iterations.map(escape ? toEscapedString : toString).join("") : "";
+    return this.iterations ? this.iterations.map(escape ? toEscapedString : toString).join('') : '';
   }
 
   unbind() {
@@ -329,7 +329,7 @@ export default class RepeatedFragment {
       } else if (isObject(value)) {
         // TODO this is a dreadful hack. There must be a neater way
         if (this.indexRef && !this.keyRef) {
-          const refs = this.indexRef.split(",");
+          const refs = this.indexRef.split(',');
           this.keyRef = refs[0];
           this.indexRef = refs[1];
         }
@@ -407,7 +407,7 @@ export default class RepeatedFragment {
     const docFrag = this.rendered ? createDocumentFragment() : null;
     const parentNode = this.rendered ? this.parent.findParentNode() : null;
 
-    const contiguous = "startIndex" in newIndices;
+    const contiguous = 'startIndex' in newIndices;
     i = contiguous ? newIndices.startIndex : 0;
 
     for (i; i < len; i++) {

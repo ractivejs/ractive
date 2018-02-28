@@ -1,22 +1,22 @@
 const { module, test } = QUnit;
-import renderTests from "../helpers/samples/render";
-import cheerio from "cheerio";
+import renderTests from '../helpers/samples/render';
+import cheerio from 'cheerio';
 
 function normaliseHTML(html) {
   return cheerio
     .load(html)
     .html()
     .trim()
-    .replace(/^\s+/gm, "")
-    .replace(/\n/g, " ");
+    .replace(/^\s+/gm, '')
+    .replace(/\n/g, ' ');
 }
 
 function getData(data) {
-  return typeof data === "function" ? data() : deepClone(data);
+  return typeof data === 'function' ? data() : deepClone(data);
 }
 
 function deepClone(source) {
-  if (!source || typeof source !== "object") {
+  if (!source || typeof source !== 'object') {
     return source;
   }
 
@@ -36,7 +36,7 @@ function deepClone(source) {
 }
 
 export default function() {
-  module("ractive.toHTML()");
+  module('ractive.toHTML()');
 
   renderTests.forEach(theTest => {
     test(theTest.name, t => {
@@ -59,7 +59,7 @@ export default function() {
     });
   });
 
-  test("doctype declarations handle updates (#2679)", t => {
+  test('doctype declarations handle updates (#2679)', t => {
     // the select triggers an update during bind
     const template = Ractive.parse(
       '<!DOCTYPE html><html><select value="{{foo}}"><option value="bar">bar</option></select></html>'

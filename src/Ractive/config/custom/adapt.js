@@ -1,4 +1,4 @@
-import { ensureArray, combine } from "utils/array";
+import { ensureArray, combine } from 'utils/array';
 
 export default {
   extend: (Parent, proto, options) => {

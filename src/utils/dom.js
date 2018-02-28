@@ -1,6 +1,6 @@
-import { isClient, svg, vendors, win, doc } from "config/environment";
-import { html } from "config/namespaces";
-import { isString, isNumber } from "utils/is";
+import { isClient, svg, vendors, win, doc } from 'config/environment';
+import { html } from 'config/namespaces';
+import { isString, isNumber } from 'utils/is';
 
 let createElement, matches, div, methodNames, unprefixed, prefixed, i, j, makeFunction;
 
@@ -31,7 +31,7 @@ export function createDocumentFragment() {
 function getElement(input) {
   let output;
 
-  if (!input || typeof input === "boolean") {
+  if (!input || typeof input === 'boolean') {
     return;
   }
 
@@ -76,8 +76,8 @@ function getElement(input) {
 if (!isClient) {
   matches = null;
 } else {
-  div = createElement("div");
-  methodNames = ["matches", "matchesSelector"];
+  div = createElement('div');
+  methodNames = ['matches', 'matchesSelector'];
 
   makeFunction = function(methodName) {
     return function(node, selector) {
@@ -115,7 +115,7 @@ if (!isClient) {
 
       if (!parentNode) {
         // empty dummy <div>
-        div.innerHTML = "";
+        div.innerHTML = '';
 
         parentNode = div;
         node = node.cloneNode();
@@ -140,7 +140,7 @@ if (!isClient) {
 function detachNode(node) {
   // stupid ie
   // eslint-disable-next-line valid-typeof
-  if (node && typeof node.parentNode !== "unknown" && node.parentNode) {
+  if (node && typeof node.parentNode !== 'unknown' && node.parentNode) {
     node.parentNode.removeChild(node);
   }
 
@@ -148,14 +148,14 @@ function detachNode(node) {
 }
 
 function safeToStringValue(value) {
-  return value == null || (isNumber(value) && isNaN(value)) || !value.toString ? "" : "" + value;
+  return value == null || (isNumber(value) && isNaN(value)) || !value.toString ? '' : '' + value;
 }
 
 function safeAttributeString(string) {
   return safeToStringValue(string)
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 export { createElement, detachNode, getElement, matches, safeToStringValue, safeAttributeString };

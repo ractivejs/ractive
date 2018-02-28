@@ -1,4 +1,4 @@
-import { toArray } from "./array";
+import { toArray } from './array';
 
 export default function getSelectedOptions(select) {
   /* istanbul ignore next */

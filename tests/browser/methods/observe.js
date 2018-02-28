@@ -1,231 +1,231 @@
-import { fire } from "simulant";
-import { initModule } from "../../helpers/test-config";
-import { test } from "qunit";
+import { fire } from 'simulant';
+import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
-  initModule("methods/observe.js");
+  initModule('methods/observe.js');
 
-  test("Observers fire before the DOM updates", t => {
+  test('Observers fire before the DOM updates', t => {
     t.expect(1);
 
     const ractive = new Ractive({
       el: fixture,
-      template: "{{#foo}}{{bar}}{{/foo}}",
-      data: { bar: "yeah" }
+      template: '{{#foo}}{{bar}}{{/foo}}',
+      data: { bar: 'yeah' }
     });
 
     ractive.observe(
-      "foo",
+      'foo',
       () => {
-        t.equal(fixture.innerHTML, "");
+        t.equal(fixture.innerHTML, '');
       },
       { init: false }
     );
 
-    ractive.set("foo", true);
+    ractive.set('foo', true);
   });
 
-  test("Observers with { defer: true } fire after the DOM updates", t => {
+  test('Observers with { defer: true } fire after the DOM updates', t => {
     t.expect(1);
 
     const ractive = new Ractive({
       el: fixture,
-      template: "{{#foo}}{{bar}}{{/foo}}",
-      data: { bar: "yeah" }
+      template: '{{#foo}}{{bar}}{{/foo}}',
+      data: { bar: 'yeah' }
     });
 
     ractive.observe(
-      "foo",
+      'foo',
       () => {
-        t.equal(fixture.innerHTML, "yeah");
+        t.equal(fixture.innerHTML, 'yeah');
       },
       { init: false, defer: true }
     );
 
-    ractive.set("foo", true);
+    ractive.set('foo', true);
   });
 
-  test("Observers with { defer: true } fire after non-transitioned nodes removed from DOM (#1869)", t => {
+  test('Observers with { defer: true } fire after non-transitioned nodes removed from DOM (#1869)', t => {
     t.expect(1);
 
     const ractive = new Ractive({
       el: fixture,
-      template: "<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>",
+      template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>',
       data: { items: [1, 2, 3] }
     });
 
     ractive.observe(
-      "items",
+      'items',
       function() {
-        t.equal(this.findAll("li").length, this.el.querySelectorAll("li").length);
+        t.equal(this.findAll('li').length, this.el.querySelectorAll('li').length);
       },
       { init: false, defer: true }
     );
 
-    ractive.pop("items");
+    ractive.pop('items');
   });
 
-  test("Observer can be created without an options argument", t => {
+  test('Observer can be created without an options argument', t => {
     t.expect(1);
 
     const ractive = new Ractive({
       el: fixture,
-      template: "{{foo}}",
-      data: { foo: "bar" }
+      template: '{{foo}}',
+      data: { foo: 'bar' }
     });
 
-    ractive.observe("foo", foo => {
-      t.equal(foo, "bar");
+    ractive.observe('foo', foo => {
+      t.equal(foo, 'bar');
     });
   });
 
-  test("Observers fire on init when no matching data", t => {
+  test('Observers fire on init when no matching data', t => {
     t.expect(2);
 
     const ractive = new Ractive({
       el: fixture,
-      template: "{{foo}}",
+      template: '{{foo}}',
       data: {}
     });
 
-    ractive.observe("foo", (foo, old, keypath) => {
+    ractive.observe('foo', (foo, old, keypath) => {
       t.ok(!foo);
-      t.equal(keypath, "foo");
+      t.equal(keypath, 'foo');
     });
   });
 
-  test("Uninitialised observers do not fire if their keypath is set to the same value", t => {
+  test('Uninitialised observers do not fire if their keypath is set to the same value', t => {
     t.expect(0);
 
     const ractive = new Ractive({
       el: fixture,
-      template: "{{foo}}",
-      data: { foo: "bar" }
+      template: '{{foo}}',
+      data: { foo: 'bar' }
     });
 
     ractive.observe(
-      "foo",
+      'foo',
       () => {
         t.ok(0);
       },
       { init: false }
     );
 
-    ractive.set("foo", "bar");
+    ractive.set('foo', 'bar');
   });
 
-  test("Uninitialised observers correctly report initial value on first fire (#1137)", t => {
+  test('Uninitialised observers correctly report initial value on first fire (#1137)', t => {
     t.expect(2);
 
     const ractive = new Ractive({
-      data: { foo: "bar" }
+      data: { foo: 'bar' }
     });
 
     ractive.observe(
-      "foo",
+      'foo',
       (n, o) => {
-        t.equal(o, "bar");
-        t.equal(n, "baz");
+        t.equal(o, 'bar');
+        t.equal(n, 'baz');
       },
       { init: false }
     );
 
-    ractive.set("foo", "baz");
+    ractive.set('foo', 'baz');
   });
 
-  test("Observers fire on downstream changes (#1393)", t => {
+  test('Observers fire on downstream changes (#1393)', t => {
     t.expect(4);
 
     const ractive = new Ractive({
       el: fixture,
-      template: "blah",
-      data: { config: { foo: "bar" } }
+      template: 'blah',
+      data: { config: { foo: 'bar' } }
     });
 
-    let expected = { foo: "bar" };
+    let expected = { foo: 'bar' };
 
-    ractive.observe("config", (n, o, keypath) => {
+    ractive.observe('config', (n, o, keypath) => {
       t.deepEqual(n, expected);
-      t.equal(keypath, "config");
+      t.equal(keypath, 'config');
     });
 
-    expected = { foo: "baz" };
-    ractive.set("config.foo", "baz");
+    expected = { foo: 'baz' };
+    ractive.set('config.foo', 'baz');
   });
 
-  test("Observers do NOT fire on downstream changes with strict: true", t => {
+  test('Observers do NOT fire on downstream changes with strict: true', t => {
     const ractive = new Ractive({
       el: fixture,
-      template: "blah",
-      data: { config: { foo: "bar" } }
+      template: 'blah',
+      data: { config: { foo: 'bar' } }
     });
 
     let observed = 0;
 
     ractive.observe(
-      "config",
+      'config',
       () => {
         observed++;
       },
       { init: false, strict: true }
     );
 
-    ractive.set("config.foo", "baz");
+    ractive.set('config.foo', 'baz');
 
     t.equal(observed, 0);
 
-    ractive.set("config", { foo: "baz" });
+    ractive.set('config', { foo: 'baz' });
 
     t.equal(observed, 1);
   });
 
-  test("Observers can observe multiple keypaths, separated by a space", t => {
+  test('Observers can observe multiple keypaths, separated by a space', t => {
     const ractive = new Ractive({
       el: fixture,
-      template: "irrelevant"
+      template: 'irrelevant'
     });
 
     const results = {};
 
-    ractive.observe("foo bar baz", (n, o, k) => {
+    ractive.observe('foo bar baz', (n, o, k) => {
       results[k] = n;
     });
 
     ractive.observe({
-      "a b": (n, o, k) => {
+      'a b': (n, o, k) => {
         results[k] = n;
       }
     });
 
-    ractive.set("foo", "one");
+    ractive.set('foo', 'one');
     ractive.set({
-      bar: "two",
-      baz: "three"
+      bar: 'two',
+      baz: 'three'
     });
 
-    ractive.set("a", 1);
-    ractive.set("b", 2);
+    ractive.set('a', 1);
+    ractive.set('b', 2);
 
-    t.deepEqual(results, { foo: "one", bar: "two", baz: "three", a: 1, b: 2 });
+    t.deepEqual(results, { foo: 'one', bar: 'two', baz: 'three', a: 1, b: 2 });
   });
 
-  test("Promises from set() operations inside observers resolve (#765)", t => {
+  test('Promises from set() operations inside observers resolve (#765)', t => {
     t.expect(1);
 
     const done = t.async();
 
     const ractive = new Ractive({
       el: fixture,
-      template: "{{foo}}",
+      template: '{{foo}}',
       data: {
         bar: 1
       }
     });
 
     ractive.observe(
-      "bar",
+      'bar',
       () => {
-        ractive.set("foo", "works").then(() => {
+        ractive.set('foo', 'works').then(() => {
           t.ok(true);
           done();
         });
@@ -233,33 +233,33 @@ export default function() {
       { init: false }
     );
 
-    ractive.set("bar", true);
+    ractive.set('bar', true);
   });
 
-  test("set() operations inside observers affect the DOM immediately (related to #765)", t => {
+  test('set() operations inside observers affect the DOM immediately (related to #765)', t => {
     t.expect(1);
 
     const ractive = new Ractive({
       el: fixture,
-      template: "{{foo}}",
+      template: '{{foo}}',
       data: {
         bar: 1
       }
     });
 
     ractive.observe(
-      "bar",
+      'bar',
       () => {
-        ractive.set("foo", "works");
-        t.htmlEqual(fixture.innerHTML, "works");
+        ractive.set('foo', 'works');
+        t.htmlEqual(fixture.innerHTML, 'works');
       },
       { init: false }
     );
 
-    ractive.set("bar", true);
+    ractive.set('bar', true);
   });
 
-  test("Errors inside observers are not caught", t => {
+  test('Errors inside observers are not caught', t => {
     t.expect(2);
 
     const ractive = new Ractive({
@@ -269,85 +269,85 @@ export default function() {
     });
 
     try {
-      ractive.observe("foo", () => {
-        throw new Error("test");
+      ractive.observe('foo', () => {
+        throw new Error('test');
       });
     } catch (err) {
-      t.equal(err.message, "test");
+      t.equal(err.message, 'test');
     }
 
     try {
-      ractive.observe("bar.*", () => {
-        throw new Error("test");
+      ractive.observe('bar.*', () => {
+        throw new Error('test');
       });
     } catch (err) {
-      t.equal(err.message, "test");
+      t.equal(err.message, 'test');
     }
   });
 
-  test("Setting up and cancelling a regular observer", t => {
+  test('Setting up and cancelling a regular observer', t => {
     const ractive = new Ractive({
       el: fixture,
-      template: "unimportant",
+      template: 'unimportant',
       data: {
-        person: { name: "Joe" }
+        person: { name: 'Joe' }
       }
     });
 
     let dummy = false;
-    const observer = ractive.observe("person.name", value => (dummy = value));
+    const observer = ractive.observe('person.name', value => (dummy = value));
 
-    t.equal(dummy, "Joe");
+    t.equal(dummy, 'Joe');
 
-    ractive.set("person.name", "Londo");
-    t.equal(dummy, "Londo");
+    ractive.set('person.name', 'Londo');
+    t.equal(dummy, 'Londo');
 
     observer.cancel();
   });
 
-  test(".observeOnce() functionality", t => {
+  test('.observeOnce() functionality', t => {
     t.expect(1);
 
-    const ractive = new Ractive({ data: { foo: "bar" } });
+    const ractive = new Ractive({ data: { foo: 'bar' } });
 
-    ractive.observeOnce("foo", () => {
+    ractive.observeOnce('foo', () => {
       t.ok(true);
     });
 
-    ractive.set("foo", "fizz");
-    ractive.set("foo", "qux");
+    ractive.set('foo', 'fizz');
+    ractive.set('foo', 'qux');
   });
 
-  test("Observer with no keypath argument (#1868)", t => {
+  test('Observer with no keypath argument (#1868)', t => {
     t.expect(1);
 
     const ractive = new Ractive();
 
     ractive.observe(data => t.equal(data.answer, 42), { init: false });
-    ractive.set("answer", 42);
+    ractive.set('answer', 42);
   });
 
-  test("Observer with empty string keypath argument (#1868)", t => {
+  test('Observer with empty string keypath argument (#1868)', t => {
     t.expect(1);
 
     const ractive = new Ractive();
 
-    ractive.observe("", data => t.equal(data.answer, 42), { init: false });
-    ractive.set("answer", 42);
+    ractive.observe('', data => t.equal(data.answer, 42), { init: false });
+    ractive.set('answer', 42);
   });
 
   // This is a casualty of 0.8 – the `foo` observer will be called
   // when it turns `false`, immediately before the component that
   // owns the observer is torn down. The observer *is* torn down, though
-  test("Observers are removed on teardown (#1865)", t => {
+  test('Observers are removed on teardown (#1865)', t => {
     let rendered = 0;
     let observed = 0;
 
     const Widget = Ractive.extend({
-      template: "{{foo}}",
+      template: '{{foo}}',
       onrender() {
         rendered += 1;
-        this.observe("foo", () => (observed += 1));
+        this.observe('foo', () => (observed += 1));
       }
     });
 
@@ -358,27 +358,27 @@ export default function() {
       components: { Widget }
     });
 
-    ractive.toggle("foo");
+    ractive.toggle('foo');
     t.equal(rendered, 1);
     t.equal(observed, 1);
 
-    ractive.toggle("foo");
+    ractive.toggle('foo');
     t.equal(rendered, 1);
     t.equal(observed, 2); // formerly 1
 
-    ractive.toggle("foo");
+    ractive.toggle('foo');
     t.equal(rendered, 2);
     t.equal(observed, 3); // formerly 2. (the important thing is it's not 3)
   });
 
-  test("Observers should not fire twice when an upstream change is already a change (#1695)", t => {
+  test('Observers should not fire twice when an upstream change is already a change (#1695)', t => {
     let count = 0;
 
     const ractive = new Ractive({
       data: { items: [] },
       oninit() {
         this.observe(
-          "items",
+          'items',
           () => {
             count++;
           },
@@ -387,33 +387,33 @@ export default function() {
       }
     });
 
-    ractive.set("items", [1], { shuffle: true });
+    ractive.set('items', [1], { shuffle: true });
 
     t.equal(count, 1);
   });
 
-  test("Pattern observers fire on changes to keypaths that match their pattern", t => {
+  test('Pattern observers fire on changes to keypaths that match their pattern', t => {
     t.expect(4);
 
     const ractive = new Ractive({
       el: fixture,
-      template: "blah",
+      template: 'blah',
       data: { foo: { bar: { baz: 1 } } }
     });
 
     let expected = 1;
 
-    ractive.observe("foo.bar.*", (n, o, keypath) => {
+    ractive.observe('foo.bar.*', (n, o, keypath) => {
       t.equal(n, expected);
-      t.equal(keypath, "foo.bar.baz");
+      t.equal(keypath, 'foo.bar.baz');
     });
 
     expected = 2;
-    ractive.set("foo.bar.baz", expected);
+    ractive.set('foo.bar.baz', expected);
   });
 
   // TODO why not deletes? was this discussed?
-  test("Pattern observers fire on changes and adds, but not deletes", t => {
+  test('Pattern observers fire on changes and adds, but not deletes', t => {
     let newName;
     let oldName;
     let keypath;
@@ -422,11 +422,11 @@ export default function() {
 
     const ractive = new Ractive({
       data: {
-        fruits: [{ name: "apple" }, { name: "orange" }, { name: "banana" }]
+        fruits: [{ name: 'apple' }, { name: 'orange' }, { name: 'banana' }]
       },
       oninit() {
         this.observe(
-          "fruits.*.name",
+          'fruits.*.name',
           (n, o, k, i) => {
             observed++;
             newName = n;
@@ -439,22 +439,22 @@ export default function() {
       }
     });
 
-    ractive.splice("fruits", 1, 2, { name: "pear" });
+    ractive.splice('fruits', 1, 2, { name: 'pear' });
     t.equal(observed, 1);
-    t.equal(newName, "pear");
-    t.equal(oldName, "orange");
-    t.equal(keypath, "fruits.1.name");
+    t.equal(newName, 'pear');
+    t.equal(oldName, 'orange');
+    t.equal(keypath, 'fruits.1.name');
     t.equal(index, 1);
   });
 
-  test("Pattern observers fire on adds and changes in full array set", t => {
+  test('Pattern observers fire on adds and changes in full array set', t => {
     let observed = 0;
 
     const ractive = new Ractive({
-      data: { fruits: ["apple", "orange", "banana"] },
+      data: { fruits: ['apple', 'orange', 'banana'] },
       oninit() {
         this.observe(
-          "fruits.*",
+          'fruits.*',
           () => {
             observed++;
           },
@@ -463,55 +463,55 @@ export default function() {
       }
     });
 
-    ractive.set("fruits", ["apple", "mango", "banana", "pear"]);
+    ractive.set('fruits', ['apple', 'mango', 'banana', 'pear']);
     t.equal(observed, 2);
   });
 
-  test("Pattern observers do NOT fire on init when no matching data", t => {
+  test('Pattern observers do NOT fire on init when no matching data', t => {
     t.expect(0);
 
     const ractive = new Ractive({
       el: fixture,
-      template: "{{foo}}",
+      template: '{{foo}}',
       data: {}
     });
 
-    ractive.observe("*", () => {
+    ractive.observe('*', () => {
       t.ok(true);
     });
   });
 
-  test("Pattern observers fire on changes to keypaths downstream of their pattern", t => {
+  test('Pattern observers fire on changes to keypaths downstream of their pattern', t => {
     t.expect(4);
 
     const ractive = new Ractive({
       el: fixture,
-      template: "blah",
+      template: 'blah',
       data: { foo: { bar: { baz: 1 } } }
     });
 
     let expected = { baz: 1 };
 
-    ractive.observe("foo.*", (n, o, keypath) => {
+    ractive.observe('foo.*', (n, o, keypath) => {
       t.deepEqual(n, expected);
-      t.equal(keypath, "foo.bar");
+      t.equal(keypath, 'foo.bar');
     });
 
     expected = { baz: 2 };
-    ractive.set("foo.bar.baz", 2);
+    ractive.set('foo.bar.baz', 2);
   });
 
-  test("observe has correct context #2087", t => {
+  test('observe has correct context #2087', t => {
     t.expect(4);
 
     const ractive = new Ractive({
       el: fixture,
-      template: "blah",
+      template: 'blah',
       data: { foo: { bar: { baz: 1 } } }
     });
 
     ractive.observe(
-      "foo.*",
+      'foo.*',
       function() {
         t.ok(this === window);
       },
@@ -519,86 +519,86 @@ export default function() {
     );
 
     ractive.observe(
-      "foo",
+      'foo',
       function() {
         t.ok(this === window);
       },
       { context: window }
     );
 
-    ractive.set("foo.bar.baz", 2);
+    ractive.set('foo.bar.baz', 2);
   });
 
-  test("Pattern observers fire on changes to keypaths upstream of their pattern", t => {
+  test('Pattern observers fire on changes to keypaths upstream of their pattern', t => {
     t.expect(4);
 
     const ractive = new Ractive({
       el: fixture,
-      template: "blah",
+      template: 'blah',
       data: { foo: { bar: { baz: 1 } } }
     });
 
     let expected = 1;
 
-    ractive.observe("foo.*.baz", (n, o, keypath) => {
+    ractive.observe('foo.*.baz', (n, o, keypath) => {
       t.deepEqual(n, expected);
-      t.equal(keypath, "foo.bar.baz");
+      t.equal(keypath, 'foo.bar.baz');
     });
 
     expected = 2;
-    ractive.set("foo", { bar: { baz: 2 } });
+    ractive.set('foo', { bar: { baz: 2 } });
   });
 
-  test("Pattern observers fire on changes to keypaths upstream of their pattern only if their value has changed", t => {
+  test('Pattern observers fire on changes to keypaths upstream of their pattern only if their value has changed', t => {
     t.expect(7);
 
     let foo = { bar: { baz: 1 } };
 
     const ractive = new Ractive({
       el: fixture,
-      template: "blah",
+      template: 'blah',
       data: { foo }
     });
 
-    ractive.observe("foo", n => {
-      t.equal(n, foo, "foo observer");
+    ractive.observe('foo', n => {
+      t.equal(n, foo, 'foo observer');
     });
 
     let expected = 1;
 
-    ractive.observe("foo.*.baz", (n, o, keypath) => {
-      t.deepEqual(n, expected, "foo.*.baz observer");
-      t.equal(keypath, "foo.bar.baz", "keypath");
+    ractive.observe('foo.*.baz', (n, o, keypath) => {
+      t.deepEqual(n, expected, 'foo.*.baz observer');
+      t.equal(keypath, 'foo.bar.baz', 'keypath');
     });
 
     foo = { bar: { baz: 1 } };
     // this won't fire 'foo.*.baz' because baz === 1
-    ractive.set("foo", foo);
+    ractive.set('foo', foo);
 
     expected = 2;
 
     foo = { bar: { baz: 2 } };
-    ractive.set("foo", foo);
+    ractive.set('foo', foo);
   });
 
-  test("Pattern observers can have multiple wildcards", t => {
+  test('Pattern observers can have multiple wildcards', t => {
     t.expect(4);
 
     const ractive = new Ractive({
       el: fixture,
-      template: "blah",
+      template: 'blah',
       data: { foo: { bar: { baz: 1 } } }
     });
 
     let expected = 1;
 
-    ractive.observe("foo.*.*", (n, o, keypath) => {
+    ractive.observe('foo.*.*', (n, o, keypath) => {
       t.deepEqual(n, expected);
-      t.equal(keypath, "foo.bar.baz");
+      t.equal(keypath, 'foo.bar.baz');
     });
 
     expected = 2;
-    ractive.set("foo.bar", { baz: 2 });
+    ractive.set('foo.bar', { baz: 2 });
   });
 
   test("The first key in a pattern observer's pattern can be a wildcard", t => {
@@ -606,44 +606,44 @@ export default function() {
 
     const ractive = new Ractive({
       el: fixture,
-      template: "blah",
+      template: 'blah',
       data: { gup: { foo: { bar: { baz: 1 } } } }
     });
 
     let expected = 1;
 
-    ractive.observe("gup.*.bar.baz", (n, o, keypath) => {
+    ractive.observe('gup.*.bar.baz', (n, o, keypath) => {
       t.deepEqual(n, expected);
-      t.equal(keypath, "gup.foo.bar.baz");
+      t.equal(keypath, 'gup.foo.bar.baz');
     });
 
     expected = 2;
-    ractive.set("gup.foo.bar", { baz: 2 });
+    ractive.set('gup.foo.bar', { baz: 2 });
   });
 
-  test("Pattern observers fire when ractive.update() is called without parameters", t => {
+  test('Pattern observers fire when ractive.update() is called without parameters', t => {
     t.expect(2);
 
     const ractive = new Ractive({
       el: fixture,
-      template: "whatever",
-      data: { items: ["a", "b", "c"] }
+      template: 'whatever',
+      data: { items: ['a', 'b', 'c'] }
     });
 
     ractive.observe(
-      "items.*",
+      'items.*',
       (n, o, k) => {
-        t.equal(k, "items.1");
-        t.equal(n, "d");
+        t.equal(k, 'items.1');
+        t.equal(n, 'd');
       },
       { init: false }
     );
 
-    ractive.get("items")[1] = "d";
+    ractive.get('items')[1] = 'd';
     ractive.update();
   });
 
-  test("Pattern observers can start with wildcards (#629)", t => {
+  test('Pattern observers can start with wildcards (#629)', t => {
     const ractive = new Ractive({
       data: {
         foo: { number: 0 },
@@ -654,28 +654,28 @@ export default function() {
 
     const values = {};
 
-    ractive.observe("*.number", (n, o, k) => {
+    ractive.observe('*.number', (n, o, k) => {
       values[k] = n;
     });
 
     t.deepEqual(values, {
-      "foo.number": 0,
-      "bar.number": 1,
-      "baz.number": 2
+      'foo.number': 0,
+      'bar.number': 1,
+      'baz.number': 2
     });
 
-    ractive.set("foo.number", 3);
+    ractive.set('foo.number', 3);
     t.deepEqual(values, {
-      "foo.number": 3,
-      "bar.number": 1,
-      "baz.number": 2
+      'foo.number': 3,
+      'bar.number': 1,
+      'baz.number': 2
     });
   });
 
-  test("Pattern observers on arrays fire correctly after mutations", t => {
+  test('Pattern observers on arrays fire correctly after mutations', t => {
     const ractive = new Ractive({
       data: {
-        items: ["a", "b", "c"]
+        items: ['a', 'b', 'c']
       }
     });
 
@@ -684,39 +684,39 @@ export default function() {
     let observedLengthChange = false;
 
     ractive.observe(
-      "items.*",
+      'items.*',
       (n, o, k) => {
         lastKeypath = k;
         lastValue = n;
 
-        if (k === "items.length") {
+        if (k === 'items.length') {
           observedLengthChange = true;
         }
       },
       { init: false }
     );
 
-    ractive.push("items", "d");
-    t.equal(lastKeypath, "items.3");
-    t.equal(lastValue, "d");
+    ractive.push('items', 'd');
+    t.equal(lastKeypath, 'items.3');
+    t.equal(lastValue, 'd');
 
     lastKeypath = void 0;
     lastValue = void 0;
 
-    ractive.pop("items");
+    ractive.pop('items');
     t.equal(lastKeypath, undefined);
     t.equal(lastValue, undefined);
 
     t.ok(!observedLengthChange);
 
-    ractive.set("items.length", 4);
+    ractive.set('items.length', 4);
     t.ok(observedLengthChange);
   });
 
-  test("Pattern observers receive additional arguments corresponding to the wildcards", t => {
+  test('Pattern observers receive additional arguments corresponding to the wildcards', t => {
     const ractive = new Ractive({
       data: {
-        array: ["a", "b", "c"],
+        array: ['a', 'b', 'c'],
         object: {
           foo: {
             one: 1,
@@ -736,10 +736,10 @@ export default function() {
 
     ractive.observe(
       {
-        "array.*"(n, o, k, index) {
+        'array.*'(n, o, k, index) {
           lastIndex = index;
         },
-        "object.*.*"(n, o, k, a, b) {
+        'object.*.*'(n, o, k, a, b) {
           lastA = a;
           lastB = b;
         }
@@ -747,105 +747,105 @@ export default function() {
       { init: false }
     );
 
-    ractive.push("array", "d");
+    ractive.push('array', 'd');
     t.equal(lastIndex, 3);
 
-    ractive.set("object.foo.five", 5);
-    t.equal(lastA, "foo");
-    t.equal(lastB, "five");
+    ractive.set('object.foo.five', 5);
+    t.equal(lastA, 'foo');
+    t.equal(lastB, 'five');
   });
 
-  test("Pattern observers work with an empty array (#760)", t => {
+  test('Pattern observers work with an empty array (#760)', t => {
     const ractive = new Ractive({});
-    ractive.observe("foo.*.bar", () => {});
+    ractive.observe('foo.*.bar', () => {});
     t.ok(true);
   });
 
-  test("Pattern observers work with an property of array (#760) variant", t => {
+  test('Pattern observers work with an property of array (#760) variant', t => {
     t.expect(2);
 
     const ractive = new Ractive({ data: { foo: [] } });
     const bar = { bar: 1 };
 
-    ractive.observe("foo.*.bar", (n, o, k) => {
+    ractive.observe('foo.*.bar', (n, o, k) => {
       t.equal(n, 1);
-      t.equal(k, "foo.0.bar");
+      t.equal(k, 'foo.0.bar');
     });
 
-    ractive.push("foo", bar);
+    ractive.push('foo', bar);
   });
 
-  test("Setting up and cancelling a pattern observer", t => {
+  test('Setting up and cancelling a pattern observer', t => {
     const ractive = new Ractive({
       el: fixture,
-      template: "unimportant",
+      template: 'unimportant',
       data: {
-        person: { name: "Joe" }
+        person: { name: 'Joe' }
       }
     });
 
     let dummy = false;
-    const observer = ractive.observe("person.*", value => (dummy = value));
+    const observer = ractive.observe('person.*', value => (dummy = value));
 
-    t.equal(dummy, "Joe");
+    t.equal(dummy, 'Joe');
 
-    ractive.set("person.name", "Londo");
-    t.equal(dummy, "Londo");
+    ractive.set('person.name', 'Londo');
+    t.equal(dummy, 'Londo');
 
     observer.cancel();
   });
 
-  test("Deferred pattern observers work correctly (#1079)", t => {
+  test('Deferred pattern observers work correctly (#1079)', t => {
     const ractive = new Ractive({
       el: fixture,
-      template: "unimportant",
+      template: 'unimportant',
       data: {
-        fruits: ["apple", "banana", "orange"]
+        fruits: ['apple', 'banana', 'orange']
       }
     });
 
     const dummy = [];
     const observer = ractive.observe(
-      "fruits.*",
+      'fruits.*',
       fruit => {
         dummy.push(fruit);
       },
       { defer: true }
     );
 
-    t.deepEqual(dummy, ["apple", "banana", "orange"]);
+    t.deepEqual(dummy, ['apple', 'banana', 'orange']);
 
-    ractive.push("fruits", "cabbage");
-    t.deepEqual(dummy, ["apple", "banana", "orange", "cabbage"]);
+    ractive.push('fruits', 'cabbage');
+    t.deepEqual(dummy, ['apple', 'banana', 'orange', 'cabbage']);
 
     observer.cancel();
   });
 
-  test("Asterisks should not be left in computation keypaths (#1472)", t => {
+  test('Asterisks should not be left in computation keypaths (#1472)', t => {
     const ractive = new Ractive({
       el: fixture,
-      template: "{{foo * 2}}",
+      template: '{{foo * 2}}',
       data: { foo: 3 }
     });
 
-    ractive.observe("*", () => {});
+    ractive.observe('*', () => {});
 
     // this will blow the stack if the bug is present
     // qunit doesn't like it when your tests straight-up overflow
     // the try helps, but it will still cascade to other tests
     try {
-      ractive.set("foo", 10);
+      ractive.set('foo', 10);
     } catch (err) {
       // do nothing
     }
 
-    t.htmlEqual(fixture.innerHTML, "20");
+    t.htmlEqual(fixture.innerHTML, '20');
   });
 
-  fire(document.createElement("div"), "input");
-  fire(document.createElement("div"), "blur");
+  fire(document.createElement('div'), 'input');
+  fire(document.createElement('div'), 'blur');
 
-  test("Pattern observers used as validators behave correctly on blur (#1475)", t => {
+  test('Pattern observers used as validators behave correctly on blur (#1475)', t => {
     const ractive = new Ractive({
       el: fixture,
       template: `
@@ -857,43 +857,43 @@ export default function() {
       }
     });
 
-    ractive.observe("items.*.value", function(n, o, k, i) {
-      const min = this.get("items[" + i + "].min");
-      const max = this.get("items[" + i + "].max");
+    ractive.observe('items.*.value', function(n, o, k, i) {
+      const min = this.get('items[' + i + '].min');
+      const max = this.get('items[' + i + '].max');
 
       if (n < min) this.set(k, min);
       if (n > max) this.set(k, max);
     });
 
-    t.equal(ractive.get("items[0].value"), 10);
-    t.equal(ractive.get("items[1].value"), 90);
+    t.equal(ractive.get('items[0].value'), 10);
+    t.equal(ractive.get('items[1].value'), 90);
 
-    const inputs = ractive.findAll("input");
+    const inputs = ractive.findAll('input');
 
     inputs[0].value = 200;
     inputs[1].value = -200;
 
-    fire(inputs[0], "input");
-    fire(inputs[1], "input");
+    fire(inputs[0], 'input');
+    fire(inputs[1], 'input');
 
-    fire(inputs[0], "blur");
-    fire(inputs[1], "blur");
+    fire(inputs[0], 'blur');
+    fire(inputs[1], 'blur');
 
-    t.equal(ractive.get("items[0].value"), 90);
-    t.equal(ractive.get("items[1].value"), 10);
+    t.equal(ractive.get('items[0].value'), 90);
+    t.equal(ractive.get('items[1].value'), 10);
   });
 
-  test("Observer fires on initialisation for computed properties", t => {
+  test('Observer fires on initialisation for computed properties', t => {
     const ractive = new Ractive({
       data: { num: 21 },
       computed: {
-        doubled: "num*2"
+        doubled: 'num*2'
       }
     });
 
     const observed = {};
 
-    ractive.observe("*", (n, o, k) => {
+    ractive.observe('*', (n, o, k) => {
       observed[k] = n;
     });
 
@@ -910,14 +910,14 @@ export default function() {
         watches: []
       },
       oninit() {
-        this.observe("items.*", (n, o, k) => {
-          this.push("watches", `${n} - ${k} `);
+        this.observe('items.*', (n, o, k) => {
+          this.push('watches', `${n} - ${k} `);
         });
       }
     });
 
-    r.push("items", 1, 2);
-    t.htmlEqual(fixture.innerHTML, "-12 1 - items.0 2 - items.1");
+    r.push('items', 1, 2);
+    t.htmlEqual(fixture.innerHTML, '-12 1 - items.0 2 - items.1');
   });
 
   test(`a pattern observer that is shuffled with objects should only notify on the new keys`, t => {
@@ -925,41 +925,41 @@ export default function() {
 
     const r = new Ractive({
       el: fixture,
-      template: "",
+      template: '',
       data: {
         items: [{ val: 1 }, { val: 2 }]
       },
       oninit() {
-        this.observe("items.*", () => {
+        this.observe('items.*', () => {
           count++;
         });
       }
     });
 
     t.equal(count, 2);
-    r.push("items", { val: 3 });
+    r.push('items', { val: 3 });
     t.equal(count, 3);
-    r.unshift("items", { val: 0 });
+    r.unshift('items', { val: 0 });
     t.equal(count, 7);
   });
 
   test(`wildcard * and root fire in components for mapped and local data`, t => {
     t.expect(16);
 
-    let wckeypath = "value";
-    let wcexpect = "foo";
-    let rootexpect = { value: "foo" };
+    let wckeypath = 'value';
+    let wcexpect = 'foo';
+    let rootexpect = { value: 'foo' };
 
     const widget = Ractive.extend({
       oninit() {
-        this.observe("*", (n, o, k) => {
-          t.equal(n, wcexpect, "wildcard value");
-          t.equal(k, wckeypath, "wildcard keypath");
+        this.observe('*', (n, o, k) => {
+          t.equal(n, wcexpect, 'wildcard value');
+          t.equal(k, wckeypath, 'wildcard keypath');
         });
 
         this.observe((n, o, k) => {
-          t.deepEqual(n, rootexpect, "root value");
-          t.equal(k, "", "root keypath");
+          t.deepEqual(n, rootexpect, 'root value');
+          t.equal(k, '', 'root keypath');
         });
       }
     });
@@ -968,26 +968,26 @@ export default function() {
       el: fixture,
       template: `<widget value='{{foo}}'/>`,
       data: {
-        foo: "foo"
+        foo: 'foo'
       },
       components: { widget }
     });
 
-    wcexpect = "bar";
-    rootexpect = { value: "bar" };
-    r.set("foo", "bar");
+    wcexpect = 'bar';
+    rootexpect = { value: 'bar' };
+    r.set('foo', 'bar');
 
-    wcexpect = "qux";
-    rootexpect = { value: "qux" };
-    r.findComponent("widget").set("value", "qux");
+    wcexpect = 'qux';
+    rootexpect = { value: 'qux' };
+    r.findComponent('widget').set('value', 'qux');
 
-    wckeypath = "bizz";
-    wcexpect = "buzz";
-    rootexpect = { value: "qux", bizz: "buzz" };
-    r.findComponent("widget").set("bizz", "buzz");
+    wckeypath = 'bizz';
+    wcexpect = 'buzz';
+    rootexpect = { value: 'qux', bizz: 'buzz' };
+    r.findComponent('widget').set('bizz', 'buzz');
   });
 
-  test("wildcard * and root include computed but not expressions", t => {
+  test('wildcard * and root include computed but not expressions', t => {
     let wildcard = 0;
     let root = 0;
 
@@ -995,36 +995,36 @@ export default function() {
       el: fixture,
       template: `{{ foo + 2 }}`,
       data: { foo: 1 },
-      computed: { bar: "foo + 1" },
+      computed: { bar: 'foo + 1' },
       oninit() {
-        this.observe("*", (n, o, k) => {
-          t.ok(k[0] !== "@");
+        this.observe('*', (n, o, k) => {
+          t.ok(k[0] !== '@');
           wildcard++;
         });
 
         this.observe((n, o, k) => {
-          t.ok(k[0] !== "@");
+          t.ok(k[0] !== '@');
           root++;
         });
       }
     });
 
-    t.equal(wildcard, 2, "wildcard count");
-    t.equal(root, 1, "root count");
+    t.equal(wildcard, 2, 'wildcard count');
+    t.equal(root, 1, 'root count');
   });
 
-  test("Pattern observer expects * to only apply to arrays and objects (#1923)", t => {
+  test('Pattern observer expects * to only apply to arrays and objects (#1923)', t => {
     t.expect(0);
     const ractive = new Ractive({
-      data: { msg: "hello world" }
+      data: { msg: 'hello world' }
     });
 
-    ractive.observe("msg.*", () => {
-      t.ok(false, "observer should not fire");
+    ractive.observe('msg.*', () => {
+      t.ok(false, 'observer should not fire');
     });
   });
 
-  test("pattern observers only observe changed values (#2420)", t => {
+  test('pattern observers only observe changed values (#2420)', t => {
     t.expect(3);
 
     const r = new Ractive({
@@ -1034,19 +1034,19 @@ export default function() {
     });
 
     r.observe(
-      "list.*",
+      'list.*',
       (n, o, k) => {
-        t.equal(k, "list.1");
+        t.equal(k, 'list.1');
         t.deepEqual(o, { foo: 2 });
-        t.deepEqual(n, { foo: "yep" });
+        t.deepEqual(n, { foo: 'yep' });
       },
       { init: false }
     );
 
-    r.set("list.1", { foo: "yep" });
+    r.set('list.1', { foo: 'yep' });
   });
 
-  test("pattern observers only observe changed values with exact keypath matches (#2420)", t => {
+  test('pattern observers only observe changed values with exact keypath matches (#2420)', t => {
     t.expect(3);
 
     const r = new Ractive({
@@ -1056,21 +1056,21 @@ export default function() {
     });
 
     r.observe(
-      "list.*",
+      'list.*',
       (n, o, k) => {
-        t.equal(k, "list.1");
-        t.deepEqual(o, { foo: "yep" });
-        t.deepEqual(n, { foo: "yep" });
+        t.equal(k, 'list.1');
+        t.deepEqual(o, { foo: 'yep' });
+        t.deepEqual(n, { foo: 'yep' });
       },
       { init: false }
     );
 
-    r.set("list.1.foo", "yep");
+    r.set('list.1.foo', 'yep');
   });
 
-  test("subsequent single segment pattern observers still have the correct old value", t => {
+  test('subsequent single segment pattern observers still have the correct old value', t => {
     t.expect(6);
-    let str = "yep";
+    let str = 'yep';
 
     const r = new Ractive({
       data: {
@@ -1079,7 +1079,7 @@ export default function() {
     });
 
     r.observe(
-      "list.*",
+      'list.*',
       (n, o) => {
         t.deepEqual(o, { foo: str });
         t.deepEqual(n, { foo: str });
@@ -1087,13 +1087,13 @@ export default function() {
       { init: false }
     );
 
-    r.set("list.1.foo", str);
-    r.set("list.0.foo", str);
-    str = "ha";
-    r.set("list.0.foo", str);
+    r.set('list.1.foo', str);
+    r.set('list.0.foo', str);
+    str = 'ha';
+    r.set('list.0.foo', str);
   });
 
-  test("pattern observers only observe changed values on update", t => {
+  test('pattern observers only observe changed values on update', t => {
     t.expect(2);
 
     const r = new Ractive({
@@ -1103,60 +1103,60 @@ export default function() {
     });
 
     r.observe(
-      "list.*",
+      'list.*',
       (n, o, k) => {
-        t.equal(k, "list.1");
-        t.deepEqual(n, { foo: "yep" });
+        t.equal(k, 'list.1');
+        t.deepEqual(n, { foo: 'yep' });
       },
       { init: false }
     );
 
-    r.get("list.1").foo = "yep";
-    r.update("list.1.foo");
+    r.get('list.1').foo = 'yep';
+    r.update('list.1.foo');
   });
 
   test(`pattern observer doesn't die on primitive values (#2503)`, t => {
     const done = t.async();
     const r = new Ractive({
       el: fixture,
-      template: "",
+      template: '',
       data: { foo: 0 }
     });
 
     r.observe(
-      "* *.*",
+      '* *.*',
       (n, o, k) => {
         t.equal(n, 1);
         t.equal(o, 0);
-        t.equal(k, "foo");
+        t.equal(k, 'foo');
         done();
       },
       { init: false }
     );
 
-    r.add("foo");
+    r.add('foo');
   });
 
-  test("wildcard * fires on new property", t => {
+  test('wildcard * fires on new property', t => {
     t.expect(2);
 
-    const ractive = new Ractive({ data: { qux: "qux" } });
+    const ractive = new Ractive({ data: { qux: 'qux' } });
 
     ractive.observe(
-      "*",
+      '*',
       (n, o, k) => {
-        t.equal(k, "foo");
-        t.equal(n, "bar");
+        t.equal(k, 'foo');
+        t.equal(n, 'bar');
       },
       { init: false }
     );
 
-    ractive.set("foo", "bar");
+    ractive.set('foo', 'bar');
   });
 
-  test("References to observers are not retained after cancel()", t => {
+  test('References to observers are not retained after cancel()', t => {
     const ractive = new Ractive({ data: { counter: 0 } });
-    const obs = ractive.observe("counter", (newValue, oldValue) => {
+    const obs = ractive.observe('counter', (newValue, oldValue) => {
       if (oldValue) {
         return obs.cancel();
       }
@@ -1164,19 +1164,19 @@ export default function() {
 
     t.equal(ractive._observers.length, 1);
 
-    ractive.add("counter");
+    ractive.add('counter');
     obs.cancel();
 
     t.equal(ractive._observers.length, 0);
   });
 
-  test("observers on implicit mappings should resolve correctly (#2572)", t => {
+  test('observers on implicit mappings should resolve correctly (#2572)', t => {
     t.expect(2);
 
     let count = 0;
     const cmp = Ractive.extend({
       oninit() {
-        this.observe(this.get("target"), n => {
+        this.observe(this.get('target'), n => {
           if (count) {
             t.equal(n, 1);
           } else {
@@ -1197,15 +1197,15 @@ export default function() {
       components: { cmp }
     });
 
-    r.add("foo.bar");
+    r.add('foo.bar');
   });
 
-  test("observing in an isolated component should not create implicit mappings", t => {
+  test('observing in an isolated component should not create implicit mappings', t => {
     t.expect(0);
 
     const cmp = Ractive.extend({
       oninit() {
-        this.observe("foo.bar", () => t.ok(false));
+        this.observe('foo.bar', () => t.ok(false));
       },
       isolated: true
     });
@@ -1218,18 +1218,18 @@ export default function() {
       components: { cmp }
     });
 
-    r.add("foo.bar");
+    r.add('foo.bar');
   });
 
-  test("observers should not be re-entrant when they init (#2594)", t => {
+  test('observers should not be re-entrant when they init (#2594)', t => {
     let count = 0;
     new Ractive({
       el: fixture,
       data: { list: [0, 0] },
       oninit() {
-        this.observe("list", () => {
+        this.observe('list', () => {
           count++;
-          this.set("list", []);
+          this.set('list', []);
         });
       }
     });
@@ -1237,13 +1237,13 @@ export default function() {
     t.equal(count, 1);
   });
 
-  test("pattern observers should not be re-entrant when they init", t => {
+  test('pattern observers should not be re-entrant when they init', t => {
     let count = 0;
     new Ractive({
       el: fixture,
       data: { obj: { list: [0, 0] } },
       oninit() {
-        this.observe("obj.*", (n, o, k) => {
+        this.observe('obj.*', (n, o, k) => {
           count++;
           this.set(k, []);
         });
@@ -1253,14 +1253,14 @@ export default function() {
     t.equal(count, 1);
   });
 
-  test("pattern observers handle multi-key set correctly (#2631)", t => {
+  test('pattern observers handle multi-key set correctly (#2631)', t => {
     const list = [];
     const r = new Ractive({
       data: {
         list: [{ a: 1 }, { a: 2 }, { a: 3 }]
       },
       onconfig() {
-        this.observe("list.*.a", (n, o, k, i) => {
+        this.observe('list.*.a', (n, o, k, i) => {
           list[i] = n;
         });
       }
@@ -1268,9 +1268,9 @@ export default function() {
 
     t.deepEqual(list, [1, 2, 3]);
     r.set({
-      "list.0.a": 3,
-      "list.1.a": 4,
-      "list.2.a": 5
+      'list.0.a': 3,
+      'list.1.a': 4,
+      'list.2.a': 5
     });
     t.deepEqual(list, [3, 4, 5]);
   });
@@ -1279,7 +1279,7 @@ export default function() {
     const r = new Ractive({
       computed: {
         int() {
-          return Math.round(this.get("number"));
+          return Math.round(this.get('number'));
         }
       },
       data: {
@@ -1288,49 +1288,49 @@ export default function() {
       }
     });
 
-    r.observe("int", function() {
-      this.add("observerCalledTimes", 1);
+    r.observe('int', function() {
+      this.add('observerCalledTimes', 1);
     });
 
-    r.set("number", 1.1);
-    r.set("number", 1.2);
-    r.set("number", 1.3);
-    r.set("number", 1.4);
+    r.set('number', 1.1);
+    r.set('number', 1.2);
+    r.set('number', 1.3);
+    r.set('number', 1.4);
 
-    t.equal(r.get("observerCalledTimes"), 1);
+    t.equal(r.get('observerCalledTimes'), 1);
   });
 
-  test("observers on conditional mappings fire correctly (#2636)", t => {
+  test('observers on conditional mappings fire correctly (#2636)', t => {
     let val;
 
     const cmp = Ractive.extend({
       oninit() {
-        this.observe("bar", v => (val = v));
+        this.observe('bar', v => (val = v));
       }
     });
 
     const r = new Ractive({
       el: fixture,
       template: '<cmp {{#if baz}}bar="{{baz}}"{{/if}} />',
-      data: { baz: "" },
+      data: { baz: '' },
       components: { cmp }
     });
 
-    r.set("baz", "hello");
-    t.equal(val, "hello");
+    r.set('baz', 'hello');
+    t.equal(val, 'hello');
   });
 
   test(`observers on ambiguous paths should not cause errors if they don't resolve before teardown (#2619)`, t => {
     const r = new Ractive({
       el: fixture,
       onconfig() {
-        this.observe("foo", () => {}, { init: false });
+        this.observe('foo', () => {}, { init: false });
       }
     });
 
     try {
       r.teardown();
-      t.equal(fixture.innerHTML, "");
+      t.equal(fixture.innerHTML, '');
     } catch (e) {
       t.ok(false, e.message);
     }
@@ -1341,35 +1341,35 @@ export default function() {
 
     const r = new Ractive({
       el: fixture,
-      template: "{{foo}}",
-      data: { foo: "hello" }
+      template: '{{foo}}',
+      data: { foo: 'hello' }
     });
 
     r.observe(
-      "foo",
+      'foo',
       function(v, o, k) {
         count++;
-        this.set(k, v + "1");
+        this.set(k, v + '1');
       },
       { init: false }
     );
 
-    t.htmlEqual(fixture.innerHTML, "hello");
-    r.set("foo", "hello");
-    t.htmlEqual(fixture.innerHTML, "hello");
-    r.set("foo", "yep");
-    t.htmlEqual(fixture.innerHTML, "yep1");
-    r.set("foo", "yep");
-    t.htmlEqual(fixture.innerHTML, "yep1");
+    t.htmlEqual(fixture.innerHTML, 'hello');
+    r.set('foo', 'hello');
+    t.htmlEqual(fixture.innerHTML, 'hello');
+    r.set('foo', 'yep');
+    t.htmlEqual(fixture.innerHTML, 'yep1');
+    r.set('foo', 'yep');
+    t.htmlEqual(fixture.innerHTML, 'yep1');
     t.equal(count, 2);
   });
 
   test(`observers fire properly on upstream links (#2675)`, t => {
     let count = 0;
     const cmp = Ractive.extend({
-      template: "{{ JSON.stringify(obj) }}",
+      template: '{{ JSON.stringify(obj) }}',
       onrender() {
-        this.observe("obj", () => count++, { init: false });
+        this.observe('obj', () => count++, { init: false });
       }
     });
 
@@ -1377,13 +1377,13 @@ export default function() {
       el: fixture,
       template: '{{ JSON.stringify(src) }}<cmp obj="{{src}}" />',
       data: {
-        src: { str: "yep" }
+        src: { str: 'yep' }
       },
       components: { cmp }
     });
 
     t.htmlEqual(fixture.innerHTML, '{"str":"yep"}{"str":"yep"}');
-    r.set("src.str", "still yep");
+    r.set('src.str', 'still yep');
     t.equal(count, 1);
     t.htmlEqual(fixture.innerHTML, '{"str":"still yep"}{"str":"still yep"}');
   });
@@ -1394,10 +1394,10 @@ export default function() {
     let key;
 
     const cmp = Ractive.extend({
-      template: "{{ JSON.stringify(obj) }}",
+      template: '{{ JSON.stringify(obj) }}',
       onrender() {
         this.observe(
-          "obj.*",
+          'obj.*',
           (v, o, k, p) => {
             val = v;
             path = k;
@@ -1412,25 +1412,25 @@ export default function() {
       el: fixture,
       template: '{{ JSON.stringify(src) }}<cmp obj="{{src}}" />',
       data: {
-        src: { str: "yep" }
+        src: { str: 'yep' }
       },
       components: { cmp }
     });
 
     t.htmlEqual(fixture.innerHTML, '{"str":"yep"}{"str":"yep"}');
-    r.set("src.str", "still yep");
-    t.equal(val, "still yep");
-    t.equal(path, "obj.str");
-    t.equal(key, "str");
+    r.set('src.str', 'still yep');
+    t.equal(val, 'still yep');
+    t.equal(path, 'obj.str');
+    t.equal(key, 'str');
     t.htmlEqual(fixture.innerHTML, '{"str":"still yep"}{"str":"still yep"}');
   });
 
   test(`observers fire properly on upstream linked links (#2675)`, t => {
     let count = 0;
     const cmp2 = Ractive.extend({
-      template: "{{ JSON.stringify(obj) }}",
+      template: '{{ JSON.stringify(obj) }}',
       onrender() {
-        this.observe("obj", () => count++, { init: false });
+        this.observe('obj', () => count++, { init: false });
       }
     });
 
@@ -1443,13 +1443,13 @@ export default function() {
       el: fixture,
       template: '{{ JSON.stringify(src) }}<cmp1 middle="{{src}}" />',
       data: {
-        src: { str: "yep" }
+        src: { str: 'yep' }
       },
       components: { cmp1 }
     });
 
     t.htmlEqual(fixture.innerHTML, '{"str":"yep"}{"str":"yep"}');
-    r.set("src.str", "still yep");
+    r.set('src.str', 'still yep');
     t.equal(count, 1);
     t.htmlEqual(fixture.innerHTML, '{"str":"still yep"}{"str":"still yep"}');
   });
@@ -1460,33 +1460,33 @@ export default function() {
       el: fixture
     });
 
-    r.observe("a.*.c.*", () => {
+    r.observe('a.*.c.*', () => {
       count++;
-      r.set("a.b.really.d", 1);
+      r.set('a.b.really.d', 1);
     });
 
-    r.set("a.b.c.d", 1);
-    r.set("a.b.nope.d", 1);
+    r.set('a.b.c.d', 1);
+    r.set('a.b.nope.d', 1);
 
     t.equal(count, 1);
   });
 
-  test("observe ignores additional empty paths (#2690)", t => {
+  test('observe ignores additional empty paths (#2690)', t => {
     let count1 = 0;
     let count2 = 0;
     const r = new Ractive({
       el: fixture
     });
 
-    r.observe("a ", () => count1++, { init: false });
+    r.observe('a ', () => count1++, { init: false });
     r.observe(
       {
-        "a ": () => count2++
+        'a ': () => count2++
       },
       { init: false }
     );
 
-    r.set("a", 1);
+    r.set('a', 1);
     t.equal(count1, 1);
     t.equal(count2, 1);
   });
@@ -1496,14 +1496,14 @@ export default function() {
     const r = new Ractive({
       target: fixture,
       onconfig() {
-        this.observeOnce("foo", () => count++);
-        this.set("foo", "yep");
+        this.observeOnce('foo', () => count++);
+        this.set('foo', 'yep');
       }
     });
 
     t.equal(count, 1);
 
-    r.set("foo", "bar");
+    r.set('foo', 'bar');
     t.equal(count, 1);
   });
 
@@ -1511,7 +1511,7 @@ export default function() {
     let count = 0;
     const r = new Ractive();
     const handle = r.observe(
-      "foo",
+      'foo',
       function() {
         t.ok(this === r);
         count++;
@@ -1519,16 +1519,16 @@ export default function() {
       { init: false }
     );
 
-    r.toggle("foo");
+    r.toggle('foo');
     t.equal(count, 1);
 
     handle.silence();
-    r.toggle("foo");
+    r.toggle('foo');
     t.equal(count, 1);
     t.equal(handle.isSilenced(), true);
 
     handle.resume();
-    r.toggle("foo");
+    r.toggle('foo');
     t.equal(count, 2);
     t.equal(handle.isSilenced(), false);
   });
@@ -1536,15 +1536,15 @@ export default function() {
   test(`observer handle cancels all observers when multiple observers are created`, t => {
     let count = 0;
     const r = new Ractive();
-    const handle = r.observe("foo bar baz", () => count++, { init: false });
+    const handle = r.observe('foo bar baz', () => count++, { init: false });
 
-    r.toggle("foo");
-    r.toggle("bar");
+    r.toggle('foo');
+    r.toggle('bar');
     t.equal(count, 2);
 
     handle.cancel();
 
-    r.toggle("bar");
+    r.toggle('bar');
     t.equal(count, 2);
   });
 
@@ -1552,15 +1552,15 @@ export default function() {
     const counts = { a: 0, b: 0 };
     const r = new Ractive();
     r.observe(
-      "foo.*",
+      'foo.*',
       (n, o, kp, k) => {
         counts[k]++;
-        if (k === "a") r.set("foo.b", "changed");
+        if (k === 'a') r.set('foo.b', 'changed');
       },
       { init: false }
     );
 
-    r.set("foo.a", "yep");
+    r.set('foo.a', 'yep');
 
     t.equal(counts.a, 1);
     t.equal(counts.b, 1);
@@ -1574,20 +1574,20 @@ export default function() {
       }
     });
     r.observe(
-      "foo.*",
+      'foo.*',
       (n, o, kp, k) => {
         keys.unshift(k);
       },
       { init: false }
     );
 
-    r.set("foo.10.bar", "a");
+    r.set('foo.10.bar', 'a');
     t.equal(keys.length, 1);
-    t.equal(keys[0], "10");
+    t.equal(keys[0], '10');
 
-    r.set("foo.20.bar", "b");
+    r.set('foo.20.bar', 'b');
     t.equal(keys.length, 2);
-    t.equal(keys[0], "20");
+    t.equal(keys[0], '20');
   });
 
   test(`inserting array elements without using modification methods should still mark length (#2806)`, t => {
@@ -1595,23 +1595,23 @@ export default function() {
       data: { foo: [] }
     });
     let val = 0;
-    r.observe("foo.length", v => t.equal(v, val));
+    r.observe('foo.length', v => t.equal(v, val));
 
     val = 1;
-    r.set("foo.0", "a");
+    r.set('foo.0', 'a');
 
     val = 7;
-    r.set("foo.6", "b");
+    r.set('foo.6', 'b');
   });
 
-  test("List observers report array modifications", t => {
+  test('List observers report array modifications', t => {
     let shuffle;
 
     const ractive = new Ractive({
-      data: { fruits: ["apple", "orange", "banana"] },
+      data: { fruits: ['apple', 'orange', 'banana'] },
       oninit() {
         this.observe(
-          "fruits",
+          'fruits',
           shfl => {
             shuffle = shfl;
           },
@@ -1620,25 +1620,25 @@ export default function() {
       }
     });
 
-    t.deepEqual(shuffle.inserted, ["apple", "orange", "banana"]);
+    t.deepEqual(shuffle.inserted, ['apple', 'orange', 'banana']);
     t.deepEqual(shuffle.deleted, []);
     t.ok(!shuffle.start);
 
-    ractive.splice("fruits", 1, 2, "pear");
+    ractive.splice('fruits', 1, 2, 'pear');
 
-    t.deepEqual(shuffle.inserted, ["pear"]);
-    t.deepEqual(shuffle.deleted, ["orange", "banana"]);
+    t.deepEqual(shuffle.inserted, ['pear']);
+    t.deepEqual(shuffle.deleted, ['orange', 'banana']);
     t.equal(shuffle.start, 1);
   });
 
-  test("List observers correctly report value change on no init", t => {
+  test('List observers correctly report value change on no init', t => {
     let shuffle;
 
     const ractive = new Ractive({
-      data: { fruits: ["apple", "orange", "banana"] },
+      data: { fruits: ['apple', 'orange', 'banana'] },
       oninit() {
         this.observe(
-          "fruits",
+          'fruits',
           shfl => {
             shuffle = shfl;
           },
@@ -1647,21 +1647,21 @@ export default function() {
       }
     });
 
-    ractive.splice("fruits", 1, 2, "pear");
+    ractive.splice('fruits', 1, 2, 'pear');
 
-    t.deepEqual(shuffle.inserted, ["pear"]);
-    t.deepEqual(shuffle.deleted, ["orange", "banana"]);
+    t.deepEqual(shuffle.inserted, ['pear']);
+    t.deepEqual(shuffle.deleted, ['orange', 'banana']);
     t.equal(shuffle.start, 1);
   });
 
-  test("List observers report full array value changes as inserted/deleted", t => {
+  test('List observers report full array value changes as inserted/deleted', t => {
     let shuffle;
 
     const ractive = new Ractive({
-      data: { fruits: ["apple", "orange", "banana"] },
+      data: { fruits: ['apple', 'orange', 'banana'] },
       oninit() {
         this.observe(
-          "fruits",
+          'fruits',
           shfl => {
             shuffle = shfl;
           },
@@ -1670,42 +1670,42 @@ export default function() {
       }
     });
 
-    ractive.set("fruits", ["pear", "mango"]);
+    ractive.set('fruits', ['pear', 'mango']);
 
-    t.deepEqual(shuffle.inserted, ["pear", "mango"]);
-    t.deepEqual(shuffle.deleted, ["apple", "orange", "banana"]);
+    t.deepEqual(shuffle.inserted, ['pear', 'mango']);
+    t.deepEqual(shuffle.deleted, ['apple', 'orange', 'banana']);
   });
 
-  test("list observers only fire on actual array modification and not downstream changes", t => {
+  test('list observers only fire on actual array modification and not downstream changes', t => {
     const ractive = new Ractive({
       data: {
-        fruits: [{ name: "apple" }]
+        fruits: [{ name: 'apple' }]
       }
     });
 
     let step = 1;
 
     ractive.observe(
-      "fruits",
+      'fruits',
       c => {
         if (step === 1) t.equal(c.inserted.length, 1);
-        else if (step === 2) t.ok(false, "should not fire on downstream changes");
+        else if (step === 2) t.ok(false, 'should not fire on downstream changes');
         else if (step === 3) t.equal(c.inserted.length, 1);
       },
       { array: true }
     );
 
     step = 2;
-    ractive.set("fruits.0.name", "banana");
+    ractive.set('fruits.0.name', 'banana');
 
     step = 3;
-    ractive.push("fruits", { name: "orange" });
+    ractive.push('fruits', { name: 'orange' });
   });
 
-  test("Pattern observers on arrays fire correctly after mutations", t => {
+  test('Pattern observers on arrays fire correctly after mutations', t => {
     const ractive = new Ractive({
       data: {
-        items: ["a", "b", "c"]
+        items: ['a', 'b', 'c']
       }
     });
 
@@ -1714,7 +1714,7 @@ export default function() {
     let inserted;
 
     ractive.observe(
-      "items",
+      'items',
       shuffle => {
         index = shuffle.start;
         inserted = shuffle.inserted;
@@ -1723,18 +1723,18 @@ export default function() {
       { init: false, array: true }
     );
 
-    ractive.push("items", "d");
-    t.equal(index, "3");
+    ractive.push('items', 'd');
+    t.equal(index, '3');
     t.equal(deleted[0], undefined);
-    t.equal(inserted[0], "d");
+    t.equal(inserted[0], 'd');
 
-    ractive.pop("items");
-    t.equal(index, "3");
+    ractive.pop('items');
+    t.equal(index, '3');
     t.equal(inserted[0], undefined);
-    t.equal(deleted[0], "d");
+    t.equal(deleted[0], 'd');
   });
 
-  test("array observers can be single fire", t => {
+  test('array observers can be single fire', t => {
     let count = 0;
     const r = new Ractive({
       observe: {
@@ -1749,18 +1749,18 @@ export default function() {
       data: { list: [] }
     });
 
-    r.push("list", 1);
-    r.push("list", 1);
+    r.push('list', 1);
+    r.push('list', 1);
 
     t.equal(count, 1);
   });
 
-  test("array observers can be deferred", t => {
+  test('array observers can be deferred', t => {
     t.expect(2);
 
     const r = new Ractive({
       target: fixture,
-      template: "{{#each list}}<span />{{/each}}",
+      template: '{{#each list}}<span />{{/each}}',
       data: { list: [] },
       observe: {
         list: {
@@ -1768,17 +1768,17 @@ export default function() {
           defer: true,
           init: false,
           handler() {
-            t.equal(r.findAll("span").length, 1);
+            t.equal(r.findAll('span').length, 1);
           }
         }
       }
     });
-    r.observe("list", () => t.equal(r.findAll("span").length, 0), {
+    r.observe('list', () => t.equal(r.findAll('span').length, 0), {
       init: false,
       array: true
     });
 
-    r.push("list", 1);
+    r.push('list', 1);
   });
 
   test(`plain observers allow a hook to set the 'old' value`, t => {
@@ -1801,24 +1801,24 @@ export default function() {
       }
     });
 
-    r.push("list", 1);
+    r.push('list', 1);
     target = 1;
-    r.push("list", 1);
+    r.push('list', 1);
   });
 
   test(`plain observer old value hook gets a lifelong context on top of the ractive instance`, t => {
     t.expect(3);
 
     const r = new Ractive({
-      data: { foo: "", bar: "" },
+      data: { foo: '', bar: '' },
       observe: {
         foo: {
           init: false,
           handler(v, o) {
-            t.ok(o === "" && v !== o, "old value is empty string and new is " + v);
+            t.ok(o === '' && v !== o, 'old value is empty string and new is ' + v);
           },
           old(o, n) {
-            if (!this.hasOwnProperty("old")) this.old = n;
+            if (!this.hasOwnProperty('old')) this.old = n;
             return this.old;
           }
         },
@@ -1826,16 +1826,16 @@ export default function() {
           init: false,
           handler() {},
           old(o, n) {
-            if (n !== "") return;
-            t.ok(typeof this.set === "function", "context has a set method");
-            this.set("foo", "yep");
+            if (n !== '') return;
+            t.ok(typeof this.set === 'function', 'context has a set method');
+            this.set('foo', 'yep');
           }
         }
       }
     });
 
-    r.set("bar", "?");
-    r.set("foo", "asdf");
+    r.set('bar', '?');
+    r.set('foo', 'asdf');
   });
 
   test(`pattern observers allow a hook to set the 'old' value`, t => {
@@ -1844,8 +1844,8 @@ export default function() {
     let target = 0;
     let path;
     const paths = {
-      "foo.list": "foo",
-      "bar.list": "bar"
+      'foo.list': 'foo',
+      'bar.list': 'bar'
     };
 
     const r = new Ractive({
@@ -1854,7 +1854,7 @@ export default function() {
         bar: { list: [] }
       },
       observe: {
-        "*.list": {
+        '*.list': {
           init: false,
           handler(v, o, k) {
             t.equal(k, path);
@@ -1869,16 +1869,16 @@ export default function() {
       }
     });
 
-    path = "foo.list";
-    r.push("foo.list", 1);
-    path = "bar.list";
-    r.push("bar.list", 1);
+    path = 'foo.list';
+    r.push('foo.list', 1);
+    path = 'bar.list';
+    r.push('bar.list', 1);
 
     target = 1;
-    path = "foo.list";
-    r.push("foo.list", 1);
-    path = "bar.list";
-    r.push("bar.list", 1);
+    path = 'foo.list';
+    r.push('foo.list', 1);
+    path = 'bar.list';
+    r.push('bar.list', 1);
   });
 
   test(`pattern observer old value hook gets a lifelong context on top of the ractive instance`, t => {
@@ -1886,79 +1886,79 @@ export default function() {
 
     const r = new Ractive({
       data: {
-        foo: { val: "" },
-        bar: { val: "" }
+        foo: { val: '' },
+        bar: { val: '' }
       },
       observe: {
-        "foo.*": {
+        'foo.*': {
           init: false,
           handler(v, o) {
-            t.ok(o === "" && v !== o, "old value is empty string and new is " + v);
+            t.ok(o === '' && v !== o, 'old value is empty string and new is ' + v);
           },
           old(o, n, k, p) {
-            t.ok(k === "foo.val" && p === "val");
-            if (!this.hasOwnProperty("old")) this.old = n;
+            t.ok(k === 'foo.val' && p === 'val');
+            if (!this.hasOwnProperty('old')) this.old = n;
             return this.old;
           }
         },
-        "bar.*": {
+        'bar.*': {
           init: false,
           handler() {},
           old(o, n, k, p) {
-            t.ok(k === "bar.val" && p === "val");
-            if (n !== "") return;
-            t.ok(typeof this.set === "function", "context has a set method");
-            this.set("foo.val", "yep");
+            t.ok(k === 'bar.val' && p === 'val');
+            if (n !== '') return;
+            t.ok(typeof this.set === 'function', 'context has a set method');
+            this.set('foo.val', 'yep');
           }
         }
       }
     });
 
-    r.set("bar.val", "?");
-    r.set("foo.val", "asdf");
+    r.set('bar.val', '?');
+    r.set('foo.val', 'asdf');
   });
 
   test(`recursive observers from root`, t => {
     const r = new Ractive();
     const vals = [
-      [{ baz: "yep" }, undefined, "foo.bar"],
-      ["still", undefined, "foo.bar.baz"],
-      [{ bar: "yep" }, undefined, "foo"],
-      [{ bar: { baz: "" } }, { bar: "yep" }, "foo"],
-      ["yep again", "still", "foo.bar.baz"]
+      [{ baz: 'yep' }, undefined, 'foo.bar'],
+      ['still', undefined, 'foo.bar.baz'],
+      [{ bar: 'yep' }, undefined, 'foo'],
+      [{ bar: { baz: '' } }, { bar: 'yep' }, 'foo'],
+      ['yep again', 'still', 'foo.bar.baz']
     ];
-    r.observe("**", (v, o, k) => {
+    r.observe('**', (v, o, k) => {
       const target = vals.shift();
       [v, o, k].forEach((p, i) => t.deepEqual(p, target[i]));
     });
 
-    r.set("foo.bar", { baz: "yep" });
-    r.set("foo.bar.baz", "still");
-    r.set("foo", { bar: "yep" });
-    r.set("foo", { bar: { baz: "" } });
-    r.set("foo.bar.baz", "yep again");
+    r.set('foo.bar', { baz: 'yep' });
+    r.set('foo.bar.baz', 'still');
+    r.set('foo', { bar: 'yep' });
+    r.set('foo', { bar: { baz: '' } });
+    r.set('foo.bar.baz', 'yep again');
   });
 
   test(`recursive observers from path`, t => {
     const r = new Ractive();
     const vals = [
-      [{ baz: "yep" }, undefined, "some.path.foo.bar", "foo.bar"],
-      ["still", undefined, "some.path.foo.bar.baz", "foo.bar.baz"],
-      [{ bar: "yep" }, undefined, "some.path.foo", "foo"],
-      [{ bar: { baz: "" } }, { bar: "yep" }, "some.path.foo", "foo"],
-      ["yep again", "still", "some.path.foo.bar.baz", "foo.bar.baz"]
+      [{ baz: 'yep' }, undefined, 'some.path.foo.bar', 'foo.bar'],
+      ['still', undefined, 'some.path.foo.bar.baz', 'foo.bar.baz'],
+      [{ bar: 'yep' }, undefined, 'some.path.foo', 'foo'],
+      [{ bar: { baz: '' } }, { bar: 'yep' }, 'some.path.foo', 'foo'],
+      ['yep again', 'still', 'some.path.foo.bar.baz', 'foo.bar.baz']
     ];
-    r.observe("some.path.**", (v, o, k, w) => {
+    r.observe('some.path.**', (v, o, k, w) => {
       const target = vals.shift();
       [v, o, k, w].forEach((p, i) => t.deepEqual(p, target[i]));
     });
 
-    r.set("some.path.foo.bar", { baz: "yep" });
-    r.set("some.path.foo.bar.baz", "still");
-    r.set("some.path.foo", { bar: "yep" });
-    r.set("some.path.foo", { bar: { baz: "" } });
-    r.set("some.path.foo.bar.baz", "yep again");
-    r.set("not.relevant", "yep");
+    r.set('some.path.foo.bar', { baz: 'yep' });
+    r.set('some.path.foo.bar.baz', 'still');
+    r.set('some.path.foo', { bar: 'yep' });
+    r.set('some.path.foo', { bar: { baz: '' } });
+    r.set('some.path.foo.bar.baz', 'yep again');
+    r.set('not.relevant', 'yep');
   });
 
   test(`recursive observers and links`, t => {
@@ -1969,22 +1969,22 @@ export default function() {
       data: { thing: {} }
     });
 
-    const cmp = r.findComponent("cmp");
+    const cmp = r.findComponent('cmp');
 
-    const ob1 = cmp.observe("**", () => t.ok(false, "should not fire"), {
+    const ob1 = cmp.observe('**', () => t.ok(false, 'should not fire'), {
       init: false,
       links: false
     });
     const ob2 = cmp.observe(
-      "**",
+      '**',
       (v, o, k) => {
-        t.equal(v, "yep");
-        t.equal(k, "foozle.foo");
+        t.equal(v, 'yep');
+        t.equal(k, 'foozle.foo');
       },
       { init: false, links: true }
     );
-    r.set("thing.foo", "yep");
-    r.set("other", "nope");
+    r.set('thing.foo', 'yep');
+    r.set('other', 'nope');
     ob1.cancel();
     ob2.cancel();
   });
@@ -1993,15 +1993,15 @@ export default function() {
     t.expect(12);
 
     const src = new Ractive({
-      data: { bar: "yep" }
+      data: { bar: 'yep' }
     });
     const dest = new Ractive({});
 
     let vv, oo;
-    let kk = "other.bar";
+    let kk = 'other.bar';
     let count = 0;
     dest.observe(
-      "**",
+      '**',
       (v, o, k) => {
         t.ok(v === vv, o === oo, k === kk);
         count++;
@@ -2010,40 +2010,40 @@ export default function() {
     );
 
     dest.observe(
-      "other.**",
+      'other.**',
       (v, o, k) => {
-        t.ok(v === "yep" && o === undefined && k === "other.bar");
+        t.ok(v === 'yep' && o === undefined && k === 'other.bar');
       },
       { init: false, links: true }
     );
-    vv = "yep";
+    vv = 'yep';
     oo = undefined;
-    dest.link("bar", "other.bar", { ractive: src });
+    dest.link('bar', 'other.bar', { ractive: src });
 
-    kk = "link.foo";
+    kk = 'link.foo';
     vv = undefined;
     oo = undefined;
-    dest.link("foo", "link.foo", { ractive: src });
-    t.equal(dest.get("link.foo"), vv);
+    dest.link('foo', 'link.foo', { ractive: src });
+    t.equal(dest.get('link.foo'), vv);
 
-    vv = "a";
-    src.set("foo", "a");
-    t.equal(dest.get("link.foo"), vv);
+    vv = 'a';
+    src.set('foo', 'a');
+    t.equal(dest.get('link.foo'), vv);
 
-    vv = "c";
-    oo = "a";
-    dest.set("link.foo", "c");
-    t.equal(src.get("foo"), "c");
+    vv = 'c';
+    oo = 'a';
+    dest.set('link.foo', 'c');
+    t.equal(src.get('foo'), 'c');
 
-    oo = "c";
-    vv = "b";
-    src.set("foo", "b");
-    t.equal(dest.get("link.foo"), vv);
+    oo = 'c';
+    vv = 'b';
+    src.set('foo', 'b');
+    t.equal(dest.get('link.foo'), vv);
 
-    oo = "b";
+    oo = 'b';
     vv = undefined;
-    dest.unlink("link.foo");
-    t.equal(dest.get("link.foo"), vv);
+    dest.unlink('link.foo');
+    t.equal(dest.get('link.foo'), vv);
 
     t.equal(count, 5);
   });
@@ -2053,16 +2053,16 @@ export default function() {
 
     new Ractive({
       target: fixture,
-      template: "{{expr}} {{foo}}",
+      template: '{{expr}} {{foo}}',
       oninit() {
-        this.observe("*", () => t.ok(this.set("foo", "here")), { defer: true });
-        this.observe("*", () => t.ok(true), { defer: true });
+        this.observe('*', () => t.ok(this.set('foo', 'here')), { defer: true });
+        this.observe('*', () => t.ok(true), { defer: true });
       },
       data: {
-        foo: ""
+        foo: ''
       },
       computed: {
-        expr: "foo"
+        expr: 'foo'
       }
     });
   });
@@ -2074,24 +2074,24 @@ export default function() {
       target: fixture,
       template: '{{#each items}}<input bind-value=".id" />{{/each}}',
       data: {
-        items: [{ name: "Frank", id: "42" }]
+        items: [{ name: 'Frank', id: '42' }]
       }
     });
 
     let expected;
     r.observe(
-      "items.*.name",
+      'items.*.name',
       v => {
         t.ok(v === expected);
       },
       { init: false }
     );
 
-    expected = "Joe";
-    r.push("items", { name: "Joe" });
+    expected = 'Joe';
+    r.push('items', { name: 'Joe' });
 
-    expected = "Larry";
-    r.push("items", { name: "Larry" });
+    expected = 'Larry';
+    r.push('items', { name: 'Larry' });
   });
 
   test(`pattern observers with multiple wildcards and an array base work`, t => {
@@ -2101,10 +2101,10 @@ export default function() {
       data: { items: [] }
     });
 
-    let expected = "";
-    let next = "";
+    let expected = '';
+    let next = '';
     r.observe(
-      "items.*.list.*.name",
+      'items.*.list.*.name',
       v => {
         t.ok(v === expected);
         expected = next;
@@ -2112,12 +2112,12 @@ export default function() {
       { init: false }
     );
 
-    expected = "apple";
-    r.push("items", { list: [{ name: "apple" }] });
+    expected = 'apple';
+    r.push('items', { list: [{ name: 'apple' }] });
 
-    next = "apple";
-    expected = "banana";
-    r.unshift("items", { list: [{ name: "banana" }] });
+    next = 'apple';
+    expected = 'banana';
+    r.unshift('items', { list: [{ name: 'banana' }] });
   });
 
   test(`observing a computed that gets updated more than once in a runloop (#3184)`, t => {
@@ -2126,28 +2126,28 @@ export default function() {
     const r = new Ractive({
       computed: {
         foo() {
-          return this.get("bar") + this.get("baz");
+          return this.get('bar') + this.get('baz');
         }
       },
       data: {
-        bar: "may",
-        baz: "be"
+        bar: 'may',
+        baz: 'be'
       }
     });
 
-    let val = "yep";
+    let val = 'yep';
 
     r.observe(
-      "foo",
+      'foo',
       v => {
         t.equal(v, val);
       },
       { init: false }
     );
 
-    r.set({ bar: "ye", baz: "p" });
+    r.set({ bar: 'ye', baz: 'p' });
 
-    val = "sure";
-    r.set({ bar: "su", baz: "re" });
+    val = 'sure';
+    r.set({ bar: 'su', baz: 're' });
   });
 }

@@ -1,5 +1,5 @@
-import add from "./shared/add";
-import { isNumber, isObjectType } from "utils/is";
+import add from './shared/add';
+import { isNumber, isObjectType } from 'utils/is';
 
 export default function Ractive$add(keypath, d, options) {
   const num = isNumber(d) ? d : 1;

@@ -1,6 +1,6 @@
-import { expectedExpression } from "./errors";
-import readExpression from "../../readExpression";
-import { spreadPattern } from "./patterns";
+import { expectedExpression } from './errors';
+import readExpression from '../../readExpression';
+import { spreadPattern } from './patterns';
 
 export default function readExpressionList(parser, spread) {
   let isSpread;
@@ -31,7 +31,7 @@ export default function readExpressionList(parser, spread) {
     expressions.push(expr);
 
     parser.sp();
-  } while (parser.matchString(","));
+  } while (parser.matchString(','));
 
   return expressions;
 }

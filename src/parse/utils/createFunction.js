@@ -10,5 +10,5 @@ export function fromExpression(body, length = 0) {
   //
   // With this workaround, we get a little more compact:
   //     function (_0){return _0*2}
-  return new Function([], `return function (${args.join(",")}){return(${body});};`)();
+  return new Function([], `return function (${args.join(',')}){return(${body});};`)();
 }

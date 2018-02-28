@@ -1,24 +1,24 @@
 /*global window */
-import { fire } from "simulant";
-import { initModule } from "../../helpers/test-config";
-import { test } from "qunit";
+import { fire } from 'simulant';
+import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
-  initModule("events/method-calls.js");
+  initModule('events/method-calls.js');
 
-  test("Calling a builtin method", t => {
+  test('Calling a builtin method', t => {
     const ractive = new Ractive({
       el: fixture,
       template: `<button on-click='@this.set("foo",foo+1)'>{{foo}}</button>`,
       data: { foo: 0 }
     });
 
-    fire(ractive.find("button"), "click");
-    t.equal(ractive.get("foo"), 1);
-    t.htmlEqual(fixture.innerHTML, "<button>1</button>");
+    fire(ractive.find('button'), 'click');
+    t.equal(ractive.get('foo'), 1);
+    t.htmlEqual(fixture.innerHTML, '<button>1</button>');
   });
 
-  test("Calling a custom method", t => {
+  test('Calling a custom method', t => {
     t.expect(2);
 
     const Widget = Ractive.extend({
@@ -33,10 +33,10 @@ export default function() {
       el: fixture
     });
 
-    fire(ractive.find("button"), "click");
+    fire(ractive.find('button'), 'click');
   });
 
-  test("Calling an unknown method", t => {
+  test('Calling an unknown method', t => {
     t.expect(1);
 
     const Widget = Ractive.extend({
@@ -57,17 +57,17 @@ export default function() {
       return true;
     };
 
-    fire(ractive.find("button"), "click");
+    fire(ractive.find('button'), 'click');
     window.onerror = onerror;
   });
 
-  test("Passing the event object to a method", t => {
+  test('Passing the event object to a method', t => {
     t.expect(1);
 
     const Widget = Ractive.extend({
       template: `<button on-click='@this.activate(event)'>{{foo}}</button>`,
       activate(event) {
-        t.equal(event.original.type, "click");
+        t.equal(event.original.type, 'click');
       }
     });
 
@@ -75,16 +75,16 @@ export default function() {
       el: fixture
     });
 
-    fire(ractive.find("button"), "click");
+    fire(ractive.find('button'), 'click');
   });
 
-  test("Passing a child of the event object to a method", t => {
+  test('Passing a child of the event object to a method', t => {
     t.expect(1);
 
     const Widget = Ractive.extend({
       template: `<button on-click='@this.activate(event.original.type)'>{{foo}}</button>`,
       activate(type) {
-        t.equal(type, "click");
+        t.equal(type, 'click');
       }
     });
 
@@ -92,31 +92,31 @@ export default function() {
       el: fixture
     });
 
-    fire(ractive.find("button"), "click");
+    fire(ractive.find('button'), 'click');
   });
 
   // Bit of a cheeky workaround...
-  test("Passing a reference to this.event", t => {
+  test('Passing a reference to this.event', t => {
     t.expect(1);
 
     const Widget = Ractive.extend({
       template: `<button on-click='@this.activate(.event)'>{{foo}}</button>`,
       activate(event) {
-        t.equal(event, "Christmas");
+        t.equal(event, 'Christmas');
       }
     });
 
     const ractive = new Widget({
       el: fixture,
       data: {
-        event: "Christmas"
+        event: 'Christmas'
       }
     });
 
-    fire(ractive.find("button"), "click");
+    fire(ractive.find('button'), 'click');
   });
 
-  test("Current event is available to method handler as this.event (#1403)", t => {
+  test('Current event is available to method handler as this.event (#1403)', t => {
     t.expect(2);
 
     const ractive = new Ractive({
@@ -129,7 +129,7 @@ export default function() {
       }
     });
 
-    fire(ractive.find("button"), "click");
+    fire(ractive.find('button'), 'click');
   });
 
   test('component "on-" can call methods', t => {
@@ -151,9 +151,9 @@ export default function() {
       }
     });
 
-    const component = ractive.findComponent("Component");
-    fire(component.find("#test"), "click");
-    component.fire("bar", "bar");
+    const component = ractive.findComponent('Component');
+    fire(component.find('#test'), 'click');
+    component.fire('bar', 'bar');
   });
 
   test('component "on-" with ...arguments', t => {
@@ -168,18 +168,18 @@ export default function() {
       template: '<Component on-foo="@this.foo(...arguments)" on-bar="@this.bar(...arguments)"/>',
       components: { Component },
       foo(arg1, arg2) {
-        t.equal(arg1, "foo");
+        t.equal(arg1, 'foo');
         t.equal(arg2, 42);
       },
       bar(arg1, arg2) {
-        t.equal(arg1, "bar");
+        t.equal(arg1, 'bar');
         t.equal(arg2, 100);
       }
     });
 
-    const component = ractive.findComponent("Component");
-    fire(component.find("#test"), "click");
-    component.fire("bar", "bar", 100);
+    const component = ractive.findComponent('Component');
+    fire(component.find('#test'), 'click');
+    component.fire('bar', 'bar', 100);
   });
 
   test('component "on-" with additive ...arguments', t => {
@@ -194,20 +194,20 @@ export default function() {
       template: `<Component on-foo="@this.foo('fooarg', ...arguments)" on-bar="@this.bar('bararg', ...arguments)"/>`,
       components: { Component },
       foo(arg1, arg2, arg3) {
-        t.equal(arg1, "fooarg");
-        t.equal(arg2, "foo");
+        t.equal(arg1, 'fooarg');
+        t.equal(arg2, 'foo');
         t.equal(arg3, 42);
       },
       bar(arg1, arg2, arg3) {
-        t.equal(arg1, "bararg");
-        t.equal(arg2, "bar");
+        t.equal(arg1, 'bararg');
+        t.equal(arg2, 'bar');
         t.equal(arg3, 100);
       }
     });
 
-    const component = ractive.findComponent("Component");
-    fire(component.find("#test"), "click");
-    component.fire("bar", "bar", 100);
+    const component = ractive.findComponent('Component');
+    fire(component.find('#test'), 'click');
+    component.fire('bar', 'bar', 100);
   });
 
   test('component "on-" with arguments[n]', t => {
@@ -223,17 +223,17 @@ export default function() {
       components: { Component },
       foo(arg1, arg2) {
         t.equal(arg1, 42);
-        t.equal(arg2, "qux");
+        t.equal(arg2, 'qux');
       },
       bar(arg1, arg2) {
-        t.equal(arg1, "bar");
+        t.equal(arg1, 'bar');
         t.equal(arg2, 100);
       }
     });
 
-    const component = ractive.findComponent("Component");
-    fire(component.find("#test"), "click");
-    component.fire("bar", "bar");
+    const component = ractive.findComponent('Component');
+    fire(component.find('#test'), 'click');
+    component.fire('bar', 'bar');
   });
 
   test('component "on-" with $n', t => {
@@ -249,20 +249,20 @@ export default function() {
       components: { Component },
       foo(arg1, arg2) {
         t.equal(arg1, 42);
-        t.equal(arg2, "qux");
+        t.equal(arg2, 'qux');
       },
       bar(arg1, arg2) {
-        t.equal(arg1, "bar");
+        t.equal(arg1, 'bar');
         t.equal(arg2, 100);
       }
     });
 
-    const component = ractive.findComponent("Component");
-    fire(component.find("#test"), "click");
-    component.fire("bar", "bar");
+    const component = ractive.findComponent('Component');
+    fire(component.find('#test'), 'click');
+    component.fire('bar', 'bar');
   });
 
-  test("preventDefault and stopPropagation if method returns false", t => {
+  test('preventDefault and stopPropagation if method returns false', t => {
     t.expect(6);
 
     const ractive = new Ractive({
@@ -299,13 +299,13 @@ export default function() {
       original.stopPropagation = () => (stoppedPropagation = true);
     }
 
-    fire(ractive.find("#return_false"), "click");
+    fire(ractive.find('#return_false'), 'click');
     t.ok(preventedDefault && stoppedPropagation);
 
-    fire(ractive.find("#return_undefined"), "click");
+    fire(ractive.find('#return_undefined'), 'click');
     t.ok(!preventedDefault && !stoppedPropagation);
 
-    fire(ractive.find("#return_zero"), "click");
+    fire(ractive.find('#return_zero'), 'click');
     t.ok(!preventedDefault && !stoppedPropagation);
   });
 }

@@ -1,12 +1,12 @@
-import { initModule } from "../../helpers/test-config";
-import { test } from "qunit";
+import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
-  initModule("init/registries.js");
+  initModule('init/registries.js');
 
-  test("has globally registered", t => {
+  test('has globally registered', t => {
     const noop = () => {};
-    const registriesInDefaults = ["computed"];
+    const registriesInDefaults = ['computed'];
     const registriesAndDefinition = {
       adaptors: {},
       components: Ractive.extend({}),
@@ -15,7 +15,7 @@ export default function() {
       easing: noop,
       events: noop,
       interpolators: noop,
-      partials: "",
+      partials: '',
       transitions: noop
     };
 

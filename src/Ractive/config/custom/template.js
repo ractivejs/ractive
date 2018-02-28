@@ -1,15 +1,15 @@
-import { TEMPLATE_VERSION } from "config/template";
-import { addFunctions } from "shared/getFunction";
-import parser from "../runtime-parser";
-import { hasOwn } from "utils/object";
-import { isFunction, isNumber, isString } from "utils/is";
+import { TEMPLATE_VERSION } from 'config/template';
+import { addFunctions } from 'shared/getFunction';
+import parser from '../runtime-parser';
+import { hasOwn } from 'utils/object';
+import { isFunction, isNumber, isString } from 'utils/is';
 
 export default {
-  name: "template",
+  name: 'template',
 
   extend(Parent, proto, options) {
     // only assign if exists
-    if ("template" in options) {
+    if ('template' in options) {
       const template = options.template;
 
       if (isFunction(template)) {
@@ -24,7 +24,7 @@ export default {
     // TODO because of prototypal inheritance, we might just be able to use
     // ractive.template, and not bother passing through the Parent object.
     // At present that breaks the test mocks' expectations
-    let template = "template" in options ? options.template : Parent.prototype.template;
+    let template = 'template' in options ? options.template : Parent.prototype.template;
     template = template || { v: TEMPLATE_VERSION, t: [] };
 
     if (isFunction(template)) {
@@ -107,7 +107,7 @@ function parseTemplate(template, ractive) {
 
 function parseAsString(template, ractive) {
   // ID of an element containing the template?
-  if (template[0] === "#") {
+  if (template[0] === '#') {
     template = parser.fromId(template);
   }
 

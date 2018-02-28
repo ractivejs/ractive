@@ -1,7 +1,7 @@
-import { isFunction, isObjectType } from "utils/is";
+import { isFunction, isObjectType } from 'utils/is';
 
 /* istanbul ignore if */
-if (typeof window !== "undefined" && !window.Promise) {
+if (typeof window !== 'undefined' && !window.Promise) {
   const PENDING = {};
   const FULFILLED = {};
   const REJECTED = {};

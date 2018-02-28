@@ -1,9 +1,9 @@
-import { ATTRIBUTE } from "config/types";
-import runloop from "src/global/runloop";
-import Input from "./Input";
-import { isBindable } from "../binding/selectBinding";
-import createItem from "../../createItem";
-import Fragment from "../../../Fragment";
+import { ATTRIBUTE } from 'config/types';
+import runloop from 'src/global/runloop';
+import Input from './Input';
+import { isBindable } from '../binding/selectBinding';
+import createItem from '../../createItem';
+import Fragment from '../../../Fragment';
 
 export default class Textarea extends Input {
   constructor(options) {
@@ -19,7 +19,7 @@ export default class Textarea extends Input {
         (this.attributes || (this.attributes = [])).push(
           createItem({
             owner: this,
-            template: { t: ATTRIBUTE, f: template.f, n: "value" },
+            template: { t: ATTRIBUTE, f: template.f, n: 'value' },
             up: this.up
           })
         );

@@ -1,12 +1,12 @@
-import { initModule } from "../../helpers/test-config";
-import { test } from "qunit";
+import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
-  initModule("methods/push.js");
+  initModule('methods/push.js');
 
   [true, false].forEach(modifyArrays => {
     test(`ractive.push() (modifyArrays: ${modifyArrays})`, t => {
-      const items = ["alice", "bob", "charles"];
+      const items = ['alice', 'bob', 'charles'];
 
       const ractive = new Ractive({
         el: fixture,
@@ -19,20 +19,20 @@ export default function() {
         data: { items }
       });
 
-      ractive.push("items", "dave");
+      ractive.push('items', 'dave');
       t.htmlEqual(
         fixture.innerHTML,
-        "<ul><li>alice</li><li>bob</li><li>charles</li><li>dave</li></ul>"
+        '<ul><li>alice</li><li>bob</li><li>charles</li><li>dave</li></ul>'
       );
     });
   });
 
-  test("Array method proxies return a promise that resolves on transition complete", t => {
+  test('Array method proxies return a promise that resolves on transition complete', t => {
     t.expect(2);
 
     const done = t.async();
 
-    const items = ["alice", "bob", "charles"];
+    const items = ['alice', 'bob', 'charles'];
     let transitioned;
 
     const ractive = new Ractive({
@@ -53,17 +53,17 @@ export default function() {
       }
     });
 
-    ractive.push("items", "dave").then(() => {
+    ractive.push('items', 'dave').then(() => {
       t.ok(transitioned);
       t.htmlEqual(
         fixture.innerHTML,
-        "<ul><li>alice</li><li>bob</li><li>charles</li><li>dave</li></ul>"
+        '<ul><li>alice</li><li>bob</li><li>charles</li><li>dave</li></ul>'
       );
       done();
     });
   });
 
-  test("grow an array if pushing to an undefined keypath", t => {
+  test('grow an array if pushing to an undefined keypath', t => {
     const done = t.async();
 
     const r = new Ractive({
@@ -71,22 +71,22 @@ export default function() {
       template: `{{#each items}}{{.}}{{/each}}`
     });
 
-    const result = r.push("items", 1);
-    t.htmlEqual(fixture.innerHTML, "1");
+    const result = r.push('items', 1);
+    t.htmlEqual(fixture.innerHTML, '1');
 
     result.then(res => t.equal(res, 1)).then(done, done);
   });
 
-  test("Interpolators that directly reference arrays are updated on array mutation (#1074)", t => {
+  test('Interpolators that directly reference arrays are updated on array mutation (#1074)', t => {
     const ractive = new Ractive({
       el: fixture,
-      template: "{{letters}}",
+      template: '{{letters}}',
       data: {
-        letters: ["a", "b", "c"]
+        letters: ['a', 'b', 'c']
       }
     });
 
-    ractive.push("letters", "d", "e", "f");
-    t.htmlEqual(fixture.innerHTML, "a,b,c,d,e,f");
+    ractive.push('letters', 'd', 'e', 'f');
+    t.htmlEqual(fixture.innerHTML, 'a,b,c,d,e,f');
   });
 }

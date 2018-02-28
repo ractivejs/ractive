@@ -1,6 +1,6 @@
-import { fromExpression } from "./createFunction";
-import { isArray, isObject } from "utils/is";
-import { keys } from "utils/object";
+import { fromExpression } from './createFunction';
+import { isArray, isObject } from 'utils/is';
+import { keys } from 'utils/object';
 
 export default function insertExpressions(obj, expr) {
   keys(obj).forEach(key => {
@@ -12,7 +12,7 @@ export default function insertExpressions(obj, expr) {
 }
 
 function isExpression(key, obj) {
-  return key === "s" && isArray(obj.r);
+  return key === 's' && isArray(obj.r);
 }
 
 function addTo(obj, expr) {

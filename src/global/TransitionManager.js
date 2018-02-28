@@ -1,5 +1,5 @@
-import { removeFromArray } from "utils/array";
-import { isFunction } from "utils/is";
+import { removeFromArray } from 'utils/array';
+import { isFunction } from 'utils/is';
 
 export default class TransitionManager {
   constructor(callback, parent) {

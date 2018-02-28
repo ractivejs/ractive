@@ -1,6 +1,6 @@
-import resolveReference from "./resolveReference";
-import ExpressionProxy from "./ExpressionProxy";
-import ReferenceExpressionProxy from "./ReferenceExpressionProxy";
+import resolveReference from './resolveReference';
+import ExpressionProxy from './ExpressionProxy';
+import ReferenceExpressionProxy from './ReferenceExpressionProxy';
 
 export default function resolve(fragment, template) {
   if (template.r) {

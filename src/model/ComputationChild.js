@@ -1,7 +1,7 @@
-import { capture } from "src/global/capture";
-import Model from "./Model";
-import { handleChange, mark, marked } from "shared/methodCallers";
-import { hasOwn } from "utils/object";
+import { capture } from 'src/global/capture';
+import Model from './Model';
+import { handleChange, mark, marked } from 'shared/methodCallers';
+import { hasOwn } from 'utils/object';
 
 export default class ComputationChild extends Model {
   constructor(parent, key) {
@@ -46,7 +46,7 @@ export default class ComputationChild extends Model {
       this.adapt();
     }
 
-    return (opts && "unwrap" in opts ? opts.unwrap !== false : shouldCapture) && this.wrapper
+    return (opts && 'unwrap' in opts ? opts.unwrap !== false : shouldCapture) && this.wrapper
       ? this.wrapperValue
       : this.value;
   }
@@ -62,7 +62,7 @@ export default class ComputationChild extends Model {
   }
 
   joinKey(key) {
-    if (key === undefined || key === "") return this;
+    if (key === undefined || key === '') return this;
 
     if (!hasOwn(this.childByKey, key)) {
       const child = new ComputationChild(this, key);

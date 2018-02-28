@@ -1,7 +1,7 @@
-import { splitKeypath } from "shared/keypaths";
-import { isString, isFunction } from "utils/is";
-import runloop from "src/global/runloop";
-import { fireShuffleTasks } from "src/model/ModelBase";
+import { splitKeypath } from 'shared/keypaths';
+import { isString, isFunction } from 'utils/is';
+import runloop from 'src/global/runloop';
+import { fireShuffleTasks } from 'src/model/ModelBase';
 
 export function compute(path, computed) {
   this.computed[path] = computed;
@@ -9,16 +9,16 @@ export function compute(path, computed) {
     computed = this.computed[path] = { get: computed };
 
   const keys = splitKeypath(path);
-  if (!~path.indexOf("*")) {
+  if (!~path.indexOf('*')) {
     const last = keys.pop();
     return this.viewmodel.joinAll(keys).compute(last, computed);
   } else {
     computed.pattern = new RegExp(
-      "^" +
+      '^' +
         keys
-          .map(k => k.replace(/\*\*/g, "(.+)").replace(/\*/g, "((?:\\\\.|[^\\.])+)"))
-          .join("\\.") +
-        "$"
+          .map(k => k.replace(/\*\*/g, '(.+)').replace(/\*/g, '((?:\\\\.|[^\\.])+)'))
+          .join('\\.') +
+        '$'
     );
   }
 }

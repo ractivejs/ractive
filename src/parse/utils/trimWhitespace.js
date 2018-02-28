@@ -1,5 +1,5 @@
-import { lastItem } from "utils/array";
-import { isString } from "utils/is";
+import { lastItem } from 'utils/array';
+import { isString } from 'utils/is';
 
 export default function(items, leadingPattern, trailingPattern) {
   let item;
@@ -7,7 +7,7 @@ export default function(items, leadingPattern, trailingPattern) {
   if (leadingPattern) {
     item = items[0];
     if (isString(item)) {
-      item = item.replace(leadingPattern, "");
+      item = item.replace(leadingPattern, '');
 
       if (!item) {
         items.shift();
@@ -20,7 +20,7 @@ export default function(items, leadingPattern, trailingPattern) {
   if (trailingPattern) {
     item = lastItem(items);
     if (isString(item)) {
-      item = item.replace(trailingPattern, "");
+      item = item.replace(trailingPattern, '');
 
       if (!item) {
         items.pop();

@@ -1,6 +1,6 @@
-import { initModule, beforeEach } from "../../helpers/test-config";
-import { fire } from "simulant";
-import { test } from "qunit";
+import { initModule, beforeEach } from '../../helpers/test-config';
+import { fire } from 'simulant';
+import { test } from 'qunit';
 
 export default function() {
   let Component;
@@ -14,60 +14,60 @@ export default function() {
     });
 
     Middle = Ractive.extend({
-      template: "<Component/>",
+      template: '<Component/>',
       isolated: false
     });
 
     Subclass = Ractive.extend({
-      template: "<Middle/>",
+      template: '<Middle/>',
       components: { Component, Middle }
     });
   });
 
-  initModule("events/bubbling.js");
+  initModule('events/bubbling.js');
 
   function shouldNotFire() {
-    throw new Error("This event should not fire");
+    throw new Error('This event should not fire');
   }
 
   function notOnOriginating() {
-    throw new Error("Namespaced event should not fire on originating component");
+    throw new Error('Namespaced event should not fire on originating component');
   }
 
   function shouldBeNoBubbling() {
-    throw new Error("Event bubbling should not have happened");
+    throw new Error('Event bubbling should not have happened');
   }
 
   [
     {
-      type: "proxy events",
-      callback: component => fire(component.find("#test"), "click"),
+      type: 'proxy events',
+      callback: component => fire(component.find('#test'), 'click'),
       verify: ctx => ctx.get()
     },
 
     {
-      type: "programmatic events",
-      callback: component => component.fire("someEvent", "foo"),
-      verify: (ctx, arg) => arg === "foo"
+      type: 'programmatic events',
+      callback: component => component.fire('someEvent', 'foo'),
+      verify: (ctx, arg) => arg === 'foo'
     }
   ].forEach(({ type, callback, verify }) => {
     test(`Events bubble under "eventname", and also "Component.eventname" above firing component (${type})`, t => {
       t.expect(3);
 
       const ractive = new Subclass({ el: fixture });
-      const middle = ractive.findComponent("Middle");
-      const component = ractive.findComponent("Component");
+      const middle = ractive.findComponent('Middle');
+      const component = ractive.findComponent('Component');
 
-      component.on("someEvent", (ctx, arg) => t.ok(verify(ctx, arg)));
-      component.on("Component.someEvent", notOnOriginating);
+      component.on('someEvent', (ctx, arg) => t.ok(verify(ctx, arg)));
+      component.on('Component.someEvent', notOnOriginating);
 
-      middle.on("someEvent", shouldNotFire);
-      middle.on("Component.someEvent", (ctx, arg) => t.ok(verify(ctx, arg)));
+      middle.on('someEvent', shouldNotFire);
+      middle.on('Component.someEvent', (ctx, arg) => t.ok(verify(ctx, arg)));
 
-      ractive.on("someEvent", shouldNotFire);
-      ractive.on("Component.someEvent", (ctx, arg) => t.ok(verify(ctx, arg)));
+      ractive.on('someEvent', shouldNotFire);
+      ractive.on('Component.someEvent', (ctx, arg) => t.ok(verify(ctx, arg)));
 
-      callback(ractive.findComponent("Component"));
+      callback(ractive.findComponent('Component'));
     });
 
     test(`arguments bubble (${type})`, t => {
@@ -77,64 +77,64 @@ export default function() {
         '<span id="test" on-click="@this.fire("someEvent", event, "foo")">click me</span>';
 
       const ractive = new Subclass({ el: fixture });
-      const middle = ractive.findComponent("Middle");
-      const component = ractive.findComponent("Component");
+      const middle = ractive.findComponent('Middle');
+      const component = ractive.findComponent('Component');
 
-      component.on("someEvent", (ctx, arg) => t.ok(verify(ctx, arg)));
-      component.on("Component.someEvent", notOnOriginating);
+      component.on('someEvent', (ctx, arg) => t.ok(verify(ctx, arg)));
+      component.on('Component.someEvent', notOnOriginating);
 
-      middle.on("someEvent", shouldNotFire);
-      middle.on("Component.someEvent", (ctx, arg) => t.ok(verify(ctx, arg)));
+      middle.on('someEvent', shouldNotFire);
+      middle.on('Component.someEvent', (ctx, arg) => t.ok(verify(ctx, arg)));
 
-      ractive.on("someEvent", shouldNotFire);
-      ractive.on("Component.someEvent", (ctx, arg) => t.ok(verify(ctx, arg)));
+      ractive.on('someEvent', shouldNotFire);
+      ractive.on('Component.someEvent', (ctx, arg) => t.ok(verify(ctx, arg)));
 
-      callback(ractive.findComponent("Component"));
+      callback(ractive.findComponent('Component'));
     });
 
     test(`bubbling events can be stopped by returning false (${type})`, t => {
       t.expect(2);
 
       const ractive = new Subclass({ el: fixture });
-      const middle = ractive.findComponent("Middle");
-      const component = ractive.findComponent("Component");
+      const middle = ractive.findComponent('Middle');
+      const component = ractive.findComponent('Component');
 
-      component.on("someEvent", (ctx, arg) => t.ok(verify(ctx, arg)));
-      component.on("Component.someEvent", notOnOriginating);
+      component.on('someEvent', (ctx, arg) => t.ok(verify(ctx, arg)));
+      component.on('Component.someEvent', notOnOriginating);
 
-      middle.on("Component.someEvent", () => false);
+      middle.on('Component.someEvent', () => false);
       // still fires on same level
-      middle.on("Component.someEvent", (ctx, arg) => t.ok(verify(ctx, arg)));
+      middle.on('Component.someEvent', (ctx, arg) => t.ok(verify(ctx, arg)));
 
-      ractive.on("Component.someEvent", () => {
-        throw new Error("Event bubbling should not have happened");
+      ractive.on('Component.someEvent', () => {
+        throw new Error('Event bubbling should not have happened');
       });
 
-      callback(ractive.findComponent("Component"));
+      callback(ractive.findComponent('Component'));
     });
 
     test(`bubbling events with event object have component reference (${type})`, t => {
       t.expect(3);
 
       const ractive = new Subclass({ el: fixture });
-      const middle = ractive.findComponent("Middle");
-      const component = ractive.findComponent("Component");
+      const middle = ractive.findComponent('Middle');
+      const component = ractive.findComponent('Component');
 
       function hasComponentRef(event) {
         event.original ? t.equal(event.component, component) : t.ok(true);
       }
 
-      component.on("someEvent", event => {
+      component.on('someEvent', event => {
         t.ok(!event.component);
       });
-      middle.on("Component.someEvent", hasComponentRef);
-      ractive.on("Component.someEvent", hasComponentRef);
+      middle.on('Component.someEvent', hasComponentRef);
+      ractive.on('Component.someEvent', hasComponentRef);
 
-      callback(ractive.findComponent("Component"));
+      callback(ractive.findComponent('Component'));
     });
   });
 
-  test("bubbling handlers can use pattern matching", t => {
+  test('bubbling handlers can use pattern matching', t => {
     t.expect(4);
 
     const Component = Ractive.extend({
@@ -143,17 +143,17 @@ export default function() {
 
     const ractive = new Ractive({
       el: fixture,
-      template: "<Component/>",
+      template: '<Component/>',
       components: { Component }
     });
 
-    ractive.on("*.*", () => t.ok(true));
-    ractive.on("Component.*", () => t.ok(true));
-    ractive.on("*.foo", () => t.ok(true));
-    ractive.on("Component.foo", () => t.ok(true));
+    ractive.on('*.*', () => t.ok(true));
+    ractive.on('Component.*', () => t.ok(true));
+    ractive.on('*.foo', () => t.ok(true));
+    ractive.on('Component.foo', () => t.ok(true));
 
-    const component = ractive.findComponent("Component");
-    fire(component.find("#test"), "click");
+    const component = ractive.findComponent('Component');
+    fire(component.find('#test'), 'click');
 
     // otherwise we get cross test failure due to "teardown" event
     // because we're reusing fixture element
@@ -173,11 +173,11 @@ export default function() {
       components: { Component }
     });
 
-    ractive.on("foo", () => t.ok(true));
-    ractive.on("Component.someEvent", shouldBeNoBubbling);
+    ractive.on('foo', () => t.ok(true));
+    ractive.on('Component.someEvent', shouldBeNoBubbling);
 
-    const component = ractive.findComponent("Component");
-    fire(component.find("#test"), "click");
+    const component = ractive.findComponent('Component');
+    fire(component.find('#test'), 'click');
   });
 
   test('component "on-" wildcards match', t => {
@@ -193,12 +193,12 @@ export default function() {
       components: { Component }
     });
 
-    ractive.on("foo", () => t.ok(true));
-    ractive.on("bar", () => t.ok(true));
-    ractive.on("both", () => t.ok(true));
+    ractive.on('foo', () => t.ok(true));
+    ractive.on('bar', () => t.ok(true));
+    ractive.on('both', () => t.ok(true));
 
-    const component = ractive.findComponent("Component");
-    fire(component.find("#test"), "click");
+    const component = ractive.findComponent('Component');
+    fire(component.find('#test'), 'click');
   });
 
   test('component "on-" do not get auto-namespaced events', t => {
@@ -214,14 +214,14 @@ export default function() {
       components: { Component }
     });
 
-    ractive.on("foo", shouldNotFire);
+    ractive.on('foo', shouldNotFire);
 
-    const component = ractive.findComponent("Component");
-    fire(component.find("#test"), "click");
+    const component = ractive.findComponent('Component');
+    fire(component.find('#test'), 'click');
     t.ok(true);
   });
 
-  test("cancelling an event from a bubbled handler also cancels the root event (#2844)", t => {
+  test('cancelling an event from a bubbled handler also cancels the root event (#2844)', t => {
     t.expect(0);
 
     const cmp = Ractive.extend({
@@ -233,13 +233,13 @@ export default function() {
       components: { cmp }
     });
 
-    r.on("*.ev", () => false);
-    r.on("nope", () => t.ok(false, "the event kept going"));
+    r.on('*.ev', () => false);
+    r.on('nope', () => t.ok(false, 'the event kept going'));
 
-    fire(r.find("button"), "click");
+    fire(r.find('button'), 'click');
   });
 
-  test("firing an event from an event directive cancels bubble if the sub-event also cancels", t => {
+  test('firing an event from an event directive cancels bubble if the sub-event also cancels', t => {
     t.expect(0);
 
     const r = new Ractive({
@@ -247,9 +247,9 @@ export default function() {
       template: `<div on-click="@this.fire('no')"><button on-click="@this.fire('go')">click</button></div>`
     });
 
-    r.on("no", () => t.ok(false, "the event bubbled"));
-    r.on("go", () => false);
+    r.on('no', () => t.ok(false, 'the event bubbled'));
+    r.on('go', () => false);
 
-    fire(r.find("button"), "click");
+    fire(r.find('button'), 'click');
   });
 }

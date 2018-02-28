@@ -1,4 +1,4 @@
-import cleanCss from "utils/cleanCss";
+import cleanCss from 'utils/cleanCss';
 
 const selectorsPattern = /(?:^|\}|\{)\s*([^\{\}\0]+)\s*(?=\{)/g;
 const keyframesDeclarationPattern = /@keyframes\s+[^\{\}]+\s*\{(?:[^{}]+|\{[^{}]+})*}/gi;
@@ -38,15 +38,15 @@ function transformSelector(selector, parent) {
 
     // Pseudo-selectors should go after the attribute selector
     const unit = selectorUnits[i];
-    appended[i] = unit.base + parent + unit.modifiers || "";
+    appended[i] = unit.base + parent + unit.modifiers || '';
 
     const prepended = base.slice();
-    prepended[i] = parent + " " + prepended[i];
+    prepended[i] = parent + ' ' + prepended[i];
 
-    transformed.push(appended.join(" "), prepended.join(" "));
+    transformed.push(appended.join(' '), prepended.join(' '));
   }
 
-  return transformed.join(", ");
+  return transformed.join(', ');
 }
 
 export default function transformCss(css, id) {
@@ -64,9 +64,9 @@ export default function transformCss(css, id) {
           // don't transform at-rules and keyframe declarations
           if (excludePattern.test($1)) return match;
 
-          const selectors = $1.split(",").map(trim);
+          const selectors = $1.split(',').map(trim);
           const transformed =
-            selectors.map(selector => transformSelector(selector, dataAttr)).join(", ") + " ";
+            selectors.map(selector => transformSelector(selector, dataAttr)).join(', ') + ' ';
 
           return match.replace($1, transformed);
         });

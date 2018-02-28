@@ -1,5 +1,5 @@
-import runloop from "src/global/runloop";
-import Element from "../../Element";
+import runloop from 'src/global/runloop';
+import Element from '../../Element';
 
 export default class Form extends Element {
   constructor(options) {
@@ -9,11 +9,11 @@ export default class Form extends Element {
 
   render(target, occupants) {
     super.render(target, occupants);
-    this.on("reset", handleReset);
+    this.on('reset', handleReset);
   }
 
   unrender(shouldDestroy) {
-    this.off("reset", handleReset);
+    this.off('reset', handleReset);
     super.unrender(shouldDestroy);
   }
 }

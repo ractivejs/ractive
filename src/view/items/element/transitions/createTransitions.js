@@ -1,18 +1,18 @@
-import { missingPlugin } from "config/errors";
-import { isClient } from "config/environment";
-import { warnIfDebug, warnOnceIfDebug } from "utils/log";
-import { createElement } from "utils/dom";
-import interpolate from "shared/interpolate";
-import Ticker from "shared/Ticker";
-import hyphenate from "./hyphenate";
-import { isFunction, isString } from "utils/is";
+import { missingPlugin } from 'config/errors';
+import { isClient } from 'config/environment';
+import { warnIfDebug, warnOnceIfDebug } from 'utils/log';
+import { createElement } from 'utils/dom';
+import interpolate from 'shared/interpolate';
+import Ticker from 'shared/Ticker';
+import hyphenate from './hyphenate';
+import { isFunction, isString } from 'utils/is';
 
 let createTransitions;
 
 if (!isClient) {
   createTransitions = null;
 } else {
-  const testStyle = createElement("div").style;
+  const testStyle = createElement('div').style;
   const linear = x => x;
 
   const canUseCssTransitions = {};
@@ -27,21 +27,21 @@ if (!isClient) {
   let TRANSITION_TIMING_FUNCTION;
 
   if (testStyle.transition !== undefined) {
-    TRANSITION = "transition";
-    TRANSITIONEND = "transitionend";
+    TRANSITION = 'transition';
+    TRANSITIONEND = 'transitionend';
     CSS_TRANSITIONS_ENABLED = true;
   } else if (testStyle.webkitTransition !== undefined) {
-    TRANSITION = "webkitTransition";
-    TRANSITIONEND = "webkitTransitionEnd";
+    TRANSITION = 'webkitTransition';
+    TRANSITIONEND = 'webkitTransitionEnd';
     CSS_TRANSITIONS_ENABLED = true;
   } else {
     CSS_TRANSITIONS_ENABLED = false;
   }
 
   if (TRANSITION) {
-    TRANSITION_DURATION = TRANSITION + "Duration";
-    TRANSITION_PROPERTY = TRANSITION + "Property";
-    TRANSITION_TIMING_FUNCTION = TRANSITION + "TimingFunction";
+    TRANSITION_DURATION = TRANSITION + 'Duration';
+    TRANSITION_PROPERTY = TRANSITION + 'Property';
+    TRANSITION_TIMING_FUNCTION = TRANSITION + 'TimingFunction';
   }
 
   createTransitions = function(t, to, options, changedProperties, resolve) {
@@ -60,14 +60,14 @@ if (!isClient) {
         if (jsTransitionsComplete && cssTransitionsComplete) {
           t.unregisterCompleteHandler(transitionDone);
           // will changes to events and fire have an unexpected consequence here?
-          t.ractive.fire(t.name + ":end", t.node, t.isIntro);
+          t.ractive.fire(t.name + ':end', t.node, t.isIntro);
           resolve();
         }
       }
 
       // this is used to keep track of which elements can use CSS to animate
       // which properties
-      const hashPrefix = (t.node.namespaceURI || "") + t.node.tagName;
+      const hashPrefix = (t.node.namespaceURI || '') + t.node.tagName;
 
       // need to reset transition properties
       const style = t.node.style;
@@ -113,11 +113,11 @@ if (!isClient) {
       }, options.duration + (options.delay || 0) + 50);
       t.registerCompleteHandler(transitionDone);
 
-      style[TRANSITION_PROPERTY] = changedProperties.join(",");
-      const easingName = hyphenate(options.easing || "linear");
+      style[TRANSITION_PROPERTY] = changedProperties.join(',');
+      const easingName = hyphenate(options.easing || 'linear');
       style[TRANSITION_TIMING_FUNCTION] = easingName;
       const cssTiming = style[TRANSITION_TIMING_FUNCTION] === easingName;
-      style[TRANSITION_DURATION] = options.duration / 1000 + "s";
+      style[TRANSITION_DURATION] = options.duration / 1000 + 's';
 
       setTimeout(() => {
         let i = changedProperties.length;
@@ -163,7 +163,7 @@ if (!isClient) {
             index = changedProperties.indexOf(prop);
             if (index === -1) {
               warnIfDebug(
-                "Something very strange happened with transitions. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!",
+                'Something very strange happened with transitions. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!',
                 { node: t.node }
               );
             } else {
@@ -198,7 +198,7 @@ if (!isClient) {
             easing = t.ractive.easing[options.easing];
 
             if (!easing) {
-              warnOnceIfDebug(missingPlugin(options.easing, "easing"));
+              warnOnceIfDebug(missingPlugin(options.easing, 'easing'));
               easing = linear;
             }
           } else if (isFunction(options.easing)) {
@@ -227,9 +227,9 @@ if (!isClient) {
         }
 
         if (changedProperties.length) {
-          style[TRANSITION_PROPERTY] = changedProperties.join(",");
+          style[TRANSITION_PROPERTY] = changedProperties.join(',');
         } else {
-          style[TRANSITION_PROPERTY] = "none";
+          style[TRANSITION_PROPERTY] = 'none';
 
           // We need to cancel the transitionEndHandler, and deal with
           // the fact that it will never fire

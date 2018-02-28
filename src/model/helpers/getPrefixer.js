@@ -1,5 +1,5 @@
-import { hasOwn } from "utils/object";
-import { isString, isObjectType } from "utils/is";
+import { hasOwn } from 'utils/object';
+import { isString, isObjectType } from 'utils/is';
 
 const prefixers = {};
 
@@ -12,7 +12,7 @@ function prefixKeypath(obj, prefix) {
     return obj;
   }
 
-  prefix += ".";
+  prefix += '.';
 
   for (const key in obj) {
     if (hasOwn(obj, key)) {
@@ -27,7 +27,7 @@ export default function getPrefixer(rootKeypath) {
   let rootDot;
 
   if (!prefixers[rootKeypath]) {
-    rootDot = rootKeypath ? rootKeypath + "." : "";
+    rootDot = rootKeypath ? rootKeypath + '.' : '';
 
     /* istanbul ignore next */
     prefixers[rootKeypath] = function(relativeKeypath, value) {

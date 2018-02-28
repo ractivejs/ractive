@@ -1,8 +1,8 @@
-import { splitKeypath } from "shared/keypaths";
-import SharedModel, { GlobalModel } from "src/model/specials/SharedModel";
-import { warnIfDebug } from "utils/log";
-import { hasOwn } from "utils/object";
-import { isFunction } from "utils/is";
+import { splitKeypath } from 'shared/keypaths';
+import SharedModel, { GlobalModel } from 'src/model/specials/SharedModel';
+import { warnIfDebug } from 'utils/log';
+import { hasOwn } from 'utils/object';
+import { isFunction } from 'utils/is';
 
 function findContext(fragment) {
   let frag = fragment;
@@ -13,16 +13,16 @@ function findContext(fragment) {
 export default function resolveReference(fragment, ref) {
   const initialFragment = fragment;
   // current context ref
-  if (ref === ".") return fragment.findContext();
+  if (ref === '.') return fragment.findContext();
 
   // ancestor references
-  if (ref[0] === "~") return fragment.ractive.viewmodel.joinAll(splitKeypath(ref.slice(2)));
+  if (ref[0] === '~') return fragment.ractive.viewmodel.joinAll(splitKeypath(ref.slice(2)));
 
   // scoped references
-  if (ref[0] === "." || ref[0] === "^") {
+  if (ref[0] === '.' || ref[0] === '^') {
     let frag = fragment;
-    const parts = ref.split("/");
-    const explicitContext = parts[0] === "^^";
+    const parts = ref.split('/');
+    const explicitContext = parts[0] === '^^';
 
     // find nearest context node
     while (frag && !frag.context) {
@@ -31,7 +31,7 @@ export default function resolveReference(fragment, ref) {
     let context = frag && frag.context;
 
     // walk up the context chain
-    while (frag && parts[0] === "^^") {
+    while (frag && parts[0] === '^^') {
       parts.shift();
 
       // the current fragment should always be a context,
@@ -57,18 +57,18 @@ export default function resolveReference(fragment, ref) {
     }
 
     // walk up the context path
-    while (parts[0] === "." || parts[0] === "..") {
+    while (parts[0] === '.' || parts[0] === '..') {
       const part = parts.shift();
 
-      if (part === "..") {
+      if (part === '..') {
         context = context.parent;
       }
     }
 
-    ref = parts.join("/");
+    ref = parts.join('/');
 
     // special case - `{{.foo}}` means the same as `{{./foo}}`
-    if (ref[0] === ".") ref = ref.slice(1);
+    if (ref[0] === '.') ref = ref.slice(1);
     return context.joinAll(splitKeypath(ref));
   }
 
@@ -77,28 +77,28 @@ export default function resolveReference(fragment, ref) {
   const base = keys.shift();
 
   // special refs
-  if (base[0] === "@") {
+  if (base[0] === '@') {
     // shorthand from outside the template
     // @this referring to local ractive instance
-    if (base === "@this" || base === "@") {
+    if (base === '@this' || base === '@') {
       return fragment.ractive.viewmodel.getRactiveModel().joinAll(keys);
-    } else if (base === "@index" || base === "@key") {
+    } else if (base === '@index' || base === '@key') {
       // @index or @key referring to the nearest repeating index or key
       if (keys.length) badReference(base);
       const repeater = findIter(fragment);
-      return repeater && repeater[`get${base[1] === "i" ? "Index" : "Key"}`]();
-    } else if (base === "@last") {
+      return repeater && repeater[`get${base[1] === 'i' ? 'Index' : 'Key'}`]();
+    } else if (base === '@last') {
       const repeater = findIter(fragment);
       return repeater && repeater.parent.getLast();
-    } else if (base === "@global") {
+    } else if (base === '@global') {
       // @global referring to window or global
       return GlobalModel.joinAll(keys);
-    } else if (base === "@shared") {
+    } else if (base === '@shared') {
       // @global referring to window or global
       return SharedModel.joinAll(keys);
-    } else if (base === "@keypath" || base === "@rootpath") {
+    } else if (base === '@keypath' || base === '@rootpath') {
       // @keypath or @rootpath, the current keypath string
-      const root = ref[1] === "r" ? fragment.ractive.root : null;
+      const root = ref[1] === 'r' ? fragment.ractive.root : null;
       let f = fragment;
 
       while (f && (!f.context || (f.isRoot && f.ractive.component))) {
@@ -106,15 +106,15 @@ export default function resolveReference(fragment, ref) {
       }
 
       return f.getKeypath(root);
-    } else if (base === "@context") {
+    } else if (base === '@context') {
       return new ContextModel(fragment.getContext());
-    } else if (base === "@local") {
+    } else if (base === '@local') {
       // @context-local data
       return fragment.getContext()._data.joinAll(keys);
-    } else if (base === "@style") {
+    } else if (base === '@style') {
       // @style shared model
       return fragment.ractive.constructor._cssModel.joinAll(keys);
-    } else if (base === "@helpers") {
+    } else if (base === '@helpers') {
       // @helpers instance model
       return fragment.ractive.viewmodel.getHelpers().joinAll(keys);
     } else {
@@ -205,7 +205,7 @@ export default function resolveReference(fragment, ref) {
 
   // if enabled, check the instance for a match
   const instance = initialFragment.ractive;
-  if (instance.resolveInstanceMembers && base !== "data" && base in instance) {
+  if (instance.resolveInstanceMembers && base !== 'data' && base in instance) {
     return instance.viewmodel
       .getRactiveModel()
       .joinKey(base)

@@ -1,9 +1,9 @@
-import Hook from "src/events/Hook";
-import runloop from "src/global/runloop";
-import { splitKeypath } from "shared/keypaths";
-import { isString } from "utils/is";
+import Hook from 'src/events/Hook';
+import runloop from 'src/global/runloop';
+import { splitKeypath } from 'shared/keypaths';
+import { isString } from 'utils/is';
 
-const updateHook = new Hook("update");
+const updateHook = new Hook('update');
 
 export function update(ractive, model, options) {
   // if the parent is wrapped, the adaptor will need to be updated before

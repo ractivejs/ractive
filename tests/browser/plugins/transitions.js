@@ -4,8 +4,8 @@ import {
   hasUsableConsole,
   onWarn,
   initModule
-} from "../../helpers/test-config";
-import { test } from "qunit";
+} from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
   let Ractive_original;
@@ -38,9 +38,9 @@ export default function() {
     Ractive = Ractive_original;
   });
 
-  initModule("plugins/transitions.js");
+  initModule('plugins/transitions.js');
 
-  test("Animated style", t => {
+  test('Animated style', t => {
     t.expect(2);
 
     const done = t.async();
@@ -54,59 +54,59 @@ export default function() {
       transitions: {
         test(transition) {
           // eslint-disable-line object-shorthand
-          transition.setStyle("height", "100px");
+          transition.setStyle('height', '100px');
 
           transition
-            .animateStyle("height", "200px", {
+            .animateStyle('height', '200px', {
               duration: 50
             })
             .then(transition.complete);
 
           // should not have changed yet
-          t.equal(transition.getStyle(["height"]).height, "100px");
+          t.equal(transition.getStyle(['height']).height, '100px');
         }
       }
     });
 
-    ractive.set("show", true).then(() => {
-      const div = ractive.find("div");
-      t.equal(div.style.height, "");
+    ractive.set('show', true).then(() => {
+      const div = ractive.find('div');
+      t.equal(div.style.height, '');
       done();
     });
   });
 
-  test("Elements containing components with outroing elements do not detach until transitions are complete", t => {
+  test('Elements containing components with outroing elements do not detach until transitions are complete', t => {
     const done = t.async();
 
     let shouldHaveCompleted;
 
     const Widget = Ractive.extend({
-      template: "<p test-out>foo</p>",
+      template: '<p test-out>foo</p>',
       beforeComplete() {
         shouldHaveCompleted = true;
-        t.ok(fixture.contains(p), "<p> element has already been removed from the DOM");
+        t.ok(fixture.contains(p), '<p> element has already been removed from the DOM');
       }
     });
 
     const ractive = new Ractive({
       el: fixture,
-      template: "{{#foo}}<div><widget/></div>{{/foo}}",
+      template: '{{#foo}}<div><widget/></div>{{/foo}}',
       components: {
         widget: Widget
       },
       data: { foo: true }
     });
 
-    const p = ractive.find("p");
+    const p = ractive.find('p');
 
-    ractive.set("foo", false).then(() => {
-      t.ok(shouldHaveCompleted, "promise was fulfilled before transition had completed");
-      t.ok(!fixture.contains(p), "<p> element should have been removed from the DOM");
+    ractive.set('foo', false).then(() => {
+      t.ok(shouldHaveCompleted, 'promise was fulfilled before transition had completed');
+      t.ok(!fixture.contains(p), '<p> element should have been removed from the DOM');
       done();
     });
   });
 
-  test("noIntro option prevents intro transition", t => {
+  test('noIntro option prevents intro transition', t => {
     const done = t.async();
 
     t.expect(1);
@@ -115,19 +115,19 @@ export default function() {
 
     new Ractive({
       el: fixture,
-      template: "<div test-in></div>",
+      template: '<div test-in></div>',
       noIntro: true,
       beforeComplete() {
         transitioned = true;
       },
       oncomplete() {
-        t.ok(!transitioned, "transition happened");
+        t.ok(!transitioned, 'transition happened');
         done();
       }
     });
   });
 
-  test("noOutro option prevents outro transition", t => {
+  test('noOutro option prevents outro transition', t => {
     const done = t.async();
 
     t.expect(1);
@@ -136,20 +136,20 @@ export default function() {
 
     const r = new Ractive({
       el: fixture,
-      template: "<div test-out></div>",
+      template: '<div test-out></div>',
       noIntro: true,
       beforeComplete() {
         transitioned = true;
       },
       onteardown() {
-        t.ok(!transitioned, "transition happened");
+        t.ok(!transitioned, 'transition happened');
         done();
       }
     });
     r.teardown();
   });
 
-  test("noIntro option prevents intro transition when el is initially undefined", t => {
+  test('noIntro option prevents intro transition when el is initially undefined', t => {
     t.expect(1);
 
     const done = t.async();
@@ -157,13 +157,13 @@ export default function() {
     let transitioned;
 
     const ractive = new Ractive({
-      template: "<div test-in></div>",
+      template: '<div test-in></div>',
       noIntro: true,
       beforeComplete() {
         transitioned = true;
       },
       oncomplete() {
-        t.ok(!transitioned, "transition happened");
+        t.ok(!transitioned, 'transition happened');
         done();
       }
     });
@@ -171,15 +171,15 @@ export default function() {
     ractive.render(fixture);
   });
 
-  test("noIntro on a rendering parent instance prevents intro transition on component", t => {
+  test('noIntro on a rendering parent instance prevents intro transition on component', t => {
     t.expect(1);
     const done = t.async();
 
     const cmp = Ractive.extend({
-      template: "<div check-in />",
+      template: '<div check-in />',
       transitions: {
         check(trans) {
-          t.ok(false, "transition should not run");
+          t.ok(false, 'transition should not run');
           trans.complete();
         }
       }
@@ -187,12 +187,12 @@ export default function() {
 
     const r = new Ractive({
       noIntro: true,
-      template: "<cmp />",
+      template: '<cmp />',
       components: { cmp }
     });
 
     r.render(fixture).then(() => {
-      t.htmlEqual(fixture.innerHTML, "<div></div>");
+      t.htmlEqual(fixture.innerHTML, '<div></div>');
       done();
     });
   });
@@ -202,10 +202,10 @@ export default function() {
     const done = t.async();
 
     const cmp = Ractive.extend({
-      template: "<div check-in />",
+      template: '<div check-in />',
       transitions: {
         check(trans) {
-          t.ok(true, "transition should run");
+          t.ok(true, 'transition should run');
           trans.complete();
         }
       }
@@ -214,12 +214,12 @@ export default function() {
     const r = new Ractive({
       noIntro: true,
       target: fixture,
-      template: "{{#if show}}<cmp />{{/if}}",
+      template: '{{#if show}}<cmp />{{/if}}',
       components: { cmp }
     });
 
-    r.toggle("show").then(() => {
-      t.htmlEqual(fixture.innerHTML, "<div></div>");
+    r.toggle('show').then(() => {
+      t.htmlEqual(fixture.innerHTML, '<div></div>');
       done();
     });
   });
@@ -229,10 +229,10 @@ export default function() {
     const done = t.async();
 
     const cmp = Ractive.extend({
-      template: "<div check-out />",
+      template: '<div check-out />',
       transitions: {
         check(trans) {
-          t.ok(true, "transition should run");
+          t.ok(true, 'transition should run');
           trans.complete();
         }
       }
@@ -241,17 +241,17 @@ export default function() {
     const r = new Ractive({
       noOutro: true,
       target: fixture,
-      template: "{{#unless hide}}<cmp />{{/unless}}",
+      template: '{{#unless hide}}<cmp />{{/unless}}',
       components: { cmp }
     });
 
-    r.toggle("hide").then(() => {
-      t.htmlEqual(fixture.innerHTML, "");
+    r.toggle('hide').then(() => {
+      t.htmlEqual(fixture.innerHTML, '');
       done();
     });
   });
 
-  test("ractive.transitionsEnabled false prevents all transitions", t => {
+  test('ractive.transitionsEnabled false prevents all transitions', t => {
     t.expect(1);
 
     const done = t.async();
@@ -259,7 +259,7 @@ export default function() {
     let transitioned;
 
     const Component = Ractive.extend({
-      template: "{{#foo}}<div test-in-out></div>{{/foo}}",
+      template: '{{#foo}}<div test-in-out></div>{{/foo}}',
       onconstruct(options) {
         this._super(options);
         this.transitionsEnabled = false;
@@ -273,8 +273,8 @@ export default function() {
       el: fixture,
       data: { foo: true },
       oncomplete() {
-        this.set("foo", false).then(() => {
-          t.ok(!transitioned, "outro transition happened");
+        this.set('foo', false).then(() => {
+          t.ok(!transitioned, 'outro transition happened');
           done();
         });
       }
@@ -282,7 +282,7 @@ export default function() {
   });
 
   if (hasUsableConsole) {
-    test("Missing transition functions do not cause errors, but do console.warn", t => {
+    test('Missing transition functions do not cause errors, but do console.warn', t => {
       t.expect(1);
 
       const done = t.async();
@@ -293,7 +293,7 @@ export default function() {
 
       new Ractive({
         el: fixture,
-        template: "<div foo-in></div>",
+        template: '<div foo-in></div>',
         oncomplete() {
           done();
         }
@@ -301,14 +301,14 @@ export default function() {
     });
   }
 
-  test("Transitions work the first time (#916)", t => {
+  test('Transitions work the first time (#916)', t => {
     const done = t.async();
 
     const ractive = new Ractive({
       el: fixture,
-      template: "<div changeHeight-in></div>",
+      template: '<div changeHeight-in></div>',
       oncomplete() {
-        t.equal(div.style.height, "");
+        t.equal(div.style.height, '');
         done();
       },
       transitions: {
@@ -316,36 +316,36 @@ export default function() {
           let targetHeight;
 
           if (t.isIntro) {
-            targetHeight = t.getStyle("height");
-            t.setStyle("height", 0);
+            targetHeight = t.getStyle('height');
+            t.setStyle('height', 0);
           } else {
             targetHeight = 0;
           }
 
-          t.animateStyle("height", targetHeight, { duration: 50 }).then(t.complete);
+          t.animateStyle('height', targetHeight, { duration: 50 }).then(t.complete);
         }
       }
     });
 
-    const div = ractive.find("div");
-    t.equal(div.style.height, "0px");
+    const div = ractive.find('div');
+    t.equal(div.style.height, '0px');
   });
 
-  test("Nodes are detached synchronously if there are no outro transitions (#856)", t => {
+  test('Nodes are detached synchronously if there are no outro transitions (#856)', t => {
     const ractive = new Ractive({
       el: fixture,
       template:
         '{{#if foo}}<div test-in>intro</div>{{else}}<div class="target">no outro</div>{{/if}}'
     });
 
-    const target = ractive.find(".target");
+    const target = ractive.find('.target');
     t.ok(fixture.contains(target));
 
-    ractive.set("foo", true);
+    ractive.set('foo', true);
     t.ok(!fixture.contains(target));
   });
 
-  test("Regression test for #1157", t => {
+  test('Regression test for #1157', t => {
     const done = t.async();
 
     new Ractive({
@@ -361,7 +361,7 @@ export default function() {
     });
   });
 
-  test("Parameter objects are not polluted (#1239)", t => {
+  test('Parameter objects are not polluted (#1239)', t => {
     const done = t.async();
 
     t.expect(3);
@@ -392,7 +392,7 @@ export default function() {
     t.notEqual(objects[0], objects[1]);
   });
 
-  test("processParams extends correctly if no default provided (#2446)", t => {
+  test('processParams extends correctly if no default provided (#2446)', t => {
     new Ractive({
       el: fixture,
       template: '<p foo-in="{ duration: 1000 }"></p>',
@@ -407,7 +407,7 @@ export default function() {
     });
   });
 
-  test("An intro will be aborted if a corresponding outro begins before it completes", t => {
+  test('An intro will be aborted if a corresponding outro begins before it completes', t => {
     let tooLate;
 
     const done = t.async();
@@ -423,14 +423,14 @@ export default function() {
       }
     });
 
-    ractive.set("showBox", true).then(() => {
+    ractive.set('showBox', true).then(() => {
       if (!tooLate) {
         done();
       }
     });
 
     setTimeout(() => {
-      ractive.set("showBox", false);
+      ractive.set('showBox', false);
     }, 0);
 
     setTimeout(() => {
@@ -438,7 +438,7 @@ export default function() {
     }, 200);
   });
 
-  test("processParams extends correctly if no default provided (#2446)", t => {
+  test('processParams extends correctly if no default provided (#2446)', t => {
     new Ractive({
       el: fixture,
       template: '<p foo-in="{ duration: 1000 }"></p>',
@@ -453,7 +453,7 @@ export default function() {
     });
   });
 
-  test("Conditional sections that become truthy are not rendered if a parent simultaneously becomes falsy (#1483)", t => {
+  test('Conditional sections that become truthy are not rendered if a parent simultaneously becomes falsy (#1483)', t => {
     let transitionRan = false;
     const done = t.async();
     t.expect(1);
@@ -473,42 +473,42 @@ export default function() {
         }
       },
       data: {
-        foo: "",
-        bar: ""
+        foo: '',
+        bar: ''
       },
       oncomplete() {
         done();
       }
     });
 
-    ractive.set("foo", "x");
-    ractive.set("foo", "");
+    ractive.set('foo', 'x');
+    ractive.set('foo', '');
 
     t.ok(!transitionRan);
   });
 
-  test("Nodes that are affected by deferred observers should actually get dettached (#2310)", t => {
+  test('Nodes that are affected by deferred observers should actually get dettached (#2310)', t => {
     const r = new Ractive({
       el: fixture,
       template: `{{#if bar}}<span>baz</span>{{/if}}`,
       data: { foo: true, bar: true }
     });
 
-    r.observe("foo", v => r.set("bar", v), { defer: true });
+    r.observe('foo', v => r.set('bar', v), { defer: true });
 
-    t.htmlEqual(fixture.innerHTML, "<span>baz</span>");
-    r.set("foo", false);
-    t.htmlEqual(fixture.innerHTML, "");
-    r.set("foo", true);
-    t.htmlEqual(fixture.innerHTML, "<span>baz</span>");
+    t.htmlEqual(fixture.innerHTML, '<span>baz</span>');
+    r.set('foo', false);
+    t.htmlEqual(fixture.innerHTML, '');
+    r.set('foo', true);
+    t.htmlEqual(fixture.innerHTML, '<span>baz</span>');
   });
 
-  test("Nodes not affected by a transition should be immediately handled (#2027)", t => {
+  test('Nodes not affected by a transition should be immediately handled (#2027)', t => {
     const done = t.async();
     t.expect(3);
 
     function trans(tr) {
-      t.ok(true, "transition actually ran");
+      t.ok(true, 'transition actually ran');
       setTimeout(() => tr.complete(), 400);
     }
     const r = new Ractive({
@@ -518,12 +518,12 @@ export default function() {
       transitions: { trans }
     });
 
-    r.set("foo", false).then(done, done);
-    t.ok(!/span2/.test(fixture.innerHTML), "span2 is gone immediately");
-    t.ok(/span1/.test(fixture.innerHTML), "span1 hangs around until the transition is done");
+    r.set('foo', false).then(done, done);
+    t.ok(!/span2/.test(fixture.innerHTML), 'span2 is gone immediately');
+    t.ok(/span1/.test(fixture.innerHTML), 'span1 hangs around until the transition is done');
   });
 
-  test("Context of transition function is current instance", t => {
+  test('Context of transition function is current instance', t => {
     t.expect(1);
 
     const ractive = new Ractive({
@@ -539,7 +539,7 @@ export default function() {
       }
     });
 
-    ractive.set("visible", true);
+    ractive.set('visible', true);
   });
 
   test(`transitions don't wipe out inline styles set during run when completing (#2986)`, t => {
@@ -549,8 +549,8 @@ export default function() {
       template: '<div go-in {{#if yep}}style-height="50px"{{/if}} />',
       transitions: {
         go(trans) {
-          trans.setStyle("height", "0px");
-          trans.animateStyle("height", "100px", { duration: 50 }).then(trans.complete);
+          trans.setStyle('height', '0px');
+          trans.animateStyle('height', '100px', { duration: 50 }).then(trans.complete);
         }
       }
     });
@@ -558,16 +558,16 @@ export default function() {
     r
       .render(fixture)
       .then(() => {
-        t.equal(r.find("div").style.height, "50px");
+        t.equal(r.find('div').style.height, '50px');
       })
       .then(done, done);
 
-    t.equal(r.find("div").style.height, "0px");
+    t.equal(r.find('div').style.height, '0px');
 
-    setTimeout(() => r.set("yep", true), 30);
+    setTimeout(() => r.set('yep', true), 30);
   });
 
-  test("intro transitions can be conditional", t => {
+  test('intro transitions can be conditional', t => {
     let count = 0;
     const r = new Ractive({
       el: fixture,
@@ -583,14 +583,14 @@ export default function() {
 
     t.equal(count, 1);
     r.set({ foo: false, bar: false });
-    r.set("foo", true);
+    r.set('foo', true);
     t.equal(count, 1);
     r.set({ foo: false, bar: true });
-    r.set("foo", true);
+    r.set('foo', true);
     t.equal(count, 2);
   });
 
-  test("outro transitions can be conditional", t => {
+  test('outro transitions can be conditional', t => {
     let count = 0;
     const r = new Ractive({
       el: fixture,
@@ -607,16 +607,16 @@ export default function() {
     t.equal(count, 0);
     r.set({ foo: false, bar: false });
     t.equal(count, 1);
-    r.set("foo", true);
-    r.set("foo", false);
+    r.set('foo', true);
+    r.set('foo', false);
     t.equal(count, 1);
-    r.set("bar", true);
-    r.set("foo", true);
-    r.set("foo", false);
+    r.set('bar', true);
+    r.set('foo', true);
+    r.set('foo', false);
     t.equal(count, 2);
   });
 
-  test("intro-outro transitions can be conditional", t => {
+  test('intro-outro transitions can be conditional', t => {
     let count = 0;
     const r = new Ractive({
       el: fixture,
@@ -633,20 +633,20 @@ export default function() {
     t.equal(count, 1);
     r.set({ foo: false, bar: false });
     t.equal(count, 2);
-    r.set("foo", true);
-    r.set("foo", false);
+    r.set('foo', true);
+    r.set('foo', false);
     t.equal(count, 2);
-    r.set("bar", true);
-    r.set("foo", true);
-    r.set("foo", false);
+    r.set('bar', true);
+    r.set('foo', true);
+    r.set('foo', false);
     t.equal(count, 4);
   });
 
-  test("intros can be named attributes", t => {
+  test('intros can be named attributes', t => {
     let count = 0;
     const r = new Ractive({
       el: fixture,
-      template: "{{#if foo}}<div go-in></div>{{/if}}",
+      template: '{{#if foo}}<div go-in></div>{{/if}}',
       data: { foo: true },
       transitions: {
         go(t) {
@@ -657,16 +657,16 @@ export default function() {
     });
 
     t.equal(count, 1);
-    r.set("foo", false);
-    r.set("foo", true);
+    r.set('foo', false);
+    r.set('foo', true);
     t.equal(count, 2);
   });
 
-  test("outros can be named attributes", t => {
+  test('outros can be named attributes', t => {
     let count = 0;
     const r = new Ractive({
       el: fixture,
-      template: "{{#if foo}}<div go-out></div>{{/if}}",
+      template: '{{#if foo}}<div go-out></div>{{/if}}',
       data: { foo: true },
       transitions: {
         go(t) {
@@ -676,18 +676,18 @@ export default function() {
       }
     });
 
-    r.set("foo", false);
+    r.set('foo', false);
     t.equal(count, 1);
-    r.set("foo", true);
-    r.set("foo", false);
+    r.set('foo', true);
+    r.set('foo', false);
     t.equal(count, 2);
   });
 
-  test("intro-outros can be named attributes", t => {
+  test('intro-outros can be named attributes', t => {
     let count = 0;
     const r = new Ractive({
       el: fixture,
-      template: "{{#if foo}}<div go-in-out></div>{{/if}}",
+      template: '{{#if foo}}<div go-in-out></div>{{/if}}',
       data: { foo: true },
       transitions: {
         go(t) {
@@ -698,25 +698,25 @@ export default function() {
     });
 
     t.equal(count, 1);
-    r.set("foo", false);
+    r.set('foo', false);
     t.equal(count, 2);
-    r.set("foo", true);
+    r.set('foo', true);
     t.equal(count, 3);
-    r.set("foo", false);
+    r.set('foo', false);
     t.equal(count, 4);
   });
 
-  test("named attribute transitions can have normal expression args", t => {
+  test('named attribute transitions can have normal expression args', t => {
     let count = 0;
     new Ractive({
       el: fixture,
       template: `{{#if foo}}<div go-in="bar, 'bat'"></div>{{/if}}`,
-      data: { foo: true, bar: "foo" },
+      data: { foo: true, bar: 'foo' },
       transitions: {
         go(trans, bar, str) {
           count++;
-          t.equal(bar, "foo");
-          t.equal(str, "bat");
+          t.equal(bar, 'foo');
+          t.equal(str, 'bat');
           trans.complete();
         }
       }
@@ -738,24 +738,24 @@ export default function() {
       transitions: {
         go(trans) {
           if (trans.isIntro) {
-            trans.setStyle("opacity", 1);
+            trans.setStyle('opacity', 1);
             trans.complete();
           } else {
-            trans.animateStyle("opacity", 0, { duration: 100 }).then(() => {
+            trans.animateStyle('opacity', 0, { duration: 100 }).then(() => {
               trans.complete();
             });
             setTimeout(() => {
-              trans.node.style.transition = "";
-              trans.node.style.transitionDelay = "";
-              trans.node.style.transitionFunction = "";
+              trans.node.style.transition = '';
+              trans.node.style.transitionDelay = '';
+              trans.node.style.transitionFunction = '';
             }, 20);
           }
         }
       }
     });
 
-    r.set("show", false).then(() => {
-      t.ok(!r.find("div"), "node has been removed");
+    r.set('show', false).then(() => {
+      t.ok(!r.find('div'), 'node has been removed');
       done();
     });
   });
@@ -768,11 +768,11 @@ export default function() {
     function go(trans) {
       if (trans.isIntro) {
         trans.setStyle({ opacity: 0 });
-        trans.animateStyle("opacity", 1, { duration: 100 }).then(() => {
+        trans.animateStyle('opacity', 1, { duration: 100 }).then(() => {
           trans.complete();
         });
       } else {
-        trans.animateStyle("opacity", 0, { duration: 300 }).then(() => {
+        trans.animateStyle('opacity', 0, { duration: 300 }).then(() => {
           trans.complete();
         });
       }
@@ -803,7 +803,7 @@ export default function() {
     setTimeout(next, 50);
 
     setTimeout(() => {
-      t.htmlEqual(fixture.innerHTML, "<div>foo 4</div>");
+      t.htmlEqual(fixture.innerHTML, '<div>foo 4</div>');
       done();
     }, 400);
   });
@@ -818,14 +818,14 @@ export default function() {
     const r = new Ractive({
       el: fixture,
       template: `{{#if foo}}<div go-in-out="someRef" />{{/if}}`,
-      data: { foo: true, someRef: "yep" },
+      data: { foo: true, someRef: 'yep' },
       transitions: { go }
     });
 
     t.equal(count, 1);
-    r.set("someRef", "ok");
+    r.set('someRef', 'ok');
     t.equal(count, 1);
-    r.toggle("foo");
+    r.toggle('foo');
     t.equal(count, 2);
   });
 
@@ -833,13 +833,13 @@ export default function() {
     const done = t.async();
 
     function go(trans) {
-      const height = trans.getStyle("height");
+      const height = trans.getStyle('height');
       if (trans.isIntro) {
-        trans.setStyle("height", 0);
-        trans.animateStyle("height", height, { duration: 100 }).then(() => trans.complete());
+        trans.setStyle('height', 0);
+        trans.animateStyle('height', height, { duration: 100 }).then(() => trans.complete());
       } else {
-        trans.setStyle("height", height);
-        trans.animateStyle("height", 0, { duration: 100 }).then(() => trans.complete());
+        trans.setStyle('height', height);
+        trans.animateStyle('height', 0, { duration: 100 }).then(() => trans.complete());
       }
     }
 
@@ -849,9 +849,9 @@ export default function() {
     });
 
     r.render(fixture).then(() => {
-      const div = r.find("div");
-      t.equal(div.style.height, "");
-      t.ok(!("style" in div.attributes) || div.getAttribute("style") === "");
+      const div = r.find('div');
+      t.equal(div.style.height, '');
+      t.ok(!('style' in div.attributes) || div.getAttribute('style') === '');
       r.unrender().then(() => {
         done();
       });
@@ -908,7 +908,7 @@ export default function() {
     }
 
     const r = new Ractive({
-      template: "<div go-in><div go-in /></div>",
+      template: '<div go-in><div go-in /></div>',
       transitions: { go },
       nestedTransitions: false
     });
@@ -929,7 +929,7 @@ export default function() {
     }
 
     const r = new Ractive({
-      template: "<div go-in><div go-in={ nested: true } /></div>",
+      template: '<div go-in><div go-in={ nested: true } /></div>',
       transitions: { go },
       nestedTransitions: false
     });
@@ -945,7 +945,7 @@ export default function() {
     let count = 0;
 
     const cmp = Ractive.extend({
-      template: "<div go-in />"
+      template: '<div go-in />'
     });
 
     function go(trans) {
@@ -954,7 +954,7 @@ export default function() {
     }
 
     const r = new Ractive({
-      template: "<div go-in><cmp /></div>",
+      template: '<div go-in><cmp /></div>',
       transitions: { go },
       components: { cmp },
       nestedTransitions: false
@@ -969,17 +969,17 @@ export default function() {
   test(`transition params normalization`, t => {
     const done = t.async();
     const r = new Ractive({
-      template: "<div go-in />",
+      template: '<div go-in />',
       transitions: {
         go(trans) {
-          let p = trans.processParams("slow");
+          let p = trans.processParams('slow');
           t.equal(p.duration, 600);
-          p = trans.processParams("fast");
+          p = trans.processParams('fast');
           t.equal(p.duration, 200);
-          p = trans.processParams("wat");
+          p = trans.processParams('wat');
           t.equal(p.duration, 400);
           p = trans.processParams();
-          t.ok(typeof p === "object");
+          t.ok(typeof p === 'object');
           p = trans.processParams(300);
           t.equal(p.duration, 300);
 
@@ -1007,7 +1007,7 @@ export default function() {
       }
     });
 
-    r.toggle("foo").then(done);
+    r.toggle('foo').then(done);
   });
 
   test(`conditional transitions find their parent element (#2815)`, t => {
@@ -1019,15 +1019,15 @@ export default function() {
       let start, end;
       if (trans.isIntro) {
         start = 0;
-        end = trans.getStyle("opacity");
+        end = trans.getStyle('opacity');
       } else {
         end = 0;
-        start = trans.getStyle("opacity");
+        start = trans.getStyle('opacity');
       }
 
-      trans.setStyle("opacity", start);
+      trans.setStyle('opacity', start);
 
-      trans.animateStyle("opacity", end, { duration: 20 }).then(trans.complete);
+      trans.animateStyle('opacity', end, { duration: 20 }).then(trans.complete);
     }
 
     const r = new Ractive({
@@ -1037,19 +1037,19 @@ export default function() {
       data: { bar: true }
     });
 
-    r.toggle("foo").then(() => {
+    r.toggle('foo').then(() => {
       t.equal(count, 1);
-      t.ok(fixture.querySelector("div.transitioned"));
-      r.toggle("foo").then(() => {
+      t.ok(fixture.querySelector('div.transitioned'));
+      r.toggle('foo').then(() => {
         t.equal(count, 2);
-        t.ok(!fixture.querySelector("div.transitioned"));
-        r.toggle("foo").then(() => {
-          r.toggle("bar");
-          r.toggle("foo").then(() => {
+        t.ok(!fixture.querySelector('div.transitioned'));
+        r.toggle('foo').then(() => {
+          r.toggle('bar');
+          r.toggle('foo').then(() => {
             t.equal(count, 3);
-            r.toggle("foo").then(() => {
-              r.toggle("bar");
-              r.toggle("foo").then(() => {
+            r.toggle('foo').then(() => {
+              r.toggle('bar');
+              r.toggle('foo').then(() => {
                 t.equal(count, 4);
                 done();
               });
@@ -1066,11 +1066,11 @@ export default function() {
     let called = false;
     const r = new Ractive({
       target: fixture,
-      template: "{{#if show}}<div go-in />{{/if}}",
+      template: '{{#if show}}<div go-in />{{/if}}',
       transitions: {
         go(trans) {
-          trans.setStyle("height", 0);
-          trans.animateStyle("height", 20, { duration: 20, easing: "go" }).then(trans.complete);
+          trans.setStyle('height', 0);
+          trans.animateStyle('height', 20, { duration: 20, easing: 'go' }).then(trans.complete);
         }
       },
       easing: {
@@ -1081,7 +1081,7 @@ export default function() {
       }
     });
 
-    r.toggle("show").then(() => {
+    r.toggle('show').then(() => {
       t.ok(called);
       done();
     });
@@ -1098,7 +1098,7 @@ export default function() {
 
     const r = new Ractive({
       transitions: { go },
-      template: "<div go-in><div go-in=300 /></div>"
+      template: '<div go-in><div go-in=300 /></div>'
     });
 
     r.render(fixture).then(() => {
@@ -1112,16 +1112,16 @@ export default function() {
 
     const r = new Ractive({
       target: fixture,
-      template: "{{#unless hide}}<div go-out>{{{nodes}}}</div>{{/unless}}",
+      template: '{{#unless hide}}<div go-out>{{{nodes}}}</div>{{/unless}}',
       transitions: {
         go(trans) {
-          t.htmlEqual(fixture.innerHTML, "<div><i>one</i><b>two</b></div>");
+          t.htmlEqual(fixture.innerHTML, '<div><i>one</i><b>two</b></div>');
           trans.complete();
         }
       },
-      data: { nodes: "<i>one</i><b>two</b>" }
+      data: { nodes: '<i>one</i><b>two</b>' }
     });
 
-    r.toggle("hide");
+    r.toggle('hide');
   });
 }

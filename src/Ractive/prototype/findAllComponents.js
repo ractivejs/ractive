@@ -1,9 +1,9 @@
-import { isArray, isObjectType } from "utils/is";
+import { isArray, isObjectType } from 'utils/is';
 
 export default function Ractive$findAllComponents(selector, options) {
   if (!options && isObjectType(selector)) {
     options = selector;
-    selector = "";
+    selector = '';
   }
 
   options = options || {};

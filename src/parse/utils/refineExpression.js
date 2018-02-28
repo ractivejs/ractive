@@ -1,5 +1,5 @@
-import { REFERENCE, BRACKETED, MEMBER, REFINEMENT } from "config/types";
-import flattenExpression from "./flattenExpression";
+import { REFERENCE, BRACKETED, MEMBER, REFINEMENT } from 'config/types';
+import flattenExpression from './flattenExpression';
 
 export default function refineExpression(expression, mustache) {
   let referenceExpression;
@@ -11,7 +11,7 @@ export default function refineExpression(expression, mustache) {
 
     if (expression.t === REFERENCE) {
       const n = expression.n;
-      if (!~n.indexOf("@context")) {
+      if (!~n.indexOf('@context')) {
         mustache.r = expression.n;
       } else {
         mustache.x = flattenExpression(expression);

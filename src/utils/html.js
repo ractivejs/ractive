@@ -1,5 +1,5 @@
-import { keys } from "utils/object";
-import { isFunction } from "utils/is";
+import { keys } from 'utils/object';
+import { isFunction } from 'utils/is';
 
 // https://github.com/kangax/html-minifier/issues/63#issuecomment-37763316
 export const booleanAttributes = /^(allowFullscreen|async|autofocus|autoplay|checked|compact|controls|declare|default|defaultChecked|defaultMuted|defaultSelected|defer|disabled|enabled|formNoValidate|hidden|indeterminate|inert|isMap|itemScope|loop|multiple|muted|noHref|noResize|noShade|noValidate|noWrap|open|pauseOnExit|readOnly|required|reversed|scoped|seamless|selected|sortable|translate|trueSpeed|typeMustMatch|visible)$/i;
@@ -295,8 +295,8 @@ const controlCharacters = [
   376
 ];
 const entityPattern = new RegExp(
-  "&(#?(?:x[\\w\\d]+|\\d+|" + keys(htmlEntities).join("|") + "));?",
-  "g"
+  '&(#?(?:x[\\w\\d]+|\\d+|' + keys(htmlEntities).join('|') + '));?',
+  'g'
 );
 const codePointSupport = isFunction(String.fromCodePoint);
 const codeToChar = codePointSupport ? String.fromCodePoint : String.fromCharCode;
@@ -306,9 +306,9 @@ export function decodeCharacterReferences(html) {
     let code;
 
     // Handle named entities
-    if (entity[0] !== "#") {
+    if (entity[0] !== '#') {
       code = htmlEntities[entity];
-    } else if (entity[1] === "x") {
+    } else if (entity[1] === 'x') {
       code = parseInt(entity.substring(2), 16);
     } else {
       code = parseInt(entity.substring(1), 10);
@@ -329,9 +329,9 @@ const invalid = 65533;
 
 export function escapeHtml(str) {
   return str
-    .replace(amp, "&amp;")
-    .replace(lessThan, "&lt;")
-    .replace(greaterThan, "&gt;");
+    .replace(amp, '&amp;')
+    .replace(lessThan, '&lt;')
+    .replace(greaterThan, '&gt;');
 }
 
 // some code points are verboten. If we were inserting HTML, the browser would replace the illegal

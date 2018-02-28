@@ -1,12 +1,12 @@
-import tests from "../../helpers/samples/render";
-import { onWarn, initModule } from "../../helpers/test-config";
-import { test } from "qunit";
+import tests from '../../helpers/samples/render';
+import { onWarn, initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
 
 export default function() {
-  initModule("render/output.js");
+  initModule('render/output.js');
 
   function getData(data) {
-    return typeof data === "function" ? data() : deepClone(data);
+    return typeof data === 'function' ? data() : deepClone(data);
   }
 
   tests.forEach(theTest => {
@@ -25,12 +25,12 @@ export default function() {
         debug: true
       });
 
-      t.htmlEqual(ractive.toHTML(), theTest.result, "initial toHTML() should match result");
+      t.htmlEqual(ractive.toHTML(), theTest.result, 'initial toHTML() should match result');
 
       if (theTest.new_data) {
         ractive.set(theTest.new_data);
 
-        t.htmlEqual(ractive.toHTML(), theTest.new_result, "new toHTML() should match result");
+        t.htmlEqual(ractive.toHTML(), theTest.new_result, 'new toHTML() should match result');
       } else if (theTest.steps && theTest.steps.length) {
         theTest.steps.forEach((step, i) => {
           ractive.set(getData(step.data || {}));
@@ -38,7 +38,7 @@ export default function() {
           t.htmlEqual(
             ractive.toHTML(),
             step.result,
-            `step ${i}: ` + (step.message || "toHTML() should match result")
+            `step ${i}: ` + (step.message || 'toHTML() should match result')
           );
         });
       }
@@ -50,14 +50,14 @@ export default function() {
       ractive.render(fixture);
 
       // we'll also check toHTML again, to make sure it still behaves as expected when rendered
-      t.htmlEqual(fixture.innerHTML, theTest.result, "initial innerHTML should match result");
-      t.htmlEqual(ractive.toHTML(), theTest.result, "initial toHTML() should match result");
+      t.htmlEqual(fixture.innerHTML, theTest.result, 'initial innerHTML should match result');
+      t.htmlEqual(ractive.toHTML(), theTest.result, 'initial toHTML() should match result');
 
       if (theTest.new_data) {
         ractive.set(theTest.new_data);
 
-        t.htmlEqual(fixture.innerHTML, theTest.new_result, "new innerHTML should match result");
-        t.htmlEqual(ractive.toHTML(), theTest.new_result, "new toHTML() should match result");
+        t.htmlEqual(fixture.innerHTML, theTest.new_result, 'new innerHTML should match result');
+        t.htmlEqual(ractive.toHTML(), theTest.new_result, 'new toHTML() should match result');
       } else if (theTest.steps && theTest.steps.length) {
         theTest.steps.forEach((step, i) => {
           ractive.set(getData(step.data || {}));
@@ -65,12 +65,12 @@ export default function() {
           t.htmlEqual(
             fixture.innerHTML,
             step.result,
-            `step ${i}: ` + (step.message || "innerHTML should match result")
+            `step ${i}: ` + (step.message || 'innerHTML should match result')
           );
           t.htmlEqual(
             ractive.toHTML(),
             step.result,
-            `step ${i}: ` + (step.message || "toHTML() should match result")
+            `step ${i}: ` + (step.message || 'toHTML() should match result')
           );
         });
       }
@@ -80,7 +80,7 @@ export default function() {
   });
 
   function deepClone(source) {
-    if (!source || typeof source !== "object") {
+    if (!source || typeof source !== 'object') {
       return source;
     }
 
@@ -100,6 +100,6 @@ export default function() {
   }
 
   function isArray(thing) {
-    return Object.prototype.toString.call(thing) === "[object Array]";
+    return Object.prototype.toString.call(thing) === '[object Array]';
   }
 }

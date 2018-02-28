@@ -1,7 +1,7 @@
-import { COMMENT } from "config/types";
+import { COMMENT } from 'config/types';
 
-const OPEN_COMMENT = "<!--";
-const CLOSE_COMMENT = "-->";
+const OPEN_COMMENT = '<!--';
+const CLOSE_COMMENT = '-->';
 
 export default function readHtmlComment(parser) {
   const start = parser.pos;

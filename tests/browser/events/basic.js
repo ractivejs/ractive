@@ -1,41 +1,41 @@
-import { hasUsableConsole, onWarn } from "../../helpers/test-config";
-import { initModule } from "../../helpers/test-config";
-import { test } from "qunit";
-import { fire } from "simulant";
+import { hasUsableConsole, onWarn } from '../../helpers/test-config';
+import { initModule } from '../../helpers/test-config';
+import { test } from 'qunit';
+import { fire } from 'simulant';
 
 export default function() {
-  initModule("events/basic.js");
+  initModule('events/basic.js');
 
   test("sharing names with array mutator functions doesn't break events", t => {
-    const eventNames = ["sort", "reverse", "push", "pop", "shift", "unshift", "fhtagn"]; // the last one just tests the test
+    const eventNames = ['sort', 'reverse', 'push', 'pop', 'shift', 'unshift', 'fhtagn']; // the last one just tests the test
     const results = new Object(null);
 
     t.expect(eventNames.length);
 
     const ractive = new Ractive({
       el: fixture,
-      template: ""
+      template: ''
     });
 
     eventNames.forEach(eventName => {
       ractive.on(eventName, () => (results[eventName] = true));
       ractive.fire(eventName);
-      t.ok(typeof results[eventName] != "undefined", `Event '${eventName}' did not fire.`);
+      t.ok(typeof results[eventName] != 'undefined', `Event '${eventName}' did not fire.`);
     });
   });
 
-  test("Empty event names are safe, though do not fire", t => {
+  test('Empty event names are safe, though do not fire', t => {
     const ractive = new Ractive();
 
     t.expect(1);
-    ractive.on("", () => {
-      throw new Error("Empty event name should not fire");
+    ractive.on('', () => {
+      throw new Error('Empty event name should not fire');
     });
-    ractive.fire("");
+    ractive.fire('');
     t.ok(true);
   });
 
-  test("Calling ractive.off() without a keypath removes all handlers", t => {
+  test('Calling ractive.off() without a keypath removes all handlers', t => {
     const ractive = new Ractive({
       el: fixture,
       template: "doesn't matter"
@@ -57,35 +57,35 @@ export default function() {
 
     ractive.off();
 
-    ractive.fire("foo");
-    ractive.fire("bar");
-    ractive.fire("baz");
+    ractive.fire('foo');
+    ractive.fire('bar');
+    ractive.fire('baz');
   });
 
-  test("Multiple space-separated events can be handled with a single callback (#731)", t => {
+  test('Multiple space-separated events can be handled with a single callback (#731)', t => {
     const ractive = new Ractive({});
     let count = 0;
 
-    ractive.on(" foo bar  baz", () => (count += 1));
+    ractive.on(' foo bar  baz', () => (count += 1));
 
-    ractive.fire("foo");
+    ractive.fire('foo');
     t.equal(count, 1);
 
-    ractive.fire("bar");
+    ractive.fire('bar');
     t.equal(count, 2);
 
-    ractive.fire("baz");
+    ractive.fire('baz');
     t.equal(count, 3);
 
-    ractive.off(" bar  foo ");
+    ractive.off(' bar  foo ');
 
-    ractive.fire("foo");
+    ractive.fire('foo');
     t.equal(count, 3);
 
-    ractive.fire("bar");
+    ractive.fire('bar');
     t.equal(count, 3);
 
-    ractive.fire("baz");
+    ractive.fire('baz');
     t.equal(count, 4);
   });
 
@@ -98,14 +98,14 @@ export default function() {
 
     const r = new Ractive();
 
-    r.on("this.foo", () => thisFoo++);
-    r.on("*.foo", () => starFoo++);
-    r.on("foo", () => justFoo++);
-    r.on("*", () => star++);
+    r.on('this.foo', () => thisFoo++);
+    r.on('*.foo', () => starFoo++);
+    r.on('foo', () => justFoo++);
+    r.on('*', () => star++);
     // implicit this namespace doesn't trigger *.* for non-breakage purposes with lifecycle events
-    r.on("*.*", () => starStar++);
+    r.on('*.*', () => starStar++);
 
-    r.fire("foo");
+    r.fire('foo');
 
     t.equal(thisFoo, 1);
     t.equal(starFoo, 1);
@@ -118,57 +118,57 @@ export default function() {
     const cmp = Ractive.extend();
     const r = new Ractive({
       target: fixture,
-      template: "<cmp />",
+      template: '<cmp />',
       components: { cmp }
     });
 
     let starFoo = 0;
     let starStarFoo = 0;
 
-    r.on("*.foo", () => starFoo++);
-    r.on("*.*.foo", () => starStarFoo++);
+    r.on('*.foo', () => starFoo++);
+    r.on('*.*.foo', () => starStarFoo++);
 
-    r.findComponent().fire("foo");
+    r.findComponent().fire('foo');
 
     t.equal(starFoo, 1);
     t.equal(starStarFoo, 0);
   });
 
-  test("ractive.off() is chainable (#677)", t => {
+  test('ractive.off() is chainable (#677)', t => {
     const ractive = new Ractive();
-    const returnedValue = ractive.off("foo");
+    const returnedValue = ractive.off('foo');
 
     t.equal(returnedValue, ractive);
   });
 
-  test("handlers can use pattern matching", t => {
+  test('handlers can use pattern matching', t => {
     t.expect(4);
 
     const ractive = new Ractive();
 
-    ractive.on("*.*", () => t.ok(true));
-    ractive.on("some.*", () => t.ok(true));
-    ractive.on("*.event", () => t.ok(true));
-    ractive.on("some.event", () => t.ok(true));
+    ractive.on('*.*', () => t.ok(true));
+    ractive.on('some.*', () => t.ok(true));
+    ractive.on('*.event', () => t.ok(true));
+    ractive.on('some.event', () => t.ok(true));
 
-    ractive.fire("some.event");
+    ractive.fire('some.event');
   });
 
-  test(".once() event functionality", t => {
+  test('.once() event functionality', t => {
     t.expect(1);
 
     const ractive = new Ractive({});
 
-    ractive.once("foo bar", () => {
+    ractive.once('foo bar', () => {
       t.ok(true);
     });
 
-    ractive.fire("foo");
-    ractive.fire("foo");
-    ractive.fire("bar");
+    ractive.fire('foo');
+    ractive.fire('foo');
+    ractive.fire('bar');
   });
 
-  test("wildcard and multi-part listeners have correct event name", t => {
+  test('wildcard and multi-part listeners have correct event name', t => {
     const ractive = new Ractive({
       el: fixture,
       template: '<span id="test" on-click="foo"/>'
@@ -176,34 +176,34 @@ export default function() {
 
     const fired = [];
 
-    ractive.on("foo.* fuzzy *.bop", function() {
+    ractive.on('foo.* fuzzy *.bop', function() {
       fired.push(this.event.name);
     });
 
-    const events = ["foo.bar", "fuzzy", "foo.fizz", "bip.bop"];
+    const events = ['foo.bar', 'fuzzy', 'foo.fizz', 'bip.bop'];
     events.forEach(ractive.fire.bind(ractive));
 
     t.deepEqual(fired, events);
   });
 
-  test("Inflight unsubscribe works (#1504)", t => {
+  test('Inflight unsubscribe works (#1504)', t => {
     t.expect(3);
 
     const ractive = new Ractive({});
 
     function first() {
       t.ok(true);
-      ractive.off("foo", first);
+      ractive.off('foo', first);
     }
 
-    ractive.on("foo", first);
+    ractive.on('foo', first);
 
-    ractive.on("foo", () => {
+    ractive.on('foo', () => {
       t.ok(true);
     });
 
-    ractive.fire("foo");
-    ractive.fire("foo");
+    ractive.fire('foo');
+    ractive.fire('foo');
   });
 
   test(`hyphens in event names can be escaped`, t => {
@@ -214,33 +214,33 @@ export default function() {
       components: { cmp }
     });
 
-    r.findComponent("cmp").fire("foo-bar");
-    t.equal(r.get("foo"), "yep");
+    r.findComponent('cmp').fire('foo-bar');
+    t.equal(r.get('foo'), 'yep');
 
-    r.set("foo", "nope");
-    r.findComponent("cmp").fire("baz");
-    t.equal(r.get("foo"), "yep");
+    r.set('foo', 'nope');
+    r.findComponent('cmp').fire('baz');
+    t.equal(r.get('foo'), 'yep');
   });
 
   test(`events can be silenced and resumed`, t => {
     let count = 0;
     const r = new Ractive();
-    const handle = r.on("foo", function(ctx, num) {
+    const handle = r.on('foo', function(ctx, num) {
       t.equal(num, 1);
       t.ok(this === r);
       count++;
     });
 
-    r.fire("foo", 1);
+    r.fire('foo', 1);
     t.equal(count, 1);
 
     handle.silence();
-    r.fire("foo", 1);
+    r.fire('foo', 1);
     t.equal(count, 1);
     t.equal(handle.isSilenced(), true);
 
     handle.resume();
-    r.fire("foo", 1);
+    r.fire('foo', 1);
     t.equal(count, 2);
     t.equal(handle.isSilenced(), false);
   });
@@ -255,22 +255,22 @@ export default function() {
       bar() {
         count++;
       },
-      "baz bat": () => count++
+      'baz bat': () => count++
     });
-    const space = r.on("foo baz", () => count++);
+    const space = r.on('foo baz', () => count++);
 
-    r.fire("foo");
+    r.fire('foo');
     t.equal(count, 2);
 
-    r.fire("baz");
+    r.fire('baz');
     t.equal(count, 4);
 
     space.cancel();
-    r.fire("foo");
+    r.fire('foo');
     t.equal(count, 5);
 
     obj.cancel();
-    r.fire("bar");
+    r.fire('bar');
     t.equal(count, 5);
   });
 
@@ -282,38 +282,38 @@ export default function() {
 
     const r = new Ractive();
 
-    const foo = r.on("foo", handler);
-    r.on("bar", handler);
-    const multi = r.on("baz bat bip.bop", handler);
+    const foo = r.on('foo', handler);
+    r.on('bar', handler);
+    const multi = r.on('baz bat bip.bop', handler);
 
-    r.fire("foo");
-    r.fire("bar");
-    r.fire("baz");
-    r.fire("bat");
-    r.fire("bip.bop");
+    r.fire('foo');
+    r.fire('bar');
+    r.fire('baz');
+    r.fire('bat');
+    r.fire('bip.bop');
 
     t.equal(count, 5);
 
     foo.cancel();
-    r.off("bar", handler);
+    r.off('bar', handler);
 
-    r.fire("foo");
-    r.fire("bar");
-    r.fire("baz");
-    r.fire("bat");
-    r.fire("bip.bop");
+    r.fire('foo');
+    r.fire('bar');
+    r.fire('baz');
+    r.fire('bat');
+    r.fire('bip.bop');
 
     t.equal(count, 8);
 
     multi.cancel();
-    r.on("foo", handler);
-    r.on("bar", handler);
+    r.on('foo', handler);
+    r.on('bar', handler);
 
-    r.fire("foo");
-    r.fire("bar");
-    r.fire("baz");
-    r.fire("bat");
-    r.fire("bip.bop");
+    r.fire('foo');
+    r.fire('bar');
+    r.fire('baz');
+    r.fire('bat');
+    r.fire('bip.bop');
 
     t.equal(count, 10);
   });
@@ -324,24 +324,24 @@ export default function() {
     const r = new Ractive();
     class Foo {}
 
-    r.on("foo", (ctx, foo) => {
+    r.on('foo', (ctx, foo) => {
       t.ok(foo instanceof Foo);
       t.ok(ctx.set); // is still a context
     });
 
-    r.on("merge", ctx => {
+    r.on('merge', ctx => {
       t.ok(ctx.foo instanceof Foo);
       t.ok(ctx.set); // is still a context
     });
 
-    r.on("str", (ctx, foo) => {
-      t.ok(foo === "foo");
+    r.on('str', (ctx, foo) => {
+      t.ok(foo === 'foo');
       t.ok(ctx.set); // is still a context
     });
 
-    r.fire("foo", new Foo());
-    r.fire("merge", { foo: new Foo() });
-    r.fire("str", "foo");
+    r.fire('foo', new Foo());
+    r.fire('merge', { foo: new Foo() });
+    r.fire('str', 'foo');
   });
 
   test(`extending context from a proxy fire uses the source event (#3033)`, t => {
@@ -359,16 +359,16 @@ export default function() {
       template: `<cmp on-foo="bar" />`,
       on: {
         bar(ctx, str) {
-          t.equal(ctx.resolve(), "");
+          t.equal(ctx.resolve(), '');
           t.ok(ctx.bar);
-          t.strictEqual(this.findComponent("cmp"), ctx.ractive);
-          t.equal(str, "test");
-          t.equal(ctx.name, "bar");
+          t.strictEqual(this.findComponent('cmp'), ctx.ractive);
+          t.equal(str, 'test');
+          t.equal(ctx.name, 'bar');
         }
       }
     });
 
-    fire(r.find("button"), "click");
+    fire(r.find('button'), 'click');
   });
 
   test(`event directives subscribe as deferred tasks (#3050)`, t => {
@@ -377,10 +377,10 @@ export default function() {
 
     function check(node) {
       const handle = () => c1++;
-      node.addEventListener("click", handle);
+      node.addEventListener('click', handle);
       return {
         teardown() {
-          node.removeEventListener("click", handle);
+          node.removeEventListener('click', handle);
         }
       };
     }
@@ -390,7 +390,7 @@ export default function() {
       decorators: { check },
       on: {
         check() {
-          this.toggle("first");
+          this.toggle('first');
           c2++;
         }
       },
@@ -400,12 +400,12 @@ export default function() {
     });
 
     const r = new Ractive({
-      template: "<cmp />",
+      template: '<cmp />',
       components: { cmp },
       target: fixture
     });
 
-    fire(r.find("button"), "click");
+    fire(r.find('button'), 'click');
 
     t.ok(c1 === 1 && c2 === 1);
   });
@@ -421,7 +421,7 @@ export default function() {
       }
     });
 
-    r.fire("foo", null, 1);
+    r.fire('foo', null, 1);
   });
 
   test(`post-construct component event handlers should be bound before initialization (#3159)`, t => {
@@ -453,7 +453,7 @@ export default function() {
         },
         two(node, fire, arg1, arg2) {
           t.equal(arg1, true);
-          t.equal(arg2, "test");
+          t.equal(arg2, 'test');
           return { teardown() {} };
         }
       },
@@ -467,14 +467,14 @@ export default function() {
     test(`event plugin args that throw don't blow up the world`, t => {
       t.expect(3);
 
-      onWarn(msg => t.ok(/failed to compute args for event on-foo/i.test(msg), "warns on error"));
+      onWarn(msg => t.ok(/failed to compute args for event on-foo/i.test(msg), 'warns on error'));
 
       new Ractive({
         target: fixture,
         template: `<div on-foo(nope.fail())="nope" />`,
         events: {
           foo(node, fire, arg1) {
-            t.ok(arg1 === undefined, "arg1 is undefined");
+            t.ok(arg1 === undefined, 'arg1 is undefined');
             return {
               teardown() {
                 t.ok(true);

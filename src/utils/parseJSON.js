@@ -1,7 +1,7 @@
-import Parser from "parse/Parser";
-import readStringLiteral from "parse/converters/expressions/primary/literal/readStringLiteral";
-import readKey from "parse/converters/expressions/shared/readKey";
-import { hasOwn, keys } from "utils/object";
+import Parser from 'parse/Parser';
+import readStringLiteral from 'parse/converters/expressions/primary/literal/readStringLiteral';
+import readKey from 'parse/converters/expressions/shared/readKey';
+import { hasOwn, keys } from 'utils/object';
 
 // simple JSON parser, without the restrictions of JSON parse
 // (i.e. having to double-quote keys).
@@ -16,7 +16,7 @@ const specials = {
   undefined
 };
 
-const specialsPattern = new RegExp("^(?:" + keys(specials).join("|") + ")");
+const specialsPattern = new RegExp('^(?:' + keys(specials).join('|') + ')');
 const numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
 const placeholderPattern = /\$\{([^\}]+)\}/g;
 const placeholderAtStartPattern = /^\$\{([^\}]+)\}/;
@@ -74,13 +74,13 @@ const JsonParser = Parser.extend({
     },
 
     function getObject(parser) {
-      if (!parser.matchString("{")) return null;
+      if (!parser.matchString('{')) return null;
 
       const result = {};
 
       parser.sp();
 
-      if (parser.matchString("}")) {
+      if (parser.matchString('}')) {
         return { v: result };
       }
 
@@ -90,11 +90,11 @@ const JsonParser = Parser.extend({
 
         parser.sp();
 
-        if (parser.matchString("}")) {
+        if (parser.matchString('}')) {
           return { v: result };
         }
 
-        if (!parser.matchString(",")) {
+        if (!parser.matchString(',')) {
           return null;
         }
       }
@@ -103,13 +103,13 @@ const JsonParser = Parser.extend({
     },
 
     function getArray(parser) {
-      if (!parser.matchString("[")) return null;
+      if (!parser.matchString('[')) return null;
 
       const result = [];
 
       parser.sp();
 
-      if (parser.matchString("]")) {
+      if (parser.matchString(']')) {
         return { v: result };
       }
 
@@ -119,11 +119,11 @@ const JsonParser = Parser.extend({
 
         parser.sp();
 
-        if (parser.matchString("]")) {
+        if (parser.matchString(']')) {
           return { v: result };
         }
 
-        if (!parser.matchString(",")) {
+        if (!parser.matchString(',')) {
           return null;
         }
 
@@ -145,7 +145,7 @@ function getKeyValuePair(parser) {
   const pair = { key };
 
   parser.sp();
-  if (!parser.matchString(":")) {
+  if (!parser.matchString(':')) {
     return null;
   }
   parser.sp();

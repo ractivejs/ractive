@@ -1,4 +1,4 @@
-import runloop from "src/global/runloop";
+import runloop from 'src/global/runloop';
 
 // TODO what happens if a transition is aborted?
 

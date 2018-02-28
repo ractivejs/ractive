@@ -1,12 +1,12 @@
-import { doc } from "config/environment";
-import { svg } from "config/namespaces";
-import { createElement } from "utils/dom";
-import { toArray } from "utils/array";
-import noop from "utils/noop";
-import Fragment from "../../Fragment";
-import Item from "../shared/Item";
+import { doc } from 'config/environment';
+import { svg } from 'config/namespaces';
+import { createElement } from 'utils/dom';
+import { toArray } from 'utils/array';
+import noop from 'utils/noop';
+import Fragment from '../../Fragment';
+import Item from '../shared/Item';
 
-const div = doc ? createElement("div") : null;
+const div = doc ? createElement('div') : null;
 
 let attributes = false;
 export function inAttributes() {
@@ -113,7 +113,7 @@ export default class ConditionalAttribute extends Item {
 const onlyWhitespace = /^\s*$/;
 function parseAttributes(str, isSvg) {
   if (onlyWhitespace.test(str)) return [];
-  const tagName = isSvg ? "svg" : "div";
+  const tagName = isSvg ? 'svg' : 'div';
   return str
     ? (div.innerHTML = `<${tagName} ${str}></${tagName}>`) && toArray(div.childNodes[0].attributes)
     : [];

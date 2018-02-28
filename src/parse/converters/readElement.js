@@ -1,11 +1,11 @@
-import { ANCHOR, DOCTYPE, ELEMENT } from "config/types";
-import { voidElementNames } from "utils/html";
-import { READERS, PARTIAL_READERS } from "../_parse";
-import cleanup from "parse/utils/cleanup";
-import readMustache from "./readMustache";
-import readClosingTag from "./element/readClosingTag";
-import readClosing from "./mustache/section/readClosing";
-import { create } from "utils/object";
+import { ANCHOR, DOCTYPE, ELEMENT } from 'config/types';
+import { voidElementNames } from 'utils/html';
+import { READERS, PARTIAL_READERS } from '../_parse';
+import cleanup from 'parse/utils/cleanup';
+import readMustache from './readMustache';
+import readClosingTag from './element/readClosingTag';
+import readClosing from './mustache/section/readClosing';
+import { create } from 'utils/object';
 
 const tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/;
 const anchorPattern = /^[a-zA-Z_$][-a-zA-Z0-9_$]*/;
@@ -14,22 +14,22 @@ const exclude = { exclude: true };
 
 // based on http://developers.whatwg.org/syntax.html#syntax-tag-omission
 const disallowedContents = {
-  li: ["li"],
-  dt: ["dt", "dd"],
-  dd: ["dt", "dd"],
-  p: "address article aside blockquote div dl fieldset footer form h1 h2 h3 h4 h5 h6 header hgroup hr main menu nav ol p pre section table ul".split(
-    " "
+  li: ['li'],
+  dt: ['dt', 'dd'],
+  dd: ['dt', 'dd'],
+  p: 'address article aside blockquote div dl fieldset footer form h1 h2 h3 h4 h5 h6 header hgroup hr main menu nav ol p pre section table ul'.split(
+    ' '
   ),
-  rt: ["rt", "rp"],
-  rp: ["rt", "rp"],
-  optgroup: ["optgroup"],
-  option: ["option", "optgroup"],
-  thead: ["tbody", "tfoot"],
-  tbody: ["tbody", "tfoot"],
-  tfoot: ["tbody"],
-  tr: ["tr", "tbody"],
-  td: ["td", "th", "tr"],
-  th: ["td", "th", "tr"]
+  rt: ['rt', 'rp'],
+  rp: ['rt', 'rp'],
+  optgroup: ['optgroup'],
+  option: ['option', 'optgroup'],
+  thead: ['tbody', 'tfoot'],
+  tbody: ['tbody', 'tfoot'],
+  tfoot: ['tbody'],
+  tr: ['tr', 'tbody'],
+  td: ['td', 'th', 'tr'],
+  th: ['td', 'th', 'tr']
 };
 
 export default readElement;
@@ -53,12 +53,12 @@ function readElement(parser) {
     return null;
   }
 
-  if (!parser.matchString("<")) {
+  if (!parser.matchString('<')) {
     return null;
   }
 
   // if this is a closing tag, abort straight away
-  if (parser.nextChar() === "/") {
+  if (parser.nextChar() === '/') {
     return null;
   }
 
@@ -68,15 +68,15 @@ function readElement(parser) {
   }
 
   // check for doctype decl
-  if (parser.matchString("!")) {
+  if (parser.matchString('!')) {
     element.t = DOCTYPE;
     if (!parser.matchPattern(/^doctype/i)) {
-      parser.error("Expected DOCTYPE declaration");
+      parser.error('Expected DOCTYPE declaration');
     }
 
     element.a = parser.matchPattern(/^(.+?)>/);
     return element;
-  } else if ((anchor = parser.matchString("#"))) {
+  } else if ((anchor = parser.matchString('#'))) {
     // check for anchor
     parser.sp();
     element.t = ANCHOR;
@@ -94,7 +94,7 @@ function readElement(parser) {
 
   // next character must be whitespace, closing solidus or '>'
   if (!validTagNameFollower.test(parser.nextChar())) {
-    parser.error("Illegal tag name");
+    parser.error('Illegal tag name');
   }
 
   parser.sp();
@@ -117,12 +117,12 @@ function readElement(parser) {
   parser.sp();
 
   // self-closing solidus?
-  if (parser.matchString("/")) {
+  if (parser.matchString('/')) {
     selfClosing = true;
   }
 
   // closing angle bracket
-  if (!parser.matchString(">")) {
+  if (!parser.matchString('>')) {
     return null;
   }
 
@@ -150,16 +150,16 @@ function readElement(parser) {
       if (!remaining) {
         // if this happens to be a script tag and there's no content left, it's because
         // a closing script tag can't appear in a script
-        if (parser.inside === "script") {
+        if (parser.inside === 'script') {
           closed = true;
           break;
         }
 
         parser.error(
-          `Missing end ${parser.elementStack.length > 1 ? "tags" : "tag"} (${parser.elementStack
+          `Missing end ${parser.elementStack.length > 1 ? 'tags' : 'tag'} (${parser.elementStack
             .reverse()
             .map(x => `</${x}>`)
-            .join("")})`
+            .join('')})`
         );
       }
 
@@ -180,7 +180,7 @@ function readElement(parser) {
 
           // if it doesn't close a parent tag, error
           if (!~parser.elementStack.indexOf(closingTagName)) {
-            let errorMessage = "Unexpected closing tag";
+            let errorMessage = 'Unexpected closing tag';
 
             // add additional help for void elements, since component names
             // might clash with them
@@ -205,7 +205,7 @@ function readElement(parser) {
         } else if ((child = parser.read(PARTIAL_READERS))) {
           if (partials[child.n]) {
             parser.pos = pos;
-            parser.error("Duplicate partial definition");
+            parser.error('Duplicate partial definition');
           }
 
           cleanup(
@@ -261,11 +261,11 @@ function canContain(name, remaining) {
 
 function readAnchorClose(parser, name) {
   const pos = parser.pos;
-  if (!parser.matchString("</")) {
+  if (!parser.matchString('</')) {
     return null;
   }
 
-  parser.matchString("#");
+  parser.matchString('#');
   parser.sp();
 
   if (!parser.matchString(name)) {
@@ -275,7 +275,7 @@ function readAnchorClose(parser, name) {
 
   parser.sp();
 
-  if (!parser.matchString(">")) {
+  if (!parser.matchString('>')) {
     parser.pos = pos;
     return null;
   }

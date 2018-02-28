@@ -32,7 +32,7 @@ export default function(okQuote) {
         next = parser.matchPattern(lineContinuationPattern);
         if (next) {
           // convert \(newline-like) into a \u escape, which is allowed in JSON
-          literal += "\\u" + ("000" + next.charCodeAt(1).toString(16)).slice(-4);
+          literal += '\\u' + ('000' + next.charCodeAt(1).toString(16)).slice(-4);
         } else {
           done = true;
         }

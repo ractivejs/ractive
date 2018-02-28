@@ -1,10 +1,10 @@
 /* global console */
 /* eslint no-console:"off" */
 
-import { hasConsole } from "../config/environment";
-import Ractive from "../Ractive";
-import noop from "./noop";
-import { isObjectType } from "utils/is";
+import { hasConsole } from '../config/environment';
+import Ractive from '../Ractive';
+import noop from './noop';
+import { isObjectType } from 'utils/is';
 
 const alreadyWarned = {};
 let log, printWarning, welcome;
@@ -12,10 +12,10 @@ let log, printWarning, welcome;
 if (hasConsole) {
   const welcomeIntro = [
     `%cRactive.js %cBUILD_PLACEHOLDER_VERSION %cin debug mode, %cmore...`,
-    "color: rgb(114, 157, 52); font-weight: normal;",
-    "color: rgb(85, 85, 85); font-weight: normal;",
-    "color: rgb(85, 85, 85); font-weight: normal;",
-    "color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;"
+    'color: rgb(114, 157, 52); font-weight: normal;',
+    'color: rgb(85, 85, 85); font-weight: normal;',
+    'color: rgb(85, 85, 85); font-weight: normal;',
+    'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
   const welcomeMessage = `You're running Ractive BUILD_PLACEHOLDER_VERSION in debug mode - messages will be printed to the console to help you fix problems and optimise your application.
 
@@ -41,7 +41,7 @@ Found a bug? Raise an issue:
       welcome = noop;
       return;
     }
-    const message = "WELCOME_MESSAGE" in Ractive ? Ractive.WELCOME_MESSAGE : welcomeMessage;
+    const message = 'WELCOME_MESSAGE' in Ractive ? Ractive.WELCOME_MESSAGE : welcomeMessage;
     const hasGroup = !!console.groupCollapsed;
     if (hasGroup) console.groupCollapsed.apply(console, welcomeIntro);
     console.log(message);
@@ -71,7 +71,7 @@ Found a bug? Raise an issue:
         let node;
         if (
           (node =
-            options.node || (ractive.fragment && ractive.fragment.rendered && ractive.find("*")))
+            options.node || (ractive.fragment && ractive.fragment.rendered && ractive.find('*')))
         ) {
           args.push(node);
         }
@@ -80,7 +80,7 @@ Found a bug? Raise an issue:
 
     console.warn.apply(
       console,
-      ["%cRactive.js: %c" + message, "color: rgb(114, 157, 52);", "color: rgb(85, 85, 85);"].concat(
+      ['%cRactive.js: %c' + message, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);'].concat(
         args
       )
     );
