@@ -244,6 +244,14 @@ export default class Component extends Item {
     }
   }
 
+  shuffled() {
+    super.shuffled();
+    this.instance &&
+      !this.instance.isolated &&
+      this.instance.fragment &&
+      this.instance.fragment.shuffled();
+  }
+
   toString() {
     if (this.instance) return this.instance.toHTML();
   }

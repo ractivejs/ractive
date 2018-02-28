@@ -1,5 +1,3 @@
-import KeyModel from "./specials/KeyModel";
-import KeypathModel from "./specials/KeypathModel";
 import { escapeKey, unescapeKey } from "shared/keypaths";
 import { addToArray, removeFromArray } from "utils/array";
 import { isArray, isObject, isFunction } from "utils/is";
@@ -17,8 +15,6 @@ export default class ModelBase {
     this.children = [];
     this.childByKey = {};
     this.links = [];
-
-    this.keyModels = {};
 
     this.bindings = [];
 
@@ -60,15 +56,6 @@ export default class ModelBase {
     }
 
     return matches;
-  }
-
-  getKeyModel(key, skip) {
-    if (key !== undefined && !skip) return this.parent.getKeyModel(key, true);
-
-    if (!(key in this.keyModels))
-      this.keyModels[key] = new KeyModel(escapeKey(key), this);
-
-    return this.keyModels[key];
   }
 
   getKeypath(ractive) {
@@ -223,8 +210,6 @@ export default class ModelBase {
       child.rebind(next ? next.joinKey(child.key) : undefined, child, safe);
     }
 
-    if (this.keypathModel) this.keypathModel.rebind(next, previous, false);
-
     i = this.bindings.length;
     while (i--) {
       this.bindings[i].rebind(next, previous, safe);
@@ -360,17 +345,6 @@ export function shuffle(model, newIndices, link, unsafe) {
         model.childByKey[i],
         !unsafe
       );
-
-    if (!~idx && model.keyModels[i]) {
-      model.keyModels[i].rebind(undefined, model.keyModels[i], false);
-    } else if (~idx && model.keyModels[i]) {
-      if (!model.keyModels[idx]) model.childByKey[idx].getKeyModel(idx);
-      model.keyModels[i].rebind(
-        model.keyModels[idx],
-        model.keyModels[i],
-        false
-      );
-    }
   }
 
   const upstream = model.source().length !== model.source().value.length;
@@ -390,9 +364,3 @@ export function shuffle(model, newIndices, link, unsafe) {
 
   model.shuffling = false;
 }
-
-KeyModel.prototype.addShuffleTask = ModelBase.prototype.addShuffleTask;
-KeyModel.prototype.addShuffleRegister = ModelBase.prototype.addShuffleRegister;
-KeypathModel.prototype.addShuffleTask = ModelBase.prototype.addShuffleTask;
-KeypathModel.prototype.addShuffleRegister =
-  ModelBase.prototype.addShuffleRegister;

@@ -86,13 +86,8 @@ export default function resolveReference(fragment, ref) {
     } else if (base === "@index" || base === "@key") {
       // @index or @key referring to the nearest repeating index or key
       if (keys.length) badReference(base);
-      const repeater = fragment.findRepeatingFragment();
-      // make sure the found fragment is actually an iteration
-      if (!repeater.isIteration) return;
-      return (
-        repeater.context &&
-        repeater.context.getKeyModel(repeater[ref[1] === "i" ? "index" : "key"])
-      );
+      const repeater = findIter(fragment);
+      return repeater && repeater[`get${base[1] === "i" ? "Index" : "Key"}`]();
     } else if (base === "@global") {
       // @global referring to window or global
       return GlobalModel.joinAll(keys);
@@ -102,14 +97,13 @@ export default function resolveReference(fragment, ref) {
     } else if (base === "@keypath" || base === "@rootpath") {
       // @keypath or @rootpath, the current keypath string
       const root = ref[1] === "r" ? fragment.ractive.root : null;
-      let context = fragment.findContext();
+      let f = fragment;
 
-      // skip over component roots, which provide no context
-      while (root && context.isRoot && context.ractive.component) {
-        context = context.ractive.component.up.findContext();
+      while (f && (!f.context || (f.isRoot && f.ractive.component))) {
+        f = f.isRoot ? f.componentParent : f.parent;
       }
 
-      return context.getKeypathModel(root);
+      return f.getKeypath(root);
     } else if (base === "@context") {
       return new ContextModel(fragment.getContext());
     } else if (base === "@local") {
@@ -157,9 +151,9 @@ export default function resolveReference(fragment, ref) {
     // repeated fragments
     if (fragment.isIteration) {
       if (base === fragment.parent.keyRef) {
-        model = fragment.context.getKeyModel(fragment.key);
+        model = fragment.getKey();
       } else if (base === fragment.parent.indexRef) {
-        model = fragment.context.getKeyModel(fragment.index);
+        model = fragment.getIndex();
       }
 
       if (model && keys.length) badReference(base);
@@ -236,6 +230,16 @@ function up(fragment) {
     ((!fragment.ractive.isolated && fragment.componentParent) ||
       fragment.parent)
   );
+}
+
+function findIter(start) {
+  let fragment = start;
+  let next;
+  while (!fragment.isIteration && (next = up(fragment))) {
+    fragment = next;
+  }
+
+  return fragment.isIteration && fragment;
 }
 
 function badReference(key) {

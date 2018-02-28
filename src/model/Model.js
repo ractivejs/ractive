@@ -1,6 +1,5 @@
 import ModelBase, { maybeBind, shuffle } from "./ModelBase";
 import LinkModel from "./LinkModel"; // eslint-disable-line no-unused-vars
-import KeypathModel from "./specials/KeypathModel";
 import getComputationSignature from "src/Ractive/helpers/getComputationSignature";
 import { capture } from "src/global/capture";
 import { isArray, isEqual, isNumeric, isObjectLike } from "utils/is";
@@ -222,11 +221,6 @@ export default class Model extends ModelBase {
     );
   }
 
-  getKeypathModel() {
-    if (!this.keypathModel) this.keypathModel = new KeypathModel(this);
-    return this.keypathModel;
-  }
-
   joinKey(key, opts) {
     if (this._link) {
       if (opts && opts.lastLink !== false && (key === undefined || key === ""))
@@ -370,7 +364,6 @@ export default class Model extends ModelBase {
     }
     this.children.forEach(teardown);
     if (this.wrapper) this.wrapper.teardown();
-    if (this.keypathModel) this.keypathModel.teardown();
     if (this.computed)
       keys(this.computed).forEach(k => this.computed[k].teardown());
   }

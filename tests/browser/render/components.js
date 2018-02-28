@@ -99,7 +99,8 @@ export default function() {
 
   test("components should be able to resolve @index refs from their context", t => {
     const cmp = Ractive.extend({
-      template: "{{@index}}"
+      template: "{{@index}}",
+      isolated: false
     });
     new Ractive({
       el: fixture,

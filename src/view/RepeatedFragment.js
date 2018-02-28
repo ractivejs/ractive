@@ -209,6 +209,10 @@ export default class RepeatedFragment {
 
     this.iterations = iterations;
 
+    this.iterations.forEach(
+      (f, i) => f && f.idxModel && f.idxModel.applyValue(i)
+    );
+
     this.bubble();
   }
 
@@ -251,6 +255,10 @@ export default class RepeatedFragment {
 
     if (this.updating) return;
     this.updating = true;
+
+    this.iterations.forEach(
+      (f, i) => f && f.idxModel && f.idxModel.applyValue(i)
+    );
 
     const value = this.context.get();
     const wasArray = this.isArray;
