@@ -67,6 +67,8 @@ Code should be clean, readable, and commented where necessary.
 
 Most of the coding standards are handled by ESLint and EditorConfig configurations. When using an editor with ESLint and EditorConfig support, the editor will guide you in writing code. In addition, builds will fail if the coding standards are not met.
 
+If you want to fix any code or formatting issues that are automatically fixable, you can `npm run lint:fix:all`.
+
 ## Testing
 
 Tests use [QUnit](https://qunitjs.com/). Check out [their API documentation](https://api.qunitjs.com/) to learn more on how to write QUnit tests.
