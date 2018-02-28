@@ -1,9 +1,5 @@
 import { fire } from "simulant";
-import {
-  hasUsableConsole,
-  onWarn,
-  initModule
-} from "../../helpers/test-config";
+import { hasUsableConsole, onWarn, initModule } from "../../helpers/test-config";
 import { test } from "qunit";
 
 export default function() {
@@ -345,10 +341,7 @@ export default function() {
       components: { cmp }
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      "<ul><li>hello 1</li><li>hello 2</li><li>hello 3</li></ul>"
-    );
+    t.htmlEqual(fixture.innerHTML, "<ul><li>hello 1</li><li>hello 2</li><li>hello 3</li></ul>");
   });
 
   test("a specific content yielder may provide context via aliases", t => {
@@ -365,10 +358,7 @@ export default function() {
       components: { cmp }
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      "<ul><li>hello 1</li><li>hello 2</li><li>hello 3</li></ul>"
-    );
+    t.htmlEqual(fixture.innerHTML, "<ul><li>hello 1</li><li>hello 2</li><li>hello 3</li></ul>");
   });
 
   test("partial expression is evaluated outside of the partial context", t => {
@@ -413,18 +403,12 @@ export default function() {
       components: { cmp }
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      "<div></div><div>outer<div>inner</div></div>"
-    );
+    t.htmlEqual(fixture.innerHTML, "<div></div><div>outer<div>inner</div></div>");
 
     r.toggle("foo");
     t.htmlEqual(fixture.innerHTML, "<div></div><div>outer</div>");
 
     r.toggle("foo");
-    t.htmlEqual(
-      fixture.innerHTML,
-      "<div></div><div>outer<div>inner</div></div>"
-    );
+    t.htmlEqual(fixture.innerHTML, "<div></div><div>outer<div>inner</div></div>");
   });
 }

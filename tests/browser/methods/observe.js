@@ -57,10 +57,7 @@ export default function() {
     ractive.observe(
       "items",
       function() {
-        t.equal(
-          this.findAll("li").length,
-          this.el.querySelectorAll("li").length
-        );
+        t.equal(this.findAll("li").length, this.el.querySelectorAll("li").length);
       },
       { init: false, defer: true }
     );
@@ -856,10 +853,7 @@ export default function() {
 					<input value='{{value}}'>{{value}}
 				{{/each}}`,
       data: {
-        items: [
-          { min: 10, max: 90, value: 0 },
-          { min: 10, max: 90, value: 100 }
-        ]
+        items: [{ min: 10, max: 90, value: 0 }, { min: 10, max: 90, value: 100 }]
       }
     });
 
@@ -1057,24 +1051,7 @@ export default function() {
 
     const r = new Ractive({
       data: {
-        list: [
-          { foo: {} },
-          { foo: 2 },
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {}
-        ]
+        list: [{ foo: {} }, { foo: 2 }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}]
       }
     });
 
@@ -1097,24 +1074,7 @@ export default function() {
 
     const r = new Ractive({
       data: {
-        list: [
-          { foo: {} },
-          { foo: 2 },
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {}
-        ]
+        list: [{ foo: {} }, { foo: 2 }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}]
       }
     });
 
@@ -1610,29 +1570,7 @@ export default function() {
     const keys = [];
     const r = new Ractive({
       data: {
-        foo: [
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {}
-        ]
+        foo: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}]
       }
     });
     r.observe(
@@ -1751,8 +1689,7 @@ export default function() {
       "fruits",
       c => {
         if (step === 1) t.equal(c.inserted.length, 1);
-        else if (step === 2)
-          t.ok(false, "should not fire on downstream changes");
+        else if (step === 2) t.ok(false, "should not fire on downstream changes");
         else if (step === 3) t.equal(c.inserted.length, 1);
       },
       { array: true }
@@ -1878,10 +1815,7 @@ export default function() {
         foo: {
           init: false,
           handler(v, o) {
-            t.ok(
-              o === "" && v !== o,
-              "old value is empty string and new is " + v
-            );
+            t.ok(o === "" && v !== o, "old value is empty string and new is " + v);
           },
           old(o, n) {
             if (!this.hasOwnProperty("old")) this.old = n;
@@ -1959,10 +1893,7 @@ export default function() {
         "foo.*": {
           init: false,
           handler(v, o) {
-            t.ok(
-              o === "" && v !== o,
-              "old value is empty string and new is " + v
-            );
+            t.ok(o === "" && v !== o, "old value is empty string and new is " + v);
           },
           old(o, n, k, p) {
             t.ok(k === "foo.val" && p === "val");

@@ -21,9 +21,7 @@ import { name } from "../expressions/shared/patterns";
 
 const indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
 const keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
-const handlebarsBlockPattern = new RegExp(
-  "^(" + keys(handlebarsBlockCodes).join("|") + ")\\b"
-);
+const handlebarsBlockPattern = new RegExp("^(" + keys(handlebarsBlockCodes).join("|") + ")\\b");
 
 export default function readSection(parser, tag) {
   let expression,
@@ -96,10 +94,7 @@ export default function readSection(parser, tag) {
     }
 
     // optional index and key references
-    if (
-      (block === "each" || !block) &&
-      (i = parser.matchPattern(indexRefPattern))
-    ) {
+    if ((block === "each" || !block) && (i = parser.matchPattern(indexRefPattern))) {
       let extra;
 
       if ((extra = parser.matchPattern(keyIndexRefPattern))) {
@@ -136,9 +131,9 @@ export default function readSection(parser, tag) {
         if (!block) {
           if (child.r)
             parser.warn(
-              `Expected ${tag.open}/${expectedClose}${tag.close} but found ${
-                tag.open
-              }/${child.r}${tag.close}`
+              `Expected ${tag.open}/${expectedClose}${tag.close} but found ${tag.open}/${child.r}${
+                tag.close
+              }`
             );
         } else {
           parser.pos = pos;
@@ -162,9 +157,7 @@ export default function readSection(parser, tag) {
 
       if (hasElse) {
         if (child.t === ELSE) {
-          parser.error(
-            "there can only be one {{else}} block, at the end of a section"
-          );
+          parser.error("there can only be one {{else}} block, at the end of a section");
         } else if (child.t === ELSEIF) {
           parser.error("illegal {{elseif...}} after {{else}}");
         }
@@ -204,21 +197,16 @@ export default function readSection(parser, tag) {
         refineExpression(child.x, mustache);
         unlessBlock.push(mustache);
       } else if (child.t === THEN) {
-        if (hasElse)
-          parser.error("{{then}} block must appear before any {{else}} block");
-        if (hasCatch)
-          parser.error("{{then}} block must appear before any {{catch}} block");
-        if (hasThen)
-          parser.error("there can only be one {{then}} block per {{#await}}");
+        if (hasElse) parser.error("{{then}} block must appear before any {{else}} block");
+        if (hasCatch) parser.error("{{then}} block must appear before any {{catch}} block");
+        if (hasThen) parser.error("there can only be one {{then}} block per {{#await}}");
         mustache.t = THEN;
         hasThen = true;
         child.n && (mustache.n = child.n);
         section.f.push(mustache);
       } else if (child.t === CATCH) {
-        if (hasElse)
-          parser.error("{{catch}} block must appear before any {{else}} block");
-        if (hasCatch)
-          parser.error("there can only be one {{catch}} block per {{#await}}");
+        if (hasElse) parser.error("{{catch}} block must appear before any {{else}} block");
+        if (hasCatch) parser.error("there can only be one {{catch}} block per {{#await}}");
         mustache.t = CATCH;
         hasCatch = true;
         mustache.n = child.n;

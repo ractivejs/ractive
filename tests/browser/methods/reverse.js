@@ -20,10 +20,7 @@ export default function() {
       });
 
       ractive.reverse("items");
-      t.htmlEqual(
-        fixture.innerHTML,
-        "<ul><li>charles</li><li>bob</li><li>alice</li></ul>"
-      );
+      t.htmlEqual(fixture.innerHTML, "<ul><li>charles</li><li>bob</li><li>alice</li></ul>");
     });
   });
 }

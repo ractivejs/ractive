@@ -41,9 +41,7 @@ function extendOne(Parent, options = {}, Target) {
       );
     }
     if (!callsSuper.test(Child.toString())) {
-      throw new Error(
-        `Only classes that call super in their constructor may be used with extend`
-      );
+      throw new Error(`Only classes that call super in their constructor may be used with extend`);
     }
 
     proto = Child.prototype;

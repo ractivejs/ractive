@@ -46,8 +46,7 @@ export default class ComputationChild extends Model {
       this.adapt();
     }
 
-    return (opts && "unwrap" in opts ? opts.unwrap !== false : shouldCapture) &&
-      this.wrapper
+    return (opts && "unwrap" in opts ? opts.unwrap !== false : shouldCapture) && this.wrapper
       ? this.wrapperValue
       : this.value;
   }

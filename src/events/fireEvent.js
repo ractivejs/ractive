@@ -52,9 +52,7 @@ export default function fireEvent(ractive, eventName, context, args = []) {
   context.name = eventName;
   args.unshift(context);
 
-  const eventNames = ractive._nsSubs
-    ? variants(eventName, true)
-    : ["*", eventName];
+  const eventNames = ractive._nsSubs ? variants(eventName, true) : ["*", eventName];
 
   return fireEventAs(ractive, eventNames, context, args, true);
 }
@@ -68,13 +66,7 @@ function fireEventAs(ractive, eventNames, context, args, initialFire = false) {
     let i = eventNames.length;
     while (i--) {
       if (eventNames[i] in ractive._subs) {
-        bubble =
-          notifySubscribers(
-            ractive,
-            ractive._subs[eventNames[i]],
-            context,
-            args
-          ) && bubble;
+        bubble = notifySubscribers(ractive, ractive._subs[eventNames[i]], context, args) && bubble;
       }
     }
 
@@ -83,8 +75,7 @@ function fireEventAs(ractive, eventNames, context, args, initialFire = false) {
 
   if (ractive.parent && bubble) {
     if (initialFire && ractive.component) {
-      const fullName =
-        ractive.component.name + "." + eventNames[eventNames.length - 1];
+      const fullName = ractive.component.name + "." + eventNames[eventNames.length - 1];
       eventNames = variants(fullName, false);
 
       if (context && !context.component) {
@@ -107,10 +98,7 @@ function notifySubscribers(ractive, subscribers, context, args) {
   subscribers = subscribers.slice();
 
   for (let i = 0, len = subscribers.length; i < len; i += 1) {
-    if (
-      !subscribers[i].off &&
-      subscribers[i].handler.apply(ractive, args) === false
-    ) {
+    if (!subscribers[i].off && subscribers[i].handler.apply(ractive, args) === false) {
       stopEvent = true;
     }
   }

@@ -67,10 +67,7 @@ export default class RadioNameBinding extends Binding {
     const node = this.node;
 
     this.updateName();
-    node.checked = this.element.compare(
-      this.model.get(),
-      this.element.getAttribute("value")
-    );
+    node.checked = this.element.compare(this.model.get(), this.element.getAttribute("value"));
 
     this.element.on("change", handleDomEvent);
 

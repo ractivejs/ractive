@@ -1,12 +1,4 @@
-import {
-  ATTRIBUTE,
-  CATCH,
-  ELEMENT,
-  ELSE,
-  INTERPOLATOR,
-  SECTION,
-  THEN
-} from "src/config/types";
+import { ATTRIBUTE, CATCH, ELEMENT, ELSE, INTERPOLATOR, SECTION, THEN } from "src/config/types";
 import Partial from "./Partial";
 import { assign } from "utils/object";
 import { isFunction } from "utils/is";

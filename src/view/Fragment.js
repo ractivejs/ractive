@@ -28,11 +28,9 @@ export default class Fragment {
 
     this.isRoot = !options.owner.up;
     this.parent = this.isRoot ? null : this.owner.up;
-    this.ractive =
-      options.ractive || (this.isRoot ? options.owner : this.parent.ractive);
+    this.ractive = options.ractive || (this.isRoot ? options.owner : this.parent.ractive);
 
-    this.componentParent =
-      this.isRoot && this.ractive.component ? this.ractive.component.up : null;
+    this.componentParent = this.isRoot && this.ractive.component ? this.ractive.component.up : null;
     this.delegate =
       (this.parent
         ? this.parent.delegate
@@ -131,9 +129,7 @@ export default class Fragment {
 
   findAllComponents(name, options) {
     if (this.items) {
-      this.items.forEach(
-        i => i.findAllComponents && i.findAllComponents(name, options)
-      );
+      this.items.forEach(i => i.findAllComponents && i.findAllComponents(name, options));
     }
   }
 
@@ -203,32 +199,24 @@ export default class Fragment {
   }
 
   getKey() {
-    return (
-      this.keyModel || (this.keyModel = new KeyModel(this.key, this.context))
-    );
+    return this.keyModel || (this.keyModel = new KeyModel(this.key, this.context));
   }
 
   getKeypath(root) {
     if (root) {
       return (
         this.rootModel ||
-        (this.rootModel = new KeyModel(
-          this.context.getKeypath(this.ractive.root),
-          this.context
-        ))
+        (this.rootModel = new KeyModel(this.context.getKeypath(this.ractive.root), this.context))
       );
     } else {
       return (
-        this.pathModel ||
-        (this.pathModel = new KeyModel(this.context.getKeypath(), this.context))
+        this.pathModel || (this.pathModel = new KeyModel(this.context.getKeypath(), this.context))
       );
     }
   }
 
   getIndex() {
-    return (
-      this.idxModel || (this.idxModel = new KeyModel(this.index, this.context))
-    );
+    return this.idxModel || (this.idxModel = new KeyModel(this.index, this.context));
   }
 
   rebind(next) {
@@ -280,8 +268,7 @@ export default class Fragment {
 
   shuffled() {
     this.items.forEach(shuffled);
-    if (this.rootModel)
-      this.rootModel.applyValue(this.context.getKeypath(this.ractive.root));
+    if (this.rootModel) this.rootModel.applyValue(this.context.getKeypath(this.ractive.root));
     if (this.pathModel) this.pathModel.applyValue(this.context.getKeypath());
   }
 

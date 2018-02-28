@@ -11,8 +11,7 @@ export default class RactiveModel extends SharedModel {
   joinKey(key) {
     const model = super.joinKey(key);
 
-    if ((key === "root" || key === "parent") && !model.isLink)
-      return initLink(model, key);
+    if ((key === "root" || key === "parent") && !model.isLink) return initLink(model, key);
     else if (key === "data") return this.ractive.viewmodel;
     else if (key === "cssData") return this.ractive.constructor._cssModel;
 

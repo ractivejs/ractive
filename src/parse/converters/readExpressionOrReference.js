@@ -20,10 +20,7 @@ export default function readExpressionOrReference(parser, expectedFollowers) {
   }
 
   for (let i = 0; i < expectedFollowers.length; i += 1) {
-    if (
-      parser.remaining().substr(0, expectedFollowers[i].length) ===
-      expectedFollowers[i]
-    ) {
+    if (parser.remaining().substr(0, expectedFollowers[i].length) === expectedFollowers[i]) {
       return expression;
     }
   }

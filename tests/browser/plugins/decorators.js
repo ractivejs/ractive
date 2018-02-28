@@ -1,8 +1,4 @@
-import {
-  hasUsableConsole,
-  onWarn,
-  initModule
-} from "../../helpers/test-config";
+import { hasUsableConsole, onWarn, initModule } from "../../helpers/test-config";
 import { test } from "qunit";
 
 export default function() {
@@ -151,8 +147,7 @@ export default function() {
   test("Decorator in a section with a dynamic argument that changes, with update() method (#3152)", t => {
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '<div {{#if true}}as-foo="foo"{{/if}}>this text will be overwritten</div>',
+      template: '<div {{#if true}}as-foo="foo"{{/if}}>this text will be overwritten</div>',
       data: {
         foo: "baz"
       },
@@ -201,8 +196,7 @@ export default function() {
   test("Unnecessary whitespace is trimmed (#810)", t => {
     new Ractive({
       el: fixture,
-      template:
-        '<pre as-show=""blue is the moon""/><pre as-show="" blue is the moon   ""/>',
+      template: '<pre as-show=""blue is the moon""/><pre as-show="" blue is the moon   ""/>',
       decorators: {
         show(node, arg) {
           node.innerHTML = `|${arg}|`;
@@ -495,8 +489,7 @@ export default function() {
     let count = 0;
     const r = new Ractive({
       el: fixture,
-      template:
-        "{{#if foo}}<div>{{#if true}}{{#each [1]}}{{>bar}}{{/each}}{{/if}}</div>{{/if}}",
+      template: "{{#if foo}}<div>{{#if true}}{{#each [1]}}{{>bar}}{{/each}}{{/if}}</div>{{/if}}",
       decorators: {
         foo() {
           count++;

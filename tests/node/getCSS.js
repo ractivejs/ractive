@@ -17,11 +17,7 @@ export default function() {
 
     t.ok(
       !!~css.indexOf(
-        '.green[data-ractive-css~="{' +
-          cssId +
-          '}"], [data-ractive-css~="{' +
-          cssId +
-          '}"] .green',
+        '.green[data-ractive-css~="{' + cssId + '}"], [data-ractive-css~="{' + cssId + '}"] .green',
         ".green selector for " + cssId + " should exist"
       )
     );

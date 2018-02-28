@@ -43,18 +43,14 @@ if (win && !win.Ractive) {
   let opts = "";
   const script =
     document.currentScript ||
-    /* istanbul ignore next */ document.querySelector(
-      "script[data-ractive-options]"
-    );
+    /* istanbul ignore next */ document.querySelector("script[data-ractive-options]");
 
   if (script) opts = script.getAttribute("data-ractive-options") || "";
 
   /* istanbul ignore next */
   if (~opts.indexOf("ForceGlobal")) win.Ractive = Ractive;
 } else if (win) {
-  warn(
-    `Ractive already appears to be loaded while loading BUILD_PLACEHOLDER_VERSION.`
-  );
+  warn(`Ractive already appears to be loaded while loading BUILD_PLACEHOLDER_VERSION.`);
 }
 
 assign(Ractive.prototype, proto, defaults);

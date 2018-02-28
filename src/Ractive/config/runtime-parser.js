@@ -31,11 +31,7 @@ function throwNoParse(method, error, instructions) {
 }
 
 export function createFunction(body, length) {
-  throwNoParse(
-    fromExpression,
-    "new expression function",
-    TEMPLATE_INSTRUCTIONS
-  );
+  throwNoParse(fromExpression, "new expression function", TEMPLATE_INSTRUCTIONS);
   return fromExpression(body, length);
 }
 
@@ -53,9 +49,7 @@ const parser = {
       if (options && options.noThrow) {
         return;
       }
-      throw new Error(
-        `Cannot retrieve template #${id} as Ractive is not running in a browser.`
-      );
+      throw new Error(`Cannot retrieve template #${id} as Ractive is not running in a browser.`);
     }
 
     if (id) id = id.replace(/^#/, "");
@@ -73,14 +67,10 @@ const parser = {
       if (options && options.noThrow) {
         return;
       }
-      throw new Error(
-        `Template element with id #${id}, must be a <script> element`
-      );
+      throw new Error(`Template element with id #${id}, must be a <script> element`);
     }
 
-    return "textContent" in template
-      ? template.textContent
-      : template.innerHTML;
+    return "textContent" in template ? template.textContent : template.innerHTML;
   },
 
   isParsed(template) {

@@ -9,8 +9,7 @@ export default function() {
   test("simple template aliases", t => {
     new Ractive({
       el: fixture,
-      template:
-        "{{#with foo.bar.baz as bar, bippy.boppy as boop}}{{bar}} {{boop}}{{/with}}",
+      template: "{{#with foo.bar.baz as bar, bippy.boppy as boop}}{{bar}} {{boop}}{{/with}}",
       data: {
         foo: { bar: { baz: "yep" } },
         bippy: { boppy: "works" }
@@ -32,8 +31,7 @@ export default function() {
   test("@index refs can be aliased", t => {
     const r = new Ractive({
       el: fixture,
-      template:
-        "{{#each items}}{{#with @index as idx}}{{idx}}{{/with}}{{/each}}",
+      template: "{{#each items}}{{#with @index as idx}}{{idx}}{{/with}}{{/each}}",
       data: { items: [1, 2, 3] }
     });
 
@@ -57,8 +55,7 @@ export default function() {
   test("@keypath refs can be aliased", t => {
     const r = new Ractive({
       el: fixture,
-      template:
-        "{{#each items}}{{#with @keypath as idx}}{{idx}}{{/with}}{{/each}}",
+      template: "{{#each items}}{{#with @keypath as idx}}{{idx}}{{/with}}{{/each}}",
       data: { items: [1, 2, 3] }
     });
 
@@ -186,8 +183,7 @@ export default function() {
   test(`aliases survive shuffling`, t => {
     const r = new Ractive({
       target: fixture,
-      template:
-        "{{#each items as item}}{{#with item.foo as foo}}{{foo}}{{/with}}{{/each}}",
+      template: "{{#each items as item}}{{#with item.foo as foo}}{{foo}}{{/with}}{{/each}}",
       data: {
         items: [{ foo: 1 }]
       }

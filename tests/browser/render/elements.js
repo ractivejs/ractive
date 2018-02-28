@@ -49,10 +49,7 @@ export default function() {
       template: '<textarea value="123<div></div>"></textarea>'
     });
 
-    t.equal(
-      ractive.toHTML(),
-      "<textarea>123&lt;div&gt;&lt;/div&gt;</textarea>"
-    );
+    t.equal(ractive.toHTML(), "<textarea>123&lt;div&gt;&lt;/div&gt;</textarea>");
   });
 
   test("Wildcard proxy-events invalid on elements", t => {
@@ -120,10 +117,7 @@ export default function() {
       el: fixture,
       template: "<svg><g>{{#each points}}{{>.type}}{{/each}}</g></svg>",
       data: {
-        points: [
-          { x: 10, y: 10, r: 10, type: "point" },
-          { x: 20, y: 20, r: 2, type: "point" }
-        ]
+        points: [{ x: 10, y: 10, r: 10, type: "point" }, { x: 20, y: 20, r: 2, type: "point" }]
       },
       partials: {
         point: "<point />"

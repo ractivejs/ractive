@@ -16,9 +16,7 @@ export function compute(path, computed) {
     computed.pattern = new RegExp(
       "^" +
         keys
-          .map(k =>
-            k.replace(/\*\*/g, "(.+)").replace(/\*/g, "((?:\\\\.|[^\\.])+)")
-          )
+          .map(k => k.replace(/\*\*/g, "(.+)").replace(/\*/g, "((?:\\\\.|[^\\.])+)"))
           .join("\\.") +
         "$"
     );

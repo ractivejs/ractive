@@ -15,8 +15,7 @@ function lookupNamespace(node, prefix) {
   const qualified = `xmlns:${prefix}`;
 
   while (node) {
-    if (node.hasAttribute && node.hasAttribute(qualified))
-      return node.getAttribute(qualified);
+    if (node.hasAttribute && node.hasAttribute(qualified)) return node.getAttribute(qualified);
     node = node.parentNode;
   }
 
@@ -35,14 +34,9 @@ export default class Attribute extends Item {
     this.name = options.template.n;
     this.namespace = null;
 
-    this.owner =
-      options.owner ||
-      options.up.owner ||
-      options.element ||
-      findElement(options.up);
+    this.owner = options.owner || options.up.owner || options.element || findElement(options.up);
     this.element =
-      options.element ||
-      (this.owner.attributeByName ? this.owner : findElement(options.up));
+      options.element || (this.owner.attributeByName ? this.owner : findElement(options.up));
     this.up = options.up; // shared
     this.ractive = this.up.ractive;
 
@@ -176,10 +170,7 @@ export default class Attribute extends Item {
     // Special case - style and class attributes and directives
     if (
       this.owner === this.element &&
-      (this.name === "style" ||
-        this.name === "class" ||
-        this.style ||
-        this.inlineClass)
+      (this.name === "style" || this.name === "class" || this.style || this.inlineClass)
     ) {
       return;
     }
@@ -200,9 +191,7 @@ export default class Attribute extends Item {
 
     if (booleanAttributes.test(this.name))
       return value
-        ? isString(value)
-          ? `${this.name}="${safeAttributeString(value)}"`
-          : this.name
+        ? isString(value) ? `${this.name}="${safeAttributeString(value)}"` : this.name
         : "";
     if (value == null) return "";
 
@@ -229,10 +218,7 @@ export default class Attribute extends Item {
       if (this.fragment) this.fragment.update();
       if (this.rendered) this.updateDelegate();
       if (this.isTwoway && !this.locked) {
-        this.interpolator.twowayBinding.lastVal(
-          true,
-          this.interpolator.model.get()
-        );
+        this.interpolator.twowayBinding.lastVal(true, this.interpolator.model.get());
       } else if (this.name === "value" && (binding = this.element.binding)) {
         // special case: name bound element with dynamic value
         const attr = binding.attribute;

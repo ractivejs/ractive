@@ -145,8 +145,7 @@ export default function() {
   test("Media queries work", t => {
     const Widget = Ractive.extend({
       template: "<p>red</p>",
-      css:
-        "p { color: blue } @media screen and (max-width: 99999px) { p { color: red; } }"
+      css: "p { color: blue } @media screen and (max-width: 99999px) { p { color: red; } }"
     });
 
     const ractive = new Ractive({
@@ -229,11 +228,7 @@ export default function() {
     const style = getComputedStyle(p);
 
     t.equal(getHexColor(p), hexCodes.red);
-    t.ok(
-      style.fontWeight === "bold" ||
-        style.fontWeight === 700 ||
-        style.fontWeight === "700"
-    );
+    t.ok(style.fontWeight === "bold" || style.fontWeight === 700 || style.fontWeight === "700");
     t.equal(style.fontStyle, "italic");
   });
 
@@ -386,11 +381,7 @@ export default function() {
     t.equal(getHexColor(cmp.find(".blue")), hexCodes.blue);
     t.equal(getHexColor(cmp.find(".red")), hexCodes.red);
     t.ok(
-      ~cmp
-        .toCSS()
-        .indexOf(
-          "someAnimation { from { transform: scale3d(1.5,1.5,1) rotate(0deg); } }"
-        )
+      ~cmp.toCSS().indexOf("someAnimation { from { transform: scale3d(1.5,1.5,1) rotate(0deg); } }")
     );
   });
 
@@ -442,10 +433,7 @@ export default function() {
 
     new cmp({ target: fixture });
 
-    t.equal(
-      getComputedStyle(fixture.querySelector("div")).color,
-      "rgb(0, 128, 0)"
-    );
+    t.equal(getComputedStyle(fixture.querySelector("div")).color, "rgb(0, 128, 0)");
   });
 
   test(`cssData has safe accessors`, t => {

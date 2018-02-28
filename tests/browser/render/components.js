@@ -11,8 +11,7 @@ export default function() {
 
     new Ractive({
       el: fixture,
-      template:
-        "<h2>Here is a component:</h2><Component/><p>(that was a component)</p>",
+      template: "<h2>Here is a component:</h2><Component/><p>(that was a component)</p>",
       components: { Component }
     });
 
@@ -66,8 +65,7 @@ export default function() {
 
     new Ractive({
       el: fixture,
-      template:
-        '<h1>Names</h1><Widget numbers="{{first}}"/><Widget numbers="{{second}}"/>',
+      template: '<h1>Names</h1><Widget numbers="{{first}}"/><Widget numbers="{{second}}"/>',
       components: { Widget },
       data: {
         first: { one: "one", two: "two" },
@@ -75,10 +73,7 @@ export default function() {
       }
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      "<h1>Names</h1><p>one</p><p>two</p><p>three</p><p>four</p>"
-    );
+    t.htmlEqual(fixture.innerHTML, "<h1>Names</h1><p>one</p><p>two</p><p>three</p><p>four</p>");
   });
 
   test("An unless section in a component should still work with an ambiguous condition should still update (#2165)", t => {

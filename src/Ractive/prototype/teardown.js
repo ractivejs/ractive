@@ -11,17 +11,12 @@ const destructHook = new Hook("destruct");
 
 export default function Ractive$teardown() {
   if (this.torndown) {
-    warnIfDebug(
-      "ractive.teardown() was called on a Ractive instance that was already torn down"
-    );
+    warnIfDebug("ractive.teardown() was called on a Ractive instance that was already torn down");
     return Promise.resolve();
   }
 
   this.shouldDestroy = true;
-  return teardown(
-    this,
-    () => (this.fragment.rendered ? this.unrender() : Promise.resolve())
-  );
+  return teardown(this, () => (this.fragment.rendered ? this.unrender() : Promise.resolve()));
 }
 
 export function teardown(instance, getPromise) {

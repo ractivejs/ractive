@@ -216,9 +216,7 @@ export default function() {
 
     t.ok(
       !~css.indexOf(
-        `.green[data-ractive-css~="{${app.cssId}}"], [data-ractive-css~="{${
-          app.cssId
-        }}"] .green`,
+        `.green[data-ractive-css~="{${app.cssId}}"], [data-ractive-css~="{${app.cssId}}"] .green`,
         `.green selector for ${app.cssId} should NEVER exist`
       )
     );

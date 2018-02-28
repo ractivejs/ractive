@@ -67,11 +67,7 @@ Parser.prototype = {
   getContextMessage(pos, message) {
     const [lineNum, columnNum] = this.getLinePos(pos);
     if (this.options.contextLines === -1) {
-      return [
-        lineNum,
-        columnNum,
-        `${message} at line ${lineNum} character ${columnNum}`
-      ];
+      return [lineNum, columnNum, `${message} at line ${lineNum} character ${columnNum}`];
     }
 
     const line = this.lines[lineNum - 1];
@@ -80,9 +76,7 @@ Parser.prototype = {
     let contextDown = "";
     if (this.options.contextLines) {
       const start =
-        lineNum - 1 - this.options.contextLines < 0
-          ? 0
-          : lineNum - 1 - this.options.contextLines;
+        lineNum - 1 - this.options.contextLines < 0 ? 0 : lineNum - 1 - this.options.contextLines;
       contextUp = this.lines
         .slice(start, lineNum - 1 - start)
         .join("\n")

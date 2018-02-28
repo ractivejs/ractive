@@ -1,10 +1,4 @@
-import {
-  isArray,
-  isObject,
-  isObjectType,
-  isFunction,
-  isString
-} from "utils/is";
+import { isArray, isObject, isObjectType, isFunction, isString } from "utils/is";
 import { warnIfDebug } from "utils/log";
 import resolveReference from "src/view/resolvers/resolveReference";
 import runloop from "../global/runloop";
@@ -87,12 +81,7 @@ export function gather(ractive, keypath, base, isolated) {
         keypath[0] &&
         !isolated
       ) {
-        return [
-          resolveReference(
-            ractive.fragment || new FakeFragment(ractive),
-            keypath
-          )
-        ];
+        return [resolveReference(ractive.fragment || new FakeFragment(ractive), keypath)];
       } else {
         return [model.joinAll(keys)];
       }
@@ -109,18 +98,12 @@ export function build(ractive, keypath, value, isolated) {
   if (isObject(keypath)) {
     for (const k in keypath) {
       if (hasOwn(keypath, k)) {
-        sets.push.apply(
-          sets,
-          gather(ractive, k, null, isolated).map(m => [m, keypath[k], k])
-        );
+        sets.push.apply(sets, gather(ractive, k, null, isolated).map(m => [m, keypath[k], k]));
       }
     }
   } else {
     // set a single keypath
-    sets.push.apply(
-      sets,
-      gather(ractive, keypath, null, isolated).map(m => [m, value, keypath])
-    );
+    sets.push.apply(sets, gather(ractive, keypath, null, isolated).map(m => [m, value, keypath]));
   }
 
   return sets;
@@ -147,12 +130,8 @@ function getComparator(option) {
   if (isFunction(option)) return option;
 
   if (isString(option)) {
-    return (
-      comparators[option] || (comparators[option] = thing => thing[option])
-    );
+    return comparators[option] || (comparators[option] = thing => thing[option]);
   }
 
-  throw new Error(
-    "If supplied, options.compare must be a string, function, or true"
-  ); // TODO link to docs
+  throw new Error("If supplied, options.compare must be a string, function, or true"); // TODO link to docs
 }

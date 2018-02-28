@@ -1,9 +1,5 @@
 import readExpression from "../../../readExpression";
-import {
-  STRING_LITERAL,
-  BRACKETED,
-  INFIX_OPERATOR
-} from "../../../../../config/types";
+import { STRING_LITERAL, BRACKETED, INFIX_OPERATOR } from "../../../../../config/types";
 import {
   escapeSequencePattern,
   lineContinuationPattern

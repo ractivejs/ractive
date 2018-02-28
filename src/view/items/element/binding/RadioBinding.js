@@ -13,9 +13,7 @@ export default class RadioBinding extends Binding {
   constructor(element) {
     super(element, "checked");
 
-    this.siblings = getSiblings(
-      this.ractive._guid + this.element.getAttribute("name")
-    );
+    this.siblings = getSiblings(this.ractive._guid + this.element.getAttribute("name"));
     this.siblings.push(this);
   }
 

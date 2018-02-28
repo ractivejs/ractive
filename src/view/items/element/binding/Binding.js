@@ -73,8 +73,7 @@ export default class Binding {
   }
 
   rebind(next, previous) {
-    if (this.model && this.model === previous)
-      previous.unregisterTwowayBinding(this);
+    if (this.model && this.model === previous) previous.unregisterTwowayBinding(this);
     if (next) {
       this.model = next;
       runloop.scheduleTask(() => next.registerTwowayBinding(this));

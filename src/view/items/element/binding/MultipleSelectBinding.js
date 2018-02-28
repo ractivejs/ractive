@@ -20,9 +20,7 @@ export default class MultipleSelectBinding extends Binding {
       const option = options[i];
 
       if (option.selected) {
-        const optionValue = option._ractive
-          ? option._ractive.value
-          : option.value;
+        const optionValue = option._ractive ? option._ractive.value : option.value;
         selectedValues.push(optionValue);
       }
     }
@@ -36,10 +34,7 @@ export default class MultipleSelectBinding extends Binding {
 
     const value = this.getValue();
 
-    if (
-      previousValue === undefined ||
-      !arrayContentsMatch(value, previousValue)
-    ) {
+    if (previousValue === undefined || !arrayContentsMatch(value, previousValue)) {
       super.handleChange();
     }
 

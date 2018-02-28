@@ -3,13 +3,7 @@ import LinkModel from "./LinkModel"; // eslint-disable-line no-unused-vars
 import getComputationSignature from "src/Ractive/helpers/getComputationSignature";
 import { capture } from "src/global/capture";
 import { isArray, isEqual, isNumeric, isObjectLike } from "utils/is";
-import {
-  handleChange,
-  mark,
-  markForce,
-  marked,
-  teardown
-} from "shared/methodCallers";
+import { handleChange, mark, markForce, marked, teardown } from "shared/methodCallers";
 import Ticker from "shared/Ticker";
 import getPrefixer from "./helpers/getPrefixer";
 import { unescapeKey } from "shared/keypaths";
@@ -67,8 +61,7 @@ export default class Model extends ModelBase {
 
         // don't branch for undefined values
         if (this.value !== undefined) {
-          const parentValue =
-            this.parent.value || this.parent.createBranch(this.key);
+          const parentValue = this.parent.value || this.parent.createBranch(this.key);
           if (parentValue[this.key] !== value) parentValue[this.key] = value;
           this.value = value;
         }
@@ -84,12 +77,7 @@ export default class Model extends ModelBase {
     for (i = 0; i < len; i += 1) {
       const adaptor = adaptors[i];
       if (adaptor.filter(value, keypath, ractive)) {
-        this.wrapper = adaptor.wrap(
-          ractive,
-          value,
-          keypath,
-          getPrefixer(keypath)
-        );
+        this.wrapper = adaptor.wrap(ractive, value, keypath, getPrefixer(keypath));
         this.wrapperValue = value;
         this.wrapper.__model = this; // massive temporary hack to enable array adaptor
 
@@ -142,14 +130,11 @@ export default class Model extends ModelBase {
       this.newWrapperValue = value;
       this.adapt();
     } else {
-      const parentValue =
-        this.parent.value || this.parent.createBranch(this.key);
+      const parentValue = this.parent.value || this.parent.createBranch(this.key);
       if (isObjectLike(parentValue)) {
         parentValue[this.key] = value;
       } else {
-        warnIfDebug(
-          `Attempted to set a property of a non-object '${this.getKeypath()}'`
-        );
+        warnIfDebug(`Attempted to set a property of a non-object '${this.getKeypath()}'`);
         return;
       }
 
@@ -182,11 +167,7 @@ export default class Model extends ModelBase {
     const registry = this.computed || (this.computed = {});
 
     if (registry[key]) {
-      registry[key].signature = getComputationSignature(
-        this.root.ractive,
-        key,
-        computed
-      );
+      registry[key].signature = getComputationSignature(this.root.ractive, key, computed);
       registry[key].mark();
     } else {
       registry[key] = new shared.Computation(
@@ -213,8 +194,7 @@ export default class Model extends ModelBase {
     if (opts && opts.virtual) return this.getVirtual(false);
     return maybeBind(
       this,
-      (opts && "unwrap" in opts ? opts.unwrap !== false : shouldCapture) &&
-      this.wrapper
+      (opts && "unwrap" in opts ? opts.unwrap !== false : shouldCapture) && this.wrapper
         ? this.wrapperValue
         : this.value,
       !opts || opts.shouldBind !== false
@@ -223,8 +203,7 @@ export default class Model extends ModelBase {
 
   joinKey(key, opts) {
     if (this._link) {
-      if (opts && opts.lastLink !== false && (key === undefined || key === ""))
-        return this;
+      if (opts && opts.lastLink !== false && (key === undefined || key === "")) return this;
       return this._link.joinKey(key);
     }
 
@@ -236,20 +215,13 @@ export default class Model extends ModelBase {
 
     if (!child) {
       let computed;
-      if (
-        this.isRoot &&
-        this.ractive &&
-        (computed = this.ractive.computed[key])
-      ) {
+      if (this.isRoot && this.ractive && (computed = this.ractive.computed[key])) {
         child = this.compute(key, computed);
       } else if (!this.isRoot && this.root.ractive) {
         const registry = this.root.ractive.computed;
         for (const k in registry) {
           computed = registry[k];
-          if (
-            computed.pattern &&
-            computed.pattern.test(this.getKeypath() + "." + key)
-          ) {
+          if (computed.pattern && computed.pattern.test(this.getKeypath() + "." + key)) {
             child = this.compute(key, computed);
           }
         }
@@ -364,8 +336,7 @@ export default class Model extends ModelBase {
     }
     this.children.forEach(teardown);
     if (this.wrapper) this.wrapper.teardown();
-    if (this.computed)
-      keys(this.computed).forEach(k => this.computed[k].teardown());
+    if (this.computed) keys(this.computed).forEach(k => this.computed[k].teardown());
   }
 }
 

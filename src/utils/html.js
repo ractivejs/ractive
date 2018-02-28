@@ -299,9 +299,7 @@ const entityPattern = new RegExp(
   "g"
 );
 const codePointSupport = isFunction(String.fromCodePoint);
-const codeToChar = codePointSupport
-  ? String.fromCodePoint
-  : String.fromCharCode;
+const codeToChar = codePointSupport ? String.fromCodePoint : String.fromCharCode;
 
 export function decodeCharacterReferences(html) {
   return html.replace(entityPattern, (match, entity) => {

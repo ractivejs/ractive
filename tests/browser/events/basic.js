@@ -7,15 +7,7 @@ export default function() {
   initModule("events/basic.js");
 
   test("sharing names with array mutator functions doesn't break events", t => {
-    const eventNames = [
-      "sort",
-      "reverse",
-      "push",
-      "pop",
-      "shift",
-      "unshift",
-      "fhtagn"
-    ]; // the last one just tests the test
+    const eventNames = ["sort", "reverse", "push", "pop", "shift", "unshift", "fhtagn"]; // the last one just tests the test
     const results = new Object(null);
 
     t.expect(eventNames.length);
@@ -28,10 +20,7 @@ export default function() {
     eventNames.forEach(eventName => {
       ractive.on(eventName, () => (results[eventName] = true));
       ractive.fire(eventName);
-      t.ok(
-        typeof results[eventName] != "undefined",
-        `Event '${eventName}' did not fire.`
-      );
+      t.ok(typeof results[eventName] != "undefined", `Event '${eventName}' did not fire.`);
     });
   });
 
@@ -478,12 +467,7 @@ export default function() {
     test(`event plugin args that throw don't blow up the world`, t => {
       t.expect(3);
 
-      onWarn(msg =>
-        t.ok(
-          /failed to compute args for event on-foo/i.test(msg),
-          "warns on error"
-        )
-      );
+      onWarn(msg => t.ok(/failed to compute args for event on-foo/i.test(msg), "warns on error"));
 
       new Ractive({
         target: fixture,

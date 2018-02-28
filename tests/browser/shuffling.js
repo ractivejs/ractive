@@ -75,8 +75,7 @@ export default function() {
   test("conditional attributes shuffle correctly", t => {
     const r = new Ractive({
       el: fixture,
-      template:
-        '{{#each items}}<div {{#if .cond}}foo="{{.bar}}"{{/if}}>yep</div>{{/each}}',
+      template: '{{#each items}}<div {{#if .cond}}foo="{{.bar}}"{{/if}}>yep</div>{{/each}}',
       data: {
         items: [{ cond: true, bar: "baz" }]
       }
@@ -84,10 +83,7 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, '<div foo="baz">yep</div>');
     r.unshift("items", { cond: true, bar: "bat" });
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div foo="bat">yep</div><div foo="baz">yep</div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div foo="bat">yep</div><div foo="baz">yep</div>');
   });
 
   test("yielders shuffle correctly", t => {
@@ -193,8 +189,7 @@ export default function() {
 
     const r = new Ractive({
       el: fixture,
-      template:
-        '{{#each items}}<button on-click="@this.foo()">clickme</button>{{/each}}',
+      template: '{{#each items}}<button on-click="@this.foo()">clickme</button>{{/each}}',
       data: { items: [1] }
     });
 
@@ -410,9 +405,7 @@ export default function() {
   }
 
   removedElementsTest("splice", ractive => ractive.splice("options", 1, 1));
-  removedElementsTest("merge", ractive =>
-    ractive.set("options", ["a", "c"], { shuffle: true })
-  );
+  removedElementsTest("merge", ractive => ractive.set("options", ["a", "c"], { shuffle: true }));
 
   test(`mapped unresolved computations should shuffle correctly (#2602)`, t => {
     const cmp = Ractive.extend({
@@ -534,10 +527,7 @@ export default function() {
       template:
         "{{#each outer}}{{#each inner}}{{.foo}}{{../0.foo}}{{~/outer.0.inner.0.foo}}{{/each}}{{.inner.0.foo}}{{/each}}",
       data: {
-        outer: [
-          { inner: [{ foo: 1 }, { foo: 2 }] },
-          { inner: [{ foo: 3 }, { foo: 4 }] }
-        ]
+        outer: [{ inner: [{ foo: 1 }, { foo: 2 }] }, { inner: [{ foo: 3 }, { foo: 4 }] }]
       }
     });
 
@@ -704,10 +694,7 @@ export default function() {
     });
 
     t.equal(inits, 3);
-    t.htmlEqual(
-      fixture.innerHTML,
-      "<span>1</span><span>2</span><span>3</span>"
-    );
+    t.htmlEqual(fixture.innerHTML, "<span>1</span><span>2</span><span>3</span>");
     r.shift("list");
     t.ok(tears === 1 && inits === 3 && upds === 0);
     t.htmlEqual(fixture.innerHTML, "<span>2</span><span>3</span>");
@@ -720,8 +707,7 @@ export default function() {
     const map = { 1: 0, 2: 0, undefined: 0 };
     const r = new Ractive({
       el: fixture,
-      template:
-        '{{#each list}}{{#if .show}}<span foo-out=".num" />{{/if}}{{/each}}',
+      template: '{{#each list}}{{#if .show}}<span foo-out=".num" />{{/if}}{{/each}}',
       data: { list: [{ num: 1, show: true }, { num: 2, show: true }] },
       transitions: {
         foo(trans, num) {
@@ -743,8 +729,7 @@ export default function() {
   test(`shuffling lists with nested lists with same-named keypaths (#2491)`, t => {
     const r = new Ractive({
       el: fixture,
-      template:
-        "{{#each list}}{{#each list}}<span>{{@keypath}}</span>{{/each}}{{/each}}",
+      template: "{{#each list}}{{#each list}}<span>{{@keypath}}</span>{{/each}}{{/each}}",
       data: {
         list: [{ list: [0] }, { list: [{ list: [0] }, 1, 2] }]
       }

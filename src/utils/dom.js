@@ -2,15 +2,7 @@ import { isClient, svg, vendors, win, doc } from "config/environment";
 import { html } from "config/namespaces";
 import { isString, isNumber } from "utils/is";
 
-let createElement,
-  matches,
-  div,
-  methodNames,
-  unprefixed,
-  prefixed,
-  i,
-  j,
-  makeFunction;
+let createElement, matches, div, methodNames, unprefixed, prefixed, i, j, makeFunction;
 
 // Test for SVG support
 if (!svg) {
@@ -28,9 +20,7 @@ if (!svg) {
       return extend ? doc.createElement(type, extend) : doc.createElement(type);
     }
 
-    return extend
-      ? doc.createElementNS(ns, type, extend)
-      : doc.createElementNS(ns, type);
+    return extend ? doc.createElementNS(ns, type, extend) : doc.createElementNS(ns, type);
   };
 }
 
@@ -105,10 +95,7 @@ if (!isClient) {
     } else {
       j = vendors.length;
       while (j--) {
-        prefixed =
-          vendors[i] +
-          unprefixed.substr(0, 1).toUpperCase() +
-          unprefixed.substring(1);
+        prefixed = vendors[i] + unprefixed.substr(0, 1).toUpperCase() + unprefixed.substring(1);
 
         if (div[prefixed]) {
           matches = makeFunction(prefixed);
@@ -161,9 +148,7 @@ function detachNode(node) {
 }
 
 function safeToStringValue(value) {
-  return value == null || (isNumber(value) && isNaN(value)) || !value.toString
-    ? ""
-    : "" + value;
+  return value == null || (isNumber(value) && isNaN(value)) || !value.toString ? "" : "" + value;
 }
 
 function safeAttributeString(string) {
@@ -173,11 +158,4 @@ function safeAttributeString(string) {
     .replace(/'/g, "&#39;");
 }
 
-export {
-  createElement,
-  detachNode,
-  getElement,
-  matches,
-  safeToStringValue,
-  safeAttributeString
-};
+export { createElement, detachNode, getElement, matches, safeToStringValue, safeAttributeString };

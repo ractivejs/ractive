@@ -22,17 +22,12 @@ export default function() {
     Object.keys(registriesAndDefinition).forEach(name => {
       const definition = registriesAndDefinition[name];
       const isRegistryInDefaults = registriesInDefaults.indexOf(name) > -1;
-      const registryLocation = isRegistryInDefaults
-        ? Ractive.defaults
-        : Ractive;
+      const registryLocation = isRegistryInDefaults ? Ractive.defaults : Ractive;
       const ractive = new Ractive({});
 
       registryLocation[name].foo = definition;
 
-      t.ok(
-        registryLocation.hasOwnProperty(name),
-        `should have ${name} global registry`
-      );
+      t.ok(registryLocation.hasOwnProperty(name), `should have ${name} global registry`);
       t.strictEqual(
         ractive[name].foo,
         registryLocation[name].foo,

@@ -165,8 +165,7 @@ export default function() {
 
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '<Component on-foo="@this.foo(...arguments)" on-bar="@this.bar(...arguments)"/>',
+      template: '<Component on-foo="@this.foo(...arguments)" on-bar="@this.bar(...arguments)"/>',
       components: { Component },
       foo(arg1, arg2) {
         t.equal(arg1, "foo");
@@ -241,14 +240,12 @@ export default function() {
     t.expect(4);
 
     const Component = Ractive.extend({
-      template:
-        '<span id="test" on-click="@this.fire("foo", event, "foo", 42)">click me</span>'
+      template: '<span id="test" on-click="@this.fire("foo", event, "foo", 42)">click me</span>'
     });
 
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '<Component on-foo="@this.foo($2, \'qux\', $1)" on-bar="@this.bar($1, 100)"/>',
+      template: '<Component on-foo="@this.foo($2, \'qux\', $1)" on-bar="@this.bar($1, 100)"/>',
       components: { Component },
       foo(arg1, arg2) {
         t.equal(arg1, 42);

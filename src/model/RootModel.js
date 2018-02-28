@@ -2,10 +2,7 @@ import { capture } from "src/global/capture";
 import Model from "./Model";
 import { handleChange, mark } from "shared/methodCallers";
 import RactiveModel from "./specials/RactiveModel";
-import SharedModel, {
-  GlobalModel,
-  SharedModel as SharedBase
-} from "./specials/SharedModel";
+import SharedModel, { GlobalModel, SharedModel as SharedBase } from "./specials/SharedModel";
 import { splitKeypath, unescapeKey } from "shared/keypaths";
 import resolveReference from "src/view/resolvers/resolveReference";
 import noop from "utils/noop";
@@ -73,8 +70,7 @@ export default class RootModel extends Model {
   }
 
   getHelpers() {
-    if (!this.helpers)
-      this.helpers = new SharedBase(this.ractive.helpers, "helpers");
+    if (!this.helpers) this.helpers = new SharedBase(this.ractive.helpers, "helpers");
     return this.helpers;
   }
 
@@ -83,9 +79,7 @@ export default class RootModel extends Model {
   }
 
   getRactiveModel() {
-    return (
-      this.ractiveModel || (this.ractiveModel = new RactiveModel(this.ractive))
-    );
+    return this.ractiveModel || (this.ractiveModel = new RactiveModel(this.ractive));
   }
 
   getValueChildren() {
@@ -112,8 +106,7 @@ export default class RootModel extends Model {
       const unescapedKey = unescapeKey(key);
 
       // mappings/links and computations
-      if (this.childByKey[unescapedKey] && this.childByKey[unescapedKey]._link)
-        return true;
+      if (this.childByKey[unescapedKey] && this.childByKey[unescapedKey]._link) return true;
     }
   }
 
@@ -169,10 +162,7 @@ function attachImplicits(model, fragment) {
   for (const k in model.childByKey) {
     if (k in model.value) {
       attachImplicits(model.childByKey[k], fragment);
-    } else if (
-      !model.childByKey[k]._link ||
-      model.childByKey[k]._link.isDetached()
-    ) {
+    } else if (!model.childByKey[k]._link || model.childByKey[k]._link.isDetached()) {
       const mdl = resolveReference(fragment, k);
       if (mdl) {
         model.childByKey[k].link(mdl, k, { implicit: true });

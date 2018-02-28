@@ -16,9 +16,7 @@ export default class PatternObserver {
 
     const pattern = keys.join("\\.").replace(star, "(.+)");
     const baseKeypath = (this.baseKeypath = baseModel.getKeypath(ractive));
-    this.pattern = new RegExp(
-      `^${baseKeypath ? baseKeypath + "\\." : ""}${pattern}$`
-    );
+    this.pattern = new RegExp(`^${baseKeypath ? baseKeypath + "\\." : ""}${pattern}$`);
     this.recursive = keys.length === 1 && keys[0] === "**";
     if (this.recursive) this.keys = ["*"];
     if (options.old) {
@@ -126,9 +124,7 @@ export default class PatternObserver {
         } else {
           const ok = this.baseModel.isRoot
             ? this.changed.map(keys => keys.map(escapeKey).join("."))
-            : this.changed.map(
-                keys => this.baseKeypath + "." + keys.map(escapeKey).join(".")
-              );
+            : this.changed.map(keys => this.baseKeypath + "." + keys.map(escapeKey).join("."));
 
           this.baseModel.findMatches(this.keys).forEach(model => {
             const keypath = model.getKeypath(this.ractive);

@@ -235,8 +235,7 @@ export function readAttributeOrDirective(parser) {
     attribute.n = match[1];
     attribute.t = TRANSITION;
     readArguments(parser, attribute);
-    attribute.v =
-      match[2] === "in-out" ? "t0" : match[2] === "in" ? "t1" : "t2";
+    attribute.v = match[2] === "in-out" ? "t0" : match[2] === "in" ? "t1" : "t2";
   } else if ((match = eventPattern.exec(attribute.n))) {
     // on-click etc
     attribute.n = splitEvent(match[1]);
@@ -292,8 +291,7 @@ export function readAttributeOrDirective(parser) {
 
 function readProxyEvent(parser, attribute) {
   const start = parser.pos;
-  if (!parser.matchString("="))
-    parser.error(`Missing required directive arguments`);
+  if (!parser.matchString("=")) parser.error(`Missing required directive arguments`);
 
   const quote = parser.matchString(`'`) || parser.matchString(`"`);
   parser.sp();
@@ -334,8 +332,7 @@ function readArguments(parser, attribute, required = false, single = false) {
 
   if (quote) {
     parser.sp();
-    if (parser.matchString(quote) !== quote)
-      parser.error(`Expected matching quote '${quote}'`);
+    if (parser.matchString(quote) !== quote) parser.error(`Expected matching quote '${quote}'`);
   }
 
   if (single) {

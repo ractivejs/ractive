@@ -66,9 +66,7 @@ export default function transformCss(css, id) {
 
           const selectors = $1.split(",").map(trim);
           const transformed =
-            selectors
-              .map(selector => transformSelector(selector, dataAttr))
-              .join(", ") + " ";
+            selectors.map(selector => transformSelector(selector, dataAttr)).join(", ") + " ";
 
           return match.replace($1, transformed);
         });

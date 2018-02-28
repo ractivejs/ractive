@@ -135,8 +135,7 @@ export default function() {
 
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '{{#foo}}<span id="test" on-click="someEvent">click me</span>{{/foo}}',
+      template: '{{#foo}}<span id="test" on-click="someEvent">click me</span>{{/foo}}',
       data: {
         foo: { bar: "test" }
       }
@@ -159,8 +158,7 @@ export default function() {
       isolated: false
     });
     const cmp2 = Ractive.extend({
-      template:
-        '{{#with oof}}<span id="test2" on-click="someEvent">click me</span>{{/with}}',
+      template: '{{#with oof}}<span id="test2" on-click="someEvent">click me</span>{{/with}}',
       isolated: false
     });
     const ractive = new Ractive({
@@ -194,8 +192,7 @@ export default function() {
       isolated: false
     });
     const cmp2 = Ractive.extend({
-      template:
-        '{{#with oof}}<span id="test2" on-click="someEvent">click me</span>{{/with}}',
+      template: '{{#with oof}}<span id="test2" on-click="someEvent">click me</span>{{/with}}',
       isolated: false
     });
     const ractive = new Ractive({
@@ -469,8 +466,7 @@ export default function() {
     t.expect(5);
 
     const Component = Ractive.extend({
-      template:
-        '<span id="test" on-click="@this.fire("foo", event, "foo")">click me</span>'
+      template: '<span id="test" on-click="@this.fire("foo", event, "foo")">click me</span>'
     });
 
     const ractive = new Ractive({
@@ -506,14 +502,12 @@ export default function() {
     t.expect(5);
 
     const Component = Ractive.extend({
-      template:
-        '<span id="test" on-click="@this.fire("foo", event, "foo")">click me</span>'
+      template: '<span id="test" on-click="@this.fire("foo", event, "foo")">click me</span>'
     });
 
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '<Component on-foo="foo-reproxy" on-bar="bar-reproxy" on-bizz="bizz-reproxy"/>',
+      template: '<Component on-foo="foo-reproxy" on-bar="bar-reproxy" on-bizz="bizz-reproxy"/>',
       components: { Component }
     });
 

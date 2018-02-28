@@ -8,9 +8,7 @@ const value = /\0(\d+)/g;
 export default function(css, callback, additionalReplaceRules = []) {
   const values = [];
   const reconstruct = css => css.replace(value, (match, n) => values[n]);
-  css = css
-    .replace(escape, match => `\0${values.push(match) - 1}`)
-    .replace(remove, "");
+  css = css.replace(escape, match => `\0${values.push(match) - 1}`).replace(remove, "");
 
   additionalReplaceRules.forEach(pattern => {
     css = css.replace(pattern, match => `\0${values.push(match) - 1}`);

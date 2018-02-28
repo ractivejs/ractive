@@ -129,10 +129,7 @@ export default function() {
       data: { foo: "yep", item: "thing" }
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div class="big" data-foo="yep">thing</div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div class="big" data-foo="yep">thing</div>');
 
     const inst = r.findComponent("cmp");
     t.equal(inst.get("class"), "big");

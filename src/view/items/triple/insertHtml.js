@@ -85,7 +85,5 @@ export default function(html, node) {
 }
 
 function element(tagName) {
-  return (
-    elementCache[tagName] || (elementCache[tagName] = createElement(tagName))
-  );
+  return elementCache[tagName] || (elementCache[tagName] = createElement(tagName));
 }

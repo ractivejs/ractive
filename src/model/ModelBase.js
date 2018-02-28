@@ -59,8 +59,7 @@ export default class ModelBase {
   }
 
   getKeypath(ractive) {
-    if (ractive !== this.ractive && this._link)
-      return this._link.target.getKeypath(ractive);
+    if (ractive !== this.ractive && this._link) return this._link.target.getKeypath(ractive);
 
     if (!this.keypath) {
       const parent = this.parent && this.parent.getKeypath(ractive);
@@ -90,10 +89,7 @@ export default class ModelBase {
 
     const computed = this.computed;
     if (computed) {
-      children.push.apply(
-        children,
-        objectKeys(computed).map(k => this.joinKey(k))
-      );
+      children.push.apply(children, objectKeys(computed).map(k => this.joinKey(k)));
     }
 
     return children;
@@ -148,8 +144,7 @@ export default class ModelBase {
     computed = this.root.ractive && this.root.ractive.computed;
     if (computed) {
       objectKeys(computed).forEach(k => {
-        if (computed[k].pattern && computed[k].pattern.test(this.getKeypath()))
-          return true;
+        if (computed[k].pattern && computed[k].pattern.test(this.getKeypath())) return true;
       });
     }
 
@@ -302,8 +297,7 @@ export function findBoundValue(list) {
     if (list[i].bound) {
       const owner = list[i].owner;
       if (owner) {
-        const value =
-          owner.name === "checked" ? owner.node.checked : owner.node.value;
+        const value = owner.name === "checked" ? owner.node.checked : owner.node.value;
         return { value };
       }
     }

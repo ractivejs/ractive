@@ -16,8 +16,7 @@ export default function resolveReference(fragment, ref) {
   if (ref === ".") return fragment.findContext();
 
   // ancestor references
-  if (ref[0] === "~")
-    return fragment.ractive.viewmodel.joinAll(splitKeypath(ref.slice(2)));
+  if (ref[0] === "~") return fragment.ractive.viewmodel.joinAll(splitKeypath(ref.slice(2)));
 
   // scoped references
   if (ref[0] === "." || ref[0] === "^") {
@@ -179,12 +178,7 @@ export default function resolveReference(fragment, ref) {
 
     if (model) {
       if (createMapping) {
-        model = initialFragment.ractive.viewmodel.createLink(
-          base,
-          model,
-          base,
-          { implicit: true }
-        );
+        model = initialFragment.ractive.viewmodel.createLink(base, model, base, { implicit: true });
       }
 
       if (keys.length > 0 && isFunction(model.joinAll)) {
@@ -195,8 +189,7 @@ export default function resolveReference(fragment, ref) {
     }
 
     if (
-      (fragment.componentParent ||
-        (!fragment.parent && fragment.ractive.component)) &&
+      (fragment.componentParent || (!fragment.parent && fragment.ractive.component)) &&
       !fragment.ractive.isolated
     ) {
       // ascend through component boundary
@@ -225,11 +218,7 @@ export default function resolveReference(fragment, ref) {
 }
 
 function up(fragment) {
-  return (
-    fragment &&
-    ((!fragment.ractive.isolated && fragment.componentParent) ||
-      fragment.parent)
-  );
+  return fragment && ((!fragment.ractive.isolated && fragment.componentParent) || fragment.parent);
 }
 
 function findIter(start) {
@@ -243,9 +232,7 @@ function findIter(start) {
 }
 
 function badReference(key) {
-  throw new Error(
-    `An index or key reference (${key}) cannot have child properties`
-  );
+  throw new Error(`An index or key reference (${key}) cannot have child properties`);
 }
 
 class ContextModel {

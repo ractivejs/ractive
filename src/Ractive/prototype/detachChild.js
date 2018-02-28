@@ -18,9 +18,7 @@ export default function detachChild(child) {
   }
 
   if (!meta || child.parent !== this)
-    throw new Error(
-      `Instance ${child._guid} is not attached to this instance.`
-    );
+    throw new Error(`Instance ${child._guid} is not attached to this instance.`);
 
   const promise = runloop.start();
 

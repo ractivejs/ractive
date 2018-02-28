@@ -41,12 +41,7 @@ export default class Observer {
 
   dispatch() {
     if (!this.cancelled) {
-      this.callback.call(
-        this.context,
-        this.newValue,
-        this.oldValue,
-        this.keypath
-      );
+      this.callback.call(this.context, this.newValue, this.oldValue, this.keypath);
       updateOld(this, true);
       this.dirty = false;
     }
@@ -94,11 +89,6 @@ function updateOld(observer, fresh) {
     ? observer.model ? observer.model.get() : observer.newValue
     : observer.newValue;
   observer.oldValue = observer.oldFn
-    ? observer.oldFn.call(
-        observer.oldContext,
-        undefined,
-        next,
-        observer.keypath
-      )
+    ? observer.oldFn.call(observer.oldContext, undefined, next, observer.keypath)
     : next;
 }

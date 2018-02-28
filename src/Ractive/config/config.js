@@ -12,12 +12,9 @@ import { hasOwn, keys } from "utils/object";
 import { isFunction } from "utils/is";
 
 const config = {
-  extend: (Parent, proto, options, Child) =>
-    configure("extend", Parent, proto, options, Child),
-  init: (Parent, ractive, options) =>
-    configure("init", Parent, ractive, options),
-  reset: ractive =>
-    order.filter(c => c.reset && c.reset(ractive)).map(c => c.name)
+  extend: (Parent, proto, options, Child) => configure("extend", Parent, proto, options, Child),
+  init: (Parent, ractive, options) => configure("init", Parent, ractive, options),
+  reset: ractive => order.filter(c => c.reset && c.reset(ractive)).map(c => c.name)
 };
 
 const custom = {
@@ -35,13 +32,7 @@ const isStandardKey = makeObj(defaultKeys.filter(key => !custom[key]));
 
 // blacklisted keys that we don't double extend
 const isBlacklisted = makeObj(
-  defaultKeys.concat(registries.map(r => r.name), [
-    "on",
-    "observe",
-    "attributes",
-    "cssData",
-    "use"
-  ])
+  defaultKeys.concat(registries.map(r => r.name), ["on", "observe", "attributes", "cssData", "use"])
 );
 
 const order = [].concat(

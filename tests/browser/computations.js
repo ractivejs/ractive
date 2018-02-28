@@ -79,8 +79,7 @@ export default function() {
   test("Computed value with a set() method", t => {
     const ractive = new Ractive({
       el: fixture,
-      template:
-        "<p>First name: {{first}}</p><p>Last name: {{last}}</p><p>Full name: {{full}}</p>",
+      template: "<p>First name: {{first}}</p><p>Last name: {{last}}</p><p>Full name: {{full}}</p>",
       data: {
         first: "Jim",
         last: "Beam"
@@ -123,8 +122,7 @@ export default function() {
 
   test("Components can have default computed properties", t => {
     const Box = Ractive.extend({
-      template:
-        '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
+      template: '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
       computed: {
         area: "width * height"
       }
@@ -154,8 +152,7 @@ export default function() {
 
   test("Instances can augment default computed properties of components", t => {
     const Box = Ractive.extend({
-      template:
-        '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
+      template: '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
       computed: {
         area: "width * height"
       }
@@ -1200,22 +1197,13 @@ export default function() {
       }
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<span class="selected"></span><span></span><span></span>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<span class="selected"></span><span></span><span></span>');
 
     r.set("selected", 1);
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<span wat></span><span class="selected"></span><span></span>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<span wat></span><span class="selected"></span><span></span>');
 
     r.set("selected", 0);
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<span class="selected"></span><span></span><span></span>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<span class="selected"></span><span></span><span></span>');
   });
 
   test(`various spread expressions compute correctly`, t => {

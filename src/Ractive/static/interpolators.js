@@ -72,8 +72,7 @@ const interpolators = {
       if (hasOwn(from, prop)) {
         if (hasOwn(to, prop)) {
           properties.push(prop);
-          interpolators[prop] =
-            interpolate(from[prop], to[prop]) || (() => to[prop]);
+          interpolators[prop] = interpolate(from[prop], to[prop]) || (() => to[prop]);
         } else {
           intermediate[prop] = from[prop];
         }

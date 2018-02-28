@@ -9,8 +9,7 @@ export default function() {
 
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '<ul>{{#items}}<li id="{{.}}" log-in-out>{{.}}</li>{{/items}}</ul>',
+      template: '<ul>{{#items}}<li id="{{.}}" log-in-out>{{.}}</li>{{/items}}</ul>',
       data: {
         items: ["foo", "bar", "baz"]
       },
@@ -54,8 +53,7 @@ export default function() {
 
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '<ul>{{#items}}<li id="{{.}}" log-in-out>{{.}}</li>{{/items}}</ul>',
+      template: '<ul>{{#items}}<li id="{{.}}" log-in-out>{{.}}</li>{{/items}}</ul>',
       data: {
         items: ["foo", "bar", "baz"]
       },
@@ -83,10 +81,7 @@ export default function() {
     t.equal(entered, 3);
 
     ractive.set("items", ["foo", "baz"], { shuffle: true });
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<ul><li id="foo">foo</li><li id="baz">baz</li></ul>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<ul><li id="foo">foo</li><li id="baz">baz</li></ul>');
     t.equal(exited, 1);
 
     t.ok(foo === ractive.find("#foo "));
@@ -100,8 +95,7 @@ export default function() {
 
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '<ul>{{#items}}<li id="{{name}}" log-in-out>{{name}}</li>{{/items}}</ul>',
+      template: '<ul>{{#items}}<li id="{{name}}" log-in-out>{{name}}</li>{{/items}}</ul>',
       data: {
         items: [{ name: "foo" }, { name: "bar" }, { name: "baz" }]
       },
@@ -150,8 +144,7 @@ export default function() {
 
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '<ul>{{#items}}<li id="{{name}}" log-in-out>{{name}}</li>{{/items}}</ul>',
+      template: '<ul>{{#items}}<li id="{{name}}" log-in-out>{{name}}</li>{{/items}}</ul>',
       data: {
         items: [{ name: "foo" }, { name: "bar" }, { name: "baz" }]
       },
@@ -200,8 +193,7 @@ export default function() {
 
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '<ul>{{#items}}<li id="{{name}}" log-in-out>{{name}}</li>{{/items}}</ul>',
+      template: '<ul>{{#items}}<li id="{{name}}" log-in-out>{{name}}</li>{{/items}}</ul>',
       data: {
         items: [{ name: "foo" }, { name: "bar" }, { name: "baz" }]
       },
@@ -250,8 +242,7 @@ export default function() {
 
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '<ul>{{#items}}<li id="{{name}}" log-in-out>{{name}}</li>{{/items}}</ul>',
+      template: '<ul>{{#items}}<li id="{{name}}" log-in-out>{{name}}</li>{{/items}}</ul>',
       data: {
         items: [{ name: "foo" }, { name: "bar" }, { name: "baz" }]
       },
@@ -351,10 +342,7 @@ export default function() {
     });
 
     ractive.set("items", ["c", "b", "d", "a"], { shuffle: true });
-    t.htmlEqual(
-      fixture.innerHTML,
-      "<ul><li>c</li><li>b</li><li>d</li><li>a</li></ul>"
-    );
+    t.htmlEqual(fixture.innerHTML, "<ul><li>c</li><li>b</li><li>d</li><li>a</li></ul>");
   });
 
   test("Merging works with unrendered instances (#1314)", t => {
@@ -412,10 +400,7 @@ export default function() {
     list[1] = list[2];
     list[2] = tmp;
     r.set("list", list, { shuffle: true });
-    t.htmlEqual(
-      fixture.innerHTML,
-      "c<span>c</span><span>b</span><span>a</span>"
-    );
+    t.htmlEqual(fixture.innerHTML, "c<span>c</span><span>b</span><span>a</span>");
 
     /*eslint-disable no-unused-vars*/
     const [postC, postB, postA] = r.findAll("span");

@@ -49,11 +49,7 @@ export default function() {
       inTheater() {
         t.ok((methodEvent = this.event), "method call has event");
         this.fire("yell");
-        t.equal(
-          this.event,
-          methodEvent,
-          "method event is same after firing event"
-        );
+        t.equal(this.event, methodEvent, "method event is same after firing event");
       }
     });
 

@@ -1,9 +1,4 @@
-import {
-  hasUsableConsole,
-  afterEach,
-  onWarn,
-  initModule
-} from "../../../helpers/test-config";
+import { hasUsableConsole, afterEach, onWarn, initModule } from "../../../helpers/test-config";
 import { test } from "qunit";
 
 export default function() {
@@ -131,10 +126,7 @@ export default function() {
         data: 1
       });
     } catch (err) {
-      t.equal(
-        err.message,
-        "data option must be an object or a function, `1` is not valid"
-      );
+      t.equal(err.message, "data option must be an object or a function, `1` is not valid");
     }
   });
 

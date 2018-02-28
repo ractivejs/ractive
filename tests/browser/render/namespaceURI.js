@@ -97,12 +97,7 @@ export default function() {
 
       ractive.render(fixture);
 
-      t.equal(
-        ractive
-          .find("use")
-          .getAttributeNS("http://www.w3.org/1999/xlink", "href"),
-        "#yup"
-      );
+      t.equal(ractive.find("use").getAttributeNS("http://www.w3.org/1999/xlink", "href"), "#yup");
     });
   }
 }

@@ -108,8 +108,7 @@ export default function() {
   test("textarea with html content and no bindings should render the html text as a normal textarea would (#2198)", t => {
     new Ractive({
       el: fixture,
-      template:
-        '<textarea><div class="foo"><strong>bar</strong></div><p>WAT</p></textarea>'
+      template: '<textarea><div class="foo"><strong>bar</strong></div><p>WAT</p></textarea>'
     });
 
     t.equal(
@@ -125,20 +124,11 @@ export default function() {
       data: { foo: "part1", bar: "part2", baz: "<div>hello</div>" }
     });
 
-    t.equal(
-      fixture.querySelector("textarea").value,
-      "<i>part1</i>part2 <div>hello</div>"
-    );
+    t.equal(fixture.querySelector("textarea").value, "<i>part1</i>part2 <div>hello</div>");
     r.set("foo", "change1");
-    t.equal(
-      fixture.querySelector("textarea").value,
-      "<i>change1</i>part2 <div>hello</div>"
-    );
+    t.equal(fixture.querySelector("textarea").value, "<i>change1</i>part2 <div>hello</div>");
     r.set("bar", "change2");
-    t.equal(
-      fixture.querySelector("textarea").value,
-      "<i>change1</i>change2 <div>hello</div>"
-    );
+    t.equal(fixture.querySelector("textarea").value, "<i>change1</i>change2 <div>hello</div>");
     r.set("baz", "<strong>change3</strong>");
     t.equal(
       fixture.querySelector("textarea").value,

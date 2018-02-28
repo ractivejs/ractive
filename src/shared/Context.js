@@ -1,22 +1,13 @@
 import resolveReference from "src/view/resolvers/resolveReference";
 import Model from "src/model/Model";
-import {
-  isNumeric,
-  isObject,
-  isNumber,
-  isObjectType,
-  isString
-} from "utils/is";
+import { isNumeric, isObject, isNumber, isObjectType, isString } from "utils/is";
 import runloop from "src/global/runloop";
 import findElement from "src/view/items/shared/findElement";
 import { set as sharedSet } from "./set";
 import makeArrayMethod from "../Ractive/prototype/shared/makeArrayMethod";
 import { animate as protoAnimate } from "../Ractive/prototype/animate";
 import { update as protoUpdate } from "../Ractive/prototype/update";
-import getRactiveContext, {
-  extern,
-  findParentWithContext
-} from "./getRactiveContext";
+import getRactiveContext, { extern, findParentWithContext } from "./getRactiveContext";
 import { hasOwn } from "utils/object";
 import { ELEMENT } from "config/types";
 
@@ -79,8 +70,7 @@ export default class Context {
       build(this, keypath, num).map(pair => {
         const [model, val] = pair;
         const value = model.get();
-        if (!isNumeric(val) || !isNumeric(value))
-          throw new Error("Cannot add non-numeric value");
+        if (!isNumeric(val) || !isNumeric(value)) throw new Error("Cannot add non-numeric value");
         return [model, value + val];
       }),
       opts
@@ -105,13 +95,9 @@ export default class Context {
     let fragment = this.fragment;
 
     if (fragment.context)
-      fragment = findParentWithContext(
-        fragment.parent || (component && fragment.componentParent)
-      );
+      fragment = findParentWithContext(fragment.parent || (component && fragment.componentParent));
     else {
-      fragment = findParentWithContext(
-        fragment.parent || (component && fragment.componentParent)
-      );
+      fragment = findParentWithContext(fragment.parent || (component && fragment.componentParent));
       if (fragment)
         fragment = findParentWithContext(
           fragment.parent || (component && fragment.componentParent)
@@ -231,8 +217,7 @@ export default class Context {
       build(this, keypath, num).map(pair => {
         const [model, val] = pair;
         const value = model.get();
-        if (!isNumeric(val) || !isNumeric(value))
-          throw new Error("Cannot add non-numeric value");
+        if (!isNumeric(val) || !isNumeric(value)) throw new Error("Cannot add non-numeric value");
         return [model, value - val];
       }),
       opts

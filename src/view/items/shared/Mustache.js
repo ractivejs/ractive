@@ -64,8 +64,6 @@ export function MustacheContainer(options) {
   Mustache.call(this, options);
 }
 
-const proto = (MustacheContainer.prototype = Object.create(
-  ContainerItem.prototype
-));
+const proto = (MustacheContainer.prototype = Object.create(ContainerItem.prototype));
 
 assign(proto, Mustache.prototype, { constructor: MustacheContainer });

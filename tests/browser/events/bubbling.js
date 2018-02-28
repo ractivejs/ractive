@@ -31,9 +31,7 @@ export default function() {
   }
 
   function notOnOriginating() {
-    throw new Error(
-      "Namespaced event should not fire on originating component"
-    );
+    throw new Error("Namespaced event should not fire on originating component");
   }
 
   function shouldBeNoBubbling() {

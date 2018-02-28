@@ -1,8 +1,4 @@
-import {
-  hasUsableConsole,
-  onWarn,
-  initModule
-} from "../../helpers/test-config";
+import { hasUsableConsole, onWarn, initModule } from "../../helpers/test-config";
 import { test } from "qunit";
 
 export default function() {
@@ -467,10 +463,7 @@ export default function() {
 
   test("Multiple configuration", t => {
     const Parent = Ractive.extend({ template: "" });
-    const Child = Parent.extend(
-      { template: "{{ foo }}" },
-      { template: "{{ bar }}" }
-    );
+    const Child = Parent.extend({ template: "{{ foo }}" }, { template: "{{ bar }}" });
     const template = Child.prototype.template;
 
     t.deepEqual(template, { v: 4, t: [{ r: "bar", t: 2 }] });

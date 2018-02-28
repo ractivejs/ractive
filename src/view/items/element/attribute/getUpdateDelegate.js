@@ -28,16 +28,13 @@ export default function getUpdateDelegate(attribute) {
 
     // special case - selects
     if (element.name === "select" && name === "value") {
-      return element.getAttribute("multiple")
-        ? updateMultipleSelectValue
-        : updateSelectValue;
+      return element.getAttribute("multiple") ? updateMultipleSelectValue : updateSelectValue;
     }
 
     if (element.name === "textarea") return updateStringValue;
 
     // special case - contenteditable
-    if (element.getAttribute("contenteditable") != null)
-      return updateContentEditableValue;
+    if (element.getAttribute("contenteditable") != null) return updateContentEditableValue;
 
     // special case - <input>
     if (element.name === "input") {
@@ -47,11 +44,7 @@ export default function getUpdateDelegate(attribute) {
       if (type === "file") return noop; // read-only
 
       // type='radio' name='{{twoway}}'
-      if (
-        type === "radio" &&
-        element.binding &&
-        element.binding.attribute.name === "name"
-      )
+      if (type === "radio" && element.binding && element.binding.attribute.name === "name")
         return updateRadioValue;
 
       if (~textTypes.indexOf(type)) return updateStringValue;
@@ -80,19 +73,12 @@ export default function getUpdateDelegate(attribute) {
 
   if (attribute.isBoolean) {
     const type = element.getAttribute("type");
-    if (
-      attribute.interpolator &&
-      name === "checked" &&
-      (type === "checkbox" || type === "radio")
-    )
+    if (attribute.interpolator && name === "checked" && (type === "checkbox" || type === "radio"))
       attribute.interpolator.bound = true;
     return updateBoolean;
   }
 
-  if (
-    attribute.namespace &&
-    attribute.namespace !== attribute.node.namespaceURI
-  )
+  if (attribute.namespace && attribute.namespace !== attribute.node.namespaceURI)
     return updateNamespacedAttribute;
 
   return updateAttribute;
@@ -111,9 +97,7 @@ function updateMultipleSelectValue(reset) {
   } else {
     while (i--) {
       const option = options[i];
-      const optionValue = option._ractive
-        ? option._ractive.value
-        : option.value; // options inserted via a triple don't have _ractive
+      const optionValue = option._ractive ? option._ractive.value : option.value; // options inserted via a triple don't have _ractive
 
       option.selected = arrayContains(value, optionValue);
     }
@@ -136,9 +120,7 @@ function updateSelectValue(reset) {
     } else {
       while (i--) {
         const option = options[i];
-        const optionValue = option._ractive
-          ? option._ractive.value
-          : option.value; // options inserted via a triple don't have _ractive
+        const optionValue = option._ractive ? option._ractive.value : option.value; // options inserted via a triple don't have _ractive
         if (option.disabled && option.selected) wasSelected = true;
 
         if (optionValue == value) {
@@ -178,12 +160,7 @@ function updateRadioValue(reset) {
   // changed so that it's no longer checked, the twoway binding is
   // most likely out of date. To fix it we have to jump through some
   // hoops... this is a little kludgy but it works
-  if (
-    wasChecked &&
-    !node.checked &&
-    this.element.binding &&
-    this.element.binding.rendered
-  ) {
+  if (wasChecked && !node.checked && this.element.binding && this.element.binding.rendered) {
     this.element.binding.group.model.set(this.element.binding.group.getValue());
   }
 }
@@ -220,11 +197,7 @@ function updateStringValue(reset) {
 
 function updateRadioName(reset) {
   if (reset) this.node.checked = false;
-  else
-    this.node.checked = this.element.compare(
-      this.getValue(),
-      this.element.binding.getValue()
-    );
+  else this.node.checked = this.element.compare(this.getValue(), this.element.binding.getValue());
 }
 
 function updateCheckboxName(reset) {
@@ -262,11 +235,7 @@ function updateStyleAttribute(reset) {
   while (i < keys.length) {
     if (keys[i] in style) {
       const safe = props[keys[i]].replace("!important", "");
-      style.setProperty(
-        keys[i],
-        safe,
-        safe.length !== props[keys[i]].length ? "important" : ""
-      );
+      style.setProperty(keys[i], safe, safe.length !== props[keys[i]].length ? "important" : "");
     }
     i++;
   }
@@ -274,8 +243,7 @@ function updateStyleAttribute(reset) {
   // remove now-missing attrs
   i = prev.length;
   while (i--) {
-    if (!~keys.indexOf(prev[i]) && prev[i] in style)
-      style.setProperty(prev[i], "", "");
+    if (!~keys.indexOf(prev[i]) && prev[i] in style) style.setProperty(prev[i], "", "");
   }
 
   this.previous = keys;
@@ -286,16 +254,11 @@ function updateInlineStyle(reset) {
     this.style = hyphenateCamel(this.name.substr(6));
   }
 
-  if (reset && this.node.style.getPropertyValue(this.style) !== this.last)
-    return;
+  if (reset && this.node.style.getPropertyValue(this.style) !== this.last) return;
 
   const value = reset ? "" : safeToStringValue(this.getValue());
   const safe = value.replace("!important", "");
-  this.node.style.setProperty(
-    this.style,
-    safe,
-    safe.length !== value.length ? "important" : ""
-  );
+  this.node.style.setProperty(this.style, safe, safe.length !== value.length ? "important" : "");
   this.last = this.node.style.getPropertyValue(this.style);
 }
 
@@ -381,15 +344,9 @@ function updateNamespacedAttribute(reset) {
   if (reset) {
     if (
       this.value ===
-      this.node.getAttributeNS(
-        this.namespace,
-        this.name.slice(this.name.indexOf(":") + 1)
-      )
+      this.node.getAttributeNS(this.namespace, this.name.slice(this.name.indexOf(":") + 1))
     ) {
-      this.node.removeAttributeNS(
-        this.namespace,
-        this.name.slice(this.name.indexOf(":") + 1)
-      );
+      this.node.removeAttributeNS(this.namespace, this.name.slice(this.name.indexOf(":") + 1));
     }
   } else {
     this.value = safeToStringValue(this.getString());

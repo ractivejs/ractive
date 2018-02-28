@@ -209,16 +209,10 @@ export default function() {
     );
 
     ractive.pop("items");
-    t.htmlEqual(
-      fixture.innerHTML,
-      "<ul><li>0: a</li><li>1: b</li><li>2: d</li></ul><p>a b d</p>"
-    );
+    t.htmlEqual(fixture.innerHTML, "<ul><li>0: a</li><li>1: b</li><li>2: d</li></ul><p>a b d</p>");
 
     ractive.set("items[0]", "f");
-    t.htmlEqual(
-      fixture.innerHTML,
-      "<ul><li>0: f</li><li>1: b</li><li>2: d</li></ul><p>f b d</p>"
-    );
+    t.htmlEqual(fixture.innerHTML, "<ul><li>0: f</li><li>1: b</li><li>2: d</li></ul><p>f b d</p>");
 
     // reset items from within widget
     const widget = ractive.findComponent("Widget");
@@ -231,22 +225,13 @@ export default function() {
     );
 
     widget.splice("items", 1, 1);
-    t.htmlEqual(
-      fixture.innerHTML,
-      "<ul><li>0: f</li><li>1: d</li><li>2: g</li></ul><p>f d g</p>"
-    );
+    t.htmlEqual(fixture.innerHTML, "<ul><li>0: f</li><li>1: d</li><li>2: g</li></ul><p>f d g</p>");
 
     widget.pop("items");
-    t.htmlEqual(
-      fixture.innerHTML,
-      "<ul><li>0: f</li><li>1: d</li></ul><p>f d</p>"
-    );
+    t.htmlEqual(fixture.innerHTML, "<ul><li>0: f</li><li>1: d</li></ul><p>f d</p>");
 
     widget.set("items[0]", "h");
-    t.htmlEqual(
-      fixture.innerHTML,
-      "<ul><li>0: h</li><li>1: d</li></ul><p>h d</p>"
-    );
+    t.htmlEqual(fixture.innerHTML, "<ul><li>0: h</li><li>1: d</li></ul><p>h d</p>");
   });
 
   test("Components can access outer data context, in the same way JavaScript functions can access outer lexical scope", t => {
@@ -388,8 +373,7 @@ export default function() {
 
     new Ractive({
       el: fixture,
-      template:
-        '{{#stuff:exists}}<Widget exists="{{exists}}" also="{{.}}"/>{{/stuff}}',
+      template: '{{#stuff:exists}}<Widget exists="{{exists}}" also="{{.}}"/>{{/stuff}}',
       components: { Widget },
       data: {
         stuff: {
@@ -793,8 +777,7 @@ export default function() {
       data: { person: {} },
       components: {
         Widget: Ractive.extend({
-          template:
-            '<input value="{{person.first}}"/><input value="{{person.last}}"/>',
+          template: '<input value="{{person.first}}"/><input value="{{person.last}}"/>',
           isolated: false
         })
       }
@@ -961,8 +944,7 @@ export default function() {
 
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '{{data.foo}}{{data.bar}}<Widget1 tata="{{data}}"/><Widget2 schmata="{{data}}"/>',
+      template: '{{data.foo}}{{data.bar}}<Widget1 tata="{{data}}"/><Widget2 schmata="{{data}}"/>',
       data: {
         data: {
           foo: "foo",
@@ -1207,8 +1189,7 @@ export default function() {
   test("Bindings, mappings, and upstream computations should not cause infinite mark recursion (#1526)", t => {
     new Ractive({
       el: fixture,
-      template:
-        '{{JSON.stringify(.)}}<widget foo="{{bar}}" /><input value="{{bar}}" />',
+      template: '{{JSON.stringify(.)}}<widget foo="{{bar}}" /><input value="{{bar}}" />',
       components: { widget: Ractive.extend({ template: "{{foo}}" }) }
     });
 
@@ -1687,10 +1668,7 @@ export default function() {
     r.render();
 
     c = r.findComponent("cmp");
-    t.throws(
-      () => c.add("foo.bar", 1, { isolated: true }),
-      /cannot add to a non-numeric/i
-    );
+    t.throws(() => c.add("foo.bar", 1, { isolated: true }), /cannot add to a non-numeric/i);
     t.equal(r.get("foo.bar"), 99);
 
     r.unrender();
@@ -1770,10 +1748,7 @@ export default function() {
 
     fire(r.findAll("button")[1], "click");
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      "0 dave<button>rm</button>1 marie<button>rm</button>"
-    );
+    t.htmlEqual(fixture.innerHTML, "0 dave<button>rm</button>1 marie<button>rm</button>");
 
     fire(r.findAll("button")[1], "click");
 
@@ -1786,9 +1761,7 @@ export default function() {
       on: {
         construct() {
           if (this.component)
-            this.component.mappings = [
-              { t: 13, n: "scope", f: [{ t: 2, r: "." }] }
-            ];
+            this.component.mappings = [{ t: 13, n: "scope", f: [{ t: 2, r: "." }] }];
         }
       },
       data() {

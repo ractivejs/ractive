@@ -58,8 +58,7 @@ export default function() {
     const pr = Promise.resolve(42);
     new Ractive({
       target: fixture,
-      template:
-        "{{#await promise}}wait{{then val}}{{val}}{{catch e}}{{e}}{{/await}}",
+      template: "{{#await promise}}wait{{then val}}{{val}}{{catch e}}{{e}}{{/await}}",
       data: { promise: pr }
     });
 
@@ -78,8 +77,7 @@ export default function() {
     const pr = Promise.reject(42);
     new Ractive({
       target: fixture,
-      template:
-        "{{#await promise}}wait{{then val}}{{val}}{{catch e}}{{e}}{{/await}}",
+      template: "{{#await promise}}wait{{then val}}{{val}}{{catch e}}{{e}}{{/await}}",
       data: { promise: pr }
     });
 
@@ -230,8 +228,7 @@ export default function() {
     t.throws(() => {
       new Ractive({
         target: fixture,
-        template:
-          "{{#await promise}}wait{{then ok}}ok{{catch one}}ok err{{catch}}nope{{/await}}"
+        template: "{{#await promise}}wait{{then ok}}ok{{catch one}}ok err{{catch}}nope{{/await}}"
       });
     }, /there can only be one/);
   });
@@ -319,15 +316,9 @@ export default function() {
 
     r.set("promise", pr);
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      `<h1>Promises</h1><i>I'm probably</i> waiting... etc`
-    );
+    t.htmlEqual(fixture.innerHTML, `<h1>Promises</h1><i>I'm probably</i> waiting... etc`);
     r.toggle("something");
-    t.htmlEqual(
-      fixture.innerHTML,
-      `<h1>Promises</h1><b>I'm</b> waiting... etc`
-    );
+    t.htmlEqual(fixture.innerHTML, `<h1>Promises</h1><b>I'm</b> waiting... etc`);
     ok(["a", "b", "c"]);
 
     pr.then(() => {
@@ -340,10 +331,7 @@ export default function() {
       r.set("promise", pr);
 
       pr.then(null, () => {
-        t.htmlEqual(
-          fixture.innerHTML,
-          "<h1>Promises</h1><h2>Uh oh</h2> This went wrong: nope etc"
-        );
+        t.htmlEqual(fixture.innerHTML, "<h1>Promises</h1><h2>Uh oh</h2> This went wrong: nope etc");
         done();
       });
     });
@@ -389,8 +377,7 @@ export default function() {
 
     const r = new Ractive({
       target: fixture,
-      template:
-        "{{#await promise}}wait{{then}}done{{catch}}error{{else}}undefined{{/await}}"
+      template: "{{#await promise}}wait{{then}}done{{catch}}error{{else}}undefined{{/await}}"
     });
 
     t.htmlEqual(fixture.innerHTML, "undefined");

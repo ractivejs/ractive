@@ -6,10 +6,7 @@ import { handleChange } from "shared/methodCallers";
 function collect(source, name, attr, dest) {
   source.forEach(item => {
     // queue to rerender if the item is a partial and the current name matches
-    if (
-      item.type === PARTIAL &&
-      (item.refName === name || item.name === name)
-    ) {
+    if (item.type === PARTIAL && (item.refName === name || item.name === name)) {
       item.inAttribute = attr;
       dest.push(item);
       return; // go no further
@@ -17,12 +14,7 @@ function collect(source, name, attr, dest) {
 
     // if it has a fragment, process its items
     if (item.fragment) {
-      collect(
-        item.fragment.iterations || item.fragment.items,
-        name,
-        attr,
-        dest
-      );
+      collect(item.fragment.iterations || item.fragment.items, name, attr, dest);
     } else if (isArray(item.items)) {
       // or if it is itself a fragment, process its items
       collect(item.items, name, attr, dest);

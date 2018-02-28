@@ -8,10 +8,7 @@ export default function Ractive$toggle(keypath, options) {
   }
 
   return set(
-    gather(this, keypath, null, options && options.isolated).map(m => [
-      m,
-      !m.get()
-    ]),
+    gather(this, keypath, null, options && options.isolated).map(m => [m, !m.get()]),
     options
   );
 }

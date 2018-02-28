@@ -169,8 +169,7 @@ export default function() {
   test(`macro content partial`, t => {
     new Ractive({
       target: fixture,
-      template:
-        "<macro>macro1</macro><macro>nope{{#partial content}}macro2{{/partial}}</macro>",
+      template: "<macro>macro1</macro><macro>nope{{#partial content}}macro2{{/partial}}</macro>",
       partials: {
         macro: Ractive.macro(handle => handle.setTemplate("{{>content}}"))
       }
@@ -198,10 +197,7 @@ export default function() {
       }
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div class="foo"></div><span class="joe"></span>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div class="foo"></div><span class="joe"></span>');
   });
 
   test(`optional macro invalidate callback`, t => {
@@ -279,9 +275,7 @@ export default function() {
       enhance: true,
       template: "<macro />",
       partials: {
-        macro: Ractive.macro(handle =>
-          handle.setTemplate('<div class="foo">hello</div>')
-        )
+        macro: Ractive.macro(handle => handle.setTemplate('<div class="foo">hello</div>'))
       }
     });
 
@@ -297,9 +291,7 @@ export default function() {
         foo: true
       },
       partials: {
-        macro: Ractive.macro(handle =>
-          handle.setTemplate('<div class="foo">hello</div>')
-        )
+        macro: Ractive.macro(handle => handle.setTemplate('<div class="foo">hello</div>'))
       }
     });
 

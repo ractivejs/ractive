@@ -7,13 +7,7 @@ import RootModel from "src/model/RootModel";
 import Hook from "src/events/Hook";
 import subscribe from "./helpers/subscribe";
 import Ractive from "../Ractive";
-import {
-  ATTRIBUTE,
-  BINDING_FLAG,
-  DECORATOR,
-  INTERPOLATOR,
-  TRANSITION
-} from "config/types";
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, INTERPOLATOR, TRANSITION } from "config/types";
 import { assign, create, hasOwn } from "utils/object";
 import { isString } from "utils/is";
 import { compute } from "src/Ractive/prototype/compute";
@@ -60,19 +54,13 @@ export default function construct(ractive, options) {
   let i = registryNames.length;
   while (i--) {
     const name = registryNames[i];
-    ractive[name] = assign(
-      create(ractive.constructor[name] || null),
-      options[name]
-    );
+    ractive[name] = assign(create(ractive.constructor[name] || null), options[name]);
   }
 
   i = protoRegistries.length;
   while (i--) {
     const name = protoRegistries[i];
-    ractive[name] = assign(
-      create(ractive.constructor.prototype[name]),
-      options[name]
-    );
+    ractive[name] = assign(create(ractive.constructor.prototype[name]), options[name]);
   }
 
   if (ractive._attributePartial) {
@@ -166,11 +154,7 @@ function handleAttributes(ractive) {
     // warn about missing requireds
     attributes.required.forEach(p => {
       if (!~props.indexOf(p)) {
-        warnIfDebug(
-          `Component '${
-            component.name
-          }' requires attribute '${p}' to be provided`
-        );
+        warnIfDebug(`Component '${component.name}' requires attribute '${p}' to be provided`);
       }
     });
 
@@ -200,8 +184,7 @@ function handleAttributes(ractive) {
       }
     }
 
-    if (partial.length)
-      component.template = { t: tpl.t, e: tpl.e, f: tpl.f, m: attrs, p: tpl.p };
+    if (partial.length) component.template = { t: tpl.t, e: tpl.e, f: tpl.f, m: attrs, p: tpl.p };
     ractive._attributePartial = partial;
   }
 }

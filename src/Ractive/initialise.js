@@ -16,11 +16,7 @@ export default function initialise(ractive, userOptions, options) {
   const computed = ractive.viewmodel.computed;
   if (computed) {
     for (const k in computed) {
-      if (
-        k in ractive.viewmodel.value &&
-        computed[k] &&
-        !computed[k].isReadonly
-      ) {
+      if (k in ractive.viewmodel.value && computed[k] && !computed[k].isReadonly) {
         computed[k].set(ractive.viewmodel.value[k]);
       }
     }
@@ -67,10 +63,7 @@ export default function initialise(ractive, userOptions, options) {
 
 export function createFragment(ractive, options = {}) {
   if (ractive.template) {
-    const cssIds = [].concat(
-      ractive.constructor._cssIds || [],
-      options.cssIds || []
-    );
+    const cssIds = [].concat(ractive.constructor._cssIds || [], options.cssIds || []);
 
     return new Fragment({
       owner: ractive,

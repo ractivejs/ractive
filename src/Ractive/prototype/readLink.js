@@ -12,7 +12,6 @@ export default function readLink(keypath, options = {}) {
       if (!model.isLink) break;
     }
 
-    if (model)
-      return { ractive: model.root.ractive, keypath: model.getKeypath() };
+    if (model) return { ractive: model.root.ractive, keypath: model.getKeypath() };
   }
 }

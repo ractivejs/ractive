@@ -127,9 +127,7 @@ if (typeof window !== "undefined" && !window.Promise) {
   const resolve = function(promise, x, fulfil, reject) {
     let then;
     if (x === promise) {
-      throw new TypeError(
-        `A promise's fulfillment handler cannot return the same promise`
-      );
+      throw new TypeError(`A promise's fulfillment handler cannot return the same promise`);
     }
     if (x instanceof Promise) {
       x.then(fulfil, reject);

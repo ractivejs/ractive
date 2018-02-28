@@ -15,14 +15,9 @@ export default class Mapping extends Item {
 
     this.name = options.template.n;
 
-    this.owner =
-      options.owner ||
-      options.up.owner ||
-      options.element ||
-      findElement(options.up);
+    this.owner = options.owner || options.up.owner || options.element || findElement(options.up);
     this.element =
-      options.element ||
-      (this.owner.attributeByName ? this.owner : findElement(options.up));
+      options.element || (this.owner.attributeByName ? this.owner : findElement(options.up));
     this.up = this.element.up; // shared
     this.ractive = this.up.ractive;
 
@@ -92,11 +87,7 @@ function createMapping(item) {
       viewmodel.joinKey(splitKeypath(item.name)).set(val);
     } else {
       // warn about trying to copy an object
-      warnIfDebug(
-        `Cannot copy non-computed object value from static mapping '${
-          item.name
-        }'`
-      );
+      warnIfDebug(`Cannot copy non-computed object value from static mapping '${item.name}'`);
     }
 
     // if the item isn't going to manage the model, give it a change to tear down if it's computed

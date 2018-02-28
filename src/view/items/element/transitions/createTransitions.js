@@ -133,11 +133,7 @@ if (!isClient) {
           prop = changedProperties[i];
           hash = hashPrefix + prop;
 
-          if (
-            cssTiming &&
-            CSS_TRANSITIONS_ENABLED &&
-            !cannotUseCssTransitions[hash]
-          ) {
+          if (cssTiming && CSS_TRANSITIONS_ENABLED && !cannotUseCssTransitions[hash]) {
             const initial = style[prop];
             style[prop] = to[prop];
 
@@ -158,11 +154,7 @@ if (!isClient) {
             }
           }
 
-          if (
-            !cssTiming ||
-            !CSS_TRANSITIONS_ENABLED ||
-            cannotUseCssTransitions[hash]
-          ) {
+          if (!cssTiming || !CSS_TRANSITIONS_ENABLED || cannotUseCssTransitions[hash]) {
             // we need to fall back to timer-based stuff
             if (originalValue === null) originalValue = t.getStyle(prop);
 
@@ -181,10 +173,7 @@ if (!isClient) {
             // TODO Determine whether this property is animatable at all
 
             suffix = /[^\d]*$/.exec(originalValue)[0];
-            interpolator = interpolate(
-              parseFloat(originalValue),
-              parseFloat(to[prop])
-            );
+            interpolator = interpolate(parseFloat(originalValue), parseFloat(to[prop]));
 
             // ...then kick off a timer-based transition
             if (interpolator) {
@@ -244,11 +233,7 @@ if (!isClient) {
 
           // We need to cancel the transitionEndHandler, and deal with
           // the fact that it will never fire
-          t.node.removeEventListener(
-            TRANSITIONEND,
-            transitionEndHandler,
-            false
-          );
+          t.node.removeEventListener(TRANSITIONEND, transitionEndHandler, false);
           cssTransitionsComplete = true;
           checkComplete();
         }

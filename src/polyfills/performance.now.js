@@ -1,9 +1,5 @@
 /* istanbul ignore if */
-if (
-  typeof window !== "undefined" &&
-  window.performance &&
-  !window.performance.now
-) {
+if (typeof window !== "undefined" && window.performance && !window.performance.now) {
   window.performance = window.performance || {};
 
   const nowOffset = Date.now();

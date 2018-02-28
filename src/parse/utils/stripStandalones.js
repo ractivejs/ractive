@@ -48,10 +48,7 @@ export default function(items) {
         trailingLinebreak.test(lastSectionItem) &&
         leadingLinebreak.test(current)
       ) {
-        backOne.f[backOne.f.length - 1] = lastSectionItem.replace(
-          trailingLinebreak,
-          "\n"
-        );
+        backOne.f[backOne.f.length - 1] = lastSectionItem.replace(trailingLinebreak, "\n");
         items[i] = current.replace(leadingLinebreak, "");
       }
     }

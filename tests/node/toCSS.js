@@ -17,11 +17,7 @@ export default function() {
     // Look for the selector
     t.ok(
       !!~css.indexOf(
-        '.green[data-ractive-css~="{' +
-          cssId +
-          '}"], [data-ractive-css~="{' +
-          cssId +
-          '}"] .green',
+        '.green[data-ractive-css~="{' + cssId + '}"], [data-ractive-css~="{' + cssId + '}"] .green',
         ".green selector for " + cssId + " should exist"
       )
     );
@@ -36,8 +32,7 @@ export default function() {
     });
 
     const ChildComponent = Ractive.extend({
-      template:
-        "\n\t\t\t\t<div></div>\n\t\t\t\t<GrandChildComponent />\n\t\t\t",
+      template: "\n\t\t\t\t<div></div>\n\t\t\t\t<GrandChildComponent />\n\t\t\t",
       css: "\n\t\t\t\t.red {\n\t\t\t\t\tcolor: red;\n\t\t\t\t}\n\t\t",
       components: {
         GrandChildComponent

@@ -48,11 +48,7 @@ export default function() {
       template: "{{#each items:i}}{{foo[bar]}},{{/each}}",
       data: {
         bar: "name",
-        items: [
-          { foo: { name: "bob" } },
-          { foo: { name: "bill" } },
-          { foo: { name: "betty" } }
-        ]
+        items: [{ foo: { name: "bob" } }, { foo: { name: "bill" } }, { foo: { name: "betty" } }]
       }
     });
 
@@ -155,8 +151,7 @@ export default function() {
   test("Regression test for #697", t => {
     const ractive = new Ractive({
       el: fixture,
-      template:
-        "{{#model}}{{#thing}}{{# foo && bar }}<p>works</p>{{/inner}}{{/thing}}{{/model}}",
+      template: "{{#model}}{{#thing}}{{# foo && bar }}<p>works</p>{{/inner}}{{/thing}}{{/model}}",
       data: {
         model: [
           {
@@ -292,8 +287,7 @@ export default function() {
   test("index rebinds do not go past new index providers (#1457)", t => {
     const ractive = new Ractive({
       el: fixture,
-      template:
-        "{{#each foo}}{{@index}}{{#each .bar}}{{@index}}{{/each}}<br/>{{/each}}",
+      template: "{{#each foo}}{{@index}}{{#each .bar}}{{@index}}{{/each}}<br/>{{/each}}",
       data: {
         foo: [{ bar: [1, 2] }, { bar: [1] }, { bar: [1, 2, 3, 4] }]
       }
@@ -353,10 +347,7 @@ export default function() {
 		{{/}}
 	{{/}}`,
       data: {
-        items: [
-          { name: "foo", disabled: true },
-          { name: "bar", disabled: true }
-        ]
+        items: [{ name: "foo", disabled: true }, { name: "bar", disabled: true }]
       }
     });
 
@@ -380,10 +371,7 @@ export default function() {
 		{{/}}
 	{{/}}`,
       data: {
-        items: [
-          { name: "foo", disabled: false },
-          { name: "bar", disabled: false }
-        ]
+        items: [{ name: "foo", disabled: false }, { name: "bar", disabled: false }]
       }
     });
 
@@ -405,10 +393,7 @@ export default function() {
 		{{/}}
 	{{/}}`,
       data: {
-        items: [
-          { name: "foo", disabled: false },
-          { name: "bar", disabled: false }
-        ]
+        items: [{ name: "foo", disabled: false }, { name: "bar", disabled: false }]
       }
     });
 

@@ -14,8 +14,7 @@ export default function Ractive$findComponent(selector, options = {}) {
     for (let i = 0; i < this._children.length; i++) {
       // skip children that are or should be in an anchor
       if (this._children[i].target) continue;
-      if (this._children[i].name === selector)
-        return this._children[i].instance;
+      if (this._children[i].name === selector) return this._children[i].instance;
       child = this._children[i].instance.findComponent(selector, options);
       if (child) return child;
     }

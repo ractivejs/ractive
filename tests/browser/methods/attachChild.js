@@ -48,15 +48,9 @@ export default function() {
       template: "r2"
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div id="r1">r1</div><div id="r2">r2</div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div id="r1">r1</div><div id="r2">r2</div>');
     r1.attachChild(r2);
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div id="r1">r1</div><div id="r2">r2</div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div id="r1">r1</div><div id="r2">r2</div>');
   });
 
   test("targeted instances are unrendered before being attached", t => {
@@ -70,15 +64,9 @@ export default function() {
       template: "r2"
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div id="r1">r1</div><div id="r2">r2</div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div id="r1">r1</div><div id="r2">r2</div>');
     r1.attachChild(r2, { target: "foo" });
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div id="r1">r1r2</div><div id="r2"></div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div id="r1">r1r2</div><div id="r2"></div>');
   });
 
   test("targeted instances are unrendered event if their anchor doesn't exist when attached", t => {
@@ -92,10 +80,7 @@ export default function() {
       template: "r2"
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div id="r1">r1</div><div id="r2">r2</div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div id="r1">r1</div><div id="r2">r2</div>');
     r1.attachChild(r2, { target: "foo" });
     t.htmlEqual(fixture.innerHTML, '<div id="r1">r1</div><div id="r2"></div>');
   });
@@ -353,17 +338,11 @@ export default function() {
       template: "r2"
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div id="r1-spot">r1</div><div id="r2-spot">r2</div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div id="r1-spot">r1</div><div id="r2-spot">r2</div>');
     r2.attachChild(r1);
     r1.resetTemplate("hey1");
     r2.resetTemplate("hey2");
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div id="r1-spot">hey1</div><div id="r2-spot">hey2</div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div id="r1-spot">hey1</div><div id="r2-spot">hey2</div>');
   });
 
   test(`attached anchored children can have their templates reset`, t => {
@@ -498,8 +477,7 @@ export default function() {
 
     const r = new Ractive({
       target: fixture,
-      template:
-        '<input value="{{nested.string}}" /> <#anchor bind-mapped="nested.string" />',
+      template: '<input value="{{nested.string}}" /> <#anchor bind-mapped="nested.string" />',
       data: {
         nested: { string: "a" }
       }

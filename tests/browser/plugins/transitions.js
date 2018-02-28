@@ -84,10 +84,7 @@ export default function() {
       template: "<p test-out>foo</p>",
       beforeComplete() {
         shouldHaveCompleted = true;
-        t.ok(
-          fixture.contains(p),
-          "<p> element has already been removed from the DOM"
-        );
+        t.ok(fixture.contains(p), "<p> element has already been removed from the DOM");
       }
     });
 
@@ -103,14 +100,8 @@ export default function() {
     const p = ractive.find("p");
 
     ractive.set("foo", false).then(() => {
-      t.ok(
-        shouldHaveCompleted,
-        "promise was fulfilled before transition had completed"
-      );
-      t.ok(
-        !fixture.contains(p),
-        "<p> element should have been removed from the DOM"
-      );
+      t.ok(shouldHaveCompleted, "promise was fulfilled before transition had completed");
+      t.ok(!fixture.contains(p), "<p> element should have been removed from the DOM");
       done();
     });
   });
@@ -331,9 +322,7 @@ export default function() {
             targetHeight = 0;
           }
 
-          t
-            .animateStyle("height", targetHeight, { duration: 50 })
-            .then(t.complete);
+          t.animateStyle("height", targetHeight, { duration: 50 }).then(t.complete);
         }
       }
     });
@@ -426,8 +415,7 @@ export default function() {
 
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '{{#showBox}}<div wait-in="2000" wait-out="1"></div>{{/showBox}}',
+      template: '{{#showBox}}<div wait-in="2000" wait-out="1"></div>{{/showBox}}',
       transitions: {
         wait(t, ms) {
           setTimeout(t.complete, ms);
@@ -532,10 +520,7 @@ export default function() {
 
     r.set("foo", false).then(done, done);
     t.ok(!/span2/.test(fixture.innerHTML), "span2 is gone immediately");
-    t.ok(
-      /span1/.test(fixture.innerHTML),
-      "span1 hangs around until the transition is done"
-    );
+    t.ok(/span1/.test(fixture.innerHTML), "span1 hangs around until the transition is done");
   });
 
   test("Context of transition function is current instance", t => {
@@ -565,9 +550,7 @@ export default function() {
       transitions: {
         go(trans) {
           trans.setStyle("height", "0px");
-          trans
-            .animateStyle("height", "100px", { duration: 50 })
-            .then(trans.complete);
+          trans.animateStyle("height", "100px", { duration: 50 }).then(trans.complete);
         }
       }
     });
@@ -853,20 +836,15 @@ export default function() {
       const height = trans.getStyle("height");
       if (trans.isIntro) {
         trans.setStyle("height", 0);
-        trans
-          .animateStyle("height", height, { duration: 100 })
-          .then(() => trans.complete());
+        trans.animateStyle("height", height, { duration: 100 }).then(() => trans.complete());
       } else {
         trans.setStyle("height", height);
-        trans
-          .animateStyle("height", 0, { duration: 100 })
-          .then(() => trans.complete());
+        trans.animateStyle("height", 0, { duration: 100 }).then(() => trans.complete());
       }
     }
 
     const r = new Ractive({
-      template:
-        '<style>div#def-nerp { height: 300px }</style><div id="def-nerp" go-in-out />',
+      template: '<style>div#def-nerp { height: 300px }</style><div id="def-nerp" go-in-out />',
       transitions: { go }
     });
 
@@ -1092,9 +1070,7 @@ export default function() {
       transitions: {
         go(trans) {
           trans.setStyle("height", 0);
-          trans
-            .animateStyle("height", 20, { duration: 20, easing: "go" })
-            .then(trans.complete);
+          trans.animateStyle("height", 20, { duration: 20, easing: "go" }).then(trans.complete);
         }
       },
       easing: {

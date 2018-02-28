@@ -41,8 +41,7 @@ Found a bug? Raise an issue:
       welcome = noop;
       return;
     }
-    const message =
-      "WELCOME_MESSAGE" in Ractive ? Ractive.WELCOME_MESSAGE : welcomeMessage;
+    const message = "WELCOME_MESSAGE" in Ractive ? Ractive.WELCOME_MESSAGE : welcomeMessage;
     const hasGroup = !!console.groupCollapsed;
     if (hasGroup) console.groupCollapsed.apply(console, welcomeIntro);
     console.log(message);
@@ -72,10 +71,7 @@ Found a bug? Raise an issue:
         let node;
         if (
           (node =
-            options.node ||
-            (ractive.fragment &&
-              ractive.fragment.rendered &&
-              ractive.find("*")))
+            options.node || (ractive.fragment && ractive.fragment.rendered && ractive.find("*")))
         ) {
           args.push(node);
         }
@@ -84,11 +80,9 @@ Found a bug? Raise an issue:
 
     console.warn.apply(
       console,
-      [
-        "%cRactive.js: %c" + message,
-        "color: rgb(114, 157, 52);",
-        "color: rgb(85, 85, 85);"
-      ].concat(args)
+      ["%cRactive.js: %c" + message, "color: rgb(114, 157, 52);", "color: rgb(85, 85, 85);"].concat(
+        args
+      )
     );
   };
 
@@ -142,13 +136,4 @@ function warnOnceIfDebug() {
   }
 }
 
-export {
-  fatal,
-  log,
-  logIfDebug,
-  warn,
-  warnOnce,
-  warnIfDebug,
-  warnOnceIfDebug,
-  welcome
-};
+export { fatal, log, logIfDebug, warn, warnOnce, warnIfDebug, warnOnceIfDebug, welcome };

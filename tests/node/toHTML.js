@@ -50,10 +50,7 @@ export default function() {
 
       if (theTest.new_data) {
         ractive.set(getData(theTest.new_data));
-        t.equal(
-          normaliseHTML(ractive.toHTML()),
-          normaliseHTML(theTest.new_result)
-        );
+        t.equal(normaliseHTML(ractive.toHTML()), normaliseHTML(theTest.new_result));
       }
 
       // TODO array of data/expected

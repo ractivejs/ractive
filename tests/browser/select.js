@@ -189,11 +189,7 @@ test( 'Setting the value of a select works with options added via a triple', t =
 				</select>
 				<p>Selected {{selected.description}}</p>`,
       data: {
-        options: [
-          { description: "foo" },
-          { description: "bar" },
-          { description: "baz" }
-        ]
+        options: [{ description: "foo" }, { description: "bar" }, { description: "baz" }]
       }
     });
 
@@ -617,10 +613,7 @@ test( 'If a multiple select value with two-way binding has a selected option at 
 			</select>`,
       data: {
         value: null,
-        values: [
-          { value: "foo", text: "a foo" },
-          { value: "bar", text: "a bar" }
-        ]
+        values: [{ value: "foo", text: "a foo" }, { value: "bar", text: "a bar" }]
       }
     });
   });

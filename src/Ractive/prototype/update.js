@@ -36,9 +36,5 @@ export default function Ractive$update(keypath, options) {
     opts = keypath;
   }
 
-  return update(
-    this,
-    path ? this.viewmodel.joinAll(path) : this.viewmodel,
-    opts
-  );
+  return update(this, path ? this.viewmodel.joinAll(path) : this.viewmodel, opts);
 }

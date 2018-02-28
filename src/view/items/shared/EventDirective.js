@@ -20,9 +20,7 @@ const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
 export default class EventDirective {
   constructor(options) {
     this.owner = options.owner || options.up.owner || findElement(options.up);
-    this.element = this.owner.attributeByName
-      ? this.owner
-      : findElement(options.up, true);
+    this.element = this.owner.attributeByName ? this.owner : findElement(options.up, true);
     this.template = options.template;
     this.up = options.up;
     this.ractive = options.up.ractive;
@@ -46,9 +44,8 @@ export default class EventDirective {
         } catch (err) {
           args = null;
           warnIfDebug(
-            `Failed to compute args for event on-${this.template.n.join(
-              "- "
-            )}: ${err.message || err}`
+            `Failed to compute args for event on-${this.template.n.join("- ")}: ${err.message ||
+              err}`
           );
         }
       }
@@ -80,9 +77,7 @@ export default class EventDirective {
 
   fire(event, args = []) {
     const context =
-      event instanceof Context && event.refire
-        ? event
-        : this.element.getContext(event);
+      event instanceof Context && event.refire ? event : this.element.getContext(event);
 
     if (this.fn) {
       const values = [];
@@ -94,9 +89,7 @@ export default class EventDirective {
             // on-click="foo(event.node)"
             return {
               special: specialMatch[1],
-              keys: specialMatch[2]
-                ? splitKeypath(specialMatch[2].substr(1))
-                : []
+              keys: specialMatch[2] ? splitKeypath(specialMatch[2].substr(1)) : []
             };
           }
 
