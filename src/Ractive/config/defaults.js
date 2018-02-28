@@ -1,43 +1,43 @@
 export default {
-	// render placement:
-	el:                     void 0,
-	append:                 false,
-	delegate:               true,
+  // render placement:
+  el: void 0,
+  append: false,
+  delegate: true,
 
-	// template:
-	template:               null,
+  // template:
+  template: null,
 
-	// parse:
-	delimiters:             [ '{{', '}}' ],
-	tripleDelimiters:       [ '{{{', '}}}' ],
-	staticDelimiters:       [ '[[', ']]' ],
-	staticTripleDelimiters: [ '[[[', ']]]' ],
-	csp:                    true,
-	interpolate:            false,
-	preserveWhitespace:     false,
-	sanitize:               false,
-	stripComments:          true,
-	contextLines:           0,
+  // parse:
+  delimiters: ["{{", "}}"],
+  tripleDelimiters: ["{{{", "}}}"],
+  staticDelimiters: ["[[", "]]"],
+  staticTripleDelimiters: ["[[[", "]]]"],
+  csp: true,
+  interpolate: false,
+  preserveWhitespace: false,
+  sanitize: false,
+  stripComments: true,
+  contextLines: 0,
 
-	// data & binding:
-	data:                   {},
-	computed:               {},
-	syncComputedChildren:   false,
-	resolveInstanceMembers: true,
-	warnAboutAmbiguity:     false,
-	adapt:                  [],
-	isolated:               true,
-	twoway:                 true,
-	lazy:                   false,
+  // data & binding:
+  data: {},
+  computed: {},
+  syncComputedChildren: false,
+  resolveInstanceMembers: true,
+  warnAboutAmbiguity: false,
+  adapt: [],
+  isolated: true,
+  twoway: true,
+  lazy: false,
 
-	// transitions:
-	noIntro:                false,
-	noOutro:                false,
-	transitionsEnabled:     true,
-	complete:               void 0,
-	nestedTransitions:      true,
+  // transitions:
+  noIntro: false,
+  noOutro: false,
+  transitionsEnabled: true,
+  complete: void 0,
+  nestedTransitions: true,
 
-	// css:
-	css:                    null,
-	noCssTransform:         false
+  // css:
+  css: null,
+  noCssTransform: false
 };

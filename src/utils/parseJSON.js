@@ -1,7 +1,7 @@
-import Parser from 'parse/Parser';
-import readStringLiteral from 'parse/converters/expressions/primary/literal/readStringLiteral';
-import readKey from 'parse/converters/expressions/shared/readKey';
-import { hasOwn, keys } from 'utils/object';
+import Parser from "parse/Parser";
+import readStringLiteral from "parse/converters/expressions/primary/literal/readStringLiteral";
+import readKey from "parse/converters/expressions/shared/readKey";
+import { hasOwn, keys } from "utils/object";
 
 // simple JSON parser, without the restrictions of JSON parse
 // (i.e. having to double-quote keys).
@@ -10,152 +10,155 @@ import { hasOwn, keys } from 'utils/object';
 // will be replaced with those values
 
 const specials = {
-	true: true,
-	false: false,
-	null: null,
-	undefined
+  true: true,
+  false: false,
+  null: null,
+  undefined
 };
 
-const specialsPattern = new RegExp( '^(?:' + keys( specials ).join( '|' ) + ')' );
+const specialsPattern = new RegExp("^(?:" + keys(specials).join("|") + ")");
 const numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
 const placeholderPattern = /\$\{([^\}]+)\}/g;
 const placeholderAtStartPattern = /^\$\{([^\}]+)\}/;
 const onlyWhitespace = /^\s*$/;
 
 const JsonParser = Parser.extend({
-	init ( str, options ) {
-		this.values = options.values;
-		this.sp();
-	},
+  init(str, options) {
+    this.values = options.values;
+    this.sp();
+  },
 
-	postProcess ( result ) {
-		if ( result.length !== 1 || !onlyWhitespace.test( this.leftover ) ) {
-			return null;
-		}
+  postProcess(result) {
+    if (result.length !== 1 || !onlyWhitespace.test(this.leftover)) {
+      return null;
+    }
 
-		return { value: result[0].v };
-	},
+    return { value: result[0].v };
+  },
 
-	converters: [
-		function getPlaceholder ( parser ) {
-			if ( !parser.values ) return null;
+  converters: [
+    function getPlaceholder(parser) {
+      if (!parser.values) return null;
 
-			const placeholder = parser.matchPattern( placeholderAtStartPattern );
+      const placeholder = parser.matchPattern(placeholderAtStartPattern);
 
-			if ( placeholder && ( hasOwn( parser.values, placeholder ) ) ) {
-				return { v: parser.values[ placeholder ] };
-			}
-		},
+      if (placeholder && hasOwn(parser.values, placeholder)) {
+        return { v: parser.values[placeholder] };
+      }
+    },
 
-		function getSpecial ( parser ) {
-			const special = parser.matchPattern( specialsPattern );
-			if ( special ) return { v: specials[ special ] };
-		},
+    function getSpecial(parser) {
+      const special = parser.matchPattern(specialsPattern);
+      if (special) return { v: specials[special] };
+    },
 
-		function getNumber ( parser ) {
-			const number = parser.matchPattern( numberPattern );
-			if ( number ) return { v: +number };
-		},
+    function getNumber(parser) {
+      const number = parser.matchPattern(numberPattern);
+      if (number) return { v: +number };
+    },
 
-		function getString ( parser ) {
-			const stringLiteral = readStringLiteral( parser );
-			const values = parser.values;
+    function getString(parser) {
+      const stringLiteral = readStringLiteral(parser);
+      const values = parser.values;
 
-			if ( stringLiteral && values ) {
-				return {
-					v: stringLiteral.v.replace( placeholderPattern, ( match, $1 ) => ( $1 in values ? values[ $1 ] : $1 ) )
-				};
-			}
+      if (stringLiteral && values) {
+        return {
+          v: stringLiteral.v.replace(
+            placeholderPattern,
+            (match, $1) => ($1 in values ? values[$1] : $1)
+          )
+        };
+      }
 
-			return stringLiteral;
-		},
+      return stringLiteral;
+    },
 
-		function getObject ( parser ) {
-			if ( !parser.matchString( '{' ) ) return null;
+    function getObject(parser) {
+      if (!parser.matchString("{")) return null;
 
-			const result = {};
+      const result = {};
 
-			parser.sp();
+      parser.sp();
 
-			if ( parser.matchString( '}' ) ) {
-				return { v: result };
-			}
+      if (parser.matchString("}")) {
+        return { v: result };
+      }
 
-			let pair;
-			while ( pair = getKeyValuePair( parser ) ) {
-				result[ pair.key ] = pair.value;
+      let pair;
+      while ((pair = getKeyValuePair(parser))) {
+        result[pair.key] = pair.value;
 
-				parser.sp();
+        parser.sp();
 
-				if ( parser.matchString( '}' ) ) {
-					return { v: result };
-				}
+        if (parser.matchString("}")) {
+          return { v: result };
+        }
 
-				if ( !parser.matchString( ',' ) ) {
-					return null;
-				}
-			}
+        if (!parser.matchString(",")) {
+          return null;
+        }
+      }
 
-			return null;
-		},
+      return null;
+    },
 
-		function getArray ( parser ) {
-			if ( !parser.matchString( '[' ) ) return null;
+    function getArray(parser) {
+      if (!parser.matchString("[")) return null;
 
-			const result = [];
+      const result = [];
 
-			parser.sp();
+      parser.sp();
 
-			if ( parser.matchString( ']' ) ) {
-				return { v: result };
-			}
+      if (parser.matchString("]")) {
+        return { v: result };
+      }
 
-			let valueToken;
-			while ( valueToken = parser.read() ) {
-				result.push( valueToken.v );
+      let valueToken;
+      while ((valueToken = parser.read())) {
+        result.push(valueToken.v);
 
-				parser.sp();
+        parser.sp();
 
-				if ( parser.matchString( ']' ) ) {
-					return { v: result };
-				}
+        if (parser.matchString("]")) {
+          return { v: result };
+        }
 
-				if ( !parser.matchString( ',' ) ) {
-					return null;
-				}
+        if (!parser.matchString(",")) {
+          return null;
+        }
 
-				parser.sp();
-			}
+        parser.sp();
+      }
 
-			return null;
-		}
-	]
+      return null;
+    }
+  ]
 });
 
-function getKeyValuePair ( parser ) {
-	parser.sp();
+function getKeyValuePair(parser) {
+  parser.sp();
 
-	const key = readKey( parser );
+  const key = readKey(parser);
 
-	if ( !key ) return null;
+  if (!key) return null;
 
-	const pair = { key };
+  const pair = { key };
 
-	parser.sp();
-	if ( !parser.matchString( ':' ) ) {
-		return null;
-	}
-	parser.sp();
+  parser.sp();
+  if (!parser.matchString(":")) {
+    return null;
+  }
+  parser.sp();
 
-	const valueToken = parser.read();
+  const valueToken = parser.read();
 
-	if ( !valueToken ) return null;
+  if (!valueToken) return null;
 
-	pair.value = valueToken.v;
-	return pair;
+  pair.value = valueToken.v;
+  return pair;
 }
 
-export default function ( str, values ) {
-	const parser = new JsonParser( str, { values });
-	return parser.result;
+export default function(str, values) {
+  const parser = new JsonParser(str, { values });
+  return parser.result;
 }

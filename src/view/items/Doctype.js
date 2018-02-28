@@ -1,10 +1,10 @@
-import noop from 'utils/noop';
-import Item from './shared/Item';
+import noop from "utils/noop";
+import Item from "./shared/Item";
 
 export default class Doctype extends Item {
-	toString () {
-		return '<!DOCTYPE' + this.template.a + '>';
-	}
+  toString() {
+    return "<!DOCTYPE" + this.template.a + ">";
+  }
 }
 
 const proto = Doctype.prototype;
