@@ -7,9 +7,7 @@ export COMMIT_HASH=`git rev-parse HEAD`
 rm -rf .build
 mkdir .build
 
-npm run lint:src
-npm run lint:tests:browser
-npm run lint:tests:node
+npm run lint:all
 
 npm run bundle:test
 npm run test:chrome
