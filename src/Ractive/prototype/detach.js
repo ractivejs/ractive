@@ -1,20 +1,20 @@
-import Hook from 'src/events/Hook';
-import { removeFromArray } from 'utils/array';
+import Hook from "src/events/Hook";
+import { removeFromArray } from "utils/array";
 
-const detachHook = new Hook( 'detach' );
+const detachHook = new Hook("detach");
 
-export default function Ractive$detach () {
-	if ( this.isDetached ) {
-		return this.el;
-	}
+export default function Ractive$detach() {
+  if (this.isDetached) {
+    return this.el;
+  }
 
-	if ( this.el ) {
-		removeFromArray( this.el.__ractive_instances__, this );
-	}
+  if (this.el) {
+    removeFromArray(this.el.__ractive_instances__, this);
+  }
 
-	this.el = this.fragment.detach();
-	this.isDetached = true;
+  this.el = this.fragment.detach();
+  this.isDetached = true;
 
-	detachHook.fire( this );
-	return this.el;
+  detachHook.fire(this);
+  return this.el;
 }

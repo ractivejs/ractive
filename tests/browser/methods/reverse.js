@@ -1,26 +1,29 @@
-import { initModule } from '../../helpers/test-config';
-import { test } from 'qunit';
+import { initModule } from "../../helpers/test-config";
+import { test } from "qunit";
 
 export default function() {
-	initModule( 'methods/reverse.js' );
+  initModule("methods/reverse.js");
 
-	[ true, false ].forEach( modifyArrays => {
-		test( `ractive.reverse() (modifyArrays: ${modifyArrays})`, t => {
-			const items = [ 'alice', 'bob', 'charles' ];
+  [true, false].forEach(modifyArrays => {
+    test(`ractive.reverse() (modifyArrays: ${modifyArrays})`, t => {
+      const items = ["alice", "bob", "charles"];
 
-			const ractive = new Ractive({
-				el: fixture,
-				template: `
+      const ractive = new Ractive({
+        el: fixture,
+        template: `
 				<ul>
 				{{#items}}
 				<li>{{.}}</li>
 				{{/items}}
 				</ul>`,
-				data: { items }
-			});
+        data: { items }
+      });
 
-			ractive.reverse( 'items' );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>charles</li><li>bob</li><li>alice</li></ul>' );
-		});
-	});
+      ractive.reverse("items");
+      t.htmlEqual(
+        fixture.innerHTML,
+        "<ul><li>charles</li><li>bob</li><li>alice</li></ul>"
+      );
+    });
+  });
 }

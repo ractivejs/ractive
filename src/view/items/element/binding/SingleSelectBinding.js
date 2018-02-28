@@ -1,92 +1,92 @@
-import runloop from 'src/global/runloop';
-import getSelectedOptions from 'utils/getSelectedOptions';
-import Binding from './Binding';
-import handleDomEvent from './handleDomEvent';
+import runloop from "src/global/runloop";
+import getSelectedOptions from "utils/getSelectedOptions";
+import Binding from "./Binding";
+import handleDomEvent from "./handleDomEvent";
 
 export default class SingleSelectBinding extends Binding {
-	forceUpdate () {
-		const value = this.getValue();
+  forceUpdate() {
+    const value = this.getValue();
 
-		if ( value !== undefined ) {
-			this.attribute.locked = true;
-			runloop.scheduleTask( () => this.attribute.locked = false );
-			this.model.set( value );
-		}
-	}
+    if (value !== undefined) {
+      this.attribute.locked = true;
+      runloop.scheduleTask(() => (this.attribute.locked = false));
+      this.model.set(value);
+    }
+  }
 
-	getInitialValue () {
-		if ( this.element.getAttribute( 'value' ) !== undefined ) {
-			return;
-		}
+  getInitialValue() {
+    if (this.element.getAttribute("value") !== undefined) {
+      return;
+    }
 
-		const options = this.element.options;
-		const len = options.length;
+    const options = this.element.options;
+    const len = options.length;
 
-		if ( !len ) return;
+    if (!len) return;
 
-		let value;
-		let optionWasSelected;
-		let i = len;
+    let value;
+    let optionWasSelected;
+    let i = len;
 
-		// take the final selected option...
-		while ( i-- ) {
-			const option = options[i];
+    // take the final selected option...
+    while (i--) {
+      const option = options[i];
 
-			if ( option.getAttribute( 'selected' ) ) {
-				if ( !option.getAttribute( 'disabled' ) ) {
-					value = option.getAttribute( 'value' );
-				}
+      if (option.getAttribute("selected")) {
+        if (!option.getAttribute("disabled")) {
+          value = option.getAttribute("value");
+        }
 
-				optionWasSelected = true;
-				break;
-			}
-		}
+        optionWasSelected = true;
+        break;
+      }
+    }
 
-		// or the first non-disabled option, if none are selected
-		if ( !optionWasSelected ) {
-			while ( ++i < len ) {
-				if ( !options[i].getAttribute( 'disabled' ) ) {
-					value = options[i].getAttribute( 'value' );
-					break;
-				}
-			}
-		}
+    // or the first non-disabled option, if none are selected
+    if (!optionWasSelected) {
+      while (++i < len) {
+        if (!options[i].getAttribute("disabled")) {
+          value = options[i].getAttribute("value");
+          break;
+        }
+      }
+    }
 
-		// This is an optimisation (aka hack) that allows us to forgo some
-		// other more expensive work
-		// TODO does it still work? seems at odds with new architecture
-		if ( value !== undefined ) {
-			this.element.attributeByName.value.value = value;
-		}
+    // This is an optimisation (aka hack) that allows us to forgo some
+    // other more expensive work
+    // TODO does it still work? seems at odds with new architecture
+    if (value !== undefined) {
+      this.element.attributeByName.value.value = value;
+    }
 
-		return value;
-	}
+    return value;
+  }
 
-	getValue () {
-		const options = this.node.options;
-		const len = options.length;
+  getValue() {
+    const options = this.node.options;
+    const len = options.length;
 
-		let i;
-		for ( i = 0; i < len; i += 1 ) {
-			const option = options[i];
+    let i;
+    for (i = 0; i < len; i += 1) {
+      const option = options[i];
 
-			if ( options[i].selected && !options[i].disabled ) {
-				return option._ractive ? option._ractive.value : option.value;
-			}
-		}
-	}
+      if (options[i].selected && !options[i].disabled) {
+        return option._ractive ? option._ractive.value : option.value;
+      }
+    }
+  }
 
-	render () {
-		super.render();
-		this.element.on( 'change', handleDomEvent );
-	}
+  render() {
+    super.render();
+    this.element.on("change", handleDomEvent);
+  }
 
-	setFromNode ( node ) {
-		const option = getSelectedOptions( node )[0];
-		this.model.set( option._ractive ? option._ractive.value : option.value );
-	}
+  setFromNode(node) {
+    const option = getSelectedOptions(node)[0];
+    this.model.set(option._ractive ? option._ractive.value : option.value);
+  }
 
-	unrender () {
-		this.element.off( 'change', handleDomEvent );
-	}
+  unrender() {
+    this.element.off("change", handleDomEvent);
+  }
 }

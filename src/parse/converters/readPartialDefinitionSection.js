@@ -1,63 +1,61 @@
-import { INLINE_PARTIAL } from 'config/types';
-import { READERS } from '../_parse';
-import readClosing from './mustache/section/readClosing';
+import { INLINE_PARTIAL } from "config/types";
+import { READERS } from "../_parse";
+import readClosing from "./mustache/section/readClosing";
 
 const partialDefinitionSectionPattern = /^\s*#\s*partial\s+/;
 
-export default function readPartialDefinitionSection ( parser ) {
-	let child, closed;
+export default function readPartialDefinitionSection(parser) {
+  let child, closed;
 
-	const start = parser.pos;
+  const start = parser.pos;
 
-	const delimiters = parser.standardDelimiters;
+  const delimiters = parser.standardDelimiters;
 
-	if ( !parser.matchString( delimiters[0] ) ) {
-		return null;
-	}
+  if (!parser.matchString(delimiters[0])) {
+    return null;
+  }
 
-	if ( !parser.matchPattern( partialDefinitionSectionPattern ) ) {
-		parser.pos = start;
-		return null;
-	}
+  if (!parser.matchPattern(partialDefinitionSectionPattern)) {
+    parser.pos = start;
+    return null;
+  }
 
-	const name = parser.matchPattern( /^[a-zA-Z_$][a-zA-Z_$0-9\-\/]*/ );
+  const name = parser.matchPattern(/^[a-zA-Z_$][a-zA-Z_$0-9\-\/]*/);
 
-	if ( !name ) {
-		parser.error( 'expected legal partial name' );
-	}
+  if (!name) {
+    parser.error("expected legal partial name");
+  }
 
-	parser.sp();
-	if ( !parser.matchString( delimiters[1] ) ) {
-		parser.error( `Expected closing delimiter '${delimiters[1]}'` );
-	}
+  parser.sp();
+  if (!parser.matchString(delimiters[1])) {
+    parser.error(`Expected closing delimiter '${delimiters[1]}'`);
+  }
 
-	const content = [];
+  const content = [];
 
-	const [ open, close ] = delimiters;
+  const [open, close] = delimiters;
 
-	do {
-		if ( child = readClosing( parser, { open, close }) ) {
-			if ( child.r !== 'partial' ) {
-				parser.error( `Expected ${open}/partial${close}` );
-			}
+  do {
+    if ((child = readClosing(parser, { open, close }))) {
+      if (child.r !== "partial") {
+        parser.error(`Expected ${open}/partial${close}`);
+      }
 
-			closed = true;
-		}
+      closed = true;
+    } else {
+      child = parser.read(READERS);
 
-		else {
-			child = parser.read( READERS );
+      if (!child) {
+        parser.error(`Expected ${open}/partial${close}`);
+      }
 
-			if ( !child ) {
-				parser.error( `Expected ${open}/partial${close}` );
-			}
+      content.push(child);
+    }
+  } while (!closed);
 
-			content.push( child );
-		}
-	} while ( !closed );
-
-	return {
-		t: INLINE_PARTIAL,
-		n: name,
-		f: content
-	};
+  return {
+    t: INLINE_PARTIAL,
+    n: name,
+    f: content
+  };
 }
