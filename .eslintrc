@@ -3,13 +3,15 @@
 	"env": {
 		"es6": true
 	},
+	"plugins": [
+		"prettier"
+	],
 	"parserOptions": {
 		"ecmaVersion": 6,
 		"sourceType": "module"
 	},
 	"rules": {
-		"arrow-spacing": "error",
-		"indent": [ "error", "tab", { "SwitchCase": 1 }],
+		"prettier/prettier": "error",
 		"linebreak-style": [ "error", "unix" ],
 		"no-mixed-spaces-and-tabs": [ "error", "smart-tabs" ],
 		"no-class-assign": "error",
@@ -22,8 +24,6 @@
 		"one-var": [ "error", { "initialized": "never" } ],
 		"prefer-arrow-callback": "error",
 		"prefer-const": "error",
-		"quotes": [ "error", "single", { "avoidEscape": true, "allowTemplateLiterals": true } ],
-		"quote-props": [ "error", "as-needed" ],
-		"semi": [ "error", "always" ]
+		"no-useless-escape": 0
 	}
 }
