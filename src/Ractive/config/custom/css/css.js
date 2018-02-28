@@ -1,39 +1,39 @@
-import { addCSS } from 'src/global/css';
-import transformCss from './transform';
-import { uuid } from 'utils/id';
-import { warnIfDebug } from 'utils/log';
-import { getElement } from 'utils/dom';
-import { splitKeypath } from 'shared/keypaths';
-import CSSModel from 'src/model/specials/CSSModel';
-import { assign, create, defineProperty } from 'utils/object';
-import { isString, isFunction, isObjectType } from 'utils/is';
+import { addCSS } from "src/global/css";
+import transformCss from "./transform";
+import { uuid } from "utils/id";
+import { warnIfDebug } from "utils/log";
+import { getElement } from "utils/dom";
+import { splitKeypath } from "shared/keypaths";
+import CSSModel from "src/model/specials/CSSModel";
+import { assign, create, defineProperty } from "utils/object";
+import { isString, isFunction, isObjectType } from "utils/is";
 
 const hasCurly = /\{/;
 export default {
-	name: 'css',
+  name: "css",
 
-	// Called when creating a new component definition
-	extend: ( Parent, proto, options, Child ) => {
-		Child._cssIds = gatherIds( Parent );
+  // Called when creating a new component definition
+  extend: (Parent, proto, options, Child) => {
+    Child._cssIds = gatherIds(Parent);
 
-		defineProperty( Child, 'cssData', {
-			configurable: true,
-			value: assign( create( Parent.cssData ), options.cssData || {} )
-		});
+    defineProperty(Child, "cssData", {
+      configurable: true,
+      value: assign(create(Parent.cssData), options.cssData || {})
+    });
 
-		defineProperty( Child, '_cssModel', {
-			configurable: true,
-			value: new CSSModel( Child )
-		});
+    defineProperty(Child, "_cssModel", {
+      configurable: true,
+      value: new CSSModel(Child)
+    });
 
-		if ( options.css ) initCSS( options, Child, proto );
-	},
+    if (options.css) initCSS(options, Child, proto);
+  },
 
-	// Called when creating a new component instance
-	init: ( Parent, target, options ) => {
-		if ( !options.css ) return;
+  // Called when creating a new component instance
+  init: (Parent, target, options) => {
+    if (!options.css) return;
 
-		warnIfDebug( `
+    warnIfDebug(`
 The css option is currently not supported on a per-instance basis and will be discarded. Instead, we recommend instantiating from a component definition with a css option.
 
 const Component = Ractive.extend({
@@ -43,53 +43,54 @@ const Component = Ractive.extend({
 });
 
 const componentInstance = new Component({ ... })
-		` );
-	}
+		`);
+  }
 };
 
-function gatherIds ( start ) {
-	let cmp = start;
-	const ids = [];
+function gatherIds(start) {
+  let cmp = start;
+  const ids = [];
 
-	while ( cmp ) {
-		if ( cmp.prototype.cssId ) ids.push( cmp.prototype.cssId );
-		cmp = cmp.Parent;
-	}
+  while (cmp) {
+    if (cmp.prototype.cssId) ids.push(cmp.prototype.cssId);
+    cmp = cmp.Parent;
+  }
 
-	return ids;
+  return ids;
 }
 
-export function evalCSS ( component, css ) {
-	const cssData = component.cssData;
-	const model = component._cssModel;
-	const data = function data ( path ) {
-		return model.joinAll( splitKeypath( path ) ).get();
-	};
-	data.__proto__ = cssData;
+export function evalCSS(component, css) {
+  const cssData = component.cssData;
+  const model = component._cssModel;
+  const data = function data(path) {
+    return model.joinAll(splitKeypath(path)).get();
+  };
+  data.__proto__ = cssData;
 
-	const result = css.call( component, data );
-	return isString( result ) ? result : '';
+  const result = css.call(component, data);
+  return isString(result) ? result : "";
 }
 
-export function initCSS ( options, target, proto ) {
-	let css = isString( options.css ) && !hasCurly.test( options.css ) ?
-		( getElement( options.css ) || options.css ) :
-		options.css;
+export function initCSS(options, target, proto) {
+  let css =
+    isString(options.css) && !hasCurly.test(options.css)
+      ? getElement(options.css) || options.css
+      : options.css;
 
-	const id = options.cssId || uuid();
+  const id = options.cssId || uuid();
 
-	if ( isObjectType( css ) ) {
-		css = 'textContent' in css ? css.textContent : css.innerHTML;
-	} else if ( isFunction( css ) ) {
-		target._css = options.css;
-		css = evalCSS( target, css );
-	}
+  if (isObjectType(css)) {
+    css = "textContent" in css ? css.textContent : css.innerHTML;
+  } else if (isFunction(css)) {
+    target._css = options.css;
+    css = evalCSS(target, css);
+  }
 
-	const def = target._cssDef = { transform: !options.noCssTransform };
+  const def = (target._cssDef = { transform: !options.noCssTransform });
 
-	def.styles = def.transform ? transformCss( css, id ) : css;
-	def.id = proto.cssId = id;
-	target._cssIds.push( id );
+  def.styles = def.transform ? transformCss(css, id) : css;
+  def.id = proto.cssId = id;
+  target._cssIds.push(id);
 
-	addCSS( target._cssDef );
+  addCSS(target._cssDef);
 }

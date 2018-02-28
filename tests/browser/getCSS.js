@@ -1,138 +1,200 @@
-import { initModule } from '../helpers/test-config';
-import { createIsolatedEnv } from '../helpers/Environment';
-import QUnit, { test } from 'qunit';
+import { initModule } from "../helpers/test-config";
+import { createIsolatedEnv } from "../helpers/Environment";
+import QUnit, { test } from "qunit";
 
 export default function() {
-	initModule('getCss.js');
+  initModule("getCss.js");
 
-	function createComponentDefinition (Ractive) {
-
-		return Ractive.extend({
-			css: `
+  function createComponentDefinition(Ractive) {
+    return Ractive.extend({
+      css: `
 				.green {
 					color: green
 				}
 			`
-		});
+    });
+  }
 
-	}
+  test("getCSS with a single component definition", t => {
+    const Component = createComponentDefinition(Ractive);
 
-	test('getCSS with a single component definition', t => {
+    const cssId = Component.prototype.cssId;
+    const css = Ractive.getCSS();
 
-		const Component = createComponentDefinition(Ractive);
+    t.ok(
+      !!~css.indexOf(
+        `.green[data-ractive-css~="{${cssId}}"], [data-ractive-css~="{${cssId}}"] .green`,
+        `.green selector for ${cssId} should exist`
+      )
+    );
+  });
 
-		const cssId = Component.prototype.cssId;
-		const css = Ractive.getCSS();
+  test("getCSS with multiple components definition", t => {
+    const ComponentA = createComponentDefinition(Ractive);
 
-		t.ok(!!~css.indexOf(`.green[data-ractive-css~="{${cssId}}"], [data-ractive-css~="{${cssId}}"] .green`, `.green selector for ${cssId} should exist`));
+    const ComponentB = createComponentDefinition(Ractive);
 
-	});
+    const cssIdA = ComponentA.prototype.cssId;
+    const cssIdB = ComponentB.prototype.cssId;
+    const css = Ractive.getCSS();
 
-	test('getCSS with multiple components definition', t => {
+    // Look for the selectors
+    t.ok(
+      !!~css.indexOf(
+        `.green[data-ractive-css~="{${cssIdA}}"], [data-ractive-css~="{${cssIdA}}"] .green`
+      ),
+      `.green selector for ${cssIdA} should exist`
+    );
+    t.ok(
+      !!~css.indexOf(
+        `.green[data-ractive-css~="{${cssIdB}}"], [data-ractive-css~="{${cssIdB}}"] .green`
+      ),
+      `.green selector for ${cssIdB} should exist`
+    );
+  });
 
-		const ComponentA = createComponentDefinition(Ractive);
+  test("getCSS with a single component definition and an update", t => {
+    const Component = Ractive.extend({
+      css(d) {
+        return `.green { color: ${d.color || "green"}; }`;
+      }
+    });
 
-		const ComponentB = createComponentDefinition(Ractive);
+    const cssId = Component.prototype.cssId;
 
-		const cssIdA = ComponentA.prototype.cssId;
-		const cssIdB = ComponentB.prototype.cssId;
-		const css = Ractive.getCSS();
+    t.ok(
+      !!~Ractive.getCSS().indexOf(
+        `.green[data-ractive-css~="{${cssId}}"], [data-ractive-css~="{${cssId}}"] .green { color: green`,
+        `.green selector for ${cssId} should exist`
+      )
+    );
 
-		// Look for the selectors
-		t.ok(!!~css.indexOf(`.green[data-ractive-css~="{${cssIdA}}"], [data-ractive-css~="{${cssIdA}}"] .green`), `.green selector for ${cssIdA} should exist`);
-		t.ok(!!~css.indexOf(`.green[data-ractive-css~="{${cssIdB}}"], [data-ractive-css~="{${cssIdB}}"] .green`), `.green selector for ${cssIdB} should exist`);
+    Component.styleSet("color", "red");
 
-	});
+    t.ok(
+      !!~Ractive.getCSS().indexOf(
+        `.green[data-ractive-css~="{${cssId}}"], [data-ractive-css~="{${cssId}}"] .green { color: red`,
+        `.green selector for ${cssId} should be updated`
+      )
+    );
+  });
 
-	test('getCSS with a single component definition and an update', t => {
+  test("getCSS with multiple components definition and an update", t => {
+    const ComponentA = Ractive.extend({
+      css(d) {
+        return `.green { color: ${d.color || "green"}; }`;
+      }
+    });
+    const ComponentB = Ractive.extend({
+      css(d) {
+        return `.green { color: ${d.color || "green"}; }`;
+      }
+    });
 
-		const Component = Ractive.extend({
-			css ( d ) { return `.green { color: ${d.color || 'green'}; }`; }
-		});
+    const cssIdA = ComponentA.prototype.cssId;
+    const cssIdB = ComponentB.prototype.cssId;
 
-		const cssId = Component.prototype.cssId;
+    // Look for the selectors
+    t.ok(
+      !!~Ractive.getCSS().indexOf(
+        `.green[data-ractive-css~="{${cssIdA}}"], [data-ractive-css~="{${cssIdA}}"] .green { color: green`,
+        `.green selector for ${cssIdA} should exist`
+      )
+    );
+    t.ok(
+      !!~Ractive.getCSS().indexOf(
+        `.green[data-ractive-css~="{${cssIdB}}"], [data-ractive-css~="{${cssIdB}}"] .green { color: green`,
+        `.green selector for ${cssIdB} should exist`
+      )
+    );
 
-		t.ok(!!~Ractive.getCSS().indexOf(`.green[data-ractive-css~="{${cssId}}"], [data-ractive-css~="{${cssId}}"] .green { color: green`, `.green selector for ${cssId} should exist`));
+    ComponentA.styleSet("color", "red");
+    ComponentB.styleSet("color", "red");
 
-		Component.styleSet( 'color', 'red' );
+    t.ok(
+      !!~Ractive.getCSS().indexOf(
+        `.green[data-ractive-css~="{${cssIdA}}"], [data-ractive-css~="{${cssIdA}}"] .green { color: red`,
+        `.green selector for ${cssIdA} should exist`
+      )
+    );
+    t.ok(
+      !!~Ractive.getCSS().indexOf(
+        `.green[data-ractive-css~="{${cssIdB}}"], [data-ractive-css~="{${cssIdB}}"] .green { color: red`,
+        `.green selector for ${cssIdB} should exist`
+      )
+    );
+  });
 
-		t.ok(!!~Ractive.getCSS().indexOf(`.green[data-ractive-css~="{${cssId}}"], [data-ractive-css~="{${cssId}}"] .green { color: red`, `.green selector for ${cssId} should be updated`));
+  if (!window.__karma__) {
+    test("getCSS with component definitions constructed from Ractive of different environments", t => {
+      t.expect(5);
 
-	});
+      // this test takes a while sometimes
+      const timeout = QUnit.config.testTimeout;
+      QUnit.config.testTimeout = 30000;
+      setTimeout(() => {
+        QUnit.config.testTimeout = timeout;
+      }, 10);
 
-	test('getCSS with multiple components definition and an update', t => {
+      const done1 = t.async();
+      const done2 = t.async();
+      const done3 = t.async();
+      const done4 = t.async();
+      const done5 = t.async();
 
-		const ComponentA = Ractive.extend({
-			css ( d ) { return `.green { color: ${d.color || 'green'}; }`; }
-		});
-		const ComponentB = Ractive.extend({
-			css ( d ) { return `.green { color: ${d.color || 'green'}; }`; }
-		});
+      // Simulate two separate Ractive environments using iframes
+      Promise.all([createIsolatedEnv(), createIsolatedEnv()]).then(envs => {
+        const ComponentA = createComponentDefinition(envs[0].Ractive);
+        const ComponentB = createComponentDefinition(envs[1].Ractive);
 
-		const cssIdA = ComponentA.prototype.cssId;
-		const cssIdB = ComponentB.prototype.cssId;
+        const cssIdA = ComponentA.prototype.cssId;
+        const cssIdB = ComponentB.prototype.cssId;
 
-		// Look for the selectors
-		t.ok(!!~Ractive.getCSS().indexOf(`.green[data-ractive-css~="{${cssIdA}}"], [data-ractive-css~="{${cssIdA}}"] .green { color: green`, `.green selector for ${cssIdA} should exist`));
-		t.ok(!!~Ractive.getCSS().indexOf(`.green[data-ractive-css~="{${cssIdB}}"], [data-ractive-css~="{${cssIdB}}"] .green { color: green`, `.green selector for ${cssIdB} should exist`));
+        const cssA = envs[0].Ractive.getCSS();
+        const cssB = envs[1].Ractive.getCSS();
 
-		ComponentA.styleSet( 'color', 'red' );
-		ComponentB.styleSet( 'color', 'red' );
+        t.notEqual(
+          cssIdA,
+          cssIdB,
+          `Two top-level components from different environments should not have the same ID`
+        );
+        done1();
 
-		t.ok(!!~Ractive.getCSS().indexOf(`.green[data-ractive-css~="{${cssIdA}}"], [data-ractive-css~="{${cssIdA}}"] .green { color: red`, `.green selector for ${cssIdA} should exist`));
-		t.ok(!!~Ractive.getCSS().indexOf(`.green[data-ractive-css~="{${cssIdB}}"], [data-ractive-css~="{${cssIdB}}"] .green { color: red`, `.green selector for ${cssIdB} should exist`));
+        t.ok(
+          !!~cssA.indexOf(
+            `.green[data-ractive-css~="{${cssIdA}}"], [data-ractive-css~="{${cssIdA}}"] .green`
+          ),
+          `.green selector for ${cssIdA} should exist on component definition A`
+        );
+        done2();
 
-	});
+        t.ok(
+          !~cssA.indexOf(
+            `.green[data-ractive-css~="{${cssIdB}}"], [data-ractive-css~="{${cssIdB}}"] .green`
+          ),
+          `.green selector for ${cssIdB} should NEVER exist on component definition A`
+        );
+        done3();
 
-	if (!window.__karma__) {
-		test('getCSS with component definitions constructed from Ractive of different environments', t => {
-			t.expect(5);
+        t.ok(
+          !!~cssB.indexOf(
+            `.green[data-ractive-css~="{${cssIdB}}"], [data-ractive-css~="{${cssIdB}}"] .green`
+          ),
+          `.green selector for ${cssIdB} should exist on component definition B`
+        );
+        done4();
 
-			// this test takes a while sometimes
-			const timeout = QUnit.config.testTimeout;
-			QUnit.config.testTimeout = 30000;
-			setTimeout(() => {
-				QUnit.config.testTimeout = timeout;
-			}, 10);
+        t.ok(
+          !~cssB.indexOf(
+            `.green[data-ractive-css~="{${cssIdA}}"], [data-ractive-css~="{${cssIdA}}"] .green`
+          ),
+          `.green selector for ${cssIdA} should NEVER exist on component definition B`
+        );
+        done5();
 
-			const done1 = t.async();
-			const done2 = t.async();
-			const done3 = t.async();
-			const done4 = t.async();
-			const done5 = t.async();
-
-			// Simulate two separate Ractive environments using iframes
-			Promise.all([ createIsolatedEnv(), createIsolatedEnv() ]).then(envs => {
-
-				const ComponentA = createComponentDefinition(envs[ 0 ].Ractive);
-				const ComponentB = createComponentDefinition(envs[ 1 ].Ractive);
-
-				const cssIdA = ComponentA.prototype.cssId;
-				const cssIdB = ComponentB.prototype.cssId;
-
-				const cssA = envs[ 0 ].Ractive.getCSS();
-				const cssB = envs[ 1 ].Ractive.getCSS();
-
-				t.notEqual(cssIdA, cssIdB, `Two top-level components from different environments should not have the same ID`);
-				done1();
-
-				t.ok(!!~cssA.indexOf(`.green[data-ractive-css~="{${cssIdA}}"], [data-ractive-css~="{${cssIdA}}"] .green`), `.green selector for ${cssIdA} should exist on component definition A`);
-				done2();
-
-				t.ok(!~cssA.indexOf(`.green[data-ractive-css~="{${cssIdB}}"], [data-ractive-css~="{${cssIdB}}"] .green`), `.green selector for ${cssIdB} should NEVER exist on component definition A`);
-				done3();
-
-				t.ok(!!~cssB.indexOf(`.green[data-ractive-css~="{${cssIdB}}"], [data-ractive-css~="{${cssIdB}}"] .green`), `.green selector for ${cssIdB} should exist on component definition B`);
-				done4();
-
-				t.ok(!~cssB.indexOf(`.green[data-ractive-css~="{${cssIdA}}"], [data-ractive-css~="{${cssIdA}}"] .green`), `.green selector for ${cssIdA} should NEVER exist on component definition B`);
-				done5();
-
-				envs[ 0 ].env.remove();
-				envs[ 1 ].env.remove();
-
-			});
-
-		});
-	}
+        envs[0].env.remove();
+        envs[1].env.remove();
+      });
+    });
+  }
 }

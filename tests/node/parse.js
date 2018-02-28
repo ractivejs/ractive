@@ -1,54 +1,56 @@
 const { module, test } = QUnit;
-import parseTests from '../helpers/samples/parse';
+import parseTests from "../helpers/samples/parse";
 
-export default function(){
+export default function() {
+  module("Ractive.parse()");
 
-	module( 'Ractive.parse()' );
+  parseTests.forEach(parseTest => {
+    // disable for tests unless explicitly specified
+    // we can just test the signatures, so set csp false
+    parseTest.options = parseTest.options || { csp: false };
+    if (!parseTest.options.hasOwnProperty("csp")) {
+      parseTest.options.csp = false;
+    }
 
-	parseTests.forEach( parseTest => {
+    test(parseTest.name, t => {
+      if (parseTest.error) {
+        t.throws(
+          () => {
+            Ractive.parse(parseTest.template, parseTest.options);
+          },
+          error => {
+            if (error.name !== "ParseError") {
+              throw error;
+            }
+            if (parseTest.error.test) {
+              t.ok(parseTest.error.test(error.message));
+            } else {
+              t.equal(error.message, parseTest.error);
+            }
+            return true;
+          },
+          "Expected ParseError"
+        );
+      } else {
+        const parsed = Ractive.parse(parseTest.template, parseTest.options);
 
-		// disable for tests unless explicitly specified
-		// we can just test the signatures, so set csp false
-		parseTest.options = parseTest.options || { csp: false };
-		if ( !parseTest.options.hasOwnProperty( 'csp' ) ) {
-			parseTest.options.csp = false;
-		}
+        if (parsed.e && parseTest.parsed.e) {
+          const expectedKeys = Object.keys(parseTest.parsed.e);
+          const parsedKeys = Object.keys(parsed.e);
 
-		test( parseTest.name, t => {
-			if ( parseTest.error ) {
-				t.throws( () => {
-					Ractive.parse( parseTest.template, parseTest.options );
-				}, error => {
-					if ( error.name !== 'ParseError' ) {
-						throw error;
-					}
-					if ( parseTest.error.test ) {
-						t.ok( parseTest.error.test( error.message ) );
-					} else {
-						t.equal( error.message, parseTest.error );
-					}
-					return true;
-				}, 'Expected ParseError');
-			} else {
-				const parsed = Ractive.parse( parseTest.template, parseTest.options );
+          t.deepEqual(parsedKeys, expectedKeys);
 
-				if ( parsed.e && parseTest.parsed.e ) {
-					const expectedKeys = Object.keys( parseTest.parsed.e) ;
-					const parsedKeys = Object.keys( parsed.e );
+          expectedKeys.forEach(key => {
+            const actual = parsed.e[key].toString();
+            t.equal(actual, parseTest.parsed.e[key]);
+          });
 
-					t.deepEqual(parsedKeys, expectedKeys);
+          delete parsed.e;
+          delete parseTest.parsed.e;
+        }
 
-					expectedKeys.forEach(key => {
-						const actual = parsed.e[key].toString();
-						t.equal( actual, parseTest.parsed.e[key] );
-					});
-
-					delete parsed.e;
-					delete parseTest.parsed.e;
-				}
-
-				t.deepEqual( parsed, parseTest.parsed );
-			}
-		});
-	});
+        t.deepEqual(parsed, parseTest.parsed);
+      }
+    });
+  });
 }

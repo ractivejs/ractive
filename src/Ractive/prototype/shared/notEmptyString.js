@@ -1,1 +1,1 @@
-export default str => str !== '';
+export default str => str !== "";
