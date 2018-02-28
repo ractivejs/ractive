@@ -199,24 +199,22 @@ export default class Fragment {
   }
 
   getKey() {
-    return this.keyModel || (this.keyModel = new KeyModel(this.key, this.context));
+    return this.keyModel || (this.keyModel = new KeyModel(this.key));
   }
 
   getKeypath(root) {
     if (root) {
       return (
         this.rootModel ||
-        (this.rootModel = new KeyModel(this.context.getKeypath(this.ractive.root), this.context))
+        (this.rootModel = new KeyModel(this.context.getKeypath(this.ractive.root)))
       );
     } else {
-      return (
-        this.pathModel || (this.pathModel = new KeyModel(this.context.getKeypath(), this.context))
-      );
+      return this.pathModel || (this.pathModel = new KeyModel(this.context.getKeypath()));
     }
   }
 
   getIndex() {
-    return this.idxModel || (this.idxModel = new KeyModel(this.index, this.context));
+    return this.idxModel || (this.idxModel = new KeyModel(this.index));
   }
 
   rebind(next) {

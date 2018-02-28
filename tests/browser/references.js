@@ -604,4 +604,43 @@ export default function() {
       });
     }, /not context at that level/);
   });
+
+  test(`@last special reference`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: "<check bind-items=list />|<check bind-items=obj />",
+      data: {
+        list: [1, 2, 3, 4, 5],
+        obj: { a: 1, b: 2, c: 3 }
+      },
+      components: {
+        check: Ractive.extend({
+          template:
+            "{{#each items}}{{#if @index === @last}}{{@index}} is last {{@last}}{{/if}}{{/each}}"
+        })
+      }
+    });
+
+    t.htmlEqual(fixture.innerHTML, "4 is last 4|2 is last 2");
+
+    r.set("obj.d", 4);
+
+    t.htmlEqual(fixture.innerHTML, "4 is last 4|3 is last 3");
+
+    r.push("list", 6);
+
+    t.htmlEqual(fixture.innerHTML, "5 is last 5|3 is last 3");
+
+    r.splice("list", 0, 3);
+
+    t.htmlEqual(fixture.innerHTML, "2 is last 2|3 is last 3");
+
+    r.set("obj", { foo: 99 });
+
+    t.htmlEqual(fixture.innerHTML, "2 is last 2|0 is last 0");
+
+    r.set("list", ["a", "b", "c", "d"]);
+
+    t.htmlEqual(fixture.innerHTML, "3 is last 3|0 is last 0");
+  });
 }

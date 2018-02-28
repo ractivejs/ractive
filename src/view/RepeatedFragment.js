@@ -15,6 +15,7 @@ import Fragment from "./Fragment";
 import findElement from "./items/shared/findElement";
 import { getContext } from "shared/getRactiveContext";
 import { keys } from "utils/object";
+import KeyModel from "src/model/specials/KeyModel";
 
 export default class RepeatedFragment {
   constructor(options) {
@@ -61,7 +62,7 @@ export default class RepeatedFragment {
     if ((this.isArray = isArray(value))) {
       // we can't use map, because of sparse arrays
       this.iterations = [];
-      const max = value.length;
+      const max = (this.length = value.length);
       for (let i = 0; i < max; i += 1) {
         this.iterations[i] = this.createIteration(i, i);
       }
@@ -76,7 +77,10 @@ export default class RepeatedFragment {
         this.indexRef = refs[1];
       }
 
-      this.iterations = keys(value).map((key, index) => {
+      const ks = keys(value);
+      this.length = ks.length;
+
+      this.iterations = ks.map((key, index) => {
         return this.createIteration(key, index);
       });
     }
@@ -158,6 +162,10 @@ export default class RepeatedFragment {
     return this.iterations[0] ? this.iterations[0].firstNode(skipParent) : null;
   }
 
+  getLast() {
+    return this.lastModel || (this.lastModel = new KeyModel(this.length - 1));
+  }
+
   rebind(next) {
     this.context = next;
     this.iterations.forEach(fragment => {
@@ -171,8 +179,6 @@ export default class RepeatedFragment {
   }
 
   render(target, occupants) {
-    // TODO use docFrag.cloneNode...
-
     const xs = this.iterations;
     if (xs) {
       const len = xs.length;
@@ -235,8 +241,6 @@ export default class RepeatedFragment {
 
   // TODO smart update
   update() {
-    // skip dirty check, since this is basically just a facade
-
     if (this.pendingNewIndices) {
       this.bubbled.length = 0;
       this.updatePostShuffle();
@@ -280,6 +284,10 @@ export default class RepeatedFragment {
       }
     }
 
+    const newLength = isArray(value) ? value.length : isObject(value) ? keys(value).length : 0;
+    this.length = newLength;
+    this.updateLast();
+
     if (reset) {
       toRemove = this.iterations;
       this.iterations = [];
@@ -302,8 +310,6 @@ export default class RepeatedFragment {
     }
 
     // add new iterations
-    const newLength = isArray(value) ? value.length : isObject(value) ? keys(value).length : 0;
-
     let docFrag;
     let fragment;
 
@@ -351,6 +357,10 @@ export default class RepeatedFragment {
     this.updating = false;
   }
 
+  updateLast() {
+    if (this.lastModel) this.lastModel.applyValue(this.length - 1);
+  }
+
   updatePostShuffle() {
     const newIndices = this.pendingNewIndices[0];
 
@@ -364,10 +374,12 @@ export default class RepeatedFragment {
     // This algorithm (for detaching incorrectly-ordered fragments from the DOM and
     // storing them in a document fragment for later reinsertion) seems a bit hokey,
     // but it seems to work for now
-    const len = this.context.get().length;
+    const len = (this.length = this.context.get().length);
     const oldLen = this.previousIterations.length;
     const removed = {};
     let i;
+
+    this.updateLast();
 
     newIndices.forEach((newIndex, oldIndex) => {
       const fragment = this.previousIterations[oldIndex];

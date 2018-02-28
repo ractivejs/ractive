@@ -5,12 +5,11 @@ import { handleChange } from "src/shared/methodCallers";
 import noop from "utils/noop";
 
 export default class KeyModel {
-  constructor(key, parent) {
+  constructor(key) {
     this.value = key;
     this.isReadonly = this.isKey = true;
     this.deps = [];
     this.links = [];
-    this.parent = parent;
   }
 
   applyValue(value) {

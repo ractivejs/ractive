@@ -87,6 +87,9 @@ export default function resolveReference(fragment, ref) {
       if (keys.length) badReference(base);
       const repeater = findIter(fragment);
       return repeater && repeater[`get${base[1] === "i" ? "Index" : "Key"}`]();
+    } else if (base === "@last") {
+      const repeater = findIter(fragment);
+      return repeater && repeater.parent.getLast();
     } else if (base === "@global") {
       // @global referring to window or global
       return GlobalModel.joinAll(keys);
