@@ -42,7 +42,6 @@ const ractiveRollupPlugins = [ractiveAliases];
 const placeholders = { BUILD_PLACEHOLDER_VERSION: version };
 
 const src = gobble('src');
-const polyfills = src.include(['polyfills.js']);
 const tests = gobble('tests').transform(transpile, { accept: ['.js'] });
 const browserTests = tests.include(['helpers/**/*', 'browser/**/*']);
 const nodeTests = tests.include(['helpers/**/*', 'node/**/*']);
@@ -79,14 +78,12 @@ module.exports = ({
 
 		const esRegular = buildESLib('ractive.mjs', ractiveRollupPlugins);
 		const esRuntime = buildESLib('runtime.mjs', ractiveRollupPlugins.concat(skipModule(runtimeModulesToIgnore)));
-		const esPolyfill = buildESPolyfill();
 
 		const umdRegular = buildUmdLib('ractive.js', ractiveRollupPlugins);
 		const umdRuntime = buildUmdLib('runtime.js', ractiveRollupPlugins.concat(skipModule(runtimeModulesToIgnore)));
-		const umdPolyfill = buildUmdPolyfill();
 
-		const libEs = gobble([esRegular, esRuntime, esPolyfill]);
-		const libUmd = gobble([umdRegular, umdRuntime, umdPolyfill]);
+		const libEs = gobble([esRegular, esRuntime]);
+		const libUmd = gobble([umdRegular, umdRuntime]);
 		const libUmdMin = libUmd.transform('uglifyjs', { ext: '.min.js', preamble: banner });
 
 		return gobble([libEs, libUmd, libUmdMin, bin, lib, typings, manifest]);
@@ -170,30 +167,6 @@ function buildNodeTests() {
 			external: ['cheerio'],
 			cache: false
 		});
-}
-
-function buildUmdPolyfill() {
-	return polyfills.transform(rollup, {
-		input: 'polyfills.js',
-		output: {
-			name: 'RactivePolyfills',
-			format: 'umd',
-			file: 'polyfills.js',
-			sourcemap: true
-		},
-		cache: false,
-	}).transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
-}
-
-function buildESPolyfill() {
-	return polyfills.transform(rollup, {
-		input: 'polyfills.js',
-		output: {
-			format: 'es',
-			file: 'polyfills.mjs',
-		},
-		cache: false
-	}).transform(transpile, { accept: ['.js'] }).transform(replacePlaceholders);
 }
 
 /* Rollup plugins */
