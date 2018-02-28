@@ -11,7 +11,7 @@
 		"sourceType": "module"
 	},
 	"rules": {
-		"prettier/prettier": "error",
+		"prettier/prettier": [ "error", { "printWidth": 100 } ],
 		"linebreak-style": [ "error", "unix" ],
 		"no-mixed-spaces-and-tabs": [ "error", "smart-tabs" ],
 		"no-class-assign": "error",
