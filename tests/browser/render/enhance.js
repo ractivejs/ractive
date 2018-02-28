@@ -116,9 +116,7 @@ export default function() {
       "<vkern>"
     ];
     const allAvailableSvgElements =
-      "<svg>" +
-      listOfSvgElements.map(el => `${el}${el.replace("<", "</")}`).join("") +
-      "</svg>";
+      "<svg>" + listOfSvgElements.map(el => `${el}${el.replace("<", "</")}`).join("") + "</svg>";
 
     fixture.innerHTML = allAvailableSvgElements;
     const svg = fixture.querySelector("svg");
@@ -222,10 +220,7 @@ export default function() {
       enhance: true
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div class="someCls someClsToAdd">foo</div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div class="someCls someClsToAdd">foo</div>');
     t.strictEqual(div, ractive.find("div"));
   });
 
@@ -289,10 +284,7 @@ export default function() {
       enhance: true
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      "<p>before</p> hello, everybody! <p>after</p>"
-    );
+    t.htmlEqual(fixture.innerHTML, "<p>before</p> hello, everybody! <p>after</p>");
     t.deepEqual(ractive.findAll("p"), [].slice.call(ps));
   });
 
@@ -397,11 +389,7 @@ export default function() {
 					</select>
 				`,
         data: {
-          options: [
-            { desc: "isomorphic" },
-            { desc: "universal" },
-            { desc: "who cares" }
-          ]
+          options: [{ desc: "isomorphic" }, { desc: "universal" }, { desc: "who cares" }]
         },
         enhance: true
       });
@@ -426,19 +414,12 @@ export default function() {
 					</select>
 				`,
         data: {
-          options: [
-            { desc: "isomorphic" },
-            { desc: "universal" },
-            { desc: "who cares" }
-          ]
+          options: [{ desc: "isomorphic" }, { desc: "universal" }, { desc: "who cares" }]
         },
         enhance: true
       });
 
-      t.deepEqual(ractive.get("selected"), [
-        { desc: "universal" },
-        { desc: "who cares" }
-      ]);
+      t.deepEqual(ractive.get("selected"), [{ desc: "universal" }, { desc: "who cares" }]);
     });
   }
 
@@ -562,8 +543,7 @@ export default function() {
   });
 
   test(`triples reuse existing content if it matches (#2403)`, t => {
-    fixture.innerHTML =
-      "<div>foo bar</div><span><i>guts</i></span>&amp; why not?<!-- yep -->?sure";
+    fixture.innerHTML = "<div>foo bar</div><span><i>guts</i></span>&amp; why not?<!-- yep -->?sure";
     const div = fixture.childNodes[0];
     const text = div.childNodes[0];
     const span = fixture.childNodes[1];
@@ -574,8 +554,7 @@ export default function() {
       target: fixture,
       template: "{{{html}}}?{{str}}",
       data: {
-        html:
-          "<div>foo bar</div><span><i>guts</i></span>&amp; why not?<!-- yep -->",
+        html: "<div>foo bar</div><span><i>guts</i></span>&amp; why not?<!-- yep -->",
         str: "sure"
       },
       enhance: true

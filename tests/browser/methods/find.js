@@ -26,8 +26,7 @@ export default function() {
   test("find() works with nested elements", t => {
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '<div class="outer"><div class="inner"><p>{{foo}}</p><p>{{bar}}</p></div></div>',
+      template: '<div class="outer"><div class="inner"><p>{{foo}}</p><p>{{bar}}</p></div></div>',
       data: { foo: "one", bar: "two" }
     });
 

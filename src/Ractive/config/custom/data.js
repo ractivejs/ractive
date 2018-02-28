@@ -8,9 +8,7 @@ function validate(data) {
     if (isFunction(data)) {
       // TODO do we need to support this in the new Ractive() case?
     } else if (!isObjectType(data)) {
-      fatal(
-        `data option must be an object or a function, \`${data}\` is not valid`
-      );
+      fatal(`data option must be an object or a function, \`${data}\` is not valid`);
     } else {
       warnIfDebug(
         "If supplied, options.data should be a plain JavaScript object - using a non-POJO as the root object may work, but is discouraged"
@@ -108,9 +106,7 @@ function combine(parentValue, childValue) {
 
   return function() {
     const child = childIsFn ? callDataFunction(childValue, this) : childValue;
-    const parent = parentIsFn
-      ? callDataFunction(parentValue, this)
-      : parentValue;
+    const parent = parentIsFn ? callDataFunction(parentValue, this) : parentValue;
 
     return fromProperties(child, parent);
   };

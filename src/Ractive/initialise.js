@@ -58,10 +58,7 @@ export default function initialise(ractive, userOptions, options) {
 
 export function createFragment(ractive, options = {}) {
   if (ractive.template) {
-    const cssIds = [].concat(
-      ractive.constructor._cssIds || [],
-      options.cssIds || []
-    );
+    const cssIds = [].concat(ractive.constructor._cssIds || [], options.cssIds || []);
 
     return new Fragment({
       owner: ractive,

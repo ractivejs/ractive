@@ -4,9 +4,7 @@ import { isArray } from "utils/is";
 function getMessage(deprecated, correct, isError) {
   return (
     `options.${deprecated} has been deprecated in favour of options.${correct}.` +
-    (isError
-      ? ` You cannot specify both options, please use options.${correct}.`
-      : "")
+    (isError ? ` You cannot specify both options, please use options.${correct}.` : "")
   );
 }
 

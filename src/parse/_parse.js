@@ -36,10 +36,8 @@ const defaultInterpolate = ["script", "style", "template"];
 
 const StandardParser = Parser.extend({
   init(str, options) {
-    const tripleDelimiters =
-      options.tripleDelimiters || shared.defaults.tripleDelimiters;
-    const staticDelimiters =
-      options.staticDelimiters || shared.defaults.staticDelimiters;
+    const tripleDelimiters = options.tripleDelimiters || shared.defaults.tripleDelimiters;
+    const staticDelimiters = options.staticDelimiters || shared.defaults.staticDelimiters;
     const staticTripleDelimiters =
       options.staticTripleDelimiters || shared.defaults.staticTripleDelimiters;
 
@@ -83,14 +81,10 @@ const StandardParser = Parser.extend({
     this.sectionDepth = 0;
     this.elementStack = [];
 
-    this.interpolate = create(
-      options.interpolate || shared.defaults.interpolate || {}
-    );
+    this.interpolate = create(options.interpolate || shared.defaults.interpolate || {});
     this.interpolate.textarea = true;
     defaultInterpolate.forEach(
-      t =>
-        (this.interpolate[t] =
-          !options.interpolate || options.interpolate[t] !== false)
+      t => (this.interpolate[t] = !options.interpolate || options.interpolate[t] !== false)
     );
 
     if (options.sanitize === true) {
@@ -106,8 +100,7 @@ const StandardParser = Parser.extend({
     this.stripComments = options.stripComments !== false;
     this.preserveWhitespace = options.preserveWhitespace;
     this.sanitizeElements = options.sanitize && options.sanitize.elements;
-    this.sanitizeEventAttributes =
-      options.sanitize && options.sanitize.eventAttributes;
+    this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
     this.includeLinePositions = options.includeLinePositions;
     this.textOnlyMode = options.textOnlyMode;
     this.csp = options.csp;

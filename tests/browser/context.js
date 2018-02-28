@@ -336,10 +336,7 @@ export default function() {
 
     info.sort("../");
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      "<span>0</span><span>1</span><span>2</span>"
-    );
+    t.htmlEqual(fixture.innerHTML, "<span>0</span><span>1</span><span>2</span>");
   });
 
   test("node info sreverse", t => {
@@ -353,10 +350,7 @@ export default function() {
 
     info.reverse("../");
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      "<span>2</span><span>0</span><span>1</span>"
-    );
+    t.htmlEqual(fixture.innerHTML, "<span>2</span><span>0</span><span>1</span>");
   });
 
   test("node info shift", t => {
@@ -1045,23 +1039,14 @@ export default function() {
 
     t.ok(third.hasListener("third"), "element own listener without bubble");
     t.ok(!third.hasListener("second"), "element parent event without bubble");
-    t.ok(
-      third.hasListener("second", true),
-      "element component event with bubble"
-    );
+    t.ok(third.hasListener("second", true), "element component event with bubble");
     t.ok(third.hasListener("third", true), "element plain event with bubble");
     t.ok(!third.hasListener("nope", true), "element no listener with bubble");
 
     const yielded = r.getContext("i");
 
-    t.ok(
-      !yielded.hasListener("third", true),
-      "yielded bubble skips inside component"
-    );
-    t.ok(
-      yielded.hasListener("first", true),
-      "yielded bubble outside component"
-    );
+    t.ok(!yielded.hasListener("third", true), "yielded bubble skips inside component");
+    t.ok(yielded.hasListener("first", true), "yielded bubble outside component");
 
     const partial = r.getContext("b");
 
@@ -1069,9 +1054,6 @@ export default function() {
       partial.hasListener("third", true) && partial.hasListener("second", true),
       "partial bubble does not skip inside component"
     );
-    t.ok(
-      partial.hasListener("first", true),
-      "partial bubble outside component"
-    );
+    t.ok(partial.hasListener("first", true), "partial bubble outside component");
   });
 }

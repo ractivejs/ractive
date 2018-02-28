@@ -27,9 +27,7 @@ export default function() {
 
     t.equal(widgets.length, 3);
     t.ok(
-      widgets[0] instanceof Widget &&
-        widgets[1] instanceof Widget &&
-        widgets[2] instanceof Widget
+      widgets[0] instanceof Widget && widgets[1] instanceof Widget && widgets[2] instanceof Widget
     );
   });
 

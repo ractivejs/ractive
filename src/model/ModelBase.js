@@ -65,15 +65,13 @@ export default class ModelBase {
   getKeyModel(key, skip) {
     if (key !== undefined && !skip) return this.parent.getKeyModel(key, true);
 
-    if (!(key in this.keyModels))
-      this.keyModels[key] = new KeyModel(escapeKey(key), this);
+    if (!(key in this.keyModels)) this.keyModels[key] = new KeyModel(escapeKey(key), this);
 
     return this.keyModels[key];
   }
 
   getKeypath(ractive) {
-    if (ractive !== this.ractive && this._link)
-      return this._link.target.getKeypath(ractive);
+    if (ractive !== this.ractive && this._link) return this._link.target.getKeypath(ractive);
 
     if (!this.keypath) {
       const parent = this.parent && this.parent.getKeypath(ractive);
@@ -141,11 +139,7 @@ export default class ModelBase {
 
     // We climb up the constructor chain to find if one of them contains the key
     let constructor = value.constructor;
-    while (
-      constructor !== Function &&
-      constructor !== Array &&
-      constructor !== Object
-    ) {
+    while (constructor !== Function && constructor !== Array && constructor !== Object) {
       if (hasOwn(constructor.prototype, key)) return true;
       constructor = constructor.constructor;
     }
@@ -302,8 +296,7 @@ export function findBoundValue(list) {
     if (list[i].bound) {
       const owner = list[i].owner;
       if (owner) {
-        const value =
-          owner.name === "checked" ? owner.node.checked : owner.node.value;
+        const value = owner.name === "checked" ? owner.node.checked : owner.node.value;
         return { value };
       }
     }
@@ -350,11 +343,7 @@ export function shuffle(model, newIndices, link, unsafe) {
       model.keyModels[i].rebind(undefined, model.keyModels[i], false);
     } else if (~idx && model.keyModels[i]) {
       if (!model.keyModels[idx]) model.childByKey[idx].getKeyModel(idx);
-      model.keyModels[i].rebind(
-        model.keyModels[idx],
-        model.keyModels[i],
-        false
-      );
+      model.keyModels[i].rebind(model.keyModels[idx], model.keyModels[i], false);
     }
   }
 
@@ -379,5 +368,4 @@ export function shuffle(model, newIndices, link, unsafe) {
 KeyModel.prototype.addShuffleTask = ModelBase.prototype.addShuffleTask;
 KeyModel.prototype.addShuffleRegister = ModelBase.prototype.addShuffleRegister;
 KeypathModel.prototype.addShuffleTask = ModelBase.prototype.addShuffleTask;
-KeypathModel.prototype.addShuffleRegister =
-  ModelBase.prototype.addShuffleRegister;
+KeypathModel.prototype.addShuffleRegister = ModelBase.prototype.addShuffleRegister;

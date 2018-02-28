@@ -15,25 +15,13 @@ export default function() {
       el: fixture.children[1]
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div id="r1">r1</div><div id="r2">r2</div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div id="r1">r1</div><div id="r2">r2</div>');
     r2.attachChild(r1);
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div id="r1">r1</div><div id="r2">r2</div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div id="r1">r1</div><div id="r2">r2</div>');
     r2.detachChild(r1);
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div id="r1">r1</div><div id="r2">r2</div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div id="r1">r1</div><div id="r2">r2</div>');
     r2.attachChild(r1, { target: "foo" });
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div id="r1"></div><div id="r2">r2r1</div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div id="r1"></div><div id="r2">r2r1</div>');
     r2.detachChild(r1);
     t.htmlEqual(fixture.innerHTML, '<div id="r1"></div><div id="r2">r2</div>');
   });

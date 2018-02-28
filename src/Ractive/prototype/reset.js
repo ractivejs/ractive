@@ -4,13 +4,7 @@ import Hook from "../../events/Hook";
 import dataConfigurator from "../config/custom/data";
 import { isObjectType } from "utils/is";
 
-const shouldRerender = [
-  "template",
-  "partials",
-  "components",
-  "decorators",
-  "events"
-];
+const shouldRerender = ["template", "partials", "components", "decorators", "events"];
 
 const completeHook = new Hook("complete");
 const resetHook = new Hook("reset");
@@ -21,9 +15,7 @@ export default function Ractive$reset(data) {
   data = data || {};
 
   if (!isObjectType(data)) {
-    throw new Error(
-      "The reset method takes either no arguments, or an object containing new data"
-    );
+    throw new Error("The reset method takes either no arguments, or an object containing new data");
   }
 
   // TEMP need to tidy this up

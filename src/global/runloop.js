@@ -14,10 +14,7 @@ const runloop = {
 
     batch = {
       previousBatch: batch,
-      transitionManager: new TransitionManager(
-        fulfilPromise,
-        batch && batch.transitionManager
-      ),
+      transitionManager: new TransitionManager(fulfilPromise, batch && batch.transitionManager),
       fragments: [],
       tasks: [],
       immediateObservers: [],
@@ -56,10 +53,7 @@ const runloop = {
     if (!batch) {
       observer.dispatch();
     } else {
-      addToArray(
-        defer ? batch.deferredObservers : batch.immediateObservers,
-        observer
-      );
+      addToArray(defer ? batch.deferredObservers : batch.immediateObservers, observer);
     }
   },
 

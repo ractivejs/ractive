@@ -19,9 +19,7 @@ function getOptions(options, instance) {
 
   let easing;
   if (options.easing) {
-    easing = isFunction(options.easing)
-      ? options.easing
-      : instance.easing[options.easing];
+    easing = isFunction(options.easing) ? options.easing : instance.easing[options.easing];
   }
 
   return {
@@ -65,16 +63,9 @@ export default function Ractive$animate(keypath, to, options) {
   ${keys.map(key => `'${key}': ${keypath[key]}`).join("\n  ")}
 }, {...}), do
 
-${keys
-      .map(key => `ractive.animate('${key}', ${keypath[key]}, {...});`)
-      .join("\n")}
+${keys.map(key => `ractive.animate('${key}', ${keypath[key]}, {...});`).join("\n")}
 `);
   }
 
-  return animate(
-    this,
-    this.viewmodel.joinAll(splitKeypath(keypath)),
-    to,
-    options
-  );
+  return animate(this, this.viewmodel.joinAll(splitKeypath(keypath)), to, options);
 }

@@ -165,10 +165,7 @@ export default function() {
       template: `<span class-bip="true" class-nope="false" class="foo bar" class-bop="true" /><span class-foo="true" class-bar-baz="true" />`
     });
 
-    t.equal(
-      r.toHTML(),
-      `<span class="foo bar bip bop"></span><span class="foo bar-baz"></span>`
-    );
+    t.equal(r.toHTML(), `<span class="foo bar bip bop"></span><span class="foo bar-baz"></span>`);
   });
 
   test(`style directives and style attributes both contribute to toHTML (#2537)`, t => {
@@ -300,10 +297,7 @@ export default function() {
 
     r.toggle("toggle");
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div style="background-color: blue;" class="foo"></div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div style="background-color: blue;" class="foo"></div>');
   });
 
   test(`style directives reset safely without undoing other same-prop directives`, t => {
@@ -349,10 +343,7 @@ export default function() {
       }
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div><div class="joe" data-sure="yep"></div></div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div><div class="joe" data-sure="yep"></div></div>');
 
     r.set("attrs", "baz");
     t.htmlEqual(fixture.innerHTML, '<div><div class="sam"></div></div>');

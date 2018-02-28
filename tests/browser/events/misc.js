@@ -71,11 +71,7 @@ export default function() {
       template:
         '{{#items:i}}<span id="test{{i}}" on-click="@this.fire(eventName, event, eventName)"/>{{/}}',
       data: {
-        items: [
-          { eventName: "foo" },
-          { eventName: "bar" },
-          { eventName: "biz" }
-        ]
+        items: [{ eventName: "foo" }, { eventName: "bar" }, { eventName: "biz" }]
       }
     });
 
@@ -113,8 +109,7 @@ export default function() {
 
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '<button on-click="@this.onClick(eventName)">{{eventName}}</button>',
+      template: '<button on-click="@this.onClick(eventName)">{{eventName}}</button>',
       data: { eventName: "foo" },
       onClick(eventName) {
         t.equal(eventName, "foo");

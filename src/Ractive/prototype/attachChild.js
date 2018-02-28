@@ -15,9 +15,7 @@ export default function attachChild(child, options = {}) {
       }. Please detach it from the other instance using detachChild first.`
     );
   else if (child.parent)
-    throw new Error(
-      `Instance ${child._guid} is already attached to this instance.`
-    );
+    throw new Error(`Instance ${child._guid} is already attached to this instance.`);
 
   const meta = {
     instance: child,
@@ -39,9 +37,7 @@ export default function attachChild(child, options = {}) {
       list = [];
       this.set(`@this.children.byName.${meta.target}`, list);
     }
-    idx = options.prepend
-      ? 0
-      : options.insertAt !== undefined ? options.insertAt : list.length;
+    idx = options.prepend ? 0 : options.insertAt !== undefined ? options.insertAt : list.length;
   }
 
   child.set({

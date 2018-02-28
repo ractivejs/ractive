@@ -11,21 +11,10 @@ import { keys } from "utils/object";
 
 const indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
 const keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
-const handlebarsBlockPattern = new RegExp(
-  "^(" + keys(handlebarsBlockCodes).join("|") + ")\\b"
-);
+const handlebarsBlockPattern = new RegExp("^(" + keys(handlebarsBlockCodes).join("|") + ")\\b");
 
 export default function readSection(parser, tag) {
-  let expression,
-    section,
-    child,
-    children,
-    hasElse,
-    block,
-    unlessBlock,
-    closed,
-    i,
-    expectedClose;
+  let expression, section, child, children, hasElse, block, unlessBlock, closed, i, expectedClose;
   let aliasOnly = false;
 
   const start = parser.pos;
@@ -112,9 +101,9 @@ export default function readSection(parser, tag) {
         if (!block) {
           if (child.r)
             parser.warn(
-              `Expected ${tag.open}/${expectedClose}${tag.close} but found ${
-                tag.open
-              }/${child.r}${tag.close}`
+              `Expected ${tag.open}/${expectedClose}${tag.close} but found ${tag.open}/${child.r}${
+                tag.close
+              }`
             );
         } else {
           parser.pos = pos;
@@ -151,9 +140,7 @@ export default function readSection(parser, tag) {
       }
 
       if (hasElse) {
-        parser.error(
-          "there can only be one {{else}} block, at the end of a section"
-        );
+        parser.error("there can only be one {{else}} block, at the end of a section");
       }
 
       hasElse = true;

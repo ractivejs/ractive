@@ -63,9 +63,7 @@ export default class ExpressionProxy extends Model {
       const params = this.models.map(m => (m ? m.get(true) : undefined));
       result = this.fn.apply(this.fragment.ractive, params);
     } catch (err) {
-      warnIfDebug(
-        `Failed to compute ${this.getKeypath()}: ${err.message || err}`
-      );
+      warnIfDebug(`Failed to compute ${this.getKeypath()}: ${err.message || err}`);
     }
 
     const dependencies = stopCapturing();

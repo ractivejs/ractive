@@ -70,22 +70,13 @@ export default class Section extends MustacheContainer {
 
   isTruthy() {
     if (this.subordinate && this.sibling.isTruthy()) return true;
-    const value = !this.model
-      ? undefined
-      : this.model.isRoot ? this.model.value : this.model.get();
-    return (
-      !!value &&
-      (this.templateSectionType === SECTION_IF_WITH || !isEmpty(value))
-    );
+    const value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();
+    return !!value && (this.templateSectionType === SECTION_IF_WITH || !isEmpty(value));
   }
 
   rebind(next, previous, safe) {
     if (super.rebind(next, previous, safe)) {
-      if (
-        this.fragment &&
-        this.sectionType !== SECTION_IF &&
-        this.sectionType !== SECTION_UNLESS
-      ) {
+      if (this.fragment && this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS) {
         this.fragment.rebind(next);
       }
     }
@@ -115,11 +106,7 @@ export default class Section extends MustacheContainer {
   update() {
     if (!this.dirty) return;
 
-    if (
-      this.fragment &&
-      this.sectionType !== SECTION_IF &&
-      this.sectionType !== SECTION_UNLESS
-    ) {
+    if (this.fragment && this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS) {
       this.fragment.context = this.model;
     }
 
@@ -127,9 +114,7 @@ export default class Section extends MustacheContainer {
 
     this.dirty = false;
 
-    const value = !this.model
-      ? undefined
-      : this.model.isRoot ? this.model.value : this.model.get();
+    const value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();
     const siblingFalsey = !this.subordinate || !this.sibling.isTruthy();
     const lastType = this.sectionType;
 
@@ -149,10 +134,7 @@ export default class Section extends MustacheContainer {
     const fragmentShouldExist =
       this.sectionType === SECTION_EACH || // each always gets a fragment, which may have no iterations
       this.sectionType === SECTION_WITH || // with (partial context) always gets a fragment
-      (siblingFalsey &&
-        (this.sectionType === SECTION_UNLESS
-          ? !this.isTruthy()
-          : this.isTruthy())); // if, unless, and if-with depend on siblings and the condition
+      (siblingFalsey && (this.sectionType === SECTION_UNLESS ? !this.isTruthy() : this.isTruthy())); // if, unless, and if-with depend on siblings and the condition
 
     if (fragmentShouldExist) {
       if (!this.fragment) this.fragment = this.detached;
@@ -177,8 +159,7 @@ export default class Section extends MustacheContainer {
         } else {
           // only with and if-with provide context - if and unless do not
           const context =
-            this.sectionType !== SECTION_IF &&
-            this.sectionType !== SECTION_UNLESS
+            this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS
               ? this.model
               : null;
           newFragment = new Fragment({

@@ -105,9 +105,7 @@ export default function selectBinding(element) {
 
   // <select>
   if (name === "select" && isBindableByValue) {
-    return element.getAttribute("multiple")
-      ? MultipleSelectBinding
-      : SingleSelectBinding;
+    return element.getAttribute("multiple") ? MultipleSelectBinding : SingleSelectBinding;
   }
 
   // <textarea>

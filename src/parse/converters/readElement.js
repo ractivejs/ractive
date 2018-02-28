@@ -158,9 +158,7 @@ function readElement(parser) {
         }
 
         parser.error(
-          `Missing end ${
-            parser.elementStack.length > 1 ? "tags" : "tag"
-          } (${parser.elementStack
+          `Missing end ${parser.elementStack.length > 1 ? "tags" : "tag"} (${parser.elementStack
             .reverse()
             .map(x => `</${x}>`)
             .join("")})`
@@ -246,10 +244,7 @@ function readElement(parser) {
 
   parser.inside = null;
 
-  if (
-    parser.sanitizeElements &&
-    parser.sanitizeElements.indexOf(lowerCaseName) !== -1
-  ) {
+  if (parser.sanitizeElements && parser.sanitizeElements.indexOf(lowerCaseName) !== -1) {
     return exclude;
   }
 

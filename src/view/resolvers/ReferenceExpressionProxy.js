@@ -234,9 +234,7 @@ export default class ReferenceExpressionProxy extends Model {
       this.model.unregisterTwowayBinding(this);
     }
     if (this.members) {
-      this.members.forEach(
-        m => m && m.unregister && m.unregister(this.intermediary)
-      );
+      this.members.forEach(m => m && m.unregister && m.unregister(this.intermediary));
     }
   }
 

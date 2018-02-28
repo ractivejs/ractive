@@ -79,8 +79,7 @@ export default function() {
   test("Computed value with a set() method", t => {
     const ractive = new Ractive({
       el: fixture,
-      template:
-        "<p>First name: {{first}}</p><p>Last name: {{last}}</p><p>Full name: {{full}}</p>",
+      template: "<p>First name: {{first}}</p><p>Last name: {{last}}</p><p>Full name: {{full}}</p>",
       data: {
         first: "Jim",
         last: "Beam"
@@ -123,8 +122,7 @@ export default function() {
 
   test("Components can have default computed properties", t => {
     const Box = Ractive.extend({
-      template:
-        '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
+      template: '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
       computed: {
         area: "${width} * ${height}"
       }
@@ -143,26 +141,19 @@ export default function() {
     // once again... phantom trailing space in style... sometimes
     t.htmlEqual(
       fixture.innerHTML.replace(/\s+/g, ""),
-      `<div style="width: 100px; height: 100px;">10000px squared</div>`.replace(
-        /\s+/g,
-        ""
-      )
+      `<div style="width: 100px; height: 100px;">10000px squared</div>`.replace(/\s+/g, "")
     );
 
     ractive.set("width", 200);
     t.htmlEqual(
       fixture.innerHTML.replace(/\s+/g, ""),
-      `<div style="width: 200px; height: 100px;">20000px squared</div>`.replace(
-        /\s+/g,
-        ""
-      )
+      `<div style="width: 200px; height: 100px;">20000px squared</div>`.replace(/\s+/g, "")
     );
   });
 
   test("Instances can augment default computed properties of components", t => {
     const Box = Ractive.extend({
-      template:
-        '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
+      template: '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
       computed: {
         area: "${width} * ${height}"
       }
@@ -180,19 +171,13 @@ export default function() {
     // phantom sometimes leaves a trailing space in the style... can't make this crap up
     t.htmlEqual(
       fixture.innerHTML.replace(/\s+/g, ""),
-      `<div style="width: 100px; height: 100px;">10000px squared</div>`.replace(
-        /\s+/g,
-        ""
-      )
+      `<div style="width: 100px; height: 100px;">10000px squared</div>`.replace(/\s+/g, "")
     );
 
     ractive.set("width", 200);
     t.htmlEqual(
       fixture.innerHTML.replace(/\s+/g, ""),
-      `<div style="width: 200px; height: 100px;">20000px squared</div>`.replace(
-        /\s+/g,
-        ""
-      )
+      `<div style="width: 200px; height: 100px;">20000px squared</div>`.replace(/\s+/g, "")
     );
   });
 
@@ -1214,22 +1199,13 @@ export default function() {
       }
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<span class="selected"></span><span></span><span></span>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<span class="selected"></span><span></span><span></span>');
 
     r.set("selected", 1);
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<span wat></span><span class="selected"></span><span></span>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<span wat></span><span class="selected"></span><span></span>');
 
     r.set("selected", 0);
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<span class="selected"></span><span></span><span></span>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<span class="selected"></span><span></span><span></span>');
   });
 
   // phantom just doesn't execute this test... no error, just nothing

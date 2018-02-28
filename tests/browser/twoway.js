@@ -9,8 +9,7 @@ export default function() {
   test("Two-way bindings work with index references", t => {
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '{{#items:i}}<label><input value="{{items[i].name}}"> {{name}}</label>{{/items}}',
+      template: '{{#items:i}}<label><input value="{{items[i].name}}"> {{name}}</label>{{/items}}',
       data: { items: [{ name: "foo" }, { name: "bar" }] }
     });
 
@@ -19,17 +18,13 @@ export default function() {
     input.value = "baz";
     fire(input, "change");
     t.equal(ractive.get("items[0].name"), "baz");
-    t.htmlEqual(
-      fixture.innerHTML,
-      "<label><input> baz</label><label><input> bar</label>"
-    );
+    t.htmlEqual(fixture.innerHTML, "<label><input> baz</label><label><input> bar</label>");
   });
 
   test('Two-way bindings work with foo["bar"] type notation', t => {
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '<label><input value={{foo["bar"]["baz"]}}> {{foo.bar.baz}}</label>',
+      template: '<label><input value={{foo["bar"]["baz"]}}> {{foo.bar.baz}}</label>',
       data: { foo: { bar: { baz: 1 } } }
     });
 
@@ -174,10 +169,7 @@ export default function() {
     });
 
     t.equal(ractive.get("content"), "overridden");
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div contenteditable="true">overridden</div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div contenteditable="true">overridden</div>');
   });
 
   test("The order of attributes does not affect contenteditable (#1134)", t => {
@@ -570,8 +562,7 @@ export default function() {
   test("Radio inputs will update the model if another input in their group is checked", t => {
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '{{#items}}<input type="radio" name="plan" checked="{{ checked }}"/>{{/items}}',
+      template: '{{#items}}<input type="radio" name="plan" checked="{{ checked }}"/>{{/items}}',
       data: {
         items: [
           { key: "a", checked: true },
@@ -593,8 +584,7 @@ export default function() {
   test("Radio name inputs don't get stuck after one pass on each value (#2638)", t => {
     const r = new Ractive({
       el: fixture,
-      template:
-        '{{#items}}<input type="radio" name="{{~/color}}" value="{{.}}" />{{/items}}',
+      template: '{{#items}}<input type="radio" name="{{~/color}}" value="{{.}}" />{{/items}}',
       data: {
         items: ["red", "blue"],
         color: "red"
@@ -622,8 +612,7 @@ export default function() {
   test("Radio name inputs respond to model changes (regression, see #783)", t => {
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '{{#items}}<input type="radio" name="{{foo}}" value="{{this}}"/>{{/items}}',
+      template: '{{#items}}<input type="radio" name="{{foo}}" value="{{this}}"/>{{/items}}',
       data: {
         foo: undefined,
         items: ["a", "b", "c"]
@@ -646,12 +635,7 @@ export default function() {
     const r = new Ractive({
       el: fixture,
       data: {
-        list: [
-          { v: "a", o: 0 },
-          { v: "a", o: 1 },
-          { v: "b", o: 2 },
-          { v: "c", o: 3 }
-        ]
+        list: [{ v: "a", o: 0 }, { v: "a", o: 1 }, { v: "b", o: 2 }, { v: "c", o: 3 }]
       },
       computed: {
         rows() {
@@ -957,11 +941,7 @@ export default function() {
   if (hasUsableConsole) {
     test("Using expressions in two-way bindings triggers a warning (#1399)", t => {
       onWarn(message => {
-        t.ok(
-          ~message.indexOf(
-            "Cannot use two-way binding on <input> element: foo() is read-only"
-          )
-        );
+        t.ok(~message.indexOf("Cannot use two-way binding on <input> element: foo() is read-only"));
       });
 
       new Ractive({
@@ -1069,8 +1049,7 @@ export default function() {
   test("type attribute does not have to be first (#1968)", t => {
     const ractive = new Ractive({
       el: fixture,
-      template:
-        '<input id="red" name="{{selectedColors}}" value="red" type="checkbox">'
+      template: '<input id="red" name="{{selectedColors}}" value="red" type="checkbox">'
     });
 
     ractive.set("selectedColors", ["red"]);
@@ -1173,8 +1152,7 @@ export default function() {
     const common = {};
     const r = new Ractive({
       el: fixture,
-      template:
-        '{{#each items}}<input type="checkbox" name="{{list}}" value="{{.}}" />{{/each}}',
+      template: '{{#each items}}<input type="checkbox" name="{{list}}" value="{{.}}" />{{/each}}',
       data: { list: [common], items: [common, common, {}] }
     });
 
@@ -1743,8 +1721,7 @@ export default function() {
   test(`name-bound checkboxes with bound values should update correctly when the value changes (#3124)`, t => {
     const r = new Ractive({
       target: fixture,
-      template:
-        "{{#each list}}<input type=checkbox bind-value=. bind-name=selected />{{/each}}",
+      template: "{{#each list}}<input type=checkbox bind-value=. bind-name=selected />{{/each}}",
       data: {
         list: [1, 2, 3],
         selected: [2]

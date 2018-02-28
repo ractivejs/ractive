@@ -115,8 +115,7 @@ function parseAttributes(str, isSvg) {
   if (onlyWhitespace.test(str)) return [];
   const tagName = isSvg ? "svg" : "div";
   return str
-    ? (div.innerHTML = `<${tagName} ${str}></${tagName}>`) &&
-        toArray(div.childNodes[0].attributes)
+    ? (div.innerHTML = `<${tagName} ${str}></${tagName}>`) && toArray(div.childNodes[0].attributes)
     : [];
 }
 

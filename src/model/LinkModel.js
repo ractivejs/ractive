@@ -1,12 +1,7 @@
 import ModelBase, { fireShuffleTasks, maybeBind, shuffle } from "./ModelBase";
 import KeypathModel from "./specials/KeypathModel";
 import { capture } from "../global/capture";
-import {
-  handleChange,
-  marked,
-  markedAll,
-  teardown
-} from "shared/methodCallers";
+import { handleChange, marked, markedAll, teardown } from "shared/methodCallers";
 import { rebindMatch } from "shared/rebind";
 import resolveReference from "src/view/resolvers/resolveReference";
 import noop from "utils/noop";
@@ -83,23 +78,20 @@ export default class LinkModel extends ModelBase {
     }
 
     const bind = "shouldBind" in opts ? opts.shouldBind : true;
-    opts.shouldBind =
-      this.mapping && this.target.parent && this.target.parent.isRoot;
+    opts.shouldBind = this.mapping && this.target.parent && this.target.parent.isRoot;
 
     return maybeBind(this, this.target.get(false, opts), bind);
   }
 
   getKeypath(ractive) {
-    if (ractive && ractive !== this.root.ractive)
-      return this.target.getKeypath(ractive);
+    if (ractive && ractive !== this.root.ractive) return this.target.getKeypath(ractive);
 
     return super.getKeypath(ractive);
   }
 
   getKeypathModel(ractive) {
     if (!this.keypathModel) this.keypathModel = new KeypathModel(this);
-    if (ractive && ractive !== this.root.ractive)
-      return this.keypathModel.getChild(ractive);
+    if (ractive && ractive !== this.root.ractive) return this.keypathModel.getChild(ractive);
     return this.keypathModel;
   }
 

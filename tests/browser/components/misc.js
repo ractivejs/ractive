@@ -1,8 +1,4 @@
-import {
-  initModule,
-  hasUsableConsole,
-  onWarn
-} from "../../helpers/test-config";
+import { initModule, hasUsableConsole, onWarn } from "../../helpers/test-config";
 import { fire } from "simulant";
 import { test } from "qunit";
 
@@ -340,11 +336,7 @@ export default function() {
     t.htmlEqual(fixture.innerHTML, "widget1");
     ractive.set("foo", false);
     ractive.push("items", 2);
-    t.htmlEqual(
-      fixture.innerHTML,
-      "widget1widget1",
-      "Component pinned until reset"
-    );
+    t.htmlEqual(fixture.innerHTML, "widget1widget1", "Component pinned until reset");
 
     ractive.reset(ractive.get());
     t.htmlEqual(fixture.innerHTML, "widget2widget2");
@@ -676,11 +668,7 @@ test( 'Implicit mappings are created by restricted references (#1465)', t => {
       data: { list }
     });
 
-    const list2 = [
-      { foo: 1 },
-      { foo: 2, bar: [{ a: 1 }, { a: 2 }, { a: 3 }] },
-      { foo: 3 }
-    ];
+    const list2 = [{ foo: 1 }, { foo: 2, bar: [{ a: 1 }, { a: 2 }, { a: 3 }] }, { foo: 3 }];
 
     for (let i = 0; i < list2.length; i++) {
       r.push("list", list2[i]);
@@ -871,10 +859,7 @@ test( 'Implicit mappings are created by restricted references (#1465)', t => {
       }
     });
 
-    t.strictEqual(
-      ractive.findComponent("Inner").container,
-      ractive.findComponent("Outer")
-    );
+    t.strictEqual(ractive.findComponent("Inner").container, ractive.findComponent("Outer"));
     t.strictEqual(ractive.container, null);
   });
 
@@ -921,10 +906,7 @@ test( 'Implicit mappings are created by restricted references (#1465)', t => {
     t.htmlEqual(fixture.innerHTML, "1 foo.bar items.0.baz.bar");
 
     r.unshift("items", { baz: { bar: 2, list: [] } });
-    t.htmlEqual(
-      fixture.innerHTML,
-      "2 foo.bar items.0.baz.bar 1 foo.bar items.1.baz.bar"
-    );
+    t.htmlEqual(fixture.innerHTML, "2 foo.bar items.0.baz.bar 1 foo.bar items.1.baz.bar");
 
     r.push("items.1.baz.list", 1);
     r.unshift("items.1.baz.list", 2);
@@ -976,18 +958,14 @@ test( 'Implicit mappings are created by restricted references (#1465)', t => {
     });
     new Ractive({
       el: fixture,
-      template:
-        '{{#with root.next.next.next.next}}<end />{{/with}} <middle middle="{{root}}" />',
+      template: '{{#with root.next.next.next.next}}<end />{{/with}} <middle middle="{{root}}" />',
       data: {
         root: { next: { next: { next: { next: { stop: true } } } } }
       },
       components: { middle, end }
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      "root.next.next.next.next root.next.next.next.next"
-    );
+    t.htmlEqual(fixture.innerHTML, "root.next.next.next.next root.next.next.next.next");
   });
 
   test("@rootpath should be accurate in events fired from within components (#2026)", t => {
@@ -1023,8 +1001,7 @@ test( 'Implicit mappings are created by restricted references (#1465)', t => {
     });
     new Ractive({
       el: fixture,
-      template:
-        "{{#with root.next.next.next.next}}<end>{{@rootpath}} {{.stop}}</end>{{/with}}",
+      template: "{{#with root.next.next.next.next}}<end>{{@rootpath}} {{.stop}}</end>{{/with}}",
       data: {
         root: { next: { next: { next: { next: { stop: true } } } } }
       },

@@ -35,9 +35,7 @@ export default function flattenExpression(expression) {
     for (let i = count - 1; i >= 0; i--) {
       vars.push(`x$${i}`);
     }
-    return vars.length
-      ? `(function(){var ${vars.join(",")};return(${expr});})()`
-      : expr;
+    return vars.length ? `(function(){var ${vars.join(",")};return(${expr});})()` : expr;
   }
 
   function stringify(node) {
@@ -64,20 +62,9 @@ export default function flattenExpression(expression) {
 
       case OBJECT_LITERAL:
         if (node.m && hasSpread(node.m)) {
-          return `Object.assign({},${makeSpread(
-            node.m,
-            "{",
-            "}",
-            stringifyPair
-          )})`;
+          return `Object.assign({},${makeSpread(node.m, "{", "}", stringifyPair)})`;
         } else {
-          return (
-            "{" +
-            (node.m
-              ? node.m.map(n => `${n.k}:${stringify(n.v)}`).join(",")
-              : "") +
-            "}"
-          );
+          return "{" + (node.m ? node.m.map(n => `${n.k}:${stringify(n.v)}`).join(",") : "") + "}";
         }
 
       case PREFIX_OPERATOR:
@@ -98,12 +85,7 @@ export default function flattenExpression(expression) {
             m: node.o
           })})`;
         } else {
-          return (
-            stringify(node.x) +
-            "(" +
-            (node.o ? node.o.map(stringify).join(",") : "") +
-            ")"
-          );
+          return stringify(node.x) + "(" + (node.o ? node.o.map(stringify).join(",") : "") + ")";
         }
 
       case BRACKETED:
@@ -116,13 +98,7 @@ export default function flattenExpression(expression) {
         return node.n ? "." + node.n : "[" + stringify(node.x) + "]";
 
       case CONDITIONAL:
-        return (
-          stringify(node.o[0]) +
-          "?" +
-          stringify(node.o[1]) +
-          ":" +
-          stringify(node.o[2])
-        );
+        return stringify(node.o[0]) + "?" + stringify(node.o[1]) + ":" + stringify(node.o[2]);
 
       case REFERENCE:
         return "_" + refs.indexOf(node.n);
@@ -142,9 +118,7 @@ export default function flattenExpression(expression) {
         if (c.p) {
           a.str += `${a.open ? close + "," : a.str.length ? "," : ""}${fn(c)}`;
         } else {
-          a.str += `${!a.str.length ? open : !a.open ? "," + open : ","}${fn(
-            c
-          )}`;
+          a.str += `${!a.str.length ? open : !a.open ? "," + open : ","}${fn(c)}`;
         }
         a.open = !c.p;
         return a;

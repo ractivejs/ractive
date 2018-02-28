@@ -15,9 +15,7 @@ const missingDecorator = {
 export default class Decorator {
   constructor(options) {
     this.owner = options.owner || options.up.owner || findElement(options.up);
-    this.element = this.owner.attributeByName
-      ? this.owner
-      : findElement(options.up);
+    this.element = this.owner.attributeByName ? this.owner : findElement(options.up);
     this.up = options.up || this.owner.up;
     this.ractive = this.owner.ractive;
     const template = (this.template = options.template);
@@ -97,9 +95,7 @@ export default class Decorator {
 
       if (!this.handle || !this.handle.teardown) {
         throw new Error(
-          `The '${
-            this.name
-          }' decorator must return an object with a teardown method`
+          `The '${this.name}' decorator must return an object with a teardown method`
         );
       }
 

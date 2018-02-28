@@ -38,20 +38,10 @@ export default function() {
       "noCssTransform"
     ];
 
-    const actualDefaults = expectedDefaults.filter(key =>
-      Ractive.defaults.hasOwnProperty(key)
-    );
+    const actualDefaults = expectedDefaults.filter(key => Ractive.defaults.hasOwnProperty(key));
 
-    t.strictEqual(
-      Ractive.defaults,
-      Ractive.prototype,
-      "defaults aliases prototype"
-    );
-    t.deepEqual(
-      actualDefaults,
-      expectedDefaults,
-      "defaults contain expected keys"
-    );
+    t.strictEqual(Ractive.defaults, Ractive.prototype, "defaults aliases prototype");
+    t.deepEqual(actualDefaults, expectedDefaults, "defaults contain expected keys");
   });
 
   test("instance has config options", t => {
@@ -100,10 +90,7 @@ export default function() {
     const expectedPrototypeRegistries = ["computed"];
 
     expectedInstanceRegistries.forEach(registry => {
-      t.ok(
-        ractive.hasOwnProperty(registry),
-        `Instance has ${registry} registry`
-      );
+      t.ok(ractive.hasOwnProperty(registry), `Instance has ${registry} registry`);
     });
 
     expectedPrototypeRegistries.forEach(registry => {

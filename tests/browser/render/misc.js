@@ -10,8 +10,7 @@ export default function() {
     test("Style elements have content inserted that becomes .textContent gh #569", t => {
       new Ractive({
         el: fixture,
-        template:
-          '<svg><style id="style">text { font-size: 40px }</style></svg>'
+        template: '<svg><style id="style">text { font-size: 40px }</style></svg>'
       });
 
       const style = document.getElementById("style");
@@ -228,11 +227,7 @@ export default function() {
       el: fixture,
       template: "{{#each items}}{{#if .bool}}{{.val}}{{/if}}{{/each}}",
       data: {
-        items: [
-          { bool: true, val: 1 },
-          { bool: true, val: 2 },
-          { bool: true, val: 3 }
-        ]
+        items: [{ bool: true, val: 1 }, { bool: true, val: 2 }, { bool: true, val: 3 }]
       }
     });
 
@@ -365,10 +360,7 @@ export default function() {
     r.toggle("first");
     r.toggle("second");
 
-    t.equal(
-      fixture.innerHTML,
-      "<span> <!-- comment -->, why not</span><!-- last -->"
-    );
+    t.equal(fixture.innerHTML, "<span> <!-- comment -->, why not</span><!-- last -->");
 
     r.toggle("first");
     r.toggle("second");

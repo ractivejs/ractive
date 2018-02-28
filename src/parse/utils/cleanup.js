@@ -58,8 +58,7 @@ export default function cleanup(
     if (item.f) {
       const isPreserveWhitespaceElement =
         item.t === ELEMENT && preserveWhitespaceElements.test(item.e);
-      preserveWhitespaceInsideFragment =
-        preserveWhitespace || isPreserveWhitespaceElement;
+      preserveWhitespaceInsideFragment = preserveWhitespace || isPreserveWhitespaceElement;
 
       if (!preserveWhitespace && isPreserveWhitespaceElement) {
         trimWhitespace(item.f, leadingNewLine, trailingNewLine);
@@ -71,18 +70,12 @@ export default function cleanup(
 
         // if the previous item was a text item with trailing whitespace,
         // remove leading whitespace inside the fragment
-        if (
-          !previousItem ||
-          (isString(previousItem) && trailingWhitespace.test(previousItem))
-        ) {
+        if (!previousItem || (isString(previousItem) && trailingWhitespace.test(previousItem))) {
           removeLeadingWhitespaceInsideFragment = true;
         }
 
         // and vice versa
-        if (
-          !nextItem ||
-          (isString(nextItem) && leadingWhitespace.test(nextItem))
-        ) {
+        if (!nextItem || (isString(nextItem) && leadingWhitespace.test(nextItem))) {
           removeTrailingWhitespaceInsideFragment = true;
         }
       }

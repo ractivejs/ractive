@@ -41,9 +41,7 @@ export default function getPrefixer(rootKeypath) {
 
       if (isObjectType(relativeKeypath)) {
         // 'relativeKeypath' is in fact a hash, not a keypath
-        return rootDot
-          ? prefixKeypath(relativeKeypath, rootKeypath)
-          : relativeKeypath;
+        return rootDot ? prefixKeypath(relativeKeypath, rootKeypath) : relativeKeypath;
       }
     };
   }

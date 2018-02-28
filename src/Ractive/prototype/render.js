@@ -6,9 +6,7 @@ import { teardown } from "shared/methodCallers";
 
 export default function Ractive$render(target, anchor) {
   if (this.torndown) {
-    warnIfDebug(
-      "ractive.render() was called on a Ractive instance that was already torn down"
-    );
+    warnIfDebug("ractive.render() was called on a Ractive instance that was already torn down");
     return Promise.resolve();
   }
 

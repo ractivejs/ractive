@@ -1,11 +1,4 @@
-import {
-  SECTION,
-  INVERTED,
-  CLOSING,
-  PARTIAL,
-  COMMENT,
-  TRIPLE
-} from "config/types";
+import { SECTION, INVERTED, CLOSING, PARTIAL, COMMENT, TRIPLE } from "config/types";
 
 const mustacheTypes = {
   "#": SECTION,

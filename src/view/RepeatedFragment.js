@@ -29,16 +29,12 @@ export default class RepeatedFragment {
       this.ractive.delegate !== false &&
       (this.parent.delegate || findDelegate(findElement(options.owner)));
     // delegation disabled by directive
-    if (this.delegate && this.delegate.delegate === false)
-      this.delegate = false;
+    if (this.delegate && this.delegate.delegate === false) this.delegate = false;
     // let the element know it's a delegate handler
     if (this.delegate) this.delegate.delegate = this.delegate;
 
     // encapsulated styles should be inherited until they get applied by an element
-    this.cssIds =
-      "cssIds" in options
-        ? options.cssIds
-        : this.parent ? this.parent.cssIds : null;
+    this.cssIds = "cssIds" in options ? options.cssIds : this.parent ? this.parent.cssIds : null;
 
     this.context = null;
     this.rendered = false;
@@ -189,8 +185,7 @@ export default class RepeatedFragment {
   }
 
   shuffle(newIndices) {
-    if (!this.pendingNewIndices)
-      this.previousIterations = this.iterations.slice();
+    if (!this.pendingNewIndices) this.previousIterations = this.iterations.slice();
 
     if (!this.pendingNewIndices) this.pendingNewIndices = [];
 
@@ -217,9 +212,7 @@ export default class RepeatedFragment {
   }
 
   toString(escape) {
-    return this.iterations
-      ? this.iterations.map(escape ? toEscapedString : toString).join("")
-      : "";
+    return this.iterations ? this.iterations.map(escape ? toEscapedString : toString).join("") : "";
   }
 
   unbind() {
@@ -232,8 +225,7 @@ export default class RepeatedFragment {
     this.iterations.forEach(shouldDestroy ? unrenderAndDestroy : unrender);
     if (this.pendingNewIndices && this.previousIterations) {
       this.previousIterations.forEach(fragment => {
-        if (fragment.rendered)
-          shouldDestroy ? unrenderAndDestroy(fragment) : unrender(fragment);
+        if (fragment.rendered) shouldDestroy ? unrenderAndDestroy(fragment) : unrender(fragment);
       });
     }
     this.rendered = false;
@@ -306,9 +298,7 @@ export default class RepeatedFragment {
     }
 
     // add new iterations
-    const newLength = isArray(value)
-      ? value.length
-      : isObject(value) ? keys(value).length : 0;
+    const newLength = isArray(value) ? value.length : isObject(value) ? keys(value).length : 0;
 
     let docFrag;
     let fragment;
@@ -411,8 +401,7 @@ export default class RepeatedFragment {
         // attach any built-up iterations
         if (this.rendered) {
           if (removed[i]) docFrag.appendChild(removed[i].detach());
-          if (docFrag.childNodes.length)
-            parentNode.insertBefore(docFrag, frag.firstNode());
+          if (docFrag.childNodes.length) parentNode.insertBefore(docFrag, frag.firstNode());
         }
         continue;
       }

@@ -40,13 +40,8 @@ export default function readReference(parser) {
   if (prefix === "@") {
     if (!specials.test(name)) {
       parser.error(`Unrecognized special reference @${name}`);
-    } else if (
-      (~name.indexOf("event") || ~name.indexOf("node")) &&
-      !parser.inEvent
-    ) {
-      parser.error(
-        `@event and @node are only valid references within an event directive`
-      );
+    } else if ((~name.indexOf("event") || ~name.indexOf("node")) && !parser.inEvent) {
+      parser.error(`@event and @node are only valid references within an event directive`);
     } else if (~name.indexOf("context")) {
       parser.pos = parser.pos - (name.length - 7);
       return {

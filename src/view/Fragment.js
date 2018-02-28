@@ -27,11 +27,9 @@ export default class Fragment {
 
     this.isRoot = !options.owner.up;
     this.parent = this.isRoot ? null : this.owner.up;
-    this.ractive =
-      options.ractive || (this.isRoot ? options.owner : this.parent.ractive);
+    this.ractive = options.ractive || (this.isRoot ? options.owner : this.parent.ractive);
 
-    this.componentParent =
-      this.isRoot && this.ractive.component ? this.ractive.component.up : null;
+    this.componentParent = this.isRoot && this.ractive.component ? this.ractive.component.up : null;
     this.delegate =
       (this.parent
         ? this.parent.delegate
@@ -130,9 +128,7 @@ export default class Fragment {
 
   findAllComponents(name, options) {
     if (this.items) {
-      this.items.forEach(
-        i => i.findAllComponents && i.findAllComponents(name, options)
-      );
+      this.items.forEach(i => i.findAllComponents && i.findAllComponents(name, options));
     }
   }
 
@@ -196,10 +192,7 @@ export default class Fragment {
   findRepeatingFragment() {
     let fragment = this;
     // TODO better check than fragment.parent.iterations
-    while (
-      (fragment.parent || fragment.componentParent) &&
-      !fragment.isIteration
-    ) {
+    while ((fragment.parent || fragment.componentParent) && !fragment.isIteration) {
       fragment = fragment.parent || fragment.componentParent;
     }
 

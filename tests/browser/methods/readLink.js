@@ -86,9 +86,6 @@ export default function() {
 
     const child = r.findComponent("cmp2");
     t.equal(child.readLink("fizz", { canonical: false }).keypath, "bop");
-    t.ok(
-      child.readLink("fizz", { canonical: false }).ractive ===
-        r.findComponent("cmp1")
-    );
+    t.ok(child.readLink("fizz", { canonical: false }).ractive === r.findComponent("cmp1"));
   });
 }

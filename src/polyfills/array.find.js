@@ -8,8 +8,7 @@ if (!Array.prototype.find) {
       if (this === null || this === undefined)
         throw new TypeError("Array.prototype.find called on null or undefined");
 
-      if (!isFunction(callback))
-        throw new TypeError(`${callback} is not a function`);
+      if (!isFunction(callback)) throw new TypeError(`${callback} is not a function`);
 
       const array = Object(this);
       const arrayLength = array.length >>> 0;

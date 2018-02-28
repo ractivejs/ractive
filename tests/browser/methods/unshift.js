@@ -107,13 +107,9 @@ export default function() {
   test("Array updates cause sections to shuffle with correct results", t => {
     const ractive = new Ractive({
       el: fixture,
-      template:
-        "{{#each items}}{{.title}}{{#each .tags}}{{.}}{{/each}}{{/each}}",
+      template: "{{#each items}}{{.title}}{{#each .tags}}{{.}}{{/each}}{{/each}}",
       data: {
-        items: [
-          { title: "one", tags: ["A"] },
-          { title: "two", tags: ["B", "C"] }
-        ]
+        items: [{ title: "one", tags: ["A"] }, { title: "two", tags: ["B", "C"] }]
       }
     });
 

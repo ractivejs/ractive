@@ -74,9 +74,7 @@ export default class RootModel extends Model {
   }
 
   getRactiveModel() {
-    return (
-      this.ractiveModel || (this.ractiveModel = new RactiveModel(this.ractive))
-    );
+    return this.ractiveModel || (this.ractiveModel = new RactiveModel(this.ractive));
   }
 
   getValueChildren() {
@@ -108,8 +106,7 @@ export default class RootModel extends Model {
       unescapedKey === "@style"
     )
       return true;
-    if (unescapedKey[0] === "~" && unescapedKey[1] === "/")
-      unescapedKey = unescapedKey.slice(2);
+    if (unescapedKey[0] === "~" && unescapedKey[1] === "/") unescapedKey = unescapedKey.slice(2);
     if (key === "" || hasOwn(value, unescapedKey)) return true;
 
     // mappings/links and computations
@@ -121,11 +118,7 @@ export default class RootModel extends Model {
 
     // We climb up the constructor chain to find if one of them contains the unescapedKey
     let constructor = value.constructor;
-    while (
-      constructor !== Function &&
-      constructor !== Array &&
-      constructor !== Object
-    ) {
+    while (constructor !== Function && constructor !== Array && constructor !== Object) {
       if (hasOwn(constructor.prototype, unescapedKey)) return true;
       constructor = constructor.constructor;
     }
@@ -144,9 +137,7 @@ export default class RootModel extends Model {
 
     if (key[0] === "~" && key[1] === "/") key = key.slice(2);
 
-    return hasOwn(this.computations, key)
-      ? this.computations[key]
-      : super.joinKey(key, opts);
+    return hasOwn(this.computations, key) ? this.computations[key] : super.joinKey(key, opts);
   }
 
   set(value) {
@@ -193,10 +184,7 @@ function attachImplicits(model, fragment) {
   for (const k in model.childByKey) {
     if (k in model.value) {
       attachImplicits(model.childByKey[k], fragment);
-    } else if (
-      !model.childByKey[k]._link ||
-      model.childByKey[k]._link.isDetached()
-    ) {
+    } else if (!model.childByKey[k]._link || model.childByKey[k]._link.isDetached()) {
       const mdl = resolveReference(fragment, k);
       if (mdl) {
         model.childByKey[k].link(mdl, k, { implicit: true });

@@ -10,9 +10,7 @@ export default function readKey(parser) {
   let token;
 
   if ((token = readStringLiteral(parser))) {
-    return identifier.test(token.v)
-      ? token.v
-      : '"' + token.v.replace(/"/g, '\\"') + '"';
+    return identifier.test(token.v) ? token.v : '"' + token.v.replace(/"/g, '\\"') + '"';
   }
 
   if ((token = readNumberLiteral(parser))) {

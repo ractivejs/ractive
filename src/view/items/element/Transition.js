@@ -24,9 +24,7 @@ const names = {
 export default class Transition {
   constructor(options) {
     this.owner = options.owner || options.up.owner || findElement(options.up);
-    this.element = this.owner.attributeByName
-      ? this.owner
-      : findElement(options.up);
+    this.element = this.owner.attributeByName ? this.owner : findElement(options.up);
     this.ractive = this.owner.ractive;
     this.template = options.template;
     this.up = options.up;
@@ -84,8 +82,7 @@ export default class Transition {
 
         // record the starting points
         const init = this.node.style[name];
-        if (!(name in this.originals))
-          this.originals[name] = this.node.style[name];
+        if (!(name in this.originals)) this.originals[name] = this.node.style[name];
         this.node.style[name] = to[prop];
         this.targets[name] = this.node.style[name];
         this.node.style[name] = init;
@@ -212,8 +209,7 @@ export default class Transition {
   setStyle(style, value) {
     if (isString(style)) {
       const name = prefix(style);
-      if (!hasOwn(this.originals, name))
-        this.originals[name] = this.node.style[name];
+      if (!hasOwn(this.originals, name)) this.originals[name] = this.node.style[name];
       this.node.style[name] = value;
       this.targets[name] = this.node.style[name];
     } else {
@@ -232,17 +228,9 @@ export default class Transition {
     if (!this.ractive.transitionsEnabled) return false;
 
     // check for noIntro and noOutro cases, which only apply when the owner ractive is rendering and unrendering, respectively
-    if (
-      type === "intro" &&
-      this.ractive.rendering &&
-      nearestProp("noIntro", this.ractive, true)
-    )
+    if (type === "intro" && this.ractive.rendering && nearestProp("noIntro", this.ractive, true))
       return false;
-    if (
-      type === "outro" &&
-      this.ractive.unrendering &&
-      nearestProp("noOutro", this.ractive, false)
-    )
+    if (type === "outro" && this.ractive.unrendering && nearestProp("noOutro", this.ractive, false))
       return false;
 
     const params = this.getParams(); // this is an array, the params object should be the first member
@@ -313,8 +301,7 @@ export default class Transition {
 
   unbind() {
     if (!this.element.attributes.unbinding) {
-      const type =
-        this.options && this.options.template && this.options.template.v;
+      const type = this.options && this.options.template && this.options.template.v;
       if (type === "t0" || type === "t1") this.element.intro = null;
       if (type === "t0" || type === "t2") this.element.outro = null;
     }
@@ -333,9 +320,7 @@ function nearestProp(prop, ractive, rendering) {
   while (instance) {
     if (
       hasOwn(instance, prop) &&
-      (rendering === undefined || rendering
-        ? instance.rendering
-        : instance.unrendering)
+      (rendering === undefined || rendering ? instance.rendering : instance.unrendering)
     )
       return instance[prop];
     instance = instance.component && instance.component.ractive;

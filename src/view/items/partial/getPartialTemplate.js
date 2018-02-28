@@ -66,11 +66,7 @@ function getPartialFromRegistry(ractive, name, up) {
     // Partials cannot contain nested partials!
     // TODO add a test for this
     if (parsed.p) {
-      warnIfDebug(
-        "Partials ({{>%s}}) cannot contain nested inline partials",
-        name,
-        { ractive }
-      );
+      warnIfDebug("Partials ({{>%s}}) cannot contain nested inline partials", name, { ractive });
     }
 
     // if fn, use instance to store result, otherwise needs to go
@@ -88,18 +84,14 @@ function getPartialFromRegistry(ractive, name, up) {
 }
 
 function findOwner(ractive, key) {
-  return hasOwn(ractive.partials, key)
-    ? ractive
-    : findConstructor(ractive.constructor, key);
+  return hasOwn(ractive.partials, key) ? ractive : findConstructor(ractive.constructor, key);
 }
 
 function findConstructor(constructor, key) {
   if (!constructor) {
     return;
   }
-  return hasOwn(constructor.partials, key)
-    ? constructor
-    : findConstructor(constructor.Parent, key);
+  return hasOwn(constructor.partials, key) ? constructor : findConstructor(constructor.Parent, key);
 }
 
 function findParentPartial(name, parent) {

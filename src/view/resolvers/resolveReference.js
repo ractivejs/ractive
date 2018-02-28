@@ -10,8 +10,7 @@ export default function resolveReference(fragment, ref) {
   if (ref === ".") return fragment.findContext();
 
   // ancestor references
-  if (ref[0] === "~")
-    return fragment.ractive.viewmodel.joinAll(splitKeypath(ref.slice(2)));
+  if (ref[0] === "~") return fragment.ractive.viewmodel.joinAll(splitKeypath(ref.slice(2)));
 
   // scoped references
   if (ref[0] === "." || ref[0] === "^") {
@@ -72,8 +71,7 @@ export default function resolveReference(fragment, ref) {
       // make sure the found fragment is actually an iteration
       if (!repeater.isIteration) return;
       return (
-        repeater.context &&
-        repeater.context.getKeyModel(repeater[ref[1] === "i" ? "index" : "key"])
+        repeater.context && repeater.context.getKeyModel(repeater[ref[1] === "i" ? "index" : "key"])
       );
     } else if (base === "@global") {
       // @global referring to window or global
@@ -150,12 +148,7 @@ export default function resolveReference(fragment, ref) {
 
     if (model) {
       if (createMapping) {
-        model = initialFragment.ractive.viewmodel.createLink(
-          base,
-          model,
-          base,
-          { implicit: true }
-        );
+        model = initialFragment.ractive.viewmodel.createLink(base, model, base, { implicit: true });
       }
 
       if (keys.length > 0 && isFunction(model.joinAll)) {
@@ -166,8 +159,7 @@ export default function resolveReference(fragment, ref) {
     }
 
     if (
-      (fragment.componentParent ||
-        (!fragment.parent && fragment.ractive.component)) &&
+      (fragment.componentParent || (!fragment.parent && fragment.ractive.component)) &&
       !fragment.ractive.isolated
     ) {
       // ascend through component boundary
@@ -196,9 +188,7 @@ export default function resolveReference(fragment, ref) {
 }
 
 function badReference(key) {
-  throw new Error(
-    `An index or key reference (${key}) cannot have child properties`
-  );
+  throw new Error(`An index or key reference (${key}) cannot have child properties`);
 }
 
 class ContextModel {

@@ -35,9 +35,7 @@ export default function render(ractive, target, anchor, occupants) {
   if (ractive.cssId) applyCSS();
 
   if (target) {
-    (target.__ractive_instances__ || (target.__ractive_instances__ = [])).push(
-      ractive
-    );
+    (target.__ractive_instances__ || (target.__ractive_instances__ = [])).push(ractive);
 
     if (anchor) {
       const docFrag = doc.createDocumentFragment();

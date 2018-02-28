@@ -41,8 +41,7 @@ export function getCSS(cssIds) {
   filteredStyleDefinitions.forEach(d => (d.applied = true));
 
   return filteredStyleDefinitions.reduce(
-    (styles, style) =>
-      `${styles ? `${styles}\n\n/* {${style.id}} */\n${style.styles}` : ""}`,
+    (styles, style) => `${styles ? `${styles}\n\n/* {${style.id}} */\n${style.styles}` : ""}`,
     PREFIX
   );
 }

@@ -183,15 +183,9 @@ test( 'resetTemplate with no template change doesnt rerender', t => {
       data: { what: "fizz" }
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div id="target"><div>fizz</div><div>bar</div></div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div id="target"><div>fizz</div><div>bar</div></div>');
     ractive.reset({ what: "foo" });
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div id="target"><div>foo</div><div>bar</div></div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div id="target"><div>foo</div><div>bar</div></div>');
   });
 
   test("resetTemplate removes an inline component from the DOM (#928)", t => {

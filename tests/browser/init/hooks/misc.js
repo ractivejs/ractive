@@ -1,9 +1,4 @@
-import {
-  hasUsableConsole,
-  onWarn,
-  onLog,
-  initModule
-} from "../../../helpers/test-config";
+import { hasUsableConsole, onWarn, onLog, initModule } from "../../../helpers/test-config";
 import { test } from "qunit";
 
 export default function() {

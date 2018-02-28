@@ -9,9 +9,7 @@ export default class BindingFlag extends Item {
     super(options);
 
     this.owner = options.owner || options.up.owner || findElement(options.up);
-    this.element = this.owner.attributeByName
-      ? this.owner
-      : findElement(options.up);
+    this.element = this.owner.attributeByName ? this.owner : findElement(options.up);
     this.flag = options.template.v === "l" ? "lazy" : "twoway";
     this.bubbler = this.owner === this.element ? this.element : this.up;
 

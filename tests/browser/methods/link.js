@@ -25,10 +25,7 @@ export default function() {
       el: fixture,
       template: "{{ person.name }} is {{ person.status }}",
       data: {
-        people: [
-          { name: "Rich", status: "The Man" },
-          { name: "Marty", status: "Awesome&tm;" }
-        ]
+        people: [{ name: "Rich", status: "The Man" }, { name: "Marty", status: "Awesome&tm;" }]
       }
     });
 

@@ -1,7 +1,4 @@
-import {
-  fromExpression,
-  fromComputationString
-} from "parse/utils/createFunction";
+import { fromExpression, fromComputationString } from "parse/utils/createFunction";
 import { doc } from "config/environment";
 import { fatal } from "utils/log";
 import { addFunctions } from "shared/getFunction";
@@ -33,20 +30,12 @@ function throwNoParse(method, error, instructions) {
 }
 
 export function createFunction(body, length) {
-  throwNoParse(
-    fromExpression,
-    "new expression function",
-    TEMPLATE_INSTRUCTIONS
-  );
+  throwNoParse(fromExpression, "new expression function", TEMPLATE_INSTRUCTIONS);
   return fromExpression(body, length);
 }
 
 export function createFunctionFromString(str, bindTo) {
-  throwNoParse(
-    fromComputationString,
-    'compution string "${str}"',
-    COMPUTATION_INSTRUCTIONS
-  );
+  throwNoParse(fromComputationString, 'compution string "${str}"', COMPUTATION_INSTRUCTIONS);
   return fromComputationString(str, bindTo);
 }
 
@@ -56,9 +45,7 @@ const parser = {
       if (options && options.noThrow) {
         return;
       }
-      throw new Error(
-        `Cannot retrieve template #${id} as Ractive is not running in a browser.`
-      );
+      throw new Error(`Cannot retrieve template #${id} as Ractive is not running in a browser.`);
     }
 
     if (id) id = id.replace(/^#/, "");
@@ -76,14 +63,10 @@ const parser = {
       if (options && options.noThrow) {
         return;
       }
-      throw new Error(
-        `Template element with id #${id}, must be a <script> element`
-      );
+      throw new Error(`Template element with id #${id}, must be a <script> element`);
     }
 
-    return "textContent" in template
-      ? template.textContent
-      : template.innerHTML;
+    return "textContent" in template ? template.textContent : template.innerHTML;
   },
 
   isParsed(template) {

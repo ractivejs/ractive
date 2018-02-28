@@ -223,14 +223,8 @@ export default function() {
     t.ok(!obj.sekrit);
     t.ok(!obj.enabled);
     ractive.set("wrapped.enabled", true);
-    t.ok(
-      obj.sekrit,
-      "adaptor set should have been used to set sekrit property"
-    );
-    t.ok(
-      !obj.enabled,
-      "object property should not have been set, adaptor should have been used"
-    );
+    t.ok(obj.sekrit, "adaptor set should have been used to set sekrit property");
+    t.ok(!obj.enabled, "object property should not have been set, adaptor should have been used");
   });
 
   test("Components inherit modifyArrays option from environment (#1297)", t => {
@@ -851,41 +845,21 @@ export default function() {
       { width: 1, height: 2 },
       "Instance should return wrapped model"
     );
-    t.strictEqual(
-      instance.get("model.width"),
-      1,
-      "Instance has box width of 1"
-    );
-    t.strictEqual(
-      instance.get("model.height"),
-      2,
-      "Instance has box height of 2"
-    );
+    t.strictEqual(instance.get("model.width"), 1, "Instance has box width of 1");
+    t.strictEqual(instance.get("model.height"), 2, "Instance has box height of 2");
     t.strictEqual(model.getWidth(), 1, "Model has box width of 1");
     t.strictEqual(model.getHeight(), 2, "Model has box height of 2");
 
     instance.set("model", { width: 3, height: 4 });
 
-    t.strictEqual(
-      instance.get("model"),
-      model,
-      "Instance should still return model"
-    );
+    t.strictEqual(instance.get("model"), model, "Instance should still return model");
     t.deepEqual(
       instance.get("model", { unwrap: false }),
       { width: 3, height: 4 },
       "Instance should return wrapped model"
     );
-    t.strictEqual(
-      instance.get("model.width"),
-      3,
-      "Instance has box width of 3"
-    );
-    t.strictEqual(
-      instance.get("model.height"),
-      4,
-      "Instance has box height of 4"
-    );
+    t.strictEqual(instance.get("model.width"), 3, "Instance has box width of 3");
+    t.strictEqual(instance.get("model.height"), 4, "Instance has box height of 4");
     t.strictEqual(model.getWidth(), 3, "Model has box width of 3");
     t.strictEqual(model.getHeight(), 4, "Model has box height of 4");
   });
@@ -1055,11 +1029,7 @@ export default function() {
 
     const children = r.findAllComponents("c");
 
-    t.strictEqual(
-      r.get("scalar"),
-      value,
-      "the computation should be unwrapped by default"
-    );
+    t.strictEqual(r.get("scalar"), value, "the computation should be unwrapped by default");
     t.strictEqual(
       r.get("list.0"),
       value,
@@ -1158,27 +1128,15 @@ export default function() {
     });
     const child = r.findComponent("child");
 
-    t.strictEqual(
-      child.get("data"),
-      value,
-      "the value should be unwrapped by default"
-    );
-    t.strictEqual(
-      child.get("data", { unwrap: true }),
-      value,
-      "the value should be unwrapped"
-    );
+    t.strictEqual(child.get("data"), value, "the value should be unwrapped by default");
+    t.strictEqual(child.get("data", { unwrap: true }), value, "the value should be unwrapped");
     t.strictEqual(
       child.get("data", { unwrap: false }),
       value + " adapted",
       "the value should be wrapped"
     );
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      "hello adapted",
-      "the output should use the wrapped value"
-    );
+    t.htmlEqual(fixture.innerHTML, "hello adapted", "the output should use the wrapped value");
   });
 
   test(`let resolved adaptors be added to an instance after init via pushing to adapt (#3147)`, t => {

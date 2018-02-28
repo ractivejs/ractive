@@ -156,10 +156,7 @@ export default function() {
       data: { show: true },
       transitions: {
         go(trans) {
-          t.ok(
-            !(trans.node.parentNode instanceof DocumentFragment),
-            "node is still attached"
-          );
+          t.ok(!(trans.node.parentNode instanceof DocumentFragment), "node is still attached");
           trans.complete();
         }
       }

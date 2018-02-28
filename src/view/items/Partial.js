@@ -48,8 +48,7 @@ assign(proto, {
         this.up = this.component.up;
 
         // {{yield}} is equivalent to {{yield content}}
-        if (!template.r && !template.x && !template.tx)
-          this.refName = "content";
+        if (!template.r && !template.x && !template.tx) this.refName = "content";
       } else {
         // plain-ish instance that may be attached to a parent later
         this.fragment = new Fragment({
@@ -148,8 +147,7 @@ assign(proto, {
 
     if (this.fn) {
       initMacro(this);
-      if (isFunction(this.proxy.render))
-        runloop.scheduleTask(() => this.proxy.render());
+      if (isFunction(this.proxy.render)) runloop.scheduleTask(() => this.proxy.render());
     } else if (!this.partial) {
       warnOnceIfDebug(`Could not find template for partial '${this.name}'`);
     }
@@ -232,10 +230,7 @@ function createFragment(self, partial) {
 
   // partials may have aliases that need to be in place before binding
   if (self.template.z) {
-    fragment.aliases = resolveAliases(
-      self.template.z,
-      self.containerFragment || self.up
-    );
+    fragment.aliases = resolveAliases(self.template.z, self.containerFragment || self.up);
   }
 }
 
@@ -259,11 +254,7 @@ function partialFromValue(self, value, okToParse) {
     self.fn = tpl;
     if (self.fragment) self.fragment.cssIds = tpl._cssIds;
   } else if (tpl != null) {
-    tpl = getPartialTemplate(
-      self.ractive,
-      "" + tpl,
-      self.containerFragment || self.up
-    );
+    tpl = getPartialTemplate(self.ractive, "" + tpl, self.containerFragment || self.up);
     if (tpl) {
       self.name = value;
       if (tpl.styleSet) {
@@ -342,9 +333,7 @@ function initMacro(self) {
 
     if (isArray(template.m)) {
       const attrs = template.m;
-      template.p[extras] = template.m = attrs.filter(
-        a => !~fn.attributes.indexOf(a.n)
-      );
+      template.p[extras] = template.m = attrs.filter(a => !~fn.attributes.indexOf(a.n));
       attrs.filter(a => ~fn.attributes.indexOf(a.n)).forEach(a => {
         const fragment = new Fragment({
           template: a.f,
@@ -384,9 +373,7 @@ function parsePartial(name, partial, ractive) {
   try {
     parsed = parser.parse(partial, parser.getParseOptions(ractive));
   } catch (e) {
-    warnIfDebug(
-      `Could not parse partial from expression '${name}'\n${e.message}`
-    );
+    warnIfDebug(`Could not parse partial from expression '${name}'\n${e.message}`);
   }
 
   return parsed || { t: [] };

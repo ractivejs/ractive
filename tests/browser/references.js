@@ -212,8 +212,7 @@ export default function() {
     const bar = { baz: "yep" };
     new Ractive({
       el: fixture,
-      template:
-        "{{#with foo.bar}}{{#with ~/other}}{{JSON.stringify(^^/)}}{{/with}}{{/with}}",
+      template: "{{#with foo.bar}}{{#with ~/other}}{{JSON.stringify(^^/)}}{{/with}}{{/with}}",
       data: { foo: { bar }, other: { foo: "nope" } }
     });
 
@@ -291,8 +290,7 @@ export default function() {
     });
     new Ractive({
       target: fixture,
-      template:
-        "{{#with some}}{{#with ~/other}}{{foo}}{{/with}}{{/with}}<cmp />{{nope}}",
+      template: "{{#with some}}{{#with ~/other}}{{foo}}{{/with}}{{/with}}<cmp />{{nope}}",
       data: {
         some: {},
         other: {},

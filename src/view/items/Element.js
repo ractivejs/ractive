@@ -1,21 +1,9 @@
-import {
-  ATTRIBUTE,
-  BINDING_FLAG,
-  DECORATOR,
-  DELEGATE_FLAG,
-  EVENT,
-  TRANSITION
-} from "config/types";
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, DELEGATE_FLAG, EVENT, TRANSITION } from "config/types";
 import { win } from "config/environment";
 import { html, svg } from "config/namespaces";
 import { toArray, addToArray, removeFromArray } from "utils/array";
 import { escapeHtml, voidElementNames } from "utils/html";
-import {
-  createElement,
-  detachNode,
-  matches,
-  safeAttributeString
-} from "utils/dom";
+import { createElement, detachNode, matches, safeAttributeString } from "utils/dom";
 import runloop from "src/global/runloop";
 import Context from "shared/Context";
 import { bind, destroyed, render, unbind, update } from "shared/methodCallers";
@@ -40,9 +28,7 @@ export default class Element extends ContainerItem {
 
     if (this.parent && this.parent.name === "option") {
       throw new Error(
-        `An <option> element cannot contain other elements (encountered <${
-          this.name
-        }>)`
+        `An <option> element cannot contain other elements (encountered <${this.name}>)`
       );
     }
 
@@ -217,8 +203,7 @@ export default class Element extends ContainerItem {
       const listeners =
         (delegate.listeners || (delegate.listeners = [])) &&
         (delegate.listeners[event] || (delegate.listeners[event] = []));
-      if (listeners.refs && !--listeners.refs)
-        delegate.off(event, delegateHandler, true);
+      if (listeners.refs && !--listeners.refs) delegate.off(event, delegateHandler, true);
     } else if (this.rendered) {
       const n = this.node;
       const add = n.addEventListener;
@@ -235,14 +220,11 @@ export default class Element extends ContainerItem {
 
   on(event, callback, capture = false) {
     const delegate = this.up.delegate;
-    const ref =
-      (this.listeners || (this.listeners = {}))[event] ||
-      (this.listeners[event] = []);
+    const ref = (this.listeners || (this.listeners = {}))[event] || (this.listeners[event] = []);
 
     if (delegate) {
       const listeners =
-        ((delegate.listeners || (delegate.listeners = [])) &&
-          delegate.listeners[event]) ||
+        ((delegate.listeners || (delegate.listeners = [])) && delegate.listeners[event]) ||
         (delegate.listeners[event] = []);
       if (!listeners.refs) {
         listeners.refs = 0;
@@ -349,8 +331,7 @@ export default class Element extends ContainerItem {
 
     if (existing) {
       // store initial values for two-way binding
-      if (this.binding && this.binding.wasUndefined)
-        this.binding.setFromNode(node);
+      if (this.binding && this.binding.wasUndefined) this.binding.setFromNode(node);
       // remove unused attributes
       let i = node.attributes.length;
       while (i--) {
@@ -362,10 +343,7 @@ export default class Element extends ContainerItem {
     // Is this a top-level node of a component? If so, we may need to add
     // a data-ractive-css attribute, for CSS encapsulation
     if (this.up.cssIds) {
-      node.setAttribute(
-        "data-ractive-css",
-        this.up.cssIds.map(x => `{${x}}`).join(" ")
-      );
+      node.setAttribute("data-ractive-css", this.up.cssIds.map(x => `{${x}}`).join(" "));
     }
 
     if (this.attributes) this.attributes.forEach(render);
@@ -374,8 +352,7 @@ export default class Element extends ContainerItem {
     if (!this.up.delegate && this.listeners) {
       const ls = this.listeners;
       for (const k in ls) {
-        if (ls[k] && ls[k].length)
-          this.node.addEventListener(k, handler, !!ls[k].refs);
+        if (ls[k] && ls[k].length) this.node.addEventListener(k, handler, !!ls[k].refs);
       }
     }
 
@@ -389,9 +366,7 @@ export default class Element extends ContainerItem {
   toString() {
     const tagName = this.template.e;
 
-    let attrs =
-      (this.attributes && this.attributes.map(stringifyAttribute).join("")) ||
-      "";
+    let attrs = (this.attributes && this.attributes.map(stringifyAttribute).join("")) || "";
 
     // Special case - selected options
     if (this.name === "option" && this.isSelected()) {
@@ -408,15 +383,9 @@ export default class Element extends ContainerItem {
     this.attributes &&
       this.attributes.forEach(attr => {
         if (attr.name === "class") {
-          cls =
-            (cls || "") +
-            (cls ? " " : "") +
-            safeAttributeString(attr.getString());
+          cls = (cls || "") + (cls ? " " : "") + safeAttributeString(attr.getString());
         } else if (attr.name === "style") {
-          style =
-            (style || "") +
-            (style ? " " : "") +
-            safeAttributeString(attr.getString());
+          style = (style || "") + (style ? " " : "") + safeAttributeString(attr.getString());
           if (style && !endsWithSemi.test(style)) style += ";";
         } else if (attr.style) {
           style =
@@ -428,14 +397,11 @@ export default class Element extends ContainerItem {
         }
       });
     // put classes first, then inline style
-    if (style !== undefined)
-      attrs = " style" + (style ? `="${style}"` : "") + attrs;
+    if (style !== undefined) attrs = " style" + (style ? `="${style}"` : "") + attrs;
     if (cls !== undefined) attrs = " class" + (cls ? `="${cls}"` : "") + attrs;
 
     if (this.up.cssIds) {
-      attrs += ` data-ractive-css="${this.up.cssIds
-        .map(x => `{${x}}`)
-        .join(" ")}"`;
+      attrs += ` data-ractive-css="${this.up.cssIds.map(x => `{${x}}`).join(" ")}"`;
     }
 
     let str = `<${tagName}${attrs}>`;
@@ -451,9 +417,7 @@ export default class Element extends ContainerItem {
     }
 
     if (this.fragment) {
-      str += this.fragment.toString(
-        !/^(?:script|style)$/i.test(this.template.e)
-      ); // escape text unless script/style
+      str += this.fragment.toString(!/^(?:script|style)$/i.test(this.template.e)); // escape text unless script/style
     }
 
     str += `</${tagName}>`;

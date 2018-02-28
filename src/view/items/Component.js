@@ -1,12 +1,6 @@
 import runloop from "src/global/runloop";
 import { updateAnchors } from "shared/anchors";
-import {
-  bind,
-  render as callRender,
-  unbind,
-  unrender,
-  update
-} from "shared/methodCallers";
+import { bind, render as callRender, unbind, unrender, update } from "shared/methodCallers";
 import { teardown } from "src/Ractive/prototype/teardown";
 import getRactiveContext from "shared/getRactiveContext";
 import { warnIfDebug } from "utils/log";
@@ -56,9 +50,7 @@ export default class Component extends Item {
 
       if (instance.el) {
         warnIfDebug(
-          `The <${
-            this.name
-          }> component has a default 'el' property; it has been disregarded`
+          `The <${this.name}> component has a default 'el' property; it has been disregarded`
         );
       }
 
@@ -90,9 +82,7 @@ export default class Component extends Item {
       if (isArray(this.mappings)) {
         attrs = (attrs || []).concat(this.mappings);
       } else if (isString(this.mappings)) {
-        attrs = (attrs || []).concat(
-          parser.parse(this.mappings, { attributes: true }).t
-        );
+        attrs = (attrs || []).concat(parser.parse(this.mappings, { attributes: true }).t);
       }
 
       // for hackability, this could be an open option
@@ -171,8 +161,7 @@ export default class Component extends Item {
   }
 
   destroyed() {
-    if (!this.isAnchor && this.instance.fragment)
-      this.instance.fragment.destroyed();
+    if (!this.isAnchor && this.instance.fragment) this.instance.fragment.destroyed();
   }
 
   detach() {
@@ -329,11 +318,7 @@ function renderItem(anchor, meta) {
   }
 
   meta.partials = meta.instance.partials;
-  meta.instance.partials = assign(
-    create(meta.partials),
-    meta.partials,
-    anchor._partials
-  );
+  meta.instance.partials = assign(create(meta.partials), meta.partials, anchor._partials);
 
   meta.instance.fragment.unbind();
   meta.instance.fragment.componentParent = anchor.up;
@@ -345,12 +330,7 @@ function renderItem(anchor, meta) {
   anchor.eventHandlers.forEach(callRender);
 
   const target = anchor.up.findParentNode();
-  render(
-    meta.instance,
-    target,
-    target.contains(nextNode) ? nextNode : null,
-    anchor.occupants
-  );
+  render(meta.instance, target, target.contains(nextNode) ? nextNode : null, anchor.occupants);
 
   if (meta.lastBound !== anchor) {
     meta.lastBound = anchor;

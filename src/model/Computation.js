@@ -64,8 +64,7 @@ export default class Computation extends Model {
     return maybeBind(
       this,
       // if unwrap is supplied, it overrides capture
-      this.wrapper &&
-      (opts && "unwrap" in opts ? opts.unwrap !== false : shouldCapture)
+      this.wrapper && (opts && "unwrap" in opts ? opts.unwrap !== false : shouldCapture)
         ? this.wrapperValue
         : this.value,
       !opts || opts.shouldBind !== false
@@ -79,9 +78,7 @@ export default class Computation extends Model {
     try {
       result = this.signature.getter.call(this.context);
     } catch (err) {
-      warnIfDebug(
-        `Failed to compute ${this.getKeypath()}: ${err.message || err}`
-      );
+      warnIfDebug(`Failed to compute ${this.getKeypath()}: ${err.message || err}`);
 
       // TODO this is all well and good in Chrome, but...
       // ...also, should encapsulate this stuff better, and only
@@ -149,8 +146,7 @@ export default class Computation extends Model {
     while (i--) {
       if (this.dependencies[i]) this.dependencies[i].unregister(this);
     }
-    if (this.root.computations[this.key] === this)
-      delete this.root.computations[this.key];
+    if (this.root.computations[this.key] === this) delete this.root.computations[this.key];
     super.teardown();
   }
 }

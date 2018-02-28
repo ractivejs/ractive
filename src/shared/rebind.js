@@ -55,8 +55,7 @@ function findAlias(name, fragment) {
   while (fragment) {
     const z = fragment.aliases;
     if (z && z[name]) {
-      const aliases = (fragment.owner.iterations ? fragment.owner : fragment)
-        .owner.template.z;
+      const aliases = (fragment.owner.iterations ? fragment.owner : fragment).owner.template.z;
       for (let i = 0; i < aliases.length; i++) {
         if (aliases[i].n === name) {
           const alias = aliases[i].x;

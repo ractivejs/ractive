@@ -255,9 +255,7 @@ export default function() {
     });
 
     t.ok(!ractive.partials.hasOwnProperty("foo"));
-    t.deepEqual(Component.partials.foo, [
-      { t: 7, e: "p", f: [{ t: 2, r: "foo" }] }
-    ]);
+    t.deepEqual(Component.partials.foo, [{ t: 7, e: "p", f: [{ t: 2, r: "foo" }] }]);
   });
 
   test("Partials work in attributes (#917)", t => {
@@ -286,12 +284,7 @@ export default function() {
       el: fixture,
       template: `{{#each items}}{{>type}}{{/each}}`,
       data: {
-        items: [
-          { type: "foo" },
-          { type: "bar" },
-          { type: "foo" },
-          { type: "baz" }
-        ]
+        items: [{ type: "foo" }, { type: "bar" }, { type: "foo" }, { type: "baz" }]
       },
       partials: {
         foo: ":FOO",
@@ -381,10 +374,7 @@ export default function() {
   });
 
   test("Dynamic partial works with shuffle set (#1313)", t => {
-    let fields = [
-      { type: "text", value: "hello" },
-      { type: "number", value: 123 }
-    ];
+    let fields = [{ type: "text", value: "hello" }, { type: "number", value: 123 }];
 
     const ractive = new Ractive({
       el: fixture,
@@ -405,9 +395,7 @@ export default function() {
   });
 
   test("Nameless expressions with no matching partial don't throw", t => {
-    onWarn(msg =>
-      t.ok(/Could not find template for partial 'missing'/.test(msg))
-    );
+    onWarn(msg => t.ok(/Could not find template for partial 'missing'/.test(msg)));
 
     const ractive = new Ractive({
       el: fixture,
@@ -432,9 +420,7 @@ export default function() {
   });
 
   test("Partials with variable names can be changed with resetPartial", t => {
-    onWarn(msg =>
-      t.ok(/Could not find template for partial 'partial'/.test(msg))
-    );
+    onWarn(msg => t.ok(/Could not find template for partial 'partial'/.test(msg)));
 
     const ractive = new Ractive({
       el: fixture,
@@ -457,9 +443,7 @@ export default function() {
   });
 
   test("Partials with expression names can be changed with resetPartial", t => {
-    onWarn(msg =>
-      t.ok(/Could not find template for partial 'undefinedPartial'/.test(msg))
-    );
+    onWarn(msg => t.ok(/Could not find template for partial 'undefinedPartial'/.test(msg)));
 
     const ractive = new Ractive({
       el: fixture,
@@ -583,15 +567,9 @@ export default function() {
       }
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div class="wrapped foo around" id="foo"></div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div class="wrapped foo around" id="foo"></div>');
     ractive.resetPartial("foo", "nfoo");
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div class="wrapped nfoo around" id="nfoo"></div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div class="wrapped nfoo around" id="nfoo"></div>');
   });
 
   test("Partials in attribute blocks can be changed with resetPartial", t => {
@@ -606,20 +584,14 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, "<div></div>");
     ractive.set("cond", true);
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div class="wrapped foo around" id="foo" title="foo"></div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div class="wrapped foo around" id="foo" title="foo"></div>');
     ractive.resetPartial("foo", "nfoo");
     t.htmlEqual(
       fixture.innerHTML,
       '<div class="wrapped nfoo around" id="nfoo" title="nfoo"></div>'
     );
     ractive.resetPartial("attr", 'alt="bar"');
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div class="wrapped nfoo around" id="nfoo" alt="bar"></div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div class="wrapped nfoo around" id="nfoo" alt="bar"></div>');
   });
 
   test("Partial naming requirements are relaxed", t => {
@@ -1157,11 +1129,7 @@ export default function() {
       partials: { bar: "{{ baz }}", qux: "{{ qux }}" }
     });
 
-    t.deepEqual(instance.template, [
-      { r: "foo", t: 2 },
-      { r: "bar", t: 8 },
-      { r: "qux", t: 8 }
-    ]);
+    t.deepEqual(instance.template, [{ r: "foo", t: 2 }, { r: "bar", t: 8 }, { r: "qux", t: 8 }]);
     t.deepEqual(instance.partials.bar, [{ r: "baz", t: 2 }]);
     t.deepEqual(instance.partials.qux, [{ r: "qux", t: 2 }]);
   });

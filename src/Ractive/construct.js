@@ -52,10 +52,7 @@ export default function construct(ractive, options) {
   let i = registryNames.length;
   while (i--) {
     const name = registryNames[i];
-    ractive[name] = assign(
-      create(ractive.constructor[name] || null),
-      options[name]
-    );
+    ractive[name] = assign(create(ractive.constructor[name] || null), options[name]);
   }
 
   if (ractive._attributePartial) {
@@ -76,10 +73,7 @@ export default function construct(ractive, options) {
   ractive.viewmodel = viewmodel;
 
   // Add computed properties
-  const computed = assign(
-    create(ractive.constructor.prototype.computed),
-    options.computed
-  );
+  const computed = assign(create(ractive.constructor.prototype.computed), options.computed);
 
   for (const key in computed) {
     if (key === "__proto__") continue;
@@ -157,11 +151,7 @@ function handleAttributes(ractive) {
     // warn about missing requireds
     attributes.required.forEach(p => {
       if (!~props.indexOf(p)) {
-        warnIfDebug(
-          `Component '${
-            component.name
-          }' requires attribute '${p}' to be provided`
-        );
+        warnIfDebug(`Component '${component.name}' requires attribute '${p}' to be provided`);
       }
     });
 
@@ -186,8 +176,7 @@ function handleAttributes(ractive) {
       }
     }
 
-    if (partial.length)
-      component.template = { t: tpl.t, e: tpl.e, f: tpl.f, m: attrs, p: tpl.p };
+    if (partial.length) component.template = { t: tpl.t, e: tpl.e, f: tpl.f, m: attrs, p: tpl.p };
     ractive._attributePartial = partial;
   }
 }

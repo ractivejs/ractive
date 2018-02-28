@@ -103,12 +103,6 @@ function createObserver(ractive, keypath, callback, options) {
 
     model = model.joinAll(keys.slice(1, wildcardIndex));
 
-    return new PatternObserver(
-      ractive,
-      model,
-      keys.slice(wildcardIndex),
-      callback,
-      options
-    );
+    return new PatternObserver(ractive, model, keys.slice(wildcardIndex), callback, options);
   }
 }

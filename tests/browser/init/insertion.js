@@ -108,10 +108,7 @@ export default function() {
       append: true
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div id="target"><div>bar</div><div>foo</div></div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div id="target"><div>bar</div><div>foo</div></div>');
   });
 
   test("Append with anchor inserts before anchor", t => {
@@ -121,9 +118,6 @@ export default function() {
       append: child
     });
 
-    t.htmlEqual(
-      fixture.innerHTML,
-      '<div id="target"><div>foo</div><div>bar</div></div>'
-    );
+    t.htmlEqual(fixture.innerHTML, '<div id="target"><div>foo</div><div>bar</div></div>');
   });
 }
