@@ -210,7 +210,7 @@ export default class RepeatedFragment {
 
     this.iterations = iterations;
 
-    this.iterations.forEach((f, i) => f && f.idxModel && f.idxModel.applyValue(i));
+    //this.iterations.forEach((f, i) => f && f.idxModel && f.idxModel.applyValue(i));
 
     this.bubble();
   }
@@ -363,6 +363,9 @@ export default class RepeatedFragment {
 
   updatePostShuffle() {
     const newIndices = this.pendingNewIndices[0];
+    const parentNode = this.rendered ? this.parent.findParentNode() : null;
+    const nextNode = parentNode && this.owner.findNextNode();
+    const docFrag = parentNode ? createDocumentFragment() : null;
 
     // map first shuffle through
     this.pendingNewIndices.slice(1).forEach(indices => {
@@ -371,84 +374,92 @@ export default class RepeatedFragment {
       });
     });
 
-    // This algorithm (for detaching incorrectly-ordered fragments from the DOM and
-    // storing them in a document fragment for later reinsertion) seems a bit hokey,
-    // but it seems to work for now
     const len = (this.length = this.context.get().length);
-    const oldLen = this.previousIterations.length;
-    const removed = {};
-    let i;
+    const prev = this.previousIterations;
+    const iters = this.iterations;
+    const stash = {};
+    let idx, dest, pos, next, model, anchor;
+
+    const map = new Array(newIndices.length);
+    newIndices.map((e, i) => (map[e] = i));
 
     this.updateLast();
 
-    newIndices.forEach((newIndex, oldIndex) => {
-      const fragment = this.previousIterations[oldIndex];
-      this.previousIterations[oldIndex] = null;
+    idx = pos = 0;
+    while (idx < len) {
+      dest = newIndices[pos];
 
-      if (newIndex === -1) {
-        removed[oldIndex] = fragment;
-      } else if (fragment.index !== newIndex) {
-        const model = this.context.joinKey(newIndex);
-        fragment.index = fragment.key = newIndex;
-        fragment.context = model;
-        if (this.owner.template.z) {
-          fragment.aliases = {};
-          fragment.aliases[this.owner.template.z[0].n] = model;
+      if (dest === -1) {
+        // drop it like it's hot
+        prev[pos++].unbind().unrender(true);
+      } else if (dest > idx) {
+        // need to stash or pull one up
+        next = newIndices[pos + 1]; // TODO: maybe a shouldMove function that tracks multiple entries?
+        if (next <= dest) {
+          stash[dest] = prev[pos++];
+        } else {
+          next = stash[idx] || prev[map[idx]];
+          anchor = prev[nextRendered(pos, newIndices, prev)];
+          anchor = (anchor && parentNode && anchor.firstNode()) || nextNode;
+
+          if (next) {
+            model = next.context = this.context.joinKey(idx);
+            next.index = next.key = idx;
+            if (this.owner.template.z) {
+              next.aliases = {};
+              next.aliases[this.owner.template.z[0].n] = model;
+            }
+            if (next.idxModel) next.idxModel.applyValue(idx);
+            if (next.keyModel) next.keyModel.applyValue(idx);
+            if (parentNode) parentNode.insertBefore(next.detach(), anchor);
+          } else {
+            next = iters[idx] = this.createIteration(idx, idx);
+            if (parentNode) {
+              next.render(docFrag);
+              parentNode.insertBefore(docFrag, anchor);
+            }
+          }
+
+          next.update();
+
+          idx++;
         }
-      }
-    });
+      } else {
+        // all is well
+        next = iters[idx];
+        anchor = prev[nextRendered(pos, newIndices, prev)];
+        anchor = (anchor && parentNode && anchor.firstNode()) || nextNode;
+        if (!next) {
+          next = iters[idx] = this.createIteration(idx, idx);
+          if (parentNode) {
+            next.render(docFrag);
+            parentNode.insertBefore(docFrag, anchor);
+          }
+        } else if (pos !== idx || stash[idx]) {
+          model = next.context = this.context.joinKey(idx);
+          next.index = next.key = idx;
+          if (next.idxModel) next.idxModel.applyValue(idx);
+          if (next.keyModel) next.keyModel.applyValue(idx);
+          if (this.owner.template.z) {
+            next.aliases = {};
+            next.aliases[this.owner.template.z[0].n] = model;
+          }
 
-    // if the array was spliced outside of ractive, sometimes there are leftover fragments not in the newIndices
-    this.previousIterations.forEach((frag, i) => {
-      if (frag) removed[i] = frag;
-    });
-
-    // create new/move existing iterations
-    const docFrag = this.rendered ? createDocumentFragment() : null;
-    const parentNode = this.rendered ? this.parent.findParentNode() : null;
-
-    const contiguous = 'startIndex' in newIndices;
-    i = contiguous ? newIndices.startIndex : 0;
-
-    for (i; i < len; i++) {
-      const frag = this.iterations[i];
-
-      if (frag && contiguous) {
-        // attach any built-up iterations
-        if (this.rendered) {
-          if (removed[i]) docFrag.appendChild(removed[i].detach());
-          if (docFrag.childNodes.length) parentNode.insertBefore(docFrag, frag.firstNode());
+          if (stash[idx] && parentNode) parentNode.insertBefore(next.detach(), anchor);
         }
-        continue;
-      }
 
-      if (!frag) this.iterations[i] = this.createIteration(i, i);
+        next.update();
 
-      if (this.rendered) {
-        if (removed[i]) docFrag.appendChild(removed[i].detach());
-
-        if (frag) docFrag.appendChild(frag.detach());
-        else {
-          this.iterations[i].render(docFrag);
-        }
+        idx++;
+        pos++;
       }
     }
 
-    // append any leftovers
-    if (this.rendered) {
-      for (i = len; i < oldLen; i++) {
-        if (removed[i]) docFrag.appendChild(removed[i].detach());
-      }
-
-      if (docFrag.childNodes.length) {
-        parentNode.insertBefore(docFrag, this.owner.findNextNode());
-      }
+    // if the list shrank, drop the overflow
+    const oldLen = prev.length;
+    while (pos < oldLen) {
+      prev[pos++].unbind().unrender(true);
     }
-
-    // trigger removal on old nodes
-    keys(removed).forEach(k => removed[k].unbind().unrender(true));
-
-    this.iterations.forEach(update);
 
     this.pendingNewIndices = null;
 
@@ -469,4 +480,11 @@ function findDelegate(start) {
   }
 
   return delegate;
+}
+
+function nextRendered(start, newIndices, frags) {
+  const len = newIndices.length;
+  for (let i = start; i < len; i++) {
+    if (~newIndices[i] && frags[i] && frags[i].rendered) return i;
+  }
 }
