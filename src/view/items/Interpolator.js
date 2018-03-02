@@ -25,7 +25,7 @@ export default class Interpolator extends Mustache {
 
   render(target, occupants) {
     if (inAttributes()) return;
-    const value = this.getString();
+    const value = (this.value = this.getString());
 
     this.rendered = true;
 
@@ -46,7 +46,8 @@ export default class Interpolator extends Mustache {
     if (this.dirty) {
       this.dirty = false;
       if (this.rendered) {
-        this.node.data = this.getString();
+        const value = this.getString();
+        if (value !== this.value) this.node.data = this.value = value;
       }
     }
   }
