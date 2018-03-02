@@ -1,5 +1,5 @@
 import { createDocumentFragment } from 'utils/dom';
-import { isArray, isObject } from 'utils/is';
+import { isArray, isObject, isObjectType } from 'utils/is';
 import { findMap } from 'utils/array';
 import {
   toEscapedString,
@@ -58,6 +58,8 @@ export default class RepeatedFragment {
     this.bound = true;
     const value = context.get();
 
+    this.aliases = this.owner.template.z && this.owner.template.z.slice();
+
     // {{#each array}}...
     if ((this.isArray = isArray(value))) {
       // we can't use map, because of sparse arrays
@@ -101,20 +103,13 @@ export default class RepeatedFragment {
       template: this.template
     });
 
-    fragment.key = key;
-    fragment.index = index;
     fragment.isIteration = true;
     fragment.delegate = this.delegate;
 
-    const model = this.context.joinKey(key);
+    if (this.aliases) fragment.aliases = {};
+    swizzleFragment(this, fragment, key, index);
 
-    // set up an iteration alias if there is one
-    if (this.owner.template.z) {
-      fragment.aliases = {};
-      fragment.aliases[this.owner.template.z[0].n] = model;
-    }
-
-    return fragment.bind(model);
+    return fragment.bind(fragment.context);
   }
 
   destroyed() {
@@ -169,12 +164,7 @@ export default class RepeatedFragment {
   rebind(next) {
     this.context = next;
     this.iterations.forEach(fragment => {
-      const model = next ? next.joinKey(fragment.key) : undefined;
-      fragment.context = model;
-      if (this.owner.template.z) {
-        fragment.aliases = {};
-        fragment.aliases[this.owner.template.z[0].n] = model;
-      }
+      swizzleFragment(this, fragment, fragment.key, fragment.index);
     });
   }
 
@@ -190,7 +180,7 @@ export default class RepeatedFragment {
     this.rendered = true;
   }
 
-  shuffle(newIndices) {
+  shuffle(newIndices, merge) {
     if (!this.pendingNewIndices) this.previousIterations = this.iterations.slice();
 
     if (!this.pendingNewIndices) this.pendingNewIndices = [];
@@ -205,12 +195,12 @@ export default class RepeatedFragment {
       const fragment = this.iterations[oldIndex];
       iterations[newIndex] = fragment;
 
+      if (merge) fragment.shouldRebind = 1;
+
       if (newIndex !== oldIndex && fragment) fragment.dirty = true;
     });
 
     this.iterations = iterations;
-
-    //this.iterations.forEach((f, i) => f && f.idxModel && f.idxModel.applyValue(i));
 
     this.bubble();
   }
@@ -239,7 +229,6 @@ export default class RepeatedFragment {
     this.rendered = false;
   }
 
-  // TODO smart update
   update() {
     if (this.pendingNewIndices) {
       this.bubbled.length = 0;
@@ -378,16 +367,17 @@ export default class RepeatedFragment {
     const prev = this.previousIterations;
     const iters = this.iterations;
     const stash = {};
-    let idx, dest, pos, next, model, anchor;
+    let idx, dest, pos, next, anchor;
 
     const map = new Array(newIndices.length);
-    newIndices.map((e, i) => (map[e] = i));
+    newIndices.forEach((e, i) => (map[e] = i));
 
     this.updateLast();
 
     idx = pos = 0;
     while (idx < len) {
       dest = newIndices[pos];
+      next = null;
 
       if (dest === -1) {
         // drop it like it's hot
@@ -396,21 +386,16 @@ export default class RepeatedFragment {
         // need to stash or pull one up
         next = newIndices[pos + 1]; // TODO: maybe a shouldMove function that tracks multiple entries?
         if (next <= dest) {
-          stash[dest] = prev[pos++];
+          stash[dest] = prev[pos];
+          prev[pos++] = null;
         } else {
           next = stash[idx] || prev[map[idx]];
+          prev[map[idx]] = null;
           anchor = prev[nextRendered(pos, newIndices, prev)];
           anchor = (anchor && parentNode && anchor.firstNode()) || nextNode;
 
           if (next) {
-            model = next.context = this.context.joinKey(idx);
-            next.index = next.key = idx;
-            if (this.owner.template.z) {
-              next.aliases = {};
-              next.aliases[this.owner.template.z[0].n] = model;
-            }
-            if (next.idxModel) next.idxModel.applyValue(idx);
-            if (next.keyModel) next.keyModel.applyValue(idx);
+            swizzleFragment(this, next, idx, idx);
             if (parentNode) parentNode.insertBefore(next.detach(), anchor);
           } else {
             next = iters[idx] = this.createIteration(idx, idx);
@@ -419,8 +404,6 @@ export default class RepeatedFragment {
               parentNode.insertBefore(docFrag, anchor);
             }
           }
-
-          next.update();
 
           idx++;
         }
@@ -436,30 +419,21 @@ export default class RepeatedFragment {
             parentNode.insertBefore(docFrag, anchor);
           }
         } else if (pos !== idx || stash[idx]) {
-          model = next.context = this.context.joinKey(idx);
-          next.index = next.key = idx;
-          if (next.idxModel) next.idxModel.applyValue(idx);
-          if (next.keyModel) next.keyModel.applyValue(idx);
-          if (this.owner.template.z) {
-            next.aliases = {};
-            next.aliases[this.owner.template.z[0].n] = model;
-          }
-
+          swizzleFragment(this, next, idx, idx);
           if (stash[idx] && parentNode) parentNode.insertBefore(next.detach(), anchor);
         }
 
-        next.update();
-
         idx++;
-        pos++;
+        prev[pos++] = null;
+      }
+
+      if (next && isObjectType(next)) {
+        next.update();
       }
     }
 
-    // if the list shrank, drop the overflow
-    const oldLen = prev.length;
-    while (pos < oldLen) {
-      prev[pos++].unbind().unrender(true);
-    }
+    // clean up any stragglers
+    prev.forEach(f => f && f.unbind().unrender(true));
 
     this.pendingNewIndices = null;
 
@@ -487,4 +461,26 @@ function nextRendered(start, newIndices, frags) {
   for (let i = start; i < len; i++) {
     if (~newIndices[i] && frags[i] && frags[i].rendered) return i;
   }
+}
+
+function swizzleFragment(section, fragment, key, idx) {
+  const model = section.context ? section.context.joinKey(key) : undefined;
+
+  fragment.key = key;
+  fragment.index = idx;
+  fragment.context = model;
+
+  if (fragment.idxModel) fragment.idxModel.applyValue(idx);
+  if (fragment.keyModel) fragment.keyModel.applyValue(key);
+
+  // handle any aliases
+  const aliases = fragment.aliases;
+  section.aliases &&
+    section.aliases.forEach(a => {
+      if (a.x.r === '.') aliases[a.n] = model;
+      else if (a.x.r === '@index') aliases[a.n] = fragment.getIndex();
+      else if (a.x.r === '@key') aliases[a.n] = fragment.getKey();
+      else if (a.x.r === '@keypath') aliases[a.n] = fragment.getKeypath();
+      else if (a.x.r === '@rootpath') aliases[a.n] = fragment.getKeypath(true);
+    });
 }

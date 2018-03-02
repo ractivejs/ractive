@@ -93,6 +93,15 @@ export default function readSection(parser, tag) {
       parser.error('Expected expression');
     }
 
+    // extra each aliases
+    if (block === 'each' && parser.matchString(',')) {
+      const aliases = readAliases(parser);
+      if (aliases) {
+        if (section.z) aliases.unshift(section.z[0]);
+        section.z = aliases;
+      }
+    }
+
     // optional index and key references
     if ((block === 'each' || !block) && (i = parser.matchPattern(indexRefPattern))) {
       let extra;

@@ -252,4 +252,47 @@ export default function() {
     r.toggle('flip');
     t.htmlEqual(fixture.innerHTML, 'out2in2out1in3out1in1');
   });
+
+  test(`alias as is optional`, t => {
+    new Ractive({
+      target: fixture,
+      template: `{{#with foo bar, baz as bat}}{{#each bar bip}}{{bat}}{{bip}}{{/each}}{{/with}}`,
+      data: {
+        foo: ['a', 'b'],
+        baz: '1'
+      }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '1a1b');
+  });
+
+  test(`index, key, keypath, and rootpath aliases can be passed to each`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: `{{#each items as item, @index i, @key k, @keypath kp, @rootpath rp}}{{i}} {{k}} {{kp}} {{rp}} {{item}}|{{/each}}`,
+      data: {
+        items: [1, 2]
+      }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '0 0 items.0 items.0 1|1 1 items.1 items.1 2|');
+
+    r.unshift('items', 3);
+
+    t.htmlEqual(
+      fixture.innerHTML,
+      '0 0 items.0 items.0 3|1 1 items.1 items.1 1|2 2 items.2 items.2 2|'
+    );
+
+    r.set('items', [2, 3, 1], { shuffle: true });
+
+    t.htmlEqual(
+      fixture.innerHTML,
+      '0 0 items.0 items.0 2|1 1 items.1 items.1 3|2 2 items.2 items.2 1|'
+    );
+
+    r.set('items', { a: 1, b: 2 });
+
+    t.htmlEqual(fixture.innerHTML, '0 a items.a items.a 1|1 b items.b items.b 2|');
+  });
 }

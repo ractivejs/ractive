@@ -52,18 +52,14 @@ export function readAlias(parser) {
   }
 
   parser.sp();
-
-  if (!parser.matchPattern(asRE)) {
-    parser.pos = start;
-    return null;
-  }
-
+  parser.matchPattern(asRE);
   parser.sp();
 
   const alias = parser.matchPattern(legalAlias);
 
   if (!alias) {
-    parser.error('Expected a legal alias name.');
+    parser.pos = start;
+    return null;
   }
 
   return { n: alias, x: expr };
