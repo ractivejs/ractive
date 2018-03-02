@@ -9,6 +9,7 @@ import getPrefixer from './helpers/getPrefixer';
 import { unescapeKey } from 'shared/keypaths';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn, keys } from 'utils/object';
+import { buildNewIndices } from 'utils/array';
 
 export const shared = {};
 
@@ -271,43 +272,11 @@ export default class Model extends ModelBase {
   }
 
   merge(array, comparator) {
-    let oldArray = this.value;
-    let newArray = array;
-    if (oldArray === newArray) oldArray = recreateArray(this);
-    if (comparator) {
-      oldArray = oldArray.map(comparator);
-      newArray = newArray.map(comparator);
-    }
-
-    const oldLength = oldArray.length;
-
-    const usedIndices = {};
-    let firstUnusedIndex = 0;
-
-    const newIndices = oldArray.map(item => {
-      let index;
-      let start = firstUnusedIndex;
-
-      do {
-        index = newArray.indexOf(item, start);
-
-        if (index === -1) {
-          return -1;
-        }
-
-        start = index + 1;
-      } while (usedIndices[index] === true && start < oldLength);
-
-      // keep track of the first unused index, so we don't search
-      // the whole of newArray for each item in oldArray unnecessarily
-      if (index === firstUnusedIndex) {
-        firstUnusedIndex += 1;
-      }
-      // allow next instance of next "equal" to be found item
-      usedIndices[index] = true;
-      return index;
-    });
-
+    const newIndices = buildNewIndices(
+      this.value === array ? recreateArray(this) : this.value,
+      array,
+      comparator
+    );
     this.parent.value[this.key] = array;
     this.shuffle(newIndices, true);
   }

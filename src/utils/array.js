@@ -95,3 +95,41 @@ export function findMap(array, fn) {
     if (result) return result;
   }
 }
+
+export function buildNewIndices(one, two, comparator) {
+  let oldArray = one;
+  let newArray = two;
+  if (comparator) {
+    oldArray = oldArray.map(comparator);
+    newArray = newArray.map(comparator);
+  }
+
+  const oldLength = oldArray.length;
+
+  const usedIndices = {};
+  let firstUnusedIndex = 0;
+
+  return oldArray.map(item => {
+    let index;
+    let start = firstUnusedIndex;
+
+    do {
+      index = newArray.indexOf(item, start);
+
+      if (index === -1) {
+        return -1;
+      }
+
+      start = index + 1;
+    } while (usedIndices[index] === true && start < oldLength);
+
+    // keep track of the first unused index, so we don't search
+    // the whole of newArray for each item in oldArray unnecessarily
+    if (index === firstUnusedIndex) {
+      firstUnusedIndex += 1;
+    }
+    // allow next instance of next "equal" to be found item
+    usedIndices[index] = true;
+    return index;
+  });
+}
