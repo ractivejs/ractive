@@ -391,7 +391,7 @@ type Data = ValueMap
 type DataFn<T extends Ractive<T> = Ractive> = (this: T) => ValueMap;
 type DataGetFn = (keypath: string) => any;
 
-interface DecoratorHandle {
+export interface DecoratorHandle {
 	/**
 	 * Called when any downstream template from the element will be updated.
 	 */
@@ -451,7 +451,7 @@ interface LinkOpts {
 	keypath?: string;
 }
 
-type ListenerCallback<T extends Ractive<T> = Ractive> = (this: T, ctx: ContextHelper, ...args: any[]) => boolean | void;
+type ListenerCallback<T extends Ractive<T> = Ractive> = (this: T, ctx: ContextHelper, ...args: any[]) => boolean | void | Promise<any>;
 interface ListenerDescriptor<T extends Ractive<T> = Ractive> {
 	/**
 	 * The callback to call when the event is fired.
@@ -463,14 +463,14 @@ interface ListenerDescriptor<T extends Ractive<T> = Ractive> {
 	 */
 	once?: boolean;
 }
-interface ListenerHandle {
+export interface ListenerHandle {
 	/**
 	 * Removes the listener from the event.j
 	 */
 	cancel: () => void;
 }
 
-interface ObserverHandle {
+export interface ObserverHandle {
 	/**
 	 * Removes the listener or observer.j
 	 */
@@ -498,8 +498,8 @@ interface ObserverHandle {
  * @param keypath the keypath of the observed change
  * @param parts keys for any wildcards in the observer
  */
-type ObserverCallback<T extends Ractive<T> = Ractive> = (this: T, value: any, old: any, keypath: string, ...parts: string[]) => void;
-type ObserverArrayCallback<T extends Ractive<T> = Ractive> = (this: T, changes: ArrayChanges) => void;
+type ObserverCallback<T extends Ractive<T> = Ractive> = (this: T, value: any, old: any, keypath: string, ...parts: string[]) => void | Promise<any>;
+type ObserverArrayCallback<T extends Ractive<T> = Ractive> = (this: T, changes: ArrayChanges) => void | Promise<any>;
 interface ArrayChanges {
 	/**
 	 * The starting index for the changes.
@@ -532,7 +532,7 @@ interface ObserverBaseOpts {
 	 */
 	init?: boolean;
 }
-interface ObserverOpts {
+interface ObserverOpts extends ObserverBaseOpts {
 	/**
 	 * Whether or not to follow any links when observing.
 	 */
