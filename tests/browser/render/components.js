@@ -161,7 +161,7 @@ export default function() {
     fixture.innerHTML = '<div id="move-test-target"></div>';
 
     const cmp = Ractive.extend({
-      template: 'cmp',
+      template: '<span>cmp</span>',
       on: {
         config() {
           this.target = fixture;
@@ -176,7 +176,7 @@ export default function() {
       components: { cmp }
     });
 
-    t.htmlEqual(fixture.innerHTML, '<div id="move-test-target">root</div>cmp');
+    t.htmlEqual(fixture.innerHTML, '<div id="move-test-target">root</div><span>cmp</span>');
 
     r.toggle('hide');
 
@@ -184,6 +184,6 @@ export default function() {
 
     r.toggle('hide');
 
-    t.htmlEqual(fixture.innerHTML, '<div id="move-test-target">root</div>cmp');
+    t.htmlEqual(fixture.innerHTML, '<div id="move-test-target">root</div><span>cmp</span>');
   });
 }
