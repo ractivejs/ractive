@@ -156,4 +156,34 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, 'yep');
   });
+
+  test(`components that happen to grow a target are still managed by the component`, t => {
+    fixture.innerHTML = '<div id="move-test-target"></div>';
+
+    const cmp = Ractive.extend({
+      template: 'cmp',
+      on: {
+        config() {
+          this.target = fixture;
+          this.append = true;
+        }
+      }
+    });
+
+    const r = new Ractive({
+      target: '#move-test-target',
+      template: 'root{{#unless hide}}<cmp/>{{/unless}}',
+      components: { cmp }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '<div id="move-test-target">root</div>cmp');
+
+    r.toggle('hide');
+
+    t.htmlEqual(fixture.innerHTML, '<div id="move-test-target">root</div>');
+
+    r.toggle('hide');
+
+    t.htmlEqual(fixture.innerHTML, '<div id="move-test-target">root</div>cmp');
+  });
 }

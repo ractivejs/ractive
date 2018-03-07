@@ -48,10 +48,13 @@ export default class Component extends Item {
       this.instance = instance;
       this.name = template.e;
 
-      if (instance.el) {
+      if (instance.el || instance.target) {
         warnIfDebug(
-          `The <${this.name}> component has a default 'el' property; it has been disregarded`
+          `The <${this.name}> component has a default '${
+            instance.el ? 'el' : 'target'
+          }' property; it has been disregarded`
         );
+        instance.el = instance.target = null;
       }
 
       // find container
@@ -149,6 +152,8 @@ export default class Component extends Item {
         }
       );
 
+      if (this.instance.target || this.instance.el) this.extern = true;
+
       this.bound = true;
     }
   }
@@ -227,7 +232,12 @@ export default class Component extends Item {
       this.attributes.forEach(callRender);
       this.eventHandlers.forEach(callRender);
 
-      render(this.instance, target, null, occupants);
+      if (this.extern) {
+        this.instance.delegate = false;
+        this.instance.render();
+      } else {
+        render(this.instance, target, null, occupants);
+      }
 
       this.rendered = true;
     }
