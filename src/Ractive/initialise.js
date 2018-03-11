@@ -38,7 +38,8 @@ export default function initialise(ractive, userOptions, options) {
   subscribe(ractive, userOptions, 'observe');
 
   // call any passed in plugins
-  if (isArray(userOptions.use)) ractive.use.apply(ractive, userOptions.use);
+  if (isArray(userOptions.use))
+    ractive.use.apply(ractive, userOptions.use.filter(p => !p.construct));
 
   if (fragment) {
     // render automatically ( if `el` is specified )

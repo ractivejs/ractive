@@ -9,7 +9,7 @@ import subscribe from './helpers/subscribe';
 import Ractive from '../Ractive';
 import { ATTRIBUTE, BINDING_FLAG, DECORATOR, INTERPOLATOR, TRANSITION } from 'config/types';
 import { assign, create, hasOwn } from 'utils/object';
-import { isString } from 'utils/is';
+import { isArray, isString } from 'utils/is';
 import { compute } from 'src/Ractive/prototype/compute';
 
 const constructHook = new Hook('construct');
@@ -45,6 +45,11 @@ export default function construct(ractive, options) {
     ractive.parent.delegate !== ractive.delegate
   ) {
     ractive.delegate = false;
+  }
+
+  // plugins that need to run at construct
+  if (isArray(options.use)) {
+    ractive.use.apply(ractive, options.use.filter(p => p.construct));
   }
 
   // TODO don't allow `onconstruct` with `new Ractive()`, there's no need for it

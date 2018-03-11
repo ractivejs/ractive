@@ -78,4 +78,36 @@ export default function() {
     t.equal(new Ractive({ use: [plug] }).foo, 0);
     t.equal(new Ractive({ use: [plug] }).foo, 1);
   });
+
+  test(`use plugins can request to be run at construct for instances`, t => {
+    t.expect(4);
+
+    let hitEarly = false;
+    let hitLate = false;
+
+    function early() {
+      t.ok(!hitLate && !hitEarly);
+      hitEarly = true;
+    }
+    early.construct = true;
+
+    function late() {
+      t.ok(!hitLate && hitEarly);
+      hitLate = true;
+    }
+
+    new Ractive({
+      target: fixture,
+      template: '',
+      use: [late, early],
+      on: {
+        construct() {
+          t.ok(hitEarly && !hitLate);
+        },
+        render() {
+          t.ok(hitEarly && hitLate);
+        }
+      }
+    });
+  });
 }
