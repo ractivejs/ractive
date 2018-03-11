@@ -99,4 +99,19 @@ export default function() {
     r.set('@helpers.fmt1', v => '_' + v);
     t.htmlEqual(fixture.innerHTML, '_bar b a r');
   });
+
+  test(`helper registry is available on constructors`, t => {
+    Ractive.helpers.helper1 = () => 4;
+    const cmp = Ractive.extend({
+      template: '{{helper1()}}{{helper2()}}'
+    });
+    cmp.helpers.helper2 = () => 2;
+    new Ractive({
+      target: fixture,
+      template: '<cmp />-{{helper1()}}',
+      components: { cmp }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '42-4');
+  });
 }

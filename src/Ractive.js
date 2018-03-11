@@ -102,6 +102,7 @@ defineProperties(Ractive, {
   easing: { writable: true, value: easing },
   events: { writable: true, value: {} },
   extensions: { value: [] },
+  helpers: { writable: true, value: defaults.helpers },
   interpolators: { writable: true, value: interpolators },
   partials: { writable: true, value: {} },
   transitions: { writable: true, value: {} },

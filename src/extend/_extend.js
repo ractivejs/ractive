@@ -10,7 +10,7 @@ import addStyle from '../Ractive/static/addStyle';
 import sharedSet from '../Ractive/static/sharedSet';
 import sharedGet from '../Ractive/static/sharedGet';
 import use from '../Ractive/static/use';
-import { assign, create, defineProperties, toPairs } from 'utils/object';
+import { create, defineProperties, toPairs, defineProperty } from 'utils/object';
 import { isArray, isFunction } from 'utils/is';
 
 const callsSuper = /super\s*\(|\.call\s*\(\s*this/;
@@ -108,8 +108,7 @@ function extendOne(Parent, options = {}, Target) {
 
   dataConfigurator.extend(Parent, proto, options, Child);
 
-  proto.computed = assign(create(Parent.prototype.computed), options.computed);
-  proto.helpers = assign(create(Parent.prototype.helpers), options.helpers);
+  defineProperty(Child, 'helpers', { writable: true, value: proto.helpers });
 
   if (isArray(options.use)) Child.use.apply(Child, options.use);
 

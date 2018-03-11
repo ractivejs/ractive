@@ -1,4 +1,4 @@
-import { create, keys } from 'utils/object';
+import { assign, create, keys } from 'utils/object';
 
 const registryNames = [
   'adaptors',
@@ -37,9 +37,7 @@ class Registry {
 
     const registry = create(Parent[name]);
 
-    for (const key in option) {
-      registry[key] = option[key];
-    }
+    assign(registry, option);
 
     target[name] = registry;
   }
