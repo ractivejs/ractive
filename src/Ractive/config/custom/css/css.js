@@ -82,7 +82,7 @@ export function initCSS(options, target, proto) {
   if (isObjectType(css)) {
     css = 'textContent' in css ? css.textContent : css.innerHTML;
   } else if (isFunction(css)) {
-    target._css = options.css;
+    target._css = css;
     css = evalCSS(target, css);
   }
 

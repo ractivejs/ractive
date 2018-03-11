@@ -40,7 +40,7 @@ export function applyChanges(component, apply) {
   return local || child;
 }
 
-function recomputeCSS(component) {
+export function recomputeCSS(component) {
   const css = component._css;
 
   if (!isFunction(css)) return;

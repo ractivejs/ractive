@@ -109,6 +109,9 @@ defineProperties(Ractive, {
   // CSS variables
   cssData: { configurable: true, value: {} },
 
+  // extra styles managed by Ractive - addStyle is also in _extend
+  extraStyles: { configuratble: false, writable: false, value: [] },
+
   // access to @shared without an instance
   sharedData: { value: sharedData },
 
@@ -119,6 +122,7 @@ defineProperties(Ractive, {
   Context: { value: extern.Context.prototype }
 });
 
+// cssData must already be in place
 defineProperty(Ractive, '_cssModel', {
   configurable: true,
   value: new CSSModel(Ractive)

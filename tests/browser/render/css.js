@@ -609,7 +609,7 @@ export default function() {
     const cmp = Ractive.extend({
       cssData: { width },
       css(d) {
-        return `.do-width { width: ${d('width')};`;
+        return `.do-width { width: ${d('width')}; }`;
       },
       template:
         '<div class-do-width /><div style-width="{{@style.width}}" /><div style-width="{{@this.cssData.width}}" />{{@style.width}} {{@.cssData.width}}'
@@ -633,5 +633,39 @@ export default function() {
     computedWidth = divs[1].width;
     t.ok(divs.reduce((b, d) => b && d.width === computedWidth, true));
     t.htmlEqual(fixture.innerText, `${width} ${width}`);
+  });
+
+  test(`managed styles with Ractive.addStyle`, t => {
+    Ractive.addStyle('test-1', '#ractive-add-style-1 { width: 25px; }');
+
+    new Ractive({
+      target: fixture,
+      template: '<div id="ractive-add-style-1"></div>'
+    });
+
+    t.equal(fixture.firstChild.clientWidth, 25);
+  });
+
+  test(`managed function styles with Ractive.addStyle`, t => {
+    Ractive.addStyle(
+      'test-2',
+      data => `#ractive-add-style-2 { width: ${data('add-style-width') || '25px'}; }`
+    );
+
+    new Ractive({
+      target: fixture,
+      template: '<div id="ractive-add-style-2"></div>'
+    });
+
+    t.equal(fixture.firstChild.clientWidth, 25);
+
+    Ractive.styleSet('add-style-width', '50px');
+
+    t.equal(fixture.firstChild.clientWidth, 50);
+  });
+
+  test(`Ractive.addStyle refuses to use the same id twice`, t => {
+    Ractive.addStyle('test-3', '');
+    t.throws(() => Ractive.addStyle('test-3', ''), /already been added/);
   });
 }
