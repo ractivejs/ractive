@@ -405,4 +405,26 @@ export default function() {
     // Firefox doesn't do events at _all_ from disabled elements, whereas other browsers just stop at the disabled element
     if (events.outer) t.equal(events.outer, 3);
   });
+
+  test(`delegation can be safely turned off in a component`, t => {
+    t.expect(1);
+
+    const cmp = Ractive.extend({
+      template: '<div on-click="@.check()" />',
+      delegate: false,
+      check() {
+        t.ok(true);
+      }
+    });
+
+    new Ractive({
+      target: fixture,
+      template: `<div>{{#each [1]}}<cmp />{{/each}}</div>`,
+      components: { cmp }
+    });
+
+    fixture.appendChild(fixture.firstChild.firstChild);
+
+    fire(fixture.children[1], 'click');
+  });
 }

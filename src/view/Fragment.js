@@ -31,11 +31,15 @@ export default class Fragment {
     this.ractive = options.ractive || (this.isRoot ? options.owner : this.parent.ractive);
 
     this.componentParent = this.isRoot && this.ractive.component ? this.ractive.component.up : null;
-    this.delegate =
-      (this.parent
-        ? this.parent.delegate
-        : this.componentParent && this.componentParent.delegate) ||
-      (this.owner.containerFragment && this.owner.containerFragment.delegate);
+    if (!this.isRoot || this.ractive.delegate) {
+      this.delegate =
+        (this.parent
+          ? this.parent.delegate
+          : this.componentParent && this.componentParent.delegate) ||
+        (this.owner.containerFragment && this.owner.containerFragment.delegate);
+    } else {
+      this.delegate = false;
+    }
 
     this.context = null;
     this.rendered = false;
