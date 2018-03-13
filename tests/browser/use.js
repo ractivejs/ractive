@@ -110,4 +110,27 @@ export default function() {
       }
     });
   });
+
+  test(`use plugin can adjust component styles at extension time`, t => {
+    function go({ instance }) {
+      const css = instance.css;
+      instance.css = function(data) {
+        return typeof css === 'function' ? css(data) : (css || '') + '.foo { width: 10px; }';
+      };
+    }
+
+    const cmp = Ractive.extend({
+      css: '.foo { height: 25px; }'
+    });
+
+    cmp.use(go);
+
+    new cmp({
+      target: fixture,
+      template: '<div class-foo />'
+    });
+
+    t.equal(fixture.firstChild.clientWidth, 10);
+    t.equal(fixture.firstChild.clientHeight, 25);
+  });
 }

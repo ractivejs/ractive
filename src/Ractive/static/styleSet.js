@@ -41,7 +41,7 @@ export function applyChanges(component, apply) {
 }
 
 export function recomputeCSS(component) {
-  const css = component._css;
+  const css = component.css;
 
   if (!isFunction(css)) return;
 

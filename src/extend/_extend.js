@@ -6,7 +6,7 @@ import Ractive from '../Ractive';
 import isInstance from '../Ractive/static/isInstance';
 import styleSet from '../Ractive/static/styleSet';
 import styleGet from '../Ractive/static/styleGet';
-import addStyle from '../Ractive/static/addStyle';
+import { addStyle, hasStyle } from '../Ractive/static/styles';
 import sharedSet from '../Ractive/static/sharedSet';
 import sharedGet from '../Ractive/static/sharedGet';
 import use from '../Ractive/static/use';
@@ -120,5 +120,6 @@ defineProperties(Ractive, {
   sharedSet: { value: sharedSet },
   styleGet: { configurable: true, value: styleGet.bind(Ractive) },
   styleSet: { configurable: true, value: styleSet.bind(Ractive) },
-  addStyle: { configurable: false, value: addStyle.bind(Ractive) }
+  addCSS: { configurable: false, value: addStyle.bind(Ractive) },
+  hasCSS: { configurable: false, value: hasStyle.bind(Ractive) }
 });

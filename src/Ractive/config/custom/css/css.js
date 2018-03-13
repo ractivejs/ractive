@@ -60,6 +60,8 @@ function gatherIds(start) {
 }
 
 export function evalCSS(component, css) {
+  if (isString(css)) return css;
+
   const cssData = component.cssData;
   const model = component._cssModel;
   const data = function data(path) {
@@ -76,17 +78,30 @@ export function initCSS(options, target, proto) {
     isString(options.css) && !hasCurly.test(options.css)
       ? getElement(options.css) || options.css
       : options.css;
+  let cssProp = css;
 
   const id = options.cssId || uuid();
 
   if (isObjectType(css)) {
     css = 'textContent' in css ? css.textContent : css.innerHTML;
+    cssProp = css;
   } else if (isFunction(css)) {
-    target._css = css;
+    cssProp = css;
     css = evalCSS(target, css);
   }
 
   const def = (target._cssDef = { transform: !options.noCssTransform });
+
+  defineProperty(target, 'css', {
+    get() {
+      return cssProp;
+    },
+    set(next) {
+      cssProp = next;
+      const css = evalCSS(target, cssProp);
+      def.styles = def.transform ? transformCss(css, id) : css;
+    }
+  });
 
   def.styles = def.transform ? transformCss(css, id) : css;
   def.id = proto.cssId = id;

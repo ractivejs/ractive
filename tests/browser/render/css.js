@@ -635,8 +635,8 @@ export default function() {
     t.htmlEqual(fixture.innerText, `${width} ${width}`);
   });
 
-  test(`managed styles with Ractive.addStyle`, t => {
-    Ractive.addStyle('test-1', '#ractive-add-style-1 { width: 25px; }');
+  test(`managed styles with Ractive.addCSS`, t => {
+    Ractive.addCSS('test-1', '#ractive-add-style-1 { width: 25px; }');
 
     new Ractive({
       target: fixture,
@@ -646,8 +646,8 @@ export default function() {
     t.equal(fixture.firstChild.clientWidth, 25);
   });
 
-  test(`managed function styles with Ractive.addStyle`, t => {
-    Ractive.addStyle(
+  test(`managed function styles with Ractive.addCSS`, t => {
+    Ractive.addCSS(
       'test-2',
       data => `#ractive-add-style-2 { width: ${data('add-style-width') || '25px'}; }`
     );
@@ -664,8 +664,14 @@ export default function() {
     t.equal(fixture.firstChild.clientWidth, 50);
   });
 
-  test(`Ractive.addStyle refuses to use the same id twice`, t => {
-    Ractive.addStyle('test-3', '');
-    t.throws(() => Ractive.addStyle('test-3', ''), /already been added/);
+  test(`Ractive.addCSS refuses to use the same id twice`, t => {
+    Ractive.addCSS('test-3', '');
+    t.throws(() => Ractive.addCSS('test-3', ''), /already been added/);
+  });
+
+  test(`Ractive.hasCSS can be used to check to see if a style is already installed`, t => {
+    Ractive.addCSS('test-4', '');
+    t.ok(Ractive.hasCSS('test-4'));
+    t.ok(!Ractive.hasCSS('test-5'));
   });
 }

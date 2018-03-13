@@ -630,6 +630,8 @@ interface PluginArgsExtend {
 	instance: Static;
 }
 
+export type Plugin = (PluginArgsBase) => void;
+
 interface ReadLinkOpts {
 	/** Whether or not to follow through any upstream links when resolving the source. */
 	canonical?: boolean;
@@ -936,6 +938,7 @@ interface Static<T extends Ractive<T> = Ractive> {
 
 	adaptors: Registry<Adaptor>;
 	components: Registry<Component>;
+	css: string|CssFn;
 	decorators: Registry<Decorator<T>>;
 	easings: Registry<Easing>;
 	events: Registry<EventPlugin<T>>;
@@ -1455,11 +1458,20 @@ export module Ractive {
 
 	const VERSION: string;
 
+	/**
+	 * Add Ractive-managed CSS to the managed style tag. This effectively global CSS managed by the Ractive constructor,
+	 * as opposed scoped CSS installed on a component constructor.
+	 */
+	function addCSS(id: string, css: string | CssFn): void;
+
 	/** Escape the given key, so that it can be safely used in a keypath e.g. 'foo.bar' becomes 'foo\.bar' */
 	function escapeKey(key: string): string;
 
 	/** Retrieve the CSS string for all loaded components. */
 	function getCSS(): string;
+
+	/** Check to see if CSS with the given id has already been added */
+	function hasCSS(id: string): boolean;
 
 	/** Safely join the given keys into a keypath. */
 	function joinKeys(...keys: string[]): string;

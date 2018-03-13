@@ -2,13 +2,15 @@ import { isFunction } from 'utils/is';
 import { addCSS, applyCSS } from 'src/global/css';
 import { recomputeCSS } from './styleSet';
 
-export default function addStyle(id, css) {
-  if (this.extraStyles.find(s => s.id === id))
-    throw new Error(`Extra styles with the id '${id}' have already been added.`);
-  this.extraStyles.push({ id, css });
+const styles = [];
 
-  if (!this._css) {
-    Object.defineProperty(this, '_css', { configurable: false, writable: false, value: _css });
+export function addStyle(id, css) {
+  if (styles.find(s => s.id === id))
+    throw new Error(`Extra styles with the id '${id}' have already been added.`);
+  styles.push({ id, css });
+
+  if (!this.css) {
+    Object.defineProperty(this, 'css', { configurable: false, writable: false, value: buildCSS });
   }
 
   if (!this._cssDef) {
@@ -28,8 +30,12 @@ export default function addStyle(id, css) {
   applyCSS(true);
 }
 
-function _css(data) {
-  return this.extraStyles
+function buildCSS(data) {
+  return styles
     .map(s => `\n/* ---- extra style ${s.id} */\n` + (isFunction(s.css) ? s.css(data) : s.css))
     .join('');
+}
+
+export function hasStyle(id) {
+  return !!styles.find(s => s.id === id);
 }
