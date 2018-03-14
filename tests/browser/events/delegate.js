@@ -427,4 +427,48 @@ export default function() {
 
     fire(fixture.children[1], 'click');
   });
+
+  test(`delegation setting in yield is inherited correctly`, t => {
+    const addEventListener = Element.prototype.addEventListener;
+    let count = 0;
+    Element.prototype.addEventListener = function() {
+      count++;
+      return addEventListener.apply(this, arguments);
+    };
+
+    const cmp = Ractive.extend({
+      template: '<section on-click="@.checkCmp(@event)">{{yield}}</section>',
+      delegate: false,
+      checkCmp(ev) {
+        count++;
+        // not delegated
+        t.equal(ev.currentTarget.tagName.toLowerCase(), 'section', 'not delegated to div element');
+      }
+    });
+
+    new Ractive({
+      target: fixture,
+      template:
+        '<div>{{#each [1,2]}}<cmp><code>{{#each [3,4]}}<span on-click="@.checkYield(@event)" />{{/each}}</code></cmp>{{/each}}</div>',
+      components: { cmp },
+      checkYield(ev) {
+        count++;
+        // delegated
+        t.equal(ev.currentTarget.tagName.toLowerCase(), 'code', 'delegated to code element');
+        return false;
+      }
+    });
+
+    Element.prototype.addEventListener = addEventListener;
+
+    t.equal(count, 4);
+
+    // first component div
+    fire(fixture.firstChild.firstChild, 'click');
+    t.equal(count, 5);
+
+    // first component yield
+    fire(fixture.firstChild.firstChild.firstChild.firstChild, 'click');
+    t.equal(count, 6);
+  });
 }

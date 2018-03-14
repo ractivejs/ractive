@@ -12,7 +12,7 @@ import {
   update
 } from 'shared/methodCallers';
 import Fragment from './Fragment';
-import findElement from './items/shared/findElement';
+import { ELEMENT } from 'config/types';
 import { getContext } from 'shared/getRactiveContext';
 import { keys } from 'utils/object';
 import KeyModel from 'src/model/specials/KeyModel';
@@ -27,8 +27,7 @@ export default class RepeatedFragment {
     this.owner = options.owner;
     this.ractive = this.parent.ractive;
     this.delegate =
-      this.ractive.delegate !== false &&
-      (this.parent.delegate || findDelegate(findElement(options.owner)));
+      this.ractive.delegate !== false && (this.parent.delegate || findDelegate(this.parent));
     // delegation disabled by directive
     if (this.delegate && this.delegate.delegate === false) this.delegate = false;
     // let the element know it's a delegate handler
@@ -445,12 +444,27 @@ RepeatedFragment.prototype.getContext = getContext;
 
 // find the topmost delegate
 function findDelegate(start) {
-  let el = start;
-  let delegate = start;
+  let frag = start;
+  let delegate, el;
 
-  while (el) {
-    if (el.delegate) delegate = el;
-    el = el.parent;
+  out: while (frag) {
+    // find next element
+    el = 0;
+    while (!el && frag) {
+      if (frag.owner.type === ELEMENT) el = frag.owner;
+      if (frag.owner.ractive && frag.owner.ractive.delegate === false) break out;
+      frag = frag.parent || frag.componentParent;
+    }
+
+    if (el.delegate === false) break out;
+    delegate = el.delegate || el;
+
+    // find next repeated fragment
+    while (frag) {
+      if (frag.iterations) break;
+      if (frag.owner.ractive && frag.owner.ractive.delegate === false) break out;
+      frag = frag.parent || frag.componentParent;
+    }
   }
 
   return delegate;
