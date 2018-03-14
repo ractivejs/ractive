@@ -33,9 +33,9 @@ export default class Alias extends ContainerItem {
     this.fragment.bind();
   }
 
-  render(target) {
+  render(target, occupants) {
     this.rendered = true;
-    if (this.fragment) this.fragment.render(target);
+    if (this.fragment) this.fragment.render(target, occupants);
   }
 
   unbind() {
