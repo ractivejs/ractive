@@ -611,4 +611,21 @@ export default function() {
     t.ok(host.find('div') === div);
     t.ok(host.find('div').childNodes[0] === text);
   });
+
+  test('enhancement works with aliases', t => {
+    fixture.innerHTML = '<span>Hello!</span>';
+    const span = fixture.childNodes[0];
+
+    const ractive = new Ractive({
+      el: fixture,
+      template: `
+        {{#with 'Hello!' as greet}}
+          <span>{{greet}}</span>
+        {{/with}}`,
+      enhance: true
+    });
+
+    t.htmlEqual(fixture.innerHTML, '<span>Hello!</span>');
+    t.ok(span === ractive.find('span'));
+  });
 }
