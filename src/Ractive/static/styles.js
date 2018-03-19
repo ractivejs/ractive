@@ -15,7 +15,7 @@ export function addStyle(id, css) {
 
   if (!this._cssDef) {
     Object.defineProperty(this, '_cssDef', {
-      configurable: false,
+      configurable: true,
       writable: false,
       value: {
         transform: false,

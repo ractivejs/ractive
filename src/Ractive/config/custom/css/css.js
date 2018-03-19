@@ -90,7 +90,9 @@ export function initCSS(options, target, proto) {
     css = evalCSS(target, css);
   }
 
-  const def = (target._cssDef = { transform: !options.noCssTransform });
+  const def = { transform: !options.noCssTransform };
+
+  defineProperty(target, '_cssDef', { configurable: true, value: def });
 
   defineProperty(target, 'css', {
     get() {
