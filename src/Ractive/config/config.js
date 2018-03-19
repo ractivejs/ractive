@@ -67,7 +67,7 @@ function configure(method, Parent, target, options, Child) {
   }
 
   // disallow combination of `append` and `enhance`
-  if (options.append && options.enhance) {
+  if (target.append && target.enhance) {
     throw new Error('Cannot use append and enhance at the same time');
   }
 
