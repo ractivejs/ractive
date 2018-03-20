@@ -674,4 +674,38 @@ export default function() {
     t.ok(Ractive.hasCSS('test-4'));
     t.ok(!Ractive.hasCSS('test-5'));
   });
+
+  test(`component css can be subbed after init`, t => {
+    const cmp = Ractive.extend({
+      template: '<div />',
+      css: 'div { width: 10px; }'
+    });
+
+    const r = new cmp({
+      target: fixture
+    });
+
+    t.equal(r.find('div').clientWidth, 10);
+
+    cmp.css = 'div { width: 20px; }';
+
+    t.equal(r.find('div').clientWidth, 20);
+  });
+
+  test('component css set to true sets up a stub css block', t => {
+    const cmp = Ractive.extend({
+      template: '<div />',
+      css: true
+    });
+
+    const r = new cmp({
+      target: fixture
+    });
+
+    t.equal(r.find('div').clientWidth, fixture.clientWidth);
+
+    cmp.css = 'div { width: 20px; }';
+
+    t.equal(r.find('div').clientWidth, 20);
+  });
 }

@@ -1,4 +1,4 @@
-import { addCSS } from 'src/global/css';
+import { addCSS, applyCSS } from 'src/global/css';
 import transformCss from './transform';
 import { uuid } from 'utils/id';
 import { warnIfDebug } from 'utils/log';
@@ -75,9 +75,11 @@ export function evalCSS(component, css) {
 
 export function initCSS(options, target, proto) {
   let css =
-    isString(options.css) && !hasCurly.test(options.css)
-      ? getElement(options.css) || options.css
-      : options.css;
+    options.css === true
+      ? ''
+      : isString(options.css) && !hasCurly.test(options.css)
+        ? getElement(options.css) || options.css
+        : options.css;
   let cssProp = css;
 
   const id = options.cssId || uuid();
@@ -101,7 +103,9 @@ export function initCSS(options, target, proto) {
     set(next) {
       cssProp = next;
       const css = evalCSS(target, cssProp);
+      const styles = def.styles;
       def.styles = def.transform ? transformCss(css, id) : css;
+      if (def.applied && styles !== def.styles) applyCSS(true);
     }
   });
 
