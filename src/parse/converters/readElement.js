@@ -213,7 +213,8 @@ function readElement(parser) {
             parser.stripComments,
             preserveWhitespace,
             !preserveWhitespace,
-            !preserveWhitespace
+            !preserveWhitespace,
+            parser.whiteSpaceElements
           );
 
           partials[child.n] = child.f;

@@ -57,4 +57,48 @@ export default function() {
 
     t.equal(fixture.innerHTML, '-');
   });
+
+  test(`mixing preserve whitespace per element and interpolation per element`, t => {
+    const tpl = '<div>\n\t<f>\n\t\t<tag />\n\t\t{{f}}\n</f>\n</div>';
+
+    t.deepEqual(
+      Ractive.parse(tpl, { preserveWhitespace: { f: false }, interpolate: { f: false } }).t,
+      [{ t: 7, e: 'div', f: [{ t: 7, e: 'f', f: ['<tag /> {{f}}'] }] }]
+    );
+
+    t.deepEqual(
+      Ractive.parse(tpl, { preserveWhitespace: { f: true }, interpolate: { f: false } }).t,
+      [{ t: 7, e: 'div', f: [{ t: 7, e: 'f', f: ['\t\t<tag />\n\t\t{{f}}'] }] }]
+    );
+
+    t.deepEqual(
+      Ractive.parse(tpl, { preserveWhitespace: { f: false }, interpolate: { f: true } }).t,
+      [{ t: 7, e: 'div', f: [{ t: 7, e: 'f', f: ['<tag /> ', { t: 2, r: 'f' }] }] }]
+    );
+
+    t.deepEqual(
+      Ractive.parse(tpl, { preserveWhitespace: { f: true }, interpolate: { f: true } }).t,
+      [{ t: 7, e: 'div', f: [{ t: 7, e: 'f', f: ['\t\t<tag />\n\t\t', { t: 2, r: 'f' }] }] }]
+    );
+
+    t.deepEqual(Ractive.parse(tpl, { interpolate: { f: false } }).t, [
+      { t: 7, e: 'div', f: [{ t: 7, e: 'f', f: ['<tag /> {{f}}'] }] }
+    ]);
+
+    t.deepEqual(Ractive.parse(tpl, { preserveWhitespace: { f: true } }).t, [
+      {
+        t: 7,
+        e: 'div',
+        f: [{ t: 7, e: 'f', f: ['\t\t', { t: 7, e: 'tag' }, '\n\t\t', { t: 2, r: 'f' }] }]
+      }
+    ]);
+
+    t.deepEqual(Ractive.parse(tpl).t, [
+      {
+        t: 7,
+        e: 'div',
+        f: [{ t: 7, e: 'f', f: [{ t: 7, e: 'tag' }, ' ', { t: 2, r: 'f' }] }]
+      }
+    ]);
+  });
 }

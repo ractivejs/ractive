@@ -18,7 +18,8 @@ import cleanup from './utils/cleanup';
 import insertExpressions from './utils/insertExpressions';
 import flattenExpression from './utils/flattenExpression';
 import shared from '../Ractive/shared';
-import { create, keys } from 'utils/object';
+import { assign, keys } from 'utils/object';
+import { isObjectType } from 'utils/is';
 
 // See https://github.com/ractivejs/template-spec for information
 // about the Ractive template specification
@@ -35,7 +36,9 @@ const TRIPLE_READERS = [readTriple];
 export const READERS = [readMustache, readHtmlComment, readElement, readText];
 export const PARTIAL_READERS = [readPartialDefinitionSection];
 
-const defaultInterpolate = ['script', 'style', 'template'];
+const preserveWhitespaceElements = { pre: 1, script: 1, style: 1, textarea: 1 };
+
+const defaultInterpolate = { textarea: true, script: true, style: true, template: true };
 
 const StandardParser = Parser.extend({
   init(str, options) {
@@ -84,10 +87,11 @@ const StandardParser = Parser.extend({
     this.sectionDepth = 0;
     this.elementStack = [];
 
-    this.interpolate = create(options.interpolate || shared.defaults.interpolate || {});
-    this.interpolate.textarea = true;
-    defaultInterpolate.forEach(
-      t => (this.interpolate[t] = !options.interpolate || options.interpolate[t] !== false)
+    this.interpolate = assign(
+      {},
+      defaultInterpolate,
+      shared.defaults.interpolate,
+      options.interpolate
     );
 
     if (options.sanitize === true) {
@@ -101,7 +105,9 @@ const StandardParser = Parser.extend({
     }
 
     this.stripComments = options.stripComments !== false;
-    this.preserveWhitespace = options.preserveWhitespace;
+    this.preserveWhitespace = isObjectType(options.preserveWhitespace)
+      ? false
+      : options.preserveWhitespace;
     this.sanitizeElements = options.sanitize && options.sanitize.elements;
     this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
     this.includeLinePositions = options.includeLinePositions;
@@ -112,6 +118,9 @@ const StandardParser = Parser.extend({
     if (options.expression) this.converters = [readExpression];
 
     if (options.attributes) this.inTag = true;
+
+    // special whitespace handling requested for certain elements
+    this.whiteSpaceElements = assign({}, options.preserveWhitespace, preserveWhitespaceElements);
   },
 
   postProcess(result, options) {
@@ -134,7 +143,8 @@ const StandardParser = Parser.extend({
         this.stripComments,
         this.preserveWhitespace,
         !this.preserveWhitespace,
-        !this.preserveWhitespace
+        !this.preserveWhitespace,
+        this.whiteSpaceElements
       );
 
       if (this.csp !== false) {

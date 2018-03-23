@@ -25,7 +25,8 @@ export default function readTemplate(parser) {
         parser.stripComments,
         preserveWhitespace,
         !preserveWhitespace,
-        !preserveWhitespace
+        !preserveWhitespace,
+        parser.whiteSpaceElements
       );
 
       partials[partial.n] = partial.f;

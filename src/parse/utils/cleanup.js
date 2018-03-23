@@ -4,7 +4,6 @@ import trimWhitespace from './trimWhitespace';
 import { isString } from 'utils/is';
 
 const contiguousWhitespace = /[ \t\f\r\n]+/g;
-const preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i;
 const leadingWhitespace = /^[ \t\f\r\n]+/;
 const trailingWhitespace = /[ \t\f\r\n]+$/;
 const leadingNewLine = /^(?:\r\n|\r|\n)/;
@@ -15,7 +14,8 @@ export default function cleanup(
   stripComments,
   preserveWhitespace,
   removeLeadingWhitespace,
-  removeTrailingWhitespace
+  removeTrailingWhitespace,
+  whiteSpaceElements
 ) {
   if (isString(items)) return;
 
@@ -57,7 +57,8 @@ export default function cleanup(
     // Recurse
     if (item.f) {
       const isPreserveWhitespaceElement =
-        item.t === ELEMENT && preserveWhitespaceElements.test(item.e);
+        item.t === ELEMENT &&
+        (whiteSpaceElements[item.e.toLowerCase()] || whiteSpaceElements[item.e]);
       preserveWhitespaceInsideFragment = preserveWhitespace || isPreserveWhitespaceElement;
 
       if (!preserveWhitespace && isPreserveWhitespaceElement) {
@@ -85,7 +86,8 @@ export default function cleanup(
         stripComments,
         preserveWhitespaceInsideFragment,
         removeLeadingWhitespaceInsideFragment,
-        removeTrailingWhitespaceInsideFragment
+        removeTrailingWhitespaceInsideFragment,
+        whiteSpaceElements
       );
     }
 
@@ -96,7 +98,8 @@ export default function cleanup(
         stripComments,
         preserveWhitespace,
         removeLeadingWhitespaceInsideFragment,
-        removeTrailingWhitespaceInsideFragment
+        removeTrailingWhitespaceInsideFragment,
+        whiteSpaceElements
       );
 
       item.l.forEach(s => (s.l = 1));
@@ -112,7 +115,8 @@ export default function cleanup(
         stripComments,
         preserveWhitespace,
         removeLeadingWhitespaceInsideFragment,
-        removeTrailingWhitespaceInsideFragment
+        removeTrailingWhitespaceInsideFragment,
+        whiteSpaceElements
       );
       if (item.m.length < 1) delete item.m;
     }
