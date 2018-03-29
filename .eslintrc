@@ -18,6 +18,7 @@
 		"no-cond-assign": "off",
 		"no-const-assign": "error",
 		"no-constant-condition": [ "error", { "checkLoops": false } ],
+		"no-control-regex": "off",
 		"no-this-before-super": "error",
 		"no-var": "error",
 		"object-shorthand":  [ "error", "always" ],
