@@ -1,7 +1,7 @@
 import { fireShuffleTasks } from 'src/model/ModelBase';
 import { REFERENCE } from 'config/types';
 import { rebindMatch } from 'shared/rebind';
-import { isString } from 'utils/is';
+import { isArray, isString } from 'utils/is';
 import { escapeKey } from 'shared/keypaths';
 import ExpressionProxy from './ExpressionProxy';
 import resolveReference from './resolveReference';
@@ -63,8 +63,14 @@ export default class ReferenceExpressionProxy extends LinkModel {
     });
 
     const pathChanged = () => {
-      const keys = members.map(m => escapeKey(String(m.get())));
-      const model = base.joinAll(keys);
+      const model = base.joinAll(
+        members.reduce((list, m) => {
+          const k = m.get();
+          if (isArray(k)) return list.concat(k);
+          else list.push(escapeKey(String(k)));
+          return list;
+        }, [])
+      );
 
       if (model !== this.model) {
         this.model = model;

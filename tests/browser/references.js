@@ -643,4 +643,38 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, '3 is last 3|0 is last 0');
   });
+
+  test(`reference expressions with array members`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: `{{~/[path]}} {{some[sub][0]}}`,
+      data: {
+        path: ['some', 'foo', 'baz', 'foo'],
+        sub: ['bar', 'baz', 'bip'],
+        some: {
+          foo: {
+            baz: {
+              foo: 42
+            }
+          },
+          bar: {
+            baz: {
+              bip: [1, 2, 3],
+              bop: ['a', 'b', 'c']
+            }
+          }
+        }
+      }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '42 1');
+
+    r.set('path', ['some', 'bar', 'baz', 'bip', '1']);
+
+    t.htmlEqual(fixture.innerHTML, '2 1');
+
+    r.set('sub', ['bar', 'baz', 'bop']);
+
+    t.htmlEqual(fixture.innerHTML, '2 a');
+  });
 }
