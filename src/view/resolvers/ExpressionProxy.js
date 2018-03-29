@@ -112,12 +112,17 @@ export default class ExpressionProxy extends Model {
 
   unreference() {
     super.unreference();
-    if (!this.deps.length && !this.refs) this.teardown();
+    collect(this);
   }
 
   unregister(dep) {
     super.unregister(dep);
-    if (!this.deps.length && !this.refs) this.teardown();
+    collect(this);
+  }
+
+  unregisterLink(link) {
+    super.unregisterLink(link);
+    collect(this);
   }
 }
 
@@ -128,3 +133,7 @@ prototype.handleChange = computation.handleChange;
 prototype.joinKey = computation.joinKey;
 prototype.mark = computation.mark;
 prototype.unbind = noop;
+
+function collect(model) {
+  if (!model.deps.length && !model.refs && !model.links.length) model.teardown();
+}

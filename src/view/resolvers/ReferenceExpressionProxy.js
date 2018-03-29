@@ -16,7 +16,7 @@ export default class ReferenceExpressionProxy extends LinkModel {
     this.template = template;
     this.rootLink = true;
 
-    let base = resolve(fragment, template);
+    let base = (this.base = resolve(fragment, template));
     let idx;
 
     const proxy = (this.proxy = {
@@ -24,7 +24,7 @@ export default class ReferenceExpressionProxy extends LinkModel {
         if (previous === base) {
           next = rebindMatch(template, next, previous);
           if (next !== base) {
-            base = next;
+            this.base = base = next;
           }
         } else if (~(idx = members.indexOf(previous))) {
           next = rebindMatch(template.m[idx].n, next, previous);
@@ -43,7 +43,7 @@ export default class ReferenceExpressionProxy extends LinkModel {
 
     base.register(proxy);
 
-    const members = template.m.map(tpl => {
+    const members = (this.members = template.m.map(tpl => {
       if (isString(tpl)) {
         return { get: () => tpl };
       }
@@ -60,7 +60,7 @@ export default class ReferenceExpressionProxy extends LinkModel {
       model = new ExpressionProxy(fragment, tpl);
       model.register(proxy);
       return model;
-    });
+    }));
 
     const pathChanged = () => {
       const model = base.joinAll(
@@ -86,6 +86,16 @@ export default class ReferenceExpressionProxy extends LinkModel {
   getKeypath() {
     return this.model ? this.model.getKeypath() : '@undefined';
   }
+
+  teardown() {
+    if (this.base) this.base.unregister(this.proxy);
+    if (this.models) {
+      this.models.forEach(m => {
+        if (m.unregister) m.unregister(this);
+      });
+    }
+    super.teardown();
+  }
 }
 
 function refreshPathDeps(proxy) {
@@ -103,3 +113,10 @@ function refreshPathDeps(proxy) {
     refreshPathDeps(proxy.children[i]);
   }
 }
+
+const eproto = ExpressionProxy.prototype;
+const proto = ReferenceExpressionProxy.prototype;
+
+proto.unreference = eproto.unreference;
+proto.unregister = eproto.unregister;
+proto.unregisterLink = eproto.unregisterLink;
