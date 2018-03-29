@@ -246,4 +246,8 @@ class ContextModel {
   get() {
     return this.context;
   }
+
+  getKeypath() {
+    return '@context';
+  }
 }

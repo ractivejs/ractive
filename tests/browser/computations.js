@@ -1329,4 +1329,13 @@ export default function() {
     t.htmlEqual(fixture.innerHTML, '123');
     t.equal(count, 3);
   });
+
+  test(`an expression that throws can safely reference a context model`, t => {
+    t.expect(0);
+
+    new Ractive({
+      target: fixture,
+      template: `{{@context.get('nope').foo.bar}}`
+    });
+  });
 }
