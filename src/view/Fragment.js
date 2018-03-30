@@ -5,6 +5,7 @@ import { getContext, findParentWithContext } from 'shared/getRactiveContext';
 import {
   bind,
   destroyed,
+  rebound,
   shuffled,
   toEscapedString,
   toString,
@@ -222,6 +223,10 @@ export default class Fragment {
 
   rebind(next) {
     this.context = next;
+  }
+
+  rebound() {
+    this.items.forEach(rebound);
   }
 
   render(target, occupants) {

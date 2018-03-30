@@ -82,6 +82,20 @@ export default class Section extends MustacheContainer {
     }
   }
 
+  rebound() {
+    if (this.model) {
+      if (this.model.rebound) this.model.rebound();
+      else {
+        super.unbind();
+        super.bind();
+        if (this.sectionType === SECTION_WITH || this.sectionType === SECTION_IF_WITH) {
+          if (this.fragment) this.fragment.rebind(this.model);
+        }
+      }
+    }
+    if (this.fragment) this.fragment.rebound();
+  }
+
   render(target, occupants) {
     this.rendered = true;
     if (this.fragment) this.fragment.render(target, occupants);

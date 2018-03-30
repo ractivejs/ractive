@@ -100,6 +100,10 @@ export default class ExpressionProxy extends Model {
     this.bubble(!safe);
   }
 
+  rebound() {
+    this.models = this.template.r.map(ref => resolveReference(this.fragment, ref));
+  }
+
   retrieve() {
     return this.get();
   }

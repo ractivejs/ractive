@@ -80,6 +80,10 @@ export default class Binding {
     }
   }
 
+  rebound() {
+    this.model = this.attribute.interpolator.model;
+  }
+
   render() {
     this.node = this.element.node;
     this.node._ractive.binding = this;

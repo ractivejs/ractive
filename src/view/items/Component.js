@@ -1,6 +1,13 @@
 import runloop from 'src/global/runloop';
 import { updateAnchors } from 'shared/anchors';
-import { bind, render as callRender, unbind, unrender, update } from 'shared/methodCallers';
+import {
+  bind,
+  rebound,
+  render as callRender,
+  unbind,
+  unrender,
+  update
+} from 'shared/methodCallers';
 import { teardown } from 'src/Ractive/prototype/teardown';
 import getRactiveContext from 'shared/getRactiveContext';
 import { warnIfDebug } from 'utils/log';
@@ -211,6 +218,10 @@ export default class Component extends Item {
   getContext(...assigns) {
     assigns.unshift(this.instance);
     return getRactiveContext.apply(null, assigns);
+  }
+
+  rebound() {
+    this.attributes.forEach(rebound);
   }
 
   render(target, occupants) {
