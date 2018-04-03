@@ -5,7 +5,6 @@ import { getContext, findParentWithContext } from 'shared/getRactiveContext';
 import {
   bind,
   destroyed,
-  rebound,
   shuffled,
   toEscapedString,
   toString,
@@ -225,8 +224,12 @@ export default class Fragment {
     this.context = next;
   }
 
-  rebound() {
-    this.items.forEach(rebound);
+  rebound(update) {
+    this.items.forEach(x => x.rebound(update));
+    if (update) {
+      if (this.rootModel) this.rootModel.applyValue(this.context.getKeypath(this.ractive.root));
+      if (this.pathModel) this.pathModel.applyValue(this.context.getKeypath());
+    }
   }
 
   render(target, occupants) {

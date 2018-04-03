@@ -365,7 +365,7 @@ export default function() {
     t.equal(r.find('div').innerText, '42');
   });
 
-  test(`alias section and auto shuffle`, t => {
+  test(`iterative section and auto shuffle`, t => {
     let items = [
       { foo: { foo: [1] } },
       { foo: { foo: [2] } },

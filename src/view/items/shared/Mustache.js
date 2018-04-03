@@ -54,15 +54,17 @@ export default class Mustache extends Item {
     return true;
   }
 
-  rebound() {
+  rebound(update) {
     if (this.model) {
-      if (this.model.rebound) this.model.rebound();
+      if (this.model.rebound) this.model.rebound(update);
       else {
         this.model.unregister(this);
         this.bind();
       }
+
+      if (update) this.bubble();
     }
-    if (this.fragment) this.fragment.rebound();
+    if (this.fragment) this.fragment.rebound(update);
   }
 
   unbind() {

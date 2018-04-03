@@ -6,7 +6,7 @@ import { escapeHtml, voidElementNames } from 'utils/html';
 import { createElement, detachNode, matches, safeAttributeString } from 'utils/dom';
 import runloop from 'src/global/runloop';
 import Context from 'shared/Context';
-import { bind, destroyed, rebound, render, unbind, update } from 'shared/methodCallers';
+import { bind, destroyed, render, unbind, update } from 'shared/methodCallers';
 import { ContainerItem } from './shared/Item';
 import Fragment from '../Fragment';
 import ConditionalAttribute from './element/ConditionalAttribute';
@@ -261,10 +261,10 @@ export default class Element extends ContainerItem {
     }
   }
 
-  rebound() {
-    super.rebound();
-    if (this.attributes) this.attributes.forEach(rebound);
-    if (this.binding) this.binding.rebound();
+  rebound(update) {
+    super.rebound(update);
+    if (this.attributes) this.attributes.forEach(x => x.rebound(update));
+    if (this.binding) this.binding.rebound(update);
   }
 
   render(target, occupants) {

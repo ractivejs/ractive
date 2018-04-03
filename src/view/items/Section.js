@@ -82,18 +82,24 @@ export default class Section extends MustacheContainer {
     }
   }
 
-  rebound() {
+  rebound(update) {
     if (this.model) {
-      if (this.model.rebound) this.model.rebound();
+      if (this.model.rebound) this.model.rebound(update);
       else {
         super.unbind();
         super.bind();
-        if (this.sectionType === SECTION_WITH || this.sectionType === SECTION_IF_WITH) {
+        if (
+          this.sectionType === SECTION_WITH ||
+          this.sectionType === SECTION_IF_WITH ||
+          this.sectionType === SECTION_EACH
+        ) {
           if (this.fragment) this.fragment.rebind(this.model);
         }
+
+        if (update) this.bubble();
       }
     }
-    if (this.fragment) this.fragment.rebound();
+    if (this.fragment) this.fragment.rebound(update);
   }
 
   render(target, occupants) {

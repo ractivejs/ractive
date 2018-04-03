@@ -113,11 +113,11 @@ assign(proto, {
     this.bubble();
   },
 
-  rebound() {
+  rebound(update) {
     const aliases = this.fragment && this.fragment.aliases;
     if (aliases) {
       for (const k in aliases) {
-        if (aliases[k].rebound) aliases[k].rebound();
+        if (aliases[k].rebound) aliases[k].rebound(update);
         else {
           aliases[k].unreference();
           aliases[k] = 0;
@@ -128,9 +128,9 @@ assign(proto, {
       }
     }
     if (this._attrs) {
-      keys(this._attrs).forEach(k => this._attrs[k].rebound());
+      keys(this._attrs).forEach(k => this._attrs[k].rebound(update));
     }
-    MustacheContainer.prototype.rebound.call(this);
+    MustacheContainer.prototype.rebound.call(this, update);
   },
 
   refreshAttrs() {

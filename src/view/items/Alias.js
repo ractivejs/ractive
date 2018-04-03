@@ -31,10 +31,10 @@ export default class Alias extends ContainerItem {
     this.fragment.bind();
   }
 
-  rebound() {
+  rebound(update) {
     const aliases = this.fragment.aliases;
     for (const k in aliases) {
-      if (aliases[k].rebound) aliases[k].rebound();
+      if (aliases[k].rebound) aliases[k].rebound(update);
       else {
         aliases[k].unreference();
         aliases[k] = 0;
@@ -43,7 +43,7 @@ export default class Alias extends ContainerItem {
 
     resolveAliases(this.template.z, this.up, aliases);
 
-    if (this.fragment) this.fragment.rebound();
+    if (this.fragment) this.fragment.rebound(update);
   }
 
   render(target, occupants) {

@@ -9,6 +9,7 @@ export default class ComputationChild extends Model {
 
     this.isReadonly = !this.root.ractive.syncComputedChildren;
     this.dirty = true;
+    this.isComputed = true;
   }
 
   get setRoot() {

@@ -22,9 +22,6 @@ export function marked(x) {
 export function markedAll(x) {
   x.markedAll();
 }
-export function rebound(x) {
-  x.rebound();
-}
 export function render(x) {
   x.render();
 }
