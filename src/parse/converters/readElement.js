@@ -64,7 +64,7 @@ function readElement(parser) {
 
   const element = {};
   if (parser.includeLinePositions) {
-    element.p = parser.getLinePos(start);
+    element.q = parser.getLinePos(start);
   }
 
   // check for doctype decl

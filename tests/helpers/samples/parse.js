@@ -529,7 +529,7 @@ const parseTests = [
 				<circle cx='{{x}}' cy='{{y}}' r='{{r}}'/>
 			</svg>` ),
 		options: {includeLinePositions:true},
-		parsed: {v:4,t:[{t:7,e:'svg',m:[{n:'xmlns',f:'http://www.w3.org/2000/svg',t:13}],f:[{t:7,e:'circle',m:[{n:'cx',f:[{t:2,r:'x',p:[2,14,54]}],t:13},{n:'cy',f:[{t:2,r:'y',p:[2,25,65]}],t:13},{n:'r',f:[{t:2,r:'r',p:[2,35,75]}],t:13}],p:[2,2,42]}],p:[1,1,0]}]}
+		parsed: {v:4,t:[{t:7,e:'svg',m:[{n:'xmlns',f:'http://www.w3.org/2000/svg',t:13}],f:[{t:7,e:'circle',m:[{n:'cx',f:[{t:2,r:'x',q:[2,14,54]}],t:13},{n:'cy',f:[{t:2,r:'y',q:[2,25,65]}],t:13},{n:'r',f:[{t:2,r:'r',q:[2,35,75]}],t:13}],q:[2,2,42]}],q:[1,1,0]}]}
 	},
 	{
 		name: 'Multiline trace',
@@ -542,13 +542,13 @@ const parseTests = [
 					</span>
 				{{/foo}}
 			</div>` ),
-		parsed: {v:4,t:['hi',{t:2,p:[1,3,2],r:'name'},' ',{t:7,e:'div',p:[2,1,11],f:['blah ',{t:4,p:[3,2,22],r:'foo',f:['wew',{t:7,e:'span',p:[3,13,33],f:['Ain\'t that ',{t:2,p:[4,8,52],r:'grand'},'?']}]}]}]}
+		parsed: {v:4,t:['hi',{t:2,q:[1,3,2],r:'name'},' ',{t:7,e:'div',q:[2,1,11],f:['blah ',{t:4,q:[3,2,22],r:'foo',f:['wew',{t:7,e:'span',q:[3,13,33],f:['Ain\'t that ',{t:2,q:[4,8,52],r:'grand'},'?']}]}]}]}
 	},
 	{
 		name: 'Mixture of HTML-able and non-HTML-able elements in template with traces',
 		template: `<div><p>HTML</p><p>{{mustache}}</p></div>`,
 		options: {includeLinePositions:true},
-		parsed: {v:4,t:[{t:7,e:'div',p:[1,1,0],f:[{t:7,e:'p',p:[1,6,5],f:['HTML']},{t:7,e:'p',p:[1,17,16],f:[{t:2,p:[1,20,19],r:'mustache'}]}]}]}
+		parsed: {v:4,t:[{t:7,e:'div',q:[1,1,0],f:[{t:7,e:'p',q:[1,6,5],f:['HTML']},{t:7,e:'p',q:[1,17,16],f:[{t:2,q:[1,20,19],r:'mustache'}]}]}]}
 	},
 	{
 		name: 'Empty event attribute',

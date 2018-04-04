@@ -26,7 +26,7 @@ export default function readHtmlComment(parser) {
   };
 
   if (parser.includeLinePositions) {
-    comment.p = parser.getLinePos(start);
+    comment.q = parser.getLinePos(start);
   }
 
   return comment;

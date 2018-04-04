@@ -85,7 +85,7 @@ function readMustacheOfType(parser, tag) {
       }
 
       if (parser.includeLinePositions) {
-        mustache.p = parser.getLinePos(start);
+        mustache.q = parser.getLinePos(start);
       }
 
       return mustache;
