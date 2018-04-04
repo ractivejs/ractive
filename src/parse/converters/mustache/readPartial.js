@@ -37,7 +37,7 @@ export default function readPartial(parser, tag) {
     aliases = readAliases(parser);
     if (aliases && aliases.length) {
       partial.z = aliases;
-    } else if (type === '>') {
+    } else {
       // otherwise check for literal context e.g. `{{>foo bar}}` then
       // turn it into `{{#with bar}}{{>foo}}{{/with}}`
       const context = readExpression(parser);
@@ -45,9 +45,11 @@ export default function readPartial(parser, tag) {
         partial.c = {};
         refineExpression(context, partial.c);
       }
-    } else {
+    }
+
+    if (type !== '>' && (!partial.c && !partial.z)) {
       // {{yield with}} requires some aliases
-      parser.error(`Expected one or more aliases`);
+      parser.error(`Expected a context or one or more aliases`);
     }
   }
 

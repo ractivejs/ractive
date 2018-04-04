@@ -16,8 +16,10 @@ export default class Mustache extends Item {
   }
 
   bind() {
-    // yield mustaches should resolve in container context
-    const start = this.containerFragment || this.up;
+    // yield mustaches and inner contexts should resolve in container context
+    const start = this.template.y
+      ? this.template.y.containerFragment
+      : this.containerFragment || this.up;
     // try to find a model for this view
     const model = resolve(start, this.template);
 

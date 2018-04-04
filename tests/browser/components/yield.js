@@ -361,6 +361,59 @@ export default function() {
     t.htmlEqual(fixture.innerHTML, '<ul><li>hello 1</li><li>hello 2</li><li>hello 3</li></ul>');
   });
 
+  test(`yield with a context`, t => {
+    const cmp = Ractive.extend({
+      template: `<ul>{{#each items}}<li>{{yield foo with .}}</li>{{/each}}</ul>`
+    });
+
+    new Ractive({
+      el: fixture,
+      template: `<cmp items="{{.list}}">{{#partial foo}}hello {{.}}{{/partial}}</cmp>`,
+      data: {
+        list: [1, 2, 3]
+      },
+      components: { cmp }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '<ul><li>hello 1</li><li>hello 2</li><li>hello 3</li></ul>');
+  });
+
+  test(`yield with a context and explicit parent context access`, t => {
+    const cmp = Ractive.extend({
+      template: `<ul>{{#each items}}<li>{{yield foo with .}}</li>{{/each}}</ul>`
+    });
+
+    new Ractive({
+      el: fixture,
+      template: `<cmp items="{{.list}}">{{#partial foo}}{{^^/str}} {{.}}{{/partial}}</cmp>`,
+      data: {
+        list: [1, 2, 3],
+        str: 'hello'
+      },
+      components: { cmp }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '<ul><li>hello 1</li><li>hello 2</li><li>hello 3</li></ul>');
+  });
+
+  test(`yield with a context and implicit parent context access`, t => {
+    const cmp = Ractive.extend({
+      template: `<ul>{{#each items}}<li>{{yield foo with .}}</li>{{/each}}</ul>`
+    });
+
+    new Ractive({
+      el: fixture,
+      template: `<cmp items="{{.list}}">{{#partial foo}}{{str}} {{.}}{{/partial}}</cmp>`,
+      data: {
+        list: [1, 2, 3],
+        str: 'hello'
+      },
+      components: { cmp }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '<ul><li>hello 1</li><li>hello 2</li><li>hello 3</li></ul>');
+  });
+
   test('partial expression is evaluated outside of the partial context', t => {
     new Ractive({
       el: fixture,

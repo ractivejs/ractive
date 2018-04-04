@@ -259,6 +259,7 @@ function contextifyTemplate(self) {
   if (self.template.c) {
     self.partial = [{ t: SECTION, n: SECTION_WITH, f: self.partial }];
     assign(self.partial[0], self.template.c);
+    if (self.yielder) self.partial[0].y = self;
   }
 }
 
