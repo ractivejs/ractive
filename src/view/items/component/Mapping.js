@@ -41,6 +41,15 @@ export default class Mapping extends Item {
     }
   }
 
+  rebound(update) {
+    if (this.boundFragment) this.boundFragment.rebound(update);
+    if (this.link) {
+      this.model = resolve(this.up, this.template.f[0]);
+      const model = this.element.instance.viewmodel.joinAll(splitKeypath(this.name));
+      model.link(this.model, this.name, { mapping: true });
+    }
+  }
+
   render() {}
 
   unbind() {

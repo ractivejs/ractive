@@ -213,6 +213,10 @@ export default class Component extends Item {
     return getRactiveContext.apply(null, assigns);
   }
 
+  rebound(update) {
+    this.attributes.forEach(x => x.rebound(update));
+  }
+
   render(target, occupants) {
     if (this.isAnchor) {
       this.rendered = true;

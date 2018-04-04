@@ -61,6 +61,11 @@ export default class RadioNameBinding extends Binding {
     this.updateName();
   }
 
+  rebound(update) {
+    super.rebound(update);
+    this.updateName();
+  }
+
   render() {
     super.render();
 

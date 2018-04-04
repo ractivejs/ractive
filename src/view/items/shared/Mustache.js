@@ -40,6 +40,8 @@ export default class Mustache extends Item {
   }
 
   rebind(next, previous, safe) {
+    if (this.isStatic) return;
+
     next = rebindMatch(this.template, next, previous, this.up);
     if (next === this.model) return false;
 
@@ -50,6 +52,19 @@ export default class Mustache extends Item {
     this.model = next;
     if (!safe) this.handleChange();
     return true;
+  }
+
+  rebound(update) {
+    if (this.model) {
+      if (this.model.rebound) this.model.rebound(update);
+      else {
+        this.model.unregister(this);
+        this.bind();
+      }
+
+      if (update) this.bubble();
+    }
+    if (this.fragment) this.fragment.rebound(update);
   }
 
   unbind() {

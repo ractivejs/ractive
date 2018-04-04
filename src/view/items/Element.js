@@ -261,6 +261,12 @@ export default class Element extends ContainerItem {
     }
   }
 
+  rebound(update) {
+    super.rebound(update);
+    if (this.attributes) this.attributes.forEach(x => x.rebound(update));
+    if (this.binding) this.binding.rebound(update);
+  }
+
   render(target, occupants) {
     // TODO determine correct namespace
     this.namespace = getNamespace(this);

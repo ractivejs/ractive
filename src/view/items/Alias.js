@@ -2,18 +2,16 @@ import Fragment from '../Fragment';
 import { ContainerItem } from './shared/Item';
 import resolve from '../resolvers/resolve';
 
-export function resolveAliases(aliases, fragment) {
-  const resolved = {};
-
+export function resolveAliases(aliases, fragment, dest = {}) {
   for (let i = 0; i < aliases.length; i++) {
-    resolved[aliases[i].n] = resolve(fragment, aliases[i].x);
+    if (!dest[aliases[i].n]) {
+      const m = resolve(fragment, aliases[i].x);
+      dest[aliases[i].n] = m;
+      m.reference();
+    }
   }
 
-  for (const k in resolved) {
-    resolved[k].reference();
-  }
-
-  return resolved;
+  return dest;
 }
 
 export default class Alias extends ContainerItem {
@@ -31,6 +29,21 @@ export default class Alias extends ContainerItem {
 
     this.fragment.aliases = resolveAliases(this.template.z, this.up);
     this.fragment.bind();
+  }
+
+  rebound(update) {
+    const aliases = this.fragment.aliases;
+    for (const k in aliases) {
+      if (aliases[k].rebound) aliases[k].rebound(update);
+      else {
+        aliases[k].unreference();
+        aliases[k] = 0;
+      }
+    }
+
+    resolveAliases(this.template.z, this.up, aliases);
+
+    if (this.fragment) this.fragment.rebound(update);
   }
 
   render(target, occupants) {

@@ -80,6 +80,12 @@ export default class Binding {
     }
   }
 
+  rebound() {
+    if (this.model) this.model.unregisterTwowayBinding(this);
+    this.model = this.attribute.interpolator.model;
+    this.model.registerTwowayBinding(this);
+  }
+
   render() {
     this.node = this.element.node;
     this.node._ractive.binding = this;

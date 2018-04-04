@@ -34,6 +34,8 @@ class ContextData extends Model {
   getKeypath() {
     return '@context.data';
   }
+
+  rebound() {}
 }
 
 export default class Context {

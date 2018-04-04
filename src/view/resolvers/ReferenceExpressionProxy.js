@@ -15,9 +15,26 @@ export default class ReferenceExpressionProxy extends LinkModel {
     this.root = fragment.ractive.viewmodel;
     this.template = template;
     this.rootLink = true;
+    this.template = template;
+    this.fragment = fragment;
+
+    this.rebound();
+  }
+
+  getKeypath() {
+    return this.model ? this.model.getKeypath() : '@undefined';
+  }
+
+  rebound() {
+    const fragment = this.fragment;
+    const template = this.template;
 
     let base = (this.base = resolve(fragment, template));
     let idx;
+
+    if (this.proxy) {
+      teardown(this);
+    }
 
     const proxy = (this.proxy = {
       rebind: (next, previous) => {
@@ -83,18 +100,18 @@ export default class ReferenceExpressionProxy extends LinkModel {
     pathChanged();
   }
 
-  getKeypath() {
-    return this.model ? this.model.getKeypath() : '@undefined';
-  }
-
   teardown() {
-    if (this.base) this.base.unregister(this.proxy);
-    if (this.models) {
-      this.models.forEach(m => {
-        if (m.unregister) m.unregister(this);
-      });
-    }
+    teardown(this);
     super.teardown();
+  }
+}
+
+function teardown(proxy) {
+  if (proxy.base) proxy.base.unregister(proxy.proxy);
+  if (proxy.models) {
+    proxy.models.forEach(m => {
+      if (m.unregister) m.unregister(proxy);
+    });
   }
 }
 

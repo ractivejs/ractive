@@ -113,6 +113,26 @@ assign(proto, {
     this.bubble();
   },
 
+  rebound(update) {
+    const aliases = this.fragment && this.fragment.aliases;
+    if (aliases) {
+      for (const k in aliases) {
+        if (aliases[k].rebound) aliases[k].rebound(update);
+        else {
+          aliases[k].unreference();
+          aliases[k] = 0;
+        }
+      }
+      if (this.template.z) {
+        resolveAliases(this.template.z, this.containerFragment || this.up, aliases);
+      }
+    }
+    if (this._attrs) {
+      keys(this._attrs).forEach(k => this._attrs[k].rebound(update));
+    }
+    MustacheContainer.prototype.rebound.call(this, update);
+  },
+
   refreshAttrs() {
     keys(this._attrs).forEach(k => {
       this.handle.attributes[k] = this._attrs[k].valueOf();

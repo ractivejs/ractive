@@ -36,6 +36,10 @@ export default class Item {
     return this.up.findNextNode(this);
   }
 
+  rebound(update) {
+    if (this.fragment) this.fragment.rebound(update);
+  }
+
   shuffled() {
     if (this.fragment) this.fragment.shuffled();
   }

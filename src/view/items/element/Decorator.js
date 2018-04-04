@@ -67,6 +67,12 @@ export default class Decorator {
     if (!safe) this.bubble();
   }
 
+  rebound(update) {
+    teardownArgsFn(this, this.template);
+    setupArgsFn(this, this.template, this.up, { register: true });
+    if (update) this.bubble();
+  }
+
   render() {
     this.shouldDestroy = false;
     if (this.handle) this.unrender();

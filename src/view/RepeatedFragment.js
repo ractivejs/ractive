@@ -1,6 +1,6 @@
 import { createDocumentFragment } from 'utils/dom';
 import { isArray, isObject, isObjectType } from 'utils/is';
-import { findMap } from 'utils/array';
+import { findMap, buildNewIndices } from 'utils/array';
 import {
   toEscapedString,
   toString,
@@ -16,6 +16,10 @@ import { ELEMENT } from 'config/types';
 import { getContext } from 'shared/getRactiveContext';
 import { keys } from 'utils/object';
 import KeyModel from 'src/model/specials/KeyModel';
+import { splitKeypath } from '../shared/keypaths';
+import resolve from './resolvers/resolve';
+
+const keypathString = /^"(\\"|[^"])+"$/;
 
 export default class RepeatedFragment {
   constructor(options) {
@@ -57,7 +61,32 @@ export default class RepeatedFragment {
     this.bound = true;
     const value = context.get();
 
-    this.aliases = this.owner.template.z && this.owner.template.z.slice();
+    const aliases = (this.aliases = this.owner.template.z && this.owner.template.z.slice());
+
+    const shuffler = aliases && aliases.find(a => a.n === 'shuffle');
+    if (shuffler && shuffler.x && shuffler.x.x) {
+      if (shuffler.x.x.s === 'true') this.shuffler = true;
+      else if (keypathString.test(shuffler.x.x.s))
+        this.shuffler = splitKeypath(shuffler.x.x.s.slice(1, -1));
+    }
+
+    if (this.shuffler) this.values = shuffleValues(this, this.shuffler);
+
+    if (this.source) this.source.model.unbind(this.source);
+    const source = context.isComputed && aliases && aliases.find(a => a.n === 'source');
+    if (source && source.x && source.x.r) {
+      const model = resolve(this, source.x);
+      this.source = {
+        handleChange() {},
+        rebind(next) {
+          this.model.unregister(this);
+          this.model = next;
+          next.register(this);
+        }
+      };
+      this.source.model = model;
+      model.register(this.source);
+    }
 
     // {{#each array}}...
     if ((this.isArray = isArray(value))) {
@@ -93,7 +122,7 @@ export default class RepeatedFragment {
     if (!this.bubbled) this.bubbled = [];
     this.bubbled.push(index);
 
-    this.owner.bubble();
+    if (!this.rebounding) this.owner.bubble();
   }
 
   createIteration(key, index) {
@@ -162,8 +191,17 @@ export default class RepeatedFragment {
 
   rebind(next) {
     this.context = next;
+    if (this.source) return;
     this.iterations.forEach(fragment => {
       swizzleFragment(this, fragment, fragment.key, fragment.index);
+    });
+  }
+
+  rebound(update) {
+    this.context = this.owner.model;
+    this.iterations.forEach((f, i) => {
+      f.context = contextFor(this, f, i);
+      f.rebound(update);
     });
   }
 
@@ -194,14 +232,16 @@ export default class RepeatedFragment {
       const fragment = this.iterations[oldIndex];
       iterations[newIndex] = fragment;
 
-      if (merge) fragment.shouldRebind = 1;
-
-      if (newIndex !== oldIndex && fragment) fragment.dirty = true;
+      if (newIndex !== oldIndex && fragment) {
+        fragment.dirty = true;
+        if (merge) fragment.shouldRebind = 1;
+      }
     });
 
     this.iterations = iterations;
 
-    this.bubble();
+    // if merging, we're in the midst of an update already
+    if (!merge) this.bubble();
   }
 
   shuffled() {
@@ -214,6 +254,7 @@ export default class RepeatedFragment {
 
   unbind() {
     this.bound = false;
+    if (this.source) this.source.model.unregister(this.source);
     this.iterations.forEach(unbind);
     return this;
   }
@@ -238,107 +279,126 @@ export default class RepeatedFragment {
     if (this.updating) return;
     this.updating = true;
 
-    this.iterations.forEach((f, i) => f && f.idxModel && f.idxModel.applyValue(i));
-
-    const value = this.context.get();
-    const wasArray = this.isArray;
-
-    let toRemove;
-    let oldKeys;
-    let reset = true;
-    let i;
-
-    if ((this.isArray = isArray(value))) {
-      if (wasArray) {
-        reset = false;
-        if (this.iterations.length > value.length) {
-          toRemove = this.iterations.splice(value.length);
-        }
-      }
-    } else if (isObject(value) && !wasArray) {
-      reset = false;
-      toRemove = [];
-      oldKeys = {};
-      i = this.iterations.length;
-
-      while (i--) {
-        const fragment = this.iterations[i];
-        if (fragment.key in value) {
-          oldKeys[fragment.key] = true;
-        } else {
-          this.iterations.splice(i, 1);
-          toRemove.push(fragment);
-        }
-      }
-    }
-
-    const newLength = isArray(value) ? value.length : isObject(value) ? keys(value).length : 0;
-    this.length = newLength;
-    this.updateLast();
-
-    if (reset) {
-      toRemove = this.iterations;
-      this.iterations = [];
-    }
-
-    if (toRemove) {
-      toRemove.forEach(fragment => {
-        fragment.unbind();
-        fragment.unrender(true);
-      });
-    }
-
-    // update the remaining ones
-    if (!reset && this.isArray && this.bubbled && this.bubbled.length) {
-      const bubbled = this.bubbled;
-      this.bubbled = [];
-      bubbled.forEach(i => this.iterations[i] && this.iterations[i].update());
+    if (this.shuffler) {
+      const values = shuffleValues(this, this.shuffler);
+      this.shuffle(buildNewIndices(this.values, values), true);
+      this.updatePostShuffle();
     } else {
-      this.iterations.forEach(update);
-    }
+      this.iterations.forEach((f, i) => f && f.idxModel && f.idxModel.applyValue(i));
 
-    // add new iterations
-    let docFrag;
-    let fragment;
+      const value = this.context.get();
+      const wasArray = this.isArray;
 
-    if (newLength > this.iterations.length) {
-      docFrag = this.rendered ? createDocumentFragment() : null;
-      i = this.iterations.length;
+      let toRemove;
+      let oldKeys;
+      let reset = true;
+      let i;
 
-      if (isArray(value)) {
-        while (i < value.length) {
-          fragment = this.createIteration(i, i);
-
-          this.iterations.push(fragment);
-          if (this.rendered) fragment.render(docFrag);
-
-          i += 1;
-        }
-      } else if (isObject(value)) {
-        // TODO this is a dreadful hack. There must be a neater way
-        if (this.indexRef && !this.keyRef) {
-          const refs = this.indexRef.split(',');
-          this.keyRef = refs[0];
-          this.indexRef = refs[1];
+      if ((this.isArray = isArray(value))) {
+        // if there's a source to map back to, make sure everything stays bound correctly
+        if (this.source) {
+          this.rebounding = 1;
+          const source = this.source.model.get();
+          this.iterations.forEach((f, c) => {
+            if (c < value.length && f.lastValue !== value[c] && ~(i = source.indexOf(value[c]))) {
+              swizzleFragment(this, f, c, c);
+              f.rebound(true);
+            }
+          });
+          this.rebounding = 0;
         }
 
-        keys(value).forEach(key => {
-          if (!oldKeys || !(key in oldKeys)) {
-            fragment = this.createIteration(key, i);
+        if (wasArray) {
+          reset = false;
+          if (this.iterations.length > value.length) {
+            toRemove = this.iterations.splice(value.length);
+          }
+        }
+      } else if (isObject(value) && !wasArray) {
+        reset = false;
+        toRemove = [];
+        oldKeys = {};
+        i = this.iterations.length;
+
+        while (i--) {
+          const fragment = this.iterations[i];
+          if (fragment.key in value) {
+            oldKeys[fragment.key] = true;
+          } else {
+            this.iterations.splice(i, 1);
+            toRemove.push(fragment);
+          }
+        }
+      }
+
+      const newLength = isArray(value) ? value.length : isObject(value) ? keys(value).length : 0;
+      this.length = newLength;
+      this.updateLast();
+
+      if (reset) {
+        toRemove = this.iterations;
+        this.iterations = [];
+      }
+
+      if (toRemove) {
+        toRemove.forEach(fragment => {
+          fragment.unbind();
+          fragment.unrender(true);
+        });
+      }
+
+      // update the remaining ones
+      if (!reset && this.isArray && this.bubbled && this.bubbled.length) {
+        const bubbled = this.bubbled;
+        this.bubbled = [];
+        bubbled.forEach(i => this.iterations[i] && this.iterations[i].update());
+      } else {
+        this.iterations.forEach(update);
+      }
+
+      // add new iterations
+      let docFrag;
+      let fragment;
+
+      if (newLength > this.iterations.length) {
+        docFrag = this.rendered ? createDocumentFragment() : null;
+        i = this.iterations.length;
+
+        if (isArray(value)) {
+          while (i < value.length) {
+            fragment = this.createIteration(i, i);
 
             this.iterations.push(fragment);
             if (this.rendered) fragment.render(docFrag);
 
             i += 1;
           }
-        });
-      }
+        } else if (isObject(value)) {
+          // TODO this is a dreadful hack. There must be a neater way
+          if (this.indexRef && !this.keyRef) {
+            const refs = this.indexRef.split(',');
+            this.keyRef = refs[0];
+            this.indexRef = refs[1];
+          }
 
-      if (this.rendered) {
-        const parentNode = this.parent.findParentNode();
-        const anchor = this.parent.findNextNode(this.owner);
+          keys(value).forEach(key => {
+            if (!oldKeys || !(key in oldKeys)) {
+              fragment = this.createIteration(key, i);
 
-        parentNode.insertBefore(docFrag, anchor);
+              this.iterations.push(fragment);
+              if (this.rendered) fragment.render(docFrag);
+
+              i += 1;
+            }
+          });
+        }
+
+        if (this.rendered) {
+          const parentNode = this.parent.findParentNode();
+          const anchor = this.parent.findNextNode(this.owner);
+
+          parentNode.insertBefore(docFrag, anchor);
+        }
       }
     }
 
@@ -365,8 +425,9 @@ export default class RepeatedFragment {
     const len = (this.length = this.context.get().length);
     const prev = this.previousIterations;
     const iters = this.iterations;
+    const value = this.context.get();
     const stash = {};
-    let idx, dest, pos, next, anchor;
+    let idx, dest, pos, next, anchor, rebound;
 
     const map = new Array(newIndices.length);
     newIndices.forEach((e, i) => (map[e] = i));
@@ -377,6 +438,7 @@ export default class RepeatedFragment {
     while (idx < len) {
       dest = newIndices[pos];
       next = null;
+      rebound = false;
 
       if (dest === -1) {
         // drop it like it's hot
@@ -394,6 +456,7 @@ export default class RepeatedFragment {
           anchor = (anchor && parentNode && anchor.firstNode()) || nextNode;
 
           if (next) {
+            rebound = this.source && next.lastValue !== value[idx];
             swizzleFragment(this, next, idx, idx);
             if (parentNode) parentNode.insertBefore(next.detach(), anchor);
           } else {
@@ -418,6 +481,7 @@ export default class RepeatedFragment {
             parentNode.insertBefore(docFrag, anchor);
           }
         } else if (pos !== idx || stash[idx]) {
+          rebound = this.source && next.lastValue !== value[idx];
           swizzleFragment(this, next, idx, idx);
           if (stash[idx] && parentNode) parentNode.insertBefore(next.detach(), anchor);
         }
@@ -427,12 +491,18 @@ export default class RepeatedFragment {
       }
 
       if (next && isObjectType(next)) {
+        if (next.shouldRebind || rebound) {
+          next.rebound(rebound);
+          next.shouldRebind = 0;
+        }
         next.update();
       }
     }
 
     // clean up any stragglers
     prev.forEach(f => f && f.unbind().unrender(true));
+
+    if (this.shuffler) this.values = shuffleValues(this, this.shuffler);
 
     this.pendingNewIndices = null;
 
@@ -478,11 +548,12 @@ function nextRendered(start, newIndices, frags) {
 }
 
 function swizzleFragment(section, fragment, key, idx) {
-  const model = section.context ? section.context.joinKey(key) : undefined;
+  const model = section.context ? contextFor(section, fragment, key) : undefined;
 
   fragment.key = key;
   fragment.index = idx;
   fragment.context = model;
+  if (section.source) fragment.lastValue = model && model.get();
 
   if (fragment.idxModel) fragment.idxModel.applyValue(idx);
   if (fragment.keyModel) fragment.keyModel.applyValue(key);
@@ -497,4 +568,23 @@ function swizzleFragment(section, fragment, key, idx) {
       else if (a.x.r === '@keypath') aliases[a.n] = fragment.getKeypath();
       else if (a.x.r === '@rootpath') aliases[a.n] = fragment.getKeypath(true);
     });
+}
+
+function shuffleValues(section, shuffler) {
+  if (shuffler === true) {
+    return section.context.get().slice();
+  } else {
+    return section.context.get().map(v => shuffler.reduce((a, c) => a && a[c], v));
+  }
+}
+
+function contextFor(section, fragment, key) {
+  if (section.source) {
+    let idx;
+    const source = section.source.model.get();
+    if (source.indexOf && ~(idx = source.indexOf(section.context.joinKey(key).get())))
+      return section.source.model.joinKey(idx);
+  }
+
+  return section.context.joinKey(key);
 }

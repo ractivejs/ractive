@@ -101,7 +101,10 @@ export default function resolveReference(fragment, ref) {
       const root = ref[1] === 'r' ? fragment.ractive.root : null;
       let f = fragment;
 
-      while (f && (!f.context || (f.isRoot && f.ractive.component))) {
+      while (
+        f &&
+        (!f.context || (f.isRoot && f.ractive.component && (root || !f.ractive.isolated)))
+      ) {
         f = f.isRoot ? f.componentParent : f.parent;
       }
 

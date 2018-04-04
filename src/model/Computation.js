@@ -17,6 +17,7 @@ export default class Computation extends Model {
     this.signature = signature;
 
     this.isReadonly = !this.signature.setter;
+    this.isComputed = true;
 
     this.dependencies = [];
 

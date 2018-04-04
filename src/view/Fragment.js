@@ -224,6 +224,14 @@ export default class Fragment {
     this.context = next;
   }
 
+  rebound(update) {
+    this.items.forEach(x => x.rebound(update));
+    if (update) {
+      if (this.rootModel) this.rootModel.applyValue(this.context.getKeypath(this.ractive.root));
+      if (this.pathModel) this.pathModel.applyValue(this.context.getKeypath());
+    }
+  }
+
   render(target, occupants) {
     if (this.rendered) throw new Error('Fragment is already rendered!');
     this.rendered = true;

@@ -16,6 +16,7 @@ export default class ExpressionProxy extends Model {
     this.template = template;
 
     this.isReadonly = true;
+    this.isComputed = true;
     this.dirty = true;
 
     this.fn =
@@ -98,6 +99,11 @@ export default class ExpressionProxy extends Model {
       }
     }
     this.bubble(!safe);
+  }
+
+  rebound(update) {
+    this.models = this.template.r.map(ref => resolveReference(this.fragment, ref));
+    if (update) this.bubble(true);
   }
 
   retrieve() {
