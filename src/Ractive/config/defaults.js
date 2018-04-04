@@ -28,7 +28,7 @@ export default {
   helpers: create(null),
   computed: create(null),
   syncComputedChildren: false,
-  resolveInstanceMembers: true,
+  resolveInstanceMembers: false,
   warnAboutAmbiguity: false,
   adapt: [],
   isolated: true,

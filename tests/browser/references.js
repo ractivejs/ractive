@@ -244,7 +244,7 @@ export default function() {
     t.htmlEqual(fixture.innerHTML, '@shared.foo bar');
   });
 
-  test('by default instance members resolve after ambiguous context', t => {
+  test('instance members resolve after ambiguous context', t => {
     new Ractive({
       target: fixture,
       template:
@@ -253,7 +253,8 @@ export default function() {
         bar: { foo: 'yep' },
         other: {}
       },
-      foo: 'hey'
+      foo: 'hey',
+      resolveInstanceMembers: true
     });
 
     t.htmlEqual(fixture.innerHTML, 'hey 1 yep');
@@ -356,7 +357,8 @@ export default function() {
   test(`instance methods are bound properly when used with resolveInstanceMembers (#2757)`, t => {
     const r = new Ractive({
       target: fixture,
-      template: `<button on-click="set('foo', 'bar')">click me</button>`
+      template: `<button on-click="set('foo', 'bar')">click me</button>`,
+      resolveInstanceMembers: true
     });
 
     fire(r.find('button'), 'click');
