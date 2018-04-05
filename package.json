@@ -1,12 +1,13 @@
 {
   "name": "ractive",
   "description": "Next-generation DOM manipulation",
-  "version": "0.9.13",
+  "version": "0.10.0",
   "homepage": "https://ractive.js.org",
   "license": "MIT",
   "main": "ractive.js",
   "jsnext:main": "ractive.mjs",
   "module": "ractive.mjs",
+  "typings": "typings/ractive.d.ts",
   "bin": {
     "ractive": "./bin/ractive"
   },
