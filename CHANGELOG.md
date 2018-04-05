@@ -1,9 +1,41 @@
 # changelog
 
-# 1.0.0 (unreleased, edge)
+# 0.10.0
 
-* New features
+* Breaking changes
+	* `resolveInstanceMembers` now defaults to `false` to avoid foot maimings associated with common instance member names and ambiguous references.
+	* Template positions are now stored in the `q` member rather than the `p` member to avoid accidental overlap with partials.
+	* The stringy syntax for computed properties has changed to plain old expression syntax. This means that `${length} * ${width}` as a computation is now just `length * width`, which is hopefully a little less surprising given `${interpolator}` syntax in template strings.
+	* '.' in computation keypaths must now be escaped if they're meant to be part of a single key, as you can now add computations below the root level.
+	* Checking that a value exists at some keypath in the data will no longer exclude the root prototypes (`Object`, `Function`, `Array`) because doing so creates issues when dealing with `Object.create(null)`. If you keep your references unambiguous, this shouldn't cause any issues.
+	* Aliases now take precedent over properties from contexts above their alias defintions. This means that `{{#with { foo: 10 } }}{{#with 42 as foo}}{{foo}}{{/with}}{{/with}}` results in `42` rather than `10`, which makes it now behave in a slightly less surprising way.
+	* `polyfills.js` is no longer included in the build, as it was just an empty placeholder since the handful of polyfills that were in it were included in the main build.
+	* The context pop reference prefix `^^/` now correctly handles `{{#each}}` blocks such that `^^/ === ../../` from immediately within the block body. This is because `^^/` is supposed to jump explicit contexts and not just implicit contexts as provided by each iteration.
+
+* New features (experimental, feedback welcome!)
 	* There is now an `allowExpressions` parser and init option that disables the parsing of expressions when passed to `parse` or an instance with an unparsed template and disables the evaluation of expessions when passed to an instance. See #3000 for more info.
+	* `{{#await some.promise}}promise is pending{{then value}}{{value}} is the result{{catch e}}error is {{e}}{{else}}some.promise is undefined{{/await}}`. In other words, we snagged the await block from Svelte.
+	* Computations can now be added on the fly using `ractive.compute(keypath, computation)`, where `computation` is a string, function, or computation descriptor.
+	* Computations can now be added to nested keypaths, and those keypaths may also be wildcards. To add an area to all `boxes` with a `length` and `width`, you can `ractive.compute('boxes.*.area', 'length * width')`.
+	* There's a new `helpers` registry that can be used to store a flat map of helper functions (or bits of data) that will be checked first when resolving ambiguos references that don't resolve in the immediate context. This is also more or less cribbed from Svelte.'
+	* Ractive now has a more universal plugin format that delegates to the appropriate registries but also has an opportunity to do more than just add to registries, like install new methods on prototypes, add observers and events listeners, and extend or replace CSS defintions. `Ractive.use(...plugins)`, `Component.use(...plugins)`, and `ractive.use(...plugins)` and the equivalent `extend` and `init` params `use: [...plugins]` take plugins in the form `({ Ractive, instance, proto }) => {}`, where `Ractive` is always the root `Ractive` constructor, `instance` is the component constructor for components and instance for instances, and `proto` is the component prototype for components and instance for instances.
+	* Event directives now support initialization arguments in the form of `on-event(init, args)="handler"`, where the custom event plugin is called as `event(node, fire, init, args)`. This has a number of uses, including allowing long-throw events to provide feedback in the form of bindings and allowing filtering of key and or mouse events based on button or modifier key status.
+	* You can add globally managed CSS to Ractive with `Ractive.addCSS(id, css)`, which is particularly useful for some types of plugins. You can check to see if global styles are already applied with `Ractive.hasCSS(id)` because `addCSS` will throw if you try to install the same styles twice. The `css` may be a string or a function that takes CSS data and returns a string, in which case it will be automatically recomputed when any variables it uses from the data are changed.
+	* A component's CSS is now exposed on the constructor as the writable `css` property. Changing a component's `css` property will also update its styles included in the Ractive-managed style tag.
+	* There's a new special reference, `@last` to get the index of the last iteration of an `{{#each}}`, which is particularly useful when iteration object values.
+	* The `preserveWhitespace` option has been extended to also take a map of elements in which to preserve whitespace.
+	* Reference expressions can now use an array member to expand to an arbitrary keypath e.g. `some[ ['extra', 'keys', 'here'] ]` is equivalent to `some.extra.keys.here`, but the the array can be another reference that updates the target model dynamically.
+	* You can now specify aliases to `@index`, `@key`, `@keypath`, and `@rootpath` as additional aliases in an `{{#each}}` block e.g. `{{#each items as item, @index as index, @keypath as path}}...{{/each}}`.
+	* The `as` in aliases is now optional so `{{#each items as item, @index as index}}` is equivalent to `{{#each items item, @index index}}`.
+	* You can now instruct an `{{#each}}` block shuffle itself when it updates rather than simply allowing the data to update in children to match any keypath changes. This means that you can now achieve shuffling with a computed expression that correctly transitions elements in and out of the DOM. This is done with a special alias `shuffle` for the `{{#each}}` block, which may be either `true` or a keypath as a string e.g. `{{#each items, true as shuffle}}` or `{{#each items, 'some.path' as shuffle}}`.
+	* You can also instruct an `{{#each}}` block with a computed value to map its iteration contexts back to a source model using the `source` special alias, which should be set to underlying source of the computation e.g. `{{#each compute(some(items)), items as source}}`. Source contexts are determined using the `indexOf` method of the source array with the values from the computed array.
+	* You can now specify a context for a yield rather than aliases if that better suites your usecase e.g. `{{#each things}}{{yield with .}}{{/each}}`. This makes the immediate context within the yield `things.${index}`, and the outer context can still be accessed with `^^/`.
+
+* Bug fixes
+	* Some corner cases causing context leaks from a template into a component have been plugged.
+
+* Other changes
+	* Ractive now uses prettier to make keeping the code style consistent easier, which will hopefully also make contributions easier.
 
 
 # 0.9.13
