@@ -13,7 +13,7 @@ import proto from './Ractive/prototype';
 import { extend, extendWith } from './extend/_extend';
 import macro from './extend/_macro';
 import parse from './parse/_parse';
-import getContext, { getNodeInfo } from './Ractive/static/getContext';
+import getContext from './Ractive/static/getContext';
 import isInstance from './Ractive/static/isInstance';
 import use from './Ractive/static/use';
 import construct from './Ractive/construct';
@@ -77,7 +77,6 @@ defineProperties(Ractive, {
   findPlugin: { value: findPlugin },
   getContext: { value: getContext },
   getCSS: { value: getCSS },
-  getNodeInfo: { value: getNodeInfo },
   isInstance: { value: isInstance },
   joinKeys: { value: joinKeys },
   macro: { value: macro },

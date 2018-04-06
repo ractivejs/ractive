@@ -702,27 +702,6 @@ export default function() {
     t.htmlEqual(fixture.innerHTML, '<div>two</div>');
   });
 
-  test(`getNodeInfo still works but warns about deprecation`, t => {
-    t.expect(4);
-
-    const r = new Ractive({
-      target: fixture,
-      template: '{{#with foo.bar}}<div />{{/with}}',
-      data: { foo: { bar: { baz: 42 } } }
-    });
-
-    onWarn(m => t.ok(/renamed to getContext/i.test(m)));
-
-    let ctx = Ractive.getNodeInfo(fixture.querySelector('div'));
-    t.equal(ctx.resolve(), 'foo.bar');
-
-    ctx = r.getNodeInfo(r.find('div'));
-    t.equal(ctx.resolve(), 'foo.bar');
-
-    ctx = r.getNodeInfo('div');
-    t.equal(ctx.resolve(), 'foo.bar');
-  });
-
   test(`node is available on all element context objects`, t => {
     const r = new Ractive({
       target: fixture,
