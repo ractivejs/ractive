@@ -1070,4 +1070,36 @@ export default function() {
       'yielded bubble conditional off parent outside component'
     );
   });
+
+  test(`hasListener can check for events on a component context (#3219)`, t => {
+    const cmp = Ractive.extend({
+      on: {
+        render(ctx) {
+          t.ok(this.component.name === 'foo' ? ctx.hasListener('baz') : !ctx.hasListener('baz'));
+        }
+      }
+    });
+
+    new Ractive({
+      template: '<foo on-baz="bat" /><bar />',
+      target: fixture,
+      components: { foo: cmp, bar: cmp }
+    });
+  });
+
+  test(`getContext with no args returns ractive context`, t => {
+    const cmp = Ractive.extend();
+    const r = new Ractive({
+      template: '<cmp on-foo=bar />',
+      target: fixture,
+      components: { cmp }
+    });
+
+    t.ok(
+      r
+        .findComponent('cmp')
+        .getContext()
+        .hasListener('foo')
+    );
+  });
 }

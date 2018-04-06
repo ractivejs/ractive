@@ -112,10 +112,12 @@ export default class Context {
 
   hasListener(name, bubble) {
     let el = this.element || this.fragment.owner;
+    let base;
 
     do {
-      if (el.template.t === ELEMENT) {
-        if (findEvent(el, name)) return true;
+      base = el.component || el;
+      if (base.template.t === ELEMENT) {
+        if (findEvent(base, name)) return true;
       }
       el = el.up && el.up.owner;
       if (el && el.component) el = el.component;
