@@ -10,6 +10,7 @@ import deprecate from './deprecate';
 import RactiveProto from '../prototype';
 import { hasOwn, keys } from 'utils/object';
 import { isFunction } from 'utils/is';
+import hooks from 'src/events/Hook';
 
 const config = {
   extend: (Parent, proto, options, Child) => configure('extend', Parent, proto, options, Child),
@@ -90,7 +91,11 @@ function extendOtherMethods(parent, target, options) {
 
       // if this is a method that overwrites a method, wrap it:
       if (isFunction(member)) {
-        if (key in RactiveProto && !_super.test(member.toString())) {
+        if (
+          (key in RactiveProto ||
+            (key.slice(0, 2) === 'on' && key.slice(2) in hooks && key in target)) &&
+          !_super.test(member.toString())
+        ) {
           warnIfDebug(
             `Overriding Ractive prototype function '${key}' without calling the '${_super}' method can be very dangerous.`
           );

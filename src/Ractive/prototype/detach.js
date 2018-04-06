@@ -1,7 +1,5 @@
-import Hook from 'src/events/Hook';
+import hooks from 'src/events/Hook';
 import { removeFromArray } from 'utils/array';
-
-const detachHook = new Hook('detach');
 
 export default function Ractive$detach() {
   if (this.isDetached) {
@@ -15,6 +13,6 @@ export default function Ractive$detach() {
   this.el = this.fragment.detach();
   this.isDetached = true;
 
-  detachHook.fire(this);
+  hooks.detach.fire(this);
   return this.el;
 }

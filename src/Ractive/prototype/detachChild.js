@@ -1,8 +1,6 @@
-import Hook from 'src/events/Hook';
+import hooks from 'src/events/Hook';
 import runloop from 'src/global/runloop';
 import { updateAnchors } from 'shared/anchors';
-
-const detachHook = new Hook('detachchild');
 
 export default function detachChild(child) {
   const children = this._children;
@@ -42,7 +40,7 @@ export default function detachChild(child) {
   });
   child.component = null;
 
-  detachHook.fire(child);
+  hooks.detachchild.fire(child);
 
   promise.ractive = child;
   return promise.then(() => child);

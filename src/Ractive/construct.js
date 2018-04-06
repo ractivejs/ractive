@@ -4,15 +4,13 @@ import { ensureArray, combine } from 'utils/array';
 import { findInViewHierarchy } from 'shared/registry';
 import dataConfigurator from './config/custom/data';
 import RootModel from 'src/model/RootModel';
-import Hook from 'src/events/Hook';
+import hooks from 'src/events/Hook';
 import subscribe from './helpers/subscribe';
 import Ractive from '../Ractive';
 import { ATTRIBUTE, BINDING_FLAG, DECORATOR, INTERPOLATOR, TRANSITION } from 'config/types';
 import { assign, create, hasOwn } from 'utils/object';
 import { isArray, isString } from 'utils/is';
 import { compute } from 'src/Ractive/prototype/compute';
-
-const constructHook = new Hook('construct');
 
 const registryNames = [
   'adaptors',
@@ -53,7 +51,7 @@ export default function construct(ractive, options) {
   }
 
   // TODO don't allow `onconstruct` with `new Ractive()`, there's no need for it
-  constructHook.fire(ractive, options);
+  hooks.construct.fire(ractive, options);
 
   // Add registries
   let i = registryNames.length;

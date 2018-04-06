@@ -1,8 +1,6 @@
-import Hook from 'src/events/Hook';
+import hooks from 'src/events/Hook';
 import runloop from 'src/global/runloop';
 import { unrenderChild, updateAnchors } from 'shared/anchors';
-
-const attachHook = new Hook('attachchild');
 
 export default function attachChild(child, options = {}) {
   const children = this._children;
@@ -47,7 +45,7 @@ export default function attachChild(child, options = {}) {
   child.component = meta;
   children.push(meta);
 
-  attachHook.fire(child);
+  hooks.attachchild.fire(child);
 
   const promise = runloop.start();
 

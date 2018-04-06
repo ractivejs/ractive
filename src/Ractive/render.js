@@ -1,19 +1,16 @@
 import { doc } from 'config/environment';
 import { applyCSS } from 'src/global/css';
-import Hook from 'src/events/Hook';
+import hooks from 'src/events/Hook';
 import { getElement } from 'utils/dom';
 import runloop from 'src/global/runloop';
 import { createFragment } from './initialise';
-
-const renderHook = new Hook('render');
-const completeHook = new Hook('complete');
 
 export default function render(ractive, target, anchor, occupants) {
   // set a flag to let any transitions know that this instance is currently rendering
   ractive.rendering = true;
 
   const promise = runloop.start();
-  runloop.scheduleTask(() => renderHook.fire(ractive), true);
+  runloop.scheduleTask(() => hooks.render.fire(ractive), true);
 
   if (ractive.fragment.rendered) {
     throw new Error(
@@ -52,6 +49,6 @@ export default function render(ractive, target, anchor, occupants) {
   return promise.then(() => {
     if (ractive.torndown) return;
 
-    completeHook.fire(ractive);
+    hooks.complete.fire(ractive);
   });
 }
