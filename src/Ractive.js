@@ -124,3 +124,9 @@ defineProperty(Ractive, '_cssModel', {
   configurable: true,
   value: new CSSModel(Ractive)
 });
+
+defineProperty(Ractive.prototype, 'rendered', {
+  get() {
+    return this.fragment && this.fragment.rendered;
+  }
+});

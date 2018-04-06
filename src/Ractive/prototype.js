@@ -46,8 +46,6 @@ import update from './prototype/update';
 import updateModel from './prototype/updateModel';
 import use from './prototype/use';
 
-import { defineProperty } from 'utils/object';
-
 const proto = {
   add,
   animate,
@@ -99,11 +97,5 @@ const proto = {
   updateModel,
   use
 };
-
-defineProperty(proto, 'target', {
-  get() {
-    return this.el;
-  }
-});
 
 export default proto;
