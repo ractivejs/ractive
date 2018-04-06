@@ -1,5 +1,5 @@
 export default function Ractive$find(selector, options = {}) {
-  if (!this.el)
+  if (!this.rendered)
     throw new Error(
       `Cannot call ractive.find('${selector}') unless instance is rendered to the DOM`
     );

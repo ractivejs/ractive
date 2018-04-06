@@ -1,7 +1,7 @@
 import { isArray } from 'utils/is';
 
 export default function Ractive$findAll(selector, options = {}) {
-  if (!this.el)
+  if (!this.rendered)
     throw new Error(
       `Cannot call ractive.findAll('${selector}', ...) unless instance is rendered to the DOM`
     );
