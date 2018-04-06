@@ -22,11 +22,7 @@ script: |
   fi;
 branches:
   only:
-  - 0.8
-  - 0.9
-  - 0.10
-  - 0.11
-  - 1.0
+  - /^[0-9]+\.[0-9]+$/
   - dev
 env:
   global:
