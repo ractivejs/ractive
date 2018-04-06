@@ -1,9 +1,7 @@
-import Hook from 'src/events/Hook';
+import hooks from 'src/events/Hook';
 import runloop from 'src/global/runloop';
 import { splitKeypath } from 'shared/keypaths';
 import { isString } from 'utils/is';
-
-const updateHook = new Hook('update');
 
 export function update(ractive, model, options) {
   // if the parent is wrapped, the adaptor will need to be updated before
@@ -21,7 +19,7 @@ export function update(ractive, model, options) {
 
   runloop.end();
 
-  updateHook.fire(ractive, model);
+  hooks.update.fire(ractive, model);
 
   return promise;
 }

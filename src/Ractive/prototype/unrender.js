@@ -1,9 +1,7 @@
-import Hook from 'src/events/Hook';
+import hooks from 'src/events/Hook';
 import { warnIfDebug } from 'utils/log';
 import { removeFromArray } from 'utils/array';
 import runloop from 'src/global/runloop';
-
-const unrenderHook = new Hook('unrender');
 
 export default function Ractive$unrender() {
   if (!this.fragment.rendered) {
@@ -26,7 +24,7 @@ export default function Ractive$unrender() {
 
   removeFromArray(this.el.__ractive_instances__, this);
 
-  unrenderHook.fire(this);
+  hooks.unrender.fire(this);
 
   runloop.end();
   this.unrendering = false;

@@ -1,5 +1,5 @@
 import { fire } from 'simulant';
-import { initModule } from '../../helpers/test-config';
+import { initModule, onWarn } from '../../helpers/test-config';
 import { test } from 'qunit';
 
 export default function() {
@@ -403,5 +403,19 @@ export default function() {
     fire(r.find('span'), 'click');
 
     t.htmlEqual(fixture.innerHTML, 'clicked<span>click me</span>');
+  });
+
+  test(`overriding a component onevent without calling _super warns (#3218)`, t => {
+    const cmp = Ractive.extend({
+      oninit() {}
+    });
+
+    onWarn(msg => {
+      t.ok(/_super.*dangerous/i.test(msg));
+    });
+
+    new cmp({
+      oninit() {}
+    });
   });
 }

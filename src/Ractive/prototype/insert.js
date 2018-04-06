@@ -1,7 +1,5 @@
-import Hook from 'src/events/Hook';
+import hooks from 'src/events/Hook';
 import { getElement } from 'utils/dom';
-
-const insertHook = new Hook('insert');
 
 export default function Ractive$insert(target, anchor) {
   if (!this.fragment.rendered) {
@@ -28,7 +26,7 @@ export default function Ractive$insert(target, anchor) {
 }
 
 function fireInsertHook(ractive) {
-  insertHook.fire(ractive);
+  hooks.insert.fire(ractive);
 
   ractive.findAllComponents('*').forEach(child => {
     fireInsertHook(child.instance);

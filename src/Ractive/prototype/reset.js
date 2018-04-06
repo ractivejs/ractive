@@ -1,15 +1,10 @@
 import runloop from 'src/global/runloop';
 import config from '../config/config';
-import Hook from '../../events/Hook';
+import hooks from '../../events/Hook';
 import dataConfigurator from '../config/custom/data';
 import { isObjectType } from 'utils/is';
 
 const shouldRerender = ['template', 'partials', 'components', 'decorators', 'events'];
-
-const completeHook = new Hook('complete');
-const resetHook = new Hook('reset');
-const renderHook = new Hook('render');
-const unrenderHook = new Hook('unrender');
 
 export default function Ractive$reset(data) {
   data = data || {};
@@ -47,15 +42,15 @@ export default function Ractive$reset(data) {
   }
 
   if (rerender) {
-    unrenderHook.fire(this);
+    hooks.unrender.fire(this);
     this.fragment.resetTemplate(this.template);
-    renderHook.fire(this);
-    completeHook.fire(this);
+    hooks.render.fire(this);
+    hooks.complete.fire(this);
   }
 
   runloop.end();
 
-  resetHook.fire(this, data);
+  hooks.reset.fire(this, data);
 
   return promise;
 }

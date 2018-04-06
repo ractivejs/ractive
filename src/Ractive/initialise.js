@@ -3,13 +3,9 @@ import { getElement } from 'utils/dom';
 import { isArray } from 'utils/is';
 import config from './config/config';
 import Fragment from 'src/view/Fragment';
-import Hook from 'src/events/Hook';
-import HookQueue from 'src/events/HookQueue';
+import hooks from 'src/events/Hook';
 import Ractive from '../Ractive';
 import subscribe from './helpers/subscribe';
-
-const configHook = new Hook('config');
-const initHook = new HookQueue('init');
 
 export default function initialise(ractive, userOptions, options) {
   // initialize settable computeds
@@ -25,14 +21,14 @@ export default function initialise(ractive, userOptions, options) {
   // init config from Parent and options
   config.init(ractive.constructor, ractive, userOptions);
 
-  configHook.fire(ractive);
+  hooks.config.fire(ractive);
 
-  initHook.begin(ractive);
+  hooks.init.begin(ractive);
 
   const fragment = (ractive.fragment = createFragment(ractive, options));
   if (fragment) fragment.bind(ractive.viewmodel);
 
-  initHook.end(ractive);
+  hooks.init.end(ractive);
 
   // general config done, set up observers
   subscribe(ractive, userOptions, 'observe');
