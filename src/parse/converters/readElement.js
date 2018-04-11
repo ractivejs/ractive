@@ -1,5 +1,5 @@
 import { ANCHOR, DOCTYPE, ELEMENT } from 'config/types';
-import { voidElementNames } from 'utils/html';
+import { voidElements } from 'utils/html';
 import { READERS, PARTIAL_READERS } from '../_parse';
 import cleanup from 'parse/utils/cleanup';
 import readMustache from './readMustache';
@@ -129,7 +129,7 @@ function readElement(parser) {
   const lowerCaseName = (element.e || element.n).toLowerCase();
   const preserveWhitespace = parser.preserveWhitespace;
 
-  if (!selfClosing && (anchor || !voidElementNames.test(element.e))) {
+  if (!selfClosing && (anchor || !voidElements[element.e.toLowerCase()])) {
     if (!anchor) {
       parser.elementStack.push(lowerCaseName);
 
@@ -184,7 +184,7 @@ function readElement(parser) {
 
             // add additional help for void elements, since component names
             // might clash with them
-            if (voidElementNames.test(closingTagName)) {
+            if (voidElements[closingTagName.toLowerCase()]) {
               errorMessage += ` (<${closingTagName}> is a void element - it cannot contain children)`;
             }
 

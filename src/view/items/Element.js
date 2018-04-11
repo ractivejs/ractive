@@ -2,11 +2,11 @@ import { ATTRIBUTE, BINDING_FLAG, DECORATOR, DELEGATE_FLAG, EVENT, TRANSITION } 
 import { win } from 'config/environment';
 import { html, svg } from 'config/namespaces';
 import { toArray, addToArray, removeFromArray } from 'utils/array';
-import { escapeHtml, voidElementNames } from 'utils/html';
+import { escapeHtml, voidElements } from 'utils/html';
 import { createElement, detachNode, matches, safeAttributeString } from 'utils/dom';
 import runloop from 'src/global/runloop';
 import Context from 'shared/Context';
-import { bind, destroyed, render, unbind, update } from 'shared/methodCallers';
+import { destroyed } from 'shared/methodCallers';
 import { ContainerItem } from './shared/Item';
 import Fragment from '../Fragment';
 import ConditionalAttribute from './element/ConditionalAttribute';
@@ -111,7 +111,8 @@ export default class Element extends ContainerItem {
     const attrs = this.attributes;
     if (attrs) {
       attrs.binding = true;
-      attrs.forEach(bind);
+      const len = attrs.length;
+      for (let i = 0; i < len; i++) attrs[i].bind();
       attrs.binding = false;
     }
 
@@ -352,7 +353,10 @@ export default class Element extends ContainerItem {
       node.setAttribute('data-ractive-css', this.up.cssIds.map(x => `{${x}}`).join(' '));
     }
 
-    if (this.attributes) this.attributes.forEach(render);
+    if (this.attributes) {
+      const len = this.attributes.length;
+      for (let i = 0; i < len; i++) this.attributes[i].render();
+    }
     if (this.binding) this.binding.render();
 
     if (!this.up.delegate && this.listeners) {
@@ -412,7 +416,7 @@ export default class Element extends ContainerItem {
 
     let str = `<${tagName}${attrs}>`;
 
-    if (voidElementNames.test(this.name)) return str;
+    if (voidElements[this.name.toLowerCase()]) return str;
 
     // Special case - textarea
     if (this.name === 'textarea' && this.getAttribute('value') !== undefined) {
@@ -434,7 +438,8 @@ export default class Element extends ContainerItem {
     const attrs = this.attributes;
     if (attrs) {
       attrs.unbinding = true;
-      attrs.forEach(unbind);
+      const len = attrs.length;
+      for (let i = 0; i < len; i++) attrs[i].unbind();
       attrs.unbinding = false;
     }
 
@@ -478,7 +483,11 @@ export default class Element extends ContainerItem {
     if (this.dirty) {
       this.dirty = false;
 
-      this.attributes && this.attributes.forEach(update);
+      const attrs = this.attributes;
+      if (attrs) {
+        const len = attrs.length;
+        for (let i = 0; i < len; i++) attrs[i].update();
+      }
 
       if (this.fragment) this.fragment.update();
     }
@@ -535,9 +544,8 @@ function delegateHandler(ev) {
       listeners = proxy.listeners && proxy.listeners[name];
 
       if (listeners) {
-        listeners.forEach(l => {
-          bubble = l.call(node, ev) !== false && bubble;
-        });
+        const len = listeners.length;
+        for (let i = 0; i < len; i++) bubble = listeners[i].call(node, ev) !== false && bubble;
       }
     }
 
@@ -562,6 +570,9 @@ function shouldFire(event, start, end) {
 
 function handler(ev) {
   const el = this._ractive.proxy;
-  if (!el.listeners || !el.listeners[ev.type]) return;
-  el.listeners[ev.type].forEach(l => l.call(this, ev));
+  let listeners;
+  if (el.listeners && (listeners = el.listeners[ev.type])) {
+    const len = listeners.length;
+    for (let i = 0; i < len; i++) listeners[i].call(this, ev);
+  }
 }

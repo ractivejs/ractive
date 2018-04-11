@@ -2,8 +2,70 @@ import { keys } from 'utils/object';
 import { isFunction } from 'utils/is';
 
 // https://github.com/kangax/html-minifier/issues/63#issuecomment-37763316
-export const booleanAttributes = /^(allowFullscreen|async|autofocus|autoplay|checked|compact|controls|declare|default|defaultChecked|defaultMuted|defaultSelected|defer|disabled|enabled|formNoValidate|hidden|indeterminate|inert|isMap|itemScope|loop|multiple|muted|noHref|noResize|noShade|noValidate|noWrap|open|pauseOnExit|readOnly|required|reversed|scoped|seamless|selected|sortable|translate|trueSpeed|typeMustMatch|visible)$/i;
-export const voidElementNames = /^(?:area|base|br|col|command|doctype|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/i;
+//export const booleanAttributes = /^(allowFullscreen|async|autofocus|autoplay|checked|compact|controls|declare|default|defaultChecked|defaultMuted|defaultSelected|defer|disabled|enabled|formNoValidate|hidden|indeterminate|inert|isMap|itemScope|loop|multiple|muted|noHref|noResize|noShade|noValidate|noWrap|open|pauseOnExit|readOnly|required|reversed|scoped|seamless|selected|sortable|translate|trueSpeed|typeMustMatch|visible)$/i;
+export const booleanAttributes = {
+  allowfullscreen: 1,
+  async: 1,
+  autofocus: 1,
+  autoplay: 1,
+  checked: 1,
+  compact: 1,
+  controls: 1,
+  declare: 1,
+  default: 1,
+  defaultchecked: 1,
+  defaultmuted: 1,
+  defaultselected: 1,
+  defer: 1,
+  disabled: 1,
+  enabled: 1,
+  formnovalidate: 1,
+  hidden: 1,
+  indeterminate: 1,
+  inert: 1,
+  ismap: 1,
+  itemscope: 1,
+  loop: 1,
+  multiple: 1,
+  muted: 1,
+  nohref: 1,
+  noresize: 1,
+  noshade: 1,
+  novalidate: 1,
+  nowrap: 1,
+  open: 1,
+  pauseonexit: 1,
+  readonly: 1,
+  required: 1,
+  reversed: 1,
+  scoped: 1,
+  seamless: 1,
+  selected: 1,
+  sortable: 1,
+  translate: 1,
+  truespeed: 1,
+  typemustmatch: 1,
+  visible: 1
+};
+export const voidElements = {
+  area: 1,
+  base: 1,
+  br: 1,
+  col: 1,
+  command: 1,
+  doctype: 1,
+  embed: 1,
+  hr: 1,
+  img: 1,
+  input: 1,
+  keygen: 1,
+  link: 1,
+  meta: 1,
+  param: 1,
+  source: 1,
+  track: 1,
+  wbr: 1
+};
 
 const htmlEntities = {
   quot: 34,

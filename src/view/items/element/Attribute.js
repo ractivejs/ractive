@@ -53,6 +53,7 @@ export default class Attribute extends Item {
       } else if (this.value === undefined) {
         this.value = true;
       }
+      return;
     } else {
       this.fragment = new Fragment({
         owner: this,
@@ -100,7 +101,7 @@ export default class Attribute extends Item {
     attribute = true;
     const value = this.fragment
       ? this.fragment.valueOf()
-      : booleanAttributes.test(this.name) ? true : this.value;
+      : booleanAttributes[this.name.toLowerCase()] ? true : this.value;
     attribute = false;
     return value;
   }
@@ -119,7 +120,7 @@ export default class Attribute extends Item {
 
       // is attribute a boolean attribute or 'value'? If so we're better off doing e.g.
       // node.selected = true rather than node.setAttribute( 'selected', '' )
-      if (booleanAttributes.test(this.name) || this.isTwoway) {
+      if (booleanAttributes[this.name.toLowerCase()] || this.isTwoway) {
         this.isBoolean = true;
       }
 
@@ -189,7 +190,7 @@ export default class Attribute extends Item {
       return;
     }
 
-    if (booleanAttributes.test(this.name))
+    if (booleanAttributes[this.name.toLowerCase()])
       return value
         ? isString(value) ? `${this.name}="${safeAttributeString(value)}"` : this.name
         : '';
