@@ -37,6 +37,8 @@ export function isBindable(attribute) {
 export default function selectBinding(element) {
   const name = element.name;
   const attributes = element.attributeByName;
+  if (name !== 'input' && name !== 'textarea' && name !== 'select' && !attributes.contenteditable)
+    return;
   const isBindableByValue = isBindable(attributes.value);
   const isBindableByContentEditable = isBindable(attributes.contenteditable);
   const isContentEditable = element.getAttribute('contenteditable');

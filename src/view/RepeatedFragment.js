@@ -1,16 +1,7 @@
 import { createDocumentFragment } from 'utils/dom';
 import { isArray, isObject, isObjectType } from 'utils/is';
 import { findMap, buildNewIndices } from 'utils/array';
-import {
-  toEscapedString,
-  toString,
-  destroyed,
-  shuffled,
-  unbind,
-  unrender,
-  unrenderAndDestroy,
-  update
-} from 'shared/methodCallers';
+import { toEscapedString, toString, shuffled } from 'shared/methodCallers';
 import Fragment from './Fragment';
 import { ELEMENT } from 'config/types';
 import { getContext } from 'shared/getRactiveContext';
@@ -141,7 +132,8 @@ export default class RepeatedFragment {
   }
 
   destroyed() {
-    this.iterations.forEach(destroyed);
+    const len = this.iterations.length;
+    for (let i = 0; i < len; i++) this.iterations[i].destroyed();
   }
 
   detach() {
@@ -255,16 +247,17 @@ export default class RepeatedFragment {
   unbind() {
     this.bound = false;
     if (this.source) this.source.model.unregister(this.source);
-    this.iterations.forEach(unbind);
+    const len = this.iterations.length;
+    for (let i = 0; i < len; i++) this.iterations[i].unbind();
     return this;
   }
 
   unrender(shouldDestroy) {
-    this.iterations.forEach(shouldDestroy ? unrenderAndDestroy : unrender);
+    let len = this.iterations.length;
+    for (let i = 0; i < len; i++) this.iterations[i].unrender(shouldDestroy);
     if (this.pendingNewIndices && this.previousIterations) {
-      this.previousIterations.forEach(fragment => {
-        if (fragment.rendered) shouldDestroy ? unrenderAndDestroy(fragment) : unrender(fragment);
-      });
+      len = this.previousIterations.length;
+      for (let i = 0; i < len; i++) this.previousIterations[i].unrender(shouldDestroy);
     }
     this.rendered = false;
   }
@@ -284,7 +277,11 @@ export default class RepeatedFragment {
       this.shuffle(buildNewIndices(this.values, values), true);
       this.updatePostShuffle();
     } else {
-      this.iterations.forEach((f, i) => f && f.idxModel && f.idxModel.applyValue(i));
+      let len = this.iterations.length;
+      for (let i = 0; i < len; i++) {
+        const f = this.iterations[i];
+        f && f.idxModel && f.idxModel.applyValue(i);
+      }
 
       const value = this.context.get();
       const wasArray = this.isArray;
@@ -341,19 +338,20 @@ export default class RepeatedFragment {
       }
 
       if (toRemove) {
-        toRemove.forEach(fragment => {
-          fragment.unbind();
-          fragment.unrender(true);
-        });
+        len = toRemove.length;
+        for (let i = 0; i < len; i++) toRemove[i].unbind().unrender(true);
       }
 
       // update the remaining ones
       if (!reset && this.isArray && this.bubbled && this.bubbled.length) {
         const bubbled = this.bubbled;
         this.bubbled = [];
-        bubbled.forEach(i => this.iterations[i] && this.iterations[i].update());
+        len = bubbled.length;
+        for (let i = 0; i < len; i++)
+          this.iterations[bubbled[i]] && this.iterations[bubbled[i]].update();
       } else {
-        this.iterations.forEach(update);
+        len = this.iterations.length;
+        for (let i = 0; i < len; i++) this.iterations[i].update();
       }
 
       // add new iterations
@@ -442,7 +440,8 @@ export default class RepeatedFragment {
 
       if (dest === -1) {
         // drop it like it's hot
-        prev[pos++].unbind().unrender(true);
+        prev[pos].unbind().unrender(true);
+        prev[pos++] = 0;
       } else if (dest > idx) {
         // need to stash or pull one up
         next = newIndices[pos + 1]; // TODO: maybe a shouldMove function that tracks multiple entries?
@@ -496,6 +495,7 @@ export default class RepeatedFragment {
           next.shouldRebind = 0;
         }
         next.update();
+        next.shuffled();
       }
     }
 
@@ -505,8 +505,6 @@ export default class RepeatedFragment {
     if (this.shuffler) this.values = shuffleValues(this, this.shuffler);
 
     this.pendingNewIndices = null;
-
-    this.shuffled();
   }
 }
 

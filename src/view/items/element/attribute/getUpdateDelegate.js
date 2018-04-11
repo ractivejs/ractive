@@ -329,7 +329,7 @@ function updateBoolean(reset) {
   }
 }
 
-function updateAttribute(reset) {
+export function updateAttribute(reset) {
   if (reset) {
     if (this.node.getAttribute(this.name) === this.value) {
       this.node.removeAttribute(this.name);
@@ -340,7 +340,7 @@ function updateAttribute(reset) {
   }
 }
 
-function updateNamespacedAttribute(reset) {
+export function updateNamespacedAttribute(reset) {
   if (reset) {
     if (
       this.value ===

@@ -2,25 +2,12 @@ import { ELEMENT, YIELDER } from 'config/types';
 import runloop from 'src/global/runloop';
 import { findMap } from 'utils/array';
 import { getContext, findParentWithContext } from 'shared/getRactiveContext';
-import {
-  bind,
-  destroyed,
-  shuffled,
-  toEscapedString,
-  toString,
-  unbind,
-  unrender,
-  update
-} from 'shared/methodCallers';
+import { shuffled, toEscapedString, toString } from 'shared/methodCallers';
 import createItem from './items/createItem';
 import processItems from './helpers/processItems';
 import parseJSON from 'utils/parseJSON';
 import { createDocumentFragment } from 'utils/dom';
 import KeyModel from 'src/model/specials/KeyModel';
-
-function unrenderAndDestroy(item) {
-  item.unrender(true);
-}
 
 export default class Fragment {
   constructor(options) {
@@ -59,7 +46,8 @@ export default class Fragment {
 
   bind(context) {
     this.context = context;
-    this.items.forEach(bind);
+    const len = this.items.length;
+    for (let i = 0; i < len; i++) this.items[i].bind();
     this.bound = true;
 
     // in rare cases, a forced resolution (or similar) will cause the
@@ -103,7 +91,8 @@ export default class Fragment {
   }
 
   destroyed() {
-    this.items.forEach(destroyed);
+    const len = this.items.length;
+    for (let i = 0; i < len; i++) this.items[i].destroyed();
   }
 
   detach() {
@@ -287,14 +276,16 @@ export default class Fragment {
 
   unbind() {
     this.context = null;
-    this.items.forEach(unbind);
+    const len = this.items.length;
+    for (let i = 0; i < len; i++) this.items[i].unbind();
     this.bound = false;
 
     return this;
   }
 
   unrender(shouldDestroy) {
-    this.items.forEach(shouldDestroy ? unrenderAndDestroy : unrender);
+    const len = this.items.length;
+    for (let i = 0; i < len; i++) this.items[i].unrender(shouldDestroy);
     this.rendered = false;
   }
 
@@ -303,7 +294,8 @@ export default class Fragment {
       if (!this.updating) {
         this.dirty = false;
         this.updating = true;
-        this.items.forEach(update);
+        const len = this.items.length;
+        for (let i = 0; i < len; i++) this.items[i].update();
         this.updating = false;
       } else if (this.isRoot) {
         runloop.addFragmentToRoot(this);
