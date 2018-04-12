@@ -500,11 +500,13 @@ export default class RepeatedFragment {
     }
 
     // clean up any stragglers
-    prev.forEach(f => f && f.unbind().unrender(true));
+    const plen = prev.length;
+    for (let i = 0; i < plen; i++) prev[i] && prev[i].unbind().unrender(true);
 
     if (this.shuffler) this.values = shuffleValues(this, this.shuffler);
 
     this.pendingNewIndices = null;
+    this.previousIterations = null;
   }
 }
 
