@@ -76,12 +76,12 @@ const parseTests = [
 	{
 		name: 'Element with unquoted attributes',
 		template: `<div class=test></div>`,
-		parsed: {v:4,t:[{m:[{t:13,n:'class',f:'test'}],e:'div',t:7}]}
+		parsed: {v:4,t:[{m:[{t:13,n:'class',f:'test',g:1}],e:'div',t:7}]}
 	},
 	{
 		name: 'Element with unquoted attributes and a mustache',
 		template: `<div class=test>{{mustache}}</div>`,
-		parsed: {v:4,t:[{t:7,e:'div',m:[{n:'class',f:'test',t:13}],f:[{t:2,r:'mustache'}]}]}
+		parsed: {v:4,t:[{t:7,e:'div',m:[{n:'class',f:'test',t:13,g:1}],f:[{t:2,r:'mustache'}]}]}
 	},
 	{
 		name: 'Element with unquoted mustache attributes',
@@ -112,7 +112,7 @@ const parseTests = [
 	{
 		name: 'Template with blacklisted elements (don\'t sanitize)',
 		template: `<style type='text/css'>body { font-family: 'Comic Sans MS'; }</style>`,
-		parsed: {v:4,t:[{m:[{n:'type',f:'text/css',t:13}],e:'style',f:[`body { font-family: 'Comic Sans MS'; }`],t:7}]},
+		parsed: {v:4,t:[{m:[{n:'type',f:'text/css',t:13,g:1}],e:'style',f:[`body { font-family: 'Comic Sans MS'; }`],t:7}]},
 		options: {
 			sanitize: false
 		}
@@ -136,7 +136,7 @@ const parseTests = [
 	{
 		name: 'Element with an event attribute (don\'t sanitize)',
 		template: `<p onclick='doSomething();'>{{text}}</p>`,
-		parsed: {v:4,t:[{m:[{n:'onclick',f:'doSomething();',t:13}],f:[{r:'text',t:2}],e:'p',t:7}]},
+		parsed: {v:4,t:[{m:[{n:'onclick',f:'doSomething();',t:13,g:1}],f:[{r:'text',t:2}],e:'p',t:7}]},
 		options: {
 			sanitize: false
 		}
@@ -144,22 +144,22 @@ const parseTests = [
 	{
 		name: 'SVG',
 		template: `<svg xmlns='http://www.w3.org/2000/svg'><circle cx='{{x}}' cy='{{y}}' r='{{r}}'/></svg>`,
-		parsed: {v:4,t:[{m:[{n:'xmlns',f:'http://www.w3.org/2000/svg',t:13}],f:[{m:[{n:'cx',f:[{r:'x',t:2}],t:13},{n:'cy',f:[{r:'y',t:2}],t:13},{n:'r',f:[{r:'r',t:2}],t:13}],e:'circle',t:7}],e:'svg',t:7}]}
+		parsed: {v:4,t:[{m:[{n:'xmlns',f:'http://www.w3.org/2000/svg',t:13,g:1}],f:[{m:[{n:'cx',f:[{r:'x',t:2}],t:13},{n:'cy',f:[{r:'y',t:2}],t:13},{n:'r',f:[{r:'r',t:2}],t:13}],e:'circle',t:7}],e:'svg',t:7}]}
 	},
 	{
 		name: 'SVG with non-mustache text',
 		template: `<svg xmlns='http://www.w3.org/2000/svg'><text>some text</text></svg>`,
-		parsed: {v:4,t:[{m:[{n:'xmlns',f:'http://www.w3.org/2000/svg',t:13}],f:[{f:['some text'],e:'text',t:7}],e:'svg',t:7}]}
+		parsed: {v:4,t:[{m:[{n:'xmlns',f:'http://www.w3.org/2000/svg',t:13,g:1}],f:[{f:['some text'],e:'text',t:7}],e:'svg',t:7}]}
 	},
 	{
 		name: 'SVG with interpolator',
 		template: `<svg xmlns='http://www.w3.org/2000/svg'><text>{{hello}}</text></svg>`,
-		parsed: {v:4,t:[{m:[{n:'xmlns',f:'http://www.w3.org/2000/svg',t:13}],f:[{f:[{r:'hello',t:2}],e:'text',t:7}],e:'svg',t:7}]}
+		parsed: {v:4,t:[{m:[{n:'xmlns',f:'http://www.w3.org/2000/svg',t:13,g:1}],f:[{f:[{r:'hello',t:2}],e:'text',t:7}],e:'svg',t:7}]}
 	},
 	{
 		name: 'SVG with interpolator and static text',
 		template: `<svg xmlns='http://www.w3.org/2000/svg'><text>Hello {{thing}}!</text></svg>`,
-		parsed: {v:4,t:[{m:[{n:'xmlns',f:'http://www.w3.org/2000/svg',t:13}],f:[{f:['Hello ',{r:'thing',t:2},'!'],e:'text',t:7}],e:'svg',t:7}]}
+		parsed: {v:4,t:[{m:[{n:'xmlns',f:'http://www.w3.org/2000/svg',t:13,g:1}],f:[{f:['Hello ',{r:'thing',t:2},'!'],e:'text',t:7}],e:'svg',t:7}]}
 	},
 	{
 		name: 'Mixture of HTML-able and non-HTML-able elements in template',
@@ -179,7 +179,7 @@ const parseTests = [
 	{
 		name: 'Nodes with id attributes and no mustaches don\'t get stringified',
 		template: `<div id=test>plain old text</div>`,
-		parsed: {v:4,t:[{t:7,e:'div',m:[{n:'id',f:'test',t:13}],f:['plain old text']}]}
+		parsed: {v:4,t:[{t:7,e:'div',m:[{n:'id',f:'test',t:13,g:1}],f:['plain old text']}]}
 	},
 	{
 		name: 'Mustache references can have numeric keys',
@@ -244,7 +244,7 @@ const parseTests = [
 	{
 		name: 'Sloppy whitespace in tags',
 		template: `<div class = "foo"></div>`,
-		parsed: {v:4,t:[{m:[{n:'class',f:'foo',t:13}],e:'div',t:7}]}
+		parsed: {v:4,t:[{m:[{n:'class',f:'foo',t:13,g:1}],e:'div',t:7}]}
 	},
 	{
 		name: 'References can begin with browser globals',
@@ -310,7 +310,7 @@ const parseTests = [
 	{
 		name: 'XML namespaces are handled',
 		template: `<fb:like href="{{href}}" send="true" show_faces="false"></fb:like>`,
-		parsed: {v:4,t:[{t:7,e:'fb:like',m:[{n:'href',f:[{t:2,r:'href'}],t:13},{n:'send',f:'true',t:13},{n:'show_faces',f:'false',t:13}]}]}
+		parsed: {v:4,t:[{t:7,e:'fb:like',m:[{n:'href',f:[{t:2,r:'href'}],t:13},{n:'send',f:'true',t:13,g:1},{n:'show_faces',f:'false',t:13,g:1}]}]}
 	},
 	{
 		name: 'Basic decorator',
@@ -529,7 +529,7 @@ const parseTests = [
 				<circle cx='{{x}}' cy='{{y}}' r='{{r}}'/>
 			</svg>` ),
 		options: {includeLinePositions:true},
-		parsed: {v:4,t:[{t:7,e:'svg',m:[{n:'xmlns',f:'http://www.w3.org/2000/svg',t:13}],f:[{t:7,e:'circle',m:[{n:'cx',f:[{t:2,r:'x',q:[2,14,54]}],t:13},{n:'cy',f:[{t:2,r:'y',q:[2,25,65]}],t:13},{n:'r',f:[{t:2,r:'r',q:[2,35,75]}],t:13}],q:[2,2,42]}],q:[1,1,0]}]}
+		parsed: {v:4,t:[{t:7,e:'svg',m:[{n:'xmlns',f:'http://www.w3.org/2000/svg',t:13,g:1}],f:[{t:7,e:'circle',m:[{n:'cx',f:[{t:2,r:'x',q:[2,14,54]}],t:13},{n:'cy',f:[{t:2,r:'y',q:[2,25,65]}],t:13},{n:'r',f:[{t:2,r:'r',q:[2,35,75]}],t:13}],q:[2,2,42]}],q:[1,1,0]}]}
 	},
 	{
 		name: 'Multiline trace',
@@ -960,7 +960,7 @@ const parseTests = [
 	{
 		name: `components with unquoted attributes don't eat closing solidii (#2765)`,
 		template: `<a b={{b}}/><a b=1/>`,
-		parsed: {v:4,t:[{t:7,e:'a',m:[{t:13,n:'b',f:[{t:2,r:'b'}]}]},{t:7,e:'a',m:[{t:13,n:'b',f:'1'}]}]}
+		parsed: {v:4,t:[{t:7,e:'a',m:[{t:13,n:'b',f:[{t:2,r:'b'}]}]},{t:7,e:'a',m:[{t:13,n:'b',f:'1',g:1}]}]}
 	},
 	{
 		name: `unquoted directive values don't get turned into > or / operations if they happen to be the last attribute`,

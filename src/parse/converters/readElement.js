@@ -1,4 +1,4 @@
-import { ANCHOR, DOCTYPE, ELEMENT } from 'config/types';
+import { ANCHOR, DOCTYPE, ELEMENT, ATTRIBUTE } from 'config/types';
 import { voidElements } from 'utils/html';
 import { READERS, PARTIAL_READERS } from '../_parse';
 import cleanup from 'parse/utils/cleanup';
@@ -6,6 +6,8 @@ import readMustache from './readMustache';
 import readClosingTag from './element/readClosingTag';
 import readClosing from './mustache/section/readClosing';
 import { create } from 'utils/object';
+import { isString } from 'utils/is';
+import hyphenateCamel from 'utils/hyphenateCamel';
 
 const tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/;
 const anchorPattern = /^[a-zA-Z_$][-a-zA-Z0-9_$]*/;
@@ -244,6 +246,73 @@ function readElement(parser) {
 
   if (parser.sanitizeElements && parser.sanitizeElements.indexOf(lowerCaseName) !== -1) {
     return exclude;
+  }
+
+  if (
+    element.m &&
+    lowerCaseName !== 'input' &&
+    lowerCaseName !== 'select' &&
+    lowerCaseName !== 'textarea' &&
+    lowerCaseName !== 'option'
+  ) {
+    const attrs = element.m;
+    let classes, styles, cls, style;
+    let i = 0;
+    let a;
+    while (i < attrs.length) {
+      a = attrs[i];
+
+      if (a.t !== ATTRIBUTE) {
+        i++;
+        continue;
+      }
+
+      if (a.n.indexOf('class-') === 0 && !a.f) {
+        // static class directives
+        (classes || (classes = [])).push(a.n.slice(6));
+        attrs.splice(i, 1);
+      } else if (a.n.indexOf('style-') === 0 && isString(a.f)) {
+        // static style directives
+        (styles || (styles = [])).push(`${hyphenateCamel(a.n.slice(6))}: ${a.f};`);
+        attrs.splice(i, 1);
+      } else if (a.n === 'class' && isString(a.f)) {
+        // static class attrs
+        (classes || (classes = [])).push(a.f);
+        attrs.splice(i, 1);
+      } else if (a.n === 'style' && isString(a.f)) {
+        // static style attrs
+        (styles || (styles = [])).push(`${a.f};`);
+        attrs.splice(i, 1);
+      } else if (a.n === 'class') {
+        cls = a;
+        i++;
+      } else if (a.n === 'style') {
+        style = a;
+        i++;
+      } else if (
+        !~a.n.indexOf(':') &&
+        a.n !== 'value' &&
+        a.n !== 'contenteditable' &&
+        isString(a.f)
+      ) {
+        a.g = 1;
+        i++;
+      } else {
+        i++;
+      }
+    }
+
+    if (classes) {
+      if (!cls || !isString(cls.f))
+        attrs.unshift({ t: ATTRIBUTE, n: 'class', f: classes.join(' '), g: 1 });
+      else cls.f += ' ' + classes.join(' ');
+    } else if (cls && isString(cls.f)) cls.g = 1;
+
+    if (styles) {
+      if (!style || !isString(style.f))
+        attrs.unshift({ t: ATTRIBUTE, n: 'style', f: styles.join(' '), g: 1 });
+      else style.f += '; ' + styles.join(' ');
+    } else if (style && isString(style.f)) style.g = 1;
   }
 
   return element;

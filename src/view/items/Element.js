@@ -13,7 +13,8 @@ import ConditionalAttribute from './element/ConditionalAttribute';
 import createItem from './createItem';
 import findElement from './shared/findElement';
 import selectBinding from './element/binding/selectBinding';
-import { assign, create, defineProperty } from 'utils/object';
+import { assign, create, defineProperty, keys } from 'utils/object';
+import { isString } from 'utils/is';
 
 const endsWithSemi = /;\s*$/;
 
@@ -45,36 +46,42 @@ export default class Element extends ContainerItem {
 
     for (let i = 0; i < len; i++) {
       template = m[i];
-      switch (template.t) {
-        case ATTRIBUTE:
-        case BINDING_FLAG:
-        case DECORATOR:
-        case EVENT:
-        case TRANSITION:
-          attr = createItem({
-            owner: this,
-            up: this.up,
-            template
-          });
+      if (template.g) {
+        (this.statics || (this.statics = {}))[template.n] = isString(template.f)
+          ? template.f
+          : template.n;
+      } else {
+        switch (template.t) {
+          case ATTRIBUTE:
+          case BINDING_FLAG:
+          case DECORATOR:
+          case EVENT:
+          case TRANSITION:
+            attr = createItem({
+              owner: this,
+              up: this.up,
+              template
+            });
 
-          n = template.n;
+            n = template.n;
 
-          attrs = attrs || (attrs = this.attributes = []);
+            attrs = attrs || (attrs = this.attributes = []);
 
-          if (n === 'value') val = attr;
-          else if (n === 'name') name = attr;
-          else if (n === 'class') cls = attr;
-          else attrs.push(attr);
+            if (n === 'value') val = attr;
+            else if (n === 'name') name = attr;
+            else if (n === 'class') cls = attr;
+            else attrs.push(attr);
 
-          break;
+            break;
 
-        case DELEGATE_FLAG:
-          this.delegate = false;
-          break;
+          case DELEGATE_FLAG:
+            this.delegate = false;
+            break;
 
-        default:
-          (leftovers || (leftovers = [])).push(template);
-          break;
+          default:
+            (leftovers || (leftovers = [])).push(template);
+            break;
+        }
       }
     }
 
@@ -135,14 +142,6 @@ export default class Element extends ContainerItem {
 
   destroyed() {
     if (this.attributes) this.attributes.forEach(destroyed);
-
-    if (!this.up.delegate && this.listeners) {
-      const ls = this.listeners;
-      for (const k in ls) {
-        if (ls[k] && ls[k].length) this.node.removeEventListener(k, handler);
-      }
-    }
-
     if (this.fragment) this.fragment.destroyed();
   }
 
@@ -181,6 +180,7 @@ export default class Element extends ContainerItem {
   }
 
   getAttribute(name) {
+    if (this.statics && name in this.statics) return this.statics[name];
     const attribute = this.attributeByName[name];
     return attribute ? attribute.getValue() : undefined;
   }
@@ -307,6 +307,12 @@ export default class Element extends ContainerItem {
       this.node = node;
     }
 
+    if (this.statics) {
+      keys(this.statics).forEach(k => {
+        node.setAttribute(k, this.statics[k]);
+      });
+    }
+
     // tie the node to this vdom element
     defineProperty(node, '_ractive', {
       value: {
@@ -343,7 +349,8 @@ export default class Element extends ContainerItem {
       let i = node.attributes.length;
       while (i--) {
         const name = node.attributes[i].name;
-        if (!(name in this.attributeByName)) node.removeAttribute(name);
+        if (!(name in this.attributeByName) && (!this.statics || !(name in this.statics)))
+          node.removeAttribute(name);
       }
     }
 
@@ -378,6 +385,11 @@ export default class Element extends ContainerItem {
 
     let attrs = (this.attributes && this.attributes.map(stringifyAttribute).join('')) || '';
 
+    if (this.statics)
+      keys(this.statics).forEach(
+        k => k !== 'class' && k !== 'style' && (attrs = ` ${k}="${this.statics[k]}"` + attrs)
+      );
+
     // Special case - selected options
     if (this.name === 'option' && this.isSelected()) {
       attrs += ' selected';
@@ -389,7 +401,8 @@ export default class Element extends ContainerItem {
     }
 
     // Special case style and class attributes and directives
-    let style, cls;
+    let style = this.statics ? this.statics.style : undefined;
+    let cls = this.statics ? this.statics.class : undefined;
     this.attributes &&
       this.attributes.forEach(attr => {
         if (attr.name === 'class') {
