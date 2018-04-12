@@ -44,8 +44,10 @@ export default class TransitionManager {
   }
 
   detachNodes() {
-    this.detachQueue.forEach(detach);
-    this.children.forEach(_detachNodes);
+    let len = this.detachQueue.length;
+    for (let i = 0; i < len; i++) this.detachQueue[i].detach();
+    len = this.children.length;
+    for (let i = 0; i < len; i++) this.children[i].detachNodes();
     this.detachQueue = [];
   }
 
@@ -65,15 +67,6 @@ export default class TransitionManager {
     this.ready = true;
     check(this);
   }
-}
-
-function detach(element) {
-  element.detach();
-}
-
-function _detachNodes(tm) {
-  // _ to avoid transpiler quirk
-  tm.detachNodes();
 }
 
 function check(tm) {
@@ -112,21 +105,29 @@ function detachImmediate(manager) {
   const queue = manager.detachQueue;
   const outros = collectAllOutros(manager);
 
-  let i = queue.length;
-  let j = 0;
-  let node, trans;
-  start: while (i--) {
-    node = queue[i].node;
-    j = outros.length;
-    while (j--) {
-      trans = outros[j].element.node;
-      // check to see if the node is, contains, or is contained by the transitioning node
-      if (trans === node || trans.contains(node) || node.contains(trans)) continue start;
-    }
+  if (!outros.length) {
+    manager.detachNodes();
+  } else {
+    let i = queue.length;
+    let j = 0;
+    let node, trans;
+    const nqueue = (manager.detachQueue = []);
 
-    // no match, we can drop it
-    queue[i].detach();
-    queue.splice(i, 1);
+    start: while (i--) {
+      node = queue[i].node;
+      j = outros.length;
+      while (j--) {
+        trans = outros[j].element.node;
+        // check to see if the node is, contains, or is contained by the transitioning node
+        if (trans === node || trans.contains(node) || node.contains(trans)) {
+          nqueue.push(queue[i]);
+          continue start;
+        }
+      }
+
+      // no match, we can drop it
+      queue[i].detach();
+    }
   }
 }
 
