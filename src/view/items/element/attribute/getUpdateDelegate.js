@@ -270,7 +270,7 @@ function updateClassName(reset) {
   cls = cls.baseVal !== undefined ? cls.baseVal : cls;
 
   const attr = readClass(cls);
-  const prev = this.previous || attr.slice(0);
+  const prev = this.previous || [];
 
   const className = value.concat(attr.filter(c => !~prev.indexOf(c))).join(' ');
 

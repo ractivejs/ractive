@@ -395,4 +395,54 @@ export default function() {
       components: { cmp }
     });
   });
+
+  test(`static, dynamic, and directive classes play nicely`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template:
+        '<div class="foo {{foo}}" class="bar" class-sure /><div class-foo class="bar {{foo}}" /><div class-foo="bar" class="bar yep" /><div class-yep=bar class-foo class-bar />',
+      data: {
+        foo: 'yep',
+        bar: 1
+      }
+    });
+
+    t.htmlEqual(
+      fixture.innerHTML,
+      '<div class="foo yep bar sure"></div><div class="bar yep foo"></div><div class="bar yep foo"></div><div class="foo bar yep"></div>'
+    );
+
+    r.set('bar', 0);
+    r.set('foo', 'yes');
+
+    t.htmlEqual(
+      fixture.innerHTML,
+      '<div class="foo yes bar sure"></div><div class="bar yes foo"></div><div class="bar yep"></div><div class="foo bar"></div>'
+    );
+  });
+
+  test(`static, dynamic, and directive styles play nicely`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template:
+        '<div style="color: {{foo}};" style="display: block;" style-width="1em" /><div style-width="1em" style="color: {{foo}};" /><div style-display="{{bar}}" style="color: green;" />',
+      data: {
+        foo: 'red',
+        bar: 'block'
+      }
+    });
+
+    t.htmlEqual(
+      fixture.innerHTML,
+      '<div style="display: block; width: 1em; color: red;"></div><div style="width: 1em; color: red;"></div><div style="color: green; display: block;"></div>'
+    );
+
+    r.set('bar', 'inline');
+    r.set('foo', 'pink');
+
+    t.htmlEqual(
+      fixture.innerHTML,
+      '<div style="display: block; width: 1em; color: pink;"></div><div style="width: 1em; color: pink;"></div><div style="color: green; display: inline;"></div>'
+    );
+  });
 }
