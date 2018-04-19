@@ -1,5 +1,19 @@
 # changelog
 
+# 0.10.1
+
+* Breaking changes
+	* `getNodeInfo` has been removed after being deprecated for quite some time and being fully replaced by `getContext`.
+
+* Bug fixes
+	* `hasListener` now works correctly with an instance Context, like the ones provided by lifecycle events. Only components with `on-${event}` listeners in the controlling template can be queried with `hasListener`.
+
+* Other changes
+	* `on${event}` methods overriding super methods will warn if they don't also call `this._super()`.
+	* There is now a `rendered` property on instances that can be used to determine whether or not they are currently live in the DOM.
+	* Attributes that won't change are now managed statically for elements, which along with some other profiling-related changes results in a ~10% performance improvement over 0.9.
+
+
 # 0.10.0
 
 * Breaking changes
