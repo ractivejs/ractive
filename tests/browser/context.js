@@ -1081,4 +1081,15 @@ export default function() {
         .hasListener('foo')
     );
   });
+
+  test(`raise with no matching event listener should not explode (#3226)`, t => {
+    t.expect(0);
+
+    const r = new Ractive({
+      template: '<div />',
+      target: fixture
+    });
+
+    r.getContext('div').raise('nope');
+  });
 }

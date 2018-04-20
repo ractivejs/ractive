@@ -322,5 +322,5 @@ function findModel(ctx, path) {
 }
 
 function findEvent(el, name) {
-  return el.events && el.events.find(e => ~e.template.n.indexOf(name));
+  return el.events && el.events.find && el.events.find(e => ~e.template.n.indexOf(name));
 }
