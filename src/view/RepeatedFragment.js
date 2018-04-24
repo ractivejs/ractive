@@ -2,7 +2,7 @@ import { createDocumentFragment } from 'utils/dom';
 import { isArray, isObject, isObjectType } from 'utils/is';
 import { findMap, buildNewIndices } from 'utils/array';
 import { toEscapedString, toString, shuffled } from 'shared/methodCallers';
-import Fragment from './Fragment';
+import Fragment, { getKeypath } from './Fragment';
 import { ELEMENT } from 'config/types';
 import { getContext } from 'shared/getRactiveContext';
 import { keys } from 'utils/object';
@@ -134,6 +134,8 @@ export default class RepeatedFragment {
   destroyed() {
     const len = this.iterations.length;
     for (let i = 0; i < len; i++) this.iterations[i].destroyed();
+    if (this.pathModel) this.pathModel.destroyed();
+    if (this.rootModel) this.rootModel.destroyed();
   }
 
   detach() {
@@ -511,6 +513,7 @@ export default class RepeatedFragment {
 }
 
 RepeatedFragment.prototype.getContext = getContext;
+RepeatedFragment.prototype.getKeypath = getKeypath;
 
 // find the topmost delegate
 function findDelegate(start) {
@@ -557,6 +560,14 @@ function swizzleFragment(section, fragment, key, idx) {
 
   if (fragment.idxModel) fragment.idxModel.applyValue(idx);
   if (fragment.keyModel) fragment.keyModel.applyValue(key);
+  if (fragment.pathModel) {
+    fragment.pathModel.context = model;
+    fragment.pathModel.applyValue(model.getKeypath());
+  }
+  if (fragment.rootModel) {
+    fragment.rootModel.context = model;
+    fragment.rootModel.applyValue(model.getKeypath(fragment.ractive.root));
+  }
 
   // handle any aliases
   const aliases = fragment.aliases;

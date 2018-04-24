@@ -198,3 +198,4 @@ export default class EventDirective {
 }
 
 EventDirective.prototype.update = noop;
+EventDirective.prototype.rebound = noop;

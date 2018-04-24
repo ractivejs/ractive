@@ -313,7 +313,7 @@ export default class Transition {
 }
 
 const proto = Transition.prototype;
-proto.destroyed = proto.render = proto.unrender = proto.update = noop;
+proto.destroyed = proto.rebound = proto.render = proto.unrender = proto.update = noop;
 
 function nearestProp(prop, ractive, rendering) {
   let instance = ractive;
