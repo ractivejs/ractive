@@ -75,6 +75,7 @@ const hooks = {};
   'complete',
   'reset',
   'render',
+  'unrendering',
   'unrender',
   'teardown',
   'destruct',
