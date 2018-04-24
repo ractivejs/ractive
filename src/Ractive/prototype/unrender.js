@@ -12,6 +12,8 @@ export default function Ractive$unrender() {
   this.unrendering = true;
   const promise = runloop.start();
 
+  hooks.unrendering.fire(this);
+
   // If this is a component, and the component isn't marked for destruction,
   // don't detach nodes from the DOM unnecessarily
   const shouldDestroy =

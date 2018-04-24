@@ -4,7 +4,7 @@ import { test } from 'qunit';
 export default function() {
   initModule('init/hooks/order.js');
 
-  const hooks = ['onconfig', 'oninit', 'onrender', 'onunrender', 'onteardown'];
+  const hooks = ['onconfig', 'oninit', 'onrender', 'onunrendering', 'onunrender', 'onteardown'];
 
   test('basic order', t => {
     const options = {
@@ -205,8 +205,8 @@ export default function() {
   testHierarchy('onconfig', topDown);
   testHierarchy('oninit', topDown);
   testHierarchy('onrender', topDown);
-  //testHierarchy( 'onchange', bottomUp ); commented out temporarily, see #1381
   testHierarchy('oncomplete', bottomUp);
+  testHierarchy('onunrendering', topDown);
   testHierarchy('onunrender', bottomUp);
   testHierarchy('onteardown', bottomUp);
 
