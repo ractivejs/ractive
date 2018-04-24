@@ -1,13 +1,13 @@
 // Type definitions for Ractive edge
 // Project: https://ractive.js.org/
 // Definitions By: Chris Reeves <https://github.com/evs-chris>
-// Version: 1.0.0-edge+2018-02-23
+// Version: 1.0.0-edge+2018-04-22
 
-interface ValueMap {
+export interface ValueMap {
 	[key: string]: any;
 }
 
-interface Adaptor {
+export interface Adaptor {
 	/** Called when Ractive gets a new value to see if the adaptor should be applied.
 	 * @param value the value to evaluate
 	 * @param keypath the keypath of the value in the Ractive data
@@ -25,7 +25,7 @@ interface Adaptor {
 	 */
 	wrap: (ractive: Ractive, value: any, keypath: string, prefixer: AdaptorPrefixer) => AdaptorHandle
 }
-interface AdaptorHandle {
+export interface AdaptorHandle {
 	/** Called when Ractive needs to retrieve the adapted value. */
 	get: () => any;
 	/** Called when Ractive needs to set a property of the adapted value e.g. r.set('adapted.prop', {}). */
@@ -35,9 +35,9 @@ interface AdaptorHandle {
 	/** Called when Ractive no longer needs the adaptor. */
 	teardown: () => void;
 }
-type AdaptorPrefixer = (map: ValueMap) => ValueMap;
+export type AdaptorPrefixer = (map: ValueMap) => ValueMap;
 
-interface AnimateOpts {
+export interface AnimateOpts {
 	/** The duration for the transition in milliseconds. */
 	duration?: number;
 	/** An easing name e.g. 'ease' or an easing function. */
@@ -54,26 +54,26 @@ interface AnimateOpts {
 	 */
 	complete?: (value: any) => void;
 }
-interface AnimatePromise extends Promise<void> {
+export interface AnimatePromise extends Promise<void> {
 	/** Stops the associated animation. */
 	stop(): void;
 }
 
-interface ArrayPushPromise extends Promise<number> {
+export interface ArrayPushPromise extends Promise<number> {
 	/** The new length of the target array. */
 	result: number;
 }
 
-interface ArrayPopPromise extends Promise<any> {
+export interface ArrayPopPromise extends Promise<any> {
 	/** The value removed for the target array. */
 	result: any;
 }
 
-interface ArraySplicePromise extends Promise<any[]> {
+export interface ArraySplicePromise extends Promise<any[]> {
 	result: any[];
 }
 
-interface AttachOpts {
+export interface AttachOpts {
 	/** The name of an anchor to attach a child to e.g. 'foo' for <#foo />. */
 	target?: string;
 	/** If the target anchor is already occupied, this instance will be moved to the end of the queue to occupy it, meaning that all of the other attached instances will need to be detached before this one can occupy the anchor. */
@@ -170,7 +170,7 @@ export class ContextHelper {
 	/**
 	 * Create an observer at the given keypath that will be called when the value at that Context-relative keypath mutates.
 	 * @param keypath the keypath(s) to observe - multiple keypaths can be separated by a space
-	 * @param callbackk
+	 * @param callback
 	 * @param opts
 	 */
 	observe(keypath: string, callback: ObserverCallback, opts?: ObserverOpts): ObserverHandle;
@@ -178,7 +178,7 @@ export class ContextHelper {
 	/**
 	 * Create an observer at the given keypath that will be called when the value at that Context-relative keypath mutates.
 	 * @param keypath the keypath(s) to observe - multiple keypaths can be separated by a space
-	 * @param callbackk
+	 * @param callback
 	 * @param opts
 	 */
 	observe(keypath: string, callback: ObserverArrayCallback, opts?: ObserverArrayOpts): ObserverHandle;
@@ -369,9 +369,9 @@ export class ContextHelper {
 	unshift(keypath: string, value: any): ArrayPushPromise;
 }
 
-type Component = Static | Promise<Static>;
+export type Component = Static | Promise<Static>;
 
-interface ComputationDescriptor<T extends Ractive<T> = Ractive> {
+export interface ComputationDescriptor<T extends Ractive<T> = Ractive> {
 	/**
 	 * Called when Ractive needs to get the computed value. Computations are lazy, so this is only called when a dependency asks for a value.
 	 */
@@ -382,14 +382,14 @@ interface ComputationDescriptor<T extends Ractive<T> = Ractive> {
 	 */
 	set?: (value: any) => void;
 }
-type ComputationFn<T extends Ractive<T> = Ractive> = (this: T) => any;
-type Computation<T extends Ractive<T> = Ractive> = string | ComputationFn<T> | ComputationDescriptor<T>;
+export type ComputationFn<T extends Ractive<T> = Ractive> = (this: T) => any;
+export type Computation<T extends Ractive<T> = Ractive> = string | ComputationFn<T> | ComputationDescriptor<T>;
 
-type CssFn = (data: DataGetFn) => string;
+export type CssFn = (data: DataGetFn) => string;
 
-type Data = ValueMap
-type DataFn<T extends Ractive<T> = Ractive> = (this: T) => ValueMap;
-type DataGetFn = (keypath: string) => any;
+export type Data = ValueMap
+export type DataFn<T extends Ractive<T> = Ractive> = (this: T) => ValueMap;
+export type DataGetFn = (keypath: string) => any;
 
 export interface DecoratorHandle {
 	/**
@@ -407,20 +407,20 @@ export interface DecoratorHandle {
 	 */
 	update?: (...args: any[]) => void;
 }
-type Decorator<T extends Ractive<T> = Ractive> = (this: T, node: HTMLElement, ...args: any[]) => DecoratorHandle;
+export type Decorator<T extends Ractive<T> = Ractive> = (this: T, node: HTMLElement, ...args: any[]) => DecoratorHandle;
 
-type Easing = (time: number) => number;
+export type Easing = (time: number) => number;
 
-type EventPlugin<T extends Ractive<T> = Ractive> = (this: T, node: HTMLElement, fire: (event: Event) => void) => { teardown: () => void };
+export type EventPlugin<T extends Ractive<T> = Ractive> = (this: T, node: HTMLElement, fire: (event: Event) => void) => { teardown: () => void };
 
-interface FindOpts {
+export interface FindOpts {
 	/**
 	 * Whether or not to include attached children when searching.j
 	 */
 	remote?: boolean;
 }
 
-interface GetOpts {
+export interface GetOpts {
 	/**
 	 * Whether or not to include links and computations in the output. This creates a deep copy of the data, so changing any of it directly will have no effect on the data in Ractive's models. Defaults to true for root data and false everywhere else.
 	 */
@@ -432,9 +432,9 @@ interface GetOpts {
 	unwrap?: boolean
 }
 
-type Interpolator = <T>(from: T, to: T) => (t: number) => T;
+export type Interpolator = <T>(from: T, to: T) => (t: number) => T;
 
-interface LinkOpts {
+export interface LinkOpts {
 	/**
 	 * The ractive instance in which to find the source keypath.
 	 */
@@ -451,8 +451,8 @@ interface LinkOpts {
 	keypath?: string;
 }
 
-type ListenerCallback<T extends Ractive<T> = Ractive> = (this: T, ctx: ContextHelper, ...args: any[]) => boolean | void | Promise<any>;
-interface ListenerDescriptor<T extends Ractive<T> = Ractive> {
+export type ListenerCallback<T extends Ractive<T> = Ractive> = (this: T, ctx: ContextHelper, ...args: any[]) => boolean | void | Promise<any>;
+export interface ListenerDescriptor<T extends Ractive<T> = Ractive> {
 	/**
 	 * The callback to call when the event is fired.
 	 */
@@ -492,15 +492,68 @@ export interface ObserverHandle {
 	resume(): void;
 }
 
+export interface Macro extends MacroFn {
+	/** Get the css data for this macro at the given keypath. */
+	styleGet(keypath: string): any;
+	/** Set the css data for this macro at the given keypath to the given value. */
+	styleSet(keypath: string, value: any): Promise<void>;
+	/** Set the given map of values in the css data for this macro. */
+	styleSet(map: ValueMap): Promise<void>;
+}
+
+export type MacroFn = (MacroHelper) => MacroHandle;
+
+export interface MacroHandle {
+	render?: () => void;
+	teardown?: () => void;
+	update?: (attributes: ValueMap) => void;
+	invalidate?: () => void;
+}
+
+export class MacroHelper extends ContextHelper {
+	name: string;
+	attributes: ValueMap;
+	template: Template;
+	partials: PartialMap;
+
+	/**
+	 * Create an alias for the local context of the partial (@local).
+	 * @param name The name to use when creating the alias to @local
+	 */
+	aliasLocal(name: string): void;
+
+	/**
+	 * Create an alias to a keypath in the local context of the partial (@local)
+	 * @param reference The keypath to be aliased e.g. foo.bar for @local.foo.bar
+	 * @param name The name to use when created the alias
+	 */
+	aliasLocal(reference: string, name: string): void;
+
+	/**
+	 * Change the template used to render this macro. The old template will be unrenedered and replaced with the given template.
+	 * @param template The new template
+	 */
+	setTemplate(template: Template): void;
+}
+
+export interface MacroOpts {
+	cssId?: string;
+	noCssTransform?: boolean;
+	css?: string | CssFn;
+	cssData?: ValueMap;
+	template?: Template;
+	partials?: PartialMap;
+}
+
 /**
  * @param value the new value
  * @param old the old value
  * @param keypath the keypath of the observed change
  * @param parts keys for any wildcards in the observer
  */
-type ObserverCallback<T extends Ractive<T> = Ractive> = (this: T, value: any, old: any, keypath: string, ...parts: string[]) => void | Promise<any>;
-type ObserverArrayCallback<T extends Ractive<T> = Ractive> = (this: T, changes: ArrayChanges) => void | Promise<any>;
-interface ArrayChanges {
+export type ObserverCallback<T extends Ractive<T> = Ractive> = (this: T, value: any, old: any, keypath: string, ...parts: string[]) => void | Promise<any>;
+export type ObserverArrayCallback<T extends Ractive<T> = Ractive> = (this: T, changes: ArrayChanges) => void | Promise<any>;
+export interface ArrayChanges {
 	/**
 	 * The starting index for the changes.
 	 */
@@ -516,7 +569,7 @@ interface ArrayChanges {
 	 */
 	deleted: any[];
 }
-interface ObserverBaseOpts {
+export interface ObserverBaseOpts {
 	/**
 	 * The context to be used for the callback.
 	 */
@@ -532,7 +585,7 @@ interface ObserverBaseOpts {
 	 */
 	init?: boolean;
 }
-interface ObserverOpts extends ObserverBaseOpts {
+export interface ObserverOpts extends ObserverBaseOpts {
 	/**
 	 * Whether or not to follow any links when observing.
 	 */
@@ -548,13 +601,13 @@ interface ObserverOpts extends ObserverBaseOpts {
 	 */
 	strict?: boolean;
 }
-interface ObserverArrayOpts extends ObserverBaseOpts {
+export interface ObserverArrayOpts extends ObserverBaseOpts {
 	/**
 	 * Create an array observer, which fires array changes objects rather than the usual callback when array modification methods are used.
 	 */
 	array: boolean;
 }
-interface ObserverBaseDescriptor<T extends Ractive<T> = Ractive> extends ObserverOpts {
+export interface ObserverBaseDescriptor<T extends Ractive<T> = Ractive> extends ObserverOpts {
 	/**
 	 * The observer callback.
 	 */
@@ -565,7 +618,7 @@ interface ObserverBaseDescriptor<T extends Ractive<T> = Ractive> extends Observe
 	 */
 	once?: boolean;
 }
-interface ObserverArrayDescriptor<T extends Ractive<T> = Ractive> extends ObserverArrayOpts {
+export interface ObserverArrayDescriptor<T extends Ractive<T> = Ractive> extends ObserverArrayOpts {
 	/**
 	 * The observer callback.j
 	 */
@@ -576,13 +629,13 @@ interface ObserverArrayDescriptor<T extends Ractive<T> = Ractive> extends Observ
 	 */
 	once?: boolean;
 }
-type ObserverDescriptor<T extends Ractive<T> = Ractive> = ObserverBaseDescriptor<T> | ObserverArrayDescriptor<T>;
+export type ObserverDescriptor<T extends Ractive<T> = Ractive> = ObserverBaseDescriptor<T> | ObserverArrayDescriptor<T>;
 
-type ParseDelimiters = [ string, string ];
+export type ParseDelimiters = [ string, string ];
 
-type ParseFn = (helper: ParseHelper) => string | Array<{} | string> | ParsedTemplate;
+export type ParseFn = (helper: ParseHelper) => string | Array<{} | string> | ParsedTemplate;
 
-interface ParseHelper {
+export interface ParseHelper {
 	/**
 	 * Retrieves a template string from a script tag with the given id.j
 	 */
@@ -599,7 +652,7 @@ interface ParseHelper {
 	parse(template: string, opts?: ParseOpts): ParsedTemplate;
 }
 
-interface ParsedTemplate {
+export interface ParsedTemplate {
 	/** The version of the template spec that produced this template. */
 	v: number;
 
@@ -613,30 +666,34 @@ interface ParsedTemplate {
 	p?: { [key: string]: any[] };
 }
 
-type Partial = string | any[] | ParseFn;
+export type Partial = string | any[] | ParseFn | Macro;
 
-type PluginExtend = (PluginArgsExtend) => void;
-type PluginInstance = (PluginArgsInstance) => void;
+export interface PartialMap {
+	[key: string]: Partial;
+}
 
-interface PluginArgsBase {
+export type PluginExtend = (PluginArgsExtend) => void;
+export type PluginInstance = (PluginArgsInstance) => void;
+
+export interface PluginArgsBase {
 	Ractive: typeof Ractive;
 }
-interface PluginArgsInstance {
+export interface PluginArgsInstance {
 	proto: Ractive;
 	instance: Ractive;
 }
-interface PluginArgsExtend {
+export interface PluginArgsExtend {
 	proto: Static;
 	instance: Static;
 }
 
 export type Plugin = (PluginArgsBase) => void;
 
-interface ReadLinkOpts {
+export interface ReadLinkOpts {
 	/** Whether or not to follow through any upstream links when resolving the source. */
 	canonical?: boolean;
 }
-interface ReadLinkResult {
+export interface ReadLinkResult {
 	/** The Ractive instance that hosts the source keypath. */
 	ractive: Ractive;
 
@@ -644,7 +701,7 @@ interface ReadLinkResult {
 	keypath: string;
 }
 
-interface SanitizeOpts {
+export interface SanitizeOpts {
 	/** A list of element names to remove from the template. */
 	elements: string[];
 
@@ -652,7 +709,7 @@ interface SanitizeOpts {
 	eventAttributes?: boolean;
 }
 
-interface SetOpts {
+export interface SetOpts {
 	/** Whether or not to merge the given value into the existing data or replace the existing data. Defaults to replacing the existing data (false). */
 	deep?: boolean;
 
@@ -663,14 +720,14 @@ interface SetOpts {
 	shuffle?: Shuffler;
 }
 
-type Shuffler = boolean | string | ShuffleFn;
-type ShuffleFn = (left: any, right: any) => (1 | 0 | -1);
+export type Shuffler = boolean | string | ShuffleFn;
+export type ShuffleFn = (left: any, right: any) => (1 | 0 | -1);
 
-type Target = string | HTMLElement | ArrayLike<any>;
+export type Target = string | HTMLElement | ArrayLike<any>;
 
-type Template = ParsedTemplate | string | any[] | ParseFn;
+export type Template = ParsedTemplate | string | any[] | ParseFn;
 
-interface TransitionHelper {
+export interface TransitionHelper {
 	/** true if this transition is an intro */
 	isIntro: boolean;
 
@@ -737,8 +794,8 @@ interface TransitionHelper {
 	/** Set inline styles for the given map of prop -> value. */
 	setStyle(map: ValueMap): void;
 }
-type Transition = (helper: TransitionHelper, ...args: any[]) => (void | Promise<void>);
-interface TransitionOpts {
+export type Transition = (helper: TransitionHelper, ...args: any[]) => (void | Promise<void>);
+export interface TransitionOpts {
 	/** The duration for the transition in milliseconds, slow for 600ms, fast for 200ms, and any other string for 400ms. */
 	duration?: number | 'slow' | 'fast' | string;
 
@@ -749,12 +806,12 @@ interface TransitionOpts {
 	delay?: number;
 }
 
-interface UpdateOpts {
+export interface UpdateOpts {
 	/** Whether or not to force Ractive to consider a value to be changed. */
 	force?: boolean;
 }
 
-interface Registry<T> { [key: string]: T }
+export interface Registry<T> { [key: string]: T }
 
 export interface BaseParseOpts {
 	/** The number of lines of template above and below a line with an error to include in the error message. */
@@ -916,7 +973,7 @@ export interface InitOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T
 	enhance?: true;
 }
 
-interface Registries<T extends Ractive<T>> {
+export interface Registries<T extends Ractive<T>> {
 	adaptors: Registry<Adaptor>;
 	components: Registry<Component>;
 	decorators: Registry<Decorator<T>>;
@@ -926,11 +983,11 @@ interface Registries<T extends Ractive<T>> {
 	partials: Registry<Partial>;
 }
 
-interface Constructor<T extends Ractive<T>, U extends InitOpts<T> = InitOpts<T>> {
+export interface Constructor<T extends Ractive<T>, U extends InitOpts<T> = InitOpts<T>> {
 	new(opts?: U): T;
 }
 
-interface Static<T extends Ractive<T> = Ractive> {
+export interface Static<T extends Ractive<T> = Ractive> {
 	new<V extends InitOpts<T> = InitOpts<T>>(opts?: V): T;
 
 	/** The registries that are inherited by all instance. */
@@ -980,7 +1037,7 @@ interface Static<T extends Ractive<T> = Ractive> {
 	Parent: Static;
 }
 
-interface Children extends Array<Ractive> {
+export interface Children extends Array<Ractive> {
 	/** Lists of instances targetting anchors by name. */
 	byName: { [key: string]: Ractive[] }
 }
@@ -995,6 +1052,11 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	root: Ractive;
 	/** A list of children attached to this instance. */
 	children: Children;
+
+	/**
+	 * Whether or not this instance is currently rendered into the DOM.
+	 */
+	rendered: boolean;
 
 	adaptors: Registry<Adaptor>;
 	components: Registry<Component>;
@@ -1136,7 +1198,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	/**
 	 * Create an observer at the given keypath that will be called when the value at that keypath mutates.
 	 * @param keypath the keypath(s) to observe - multiple keypaths can be separated by a space
-	 * @param callbackk
+	 * @param callback
 	 * @param opts
 	 */
 	observe(keypath: string, callback: ObserverCallback<T>, opts?: ObserverOpts): ObserverHandle;
@@ -1144,7 +1206,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	/**
 	 * Create an observer at the given keypath that will be called when the value at that keypath mutates.
 	 * @param keypath the keypath(s) to observe - multiple keypaths can be separated by a space
-	 * @param callbackk
+	 * @param callback
 	 * @param opts
 	 */
 	observe(keypath: string, callback: ObserverArrayCallback<T>, opts?: ObserverArrayOpts): ObserverHandle;
@@ -1475,6 +1537,13 @@ export module Ractive {
 
 	/** Safely join the given keys into a keypath. */
 	function joinKeys(...keys: string[]): string;
+
+	/**
+	 * Initialize a macro function.
+	 * @param macro
+	 * @param options
+	 */
+	function macro(macro: MacroFn, options: MacroOpts): Macro;
 
 	/**
 	 * Parse the given template string into a template.j

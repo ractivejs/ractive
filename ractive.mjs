@@ -1,7 +1,7 @@
 /*
-	Ractive.js v0.10.1
-	Build: e5d3b962f6336b7f8936e23d320a2af09b89a9f3
-	Date: Fri Apr 13 2018 19:48:25 GMT+0000 (UTC)
+	Ractive.js v0.10.2
+	Build: b3e92ba954ea5678f324710aea60a55dc0c6d6cd
+	Date: Tue Apr 24 2018 20:33:51 GMT+0000 (UTC)
 	Website: http://ractivejs.org
 	License: MIT
 */
@@ -481,13 +481,13 @@ var welcome;
 
 if (hasConsole) {
   var welcomeIntro = [
-    "%cRactive.js %c0.10.1 %cin debug mode, %cmore...",
+    "%cRactive.js %c0.10.2 %cin debug mode, %cmore...",
     'color: rgb(114, 157, 52); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
-  var welcomeMessage = "You're running Ractive 0.10.1 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  var welcomeMessage = "You're running Ractive 0.10.2 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   welcome = function () {
     if (Ractive.WELCOME_MESSAGE === false) {
@@ -7130,6 +7130,7 @@ var hooks = {};
   'complete',
   'reset',
   'render',
+  'unrendering',
   'unrender',
   'teardown',
   'destruct',
@@ -8054,7 +8055,7 @@ function findModel(ctx, path) {
 }
 
 function findEvent(el, name) {
-  return el.events && el.events.find(function (e) { return ~e.template.n.indexOf(name); });
+  return el.events && el.events.find && el.events.find(function (e) { return ~e.template.n.indexOf(name); });
 }
 
 function Ractive$fire(eventName) {
@@ -14434,6 +14435,7 @@ EventDirective__proto__.unrender = function unrender () {
 };
 
 EventDirective.prototype.update = noop;
+EventDirective.prototype.rebound = noop;
 
 function progressiveText(item, target, occupants, text) {
   if (occupants) {
@@ -15525,11 +15527,14 @@ function parsePartial(name, partial, ractive) {
   return parsed || { t: [] };
 }
 
-var KeyModel = function KeyModel(key) {
-  this.value = key;
+var KeyModel = function KeyModel(value, context, instance) {
+  this.value = this.key = value;
+  this.context = context;
   this.isReadonly = this.isKey = true;
   this.deps = [];
   this.links = [];
+  this.children = [];
+  this.instance = instance;
 };
 var KeyModel__proto__ = KeyModel.prototype;
 
@@ -15538,7 +15543,14 @@ KeyModel__proto__.applyValue = function applyValue (value) {
     this.value = this.key = value;
     this.deps.forEach(handleChange);
     this.links.forEach(handleChange);
+    this.children.forEach(function (c) {
+      c.applyValue(c.context.getKeypath(c.instance));
+    });
   }
+};
+
+KeyModel__proto__.destroyed = function destroyed () {
+  if (this.upstream) { this.upstream.unregisterChild(this); }
 };
 
 KeyModel__proto__.get = function get (shouldCapture) {
@@ -15568,12 +15580,21 @@ KeyModel__proto__.register = function register (dependant) {
   this.deps.push(dependant);
 };
 
+KeyModel__proto__.registerChild = function registerChild (child) {
+  addToArray(this.children, child);
+  child.upstream = this;
+};
+
 KeyModel__proto__.registerLink = function registerLink (link) {
   addToArray(this.links, link);
 };
 
 KeyModel__proto__.unregister = function unregister (dependant) {
   removeFromArray(this.deps, dependant);
+};
+
+KeyModel__proto__.unregisterChild = function unregisterChild (child) {
+  removeFromArray(this.children, child);
 };
 
 KeyModel__proto__.unregisterLink = function unregisterLink (link) {
@@ -15711,6 +15732,8 @@ RepeatedFragment__proto__.destroyed = function destroyed () {
 
   var len = this.iterations.length;
   for (var i = 0; i < len; i++) { this$1.iterations[i].destroyed(); }
+  if (this.pathModel) { this.pathModel.destroyed(); }
+  if (this.rootModel) { this.rootModel.destroyed(); }
 };
 
 RepeatedFragment__proto__.detach = function detach () {
@@ -16103,6 +16126,7 @@ RepeatedFragment__proto__.updatePostShuffle = function updatePostShuffle () {
 };
 
 RepeatedFragment.prototype.getContext = getContext;
+RepeatedFragment.prototype.getKeypath = getKeypath;
 
 // find the topmost delegate
 function findDelegate(start) {
@@ -16149,6 +16173,14 @@ function swizzleFragment(section, fragment, key, idx) {
 
   if (fragment.idxModel) { fragment.idxModel.applyValue(idx); }
   if (fragment.keyModel) { fragment.keyModel.applyValue(key); }
+  if (fragment.pathModel) {
+    fragment.pathModel.context = model;
+    fragment.pathModel.applyValue(model.getKeypath());
+  }
+  if (fragment.rootModel) {
+    fragment.rootModel.context = model;
+    fragment.rootModel.applyValue(model.getKeypath(fragment.ractive.root));
+  }
 
   // handle any aliases
   var aliases = fragment.aliases;
@@ -17270,7 +17302,7 @@ Transition__proto__.unregisterCompleteHandler = function unregisterCompleteHandl
 };
 
 var proto$7 = Transition.prototype;
-proto$7.destroyed = proto$7.render = proto$7.unrender = proto$7.update = noop;
+proto$7.destroyed = proto$7.rebound = proto$7.render = proto$7.unrender = proto$7.update = noop;
 
 function nearestProp(prop, ractive, rendering) {
   var instance = ractive;
@@ -17881,6 +17913,8 @@ Fragment__proto__.destroyed = function destroyed () {
 
   var len = this.items.length;
   for (var i = 0; i < len; i++) { this$1.items[i].destroyed(); }
+  if (this.pathModel) { this.pathModel.destroyed(); }
+  if (this.rootModel) { this.rootModel.destroyed(); }
 };
 
 Fragment__proto__.detach = function detach () {
@@ -17984,23 +18018,14 @@ Fragment__proto__.getKey = function getKey () {
   return this.keyModel || (this.keyModel = new KeyModel(this.key));
 };
 
-Fragment__proto__.getKeypath = function getKeypath (root) {
-  if (root) {
-    return (
-      this.rootModel ||
-      (this.rootModel = new KeyModel(this.context.getKeypath(this.ractive.root)))
-    );
-  } else {
-    return this.pathModel || (this.pathModel = new KeyModel(this.context.getKeypath()));
-  }
-};
-
 Fragment__proto__.getIndex = function getIndex () {
   return this.idxModel || (this.idxModel = new KeyModel(this.index));
 };
 
 Fragment__proto__.rebind = function rebind (next) {
   this.context = next;
+  if (this.rootModel) { this.rootModel.context = this.context; }
+  if (this.pathModel) { this.pathModel.context = this.context; }
 };
 
 Fragment__proto__.rebound = function rebound (update$$1) {
@@ -18117,6 +18142,31 @@ Fragment__proto__.valueOf = function valueOf () {
   return this.value;
 };
 Fragment.prototype.getContext = getContext;
+Fragment.prototype.getKeypath = getKeypath;
+
+function getKeypath(root) {
+  var base = findParentWithContext(this);
+  var model;
+  if (root) {
+    if (!this.rootModel) {
+      this.rootModel = new KeyModel(
+        this.context.getKeypath(this.ractive.root),
+        this.context,
+        this.ractive.root
+      );
+      model = this.rootModel;
+    } else { return this.rootModel; }
+  } else {
+    if (!this.pathModel) {
+      this.pathModel = new KeyModel(this.context.getKeypath(), this.context);
+      model = this.pathModel;
+    } else { return this.pathModel; }
+  }
+
+  if (base && base.context) { base.getKeypath(root).registerChild(model); }
+
+  return model;
+}
 
 function initialise(ractive, userOptions, options) {
   // initialize settable computeds
@@ -18504,6 +18554,8 @@ function Ractive$unrender() {
   this.unrendering = true;
   var promise = runloop.start();
 
+  hooks.unrendering.fire(this);
+
   // If this is a component, and the component isn't marked for destruction,
   // don't detach nodes from the DOM unnecessarily
   var shouldDestroy =
@@ -18855,7 +18907,7 @@ if (win && !win.Ractive) {
   /* istanbul ignore next */
   if (~opts$1.indexOf('ForceGlobal')) { win.Ractive = Ractive; }
 } else if (win) {
-  warn("Ractive already appears to be loaded while loading 0.10.1.");
+  warn("Ractive already appears to be loaded while loading 0.10.2.");
 }
 
 assign(Ractive.prototype, proto$8, defaults);
@@ -18897,7 +18949,7 @@ defineProperties(Ractive, {
   svg: { value: svg },
 
   // version
-  VERSION: { value: '0.10.1' },
+  VERSION: { value: '0.10.2' },
 
   // plugins
   adaptors: { writable: true, value: {} },
