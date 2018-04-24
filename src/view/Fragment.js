@@ -93,6 +93,8 @@ export default class Fragment {
   destroyed() {
     const len = this.items.length;
     for (let i = 0; i < len; i++) this.items[i].destroyed();
+    if (this.pathModel) this.pathModel.destroyed();
+    if (this.rootModel) this.rootModel.destroyed();
   }
 
   detach() {
@@ -194,23 +196,14 @@ export default class Fragment {
     return this.keyModel || (this.keyModel = new KeyModel(this.key));
   }
 
-  getKeypath(root) {
-    if (root) {
-      return (
-        this.rootModel ||
-        (this.rootModel = new KeyModel(this.context.getKeypath(this.ractive.root)))
-      );
-    } else {
-      return this.pathModel || (this.pathModel = new KeyModel(this.context.getKeypath()));
-    }
-  }
-
   getIndex() {
     return this.idxModel || (this.idxModel = new KeyModel(this.index));
   }
 
   rebind(next) {
     this.context = next;
+    if (this.rootModel) this.rootModel.context = this.context;
+    if (this.pathModel) this.pathModel.context = this.context;
   }
 
   rebound(update) {
@@ -322,3 +315,28 @@ export default class Fragment {
   }
 }
 Fragment.prototype.getContext = getContext;
+Fragment.prototype.getKeypath = getKeypath;
+
+export function getKeypath(root) {
+  const base = findParentWithContext(this);
+  let model;
+  if (root) {
+    if (!this.rootModel) {
+      this.rootModel = new KeyModel(
+        this.context.getKeypath(this.ractive.root),
+        this.context,
+        this.ractive.root
+      );
+      model = this.rootModel;
+    } else return this.rootModel;
+  } else {
+    if (!this.pathModel) {
+      this.pathModel = new KeyModel(this.context.getKeypath(), this.context);
+      model = this.pathModel;
+    } else return this.pathModel;
+  }
+
+  if (base && base.context) base.getKeypath(root).registerChild(model);
+
+  return model;
+}

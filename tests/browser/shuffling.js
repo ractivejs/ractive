@@ -872,4 +872,36 @@ export default function() {
       '44'
     );
   });
+
+  test(`observers with non-shuffling args in a decorator that is shuffled resets correctly (#3228)`, t => {
+    const dec = function(node, path) {
+      const observer = this.observe(
+        path,
+        (v, o, k) => {
+          this.set(k + '_', '' + v);
+        },
+        { defer: true }
+      );
+      return {
+        teardown() {
+          observer.cancel();
+        }
+      };
+    };
+
+    const r = new Ractive({
+      decorators: { dec },
+      target: fixture,
+      template: '{{#each items}}<div as-dec=`${@keypath}.foo`>{{.foo_}}{{/each}}',
+      data: {
+        items: [{ foo: 0 }, { foo: 1 }]
+      }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '<div>0</div><div>1</div>');
+
+    r.splice('items', 0, 1);
+
+    t.htmlEqual(fixture.innerHTML, '<div>1</div>');
+  });
 }

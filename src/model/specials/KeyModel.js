@@ -5,11 +5,14 @@ import { handleChange } from 'src/shared/methodCallers';
 import noop from 'utils/noop';
 
 export default class KeyModel {
-  constructor(key) {
-    this.value = key;
+  constructor(value, context, instance) {
+    this.value = this.key = value;
+    this.context = context;
     this.isReadonly = this.isKey = true;
     this.deps = [];
     this.links = [];
+    this.children = [];
+    this.instance = instance;
   }
 
   applyValue(value) {
@@ -17,7 +20,14 @@ export default class KeyModel {
       this.value = this.key = value;
       this.deps.forEach(handleChange);
       this.links.forEach(handleChange);
+      this.children.forEach(c => {
+        c.applyValue(c.context.getKeypath(c.instance));
+      });
     }
+  }
+
+  destroyed() {
+    if (this.upstream) this.upstream.unregisterChild(this);
   }
 
   get(shouldCapture) {
@@ -45,12 +55,21 @@ export default class KeyModel {
     this.deps.push(dependant);
   }
 
+  registerChild(child) {
+    addToArray(this.children, child);
+    child.upstream = this;
+  }
+
   registerLink(link) {
     addToArray(this.links, link);
   }
 
   unregister(dependant) {
     removeFromArray(this.deps, dependant);
+  }
+
+  unregisterChild(child) {
+    removeFromArray(this.children, child);
   }
 
   unregisterLink(link) {
