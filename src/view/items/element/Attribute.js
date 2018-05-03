@@ -90,7 +90,9 @@ export default class Attribute extends Item {
     attribute = true;
     const value = this.fragment
       ? this.fragment.toString()
-      : this.value != null ? '' + this.value : '';
+      : this.value != null
+        ? '' + this.value
+        : '';
     attribute = false;
     return value;
   }
@@ -101,7 +103,9 @@ export default class Attribute extends Item {
     attribute = true;
     const value = this.fragment
       ? this.fragment.valueOf()
-      : booleanAttributes[this.name.toLowerCase()] ? true : this.value;
+      : booleanAttributes[this.name.toLowerCase()]
+        ? true
+        : this.value;
     attribute = false;
     return value;
   }
@@ -192,7 +196,9 @@ export default class Attribute extends Item {
 
     if (booleanAttributes[this.name.toLowerCase()])
       return value
-        ? isString(value) ? `${this.name}="${safeAttributeString(value)}"` : this.name
+        ? isString(value)
+          ? `${this.name}="${safeAttributeString(value)}"`
+          : this.name
         : '';
     if (value == null) return '';
 

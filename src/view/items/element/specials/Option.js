@@ -51,7 +51,9 @@ export default class Option extends Element {
     const attribute = this.attributeByName[name];
     return attribute
       ? attribute.getValue()
-      : name === 'value' && this.fragment ? this.fragment.valueOf() : undefined;
+      : name === 'value' && this.fragment
+        ? this.fragment.valueOf()
+        : undefined;
   }
 
   isSelected() {
