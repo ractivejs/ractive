@@ -1,5 +1,19 @@
 # changelog
 
+# 0.10.2
+
+* Bug fixes
+	* Reference expression models will no longer re-register themselves exponentially when they are shuffled or relinked (#3232)
+	* `on-load` events are no longer defered because `load` events typically only fire once, possibly as soon as the element is attached to the DOM (#3233)
+
+
+# 0.9.14
+
+* Bug fixes
+	* Expressions in static mappings will no longer leak (#3201)
+	* Reference expressions will now cause their source model to shuffle if necessary (#3234)
+
+
 # 0.10.1
 
 * Breaking changes
