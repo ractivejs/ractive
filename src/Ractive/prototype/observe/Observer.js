@@ -86,7 +86,9 @@ export default class Observer {
 
 function updateOld(observer, fresh) {
   const next = fresh
-    ? observer.model ? observer.model.get() : observer.newValue
+    ? observer.model
+      ? observer.model.get()
+      : observer.newValue
     : observer.newValue;
   observer.oldValue = observer.oldFn
     ? observer.oldFn.call(observer.oldContext, undefined, next, observer.keypath)
