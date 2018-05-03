@@ -872,4 +872,40 @@ export default function() {
       '44'
     );
   });
+
+  test(`shuffling a reference expression keeps the target updated (#3234)`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: `{{#with foo[bar]}}<button on-click="@context.push('.', 1)">add</button>{{/with}}<div>{{#each foo.foo}}{{.}}{{/each}}</div>`,
+      data: {
+        foo: {
+          foo: []
+        },
+        bar: 'foo'
+      }
+    });
+
+    fire(r.find('button'), 'click');
+
+    t.htmlEqual(fixture.querySelector('div').innerHTML, '1');
+  });
+
+  test(`shuffling a reference expression child keeps the target updated (#3234)`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: `{{#with foo[bar].bar}}<button on-click="@context.push('.', 1)">add</button>{{/with}}<div>{{#each foo.foo.bar}}{{.}}{{/each}}</div>`,
+      data: {
+        foo: {
+          foo: {
+            bar: []
+          }
+        },
+        bar: 'foo'
+      }
+    });
+
+    fire(r.find('button'), 'click');
+
+    t.htmlEqual(fixture.querySelector('div').innerHTML, '1');
+  });
 }

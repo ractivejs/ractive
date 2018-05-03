@@ -225,6 +225,11 @@ export default class ReferenceExpressionProxy extends Model {
     this.model.set(value);
   }
 
+  shuffle(newIndices, unsafe) {
+    if (this.model && !this.model.shuffling) this.model.shuffle(newIndices, unsafe);
+    else super.shuffle(newIndices, unsafe);
+  }
+
   teardown() {
     if (this.base) {
       this.base.unregister(this.intermediary);
