@@ -24,7 +24,9 @@ export default function processItems(items, values, guid, counter = 0) {
       const model = item.model || item.newModel;
 
       values[placeholderId] = model
-        ? model.wrapper ? model.wrapperValue : model.get()
+        ? model.wrapper
+          ? model.wrapperValue
+          : model.get()
         : undefined;
 
       return '${' + placeholderId + '}';

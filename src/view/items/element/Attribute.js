@@ -89,7 +89,9 @@ export default class Attribute extends Item {
     attribute = true;
     const value = this.fragment
       ? this.fragment.toString()
-      : this.value != null ? '' + this.value : '';
+      : this.value != null
+        ? '' + this.value
+        : '';
     attribute = false;
     return value;
   }
@@ -100,7 +102,9 @@ export default class Attribute extends Item {
     attribute = true;
     const value = this.fragment
       ? this.fragment.valueOf()
-      : booleanAttributes.test(this.name) ? true : this.value;
+      : booleanAttributes.test(this.name)
+        ? true
+        : this.value;
     attribute = false;
     return value;
   }
@@ -191,7 +195,9 @@ export default class Attribute extends Item {
 
     if (booleanAttributes.test(this.name))
       return value
-        ? isString(value) ? `${this.name}="${safeAttributeString(value)}"` : this.name
+        ? isString(value)
+          ? `${this.name}="${safeAttributeString(value)}"`
+          : this.name
         : '';
     if (value == null) return '';
 

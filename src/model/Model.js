@@ -38,7 +38,9 @@ export default class Model extends ModelBase {
     if (len === 0) return;
 
     const value = this.wrapper
-      ? 'newWrapperValue' in this ? this.newWrapperValue : this.wrapperValue
+      ? 'newWrapperValue' in this
+        ? this.newWrapperValue
+        : this.wrapperValue
       : this.value;
 
     // TODO remove this legacy nonsense
