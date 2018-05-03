@@ -50,8 +50,10 @@ export default class ReferenceExpressionProxy extends LinkModel {
           }
         }
 
-        if (next !== previous) previous.unregister(proxy);
-        if (next) next.addShuffleTask(() => next.register(proxy));
+        if (next !== previous) {
+          previous.unregister(proxy);
+          if (next) next.addShuffleTask(() => next.register(proxy));
+        }
       },
       handleChange: () => {
         pathChanged();
@@ -103,6 +105,16 @@ export default class ReferenceExpressionProxy extends LinkModel {
   teardown() {
     teardown(this);
     super.teardown();
+  }
+
+  unreference() {
+    super.unreference();
+    if (!this.deps.length && !this.refs) this.teardown();
+  }
+
+  unregister(dep) {
+    super.unregister(dep);
+    if (!this.deps.length && !this.refs) this.teardown();
   }
 }
 
