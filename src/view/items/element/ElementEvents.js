@@ -31,10 +31,10 @@ class DOMEvent {
   bind() {}
 
   render(directive) {
-    // schedule events so that they take place after twoway binding
-    runloop.scheduleTask(() => {
+    const name = this.name;
+
+    const register = () => {
       const node = this.owner.node;
-      const name = this.name;
       const on = `on${name}`;
 
       // this is probably a custom event fired from a decorator or manually
@@ -51,7 +51,15 @@ class DOMEvent {
           });
         })
       );
-    }, true);
+    };
+
+    if (name !== 'load') {
+      // schedule events so that they take place after twoway binding
+      runloop.scheduleTask(register, true);
+    } else {
+      // unless its a load event
+      register();
+    }
   }
 
   unbind() {}

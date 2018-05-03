@@ -463,6 +463,18 @@ export default function() {
     });
   });
 
+  test(`load events don't defer because they need to be attached upon insertion (#3233)`, t => {
+    t.expect(1);
+
+    new Ractive({
+      target: fixture,
+      template: '<iframe on-load="@.check()" />',
+      check() {
+        t.ok(true, 'frame fired onload');
+      }
+    });
+  });
+
   if (hasUsableConsole) {
     test(`event plugin args that throw don't blow up the world`, t => {
       t.expect(3);
