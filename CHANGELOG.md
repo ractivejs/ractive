@@ -1,5 +1,11 @@
 # changelog
 
+# 0.10.4 (unreleased)
+
+* Bug fixes
+	* Ambiguity warnings no longer consider alias blocks as contributing to ambiguity (#3238)
+
+
 # 0.10.3
 
 * Bug fixes

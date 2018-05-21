@@ -150,6 +150,7 @@ export default function resolveReference(fragment, ref) {
   // walk up the fragment hierarchy looking for a matching ref, alias, or key in a context
   let createMapping = false;
   const shouldWarn = fragment.ractive.warnAboutAmbiguity;
+  let crossed = 0;
   let model;
 
   while (fragment) {
@@ -179,7 +180,7 @@ export default function resolveReference(fragment, ref) {
           warnIfDebug(
             `'${ref}' resolved but is ambiguous and will create a mapping to a parent component.`
           );
-      } else if (shouldWarn) warnIfDebug(`'${ref}' resolved but is ambiguous.`);
+      } else if (shouldWarn && crossed) warnIfDebug(`'${ref}' resolved but is ambiguous.`);
     }
 
     if (model) {
@@ -193,6 +194,9 @@ export default function resolveReference(fragment, ref) {
 
       return model;
     }
+
+    // don't consider alias blocks when checking for ambiguity
+    if (fragment.context && !fragment.aliases) crossed = 1;
 
     if (
       (fragment.componentParent || (!fragment.parent && fragment.ractive.component)) &&
