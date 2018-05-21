@@ -304,6 +304,24 @@ export default function() {
     t.htmlEqual(fixture.innerHTML, 'yepyep');
   });
 
+  test(`ambiguity warnings don't consider alias blocks during checks`, t => {
+    t.expect(0);
+
+    onWarn(w => {
+      if (/ambiguous/.test(w)) t.ok(false, 'should not warn');
+    });
+
+    new Ractive({
+      target: fixture,
+      template: '{{#with 42 as foo}}{{bar}}{{/with}}',
+      warnAboutAmbiguity: true,
+      data: {
+        bar: 'yep',
+        foo: 99
+      }
+    });
+  });
+
   test('component tree root data can be accessed with @.root.data (#2432)', t => {
     const cmp = Ractive.extend({
       template: '{{#with some.path}}{{~/foo}} {{@.root.data.foo}}{{/with}}',
