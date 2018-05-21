@@ -1,6 +1,6 @@
 # changelog
 
-# 0.10.2
+# 0.10.3
 
 * Bug fixes
 	* Reference expression models will no longer re-register themselves exponentially when they are shuffled or relinked (#3232)
@@ -12,6 +12,16 @@
 * Bug fixes
 	* Expressions in static mappings will no longer leak (#3201)
 	* Reference expressions will now cause their source model to shuffle if necessary (#3234)
+
+
+# 0.10.2
+
+* Bug fixes
+	* Calling `raise` on an element context that has no matching event no longer throws (#3226)
+	* `@keypath` models are now kept fully up to date during a shuffle (#3228)
+
+* Other changes
+	* There is now an `unrendering` lifecycle event that fires before the instance unrenders, allowing access to methods that require the DOM to still be rendered, like `find`.
 
 
 # 0.10.1
