@@ -651,4 +651,32 @@ export default function() {
     r.set('foo', 'bar');
     t.ok(p === r.find('p'), 'template not reset');
   });
+
+  test(`boolean macro attributes come through as such`, t => {
+    let h;
+
+    const macro = Ractive.macro(
+      handle => {
+        h = handle;
+      },
+      {
+        attributes: ['foo', 'bar', 'baz', 'bip']
+      }
+    );
+
+    new Ractive({
+      target: fixture,
+      template: '<macro foo bind-bar baz=bat bip="{{bop}}" />',
+      partials: { macro },
+      data: {
+        bar: 'barred',
+        bop: 99
+      }
+    });
+
+    t.strictEqual(h.attributes.foo, true);
+    t.strictEqual(h.attributes.bar, 'barred');
+    t.strictEqual(h.attributes.baz, 'bat');
+    t.strictEqual(h.attributes.bip, 99);
+  });
 }

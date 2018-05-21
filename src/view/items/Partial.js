@@ -135,7 +135,7 @@ assign(proto, {
 
   refreshAttrs() {
     keys(this._attrs).forEach(k => {
-      this.handle.attributes[k] = this._attrs[k].valueOf();
+      this.handle.attributes[k] = !this._attrs[k].items.length || this._attrs[k].valueOf();
     });
   },
 
