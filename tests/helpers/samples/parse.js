@@ -966,6 +966,11 @@ const parseTests = [
 		name: `unquoted directive values don't get turned into > or / operations if they happen to be the last attribute`,
 		template: `<a on-click=foo()>...</a><div on-click=bar() + baz !== 10 />`,
 		parsed: {v:4,t:[{t:7,e:'a',m:[{t:70,n:['click'],f:{s:'[_0()]',r:['foo']}}], f:['...']},{t:7,e:'div',m:[{t:70,n:['click'],f:{s:'[_0()+_1!==10]',r:['bar','baz']}}]}]}
+	},
+	{
+		name: `whitespace trimming inside consecutive sections should not eat space (#3239)`,
+		template: '<p>a{{#if 1}} b{{/if}}  /  {{#if 1}}d {{/if}}e / a{{#if 1}} b{{/if}}</p>',
+		parsed: {v:4,t:[{t:7,e:'p',f:['a',{t:4,f:[' b'],n:50,x:{r:[],s:'1'}},' / ',{t:4,f:['d '],n:50,x:{r:[],s:'1'}},'e / a',{t:4,f:[' b'],n:50,x:{r:[],s:'1'}}]}]}
 	}
 ];
 

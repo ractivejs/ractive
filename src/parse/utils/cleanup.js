@@ -53,6 +53,7 @@ export default function cleanup(
   i = items.length;
   while (i--) {
     item = items[i];
+    removeLeadingWhitespaceInsideFragment = removeTrailingWhitespaceInsideFragment = false;
 
     // Recurse
     if (item.f) {
