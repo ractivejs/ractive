@@ -5,6 +5,7 @@
 * Bug fixes
 	* Ambiguity warnings no longer consider alias blocks as contributing to ambiguity (#3238)
 	* Boolean attributes are now passed to macros as `true` rather than empty strings
+	* Whitespace removal during parsing is no longer overzealous (#3239)
 
 # 0.10.3
 
