@@ -306,7 +306,7 @@ export default function() {
 
     t.htmlEqual(
       fixture.innerHTML,
-      '<h1>Promises</h1><h2>See my list</h2><div>1</div><div>2</div><div>3</div> etc'
+      '<h1>Promises</h1><h2>See my list</h2><div>1</div><div>2</div><div>3</div>  etc'
     );
 
     let ok;
@@ -316,15 +316,15 @@ export default function() {
 
     r.set('promise', pr);
 
-    t.htmlEqual(fixture.innerHTML, `<h1>Promises</h1><i>I'm probably</i> waiting... etc`);
+    t.htmlEqual(fixture.innerHTML, `<h1>Promises</h1><i>I'm probably</i> waiting...  etc`);
     r.toggle('something');
-    t.htmlEqual(fixture.innerHTML, `<h1>Promises</h1><b>I'm</b> waiting... etc`);
+    t.htmlEqual(fixture.innerHTML, `<h1>Promises</h1><b>I'm</b> waiting...  etc`);
     ok(['a', 'b', 'c']);
 
     pr.then(() => {
       t.htmlEqual(
         fixture.innerHTML,
-        '<h1>Promises</h1><h2>See my list</h2><div>a</div><div>b</div><div>c</div> etc'
+        '<h1>Promises</h1><h2>See my list</h2><div>a</div><div>b</div><div>c</div>  etc'
       );
 
       pr = Promise.reject(new Error('nope'));
