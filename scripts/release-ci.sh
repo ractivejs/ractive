@@ -16,16 +16,34 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 			LAST=0
 		fi
 		LAST=$((LAST + 1))
+		if [ "$FORCE_BUILD_NUM" != "" ]; then
+			echo "overriding build number ${LAST} with ${FORCE_BUILD_NUM}"
+			LAST=$FORCE_BUILD_NUM
+		fi
 
 		TARGET="${VERSION_NUM}-build-${LAST}"
+
+		npm show ractive versions --json | grep "\"$TARGET\"" > /dev/null
+		if [ "$?" = "1" ]; then PUBLISHED=0; else PUBLISHED=1; fi
 	else
 		TARGET=$VERSION_NUM
-		npm show ractive versions --json | grep "\"$VERSION_NUM\"" > /dev/null
+		if [ "$FORCE_VERSION_NUM" != "" ]; then
+			TARGET="$FORCE_VERSION_NUM"
+		fi
+
+		npm show ractive versions --json | grep "\"$TARGET\"" > /dev/null
 		if [ "$?" = "1" ]; then PUBLISHED=0; else PUBLISHED=1; fi
 	fi
 
-	echo major:$MAJOR version:$VERSION_NUM tag:$TAG edge:$EDGE last:$LAST target:$TARGET published:$PUBLISHED
+	echo branch:$TRAVIS_BRANCH major:$MAJOR version_num:$VERSION_NUM version:$VERSION tag:$TAG edge:$EDGE last:$LAST target:$TARGET published:$PUBLISHED
 	echo
+
+	if [ "${FORCE_LOCAL_BUILD}" != "" ]; then
+		echo
+		echo "Since you're doing this the hard way, I'll pause for a bit to let you bail..."
+		sleep 10
+		echo "...still holding onto your butts?"
+	fi
 
 	# fail with the first error
 	set -e
@@ -34,10 +52,17 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 	if [ "$MAJOR" = "0" -a "$EDGE" = "1" -a "$PUBLISHED" = "0" ]; then
 		echo 'updating tags...'
 
-		git config --global user.email "evschris+travis@gmail.com"
-		git config --global user.name "Travis-CI"
-		rm -rf release-branch
-		git clone https://evs-chris:${GH_TOKEN}@${GH_REF} -b release --depth 2 release-branch
+		if [ "$FORCE_LOCAL_BUILD" = "" ]; then
+			echo "using travis gh auth..."
+			git config --global user.email "evschris+travis@gmail.com"
+			git config --global user.name "Travis-CI"
+			rm -rf release-branch
+			git clone https://evs-chris:${GH_TOKEN}@${GH_REF} -b release --depth 2 release-branch
+		else
+			echo "using local gh auth..."
+			rm -rf release-branch
+			git clone ${GH_REF} -b release --depth 2 release-branch
+		fi
 
 		rm -r release-branch/*
 		cp README.md .build
@@ -48,7 +73,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 			git add -A
 			git commit -m "${VERSION} release"
 
-			echo "Pushing to github..."
+			#echo "Pushing to github..."
 			git push --quiet 2> /dev/null
 
 			# Publish to bower...
@@ -81,6 +106,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 			# purge cache
 			set +e
 
+			echo "clearing jsdelivr cache..."
 			curl http://purge.jsdelivr.net/npm/ractive@$TAG
 		)
 
@@ -101,6 +127,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 			# purge cache
 			set +e
 
+			echo "clearing jsdelivr cache..."
 			curl http://purge.jsdelivr.net/npm/ractive@$TAG
 			curl http://purge.jsdelivr.net/npm/ractive@edge
 		)

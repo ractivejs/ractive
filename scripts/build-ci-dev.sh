@@ -14,7 +14,9 @@ npm run test:chrome
 npm run test:electron
 npm run test:coverage
 
-npm run report:coveralls
+if [ "$FORCE_LOCAL_BUILD" = "" ]; then
+  npm run report:coveralls
+fi
 
 rm -rf .build
 mkdir .build
