@@ -65,7 +65,6 @@
     "build:ci:pr": "sh ./scripts/build-ci-pr.sh",
     "build:ci:dev": "sh ./scripts/build-ci-dev.sh",
     "report:coveralls": "cat .build/coverage/combined/lcov.info | coveralls",
-    "release:manual:all": "sh ./scripts/release-manual-all.sh",
-    "release:manual:edge": "sh ./scripts/release-manual-edge.sh"
+    "release:manual": "sh ./scripts/release-manual.sh"
   }
 }
