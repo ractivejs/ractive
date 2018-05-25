@@ -77,6 +77,9 @@ export default class Decorator {
     this.shouldDestroy = false;
     if (this.handle) this.unrender();
     runloop.scheduleTask(() => {
+      // bail if the host element has managed to become unrendered
+      if (!this.element.rendered) return;
+
       const fn = findInViewHierarchy('decorators', this.ractive, this.name);
 
       if (!fn) {
