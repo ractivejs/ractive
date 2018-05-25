@@ -6,6 +6,8 @@
 	* Ambiguity warnings no longer consider alias blocks as contributing to ambiguity (#3238)
 	* Boolean attributes are now passed to macros as `true` rather than empty strings
 	* Whitespace removal during parsing is no longer overzealous (#3239)
+	* Decorators that are unrendered before they fully render will no longer try to render and throw (#3241)
+
 
 # 0.10.3
 
