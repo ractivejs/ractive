@@ -659,4 +659,28 @@ export default function() {
     t.equal(dom, 2);
     t.equal(updated, 0);
   });
+
+  test(`unrendering a decorator during render cause the decorator to abort init (#3241)`, t => {
+    t.expect(0);
+
+    const cmp = Ractive.extend({
+      template: '{{#unless nope}}<div as-foo as-foo=`test` />{{/unless}}',
+      decorators: {
+        foo() {
+          t.ok(false, 'this should not run');
+        }
+      },
+      on: {
+        render() {
+          this.toggle('nope');
+        }
+      }
+    });
+
+    new Ractive({
+      target: fixture,
+      template: '<cmp />',
+      components: { cmp }
+    });
+  });
 }
