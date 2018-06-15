@@ -18,7 +18,7 @@ const banner = `/*
 	Ractive.js v${version}
 	Build: ${commitHash}
 	Date: ${time}
-	Website: http://ractivejs.org
+	Website: https://ractive.js.org
 	License: MIT
 */`;
 
