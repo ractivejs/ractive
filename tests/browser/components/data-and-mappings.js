@@ -1809,8 +1809,7 @@ export default function() {
     });
 
     t.htmlEqual(fixture.innerHTML, 'bar');
-    r
-      .toggle('done')
+    r.toggle('done')
       .then(() => {
         t.htmlEqual(fixture.innerHTML, '');
         t.equal(r.viewmodel.ractiveModel.links.length, 0);

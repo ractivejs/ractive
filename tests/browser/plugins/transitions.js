@@ -555,8 +555,7 @@ export default function() {
       }
     });
 
-    r
-      .render(fixture)
+    r.render(fixture)
       .then(() => {
         t.equal(r.find('div').style.height, '50px');
       })
