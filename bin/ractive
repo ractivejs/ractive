@@ -63,13 +63,38 @@ const commands = {
 	},
 	component: {
 		run ( opts ) {
-			util.readToString( opts.input ).then( string => {
-				return component.build( string, opts, readFile ).
-					then( string => util.writeToStream( opts.output, string ) );
-			}).then( null, err => {
-				console.error( err && typeof err === 'object' ? err.stack : err );
-				process.exit( 1 );
-			});
+			if (opts.directory) {
+				const ext = new RegExp( ( opts.extension || '.ractive.html' ).replace( '.', '\\.' ) + '$', 'i' );
+				const files = util.lsr( opts.directory ).filter( f => ext.test(f));
+
+				function step() {
+					const f = files.pop();
+					if (f) {
+						util.readToString( fs.createReadStream( path.join( opts.directory, f ) ) ).then( string => {
+							return component.build( string, opts, readFile ).
+								then( string => {
+									const file = path.join( opts.output, f.replace( ext, opts.outputExtension || '.js' ) );
+									util.mkdirp( path.dirname( file ) );
+									util.writeToStream( fs.createWriteStream( file ), string )
+								});
+								//then( () => console.log(path.join(opts.output, f.replace(ext, opts.outputExtension || '.js')))).then(step, step)
+						}).then( step, err => {
+							console.error( err && typeof err === 'object' ? err.stack : err );
+							process.exit( 1 );
+						});
+					}
+				}
+
+				step();
+			} else {
+				util.readToString( opts.input ).then( string => {
+					return component.build( string, opts, readFile ).
+						then( string => util.writeToStream( opts.output, string ) );
+				}).then( null, err => {
+					console.error( err && typeof err === 'object' ? err.stack : err );
+					process.exit( 1 );
+				});
+			}
 		},
 		help: component.help
 	}
@@ -167,7 +192,7 @@ for ( let i = 0; i < args.length; i++ ) {
 
 		case '-o':
 		case '--output':
-			opts.output = fs.createWriteStream( args[ i + 1 ] );
+			opts.output = args[ i + 1 ];
 			args.splice( i--, 2 );
 			break;
 
@@ -206,6 +231,30 @@ for ( let i = 0; i < args.length; i++ ) {
 			opts.escapeUnicode = true;
 			args.splice( i--, 1 );
 			break;
+
+		case '-id':
+		case '--input-dir':
+			opts.directory = args[ i + 1 ];
+			args.splice( i--, 2 );
+			break;
+
+		case '-e':
+		case '--extension':
+			opts.extension = args[ i + 1 ];
+			args.splice( i--, 2 );
+			break;
+
+		case '-oe':
+		case '-output-extension':
+			opts.outputExtension = args[ i + 1 ];
+			args.splice( i--, 2 );
+			break;
+
+		case '-ae':
+		case '--auto-export':
+			opts.autoExport = true;
+			args.splice( i--, 1 );
+			break;
 	}
 }
 
@@ -215,6 +264,12 @@ if ( args.length === 1 && util.stat( args[0] ) ) { // last arg may be the input 
 	opts.input = fs.createReadStream( args[0] );
 } else if ( args.length ) {
 	console.error( `Unknown arguments: ${args.join(' ')}` );
+}
+
+if ( !opts.directory && typeof opts.output === 'string' ) opts.output = fs.createWriteStream( opts.output );
+else if ( opts.directory && typeof opts.output !== 'string' ) {
+	console.error( `Directory transforms require an output directory` );
+	process.exit(2);
 }
 
 commands[cmd].run( opts );
