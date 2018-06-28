@@ -23,8 +23,6 @@ export default function detachChild(child) {
   if (meta.anchor) meta.anchor.removeChild(meta);
   if (!child.isolated) child.viewmodel.detached();
 
-  runloop.end();
-
   children.splice(index, 1);
   if (meta.target) {
     this.splice(
@@ -34,13 +32,16 @@ export default function detachChild(child) {
     );
     updateAnchors(this, meta.target);
   }
-  child.set({
-    '@this.parent': undefined,
-    '@this.root': child
-  });
+  const rm = child.viewmodel.getRactiveModel();
+  rm.joinKey('parent', { lastLink: false }).unlink();
+  rm.joinKey('root', { lastLink: false }).link(rm);
+  child.root = child;
+  child.parent = null;
   child.component = null;
 
   hooks.detachchild.fire(child);
+
+  runloop.end();
 
   promise.ractive = child;
   return promise.then(() => child);

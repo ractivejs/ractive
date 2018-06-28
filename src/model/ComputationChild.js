@@ -53,6 +53,7 @@ export default class ComputationChild extends Model {
   }
 
   handleChange() {
+    if (this.dirty) return;
     this.dirty = true;
 
     if (this.boundValue) this.boundValue = null;

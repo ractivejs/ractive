@@ -38,16 +38,18 @@ export default function attachChild(child, options = {}) {
     idx = options.prepend ? 0 : options.insertAt !== undefined ? options.insertAt : list.length;
   }
 
-  child.set({
-    '@this.parent': this,
-    '@this.root': this.root
-  });
+  child.parent = this;
+  child.root = this.root;
   child.component = meta;
   children.push(meta);
 
-  hooks.attachchild.fire(child);
-
   const promise = runloop.start();
+
+  const rm = child.viewmodel.getRactiveModel();
+  rm.joinKey('parent', { lastLink: false }).link(this.viewmodel.getRactiveModel());
+  rm.joinKey('root', { lastLink: false }).link(this.root.viewmodel.getRactiveModel());
+
+  hooks.attachchild.fire(child);
 
   if (meta.target) {
     unrenderChild(meta);

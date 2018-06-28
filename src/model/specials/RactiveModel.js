@@ -31,8 +31,19 @@ function initLink(model, key) {
     }
   };
 
+  if (key === 'root') {
+    const mark = model.mark;
+    model.mark = function(force) {
+      if (this._marking) return;
+      this._marking = true;
+      mark.apply(this, force);
+      this._marking = false;
+    };
+  }
+
   model.applyValue(model.parent.ractive[key], key);
   model._link.set = v => model.applyValue(v);
   model._link.applyValue = v => model.applyValue(v);
+
   return model._link;
 }
