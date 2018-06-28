@@ -1,12 +1,17 @@
 # changelog
 
-# 0.10.4 (unreleased)
+# 0.10.4
 
 * Bug fixes
 	* Ambiguity warnings no longer consider alias blocks as contributing to ambiguity (#3238)
 	* Boolean attributes are now passed to macros as `true` rather than empty strings
 	* Whitespace removal during parsing is no longer overzealous (#3239)
 	* Decorators that are unrendered before they fully render will no longer try to render and throw (#3241)
+	* References to both `@this.root` and `@this` for components where `@this.root === @this` will no longer release z̪͆ͧ͂͊̽ͩ̿a̖͖l̂̍́ͭͨ̾̓gͥͨö̫̘̞̠͓͎̬̅ͣ̐͋
+	* Checking for a listener from a context considers the an immediate component ancestor before the ancestor element (#3251)
+
+* New features
+	* There is a new mode in the bin that allows processing of an tree of components all at once. This is particularly helpful for generating TypeScript components, since the TypeScript compiler has no support for plugins. See the new `-id`, `-e`, `-oe`, and `-ae` flags for the `component` command.
 
 
 # 0.10.3
