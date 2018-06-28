@@ -1066,6 +1066,25 @@ export default function() {
     });
   });
 
+  test(`hasListener works within a yielded context (#3251)`, t => {
+    const cmp = Ractive.extend({
+      template: '{{listener}}',
+      init(ctx) {
+        this.set('listener', ctx.hasListener('foo', true) ? 'yep' : 'nope');
+      }
+    });
+
+    const mid = Ractive.extend({ template: '<div>{{yield}}</div>' });
+
+    new Ractive({
+      components: { cmp, mid },
+      target: fixture,
+      template: '<cmp on-foo="bar" /><mid><cmp on-foo="bar" /></mid>'
+    });
+
+    t.htmlEqual(fixture.innerHTML, 'yep<div>yep</div>');
+  });
+
   test(`getContext with no args returns ractive context`, t => {
     const cmp = Ractive.extend();
     const r = new Ractive({
