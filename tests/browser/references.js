@@ -697,4 +697,17 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, '2 a');
   });
+
+  test(`referencing @.root and updating @this should not summon z̪͆ͧ͂͊̽ͩ̿a̖͖l̂̍́ͭͨ̾̓gͥͨö̫̘̞̠͓͎̬̅ͣ̐͋`, t => {
+    const r = new Ractive({
+      template: `{{@.root.thingy}}`,
+      thingy: 'sure',
+      target: fixture
+    });
+
+    r.thingy = 'yep';
+    r.update('@');
+
+    t.htmlEqual(fixture.innerHTML, 'yep');
+  });
 }
