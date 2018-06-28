@@ -95,6 +95,8 @@ export class ContextHelper {
 	original?: Event;
 	/** The event associated with this Context, if any. */
 	event?: Event;
+	/** The source component for a bubbled event Context, if any. */
+	component?: Ractive;
 
 	/** Add to the number at the given keypath
 	 * @param keypath a Context-relative keypath to a number

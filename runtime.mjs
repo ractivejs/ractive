@@ -1,8 +1,8 @@
 /*
-	Ractive.js v0.10.3
-	Build: edb1bcd1cb977de60d7bd68102c32a24a731e29a
-	Date: Thu May 03 2018 18:04:22 GMT+0000 (UTC)
-	Website: http://ractivejs.org
+	Ractive.js v0.10.4
+	Build: b1c332a600806047d296304cfc01b0efe6df73e0
+	Date: Thu Jun 28 2018 19:41:03 GMT+0000 (UTC)
+	Website: https://ractive.js.org
 	License: MIT
 */
 /* istanbul ignore if */
@@ -481,13 +481,13 @@ var welcome;
 
 if (hasConsole) {
   var welcomeIntro = [
-    "%cRactive.js %c0.10.3 %cin debug mode, %cmore...",
+    "%cRactive.js %c0.10.4 %cin debug mode, %cmore...",
     'color: rgb(114, 157, 52); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
-  var welcomeMessage = "You're running Ractive 0.10.3 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  var welcomeMessage = "You're running Ractive 0.10.4 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   welcome = function () {
     if (Ractive.WELCOME_MESSAGE === false) {
@@ -2778,6 +2778,7 @@ function resolveReference(fragment, ref) {
   // walk up the fragment hierarchy looking for a matching ref, alias, or key in a context
   var createMapping = false;
   var shouldWarn = fragment.ractive.warnAboutAmbiguity;
+  var crossed = 0;
   var model;
 
   while (fragment) {
@@ -2807,7 +2808,7 @@ function resolveReference(fragment, ref) {
           { warnIfDebug(
             ("'" + ref + "' resolved but is ambiguous and will create a mapping to a parent component.")
           ); }
-      } else if (shouldWarn) { warnIfDebug(("'" + ref + "' resolved but is ambiguous.")); }
+      } else if (shouldWarn && crossed) { warnIfDebug(("'" + ref + "' resolved but is ambiguous.")); }
     }
 
     if (model) {
@@ -2821,6 +2822,9 @@ function resolveReference(fragment, ref) {
 
       return model;
     }
+
+    // don't consider alias blocks when checking for ambiguity
+    if (fragment.context && !fragment.aliases) { crossed = 1; }
 
     if (
       (fragment.componentParent || (!fragment.parent && fragment.ractive.component)) &&
@@ -3441,16 +3445,18 @@ function attachChild(child, options) {
     idx = options.prepend ? 0 : options.insertAt !== undefined ? options.insertAt : list.length;
   }
 
-  child.set({
-    '@this.parent': this,
-    '@this.root': this.root
-  });
+  child.parent = this;
+  child.root = this.root;
   child.component = meta;
   children.push(meta);
 
-  hooks.attachchild.fire(child);
-
   var promise = runloop.start();
+
+  var rm = child.viewmodel.getRactiveModel();
+  rm.joinKey('parent', { lastLink: false }).link(this.viewmodel.getRactiveModel());
+  rm.joinKey('root', { lastLink: false }).link(this.root.viewmodel.getRactiveModel());
+
+  hooks.attachchild.fire(child);
 
   if (meta.target) {
     unrenderChild(meta);
@@ -3554,8 +3560,6 @@ function detachChild(child) {
   if (meta.anchor) { meta.anchor.removeChild(meta); }
   if (!child.isolated) { child.viewmodel.detached(); }
 
-  runloop.end();
-
   children.splice(index, 1);
   if (meta.target) {
     this.splice(
@@ -3565,13 +3569,16 @@ function detachChild(child) {
     );
     updateAnchors(this, meta.target);
   }
-  child.set({
-    '@this.parent': undefined,
-    '@this.root': child
-  });
+  var rm = child.viewmodel.getRactiveModel();
+  rm.joinKey('parent', { lastLink: false }).unlink();
+  rm.joinKey('root', { lastLink: false }).link(rm);
+  child.root = child;
+  child.parent = null;
   child.component = null;
 
   hooks.detachchild.fire(child);
+
+  runloop.end();
 
   promise.ractive = child;
   return promise.then(function () { return child; });
@@ -4086,7 +4093,11 @@ Context__proto__.getParent = function getParent (component) {
 };
 
 Context__proto__.hasListener = function hasListener (name, bubble) {
-  var el = this.element || this.fragment.owner;
+  // if the owner is a component, start there because the nearest element
+  // may exist outside of the immediate context (yield)
+  var el = this.fragment.owner.component
+    ? this.fragment.owner
+    : this.element || this.fragment.owner;
   var base;
 
   do {
@@ -6259,6 +6270,7 @@ var ComputationChild = (function (Model) {
   };
 
   ComputationChild__proto__.handleChange = function handleChange$2 () {
+    if (this.dirty) { return; }
     this.dirty = true;
 
     if (this.boundValue) { this.boundValue = null; }
@@ -8273,9 +8285,20 @@ function initLink(model, key) {
     }
   };
 
+  if (key === 'root') {
+    var mark = model.mark;
+    model.mark = function(force) {
+      if (this._marking) { return; }
+      this._marking = true;
+      mark.apply(this, force);
+      this._marking = false;
+    };
+  }
+
   model.applyValue(model.parent.ractive[key], key);
   model._link.set = function (v) { return model.applyValue(v); };
   model._link.applyValue = function (v) { return model.applyValue(v); };
+
   return model._link;
 }
 
@@ -9135,6 +9158,9 @@ Decorator__proto__.render = function render () {
   this.shouldDestroy = false;
   if (this.handle) { this.unrender(); }
   runloop.scheduleTask(function () {
+    // bail if the host element has managed to become unrendered
+    if (!this$1.element.rendered) { return; }
+
     var fn = findInViewHierarchy('decorators', this$1.ractive, this$1.name);
 
     if (!fn) {
@@ -12329,7 +12355,7 @@ assign(proto$5, {
     var this$1 = this;
 
     keys(this._attrs).forEach(function (k) {
-      this$1.handle.attributes[k] = this$1._attrs[k].valueOf();
+      this$1.handle.attributes[k] = !this$1._attrs[k].items.length || this$1._attrs[k].valueOf();
     });
   },
 
@@ -15983,7 +16009,7 @@ if (win && !win.Ractive) {
   /* istanbul ignore next */
   if (~opts$1.indexOf('ForceGlobal')) { win.Ractive = Ractive; }
 } else if (win) {
-  warn("Ractive already appears to be loaded while loading 0.10.3.");
+  warn("Ractive already appears to be loaded while loading 0.10.4.");
 }
 
 assign(Ractive.prototype, proto$8, defaults);
@@ -16021,7 +16047,7 @@ defineProperties(Ractive, {
   svg: { value: svg },
 
   // version
-  VERSION: { value: '0.10.3' },
+  VERSION: { value: '0.10.4' },
 
   // plugins
   adaptors: { writable: true, value: {} },
