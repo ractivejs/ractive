@@ -111,7 +111,11 @@ export default class Context {
   }
 
   hasListener(name, bubble) {
-    let el = this.element || this.fragment.owner;
+    // if the owner is a component, start there because the nearest element
+    // may exist outside of the immediate context (yield)
+    let el = this.fragment.owner.component
+      ? this.fragment.owner
+      : this.element || this.fragment.owner;
     let base;
 
     do {
