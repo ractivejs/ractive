@@ -707,14 +707,12 @@ export default function() {
 
     const p = Promise.resolve();
 
-    p
-      .then(() => {
-        throw 'ruh-roh';
-      })
-      .then(null, err => {
-        t.equal(err, 'ruh-roh');
-        done();
-      });
+    p.then(() => {
+      throw 'ruh-roh';
+    }).then(null, err => {
+      t.equal(err, 'ruh-roh');
+      done();
+    });
   });
 
   test('Keypaths in ractive.set() can contain wildcards (#784)', t => {

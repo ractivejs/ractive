@@ -87,6 +87,12 @@ module.exports = ({
 		const libUmdMin = libUmd.transform('uglifyjs', { ext: '.min.js', preamble: banner });
 
 		return gobble([libEs, libUmd, libUmdMin, bin, lib, typings, manifest]);
+	},
+	'bundle:dev'() {
+		const libEs = buildESLib('ractive.mjs', ractiveRollupPlugins);
+		const libUmd = buildUmdLib('ractive.js', ractiveRollupPlugins);
+
+		return gobble([libEs, libUmd, bin, lib, typings, manifest]);
 	}
 })[gobble.env()]();
 

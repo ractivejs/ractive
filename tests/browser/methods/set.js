@@ -134,8 +134,7 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, '<div class="foo"></div>');
 
-    r
-      .set('show', false, { keep: true })
+    r.set('show', false, { keep: true })
       .then(() => {
         t.htmlEqual(fixture.innerHTML, '');
 
@@ -187,8 +186,7 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, '<div class="yep"></div>');
 
-    r
-      .toggle('show', { keep: true })
+    r.toggle('show', { keep: true })
       .then(() => {
         r.toggle('show');
 

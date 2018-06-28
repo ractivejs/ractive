@@ -236,8 +236,7 @@ export default function() {
       data: { num: 1 }
     });
 
-    r
-      .animate('num', 1)
+    r.animate('num', 1)
       .then(v => {
         t.equal(v, 1);
         return r.animate('num', 10, { easing: 'frizzle' }).then(v => {
