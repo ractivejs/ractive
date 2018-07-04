@@ -359,6 +359,60 @@ export default function() {
     t.equal(getHexColor(ractive.find('p')), hexCodes.blue);
   });
 
+  test('@import does not corrupt scoped CSS (#3254) - 1', t => {
+    const Widget = Ractive.extend({
+      template: '<p>red</p>',
+      css: '@import(http://example.com/style.css); p { color: red; }'
+    });
+
+    const ractive = new Ractive({
+      el: fixture,
+      template: '<p>black</p><Widget/>',
+      components: { Widget }
+    });
+
+    const paragraphs = ractive.findAll('p');
+
+    t.equal(getHexColor(paragraphs[0]), hexCodes.black);
+    t.equal(getHexColor(paragraphs[1]), hexCodes.red);
+  });
+
+  test('@import does not corrupt scoped CSS (#3254) - 2', t => {
+    const Widget = Ractive.extend({
+      template: '<p>red</p>',
+      css: "@import('http://example.com/style.css'); p { color: red; }"
+    });
+
+    const ractive = new Ractive({
+      el: fixture,
+      template: '<p>black</p><Widget/>',
+      components: { Widget }
+    });
+
+    const paragraphs = ractive.findAll('p');
+
+    t.equal(getHexColor(paragraphs[0]), hexCodes.black);
+    t.equal(getHexColor(paragraphs[1]), hexCodes.red);
+  });
+
+  test('@import does not corrupt scoped CSS (#3254) - 3', t => {
+    const Widget = Ractive.extend({
+      template: '<p>red</p>',
+      css: 'p { color: blue; } @import(http://example.com/style.css); p { color: red; }'
+    });
+
+    const ractive = new Ractive({
+      el: fixture,
+      template: '<p>black</p><Widget/>',
+      components: { Widget }
+    });
+
+    const paragraphs = ractive.findAll('p');
+
+    t.equal(getHexColor(paragraphs[0]), hexCodes.black);
+    t.equal(getHexColor(paragraphs[1]), hexCodes.red);
+  });
+
   test(`components should output css scoping ids with toHTML (#2709)`, t => {
     const cmp = new (Ractive.extend({
       template: '<div />',

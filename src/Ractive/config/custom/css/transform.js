@@ -1,6 +1,8 @@
 import cleanCss from 'utils/cleanCss';
 
-const selectorsPattern = /(?:^|\}|\{)\s*([^\{\}\0]+)\s*(?=\{)/g;
+const selectorsPattern = /(?:^|\}|\{|\x01)\s*([^\{\}\0\x01]+)\s*(?=\{)/g;
+const importPattern = /@import\s*\([^)]*\)\s*;?/gi;
+const importEndPattern = /\x01/g;
 const keyframesDeclarationPattern = /@keyframes\s+[^\{\}]+\s*\{(?:[^{}]+|\{[^{}]+})*}/gi;
 const selectorUnitPattern = /((?:(?:\[[^\]]+\])|(?:[^\s\+\>~:]))+)((?:::?[^\s\+\>\~\(:]+(?:\([^\)]+\))?)*\s*[\s\+\>\~]?)\s*/g;
 const excludePattern = /^(?:@|\d+%)/;
@@ -60,16 +62,19 @@ export default function transformCss(css, id) {
     transformed = cleanCss(
       css,
       (css, reconstruct) => {
-        css = css.replace(selectorsPattern, (match, $1) => {
-          // don't transform at-rules and keyframe declarations
-          if (excludePattern.test($1)) return match;
+        css = css
+          .replace(importPattern, '$&\x01')
+          .replace(selectorsPattern, (match, $1) => {
+            // don't transform at-rules and keyframe declarations
+            if (excludePattern.test($1)) return match;
 
-          const selectors = $1.split(',').map(trim);
-          const transformed =
-            selectors.map(selector => transformSelector(selector, dataAttr)).join(', ') + ' ';
+            const selectors = $1.split(',').map(trim);
+            const transformed =
+              selectors.map(selector => transformSelector(selector, dataAttr)).join(', ') + ' ';
 
-          return match.replace($1, transformed);
-        });
+            return match.replace($1, transformed);
+          })
+          .replace(importEndPattern, '');
 
         return reconstruct(css);
       },
