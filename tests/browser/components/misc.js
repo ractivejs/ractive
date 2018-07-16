@@ -1105,4 +1105,24 @@ test( 'Implicit mappings are created by restricted references (#1465)', t => {
 
     fire(r.find('button'), 'click');
   });
+
+  test(`random objects don't trigger function application as a component object (#3175)`, t => {
+    new Ractive({
+      el: fixture,
+      components: { div: {} },
+      template: '<div />'
+    });
+
+    t.htmlEqual(fixture.innerHTML, '<div></div>');
+  });
+
+  test(`a module namespace with a default export can be used as a component (#3256)`, t => {
+    new Ractive({
+      el: fixture,
+      components: { cmp: { default: Ractive.extend({ template: 'yep' }) } },
+      template: '<cmp />'
+    });
+
+    t.htmlEqual(fixture.innerHTML, 'yep');
+  });
 }

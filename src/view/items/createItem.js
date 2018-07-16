@@ -95,7 +95,7 @@ export default function createItem(options) {
     if (ctor) {
       if (isFunction(ctor.then)) {
         return asyncProxy(ctor, options);
-      } else {
+      } else if (isFunction(ctor)) {
         return new Component(options, ctor);
       }
     }
