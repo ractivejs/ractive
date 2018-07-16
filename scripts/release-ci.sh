@@ -86,6 +86,8 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 		echo 'publishing as stable to npm...'
 
 		( cd .build
+			if [ "${NPM_TOKEN}" != "" ]; then echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc; fi
+
 			npm publish
 			npm dist-tag add ractive@$TARGET $TAG
 		)
@@ -98,6 +100,8 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 		echo 'publishing as major edge build to npm...'
 
 		( cd .build
+			if [ "${NPM_TOKEN}" != "" ]; then echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc; fi
+
 			# set the correct package version
 			node -e "var package = JSON.parse(fs.readFileSync('./package.json')); package.version = '${TARGET}'; fs.writeFileSync('./package.json', JSON.stringify(package, null, '  '));"
 			# ...and to npm
@@ -118,6 +122,8 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 		echo 'publishing as unstable edge build to npm...'
 
 		( cd .build
+			if [ "${NPM_TOKEN}" != "" ]; then echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc; fi
+
 			# set the correct package version
 			node -e "var package = JSON.parse(fs.readFileSync('./package.json')); package.version = '${TARGET}'; fs.writeFileSync('./package.json', JSON.stringify(package, null, '  '));"
 			# ...and to npm
