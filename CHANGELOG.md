@@ -1,5 +1,16 @@
 # changelog
 
+# 0.10.5
+
+* Bug fixes
+	* `@import` in CSS no longer blows up during transformation (#3254)
+	* Adding a non-compliant object to the component registry will no longer cause an error (#3175)
+	* The `ractive` bin will no longer die with `ERR_UNKNOWN_STDIN_TYPE` on Windows.
+
+* Other changes
+	* The component init code will now automatically handle module namespaces with a default export, so you can use dynamic imports to asynchronously pull in a Ractive component module e.g. `components: { thing: import('./Thing.ractive.html') }` (#3256)
+
+
 # 0.10.4
 
 * Bug fixes
