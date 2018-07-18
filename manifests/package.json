@@ -9,7 +9,7 @@
   "module": "ractive.mjs",
   "typings": "typings/ractive.d.ts",
   "bin": {
-    "ractive": "./bin/ractive"
+    "ractive": "./bin/ractive.js"
   },
   "keywords": [
     "binding",
