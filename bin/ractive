@@ -16,7 +16,6 @@ args.shift(); // program
 const cmd = args.shift();
 
 const opts = {
-	input: process.stdin,
 	output: process.stdout,
 	base: process.cwd()
 };
@@ -70,6 +69,7 @@ const commands = {
 				function step() {
 					const f = files.pop();
 					if (f) {
+						console.error( 'Ractive: compiling component ' + path.join( opts.directory, f ) );
 						util.readToString( fs.createReadStream( path.join( opts.directory, f ) ) ).then( string => {
 							return component.build( string, opts, readFile ).
 								then( string => {
@@ -102,7 +102,7 @@ const commands = {
 
 const config = {
 	addCommand( name, obj ) {
-		if ( !obj.help ) console.warn( `Command ${name} does not provide any help.` );
+		if ( !obj.help ) console.warn( `Ractive: Command ${name} does not provide any help.` );
 		commands[name] = obj;
 	},
 	addStyleProcessor( fn ) {
@@ -137,7 +137,7 @@ function loadConfig () {
 				const fn = require( file );
 				fn.call( config, config, util.Ractive );
 			} catch ( e ) {
-				console.error( `Error while trying to read Ractive config file at ${dir}:` );
+				console.error( `Ractive: Error while trying to read Ractive config file at ${dir}:` );
 				console.error( e );
 				process.exit( 2 );
 			}
@@ -263,13 +263,22 @@ if ( typeof commands[cmd].args === 'function' ) commands[cmd].args( args, opts )
 if ( args.length === 1 && util.stat( args[0] ) ) { // last arg may be the input file
 	opts.input = fs.createReadStream( args[0] );
 } else if ( args.length ) {
-	console.error( `Unknown arguments: ${args.join(' ')}` );
+	console.error( `Ractive: Unknown arguments: ${args.join(' ')}` );
+}
+
+if ( !opts.directory && !opts.input ) {
+	try {
+		opts.input = process.stdin;
+	} catch ( e ) {
+		console.error( `Ractive: No input was provided.` );
+		process.exit( 2 );
+	}
 }
 
 if ( !opts.directory && typeof opts.output === 'string' ) opts.output = fs.createWriteStream( opts.output );
 else if ( opts.directory && typeof opts.output !== 'string' ) {
-	console.error( `Directory transforms require an output directory` );
-	process.exit(2);
+	console.error( `Ractive: Directory transforms require an output directory` );
+	process.exit( 2 );
 }
 
 commands[cmd].run( opts );
