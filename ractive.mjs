@@ -1,7 +1,7 @@
 /*
-	Ractive.js v0.10.4
-	Build: b1c332a600806047d296304cfc01b0efe6df73e0
-	Date: Thu Jun 28 2018 19:41:03 GMT+0000 (UTC)
+	Ractive.js v0.10.5
+	Build: 28615f950b6fcf9f8047ba9f5819692316ec240b
+	Date: Wed Jul 18 2018 20:31:45 GMT+0000 (UTC)
 	Website: https://ractive.js.org
 	License: MIT
 */
@@ -481,13 +481,13 @@ var welcome;
 
 if (hasConsole) {
   var welcomeIntro = [
-    "%cRactive.js %c0.10.4 %cin debug mode, %cmore...",
+    "%cRactive.js %c0.10.5 %cin debug mode, %cmore...",
     'color: rgb(114, 157, 52); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
-  var welcomeMessage = "You're running Ractive 0.10.4 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  var welcomeMessage = "You're running Ractive 0.10.5 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   welcome = function () {
     if (Ractive.WELCOME_MESSAGE === false) {
@@ -9070,7 +9070,9 @@ function cleanCss(css, callback, additionalReplaceRules) {
   return callback(css, reconstruct);
 }
 
-var selectorsPattern = /(?:^|\}|\{)\s*([^\{\}\0]+)\s*(?=\{)/g;
+var selectorsPattern = /(?:^|\}|\{|\x01)\s*([^\{\}\0\x01]+)\s*(?=\{)/g;
+var importPattern = /@import\s*\([^)]*\)\s*;?/gi;
+var importEndPattern = /\x01/g;
 var keyframesDeclarationPattern = /@keyframes\s+[^\{\}]+\s*\{(?:[^{}]+|\{[^{}]+})*}/gi;
 var selectorUnitPattern = /((?:(?:\[[^\]]+\])|(?:[^\s\+\>~:]))+)((?:::?[^\s\+\>\~\(:]+(?:\([^\)]+\))?)*\s*[\s\+\>\~]?)\s*/g;
 var excludePattern = /^(?:@|\d+%)/;
@@ -9130,16 +9132,19 @@ function transformCss(css, id) {
     transformed = cleanCss(
       css,
       function (css, reconstruct) {
-        css = css.replace(selectorsPattern, function (match, $1) {
-          // don't transform at-rules and keyframe declarations
-          if (excludePattern.test($1)) { return match; }
+        css = css
+          .replace(importPattern, '$&\x01')
+          .replace(selectorsPattern, function (match, $1) {
+            // don't transform at-rules and keyframe declarations
+            if (excludePattern.test($1)) { return match; }
 
-          var selectors = $1.split(',').map(trim$1);
-          var transformed =
-            selectors.map(function (selector) { return transformSelector(selector, dataAttr); }).join(', ') + ' ';
+            var selectors = $1.split(',').map(trim$1);
+            var transformed =
+              selectors.map(function (selector) { return transformSelector(selector, dataAttr); }).join(', ') + ' ';
 
-          return match.replace($1, transformed);
-        });
+            return match.replace($1, transformed);
+          })
+          .replace(importEndPattern, '');
 
         return reconstruct(css);
       },
@@ -17634,27 +17639,29 @@ function getComponentConstructor(ractive, name) {
   if (instance) {
     Component = instance.components[name];
 
-    // if not from Ractive.extend or a Promise, it's a function that shold return a constructor
-    if (Component && !Component.isInstance && !Component.then) {
-      // function option, execute and store for reset
-      var fn = Component.bind(instance);
-      fn.isOwner = hasOwn(instance.components, name);
-      Component = fn();
+    if (Component && !Component.isInstance) {
+      if (Component.default && Component.default.isInstance) { Component = Component.default; }
+      else if (!Component.then && isFunction(Component)) {
+        // function option, execute and store for reset
+        var fn = Component.bind(instance);
+        fn.isOwner = hasOwn(instance.components, name);
+        Component = fn();
 
-      if (!Component) {
-        warnIfDebug(noRegistryFunctionReturn, name, 'component', 'component', {
-          ractive: ractive
-        });
-        return;
+        if (!Component) {
+          warnIfDebug(noRegistryFunctionReturn, name, 'component', 'component', {
+            ractive: ractive
+          });
+          return;
+        }
+
+        if (isString(Component)) {
+          // allow string lookup
+          Component = getComponentConstructor(ractive, Component);
+        }
+
+        Component._fn = fn;
+        instance.components[name] = Component;
       }
-
-      if (isString(Component)) {
-        // allow string lookup
-        Component = getComponentConstructor(ractive, Component);
-      }
-
-      Component._fn = fn;
-      instance.components[name] = Component;
     }
   }
 
@@ -17821,7 +17828,7 @@ function createItem(options) {
     if (ctor) {
       if (isFunction(ctor.then)) {
         return asyncProxy(ctor, options);
-      } else {
+      } else if (isFunction(ctor)) {
         return new Component(options, ctor);
       }
     }
@@ -18970,7 +18977,7 @@ if (win && !win.Ractive) {
   /* istanbul ignore next */
   if (~opts$1.indexOf('ForceGlobal')) { win.Ractive = Ractive; }
 } else if (win) {
-  warn("Ractive already appears to be loaded while loading 0.10.4.");
+  warn("Ractive already appears to be loaded while loading 0.10.5.");
 }
 
 assign(Ractive.prototype, proto$8, defaults);
@@ -19012,7 +19019,7 @@ defineProperties(Ractive, {
   svg: { value: svg },
 
   // version
-  VERSION: { value: '0.10.4' },
+  VERSION: { value: '0.10.5' },
 
   // plugins
   adaptors: { writable: true, value: {} },

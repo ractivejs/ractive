@@ -1,7 +1,7 @@
 {
   "name": "ractive",
   "description": "Next-generation DOM manipulation",
-  "version": "0.10.4",
+  "version": "0.10.5",
   "homepage": "https://ractive.js.org",
   "license": "MIT",
   "main": "ractive.js",
@@ -9,7 +9,7 @@
   "module": "ractive.mjs",
   "typings": "typings/ractive.d.ts",
   "bin": {
-    "ractive": "./bin/ractive"
+    "ractive": "./bin/ractive.js"
   },
   "keywords": [
     "binding",
