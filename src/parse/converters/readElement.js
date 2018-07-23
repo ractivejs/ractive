@@ -12,6 +12,7 @@ import hyphenateCamel from 'utils/hyphenateCamel';
 const tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/;
 const anchorPattern = /^[a-zA-Z_$][-a-zA-Z0-9_$]*/;
 const validTagNameFollower = /^[\s\n\/>]/;
+const semiEnd = /;\s*$/;
 const exclude = { exclude: true };
 
 // based on http://developers.whatwg.org/syntax.html#syntax-tag-omission
@@ -281,7 +282,7 @@ function readElement(parser) {
         attrs.splice(i, 1);
       } else if (a.n === 'style' && isString(a.f)) {
         // static style attrs
-        (styles || (styles = [])).push(`${a.f};`);
+        (styles || (styles = [])).push(a.f + (semiEnd.test(a.f) ? '' : ';'));
         attrs.splice(i, 1);
       } else if (a.n === 'class') {
         cls = a;

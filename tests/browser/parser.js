@@ -101,4 +101,9 @@ export default function() {
       }
     ]);
   });
+
+  test(`static style attributes don't grow an extra semi (#3257)`, t => {
+    const tpl = Ractive.parse('<div style="color: green;" />');
+    t.equal(tpl.t[0].m[0].f, 'color: green;');
+  });
 }
