@@ -1,5 +1,11 @@
 # changelog
 
+# 0.10.6 (unreleased)
+
+* Bug fixes
+	* Static style attributes will no longer get an extra semicolon tacked onto the end (#3257)
+
+
 # 0.10.5
 
 * Bug fixes
