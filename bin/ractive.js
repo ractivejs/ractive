@@ -205,7 +205,7 @@ for (let i = 0; i < args.length; i++) {
   switch (arg) {
     case '-i':
     case '--input':
-      opts.input = dirIndexOrFile(args[i + 1]);
+      dirIndexOrFile(args[i + 1]);
       args.splice(i--, 2);
       i--;
       break;
