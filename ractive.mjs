@@ -1,7 +1,7 @@
 /*
-	Ractive.js v0.10.5
-	Build: 28615f950b6fcf9f8047ba9f5819692316ec240b
-	Date: Wed Jul 18 2018 20:31:45 GMT+0000 (UTC)
+	Ractive.js v0.10.6
+	Build: 4c5eb0487a822cf19b5eaed59674cf57d4e5e0b6
+	Date: Sat Jul 28 2018 15:00:35 GMT+0000 (UTC)
 	Website: https://ractive.js.org
 	License: MIT
 */
@@ -481,13 +481,13 @@ var welcome;
 
 if (hasConsole) {
   var welcomeIntro = [
-    "%cRactive.js %c0.10.5 %cin debug mode, %cmore...",
+    "%cRactive.js %c0.10.6 %cin debug mode, %cmore...",
     'color: rgb(114, 157, 52); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
-  var welcomeMessage = "You're running Ractive 0.10.5 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  var welcomeMessage = "You're running Ractive 0.10.6 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   welcome = function () {
     if (Ractive.WELCOME_MESSAGE === false) {
@@ -4822,6 +4822,7 @@ function hyphenateCamel(camelCaseStr) {
 var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/;
 var anchorPattern = /^[a-zA-Z_$][-a-zA-Z0-9_$]*/;
 var validTagNameFollower = /^[\s\n\/>]/;
+var semiEnd = /;\s*$/;
 var exclude = { exclude: true };
 
 // based on http://developers.whatwg.org/syntax.html#syntax-tag-omission
@@ -5089,7 +5090,7 @@ function readElement$1(parser) {
         attrs.splice(i, 1);
       } else if (a.n === 'style' && isString(a.f)) {
         // static style attrs
-        (styles || (styles = [])).push(((a.f) + ";"));
+        (styles || (styles = [])).push(a.f + (semiEnd.test(a.f) ? '' : ';'));
         attrs.splice(i, 1);
       } else if (a.n === 'class') {
         cls = a;
@@ -18977,7 +18978,7 @@ if (win && !win.Ractive) {
   /* istanbul ignore next */
   if (~opts$1.indexOf('ForceGlobal')) { win.Ractive = Ractive; }
 } else if (win) {
-  warn("Ractive already appears to be loaded while loading 0.10.5.");
+  warn("Ractive already appears to be loaded while loading 0.10.6.");
 }
 
 assign(Ractive.prototype, proto$8, defaults);
@@ -19019,7 +19020,7 @@ defineProperties(Ractive, {
   svg: { value: svg },
 
   // version
-  VERSION: { value: '0.10.5' },
+  VERSION: { value: '0.10.6' },
 
   // plugins
   adaptors: { writable: true, value: {} },
