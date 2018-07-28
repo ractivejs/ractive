@@ -1,9 +1,10 @@
 # changelog
 
-# 0.10.6 (unreleased)
+# 0.10.6
 
 * Bug fixes
 	* Static style attributes will no longer get an extra semicolon tacked onto the end (#3257)
+	* The `ractive` bin properly handles single file input again.
 
 
 # 0.10.5
