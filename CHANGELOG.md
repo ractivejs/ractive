@@ -1,5 +1,14 @@
 # changelog
 
+# 0.10.7
+
+* Bug fixes
+	* The bin now properly handles `$PARTIAL` references without a property access
+	
+* Other changes
+	* `Ractive.getContext` will now check parent elements for context so that non-managed DOM that is owned by managed DOM can still be easily interacted with
+
+
 # 0.10.6
 
 * Bug fixes
