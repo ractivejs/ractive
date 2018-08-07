@@ -1111,4 +1111,15 @@ export default function() {
 
     r.getContext('div').raise('nope');
   });
+
+  test(`non-managed nodes can still provide context`, t => {
+    const r = new Ractive({
+      template: '<div />',
+      target: fixture
+    });
+
+    r.find('div').innerHTML = '<p><span></span></p>';
+
+    t.ok(Ractive.getContext(fixture.querySelector('span')));
+  });
 }
