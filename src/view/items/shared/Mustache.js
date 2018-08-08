@@ -15,13 +15,13 @@ export default class Mustache extends Item {
     this.dirty = false;
   }
 
-  bind() {
+  bind(pre) {
     // yield mustaches and inner contexts should resolve in container context
     const start = this.template.y
       ? this.template.y.containerFragment
       : this.containerFragment || this.up;
     // try to find a model for this view
-    const model = resolve(start, this.template);
+    const model = pre || resolve(start, this.template);
 
     if (model) {
       const value = model.get();
@@ -60,8 +60,17 @@ export default class Mustache extends Item {
     if (this.model) {
       if (this.model.rebound) this.model.rebound(update);
       else {
-        this.model.unregister(this);
-        this.bind();
+        // check to see if the model actually changed...
+        // yield mustaches and inner contexts should resolve in container context
+        const start = this.template.y
+          ? this.template.y.containerFragment
+          : this.containerFragment || this.up;
+        // try to find a model for this view
+        const model = resolve(start, this.template);
+        if (model !== this.model) {
+          this.model.unregister(this);
+          this.bind(model);
+        }
       }
 
       if (update) this.bubble();
