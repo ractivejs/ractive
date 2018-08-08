@@ -532,5 +532,34 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, '<div>yep-items.2-0</div><div>d-items.3-1</div>');
   });
+
+  test(`source mapped each with contexty yields`, t => {
+    const cmp = Ractive.extend({
+      template:
+        '<p>{{#each computed, thingies as source}}<span>{{yield part with .foo}}</span>{{/each}}</p>',
+      computed: {
+        computed() {
+          const offset = this.get('offset');
+          return this.get('thingies').slice(offset, offset + 1);
+        }
+      }
+    });
+    const r = new Ractive({
+      target: fixture,
+      template:
+        '<div><cmp bind-thingies=items bind-offset>{{#partial part}}{{.}} {{@keypath}}{{/partial}}</cmp></div>',
+      data: {
+        items: [{ foo: 1 }, { foo: 2 }, { foo: 3 }],
+        offset: 0
+      },
+      components: { cmp }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '<div><p><span>1 thingies.0.foo</span></p></div>');
+
+    r.add('offset');
+
+    t.htmlEqual(fixture.innerHTML, '<div><p><span>2 thingies.1.foo</span></p></div>');
+  });
   // reference expression, decorator
 }
