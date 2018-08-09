@@ -1338,4 +1338,26 @@ export default function() {
       template: `{{@context.get('nope').foo.bar}}`
     });
   });
+
+  test(`sharedGet and styleGet participate in capture`, t => {
+    new Ractive({
+      target: fixture,
+      template: '{{test()}}',
+      helpers: {
+        test() {
+          return `${Ractive.sharedGet('foo') || ''} ${Ractive.styleGet('bar') || ''}`;
+        }
+      }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '');
+
+    Ractive.sharedSet('foo', 'shared foo');
+
+    t.htmlEqual(fixture.innerHTML, 'shared foo');
+
+    Ractive.styleSet('bar', 'style bar');
+
+    t.htmlEqual(fixture.innerHTML, 'shared foo style bar');
+  });
 }
