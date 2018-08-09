@@ -722,6 +722,11 @@ export interface SetOpts {
 	shuffle?: Shuffler;
 }
 
+export interface StyleSetOpts extends SetOpts {
+	/** Whether or not to apply the new styles immediately. Defaults to updating the Ractive-managed style tag (true) */
+	apply?: boolean;
+}
+
 export type Shuffler = boolean | string | ShuffleFn;
 export type ShuffleFn = (left: any, right: any) => (1 | 0 | -1);
 
@@ -1017,18 +1022,18 @@ export interface Static<T extends Ractive<T> = Ractive> {
 	isInstance(obj: any): boolean;
 
 	/** Get the value at the given keypath from the Ractive shared store. */
-	sharedGet(keypath: string): any;
+	sharedGet(keypath: string, opts?: GetOpts): any;
 	/** Set the given keypath in the Ractive shared store to the given value. */
-	sharedSet(keypath: string, value: any): Promise<void>;
+	sharedSet(keypath: string, value: any, opts?: SetOpts): Promise<void>;
 	/** Set the given map of values in the Ractive shared store. */
-	sharedSet(map: ValueMap): Promise<void>;
+	sharedSet(map: ValueMap, opts?: SetOpts): Promise<void>;
 
 	/** Get the css data for this constructor at the given keypath. */
-	styleGet(keypath: string): any;
+	styleGet(keypath: string, opts?: GetOpts): any;
 	/** Set the css data for this constructor at the given keypath to the given value. */
-	styleSet(keypath: string, value: any): Promise<void>;
+	styleSet(keypath: string, value: any, opts?: StyleSetOpts): Promise<void>;
 	/** Set the given map of values in the css data for this constructor. */
-	styleSet(map: ValueMap): Promise<void>;
+	styleSet(map: ValueMap, opts?: StyleSetOpts): Promise<void>;
 
 	/** Install one or more plugins on the component.  */
 	use(...plugins: PluginExtend[]): Static;
