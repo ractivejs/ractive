@@ -1,5 +1,12 @@
 # changelog
 
+# 0.10.8
+
+* Bug fixes
+	* Fragments rebound as part of a self-shuffling each block will no longer bind and unbind if the model doesn't actually change
+	* `sharedSet` and `styleGet` now properly participate in capture
+
+
 # 0.10.7
 
 * Bug fixes
