@@ -1,7 +1,7 @@
 /*
-	Ractive.js v0.10.7
-	Build: 592f9e43fb76ed60f45fbc825fdebefefee294a0
-	Date: Tue Aug 07 2018 19:24:03 GMT+0000 (UTC)
+	Ractive.js v0.10.8
+	Build: d3dbe54f1ebc8695e50fdd5b3d6e63630a2a9368
+	Date: Thu Aug 09 2018 18:24:32 GMT+0000 (UTC)
 	Website: https://ractive.js.org
 	License: MIT
 */
@@ -492,13 +492,13 @@ var welcome;
 
 if (hasConsole) {
   var welcomeIntro = [
-    "%cRactive.js %c0.10.7 %cin debug mode, %cmore...",
+    "%cRactive.js %c0.10.8 %cin debug mode, %cmore...",
     'color: rgb(114, 157, 52); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
-  var welcomeMessage = "You're running Ractive 0.10.7 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  var welcomeMessage = "You're running Ractive 0.10.8 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   welcome = function () {
     if (Ractive.WELCOME_MESSAGE === false) {
@@ -11284,13 +11284,13 @@ var Mustache = (function (Item) {
   var Mustache__proto__ = Mustache.prototype = Object.create( Item && Item.prototype );
   Mustache__proto__.constructor = Mustache;
 
-  Mustache__proto__.bind = function bind () {
+  Mustache__proto__.bind = function bind (pre) {
     // yield mustaches and inner contexts should resolve in container context
     var start = this.template.y
       ? this.template.y.containerFragment
       : this.containerFragment || this.up;
     // try to find a model for this view
-    var model = resolve(start, this.template);
+    var model = pre || resolve(start, this.template);
 
     if (model) {
       var value = model.get();
@@ -11329,8 +11329,17 @@ var Mustache = (function (Item) {
     if (this.model) {
       if (this.model.rebound) { this.model.rebound(update); }
       else {
-        this.model.unregister(this);
-        this.bind();
+        // check to see if the model actually changed...
+        // yield mustaches and inner contexts should resolve in container context
+        var start = this.template.y
+          ? this.template.y.containerFragment
+          : this.containerFragment || this.up;
+        // try to find a model for this view
+        var model = resolve(start, this.template);
+        if (model !== this.model) {
+          this.model.unregister(this);
+          this.bind(model);
+        }
       }
 
       if (update) { this.bubble(); }
@@ -15783,8 +15792,8 @@ function isInstance(object) {
   return object && object instanceof this;
 }
 
-function styleGet(keypath) {
-  return this._cssModel.joinAll(splitKeypath(keypath)).get();
+function styleGet(keypath, opts) {
+  return this._cssModel.joinAll(splitKeypath(keypath)).get(true, opts);
 }
 
 var styles = [];
@@ -15832,8 +15841,8 @@ function sharedSet(keypath, value, options) {
   return set(build({ viewmodel: model }, keypath, value, true), opts);
 }
 
-function sharedGet(keypath) {
-  return SharedModel$1.joinAll(splitKeypath(keypath)).get();
+function sharedGet(keypath, opts) {
+  return SharedModel$1.joinAll(splitKeypath(keypath)).get(true, opts);
 }
 
 function use$1() {
@@ -16027,7 +16036,7 @@ if (win && !win.Ractive) {
   /* istanbul ignore next */
   if (~opts$1.indexOf('ForceGlobal')) { win.Ractive = Ractive; }
 } else if (win) {
-  warn("Ractive already appears to be loaded while loading 0.10.7.");
+  warn("Ractive already appears to be loaded while loading 0.10.8.");
 }
 
 assign(Ractive.prototype, proto$8, defaults);
@@ -16065,7 +16074,7 @@ defineProperties(Ractive, {
   svg: { value: svg },
 
   // version
-  VERSION: { value: '0.10.7' },
+  VERSION: { value: '0.10.8' },
 
   // plugins
   adaptors: { writable: true, value: {} },
