@@ -1,5 +1,11 @@
 # changelog
 
+# 0.10.9 (unreleased)
+
+* Bug fixes
+	* `extendWith` typings now have a correct return signature (#3259)
+
+
 # 0.10.8
 
 * Bug fixes
