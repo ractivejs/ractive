@@ -1,7 +1,7 @@
 /*
-	Ractive.js v0.10.8
-	Build: d3dbe54f1ebc8695e50fdd5b3d6e63630a2a9368
-	Date: Thu Aug 09 2018 18:24:32 GMT+0000 (UTC)
+	Ractive.js v0.10.9
+	Build: e8a0d565d2bff4db4e651553c418c3a676b4e89e
+	Date: Wed Aug 29 2018 21:21:37 GMT+0000 (UTC)
 	Website: https://ractive.js.org
 	License: MIT
 */
@@ -481,13 +481,13 @@ var welcome;
 
 if (hasConsole) {
   var welcomeIntro = [
-    "%cRactive.js %c0.10.8 %cin debug mode, %cmore...",
+    "%cRactive.js %c0.10.9 %cin debug mode, %cmore...",
     'color: rgb(114, 157, 52); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
-  var welcomeMessage = "You're running Ractive 0.10.8 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  var welcomeMessage = "You're running Ractive 0.10.9 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   welcome = function () {
     if (Ractive.WELCOME_MESSAGE === false) {
@@ -1217,7 +1217,7 @@ ModelBase__proto__.updateFromBindings = function updateFromBindings$1 (cascade) 
   }
 };
 
-// TODO: this may be better handled by overreiding `get` on models with a parent that isRoot
+// TODO: this may be better handled by overriding `get` on models with a parent that isRoot
 function maybeBind(model, value, shouldBind) {
   if (shouldBind && isFunction(value) && model.parent && model.parent.isRoot) {
     if (!model.boundValue) {
@@ -1888,6 +1888,10 @@ TransitionManager__proto__.addChild = function addChild (child) {
   this.outroChildren += 1;
 };
 
+TransitionManager__proto__.checkStart = function checkStart () {
+  if (this.parent && this.parent.started) { this.start(); }
+};
+
 TransitionManager__proto__.decrementOutros = function decrementOutros () {
   this.outroChildren -= 1;
   check(this);
@@ -1919,14 +1923,14 @@ TransitionManager__proto__.remove = function remove (transition) {
 };
 
 TransitionManager__proto__.start = function start () {
+  this.started = true;
   this.children.forEach(function (c) { return c.start(); });
   this.intros.concat(this.outros).forEach(function (t) { return t.start(); });
-  this.ready = true;
   check(this);
 };
 
 function check(tm) {
-  if (!tm.ready || tm.outros.length || tm.outroChildren) { return; }
+  if (!tm.started || tm.outros.length || tm.outroChildren) { return; }
 
   // If all outros are complete, and we haven't already done this,
   // we notify the parent if there is one, otherwise
@@ -2038,6 +2042,7 @@ var runloop = {
     flushChanges();
 
     if (!batch.previousBatch) { batch.transitionManager.start(); }
+    else { batch.transitionManager.checkStart(); }
 
     batch = batch.previousBatch;
   },
@@ -2601,13 +2606,14 @@ function recreateArray(model) {
 var data = {};
 
 var SharedModel = (function (Model) {
-  function SharedModel(value, name) {
+  function SharedModel(value, name, ractive) {
     Model.call(this, null, ("@" + name));
     this.key = "@" + name;
     this.value = value;
     this.isRoot = true;
     this.root = this;
     this.adaptors = [];
+    this.ractive = ractive;
   }
 
   if ( Model ) SharedModel.__proto__ = Model;
@@ -8374,7 +8380,7 @@ var RootModel = (function (Model) {
   };
 
   RootModel__proto__.getHelpers = function getHelpers () {
-    if (!this.helpers) { this.helpers = new SharedModel(this.ractive.helpers, 'helpers'); }
+    if (!this.helpers) { this.helpers = new SharedModel(this.ractive.helpers, 'helpers', this.ractive); }
     return this.helpers;
   };
 
@@ -16025,7 +16031,7 @@ if (win && !win.Ractive) {
   /* istanbul ignore next */
   if (~opts$1.indexOf('ForceGlobal')) { win.Ractive = Ractive; }
 } else if (win) {
-  warn("Ractive already appears to be loaded while loading 0.10.8.");
+  warn("Ractive already appears to be loaded while loading 0.10.9.");
 }
 
 assign(Ractive.prototype, proto$8, defaults);
@@ -16063,7 +16069,7 @@ defineProperties(Ractive, {
   svg: { value: svg },
 
   // version
-  VERSION: { value: '0.10.8' },
+  VERSION: { value: '0.10.9' },
 
   // plugins
   adaptors: { writable: true, value: {} },

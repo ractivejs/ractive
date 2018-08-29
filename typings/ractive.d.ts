@@ -434,6 +434,8 @@ export interface GetOpts {
 	unwrap?: boolean
 }
 
+export type Helper = (this: Ractive, ...args: any[]) => any;
+
 export type Interpolator = <T>(from: T, to: T) => (t: number) => T;
 
 export interface LinkOpts {
@@ -888,6 +890,9 @@ export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseO
 	/** A map of custom events */
 	events?: Registry<EventPlugin<T>>;
 
+	/** A map of helper functions */
+	helpers?: Registry<Helper>;
+
 	/** A map of interpolators for use with animate */
 	interpolators?: Registry<Interpolator>;
 
@@ -987,6 +992,7 @@ export interface Registries<T extends Ractive<T>> {
 	easings: Registry<Easing>;
 	events: Registry<Event>;
 	interpolators: Registry<Interpolator>;
+	helpers: Registry<Helper>;
 	partials: Registry<Partial>;
 }
 
@@ -1007,13 +1013,14 @@ export interface Static<T extends Ractive<T> = Ractive> {
 	easings: Registry<Easing>;
 	events: Registry<EventPlugin<T>>;
 	interpolators: Registry<Interpolator>;
+	helpers: Registry<Helper>;
 	partials: Registry<Partial>;
 
 	/** Create a new component with this constructor as a starting point. */
 	extend<U, V extends ExtendOpts<T> = ExtendOpts<T>>(opts?: V): Static<Ractive<T & U>>;
 
 	/** Create a new component with this constuuctor as a starting point using the given constructor. */
-	extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): void;
+	extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive<T & U>>;
 
 	/** Get a Context for the given node or selector. */
 	getContext(nodeOrQuery: HTMLElement | string): ContextHelper;
@@ -1071,6 +1078,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	easings: Registry<Easing>;
 	events: Registry<EventPlugin<T>>;
 	interpolators: Registry<Interpolator>;
+	helpers: Registry<Helper>;
 	partials: Registry<Partial>;
 
 	/** When overriding methods, the original method is available using this._super. */
@@ -1478,13 +1486,14 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	static easings: Registry<Easing>;
 	static events: Registry<EventPlugin>;
 	static interpolators: Registry<Interpolator>;
+	static helpers: Registry<Helper>;
 	static partials: Registry<Partial>;
 
 	/** Create a new component with this constructor as a starting point. */
 	static extend<U>(opts?: ExtendOpts<Ractive & U>): Static<Ractive<Ractive & U>>;
 
 	/** Create a new component with this constuuctor as a starting point using the given constructor. */
-	static extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): void;
+	static extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive<Ractive & U>>;
 
 	/** Get a Context for the given node or selector. */
 	static getContext(nodeOrQuery: HTMLElement | string): ContextHelper;
