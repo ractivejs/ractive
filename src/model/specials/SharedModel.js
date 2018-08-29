@@ -4,13 +4,14 @@ import Model from '../Model';
 export const data = {};
 
 export class SharedModel extends Model {
-  constructor(value, name) {
+  constructor(value, name, ractive) {
     super(null, `@${name}`);
     this.key = `@${name}`;
     this.value = value;
     this.isRoot = true;
     this.root = this;
     this.adaptors = [];
+    this.ractive = ractive;
   }
 
   getKeypath() {

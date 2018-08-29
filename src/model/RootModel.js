@@ -70,7 +70,7 @@ export default class RootModel extends Model {
   }
 
   getHelpers() {
-    if (!this.helpers) this.helpers = new SharedBase(this.ractive.helpers, 'helpers');
+    if (!this.helpers) this.helpers = new SharedBase(this.ractive.helpers, 'helpers', this.ractive);
     return this.helpers;
   }
 
