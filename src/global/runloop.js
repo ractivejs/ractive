@@ -29,6 +29,7 @@ const runloop = {
     flushChanges();
 
     if (!batch.previousBatch) batch.transitionManager.start();
+    else batch.transitionManager.checkStart();
 
     batch = batch.previousBatch;
   },

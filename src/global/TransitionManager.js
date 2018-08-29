@@ -33,6 +33,10 @@ export default class TransitionManager {
     this.outroChildren += 1;
   }
 
+  checkStart() {
+    if (this.parent && this.parent.started) this.start();
+  }
+
   decrementOutros() {
     this.outroChildren -= 1;
     check(this);
@@ -62,15 +66,15 @@ export default class TransitionManager {
   }
 
   start() {
+    this.started = true;
     this.children.forEach(c => c.start());
     this.intros.concat(this.outros).forEach(t => t.start());
-    this.ready = true;
     check(this);
   }
 }
 
 function check(tm) {
-  if (!tm.ready || tm.outros.length || tm.outroChildren) return;
+  if (!tm.started || tm.outros.length || tm.outroChildren) return;
 
   // If all outros are complete, and we haven't already done this,
   // we notify the parent if there is one, otherwise
