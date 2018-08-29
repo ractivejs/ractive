@@ -1,9 +1,11 @@
 # changelog
 
-# 0.10.9 (unreleased)
+# 0.10.9
 
 * Bug fixes
 	* `extendWith` typings now have a correct return signature (#3259)
+	* `helpers` are now correctly called with the instance as the context, and they also are now in the typings file
+	* Transitions that happen to cause another runloop no longer cause runloop hangs (#3260)
 
 
 # 0.10.8
