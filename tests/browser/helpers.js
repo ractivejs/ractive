@@ -114,4 +114,21 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, '42-4');
   });
+
+  test(`helpers are called in the context of the local instance`, t => {
+    new Ractive({
+      target: fixture,
+      template: `{{help('asdf')}}`,
+      helpers: {
+        help(path) {
+          return this.get(path);
+        }
+      },
+      data: {
+        asdf: 'yep'
+      }
+    });
+
+    t.htmlEqual(fixture.innerHTML, 'yep');
+  });
 }

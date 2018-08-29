@@ -274,7 +274,7 @@ export default class ModelBase {
   }
 }
 
-// TODO: this may be better handled by overreiding `get` on models with a parent that isRoot
+// TODO: this may be better handled by overriding `get` on models with a parent that isRoot
 export function maybeBind(model, value, shouldBind) {
   if (shouldBind && isFunction(value) && model.parent && model.parent.isRoot) {
     if (!model.boundValue) {

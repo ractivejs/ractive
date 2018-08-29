@@ -434,6 +434,8 @@ export interface GetOpts {
 	unwrap?: boolean
 }
 
+export type Helper = (this: Ractive, ...args: any[]) => any;
+
 export type Interpolator = <T>(from: T, to: T) => (t: number) => T;
 
 export interface LinkOpts {
@@ -888,6 +890,9 @@ export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseO
 	/** A map of custom events */
 	events?: Registry<EventPlugin<T>>;
 
+	/** A map of helper functions */
+	helpers?: Registry<Helper>;
+
 	/** A map of interpolators for use with animate */
 	interpolators?: Registry<Interpolator>;
 
@@ -987,6 +992,7 @@ export interface Registries<T extends Ractive<T>> {
 	easings: Registry<Easing>;
 	events: Registry<Event>;
 	interpolators: Registry<Interpolator>;
+	helpers: Registry<Helper>;
 	partials: Registry<Partial>;
 }
 
@@ -1007,6 +1013,7 @@ export interface Static<T extends Ractive<T> = Ractive> {
 	easings: Registry<Easing>;
 	events: Registry<EventPlugin<T>>;
 	interpolators: Registry<Interpolator>;
+	helpers: Registry<Helper>;
 	partials: Registry<Partial>;
 
 	/** Create a new component with this constructor as a starting point. */
@@ -1071,6 +1078,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	easings: Registry<Easing>;
 	events: Registry<EventPlugin<T>>;
 	interpolators: Registry<Interpolator>;
+	helpers: Registry<Helper>;
 	partials: Registry<Partial>;
 
 	/** When overriding methods, the original method is available using this._super. */
@@ -1478,6 +1486,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	static easings: Registry<Easing>;
 	static events: Registry<EventPlugin>;
 	static interpolators: Registry<Interpolator>;
+	static helpers: Registry<Helper>;
 	static partials: Registry<Partial>;
 
 	/** Create a new component with this constructor as a starting point. */
