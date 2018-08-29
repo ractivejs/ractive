@@ -1123,4 +1123,40 @@ export default function() {
 
     r.toggle('hide');
   });
+
+  test(`calling set in a transition should not stall the runloop (#3260)`, t => {
+    t.expect(7);
+    const done = t.async();
+    let count = 0;
+
+    const r = new Ractive({
+      target: fixture,
+      template: `{{#if show}}<div go-in />{{/if}}`,
+      transitions: {
+        go(trans) {
+          t.equal(count, 0);
+          count++;
+          this.set('foo', 'bar')
+            .then(() => {
+              t.equal(count, 1);
+              count++;
+              t.ok('did the transition');
+            })
+            .then(trans.complete);
+        }
+      }
+    });
+
+    r.toggle('show')
+      .then(() => {
+        t.equal(count, 2);
+        count++;
+        t.ok('did the thing');
+        t.equal(r.get('foo'), 'bar');
+      })
+      .then(() => {
+        t.equal(count, 3);
+      })
+      .then(done, done);
+  });
 }
