@@ -445,4 +445,62 @@ export default function() {
       '<div style="display: block; width: 1em; color: pink;"></div><div style="width: 1em; color: pink;"></div><div style="color: green; display: inline;"></div>'
     );
   });
+
+  test(`a conditional attribute next to a conditional transition doesn't cause death`, t => {
+    t.expect(0);
+
+    const r = new Ractive({
+      target: fixture,
+      template: `<div {{#if foo}}{{#if bar}}style-color="green"{{/if}}{{#if true}}go-in-out{{/if}}{{/if}} />`,
+      transitions: {
+        go(trans) {
+          trans.complete();
+        }
+      }
+    });
+
+    r.toggle('foo');
+    r.toggle('bar');
+  });
+
+  test(`a conditional attribute next to a conditional decorator doesn't cause death`, t => {
+    t.expect(0);
+
+    const r = new Ractive({
+      target: fixture,
+      template: `<div {{#if foo}}{{#if bar}}style-color="green"{{/if}}{{#if true}}as-thing{{/if}}{{/if}} />`,
+      decorators: {
+        thing() {
+          return { teardown() {} };
+        }
+      }
+    });
+
+    r.toggle('foo');
+    r.toggle('bar');
+  });
+
+  test(`a conditional attribute next to a conditional event doesn't cause death`, t => {
+    t.expect(0);
+
+    const r = new Ractive({
+      target: fixture,
+      template: `<div {{#if foo}}{{#if bar}}style-color="green"{{/if}}{{#if true}}on-click="click"{{/if}}{{/if}} />`
+    });
+
+    r.toggle('foo');
+    r.toggle('bar');
+  });
+
+  test(`a conditional attribute next to a conditional attribute doesn't cause death`, t => {
+    t.expect(0);
+
+    const r = new Ractive({
+      target: fixture,
+      template: `<div {{#if foo}}{{#if bar}}style-color="green"{{/if}}{{#if true}}data-bar="baz"{{/if}}{{/if}} />`
+    });
+
+    r.toggle('foo');
+    r.toggle('bar');
+  });
 }
