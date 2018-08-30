@@ -1,5 +1,11 @@
 # changelog
 
+# 0.10.10 / 1.0.0 (unreleased)
+
+* Bug fixes
+	* Conditional sections in attributes that happen to have another conditional section next to a nodeless directive (event, decorator, or transition) will no longer explode when trying to render
+
+
 # 0.10.9
 
 * Bug fixes
