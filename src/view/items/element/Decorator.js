@@ -151,3 +151,5 @@ export default class Decorator {
     }
   }
 }
+
+Decorator.prototype.firstNode = noop;
