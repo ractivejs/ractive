@@ -259,10 +259,10 @@ export class ContextHelper {
 
 	/**
 	 * Resolve the given Context-relative keypath to a root keypath, optionally in the given instance. Note that some keypaths cannot be resolved to root keypaths.
-	 * @param keypath relative keypath
+	 * @param keypath @default '.' relative keypath
 	 * @param ractive target instance in which to resolve the keypath
 	 */
-	resolve(keypath: string, ractive?: Ractive): string;
+	resolve(keypath?: string, ractive?: Ractive): string;
 
 	/**
 	 * Reverse the array at the given Context-relative keypath.
