@@ -198,4 +198,4 @@ export default class EventDirective {
 }
 
 const proto = EventDirective.prototype;
-proto.firstNode = proto.reboud = proto.update = noop;
+proto.firstNode = proto.rebound = proto.update = noop;
