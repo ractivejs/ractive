@@ -1900,4 +1900,66 @@ export default function() {
       });
     }, /unrecognised item type 999/i);
   });
+
+  test(`unrendering a section containing a spliced section properly unrenders the spliced section (#3263)`, t => {
+    let count = 0;
+    const cmp = Ractive.extend({
+      on: {
+        teardown() {
+          count++;
+        }
+      }
+    });
+
+    const r = new Ractive({
+      template: '{{#if things.length}}{{#each things}}<cmp />{{/each}}{{/if}}',
+      data: { things: [1, 2] },
+      components: { cmp },
+      target: fixture
+    });
+
+    r.splice('things', 0, 1);
+    t.equal(count, 1);
+
+    r.splice('things', 0, 1);
+    t.equal(count, 2);
+  });
+
+  test(`unrendering a section containing a spliced section with additions properly unrenders the spliced section (#3263)`, t => {
+    let down = 0;
+    let up = 0;
+    const cmp = Ractive.extend({
+      template: 'a',
+      on: {
+        construct() {
+          up++;
+        },
+        teardown() {
+          down++;
+        }
+      }
+    });
+
+    const things = [1, 2];
+    things.show = true;
+
+    const r = new Ractive({
+      template: '{{#if things.show}}{{#each things}}<cmp />{{/each}}{{/if}}',
+      data: { things },
+      components: { cmp },
+      target: fixture
+    });
+
+    t.equal(up, 2);
+
+    r.splice('things', 0, 1);
+    t.equal(down, 1);
+    t.htmlEqual(fixture.innerHTML, 'a');
+
+    things.show = false;
+    r.splice('things', 0, 1, 3, 4);
+    t.equal(down, 2);
+    t.equal(up, 2);
+    t.htmlEqual(fixture.innerHTML, '');
+  });
 }
