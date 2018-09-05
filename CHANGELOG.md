@@ -4,6 +4,7 @@
 
 * Bug fixes
 	* Conditional sections in attributes that happen to have another conditional section next to a nodeless directive (event, decorator, or transition) will no longer explode when trying to render
+	* Shuffled iterative sections that are removed before they finish shuffling are now torn down fully (#3263)
 
 
 # 0.10.9
