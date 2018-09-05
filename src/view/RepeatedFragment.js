@@ -249,8 +249,9 @@ export default class RepeatedFragment {
   unbind() {
     this.bound = false;
     if (this.source) this.source.model.unregister(this.source);
-    const len = this.iterations.length;
-    for (let i = 0; i < len; i++) this.iterations[i].unbind();
+    const iterations = this.pendingNewIndices ? this.previousIterations : this.iterations;
+    const len = iterations.length;
+    for (let i = 0; i < len; i++) iterations[i].unbind();
     return this;
   }
 
