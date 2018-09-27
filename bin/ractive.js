@@ -84,7 +84,6 @@ const commands = {
                   util.mkdirp(path.dirname(file));
                   util.writeToStream(fs.createWriteStream(file), string);
                 });
-                //then( () => console.log(path.join(opts.output, f.replace(ext, opts.outputExtension || '.js')))).then(step, step)
               })
               .then(step, err => {
                 console.error(err && typeof err === 'object' ? err.stack : err);
@@ -296,9 +295,10 @@ if (!opts.directory && !opts.input) {
   }
 }
 
-if (!opts.directory && typeof opts.output === 'string')
+if (!opts.directory && typeof opts.output === 'string') {
+  util.mkdirp(path.dirname(opts.output));
   opts.output = fs.createWriteStream(opts.output);
-else if (opts.directory && typeof opts.output !== 'string') {
+} else if (opts.directory && typeof opts.output !== 'string') {
   console.error(`Ractive: Directory transforms require an output directory`);
   process.exit(2);
 }
