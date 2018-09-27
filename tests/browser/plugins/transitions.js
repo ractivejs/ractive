@@ -1159,4 +1159,46 @@ export default function() {
       })
       .then(done, done);
   });
+
+  test(`calling an array method in a transition should not stall the runloop (#3266)`, t => {
+    const done = t.async();
+
+    const cmp = Ractive.extend({
+      template: '<div go-in />',
+      transitions: {
+        go(trans) {
+          r.push('list', 'transition');
+          setTimeout(() => trans.complete(), 50);
+        }
+      },
+      on: {
+        render() {
+          r.push('list', 'render');
+        },
+        complete() {
+          r.push('list', 'complete');
+        }
+      }
+    });
+
+    const r = new Ractive({
+      template: `{{#each list}}{{.}}|{{/each}}<div class-anchor />`,
+      on: {
+        complete() {
+          const c = new cmp();
+          c.render(r.find('.anchor'))
+            .then(() => r.push('list', 'cmp'))
+            .then(() => {
+              t.htmlEqual(
+                fixture.innerHTML,
+                'render|transition|main|complete|cmp|<div class="anchor"><div></div></div>'
+              );
+              done();
+            });
+        }
+      }
+    });
+
+    r.render(fixture).then(() => r.push('list', 'main'));
+  });
 }

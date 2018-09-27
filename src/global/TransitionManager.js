@@ -1,6 +1,8 @@
 import { removeFromArray } from 'utils/array';
 import { isFunction } from 'utils/is';
 
+let id = 0;
+
 export default class TransitionManager {
   constructor(callback, parent) {
     this.callback = callback;
@@ -14,6 +16,8 @@ export default class TransitionManager {
 
     this.detachQueue = [];
     this.outrosComplete = false;
+
+    this.id = id++;
 
     if (parent) {
       parent.addChild(this);
@@ -82,9 +86,9 @@ function check(tm) {
   if (!tm.outrosComplete) {
     tm.outrosComplete = true;
 
-    if (tm.parent && !tm.parent.outrosComplete) {
-      tm.parent.decrementOutros(tm);
-    } else {
+    if (tm.parent) tm.parent.decrementOutros(tm);
+
+    if (!tm.parent || tm.parent.outrosComplete) {
       tm.detachNodes();
     }
   }
