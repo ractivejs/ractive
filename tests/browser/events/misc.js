@@ -418,4 +418,16 @@ export default function() {
       oninit() {}
     });
   });
+
+  test(`instance calls onconstruct for consistency sake (#3267)`, t => {
+    t.expect(1);
+
+    new Ractive({
+      target: fixture,
+      template: 'sure',
+      onconstruct() {
+        t.ok(true);
+      }
+    });
+  });
 }

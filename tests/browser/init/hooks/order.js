@@ -201,7 +201,7 @@ export default function() {
   const topDown = ['parent', 'child', 'grandchild'];
   const bottomUp = ['grandchild', 'child', 'parent'];
 
-  testHierarchy('onconstruct', ['child', 'grandchild']);
+  testHierarchy('onconstruct', topDown);
   testHierarchy('onconfig', topDown);
   testHierarchy('oninit', topDown);
   testHierarchy('onrender', topDown);
