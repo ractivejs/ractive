@@ -11,6 +11,7 @@ import { ATTRIBUTE, BINDING_FLAG, DECORATOR, INTERPOLATOR, TRANSITION } from 'co
 import { assign, create, hasOwn } from 'utils/object';
 import { isArray, isString } from 'utils/is';
 import { compute } from 'src/Ractive/prototype/compute';
+import getRactiveContext from '../shared/getRactiveContext';
 
 const registryNames = [
   'adaptors',
@@ -50,8 +51,8 @@ export default function construct(ractive, options) {
     ractive.use.apply(ractive, options.use.filter(p => p.construct));
   }
 
-  // TODO don't allow `onconstruct` with `new Ractive()`, there's no need for it
   hooks.construct.fire(ractive, options);
+  if (options.onconstruct) options.onconstruct.call(ractive, getRactiveContext(ractive), options);
 
   // Add registries
   let i = registryNames.length;
