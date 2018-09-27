@@ -1,10 +1,15 @@
 # changelog
 
-# 0.10.10 / 1.0.0 (unreleased)
+# 0.10.10 / 1.0.0
 
 * Bug fixes
 	* Conditional sections in attributes that happen to have another conditional section next to a nodeless directive (event, decorator, or transition) will no longer explode when trying to render
 	* Shuffled iterative sections that are removed before they finish shuffling are now torn down fully (#3263)
+	* The ractive bin will now mkdirp for single output files rather than dying if the target directory doesn't already exist
+	* Transitions and lifecycle events that cause compound runloops will no longer leave some of the resulting Promises unresolved (#3266)
+
+* Other changes
+	* The `onconstruct` init option will be called for consistency with `on: { construct }` (#3267)
 
 
 # 0.10.9
