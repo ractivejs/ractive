@@ -1,7 +1,7 @@
 /*
-	Ractive.js v0.10.9
-	Build: e8a0d565d2bff4db4e651553c418c3a676b4e89e
-	Date: Wed Aug 29 2018 21:21:37 GMT+0000 (UTC)
+	Ractive.js v0.10.10
+	Build: 409bcfa464cf6b0653f726e091533b097f135699
+	Date: Thu Sep 27 2018 04:31:55 GMT+0000 (UTC)
 	Website: https://ractive.js.org
 	License: MIT
 */
@@ -492,13 +492,13 @@ var welcome;
 
 if (hasConsole) {
   var welcomeIntro = [
-    "%cRactive.js %c0.10.9 %cin debug mode, %cmore...",
+    "%cRactive.js %c0.10.10 %cin debug mode, %cmore...",
     'color: rgb(114, 157, 52); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
-  var welcomeMessage = "You're running Ractive 0.10.9 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  var welcomeMessage = "You're running Ractive 0.10.10 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   welcome = function () {
     if (Ractive.WELCOME_MESSAGE === false) {
@@ -1867,6 +1867,8 @@ function getComputationSignature(ractive, key, signature) {
   };
 }
 
+var id = 0;
+
 var TransitionManager = function TransitionManager(callback, parent) {
   this.callback = callback;
   this.parent = parent;
@@ -1879,6 +1881,8 @@ var TransitionManager = function TransitionManager(callback, parent) {
 
   this.detachQueue = [];
   this.outrosComplete = false;
+
+  this.id = id++;
 
   if (parent) {
     parent.addChild(this);
@@ -1949,9 +1953,9 @@ function check(tm) {
   if (!tm.outrosComplete) {
     tm.outrosComplete = true;
 
-    if (tm.parent && !tm.parent.outrosComplete) {
-      tm.parent.decrementOutros(tm);
-    } else {
+    if (tm.parent) { tm.parent.decrementOutros(tm); }
+
+    if (!tm.parent || tm.parent.outrosComplete) {
       tm.detachNodes();
     }
   }
@@ -6116,7 +6120,7 @@ function extendOtherMethods(parent, target, options) {
       // if this is a method that overwrites a method, wrap it:
       if (isFunction(member)) {
         if (
-          (key in proto$8 ||
+          (key in proto$9 ||
             (key.slice(0, 2) === 'on' && key.slice(2) in hooks && key in target)) &&
           !_super.test(member.toString())
         ) {
@@ -8558,8 +8562,8 @@ function construct(ractive, options) {
     ractive.use.apply(ractive, options.use.filter(function (p) { return p.construct; }));
   }
 
-  // TODO don't allow `onconstruct` with `new Ractive()`, there's no need for it
   hooks.construct.fire(ractive, options);
+  if (options.onconstruct) { options.onconstruct.call(ractive, getRactiveContext(ractive), options); }
 
   // Add registries
   var i = registryNames$1.length;
@@ -9253,6 +9257,8 @@ Decorator__proto__.update = function update () {
     }
   }
 };
+
+Decorator.prototype.firstNode = noop;
 
 var Doctype = (function (Item) {
   function Doctype () {
@@ -11241,8 +11247,8 @@ EventDirective__proto__.unrender = function unrender () {
   this.events.forEach(function (e) { return e.unrender(); });
 };
 
-EventDirective.prototype.update = noop;
-EventDirective.prototype.rebound = noop;
+var proto$4 = EventDirective.prototype;
+proto$4.firstNode = proto$4.rebound = proto$4.update = noop;
 
 function progressiveText(item, target, occupants, text) {
   if (occupants) {
@@ -11367,9 +11373,9 @@ function MustacheContainer(options) {
   Mustache.call(this, options);
 }
 
-var proto$4 = (MustacheContainer.prototype = Object.create(ContainerItem.prototype));
+var proto$5 = (MustacheContainer.prototype = Object.create(ContainerItem.prototype));
 
-assign(proto$4, Mustache.prototype, { constructor: MustacheContainer });
+assign(proto$5, Mustache.prototype, { constructor: MustacheContainer });
 
 var Interpolator = (function (Mustache) {
   function Interpolator () {
@@ -12275,9 +12281,9 @@ function Partial(options) {
   }
 }
 
-var proto$5 = (Partial.prototype = create(MustacheContainer.prototype));
+var proto$6 = (Partial.prototype = create(MustacheContainer.prototype));
 
-assign(proto$5, {
+assign(proto$6, {
   constructor: Partial,
 
   bind: function bind() {
@@ -12984,12 +12990,11 @@ RepeatedFragment__proto__.toString = function toString (escape) {
 };
 
 RepeatedFragment__proto__.unbind = function unbind () {
-    var this$1 = this;
-
   this.bound = false;
   if (this.source) { this.source.model.unregister(this.source); }
-  var len = this.iterations.length;
-  for (var i = 0; i < len; i++) { this$1.iterations[i].unbind(); }
+  var iterations = this.pendingNewIndices ? this.previousIterations : this.iterations;
+  var len = iterations.length;
+  for (var i = 0; i < len; i++) { iterations[i].unbind(); }
   return this;
 };
 
@@ -13782,8 +13787,8 @@ var Text = (function (Item) {
   return Text;
 }(Item));
 
-var proto$6 = Text.prototype;
-proto$6.bind = proto$6.unbind = proto$6.update = noop;
+var proto$7 = Text.prototype;
+proto$7.bind = proto$7.unbind = proto$7.update = noop;
 
 var visible;
 var hidden = 'hidden';
@@ -14432,8 +14437,8 @@ Transition__proto__.unregisterCompleteHandler = function unregisterCompleteHandl
   removeFromArray(this.onComplete, fn);
 };
 
-var proto$7 = Transition.prototype;
-proto$7.destroyed = proto$7.rebound = proto$7.render = proto$7.unrender = proto$7.update = noop;
+var proto$8 = Transition.prototype;
+proto$8.destroyed = proto$8.firstNode = proto$8.rebound = proto$8.render = proto$8.unrender = proto$8.update = noop;
 
 function nearestProp(prop, ractive, rendering) {
   var instance = ractive;
@@ -15742,7 +15747,7 @@ function use() {
   return this;
 }
 
-var proto$8 = {
+var proto$9 = {
   add: Ractive$add,
   animate: Ractive$animate,
   attachChild: attachChild,
@@ -16042,10 +16047,10 @@ if (win && !win.Ractive) {
   /* istanbul ignore next */
   if (~opts$1.indexOf('ForceGlobal')) { win.Ractive = Ractive; }
 } else if (win) {
-  warn("Ractive already appears to be loaded while loading 0.10.9.");
+  warn("Ractive already appears to be loaded while loading 0.10.10.");
 }
 
-assign(Ractive.prototype, proto$8, defaults);
+assign(Ractive.prototype, proto$9, defaults);
 Ractive.prototype.constructor = Ractive;
 
 // alias prototype as `defaults`
@@ -16080,7 +16085,7 @@ defineProperties(Ractive, {
   svg: { value: svg },
 
   // version
-  VERSION: { value: '0.10.9' },
+  VERSION: { value: '0.10.10' },
 
   // plugins
   adaptors: { writable: true, value: {} },
