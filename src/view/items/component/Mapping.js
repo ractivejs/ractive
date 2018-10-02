@@ -52,9 +52,9 @@ export default class Mapping extends Item {
 
   render() {}
 
-  unbind() {
+  unbind(view) {
     if (this.model) this.model.unregister(this);
-    if (this.boundFragment) this.boundFragment.unbind();
+    if (this.boundFragment) this.boundFragment.unbind(view);
 
     if (this.element.bound) {
       if (this.link.target === this.model) this.link.owner.unlink();

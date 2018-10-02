@@ -56,8 +56,8 @@ export default class BindingFlag extends Item {
     return '';
   }
 
-  unbind() {
-    if (this.fragment) this.fragment.unbind();
+  unbind(view) {
+    if (this.fragment) this.fragment.unbind(view);
 
     delete this.element[this.flag];
   }

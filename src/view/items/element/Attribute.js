@@ -208,8 +208,8 @@ export default class Attribute extends Item {
     return str ? `${this.name}="${str}"` : this.name;
   }
 
-  unbind() {
-    if (this.fragment) this.fragment.unbind();
+  unbind(view) {
+    if (this.fragment) this.fragment.unbind(view);
   }
 
   unrender() {

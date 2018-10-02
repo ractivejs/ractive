@@ -28,6 +28,12 @@ export default class EventDirective {
   }
 
   bind() {
+    // sometimes anchors will cause an unbind without unrender
+    if (this.events.length) {
+      this.events.forEach(e => e.unrender());
+      this.events = [];
+    }
+
     if (this.element.type === COMPONENT || this.element.type === ANCHOR) {
       this.template.n.forEach(n => {
         this.events.push(new RactiveEvent(this.element, n));
@@ -187,9 +193,9 @@ export default class EventDirective {
     return '';
   }
 
-  unbind() {
+  unbind(view) {
     removeFromArray(this.element.events, this);
-    this.events.forEach(e => e.unbind());
+    this.events.forEach(e => e.unbind(view));
   }
 
   unrender() {

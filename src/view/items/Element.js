@@ -447,17 +447,17 @@ export default class Element extends ContainerItem {
     return str;
   }
 
-  unbind() {
+  unbind(view) {
     const attrs = this.attributes;
     if (attrs) {
       attrs.unbinding = true;
       const len = attrs.length;
-      for (let i = 0; i < len; i++) attrs[i].unbind();
+      for (let i = 0; i < len; i++) attrs[i].unbind(view);
       attrs.unbinding = false;
     }
 
-    if (this.binding) this.binding.unbind();
-    if (this.fragment) this.fragment.unbind();
+    if (this.binding) this.binding.unbind(view);
+    if (this.fragment) this.fragment.unbind(view);
   }
 
   unrender(shouldDestroy) {
