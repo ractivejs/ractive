@@ -87,8 +87,8 @@ export default class Option extends Element {
     }
   }
 
-  unbind() {
-    super.unbind();
+  unbind(view) {
+    super.unbind(view);
 
     if (this.select) {
       removeFromArray(this.select.options, this);

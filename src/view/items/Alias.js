@@ -51,13 +51,13 @@ export default class Alias extends ContainerItem {
     if (this.fragment) this.fragment.render(target, occupants);
   }
 
-  unbind() {
+  unbind(view) {
     for (const k in this.fragment.aliases) {
       this.fragment.aliases[k].unreference();
     }
 
     this.fragment.aliases = {};
-    if (this.fragment) this.fragment.unbind();
+    if (this.fragment) this.fragment.unbind(view);
   }
 
   unrender(shouldDestroy) {

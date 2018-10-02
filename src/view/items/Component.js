@@ -259,13 +259,14 @@ export default class Component extends Item {
     if (this.instance) return this.instance.toHTML();
   }
 
-  unbind() {
+  unbind(view) {
     if (!this.isAnchor) {
       this.bound = false;
 
       this.attributes.forEach(unbind);
 
-      teardown(this.instance, () => runloop.promise());
+      if (view) this.instance.fragment.unbind();
+      else teardown(this.instance, () => runloop.promise());
     }
   }
 
@@ -342,7 +343,7 @@ function renderItem(anchor, meta) {
   meta.partials = meta.instance.partials;
   meta.instance.partials = assign(create(meta.partials), meta.partials, anchor._partials);
 
-  meta.instance.fragment.unbind();
+  meta.instance.fragment.unbind(true);
   meta.instance.fragment.componentParent = anchor.up;
   meta.instance.fragment.bind(meta.instance.viewmodel);
 

@@ -183,20 +183,20 @@ assign(proto, {
     if (this.proxy && isFunction(this.proxy.render)) this.proxy.render();
   },
 
-  unbind() {
-    this.fragment.unbind();
+  unbind(view) {
+    this.fragment.unbind(view);
 
     this.fragment.aliases = null;
 
-    this.unbindAttrs();
+    this.unbindAttrs(view);
 
-    MustacheContainer.prototype.unbind.call(this);
+    MustacheContainer.prototype.unbind.call(this, view);
   },
 
-  unbindAttrs() {
+  unbindAttrs(view) {
     if (this._attrs) {
       keys(this._attrs).forEach(k => {
-        this._attrs[k].unbind();
+        this._attrs[k].unbind(view);
       });
     }
   },
