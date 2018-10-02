@@ -1,5 +1,19 @@
 # changelog
 
+# 1.0.1 (unreleased)
+
+* Bug fixes
+	* Rendering a view with sub-components into an anchor will no longer cause the child components to freeze (#3271)
+	* Event directives in view attached to anchors will no longer register duplicate listeners (#3271)
+
+
+# 0.10.11 (unreleased)
+
+* Bug fixes
+	* Rendering a view with sub-components into an anchor will no longer cause the child components to freeze (#3271)
+	* Event directives in view attached to anchors will no longer register duplicate listeners (#3271)
+
+
 # 0.10.10 / 1.0.0
 
 * Bug fixes
