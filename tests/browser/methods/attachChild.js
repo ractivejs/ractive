@@ -547,4 +547,64 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, '0');
   });
+
+  test(`attaching a child with child components break bindings (#3271)`, t => {
+    const cmp1 = Ractive.extend({
+      template: `{{foo}}`
+    });
+    const cmp2 = Ractive.extend({
+      components: { cmp1 },
+      template: `<cmp1 bind-foo /><button on-click="@.set('foo', 'baz')">click</button>`,
+      data: { foo: 'bar' }
+    });
+    const cmp3 = Ractive.extend({
+      template: `<#anchor />`,
+      oninit() {
+        const c = new cmp2();
+        this.attachChild(c, { target: 'anchor' });
+      }
+    });
+    const r = new cmp3({
+      target: fixture
+    });
+
+    const done = t.async();
+    setTimeout(() => {
+      fire(r.find('button'), 'click');
+      setTimeout(() => {
+        t.htmlEqual(fixture.innerHTML, 'baz<button>click</button>');
+        done();
+      }, 14);
+    }, 14);
+  });
+
+  test(`attaching a event listeners doesn't double register them (#3271)`, t => {
+    const cmp1 = Ractive.extend({
+      template: `{{foo}}`
+    });
+    const cmp2 = Ractive.extend({
+      components: { cmp1 },
+      template: `<cmp1 bind-foo /><button on-click="@.add('foo')">click</button>`,
+      data: { foo: 0 }
+    });
+    const cmp3 = Ractive.extend({
+      template: `<#anchor />`,
+      oninit() {
+        const c = new cmp2();
+        this.attachChild(c, { target: 'anchor' });
+      }
+    });
+    const r = new cmp3({
+      target: fixture
+    });
+
+    const done = t.async();
+    setTimeout(() => {
+      fire(r.find('button'), 'click');
+      setTimeout(() => {
+        t.htmlEqual(fixture.innerHTML, '1<button>click</button>');
+        done();
+      }, 14);
+    }, 14);
+  });
 }

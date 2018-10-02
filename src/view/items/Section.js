@@ -113,9 +113,9 @@ export default class Section extends MustacheContainer {
     }
   }
 
-  unbind() {
-    super.unbind();
-    if (this.fragment) this.fragment.unbind();
+  unbind(view) {
+    super.unbind(view);
+    if (this.fragment) this.fragment.unbind(view);
   }
 
   unrender(shouldDestroy) {

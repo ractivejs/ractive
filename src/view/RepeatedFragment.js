@@ -246,12 +246,12 @@ export default class RepeatedFragment {
     return this.iterations ? this.iterations.map(escape ? toEscapedString : toString).join('') : '';
   }
 
-  unbind() {
+  unbind(view) {
     this.bound = false;
     if (this.source) this.source.model.unregister(this.source);
     const iterations = this.pendingNewIndices ? this.previousIterations : this.iterations;
     const len = iterations.length;
-    for (let i = 0; i < len; i++) iterations[i].unbind();
+    for (let i = 0; i < len; i++) iterations[i].unbind(view);
     return this;
   }
 

@@ -267,10 +267,10 @@ export default class Fragment {
     return this.items.map(escape ? toEscapedString : toString).join('');
   }
 
-  unbind() {
+  unbind(view) {
     this.context = null;
     const len = this.items.length;
-    for (let i = 0; i < len; i++) this.items[i].unbind();
+    for (let i = 0; i < len; i++) this.items[i].unbind(view);
     this.bound = false;
 
     return this;
