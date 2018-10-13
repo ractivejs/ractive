@@ -239,8 +239,13 @@ function rollup(indir, outdir, options) {
 	if (!options.input) throw new Error('You must supply `options.input`');
 	if (!options.output || !options.output.file) throw new Error('You must supply `options.output.file`');
 
-	const inputOptions = Object.assign({}, options, { output: undefined, input: path.join(indir, options.input) })
-	const outputOptions = Object.assign({}, options.output, { file: path.join(outdir, options.output.file) })
+	const inputOptions = Object.assign({}, options, { output: undefined, input: path.join(indir, options.input) });
+	const outputOptions = Object.assign({}, options.output, { file: path.join(outdir, options.output.file) });
+
+	inputOptions.onwarn = function(msg, warn) {
+		if (msg.code === 'CIRCULAR_DEPENDENCY') return;
+		warn(msg);
+	};
 
 	return rollupLib.rollup(inputOptions).then(bundle => bundle.write(outputOptions));
 }
