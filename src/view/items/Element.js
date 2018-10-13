@@ -307,12 +307,6 @@ export default class Element extends ContainerItem {
       this.node = node;
     }
 
-    if (this.statics) {
-      keys(this.statics).forEach(k => {
-        node.setAttribute(k, this.statics[k]);
-      });
-    }
-
     // tie the node to this vdom element
     defineProperty(node, '_ractive', {
       value: {
@@ -320,6 +314,12 @@ export default class Element extends ContainerItem {
       },
       configurable: true
     });
+
+    if (this.statics) {
+      keys(this.statics).forEach(k => {
+        node.setAttribute(k, this.statics[k]);
+      });
+    }
 
     if (existing && this.foundNode) this.foundNode(node);
 
