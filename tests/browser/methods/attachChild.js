@@ -607,4 +607,26 @@ export default function() {
       }, 14);
     }, 14);
   });
+
+  test(`attaching a non-isolated child with undefined data should not throw (#3276)`, t => {
+    const r = new Ractive({
+      template: '<#anchor />',
+      target: fixture
+    });
+
+    const cmp = new Ractive({
+      template: '{{baz}}',
+      data: { foo: undefined },
+      computed: {
+        baz() {
+          return this.get('foo.bar');
+        }
+      },
+      isolated: false
+    });
+
+    r.attachChild(cmp, { target: 'anchor' });
+
+    t.equal(fixture.innerHTML, '');
+  });
 }

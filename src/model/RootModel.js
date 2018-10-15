@@ -160,7 +160,7 @@ function attachImplicits(model, fragment) {
 
   // look for virtual children to relink and cascade
   for (const k in model.childByKey) {
-    if (k in model.value) {
+    if (model.value != null && k in model.value) {
       attachImplicits(model.childByKey[k], fragment);
     } else if (!model.childByKey[k]._link || model.childByKey[k]._link.isDetached()) {
       const mdl = resolveReference(fragment, k);
