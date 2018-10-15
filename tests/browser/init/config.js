@@ -36,7 +36,7 @@ export default function() {
       'complete',
       'nestedTransitions',
       'css',
-      'noCssTransform'
+      'noCSSTransform'
     ];
 
     const actualDefaults = expectedDefaults.filter(key => Ractive.defaults.hasOwnProperty(key));
@@ -62,7 +62,7 @@ export default function() {
       'isolated',
       'lazy',
       'nestedTransitions',
-      'noCssTransform',
+      'noCSSTransform',
       'noIntro',
       'noOutro',
       'preserveWhitespace',

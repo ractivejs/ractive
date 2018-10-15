@@ -71,7 +71,7 @@ export default function() {
     const Widget = Ractive.extend({
       template: '<p class="unencapsulated">red</p>',
       css: '.unencapsulated { color: red; }',
-      noCssTransform: true
+      noCSSTransform: true
     });
 
     const ractive = new Ractive({
@@ -84,6 +84,30 @@ export default function() {
 
     t.equal(getHexColor(paragraphs[0]), hexCodes.red);
     t.equal(getHexColor(paragraphs[1]), hexCodes.red);
+
+    // we need to clean up after ourselves otherwise the global styles remain in the DOM!
+    ractive.teardown().then(done);
+  });
+
+  test('CSS encapsulation transformation is optional with old noCssTransform', t => {
+    const done = t.async();
+
+    const Widget = Ractive.extend({
+      template: '<p class="unencapsulated2">green</p>',
+      css: '.unencapsulated2 { color: green; }',
+      noCssTransform: true
+    });
+
+    const ractive = new Ractive({
+      el: fixture,
+      template: '<p class="unencapsulated2">green</p><Widget/>',
+      components: { Widget }
+    });
+
+    const paragraphs = ractive.findAll('p');
+
+    t.equal(getHexColor(paragraphs[0]), hexCodes.green);
+    t.equal(getHexColor(paragraphs[1]), hexCodes.green);
 
     // we need to clean up after ourselves otherwise the global styles remain in the DOM!
     ractive.teardown().then(done);
