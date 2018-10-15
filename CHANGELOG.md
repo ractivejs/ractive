@@ -5,6 +5,11 @@
 * Bug fixes
 	* Rendering a view with sub-components into an anchor will no longer cause the child components to freeze (#3271)
 	* Event directives in view attached to anchors will no longer register duplicate listeners (#3271)
+	* Static attributes are no longer set before the Ractive proxy is installed on an element for custom element pruproses (#3272)
+	* Explicitly null data in a non-isolated instance will no longer cause an exception when the instance is attached to a parent (#3276)
+
+* Other changes
+	* __Breaking__: The `noCssTransform` option has been renamed `noCSSTransform` to be consistent with the rest of the css methods and options. `noCssTransform` is still an alias for `noCSSTransform`, but this is a breaking change if you ever needed to check the `noCssTransform` property of an instance or Component directly e.g. `ractive.noCssTransform`.
 
 
 # 0.10.11 (unreleased)
@@ -12,6 +17,8 @@
 * Bug fixes
 	* Rendering a view with sub-components into an anchor will no longer cause the child components to freeze (#3271)
 	* Event directives in view attached to anchors will no longer register duplicate listeners (#3271)
+	* Static attributes are no longer set before the Ractive proxy is installed on an element for custom element pruproses (#3272)
+	* Explicitly null data in a non-isolated instance will no longer cause an exception when the instance is attached to a parent (#3276)
 
 
 # 0.10.10 / 1.0.0
