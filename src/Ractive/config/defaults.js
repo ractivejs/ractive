@@ -44,5 +44,5 @@ export default {
 
   // css:
   css: null,
-  noCssTransform: false
+  noCSSTransform: false
 };
