@@ -629,4 +629,33 @@ export default function() {
 
     t.equal(fixture.innerHTML, '');
   });
+
+  test(`attaching a non-isolated child with undefined data should not result in incorrect links (#3278)`, t => {
+    const done = t.async();
+
+    const r = new Ractive({
+      template: '<#anchor />',
+      target: fixture
+    });
+
+    const cmp = new Ractive({
+      template: '{{baz}}',
+      data: { foo: undefined },
+      computed: {
+        baz() {
+          return this.get('foo.bar');
+        }
+      },
+      isolated: false,
+      onrender() {
+        setTimeout(() => {
+          this.set({ foo: { bar: 'asdf' } });
+          t.equal(fixture.innerHTML, 'asdf');
+          done();
+        }, 14);
+      }
+    });
+
+    r.attachChild(cmp, { target: 'anchor' });
+  });
 }
