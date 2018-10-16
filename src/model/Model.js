@@ -61,6 +61,7 @@ export default class Model extends ModelBase {
         this.wrapper.teardown();
         delete this.wrapper;
         delete this.wrapperValue;
+        delete this.newWrapperValue;
 
         // don't branch for undefined values
         if (this.value !== undefined) {
