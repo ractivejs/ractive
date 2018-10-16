@@ -1166,4 +1166,42 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, 'bar');
   });
+
+  test(`tearing down an updating wrapper should not result in a stale value upon creation (#3277)`, t => {
+    const Adaptor = {
+      filter(v) {
+        return typeof v === 'object' && 'a' in v;
+      },
+      wrap(ractive, v) {
+        return {
+          get() {
+            return v;
+          },
+          teardown() {}
+        };
+      }
+    };
+
+    const r = new Ractive({
+      adapt: [Adaptor],
+      target: fixture,
+      template: `{{#each items}}{{.a}}{{/each}}`,
+      data: {
+        items: [{ a: 1 }, { a: 2 }, { a: 3 }]
+      }
+    });
+
+    const items = r.get('items');
+
+    items.shift();
+    r.update('items');
+
+    items.push({ a: 4 });
+    r.update('items');
+
+    items[2].a = 5;
+    r.update('items.2.a');
+
+    t.htmlEqual(fixture.innerHTML, '235');
+  });
 }
