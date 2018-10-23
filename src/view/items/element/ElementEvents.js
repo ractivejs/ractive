@@ -1,17 +1,5 @@
 import { fatal } from 'utils/log';
 import runloop from 'src/global/runloop';
-import { win } from 'config/environment';
-
-// because IE
-const whitelist = {
-  animationend: 1,
-  animationiteration: 1,
-  animationstart: 1,
-  transitioncancel: 1,
-  transitionend: 1,
-  transitionstart: 1,
-  transitionrun: 1
-};
 
 class DOMEvent {
   constructor(name, owner) {
@@ -35,10 +23,6 @@ class DOMEvent {
 
     const register = () => {
       const node = this.owner.node;
-      const on = `on${name}`;
-
-      // this is probably a custom event fired from a decorator or manually
-      if (!(on in node) && !(on in win) && !whitelist[name]) return;
 
       this.owner.on(
         name,
