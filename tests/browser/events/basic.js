@@ -475,6 +475,35 @@ export default function() {
     });
   });
 
+  test(`on-click="foo" and on-click="@.fire('foo', @context)" are equivalent for yielded components`, t => {
+    t.expect(4);
+
+    const cmp1 = Ractive.extend({
+      template: `{{yield}}`
+    });
+
+    const cmp2 = Ractive.extend({
+      template: 'yep'
+    });
+
+    const r = new Ractive({
+      target: fixture,
+      template: `<cmp1><cmp2 on-foo1="bar" on-foo2="@.fire('bar', @context)" /></cmp1>`,
+      components: { cmp1, cmp2 },
+      on: {
+        bar(ctx) {
+          t.ok(true, 'got root bar');
+          t.ok(ctx.component === r.findComponent('cmp2'), 'original context is correct');
+        }
+      }
+    });
+
+    const c = r.findComponent('cmp2');
+
+    c.fire('foo1');
+    c.fire('foo2');
+  });
+
   if (hasUsableConsole) {
     test(`event plugin args that throw don't blow up the world`, t => {
       t.expect(3);
