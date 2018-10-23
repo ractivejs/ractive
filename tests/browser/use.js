@@ -133,4 +133,18 @@ export default function() {
     t.equal(fixture.firstChild.clientWidth, 10);
     t.equal(fixture.firstChild.clientHeight, 25);
   });
+
+  test(`instance plugins are installed before fragment creation`, t => {
+    new Ractive({
+      target: fixture,
+      template: '{{>test}}',
+      use: [
+        function({ instance }) {
+          instance.partials.test = ['yep'];
+        }
+      ]
+    });
+
+    t.htmlEqual(fixture.innerHTML, 'yep');
+  });
 }

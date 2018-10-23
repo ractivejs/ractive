@@ -21,6 +21,10 @@ export default function initialise(ractive, userOptions, options) {
   // init config from Parent and options
   config.init(ractive.constructor, ractive, userOptions);
 
+  // call any passed in plugins
+  if (isArray(userOptions.use))
+    ractive.use.apply(ractive, userOptions.use.filter(p => !p.construct));
+
   hooks.config.fire(ractive);
 
   hooks.init.begin(ractive);
@@ -32,10 +36,6 @@ export default function initialise(ractive, userOptions, options) {
 
   // general config done, set up observers
   subscribe(ractive, userOptions, 'observe');
-
-  // call any passed in plugins
-  if (isArray(userOptions.use))
-    ractive.use.apply(ractive, userOptions.use.filter(p => !p.construct));
 
   if (fragment) {
     // render automatically ( if `el` is specified )
