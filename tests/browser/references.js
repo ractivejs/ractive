@@ -710,4 +710,23 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, 'yep');
   });
+
+  test(`@context can be referenced in a decorator's args`, t => {
+    new Ractive({
+      template: `<div as-test="@context.element" {{#with { foo: 'bar' } }}as-test2="@context.element, .foo"{{/with}} />`,
+      decorators: {
+        test(node, arg) {
+          t.ok(arg);
+          t.ok(node._ractive.proxy === arg);
+          return { teardown() {} };
+        },
+        test2(node, arg1, arg2) {
+          t.equal(arg2, 'bar');
+          t.ok(arg1 === node._ractive.proxy);
+          return { teardown() {} };
+        }
+      },
+      target: fixture
+    });
+  });
 }
