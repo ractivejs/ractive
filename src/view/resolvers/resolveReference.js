@@ -3,6 +3,7 @@ import SharedModel, { GlobalModel } from 'src/model/specials/SharedModel';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn } from 'utils/object';
 import { isFunction } from 'utils/is';
+import noop from 'utils/noop';
 
 function findContext(fragment) {
   let frag = fragment;
@@ -258,3 +259,7 @@ class ContextModel {
     return '@context';
   }
 }
+
+const proto = ContextModel.prototype;
+proto.register = noop;
+proto.unregister = noop;
