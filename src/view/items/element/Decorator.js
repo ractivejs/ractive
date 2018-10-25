@@ -6,6 +6,7 @@ import runloop from 'src/global/runloop';
 import { rebindMatch } from 'src/shared/rebind';
 import findElement from '../shared/findElement';
 import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
+import Fragment from '../../Fragment';
 
 const missingDecorator = {
   update: noop,
@@ -29,7 +30,9 @@ export default class Decorator {
   }
 
   bind() {
-    setupArgsFn(this, this.template, this.up, { register: true });
+    // if the owner is the elment, make sure the context includes the element
+    const frag = this.element === this.owner ? new Fragment({ owner: this.owner }) : this.up;
+    setupArgsFn(this, this.template, frag, { register: true });
   }
 
   bubble() {
