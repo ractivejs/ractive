@@ -1,7 +1,7 @@
 /*
-	Ractive.js v1.0.0
-	Build: b2f2d217a8258f3e5ddd2c11df9f641d0cd17b86
-	Date: Thu Sep 27 2018 04:32:22 GMT+0000 (UTC)
+	Ractive.js v0.10.11
+	Build: 61eaa3d3a4d4428be416fb8fdff3d9a35a60a6d9
+	Date: Tue Oct 30 2018 18:48:36 GMT+0000 (UTC)
 	Website: https://ractive.js.org
 	License: MIT
 */
@@ -492,13 +492,13 @@ var welcome;
 
 if (hasConsole) {
   var welcomeIntro = [
-    "%cRactive.js %c1.0.0 %cin debug mode, %cmore...",
+    "%cRactive.js %c0.10.11 %cin debug mode, %cmore...",
     'color: rgb(114, 157, 52); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
-  var welcomeMessage = "You're running Ractive 1.0.0 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  var welcomeMessage = "You're running Ractive 0.10.11 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   welcome = function () {
     if (Ractive.WELCOME_MESSAGE === false) {
@@ -2936,7 +2936,7 @@ function readReference(parser) {
   if (prefix === '@') {
     if (!specials.test(name$$1)) {
       parser.error(("Unrecognized special reference @" + name$$1));
-    } else if ((~name$$1.indexOf('event') || ~name$$1.indexOf('node')) && !parser.inEvent) {
+    } else if ((!name$$1.indexOf('event') || !name$$1.indexOf('node')) && !parser.inEvent) {
       parser.error("@event and @node are only valid references within an event directive");
     } else if (~name$$1.indexOf('context')) {
       parser.pos = parser.pos - (name$$1.length - 7);
@@ -6140,6 +6140,7 @@ var Model = (function (ModelBase) {
         this.wrapper.teardown();
         delete this.wrapper;
         delete this.wrapperValue;
+        delete this.newWrapperValue;
 
         // don't branch for undefined values
         if (this.value !== undefined) {
@@ -6700,6 +6701,10 @@ ContextModel__proto__.getKeypath = function getKeypath () {
   return '@context';
 };
 
+var proto = ContextModel.prototype;
+proto.register = noop;
+proto.unregister = noop;
+
 var extern = {};
 
 function getRactiveContext(ractive) {
@@ -6729,9 +6734,9 @@ var FakeFragment = function FakeFragment(ractive) {
 FakeFragment.prototype.findContext = function findContext () {
   return this.ractive.viewmodel;
 };
-var proto = FakeFragment.prototype;
-proto.getContext = getContext;
-proto.find = proto.findComponent = proto.findAll = proto.findAllComponents = noop;
+var proto$1 = FakeFragment.prototype;
+proto$1.getContext = getContext;
+proto$1.find = proto$1.findComponent = proto$1.findAll = proto$1.findAllComponents = noop;
 
 function findParentWithContext(fragment) {
   var frag = fragment;
@@ -9853,7 +9858,7 @@ function extendOtherMethods(parent, target, options) {
       // if this is a method that overwrites a method, wrap it:
       if (isFunction(member)) {
         if (
-          (key in proto$9 ||
+          (key in proto$10 ||
             (key.slice(0, 2) === 'on' && key.slice(2) in hooks && key in target)) &&
           !_super.test(member.toString())
         ) {
@@ -10515,11 +10520,11 @@ function refreshPathDeps(proxy) {
 }
 
 var eproto = ExpressionProxy.prototype;
-var proto$1 = ReferenceExpressionProxy.prototype;
+var proto$2 = ReferenceExpressionProxy.prototype;
 
-proto$1.unreference = eproto.unreference;
-proto$1.unregister = eproto.unregister;
-proto$1.unregisterLink = eproto.unregisterLink;
+proto$2.unreference = eproto.unreference;
+proto$2.unregister = eproto.unregister;
+proto$2.unregisterLink = eproto.unregisterLink;
 
 function resolve(fragment, template) {
   if (template.r) {
@@ -10586,7 +10591,7 @@ var Alias = (function (ContainerItem) {
     if (this.fragment) { this.fragment.render(target, occupants); }
   };
 
-  Alias__proto__.unbind = function unbind () {
+  Alias__proto__.unbind = function unbind (view) {
     var this$1 = this;
 
     for (var k in this$1.fragment.aliases) {
@@ -10594,7 +10599,7 @@ var Alias = (function (ContainerItem) {
     }
 
     this.fragment.aliases = {};
-    if (this.fragment) { this.fragment.unbind(); }
+    if (this.fragment) { this.fragment.unbind(view); }
   };
 
   Alias__proto__.unrender = function unrender (shouldDestroy) {
@@ -11080,8 +11085,8 @@ var ConditionalAttribute = (function (Item) {
     return this.fragment.toString();
   };
 
-  ConditionalAttribute__proto__.unbind = function unbind () {
-    this.fragment.unbind();
+  ConditionalAttribute__proto__.unbind = function unbind (view) {
+    this.fragment.unbind(view);
   };
 
   ConditionalAttribute__proto__.unrender = function unrender () {
@@ -11349,8 +11354,8 @@ var Attribute = (function (Item) {
     return str ? ((this.name) + "=\"" + str + "\"") : this.name;
   };
 
-  Attribute__proto__.unbind = function unbind () {
-    if (this.fragment) { this.fragment.unbind(); }
+  Attribute__proto__.unbind = function unbind (view) {
+    if (this.fragment) { this.fragment.unbind(view); }
   };
 
   Attribute__proto__.unrender = function unrender () {
@@ -11436,8 +11441,8 @@ var BindingFlag = (function (Item) {
     return '';
   };
 
-  BindingFlag__proto__.unbind = function unbind () {
-    if (this.fragment) { this.fragment.unbind(); }
+  BindingFlag__proto__.unbind = function unbind (view) {
+    if (this.fragment) { this.fragment.unbind(view); }
 
     delete this.element[this.flag];
   };
@@ -11481,9 +11486,9 @@ function Comment(options) {
   Item.call(this, options);
 }
 
-var proto$2 = create(Item.prototype);
+var proto$3 = create(Item.prototype);
 
-assign(proto$2, {
+assign(proto$3, {
   bind: noop,
   unbind: noop,
   update: noop,
@@ -11513,7 +11518,7 @@ assign(proto$2, {
   }
 });
 
-Comment.prototype = proto$2;
+Comment.prototype = proto$3;
 
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself
@@ -11762,12 +11767,14 @@ function attachImplicits(model, fragment) {
 
   // look for virtual children to relink and cascade
   for (var k in model.childByKey) {
-    if (k in model.value) {
-      attachImplicits(model.childByKey[k], fragment);
-    } else if (!model.childByKey[k]._link || model.childByKey[k]._link.isDetached()) {
-      var mdl = resolveReference(fragment, k);
-      if (mdl) {
-        model.childByKey[k].link(mdl, k, { implicit: true });
+    if (model.value) {
+      if (k in model.value) {
+        attachImplicits(model.childByKey[k], fragment);
+      } else if (!model.childByKey[k]._link || model.childByKey[k]._link.isDetached()) {
+        var mdl = resolveReference(fragment, k);
+        if (mdl) {
+          model.childByKey[k].link(mdl, k, { implicit: true });
+        }
       }
     }
   }
@@ -12220,13 +12227,14 @@ var Component = (function (Item) {
     if (this.instance) { return this.instance.toHTML(); }
   };
 
-  Component__proto__.unbind = function unbind$1 () {
+  Component__proto__.unbind = function unbind$1 (view) {
     if (!this.isAnchor) {
       this.bound = false;
 
       this.attributes.forEach(unbind);
 
-      teardown$2(this.instance, function () { return runloop.promise(); });
+      if (view) { this.instance.fragment.unbind(); }
+      else { teardown$2(this.instance, function () { return runloop.promise(); }); }
     }
   };
 
@@ -12305,7 +12313,7 @@ function renderItem(anchor, meta) {
   meta.partials = meta.instance.partials;
   meta.instance.partials = assign(create(meta.partials), meta.partials, anchor._partials);
 
-  meta.instance.fragment.unbind();
+  meta.instance.fragment.unbind(true);
   meta.instance.fragment.componentParent = anchor.up;
   meta.instance.fragment.bind(meta.instance.viewmodel);
 
@@ -12409,7 +12417,9 @@ var Decorator = function Decorator(options) {
 var Decorator__proto__ = Decorator.prototype;
 
 Decorator__proto__.bind = function bind () {
-  setupArgsFn(this, this.template, this.up, { register: true });
+  // if the owner is the elment, make sure the context includes the element
+  var frag = this.element === this.owner ? new Fragment({ owner: this.owner }) : this.up;
+  setupArgsFn(this, this.template, frag, { register: true });
 };
 
 Decorator__proto__.bubble = function bubble () {
@@ -12551,8 +12561,8 @@ var Doctype = (function (Item) {
   return Doctype;
 }(Item));
 
-var proto$3 = Doctype.prototype;
-proto$3.bind = proto$3.render = proto$3.teardown = proto$3.unbind = proto$3.unrender = proto$3.update = noop;
+var proto$4 = Doctype.prototype;
+proto$4.bind = proto$4.render = proto$4.teardown = proto$4.unbind = proto$4.unrender = proto$4.update = noop;
 
 var Binding = function Binding(element, name) {
   if ( name === void 0 ) name = 'value';
@@ -13865,12 +13875,6 @@ var Element = (function (ContainerItem) {
       this.node = node;
     }
 
-    if (this.statics) {
-      keys(this.statics).forEach(function (k) {
-        node.setAttribute(k, this$1.statics[k]);
-      });
-    }
-
     // tie the node to this vdom element
     defineProperty(node, '_ractive', {
       value: {
@@ -13878,6 +13882,12 @@ var Element = (function (ContainerItem) {
       },
       configurable: true
     });
+
+    if (this.statics) {
+      keys(this.statics).forEach(function (k) {
+        node.setAttribute(k, this$1.statics[k]);
+      });
+    }
 
     if (existing && this.foundNode) { this.foundNode(node); }
 
@@ -14007,17 +14017,17 @@ var Element = (function (ContainerItem) {
     return str;
   };
 
-  Element__proto__.unbind = function unbind () {
+  Element__proto__.unbind = function unbind (view) {
     var attrs = this.attributes;
     if (attrs) {
       attrs.unbinding = true;
       var len = attrs.length;
-      for (var i = 0; i < len; i++) { attrs[i].unbind(); }
+      for (var i = 0; i < len; i++) { attrs[i].unbind(view); }
       attrs.unbinding = false;
     }
 
-    if (this.binding) { this.binding.unbind(); }
-    if (this.fragment) { this.fragment.unbind(); }
+    if (this.binding) { this.binding.unbind(view); }
+    if (this.fragment) { this.fragment.unbind(view); }
   };
 
   Element__proto__.unrender = function unrender (shouldDestroy) {
@@ -14189,17 +14199,6 @@ function updateModel(binding) {
   binding.model.set(binding.resetValue);
 }
 
-// because IE
-var whitelist = {
-  animationend: 1,
-  animationiteration: 1,
-  animationstart: 1,
-  transitioncancel: 1,
-  transitionend: 1,
-  transitionstart: 1,
-  transitionrun: 1
-};
-
 var DOMEvent = function DOMEvent(name, owner) {
   if (name.indexOf('*') !== -1) {
     fatal(
@@ -14222,10 +14221,6 @@ DOMEvent__proto__.render = function render (directive) {
 
   var register = function () {
     var node = this$1.owner.node;
-    var on = "on" + name;
-
-    // this is probably a custom event fired from a decorator or manually
-    if (!(on in node) && !(on in win) && !whitelist[name]) { return; }
 
     this$1.owner.on(
       name,
@@ -14348,6 +14343,12 @@ var EventDirective__proto__ = EventDirective.prototype;
 
 EventDirective__proto__.bind = function bind () {
     var this$1 = this;
+
+  // sometimes anchors will cause an unbind without unrender
+  if (this.events.length) {
+    this.events.forEach(function (e) { return e.unrender(); });
+    this.events = [];
+  }
 
   if (this.element.type === COMPONENT || this.element.type === ANCHOR) {
     this.template.n.forEach(function (n) {
@@ -14513,17 +14514,17 @@ EventDirective__proto__.toString = function toString () {
   return '';
 };
 
-EventDirective__proto__.unbind = function unbind () {
+EventDirective__proto__.unbind = function unbind (view) {
   removeFromArray(this.element.events, this);
-  this.events.forEach(function (e) { return e.unbind(); });
+  this.events.forEach(function (e) { return e.unbind(view); });
 };
 
 EventDirective__proto__.unrender = function unrender () {
   this.events.forEach(function (e) { return e.unrender(); });
 };
 
-var proto$4 = EventDirective.prototype;
-proto$4.firstNode = proto$4.rebound = proto$4.update = noop;
+var proto$5 = EventDirective.prototype;
+proto$5.firstNode = proto$5.rebound = proto$5.update = noop;
 
 function progressiveText(item, target, occupants, text) {
   if (occupants) {
@@ -14648,9 +14649,9 @@ function MustacheContainer(options) {
   Mustache.call(this, options);
 }
 
-var proto$5 = (MustacheContainer.prototype = Object.create(ContainerItem.prototype));
+var proto$6 = (MustacheContainer.prototype = Object.create(ContainerItem.prototype));
 
-assign(proto$5, Mustache.prototype, { constructor: MustacheContainer });
+assign(proto$6, Mustache.prototype, { constructor: MustacheContainer });
 
 var Interpolator = (function (Mustache) {
   function Interpolator () {
@@ -14950,9 +14951,9 @@ var Mapping = (function (Item) {
 
   Mapping__proto__.render = function render () {};
 
-  Mapping__proto__.unbind = function unbind () {
+  Mapping__proto__.unbind = function unbind (view) {
     if (this.model) { this.model.unregister(this); }
-    if (this.boundFragment) { this.boundFragment.unbind(); }
+    if (this.boundFragment) { this.boundFragment.unbind(view); }
 
     if (this.element.bound) {
       if (this.link.target === this.model) { this.link.owner.unlink(); }
@@ -15112,8 +15113,8 @@ var Option = (function (Element) {
     }
   };
 
-  Option__proto__.unbind = function unbind () {
-    Element.prototype.unbind.call(this);
+  Option__proto__.unbind = function unbind (view) {
+    Element.prototype.unbind.call(this, view);
 
     if (this.select) {
       removeFromArray(this.select.options, this);
@@ -15243,9 +15244,9 @@ function Partial(options) {
   }
 }
 
-var proto$6 = (Partial.prototype = create(MustacheContainer.prototype));
+var proto$7 = (Partial.prototype = create(MustacheContainer.prototype));
 
-assign(proto$6, {
+assign(proto$7, {
   constructor: Partial,
 
   bind: function bind() {
@@ -15404,22 +15405,22 @@ assign(proto$6, {
     if (this.proxy && isFunction(this.proxy.render)) { this.proxy.render(); }
   },
 
-  unbind: function unbind() {
-    this.fragment.unbind();
+  unbind: function unbind(view) {
+    this.fragment.unbind(view);
 
     this.fragment.aliases = null;
 
-    this.unbindAttrs();
+    this.unbindAttrs(view);
 
-    MustacheContainer.prototype.unbind.call(this);
+    MustacheContainer.prototype.unbind.call(this, view);
   },
 
-  unbindAttrs: function unbindAttrs() {
+  unbindAttrs: function unbindAttrs(view) {
     var this$1 = this;
 
     if (this._attrs) {
       keys(this._attrs).forEach(function (k) {
-        this$1._attrs[k].unbind();
+        this$1._attrs[k].unbind(view);
       });
     }
   },
@@ -15951,12 +15952,12 @@ RepeatedFragment__proto__.toString = function toString (escape) {
   return this.iterations ? this.iterations.map(escape ? toEscapedString : toString$1).join('') : '';
 };
 
-RepeatedFragment__proto__.unbind = function unbind () {
+RepeatedFragment__proto__.unbind = function unbind (view) {
   this.bound = false;
   if (this.source) { this.source.model.unregister(this.source); }
   var iterations = this.pendingNewIndices ? this.previousIterations : this.iterations;
   var len = iterations.length;
-  for (var i = 0; i < len; i++) { iterations[i].unbind(); }
+  for (var i = 0; i < len; i++) { iterations[i].unbind(view); }
   return this;
 };
 
@@ -16414,9 +16415,9 @@ var Section = (function (MustacheContainer) {
     }
   };
 
-  Section__proto__.unbind = function unbind () {
-    MustacheContainer.prototype.unbind.call(this);
-    if (this.fragment) { this.fragment.unbind(); }
+  Section__proto__.unbind = function unbind (view) {
+    MustacheContainer.prototype.unbind.call(this, view);
+    if (this.fragment) { this.fragment.unbind(view); }
   };
 
   Section__proto__.unrender = function unrender (shouldDestroy) {
@@ -16749,8 +16750,8 @@ var Text = (function (Item) {
   return Text;
 }(Item));
 
-var proto$7 = Text.prototype;
-proto$7.bind = proto$7.unbind = proto$7.update = noop;
+var proto$8 = Text.prototype;
+proto$8.bind = proto$8.unbind = proto$8.update = noop;
 
 var visible;
 var hidden = 'hidden';
@@ -17399,8 +17400,8 @@ Transition__proto__.unregisterCompleteHandler = function unregisterCompleteHandl
   removeFromArray(this.onComplete, fn);
 };
 
-var proto$8 = Transition.prototype;
-proto$8.destroyed = proto$8.firstNode = proto$8.rebound = proto$8.render = proto$8.unrender = proto$8.update = noop;
+var proto$9 = Transition.prototype;
+proto$9.destroyed = proto$9.firstNode = proto$9.rebound = proto$9.render = proto$9.unrender = proto$9.update = noop;
 
 function nearestProp(prop, ractive, rendering) {
   var instance = ractive;
@@ -18191,12 +18192,12 @@ Fragment__proto__.toString = function toString (escape) {
   return this.items.map(escape ? toEscapedString : toString$1).join('');
 };
 
-Fragment__proto__.unbind = function unbind () {
+Fragment__proto__.unbind = function unbind (view) {
     var this$1 = this;
 
   this.context = null;
   var len = this.items.length;
-  for (var i = 0; i < len; i++) { this$1.items[i].unbind(); }
+  for (var i = 0; i < len; i++) { this$1.items[i].unbind(view); }
   this.bound = false;
 
   return this;
@@ -18284,6 +18285,10 @@ function initialise(ractive, userOptions, options) {
   // init config from Parent and options
   config.init(ractive.constructor, ractive, userOptions);
 
+  // call any passed in plugins
+  if (isArray(userOptions.use))
+    { ractive.use.apply(ractive, userOptions.use.filter(function (p) { return !p.construct; })); }
+
   hooks.config.fire(ractive);
 
   hooks.init.begin(ractive);
@@ -18295,10 +18300,6 @@ function initialise(ractive, userOptions, options) {
 
   // general config done, set up observers
   subscribe(ractive, userOptions, 'observe');
-
-  // call any passed in plugins
-  if (isArray(userOptions.use))
-    { ractive.use.apply(ractive, userOptions.use.filter(function (p) { return !p.construct; })); }
 
   if (fragment) {
     // render automatically ( if `el` is specified )
@@ -18709,7 +18710,7 @@ function use() {
   return this;
 }
 
-var proto$9 = {
+var proto$10 = {
   add: Ractive$add,
   animate: Ractive$animate,
   attachChild: attachChild,
@@ -19009,10 +19010,10 @@ if (win && !win.Ractive) {
   /* istanbul ignore next */
   if (~opts$1.indexOf('ForceGlobal')) { win.Ractive = Ractive; }
 } else if (win) {
-  warn("Ractive already appears to be loaded while loading 1.0.0.");
+  warn("Ractive already appears to be loaded while loading 0.10.11.");
 }
 
-assign(Ractive.prototype, proto$9, defaults);
+assign(Ractive.prototype, proto$10, defaults);
 Ractive.prototype.constructor = Ractive;
 
 // alias prototype as `defaults`
@@ -19051,7 +19052,7 @@ defineProperties(Ractive, {
   svg: { value: svg },
 
   // version
-  VERSION: { value: '1.0.0' },
+  VERSION: { value: '0.10.11' },
 
   // plugins
   adaptors: { writable: true, value: {} },
