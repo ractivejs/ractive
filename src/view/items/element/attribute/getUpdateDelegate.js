@@ -189,8 +189,14 @@ function updateStringValue(reset) {
 
       this.node._ractive.value = value;
 
-      this.node.value = safeToStringValue(value);
-      this.node.setAttribute('value', safeToStringValue(value));
+      const safeValue = safeToStringValue(value);
+
+      // fixes #3281 – Safari moves caret position when setting an input value to the same value
+      if (this.node.value !== safeValue) {
+        this.node.value = safeValue;
+      }
+
+      this.node.setAttribute('value', safeValue);
     }
   }
 }
