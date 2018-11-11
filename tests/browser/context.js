@@ -1191,4 +1191,64 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, 'yep<div>sure</div><span></span>');
   });
+
+  test(`context provides local find`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: `<div><div><div id=sure><div id=yep /></div></div></div>`
+    });
+
+    const ctx = r.getContext('#sure');
+
+    t.strictEqual(ctx.find('div'), fixture.querySelector('#yep'));
+  });
+
+  test(`context provides local findAll`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: `<div><div><div id=sure><div class-foo /><div class-bar /></div></div></div>`
+    });
+
+    const ctx = r.getContext('#sure');
+
+    t.equal(ctx.findAll('div').length, 2);
+    t.strictEqual(ctx.find('.foo'), ctx.findAll('div')[0]);
+    t.strictEqual(ctx.find('.bar'), ctx.findAll('div')[1]);
+  });
+
+  test(`context provides local findComponent`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: `<div><cmp id=outer /><div><div id=sure><cmp id=inner /></div></div></div>`,
+      components: {
+        cmp: Ractive.extend()
+      }
+    });
+
+    const ctx = r.getContext('#sure');
+
+    t.equal(ctx.findComponent('cmp').get('id'), 'inner');
+    t.equal(ctx.findComponent().get('id'), 'inner');
+  });
+
+  test(`context provides local findAllComponents`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: `<div><cmp id=outer /><div><div id=sure><cmp id=inner /><cmp id=second /><other id=other /></div></div></div>`,
+      components: {
+        cmp: Ractive.extend(),
+        other: Ractive.extend()
+      }
+    });
+
+    const ctx = r.getContext('#sure');
+
+    t.equal(ctx.findAllComponents('cmp').length, 2);
+    t.equal(ctx.findAllComponents().length, 3);
+    t.equal(ctx.findAllComponents('cmp')[0].get('id'), 'inner');
+    t.equal(ctx.findAllComponents('cmp')[1].get('id'), 'second');
+    t.equal(ctx.findAllComponents()[0].get('id'), 'inner');
+    t.equal(ctx.findAllComponents()[1].get('id'), 'second');
+    t.equal(ctx.findAllComponents()[2].get('id'), 'other');
+  });
 }

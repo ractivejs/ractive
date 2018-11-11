@@ -84,6 +84,26 @@ export default class Context {
     return protoAnimate(this.ractive, model, value, options);
   }
 
+  find(selector) {
+    return this.fragment.find(selector);
+  }
+
+  findAll(selector) {
+    const result = [];
+    this.fragment.findAll(selector, { result });
+    return result;
+  }
+
+  findAllComponents(selector) {
+    const result = [];
+    this.fragment.findAllComponents(selector, { result });
+    return result;
+  }
+
+  findComponent(selector) {
+    return this.fragment.findComponent(selector);
+  }
+
   // get relative keypaths and values
   get(keypath) {
     if (!keypath) return this.fragment.findContext().get(true);
