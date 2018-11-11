@@ -1,24 +1,39 @@
 # changelog
 
-# 1.0.1 (unreleased)
+# 1.1.0 (edge, unreleased)
+
+* Experimental new features
+	* Supplying a `Context` object to a `{{#with}}` block will treat the context object as the container for its template, much like a `yield`.
+	* Contexts now support `find`, `findAll`, `findAllComponents`, and `findComponent` that do the same thing as their synonymous instance methods, but they are scoped to the context.
+
+
+# 0.10.12 / 1.0.2 (unreleased)
+
+* Bug fixes
+	* String attributes that already have the same value as their new value will no longer be updated. This avoids a Safari issue wherein the cursor jumps to the end of an input where the value is manually bound (#3281)
+
+
+# 1.0.1
+
+See also the changes from 0.10.11 / 1.0.1 below.
+
+* Breaking changes
+	* The `noCssTransform` option has been renamed `noCSSTransform` to be consistent with the rest of the css methods and options. `noCssTransform` is still an alias for `noCSSTransform`, but this is a breaking change if you ever needed to check the `noCssTransform` property of an instance or Component directly e.g. `ractive.noCssTransform`.
+
+
+# 0.10.11 / 1.0.1
 
 * Bug fixes
 	* Rendering a view with sub-components into an anchor will no longer cause the child components to freeze (#3271)
 	* Event directives in view attached to anchors will no longer register duplicate listeners (#3271)
 	* Static attributes are no longer set before the Ractive proxy is installed on an element for custom element pruproses (#3272)
 	* Explicitly null data in a non-isolated instance will no longer cause an exception when the instance is attached to a parent (#3276)
+	* Instance plugins are now installed before the fragment is created so that they can contribute to registries in time to have them resolve in the fragment
+	* Special references that happen to contain `node` or `event` in their path after the actual special reference will no longer throw a parse error.
+	* Decorators with context references in their arguments will resolve the correct context rather than the context of the parent element.
 
 * Other changes
-	* __Breaking__: The `noCssTransform` option has been renamed `noCSSTransform` to be consistent with the rest of the css methods and options. `noCssTransform` is still an alias for `noCSSTransform`, but this is a breaking change if you ever needed to check the `noCssTransform` property of an instance or Component directly e.g. `ractive.noCssTransform`.
-
-
-# 0.10.11 (unreleased)
-
-* Bug fixes
-	* Rendering a view with sub-components into an anchor will no longer cause the child components to freeze (#3271)
-	* Event directives in view attached to anchors will no longer register duplicate listeners (#3271)
-	* Static attributes are no longer set before the Ractive proxy is installed on an element for custom element pruproses (#3272)
-	* Explicitly null data in a non-isolated instance will no longer cause an exception when the instance is attached to a parent (#3276)
+	* Element events no longer check to see if the event is defined on the element before attaching a listener. This makes it possible to listen to custom element events without having to create a custom event handler.
 
 
 # 0.10.10 / 1.0.0
