@@ -13,6 +13,7 @@ import Fragment from '../Fragment';
 import RepeatedFragment from '../RepeatedFragment';
 import { MustacheContainer } from './shared/Mustache';
 import { keys } from 'utils/object';
+import Context from 'src/shared/Context';
 
 function isEmpty(value) {
   return (
@@ -61,6 +62,13 @@ export default class Section extends MustacheContainer {
         template: this.template.f
       }).bind();
     }
+  }
+
+  bubble() {
+    if (!this.dirty && this.yield) {
+      this.dirty = true;
+      this.containerFragment.bubble();
+    } else super.bubble();
   }
 
   detach() {
@@ -138,6 +146,17 @@ export default class Section extends MustacheContainer {
     const siblingFalsey = !this.subordinate || !this.sibling.isTruthy();
     const lastType = this.sectionType;
 
+    if (this.yield && this.yield !== value) {
+      this.up = this.containerFragment;
+      this.container = null;
+      this.yield = null;
+      if (this.rendered) this.fragment.unbind().unrender(true);
+      this.fragment = null;
+    } else if (this.rendered && !this.yield && value instanceof Context) {
+      if (this.rendered) this.fragment.unbind().unrender(true);
+      this.fragment = null;
+    }
+
     // watch for switching section types
     if (this.sectionType === null || this.templateSectionType === null)
       this.sectionType = getType(value, this.template.i);
@@ -178,10 +197,19 @@ export default class Section extends MustacheContainer {
           }).bind(this.model);
         } else {
           // only with and if-with provide context - if and unless do not
-          const context =
+          let context =
             this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS
               ? this.model
               : null;
+
+          if (value instanceof Context) {
+            this.yield = value;
+            this.containerFragment = this.up;
+            this.up = value.fragment;
+            this.container = value.ractive;
+            context = undefined;
+          }
+
           newFragment = new Fragment({
             owner: this,
             template: this.template.f
@@ -222,7 +250,7 @@ export default class Section extends MustacheContainer {
 }
 
 function attach(section, fragment) {
-  const anchor = section.up.findNextNode(section);
+  const anchor = (section.containerFragment || section.up).findNextNode(section);
 
   if (anchor) {
     const docFrag = createDocumentFragment();

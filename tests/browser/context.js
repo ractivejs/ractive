@@ -1122,4 +1122,73 @@ export default function() {
 
     t.ok(Ractive.getContext(fixture.querySelector('span')));
   });
+
+  test(`a Context object supplied to a with section acts as a container for the section`, t => {
+    const r = new Ractive({
+      template: '{{#if given}}{{>given.template given.context}}{{/if}}<#anchor />',
+      target: fixture
+    });
+
+    const c = new Ractive({
+      template: '{{#with foo.bar}}<span />{{/with}}',
+      data: {
+        foo: { bar: { baz: 'yep' } }
+      },
+      decorators: {
+        test(n) {
+          n.innerHTML = 'sure';
+          return { teardown() {} };
+        }
+      }
+    });
+
+    r.attachChild(c, { target: 'anchor' });
+
+    r.set('given', {
+      context: c.getContext('span'),
+      template: Ractive.parse('{{.baz}}<div as-test />').t
+    });
+
+    t.htmlEqual(fixture.innerHTML, 'yep<div>sure</div><span></span>');
+  });
+
+  test(`a Context object on a with section still reacts to changes`, t => {
+    t.expect(4);
+
+    const r = new Ractive({
+      template: '{{#if given}}{{>given.template given.context}}{{/if}}<#anchor />',
+      target: fixture
+    });
+
+    const c = new Ractive({
+      template: '{{#with foo.bar}}<span />{{/with}}',
+      data: {
+        foo: { bar: { baz: 'yep' } }
+      },
+      decorators: {
+        test(n) {
+          n.innerHTML = 'sure';
+          return { teardown() {} };
+        }
+      }
+    });
+
+    r.attachChild(c, { target: 'anchor' });
+
+    r.set('given', {
+      context: c.getContext('span'),
+      template: Ractive.parse('{{.baz}}<div as-test />').t
+    });
+
+    t.htmlEqual(fixture.innerHTML, 'yep<div>sure</div><span></span>');
+
+    onWarn(msg => t.ok(/missing "test" decorator plugin/i.test(msg)));
+    r.set('given.context', {});
+
+    t.htmlEqual(fixture.innerHTML, '<div></div><span></span>');
+
+    r.set('given.context', c.getContext('span'));
+
+    t.htmlEqual(fixture.innerHTML, 'yep<div>sure</div><span></span>');
+  });
 }

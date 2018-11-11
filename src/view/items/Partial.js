@@ -48,7 +48,7 @@ assign(proto, {
         this.up = this.component.up;
 
         // {{yield}} is equivalent to {{yield content}}
-        if (!template.r && !template.x && !template.tx) this.refName = 'content';
+        if (!template.r && !template.x && !template.rx) this.refName = 'content';
       } else {
         // plain-ish instance that may be attached to a parent later
         this.fragment = new Fragment({
