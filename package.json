@@ -1,6 +1,6 @@
 {
   "name": "ractive",
-  "version": "0.10.12-edge",
+  "version": "0.10.12",
   "license": "MIT",
   "private": true,
   "engines": {
