@@ -1,13 +1,13 @@
 # changelog
 
-# 1.1.0 (edge, unreleased)
+# 1.1.0
 
 * Experimental new features
 	* Supplying a `Context` object to a `{{#with}}` block will treat the context object as the container for its template, much like a `yield`.
 	* Contexts now support `find`, `findAll`, `findAllComponents`, and `findComponent` that do the same thing as their synonymous instance methods, but they are scoped to the context.
 
 
-# 0.10.12 / 1.0.2 (unreleased)
+# 0.10.12 / 1.0.2
 
 * Bug fixes
 	* String attributes that already have the same value as their new value will no longer be updated. This avoids a Safari issue wherein the cursor jumps to the end of an input where the value is manually bound (#3281)
