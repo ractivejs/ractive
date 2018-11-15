@@ -124,8 +124,10 @@ const StandardParser = Parser.extend({
   },
 
   postProcess(result, options) {
+    const [parserResult] = result;
+
     if (options.expression) {
-      const expr = flattenExpression(result[0]);
+      const expr = flattenExpression(parserResult);
       expr.e = fromExpression(expr.s, expr.r.length);
       return expr;
     } else {
@@ -139,7 +141,7 @@ const StandardParser = Parser.extend({
       }
 
       cleanup(
-        result[0].t,
+        parserResult.t,
         this.stripComments,
         this.preserveWhitespace,
         !this.preserveWhitespace,
@@ -149,11 +151,14 @@ const StandardParser = Parser.extend({
 
       if (this.csp !== false) {
         const expr = {};
-        insertExpressions(result[0].t, expr);
-        if (keys(expr).length) result[0].e = expr;
+
+        insertExpressions(parserResult.t, expr);
+        insertExpressions(parserResult.p || {}, expr);
+
+        if (keys(expr).length) parserResult.e = expr;
       }
 
-      return result[0];
+      return parserResult;
     }
   },
 
