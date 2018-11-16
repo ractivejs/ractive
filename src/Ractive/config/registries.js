@@ -1,4 +1,5 @@
 import { assign, create, keys } from 'utils/object';
+import { addFunctions } from 'shared/getFunction';
 
 const registryNames = [
   'adaptors',
@@ -40,6 +41,12 @@ class Registry {
     assign(registry, option);
 
     target[name] = registry;
+
+    if (name === 'partials' && target[name]) {
+      keys(target[name]).forEach(key => {
+        addFunctions(target[name][key]);
+      });
+    }
   }
 
   reset(ractive) {
