@@ -1239,4 +1239,45 @@ export default function() {
     t.equal(run, 2);
     t.htmlEqual(fixture.innerHTML, '1');
   });
+
+  // #3285
+  test(`extending a component with pre-parsed partials should keep any expressions that was converted to function due to CSP #3285`, t => {
+    const a = Ractive.parse(`{{1 + 2}}`, { csp: true });
+
+    // after Ractive.extend, 1+2 should still return 5, rather than being re-evaluated to 3
+    a.e['1+2'] = function() {
+      return ['5'];
+    };
+
+    const MyComponent = {
+      partials: { a }
+    };
+
+    const MyWrapper = Ractive.extend(MyComponent, {
+      target: fixture,
+      template: '{{>a}}'
+    });
+
+    new MyWrapper();
+
+    t.htmlEqual(fixture.innerHTML, '5');
+  });
+
+  // #3285
+  test(`pre-parsed partial expressions are converted and executed as a function in CSP #3285`, t => {
+    const a = Ractive.parse(`{{1 + 2}}`, { csp: true });
+
+    // after Ractive.extend, 1+2 should still return 5, rather than being re-evaluated to 3
+    a.e['1+2'] = function() {
+      return ['5'];
+    };
+
+    new Ractive({
+      target: fixture,
+      template: '{{>a}}',
+      partials: { a }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '5');
+  });
 }
