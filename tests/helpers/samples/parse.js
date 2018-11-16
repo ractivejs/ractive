@@ -911,6 +911,25 @@ const parseTests = [
 			}
 		}
 	},
+	// #3285
+	{
+		name: 'template with partial – csp: true #3285',
+		template: '{{#partial a}}{{x + 1}}<a {{#if x + 2}}data-id={{x + 3}}{{/if}} slide-in="x+4" on-click="proxy" on-focus="method(x + 5)">{{foo.bar[x + 6].baz}}</a>{{/partial}}',
+		options: { csp: true },
+		parsed: {
+			v:4,t:[],p:{a:[{t:2,x:{r:['x'],s:'_0+1'}},{t:7,e:'a',m:[{t:4,f:[{n:'data-id',f:[{t:2,x:{r:['x'],s:'_0+3'}}],t:13}],n:50,x:{r:['x'],s:'_0+2'}},{v:'t1',n:'slide',f:{s:'[_0+4]',r:['x']},t:72},{n:['click'],f:'proxy',t:70},{n:['focus'],f:{r:['method','x'],s:'[_0(_1+5)]'},t:70}],f:[{t:2,rx:{r:'foo.bar',m:[{r:['x'],s:'_0+6'},'baz']}}]}]},
+			// these are intentially made strings for testing purposes
+			// actual template has javascript function objects
+			e:{
+				'_0+1':'function (_0){return(_0+1);}',
+				'_0+3':'function (_0){return(_0+3);}',
+				'_0+2':'function (_0){return(_0+2);}',
+				'[_0+4]':'function (_0){return([_0+4]);}',
+				'[_0(_1+5)]':'function (_0,_1){return([_0(_1+5)]);}',
+				'_0+6':'function (_0){return(_0+6);}'
+			}
+		}
+	},
 	// #2325
 	{
 		name: 'expression with numeric refinement #2325',
