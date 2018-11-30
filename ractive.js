@@ -1,7 +1,7 @@
 /*
-	Ractive.js v1.0.3
-	Build: 97b8db9a0821762471917c522c025a9a688bec1a
-	Date: Fri Nov 30 2018 19:59:10 GMT+0000 (UTC)
+	Ractive.js v1.1.1
+	Build: dd70443f9a5615b0aaaf478f4d83d50298c1af8d
+	Date: Fri Nov 30 2018 20:00:35 GMT+0000 (UTC)
 	Website: https://ractive.js.org
 	License: MIT
 */
@@ -492,13 +492,13 @@ var welcome;
 
 if (hasConsole) {
   var welcomeIntro = [
-    "%cRactive.js %c1.0.3 %cin debug mode, %cmore...",
+    "%cRactive.js %c1.1.1 %cin debug mode, %cmore...",
     'color: rgb(114, 157, 52); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
-  var welcomeMessage = "You're running Ractive 1.0.3 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  var welcomeMessage = "You're running Ractive 1.1.1 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   welcome = function () {
     if (Ractive.WELCOME_MESSAGE === false) {
@@ -7829,6 +7829,26 @@ Context__proto__.add = function add (keypath, d, options) {
 Context__proto__.animate = function animate$1 (keypath, value, options) {
   var model = findModel(this, keypath).model;
   return animate(this.ractive, model, value, options);
+};
+
+Context__proto__.find = function find (selector) {
+  return this.fragment.find(selector);
+};
+
+Context__proto__.findAll = function findAll (selector) {
+  var result = [];
+  this.fragment.findAll(selector, { result: result });
+  return result;
+};
+
+Context__proto__.findAllComponents = function findAllComponents (selector) {
+  var result = [];
+  this.fragment.findAllComponents(selector, { result: result });
+  return result;
+};
+
+Context__proto__.findComponent = function findComponent (selector) {
+  return this.fragment.findComponent(selector);
 };
 
 // get relative keypaths and values
@@ -15283,7 +15303,7 @@ assign(proto$7, {
         this.up = this.component.up;
 
         // {{yield}} is equivalent to {{yield content}}
-        if (!template.r && !template.x && !template.tx) { this.refName = 'content'; }
+        if (!template.r && !template.x && !template.rx) { this.refName = 'content'; }
       } else {
         // plain-ish instance that may be attached to a parent later
         this.fragment = new Fragment({
@@ -16384,6 +16404,13 @@ var Section = (function (MustacheContainer) {
     }
   };
 
+  Section__proto__.bubble = function bubble () {
+    if (!this.dirty && this.yield) {
+      this.dirty = true;
+      this.containerFragment.bubble();
+    } else { MustacheContainer.prototype.bubble.call(this); }
+  };
+
   Section__proto__.detach = function detach () {
     var frag = this.fragment || this.detached;
     return frag ? frag.detach() : MustacheContainer.prototype.detach.call(this);
@@ -16461,6 +16488,17 @@ var Section = (function (MustacheContainer) {
     var siblingFalsey = !this.subordinate || !this.sibling.isTruthy();
     var lastType = this.sectionType;
 
+    if (this.yield && this.yield !== value) {
+      this.up = this.containerFragment;
+      this.container = null;
+      this.yield = null;
+      if (this.rendered) { this.fragment.unbind().unrender(true); }
+      this.fragment = null;
+    } else if (this.rendered && !this.yield && value instanceof Context) {
+      if (this.rendered) { this.fragment.unbind().unrender(true); }
+      this.fragment = null;
+    }
+
     // watch for switching section types
     if (this.sectionType === null || this.templateSectionType === null)
       { this.sectionType = getType(value, this.template.i); }
@@ -16505,6 +16543,15 @@ var Section = (function (MustacheContainer) {
             this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS
               ? this.model
               : null;
+
+          if (value instanceof Context) {
+            this.yield = value;
+            this.containerFragment = this.up;
+            this.up = value.fragment;
+            this.container = value.ractive;
+            context = undefined;
+          }
+
           newFragment = new Fragment({
             owner: this,
             template: this.template.f
@@ -16547,7 +16594,7 @@ var Section = (function (MustacheContainer) {
 }(MustacheContainer));
 
 function attach(section, fragment) {
-  var anchor = section.up.findNextNode(section);
+  var anchor = (section.containerFragment || section.up).findNextNode(section);
 
   if (anchor) {
     var docFrag = createDocumentFragment();
@@ -19029,7 +19076,7 @@ if (win && !win.Ractive) {
   /* istanbul ignore next */
   if (~opts$1.indexOf('ForceGlobal')) { win.Ractive = Ractive; }
 } else if (win) {
-  warn("Ractive already appears to be loaded while loading 1.0.3.");
+  warn("Ractive already appears to be loaded while loading 1.1.1.");
 }
 
 assign(Ractive.prototype, proto$10, defaults);
@@ -19071,7 +19118,7 @@ defineProperties(Ractive, {
   svg: { value: svg },
 
   // version
-  VERSION: { value: '1.0.3' },
+  VERSION: { value: '1.1.1' },
 
   // plugins
   adaptors: { writable: true, value: {} },
