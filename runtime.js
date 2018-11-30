@@ -1,7 +1,7 @@
 /*
-	Ractive.js v0.10.13
-	Build: 338c8dfdaa407d8c231a40d6d4a24cddbcf9081d
-	Date: Fri Nov 30 2018 19:56:36 GMT+0000 (UTC)
+	Ractive.js v1.0.3
+	Build: 97b8db9a0821762471917c522c025a9a688bec1a
+	Date: Fri Nov 30 2018 19:59:10 GMT+0000 (UTC)
 	Website: https://ractive.js.org
 	License: MIT
 */
@@ -420,7 +420,7 @@ var defaults = {
 
   // css:
   css: null,
-  noCssTransform: false
+  noCSSTransform: false
 };
 
 // These are a subset of the easing equations found at
@@ -492,13 +492,13 @@ var welcome;
 
 if (hasConsole) {
   var welcomeIntro = [
-    "%cRactive.js %c0.10.13 %cin debug mode, %cmore...",
+    "%cRactive.js %c1.0.3 %cin debug mode, %cmore...",
     'color: rgb(114, 157, 52); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
-  var welcomeMessage = "You're running Ractive 0.10.13 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  var welcomeMessage = "You're running Ractive 1.0.3 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   welcome = function () {
     if (Ractive.WELCOME_MESSAGE === false) {
@@ -5611,7 +5611,9 @@ function initCSS(options, target, proto) {
     css = evalCSS(target, css);
   }
 
-  var def = { transform: !options.noCssTransform };
+  var def = {
+    transform: 'noCSSTransform' in options ? !options.noCSSTransform : !options.noCssTransform
+  };
 
   defineProperty(target, '_cssDef', { configurable: true, value: def });
 
@@ -16060,7 +16062,7 @@ if (win && !win.Ractive) {
   /* istanbul ignore next */
   if (~opts$1.indexOf('ForceGlobal')) { win.Ractive = Ractive; }
 } else if (win) {
-  warn("Ractive already appears to be loaded while loading 0.10.13.");
+  warn("Ractive already appears to be loaded while loading 1.0.3.");
 }
 
 assign(Ractive.prototype, proto$10, defaults);
@@ -16098,7 +16100,7 @@ defineProperties(Ractive, {
   svg: { value: svg },
 
   // version
-  VERSION: { value: '0.10.13' },
+  VERSION: { value: '1.0.3' },
 
   // plugins
   adaptors: { writable: true, value: {} },
