@@ -1,7 +1,7 @@
 /*
-	Ractive.js v1.1.0
-	Build: 041d7eb7931bc980754b526bb6072adbbfd94ebe
-	Date: Sun Nov 11 2018 18:03:15 GMT+0000 (UTC)
+	Ractive.js v0.10.13
+	Build: 338c8dfdaa407d8c231a40d6d4a24cddbcf9081d
+	Date: Fri Nov 30 2018 19:56:36 GMT+0000 (UTC)
 	Website: https://ractive.js.org
 	License: MIT
 */
@@ -420,7 +420,7 @@ var defaults = {
 
   // css:
   css: null,
-  noCSSTransform: false
+  noCssTransform: false
 };
 
 // These are a subset of the easing equations found at
@@ -492,13 +492,13 @@ var welcome;
 
 if (hasConsole) {
   var welcomeIntro = [
-    "%cRactive.js %c1.1.0 %cin debug mode, %cmore...",
+    "%cRactive.js %c0.10.13 %cin debug mode, %cmore...",
     'color: rgb(114, 157, 52); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
-  var welcomeMessage = "You're running Ractive 1.1.0 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  var welcomeMessage = "You're running Ractive 0.10.13 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   welcome = function () {
     if (Ractive.WELCOME_MESSAGE === false) {
@@ -5469,8 +5469,10 @@ var StandardParser = Parser.extend({
   },
 
   postProcess: function postProcess(result, options) {
+    var parserResult = result[0];
+
     if (options.expression) {
-      var expr = flattenExpression(result[0]);
+      var expr = flattenExpression(parserResult);
       expr.e = fromExpression(expr.s, expr.r.length);
       return expr;
     } else {
@@ -5484,7 +5486,7 @@ var StandardParser = Parser.extend({
       }
 
       cleanup(
-        result[0].t,
+        parserResult.t,
         this.stripComments,
         this.preserveWhitespace,
         !this.preserveWhitespace,
@@ -5494,11 +5496,14 @@ var StandardParser = Parser.extend({
 
       if (this.csp !== false) {
         var expr$1 = {};
-        insertExpressions(result[0].t, expr$1);
-        if (keys(expr$1).length) { result[0].e = expr$1; }
+
+        insertExpressions(parserResult.t, expr$1);
+        insertExpressions(parserResult.p || {}, expr$1);
+
+        if (keys(expr$1).length) { parserResult.e = expr$1; }
       }
 
-      return result[0];
+      return parserResult;
     }
   },
 
@@ -7826,26 +7831,6 @@ Context__proto__.animate = function animate$1 (keypath, value, options) {
   return animate(this.ractive, model, value, options);
 };
 
-Context__proto__.find = function find (selector) {
-  return this.fragment.find(selector);
-};
-
-Context__proto__.findAll = function findAll (selector) {
-  var result = [];
-  this.fragment.findAll(selector, { result: result });
-  return result;
-};
-
-Context__proto__.findAllComponents = function findAllComponents (selector) {
-  var result = [];
-  this.fragment.findAllComponents(selector, { result: result });
-  return result;
-};
-
-Context__proto__.findComponent = function findComponent (selector) {
-  return this.fragment.findComponent(selector);
-};
-
 // get relative keypaths and values
 Context__proto__.get = function get (keypath) {
   if (!keypath) { return this.fragment.findContext().get(true); }
@@ -9366,9 +9351,7 @@ function initCSS(options, target, proto) {
     css = evalCSS(target, css);
   }
 
-  var def = {
-    transform: 'noCSSTransform' in options ? !options.noCSSTransform : !options.noCssTransform
-  };
+  var def = { transform: !options.noCssTransform };
 
   defineProperty(target, '_cssDef', { configurable: true, value: def });
 
@@ -9704,6 +9687,12 @@ Registry__proto__.configure = function configure (Parent, target, options) {
   assign(registry, option);
 
   target[name] = registry;
+
+  if (name === 'partials' && target[name]) {
+    keys(target[name]).forEach(function (key) {
+      addFunctions(target[name][key]);
+    });
+  }
 };
 
 Registry__proto__.reset = function reset (ractive) {
@@ -15292,7 +15281,7 @@ assign(proto$7, {
         this.up = this.component.up;
 
         // {{yield}} is equivalent to {{yield content}}
-        if (!template.r && !template.x && !template.rx) { this.refName = 'content'; }
+        if (!template.r && !template.x && !template.tx) { this.refName = 'content'; }
       } else {
         // plain-ish instance that may be attached to a parent later
         this.fragment = new Fragment({
@@ -16393,13 +16382,6 @@ var Section = (function (MustacheContainer) {
     }
   };
 
-  Section__proto__.bubble = function bubble () {
-    if (!this.dirty && this.yield) {
-      this.dirty = true;
-      this.containerFragment.bubble();
-    } else { MustacheContainer.prototype.bubble.call(this); }
-  };
-
   Section__proto__.detach = function detach () {
     var frag = this.fragment || this.detached;
     return frag ? frag.detach() : MustacheContainer.prototype.detach.call(this);
@@ -16477,17 +16459,6 @@ var Section = (function (MustacheContainer) {
     var siblingFalsey = !this.subordinate || !this.sibling.isTruthy();
     var lastType = this.sectionType;
 
-    if (this.yield && this.yield !== value) {
-      this.up = this.containerFragment;
-      this.container = null;
-      this.yield = null;
-      if (this.rendered) { this.fragment.unbind().unrender(true); }
-      this.fragment = null;
-    } else if (this.rendered && !this.yield && value instanceof Context) {
-      if (this.rendered) { this.fragment.unbind().unrender(true); }
-      this.fragment = null;
-    }
-
     // watch for switching section types
     if (this.sectionType === null || this.templateSectionType === null)
       { this.sectionType = getType(value, this.template.i); }
@@ -16532,15 +16503,6 @@ var Section = (function (MustacheContainer) {
             this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS
               ? this.model
               : null;
-
-          if (value instanceof Context) {
-            this.yield = value;
-            this.containerFragment = this.up;
-            this.up = value.fragment;
-            this.container = value.ractive;
-            context = undefined;
-          }
-
           newFragment = new Fragment({
             owner: this,
             template: this.template.f
@@ -16583,7 +16545,7 @@ var Section = (function (MustacheContainer) {
 }(MustacheContainer));
 
 function attach(section, fragment) {
-  var anchor = (section.containerFragment || section.up).findNextNode(section);
+  var anchor = section.up.findNextNode(section);
 
   if (anchor) {
     var docFrag = createDocumentFragment();
@@ -19065,7 +19027,7 @@ if (win && !win.Ractive) {
   /* istanbul ignore next */
   if (~opts$1.indexOf('ForceGlobal')) { win.Ractive = Ractive; }
 } else if (win) {
-  warn("Ractive already appears to be loaded while loading 1.1.0.");
+  warn("Ractive already appears to be loaded while loading 0.10.13.");
 }
 
 assign(Ractive.prototype, proto$10, defaults);
@@ -19107,7 +19069,7 @@ defineProperties(Ractive, {
   svg: { value: svg },
 
   // version
-  VERSION: { value: '1.1.0' },
+  VERSION: { value: '0.10.13' },
 
   // plugins
   adaptors: { writable: true, value: {} },
