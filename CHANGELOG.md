@@ -1,5 +1,11 @@
 # changelog
 
+# 0.10.13 / 1.0.3 / 1.1.1
+
+* Bug fixes
+	* Expressions in partials defined inline or in the partials registry are now collected into the expression map for CSP purposes thanks to @marcalexiei and @giovannipiller (#3285)
+
+
 # 1.1.0
 
 * Experimental new features
