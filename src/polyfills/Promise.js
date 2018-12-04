@@ -1,12 +1,13 @@
 import { isFunction, isObjectType } from 'utils/is';
+import { base } from 'config/environment';
 
 /* istanbul ignore if */
-if (typeof window !== 'undefined' && !window.Promise) {
+if (!base.Promise) {
   const PENDING = {};
   const FULFILLED = {};
   const REJECTED = {};
 
-  const Promise = (window.Promise = function(callback) {
+  const Promise = (base.Promise = function(callback) {
     const fulfilledHandlers = [];
     const rejectedHandlers = [];
     let state = PENDING;
@@ -64,18 +65,30 @@ if (typeof window !== 'undefined' && !window.Promise) {
       },
       catch(onRejected) {
         return this.then(null, onRejected);
+      },
+      finally(callback) {
+        return this.then(
+          v => {
+            callback();
+            return v;
+          },
+          e => {
+            callback();
+            throw e;
+          }
+        );
       }
     };
   });
 
   Promise.all = function(promises) {
-    return new Promise((fulfil, reject) => {
+    return new Promise((fulfill, reject) => {
       const result = [];
       let pending;
       let i;
 
       if (!promises.length) {
-        fulfil(result);
+        fulfill(result);
         return;
       }
 
@@ -83,11 +96,11 @@ if (typeof window !== 'undefined' && !window.Promise) {
         if (promise && isFunction(promise.then)) {
           promise.then(value => {
             result[i] = value;
-            --pending || fulfil(result);
+            --pending || fulfill(result);
           }, reject);
         } else {
           result[i] = promise;
-          --pending || fulfil(result);
+          --pending || fulfill(result);
         }
       };
 
@@ -99,13 +112,36 @@ if (typeof window !== 'undefined' && !window.Promise) {
     });
   };
 
+  Promise.race = function(promises) {
+    return new Promise((fulfill, reject) => {
+      let pending = true;
+      function ok(v) {
+        if (!pending) return;
+        pending = false;
+        fulfill(v);
+      }
+      function fail(e) {
+        if (!pending) return;
+        pending = false;
+        reject(e);
+      }
+      for (let i = 0; i < promises.length; i++) {
+        if (promises[i] && isFunction(promises[i].then)) {
+          promises[i].then(ok, fail);
+        }
+      }
+    });
+  };
+
   Promise.resolve = function(value) {
+    if (value && isFunction(value.then)) return value;
     return new Promise(fulfill => {
       fulfill(value);
     });
   };
 
   Promise.reject = function(reason) {
+    if (reason && isFunction(reason.then)) return reason;
     return new Promise((fulfill, reject) => {
       reject(reason);
     });
