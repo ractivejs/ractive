@@ -337,7 +337,8 @@ function initMacro(self) {
     name: self.template.e || self.name,
     attributes: {},
     setTemplate: setTemplate.bind(self),
-    template
+    template,
+    macro: fn
   }));
 
   if (!template.p) template.p = {};
@@ -380,7 +381,7 @@ function initMacro(self) {
   }
 
   self.initing = 1;
-  self.proxy = fn(handle, handle.attributes) || {};
+  self.proxy = fn.call(self.ractive, handle, handle.attributes) || {};
   if (!self.partial) self.partial = [];
   self.fnTemplate = self.partial;
   self.initing = 0;
