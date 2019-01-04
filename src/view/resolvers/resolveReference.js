@@ -121,6 +121,10 @@ export default function resolveReference(fragment, ref) {
     } else if (base === '@helpers') {
       // @helpers instance model
       return fragment.ractive.viewmodel.getHelpers().joinAll(keys);
+    } else if (base === '@macro') {
+      const handle = findMacro(fragment);
+      if (handle) return new ContextModel(handle, '@macro');
+      else return;
     } else {
       // nope
       throw new Error(`Invalid special reference '${base}'`);
@@ -242,13 +246,22 @@ function findIter(start) {
   return fragment.isIteration && fragment;
 }
 
+function findMacro(start) {
+  let fragment = start;
+  while (fragment) {
+    if (fragment.owner.handle) return fragment.owner.handle;
+    fragment = up(fragment);
+  }
+}
+
 function badReference(key) {
   throw new Error(`An index or key reference (${key}) cannot have child properties`);
 }
 
 class ContextModel {
-  constructor(context) {
+  constructor(context, keypath) {
     this.context = context;
+    this.keypath = keypath || '@context';
   }
 
   get() {
@@ -256,7 +269,7 @@ class ContextModel {
   }
 
   getKeypath() {
-    return '@context';
+    return this.keypath;
   }
 }
 

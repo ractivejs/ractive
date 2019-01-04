@@ -729,4 +729,37 @@ export default function() {
       target: fixture
     });
   });
+
+  test(`@macro returns the local macro handle`, t => {
+    t.expect(4);
+
+    const macro = Ractive.macro(h => {
+      h.foo = function() {
+        t.ok(true, 'macro handle found');
+      };
+      h.setTemplate('<div class-foo><div class-bar /></div><div class-baz />');
+    });
+
+    const r = new Ractive({
+      target: fixture,
+      template: `<div class-bop><foo /></div>`,
+      partials: {
+        foo: macro
+      }
+    });
+
+    r.getContext('.foo')
+      .get('@macro')
+      .foo();
+
+    r.getContext('.baz')
+      .get('@macro')
+      .foo();
+
+    r.getContext('.bar')
+      .get('@macro')
+      .foo();
+
+    t.strictEqual(r.getContext('div').get('@macro'), undefined);
+  });
 }
