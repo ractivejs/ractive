@@ -1,5 +1,15 @@
 # changelog
 
+# 1.2.0
+
+* Bug fixes
+	* The Promise polyfill implementation is now slightly more accurate and includes `race` and `finally` implementations.
+
+* Experimental new features
+	* The source macro function is now available on macro handles, and macro functions are called with the nearest Ractive instance as the context.
+	* You can get a handle to the nearest macro using the new `@macro` special reference.
+
+
 # 0.10.13 / 1.0.3 / 1.1.1
 
 * Bug fixes
