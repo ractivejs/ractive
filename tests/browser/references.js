@@ -762,4 +762,21 @@ export default function() {
 
     t.strictEqual(r.getContext('div').get('@macro'), undefined);
   });
+
+  test(`@macro special ref can also reference children`, t => {
+    const macro = Ractive.macro(h => {
+      h.foo = { bar: { baz: 42 } };
+      h.setTemplate('<div class-foo><div class-bar /></div><div class-baz />');
+    });
+
+    const r = new Ractive({
+      target: fixture,
+      template: `<div class-bop><foo /></div>`,
+      partials: {
+        foo: macro
+      }
+    });
+
+    t.strictEqual(r.getContext('.bar').get('@macro.foo.bar.baz'), 42);
+  });
 }

@@ -1,9 +1,11 @@
 import { splitKeypath } from 'shared/keypaths';
-import SharedModel, { GlobalModel } from 'src/model/specials/SharedModel';
+import SharedModel, {
+  GlobalModel,
+  SharedModel as ContextModel
+} from 'src/model/specials/SharedModel';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn } from 'utils/object';
 import { isFunction } from 'utils/is';
-import noop from 'utils/noop';
 
 function findContext(fragment) {
   let frag = fragment;
@@ -111,7 +113,7 @@ export default function resolveReference(fragment, ref) {
 
       return f.getKeypath(root);
     } else if (base === '@context') {
-      return new ContextModel(fragment.getContext());
+      return new ContextModel(fragment.getContext(), 'context').joinAll(keys);
     } else if (base === '@local') {
       // @context-local data
       return fragment.getContext()._data.joinAll(keys);
@@ -123,7 +125,7 @@ export default function resolveReference(fragment, ref) {
       return fragment.ractive.viewmodel.getHelpers().joinAll(keys);
     } else if (base === '@macro') {
       const handle = findMacro(fragment);
-      if (handle) return new ContextModel(handle, '@macro');
+      if (handle) return new ContextModel(handle, 'macro').joinAll(keys);
       else return;
     } else {
       // nope
@@ -257,22 +259,3 @@ function findMacro(start) {
 function badReference(key) {
   throw new Error(`An index or key reference (${key}) cannot have child properties`);
 }
-
-class ContextModel {
-  constructor(context, keypath) {
-    this.context = context;
-    this.keypath = keypath || '@context';
-  }
-
-  get() {
-    return this.context;
-  }
-
-  getKeypath() {
-    return this.keypath;
-  }
-}
-
-const proto = ContextModel.prototype;
-proto.register = noop;
-proto.unregister = noop;
