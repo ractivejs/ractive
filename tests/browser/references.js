@@ -779,4 +779,43 @@ export default function() {
 
     t.strictEqual(r.getContext('.bar').get('@macro.foo.bar.baz'), 42);
   });
+
+  test(`joining instance data grabs the viewmodel of the instance`, t => {
+    const c1 = new Ractive({ data: { what: 42 } });
+    const c2 = new Ractive({ data: { what: 99 } });
+
+    const r = new Ractive({
+      target: fixture,
+      template: '{{child.data.what}}',
+      data: { child: c1 }
+    });
+
+    t.equal(fixture.innerHTML, '42');
+
+    r.set('child', c2);
+    t.equal(fixture.innerHTML, '99');
+  });
+
+  test(`automatic linking of instance data in an each`, t => {
+    const c1 = new Ractive({ data: { what: 42 } });
+    const c2 = new Ractive({ data: { what: 99 } });
+    const c3 = new Ractive({ data: { what: 2 } });
+
+    const r = new Ractive({
+      target: fixture,
+      template: '{{#each children}}{{.data.what}}|{{/each}}',
+      data: { children: [c1, c2] }
+    });
+
+    t.equal(fixture.innerHTML, '42|99|');
+
+    r.shift('children');
+    t.equal(fixture.innerHTML, '99|');
+
+    r.push('children', c1);
+    t.equal(fixture.innerHTML, '99|42|');
+
+    r.unshift('children', c3);
+    t.equal(fixture.innerHTML, '2|99|42|');
+  });
 }

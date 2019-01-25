@@ -202,7 +202,10 @@ export default class ModelBase {
     i = this.children.length;
     while (i--) {
       const child = this.children[i];
-      child.rebind(next ? next.joinKey(child.key) : undefined, child, safe);
+      child.rebind(next ? next.joinKey(child.key) : undefined, child._link || child, safe);
+      if (this.dataModel) {
+        this.addShuffleTask(() => checkDataLink(this, this.retrieve()), 'early');
+      }
     }
 
     i = this.bindings.length;
@@ -357,4 +360,15 @@ export function shuffle(model, newIndices, link, unsafe) {
   if (upstream) model.notifyUpstream();
 
   model.shuffling = false;
+}
+
+export function checkDataLink(model, value) {
+  if (model.dataModel && value !== model.dataModel) {
+    if (value && value.viewmodel && value.viewmodel.isRoot) {
+      model.childByKey.data.link(value.viewmodel, 'data');
+      model.dataModel = value;
+    } else {
+      model.childByKey.data.unlink();
+    }
+  }
 }

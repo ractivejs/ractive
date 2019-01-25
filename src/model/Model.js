@@ -1,4 +1,4 @@
-import ModelBase, { maybeBind, shuffle } from './ModelBase';
+import ModelBase, { checkDataLink, maybeBind, shuffle } from './ModelBase';
 import LinkModel from './LinkModel'; // eslint-disable-line no-unused-vars
 import getComputationSignature from 'src/Ractive/helpers/getComputationSignature';
 import { capture } from 'src/global/capture';
@@ -146,6 +146,8 @@ export default class Model extends ModelBase {
       this.adapt();
     }
 
+    if (this.dataModel) checkDataLink(this, value);
+
     // keep track of array stuff
     if (isArray(value)) {
       this.length = value.length;
@@ -236,6 +238,14 @@ export default class Model extends ModelBase {
       child = new Model(this, key);
       this.children.push(child);
       this.childByKey[key] = child;
+
+      if (key === 'data') {
+        const val = this.retrieve();
+        if (val && val.viewmodel && val.viewmodel.isRoot) {
+          child.link(val.viewmodel, 'data');
+          this.dataModel = val;
+        }
+      }
     }
 
     if (child._link && (!opts || opts.lastLink !== false)) return child._link;
@@ -248,6 +258,8 @@ export default class Model extends ModelBase {
 
     const old = this.value;
     const value = this.retrieve();
+
+    if (this.dataModel) checkDataLink(this, value);
 
     if (force || !isEqual(value, old)) {
       this.value = value;
