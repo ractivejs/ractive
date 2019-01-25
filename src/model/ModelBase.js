@@ -363,12 +363,13 @@ export function shuffle(model, newIndices, link, unsafe) {
 }
 
 export function checkDataLink(model, value) {
-  if (model.dataModel && value !== model.dataModel) {
-    if (value && value.viewmodel && value.viewmodel.isRoot) {
+  if (value !== model.dataModel) {
+    if (value && value.viewmodel && value.viewmodel.isRoot && model.childByKey.data) {
       model.childByKey.data.link(value.viewmodel, 'data');
       model.dataModel = value;
-    } else {
+    } else if (model.dataModel) {
       model.childByKey.data.unlink();
+      model.dataModel = true;
     }
   }
 }

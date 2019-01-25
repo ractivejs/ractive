@@ -794,6 +794,23 @@ export default function() {
 
     r.set('child', c2);
     t.equal(fixture.innerHTML, '99');
+
+    c2.set('what', 33);
+    t.equal(fixture.innerHTML, '33');
+
+    r.set('child', null);
+    t.equal(fixture.innerHTML, '');
+
+    r.set('child', c2);
+    t.equal(fixture.innerHTML, '33');
+
+    r.set('child', null);
+    t.equal(fixture.innerHTML, '');
+
+    r.set('child', c1);
+    t.equal(fixture.innerHTML, '42');
+    r.set('child', c2);
+    t.equal(fixture.innerHTML, '33');
   });
 
   test(`automatic linking of instance data in an each`, t => {
@@ -817,5 +834,36 @@ export default function() {
 
     r.unshift('children', c3);
     t.equal(fixture.innerHTML, '2|99|42|');
+  });
+
+  test(`automatic linking with child component and data function`, t => {
+    const cmp = Ractive.extend({
+      data() {
+        return { what: 42 };
+      }
+    });
+
+    new Ractive({
+      target: fixture,
+      template: `<cmp on-init="@.set('@.cmp', $1)" />{{@.cmp.data.what}}`,
+      components: { cmp }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '42');
+  });
+
+  test(`automatic instance linking with oustide updates`, t => {
+    const c1 = new Ractive({ data: { what: 42 } });
+
+    const r = new Ractive({
+      target: fixture,
+      template: '{{@.child.data.what}}'
+    });
+
+    t.htmlEqual(fixture.innerHTML, '');
+
+    r.child = c1;
+    r.update('@.child');
+    t.htmlEqual(fixture.innerHTML, '42');
   });
 }

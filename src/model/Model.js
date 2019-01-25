@@ -146,7 +146,9 @@ export default class Model extends ModelBase {
       this.adapt();
     }
 
-    if (this.dataModel) checkDataLink(this, value);
+    if (this.dataModel || (value && value.viewmodel && value.viewmodel.isRoot)) {
+      checkDataLink(this, value);
+    }
 
     // keep track of array stuff
     if (isArray(value)) {
@@ -259,7 +261,9 @@ export default class Model extends ModelBase {
     const old = this.value;
     const value = this.retrieve();
 
-    if (this.dataModel) checkDataLink(this, value);
+    if (this.dataModel || (value && value.viewmodel && value.viewmodel.isRoot)) {
+      checkDataLink(this, value);
+    }
 
     if (force || !isEqual(value, old)) {
       this.value = value;
