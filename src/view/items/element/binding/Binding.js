@@ -83,7 +83,7 @@ export default class Binding {
   rebound() {
     if (this.model) this.model.unregisterTwowayBinding(this);
     this.model = this.attribute.interpolator.model;
-    this.model.registerTwowayBinding(this);
+    this.model && this.model.registerTwowayBinding(this);
   }
 
   render() {
@@ -97,7 +97,7 @@ export default class Binding {
   }
 
   unbind() {
-    this.model.unregisterTwowayBinding(this);
+    this.model && this.model.unregisterTwowayBinding(this);
   }
 }
 
