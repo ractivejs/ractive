@@ -1,7 +1,7 @@
 import { createDocumentFragment } from 'utils/dom';
 import { isArray, isObject, isObjectType } from 'utils/is';
 import { findMap, buildNewIndices } from 'utils/array';
-import { toEscapedString, toString, shuffled } from 'shared/methodCallers';
+import { toEscapedString, toString, shuffled, update } from 'shared/methodCallers';
 import Fragment, { getKeypath } from './Fragment';
 import { ELEMENT } from 'config/types';
 import { getContext } from 'shared/getRactiveContext';
@@ -277,8 +277,13 @@ export default class RepeatedFragment {
 
     if (this.shuffler) {
       const values = shuffleValues(this, this.shuffler);
-      this.shuffle(buildNewIndices(this.values, values), true);
-      this.updatePostShuffle();
+      const newIndices = buildNewIndices(this.values, values);
+      if (!newIndices.same) {
+        this.shuffle(newIndices, true);
+        this.updatePostShuffle();
+      } else {
+        this.iterations.forEach(update);
+      }
     } else {
       let len = this.iterations.length;
       for (let i = 0; i < len; i++) {

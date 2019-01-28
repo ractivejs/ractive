@@ -109,7 +109,7 @@ export function buildNewIndices(one, two, comparator) {
   const usedIndices = {};
   let firstUnusedIndex = 0;
 
-  return oldArray.map(item => {
+  const result = oldArray.map(item => {
     let index;
     let start = firstUnusedIndex;
 
@@ -132,4 +132,18 @@ export function buildNewIndices(one, two, comparator) {
     usedIndices[index] = true;
     return index;
   });
+
+  const len = (result.oldLen = oldArray.length);
+  result.newLen = newArray.length;
+
+  if (len === result.newLen) {
+    let i = 0;
+    for (i; i < len; i++) {
+      if (result[i] !== i) break;
+    }
+
+    if (i === len) result.same = true;
+  }
+
+  return result;
 }
