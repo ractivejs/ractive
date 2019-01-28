@@ -514,4 +514,32 @@ export default function() {
     r.set('items.0', 42);
     t.equal(r.find('div').innerText, '42');
   });
+
+  test(`autoshuffling multiple items at once`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: `{{#each items, true shuffle}}{{.}}{{/each}}`,
+      data: {
+        items: [1, 2, 3, 4, 5]
+      }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '12345');
+
+    r.set('items', [3, 1, 2, 4, 5]);
+
+    t.htmlEqual(fixture.innerHTML, '31245');
+
+    r.set('items', [4, 3, 1, 2, 5]);
+
+    t.htmlEqual(fixture.innerHTML, '43125');
+
+    r.set('items', [1, 2, 3, 4, 5]);
+
+    t.htmlEqual(fixture.innerHTML, '12345');
+
+    r.set('items', [4, 5, 1, 2, 3]);
+
+    t.htmlEqual(fixture.innerHTML, '45123');
+  });
 }

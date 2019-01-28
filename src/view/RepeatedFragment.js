@@ -488,6 +488,7 @@ export default class RepeatedFragment {
           if (stash[idx] && parentNode) parentNode.insertBefore(next.detach(), anchor);
         }
 
+        if (dest < idx) pos++; // current pos already moved, so update the pointer
         idx++;
         prev[pos++] = null;
       }
