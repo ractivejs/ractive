@@ -1251,4 +1251,22 @@ export default function() {
     t.equal(ctx.findAllComponents()[1].get('id'), 'second');
     t.equal(ctx.findAllComponents()[2].get('id'), 'other');
   });
+
+  test('parent context of ractive context for a component is the context immediately surrounding the component', t => {
+    const r = new Ractive({
+      target: fixture,
+      template: '{{#with 99 as bar}}<cmp />{{/with}}',
+      components: {
+        cmp: Ractive.extend()
+      },
+      data: {
+        bar: 42
+      }
+    });
+
+    const cmp = r.findComponent('cmp');
+    const ctx = cmp.getContext().getParent(true);
+
+    t.equal(ctx.get('bar'), 99);
+  });
 }

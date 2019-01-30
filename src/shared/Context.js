@@ -116,14 +116,16 @@ export default class Context {
   getParent(component) {
     let fragment = this.fragment;
 
-    if (fragment.context)
-      fragment = findParentWithContext(fragment.parent || (component && fragment.componentParent));
+    if (!fragment.parent && component) fragment = fragment.componentParent;
     else {
-      fragment = findParentWithContext(fragment.parent || (component && fragment.componentParent));
-      if (fragment)
-        fragment = findParentWithContext(
-          fragment.parent || (component && fragment.componentParent)
-        );
+      if (fragment.context) fragment = findParentWithContext(fragment.parent);
+      else {
+        fragment = findParentWithContext(fragment.parent);
+        if (fragment) {
+          if (!fragment.parent && component) fragment = fragment.componentParent;
+          else fragment = findParentWithContext(fragment.parent);
+        }
+      }
     }
 
     if (!fragment || fragment === this.fragment) return;
