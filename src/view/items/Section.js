@@ -6,7 +6,7 @@ import {
   SECTION_WITH
 } from 'config/types';
 import { createDocumentFragment } from 'utils/dom';
-import { isArray, isObject, isObjectLike } from 'utils/is';
+import { isArray, isObject, isObjectLike, isUndefined } from 'utils/is';
 import { keep } from 'shared/set';
 import runloop from 'src/global/runloop';
 import Fragment from '../Fragment';
@@ -26,7 +26,7 @@ function isEmpty(value) {
 function getType(value, hasIndexRef) {
   if (hasIndexRef || isArray(value)) return SECTION_EACH;
   if (isObjectLike(value)) return SECTION_IF_WITH;
-  if (value === undefined) return null;
+  if (isUndefined(value)) return null;
   return SECTION_IF;
 }
 

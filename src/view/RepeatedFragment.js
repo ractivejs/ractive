@@ -1,5 +1,5 @@
 import { createDocumentFragment } from 'utils/dom';
-import { isArray, isObject, isObjectType } from 'utils/is';
+import { isArray, isObject, isObjectType, isUndefined } from 'utils/is';
 import { findMap, buildNewIndices } from 'utils/array';
 import { toEscapedString, toString, shuffled, update } from 'shared/methodCallers';
 import Fragment, { getKeypath } from './Fragment';
@@ -443,7 +443,7 @@ export default class RepeatedFragment {
     idx = pos = 0;
     while (idx < len) {
       // if there's not an existing thing to shuffle, handle that
-      if (map[idx] === undefined) {
+      if (isUndefined(map[idx])) {
         next = iters[idx] = this.createIteration(idx, idx);
         if (parentNode) {
           anchor = prev[pos];

@@ -1,7 +1,7 @@
 import { removeFromArray } from 'utils/array';
 import Element from '../../Element';
 import findElement from '../../shared/findElement';
-import { isArray } from 'utils/is';
+import { isArray, isUndefined } from 'utils/is';
 
 export default class Option extends Element {
   constructor(options) {
@@ -10,7 +10,7 @@ export default class Option extends Element {
 
     // If the value attribute is missing, use the element's content,
     // as long as it isn't disabled
-    if (template.a.value === undefined && !('disabled' in template.a)) {
+    if (isUndefined(template.a.value) && !('disabled' in template.a)) {
       template.a.value = template.f || '';
     }
 
@@ -59,7 +59,7 @@ export default class Option extends Element {
   isSelected() {
     const optionValue = this.getAttribute('value');
 
-    if (optionValue === undefined || !this.select) {
+    if (isUndefined(optionValue) || !this.select) {
       return false;
     }
 

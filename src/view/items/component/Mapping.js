@@ -7,7 +7,7 @@ import resolve from '../../resolvers/resolve';
 import runloop from '../../../global/runloop';
 import { warnIfDebug } from 'utils/log';
 import { splitKeypath } from 'shared/keypaths';
-import { isArray, isObjectType, isString } from 'utils/is';
+import { isArray, isObjectType, isString, isUndefined } from 'utils/is';
 
 export default class Mapping extends Item {
   constructor(options) {
@@ -88,7 +88,7 @@ function createMapping(item) {
       });
 
       // initialize parent side of the mapping from child data
-      if (val === undefined && !model.isReadonly && item.name in childData) {
+      if (isUndefined(val) && !model.isReadonly && item.name in childData) {
         model.set(childData[item.name]);
       }
     } else if (!isObjectType(val) || template[0].x) {

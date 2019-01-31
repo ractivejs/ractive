@@ -2,6 +2,7 @@ import { arrayContentsMatch } from 'utils/array';
 import getSelectedOptions from 'utils/getSelectedOptions';
 import Binding from './Binding';
 import handleDomEvent from './handleDomEvent';
+import { isUndefined } from 'utils/is';
 
 export default class MultipleSelectBinding extends Binding {
   getInitialValue() {
@@ -34,7 +35,7 @@ export default class MultipleSelectBinding extends Binding {
 
     const value = this.getValue();
 
-    if (previousValue === undefined || !arrayContentsMatch(value, previousValue)) {
+    if (isUndefined(previousValue) || !arrayContentsMatch(value, previousValue)) {
       super.handleChange();
     }
 
@@ -46,7 +47,7 @@ export default class MultipleSelectBinding extends Binding {
 
     this.element.on('change', handleDomEvent);
 
-    if (this.model.get() === undefined) {
+    if (isUndefined(this.model.get())) {
       // get value from DOM, if possible
       this.handleChange();
     }

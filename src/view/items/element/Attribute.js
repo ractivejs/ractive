@@ -9,7 +9,7 @@ import findElement from '../shared/findElement';
 import getUpdateDelegate from './attribute/getUpdateDelegate';
 import propertyNames from './attribute/propertyNames';
 import { inAttributes } from './ConditionalAttribute';
-import { isArray, isString } from 'utils/is';
+import { isArray, isString, isUndefined } from 'utils/is';
 
 function lookupNamespace(node, prefix) {
   const qualified = `xmlns:${prefix}`;
@@ -50,7 +50,7 @@ export default class Attribute extends Item {
       this.value = options.template.f;
       if (this.value === 0) {
         this.value = '';
-      } else if (this.value === undefined) {
+      } else if (isUndefined(this.value)) {
         this.value = true;
       }
       return;

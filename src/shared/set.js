@@ -1,4 +1,4 @@
-import { isArray, isObject, isObjectType, isFunction, isString } from 'utils/is';
+import { isArray, isObject, isObjectType, isFunction, isString, isUndefined } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import resolveReference from 'src/view/resolvers/resolveReference';
 import runloop from '../global/runloop';
@@ -35,7 +35,7 @@ export function set(pairs, options) {
       if (!array) array = target;
 
       // if there's not an array there yet, go ahead and set
-      if (target === undefined) {
+      if (isUndefined(target)) {
         model.set(array);
       } else {
         if (!isArray(target) || !isArray(array)) {

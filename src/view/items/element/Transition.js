@@ -1,6 +1,6 @@
 import { win } from 'config/environment';
 import { addToArray, removeFromArray } from 'utils/array';
-import { isArray, isObject, isFunction, isNumber, isString } from 'utils/is';
+import { isArray, isObject, isFunction, isNumber, isString, isUndefined } from 'utils/is';
 import noop from 'utils/noop';
 import { warnOnceIfDebug } from 'utils/log';
 import { missingPlugin } from 'config/errors';
@@ -320,7 +320,7 @@ function nearestProp(prop, ractive, rendering) {
   while (instance) {
     if (
       hasOwn(instance, prop) &&
-      (rendering === undefined || rendering ? instance.rendering : instance.unrendering)
+      (isUndefined(rendering) || rendering ? instance.rendering : instance.unrendering)
     )
       return instance[prop];
     instance = instance.component && instance.component.ractive;

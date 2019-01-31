@@ -1,4 +1,4 @@
-import { isArray, isString } from './is';
+import { isArray, isString, isUndefined } from './is';
 
 export function addToArray(array, value) {
   const index = array.indexOf(value);
@@ -44,7 +44,7 @@ export function ensureArray(x) {
     return [x];
   }
 
-  if (x === undefined) {
+  if (isUndefined(x)) {
     return [];
   }
 

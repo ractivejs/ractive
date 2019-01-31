@@ -1,4 +1,4 @@
-import { isNumber } from 'utils/is';
+import { isNumber, isUndefined } from 'utils/is';
 
 // This function takes an array, the name of a mutator method, and the
 // arguments to call that mutator method with, and returns an array that
@@ -72,7 +72,7 @@ function getSpliceEquivalent(length, methodName, args) {
         args[0] = length + Math.max(args[0], -length);
       }
 
-      if (args[0] === undefined) args[0] = 0;
+      if (isUndefined(args[0])) args[0] = 0;
 
       while (args.length < 2) {
         args.push(length - args[0]);

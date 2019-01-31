@@ -2,7 +2,7 @@ import ModelBase, { checkDataLink, maybeBind, shuffle } from './ModelBase';
 import LinkModel from './LinkModel'; // eslint-disable-line no-unused-vars
 import getComputationSignature from 'src/Ractive/helpers/getComputationSignature';
 import { capture } from 'src/global/capture';
-import { isArray, isEqual, isNumeric, isObjectLike } from 'utils/is';
+import { isArray, isEqual, isNumeric, isObjectLike, isUndefined } from 'utils/is';
 import { handleChange, mark, markForce, marked, teardown } from 'shared/methodCallers';
 import Ticker from 'shared/Ticker';
 import getPrefixer from './helpers/getPrefixer';
@@ -211,11 +211,11 @@ export default class Model extends ModelBase {
 
   joinKey(key, opts) {
     if (this._link) {
-      if (opts && opts.lastLink !== false && (key === undefined || key === '')) return this;
+      if (opts && opts.lastLink !== false && (isUndefined(key) || key === '')) return this;
       return this._link.joinKey(key);
     }
 
-    if (key === undefined || key === '') return this;
+    if (isUndefined(key) || key === '') return this;
 
     let child;
     if (hasOwn(this.childByKey, key)) child = this.childByKey[key];

@@ -1,7 +1,7 @@
 import { ATTRIBUTE, CATCH, ELEMENT, ELSE, INTERPOLATOR, SECTION, THEN } from 'src/config/types';
 import Partial from './Partial';
 import { assign } from 'utils/object';
-import { isFunction } from 'utils/is';
+import { isFunction, isUndefined } from 'utils/is';
 
 function extract(tpl, type, name) {
   const p = tpl.f.find(s => s.t === type);
@@ -55,7 +55,7 @@ export default function Await(options) {
               handle.setTemplate(error);
             }
           );
-        } else if (attrs.for === undefined) {
+        } else if (isUndefined(attrs.for)) {
           handle.setTemplate(undef);
         } else {
           handle.set('@local.value', attrs.for);

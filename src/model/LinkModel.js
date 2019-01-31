@@ -5,6 +5,7 @@ import { rebindMatch } from 'shared/rebind';
 import resolveReference from 'src/view/resolvers/resolveReference';
 import noop from 'utils/noop';
 import { hasOwn } from 'utils/object';
+import { isUndefined } from 'utils/is';
 
 // temporary placeholder target for detached implicit links
 export const Missing = {
@@ -35,7 +36,7 @@ export default class LinkModel extends ModelBase {
 
     this.owner = owner;
     this.target = target;
-    this.key = key === undefined ? owner.key : key;
+    this.key = isUndefined(key) ? owner.key : key;
     if (owner && owner.isLink) this.sourcePath = `${owner.sourcePath}.${this.key}`;
 
     if (target) target.registerLink(this);
@@ -100,7 +101,7 @@ export default class LinkModel extends ModelBase {
 
   joinKey(key) {
     // TODO: handle nested links
-    if (key === undefined || key === '') return this;
+    if (isUndefined(key) || key === '') return this;
 
     if (!hasOwn(this.childByKey, key)) {
       const child = new LinkModel(this, this, this.target.joinKey(key), key);

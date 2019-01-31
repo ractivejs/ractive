@@ -47,3 +47,7 @@ export function isString(thing) {
 export function isNumber(thing) {
   return typeof thing === 'number';
 }
+
+export function isUndefined(thing) {
+  return thing === undefined;
+}

@@ -1,11 +1,11 @@
 import { hasOwn, defineProperty } from 'utils/object';
-import { isFunction } from 'utils/is';
+import { isFunction, isUndefined } from 'utils/is';
 
 /* istanbul ignore if */
 if (!Array.prototype.find) {
   defineProperty(Array.prototype, 'find', {
     value(callback, thisArg) {
-      if (this === null || this === undefined)
+      if (this === null || isUndefined(this))
         throw new TypeError('Array.prototype.find called on null or undefined');
 
       if (!isFunction(callback)) throw new TypeError(`${callback} is not a function`);

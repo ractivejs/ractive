@@ -5,7 +5,7 @@ import noop from 'utils/noop';
 import hyphenateCamel from 'utils/hyphenateCamel';
 import { readStyle, readClass } from 'src/view/helpers/specialAttrs';
 import { keys as objectKeys } from 'utils/object';
-import { isArray, isString } from 'utils/is';
+import { isArray, isString, isUndefined } from 'utils/is';
 
 const textTypes = [
   undefined,
@@ -140,7 +140,7 @@ function updateContentEditableValue(reset) {
 
   if (!this.locked) {
     if (reset) this.node.innerHTML = '';
-    else this.node.innerHTML = value === undefined ? '' : value;
+    else this.node.innerHTML = isUndefined(value) ? '' : value;
   }
 }
 

@@ -2,6 +2,7 @@ import runloop from 'src/global/runloop';
 import { warnOnceIfDebug } from 'utils/log';
 import noop from 'utils/noop';
 import findElement from '../../shared/findElement';
+import { isUndefined } from 'utils/is';
 
 export default class Binding {
   constructor(element, name = 'value') {
@@ -32,9 +33,9 @@ export default class Binding {
 
     // initialise value, if it's undefined
     let value = model.get();
-    this.wasUndefined = value === undefined;
+    this.wasUndefined = isUndefined(value);
 
-    if (value === undefined && this.getInitialValue) {
+    if (isUndefined(value) && this.getInitialValue) {
       value = this.getInitialValue();
       model.set(value);
     }

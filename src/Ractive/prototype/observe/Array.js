@@ -1,5 +1,5 @@
 import { removeFromArray } from 'utils/array';
-import { isArray } from 'utils/is';
+import { isArray, isUndefined } from 'utils/is';
 import runloop from 'src/global/runloop';
 
 function negativeOne() {
@@ -61,7 +61,7 @@ export default class ArrayObserver {
     newIndices.forEach((newIndex, oldIndex) => {
       hadIndex[newIndex] = true;
 
-      if (newIndex !== oldIndex && start === undefined) {
+      if (newIndex !== oldIndex && isUndefined(start)) {
         start = oldIndex;
       }
 
@@ -70,7 +70,7 @@ export default class ArrayObserver {
       }
     });
 
-    if (start === undefined) start = newIndices.length;
+    if (isUndefined(start)) start = newIndices.length;
 
     const len = newValue.length;
     for (let i = 0; i < len; i += 1) {

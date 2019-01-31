@@ -1,7 +1,7 @@
 import { splitKeypath } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
 import getNewIndices from 'shared/getNewIndices';
-import { isArray } from 'utils/is';
+import { isArray, isUndefined } from 'utils/is';
 
 const arrayProto = Array.prototype;
 
@@ -14,7 +14,7 @@ export default function(methodName) {
     let array = mdl.get();
 
     if (!isArray(array)) {
-      if (array === undefined) {
+      if (isUndefined(array)) {
         array = [];
         const result = arrayProto[methodName].apply(array, args);
         const promise = runloop.start().then(() => result);
