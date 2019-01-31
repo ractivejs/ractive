@@ -527,19 +527,40 @@ export default function() {
     t.htmlEqual(fixture.innerHTML, '12345');
 
     r.set('items', [3, 1, 2, 4, 5]);
-
     t.htmlEqual(fixture.innerHTML, '31245');
 
     r.set('items', [4, 3, 1, 2, 5]);
-
     t.htmlEqual(fixture.innerHTML, '43125');
 
     r.set('items', [1, 2, 3, 4, 5]);
-
     t.htmlEqual(fixture.innerHTML, '12345');
 
     r.set('items', [4, 5, 1, 2, 3]);
-
     t.htmlEqual(fixture.innerHTML, '45123');
+  });
+
+  test(`autoshuffling multiple items at once at random`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: `{{#each items, true shuffle}}{{.}}{{/each}}`
+    });
+
+    const sets = [
+      [3, 2, 1, 0, 4, 6, 8, 5],
+      [0, 1, 4, 5, 2, 7, 6, 3],
+      [0, 1, 2, 3, 4, 5, 7],
+      [0, 1, 2, 3, 5, 6, 4],
+      [0, 1, 2, 3, 5, 4, 8, 6],
+      [4, 1, 0, 2, 3, 5, 6, 8, 7],
+      [0, 4, 2, 5, 1, 3, 6, 7, 9],
+      [6, 2, 5, 1, 0],
+      [1, 3, 0, 4, 5, 6],
+      [0, 1, 4, 2, 6, 5, 7, 8, 3]
+    ];
+
+    for (let i = 0; i < sets.length; i++) {
+      r.set('items', sets[i]);
+      t.htmlEqual(fixture.innerHTML, sets[i].join(''));
+    }
   });
 }

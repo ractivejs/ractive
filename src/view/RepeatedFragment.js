@@ -442,69 +442,64 @@ export default class RepeatedFragment {
 
     idx = pos = 0;
     while (idx < len) {
-      dest = newIndices[pos];
-      next = null;
-      rebound = false;
+      // if there's not an existing thing to shuffle, handle that
+      if (map[idx] === undefined) {
+        next = iters[idx] = this.createIteration(idx, idx);
+        if (parentNode) {
+          anchor = prev[pos];
+          anchor = (anchor && parentNode && anchor.firstNode()) || nextNode;
 
-      if (dest === -1) {
-        // drop it like it's hot
-        prev[pos].unbind().unrender(true);
-        prev[pos++] = 0;
-      } else if (dest > idx) {
-        // need to stash or pull one up
-        next = newIndices[pos + 1]; // TODO: maybe a shouldMove function that tracks multiple entries?
-        if (next <= dest) {
+          next.render(docFrag);
+          parentNode.insertBefore(docFrag, anchor);
+        }
+
+        idx++;
+      } else {
+        dest = newIndices[pos];
+
+        if (dest === -1) {
+          // if it needs to be dropped, drop it
+          prev[pos] && prev[pos].unbind().unrender(true);
+          prev[pos++] = 0;
+        } else if (dest > idx) {
+          // if it needs to move down, stash it
           stash[dest] = prev[pos];
           prev[pos++] = null;
         } else {
-          next = stash[idx] || prev[map[idx]];
-          prev[map[idx]] = null;
-          anchor = prev[nextRendered(pos, newIndices, prev)];
-          anchor = (anchor && parentNode && anchor.firstNode()) || nextNode;
+          // get the fragment that goes for this idx
+          iters[idx] = next = iters[idx] || stash[idx] || this.createIteration(idx, idx);
 
-          if (next) {
+          // if it's an existing fragment, swizzle
+          if (stash[idx] || pos !== idx) {
             rebound = this.source && next.lastValue !== value[idx];
             swizzleFragment(this, next, idx, idx);
-            if (parentNode) parentNode.insertBefore(next.detach(), anchor);
-          } else {
-            next = iters[idx] = this.createIteration(idx, idx);
-            if (parentNode) {
+          }
+
+          // does next need to be moved?
+          if (parentNode && (stash[idx] || !prev[pos])) {
+            anchor = prev[pos + 1];
+            anchor = (anchor && parentNode && anchor.firstNode()) || nextNode;
+
+            if (stash[idx]) {
+              parentNode.insertBefore(next.detach(), anchor);
+            } else {
               next.render(docFrag);
               parentNode.insertBefore(docFrag, anchor);
             }
           }
 
+          prev[pos++] = 0;
           idx++;
         }
-      } else {
-        // all is well
-        next = iters[idx];
-        anchor = prev[nextRendered(pos, newIndices, prev)];
-        anchor = (anchor && parentNode && anchor.firstNode()) || nextNode;
-        if (!next) {
-          next = iters[idx] = this.createIteration(idx, idx);
-          if (parentNode) {
-            next.render(docFrag);
-            parentNode.insertBefore(docFrag, anchor);
+
+        if (next && isObjectType(next)) {
+          if (next.shouldRebind || rebound) {
+            next.rebound(rebound);
+            next.shouldRebind = 0;
           }
-        } else if (pos !== idx || stash[idx]) {
-          rebound = this.source && next.lastValue !== value[idx];
-          swizzleFragment(this, next, idx, idx);
-          if (stash[idx] && parentNode) parentNode.insertBefore(next.detach(), anchor);
+          next.update();
+          next.shuffled();
         }
-
-        if (dest < idx) pos++; // current pos already moved, so update the pointer
-        idx++;
-        prev[pos++] = null;
-      }
-
-      if (next && isObjectType(next)) {
-        if (next.shouldRebind || rebound) {
-          next.rebound(rebound);
-          next.shouldRebind = 0;
-        }
-        next.update();
-        next.shuffled();
       }
     }
 
@@ -550,13 +545,6 @@ function findDelegate(start) {
   return delegate;
 }
 
-function nextRendered(start, newIndices, frags) {
-  const len = newIndices.length;
-  for (let i = start; i < len; i++) {
-    if (~newIndices[i] && frags[i] && frags[i].rendered) return i;
-  }
-}
-
 function swizzleFragment(section, fragment, key, idx) {
   const model = section.context ? contextFor(section, fragment, key) : undefined;
 
@@ -589,10 +577,11 @@ function swizzleFragment(section, fragment, key, idx) {
 }
 
 function shuffleValues(section, shuffler) {
+  const array = section.context.get() || [];
   if (shuffler === true) {
-    return section.context.get().slice();
+    return array.slice();
   } else {
-    return section.context.get().map(v => shuffler.reduce((a, c) => a && a[c], v));
+    return array.map(v => shuffler.reduce((a, c) => a && a[c], v));
   }
 }
 
