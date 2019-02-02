@@ -145,7 +145,6 @@ export default function resolveReference(fragment, ref) {
   if (context) {
     if (context.context) {
       context = context.context;
-      if (context.has(base)) return context.joinKey(base).joinAll(keys);
     } else {
       // alias block, so get next full context for later
       context = fragment.findContext();

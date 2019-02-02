@@ -5,7 +5,6 @@ import noop from 'utils/noop';
 import { MustacheContainer } from './shared/Mustache';
 import Fragment from '../Fragment';
 import getPartialTemplate from './partial/getPartialTemplate';
-import { resolveAliases } from './Alias';
 import { warnOnceIfDebug, warnIfDebug } from 'utils/log';
 import parser from 'src/Ractive/config/runtime-parser';
 import runloop from 'src/global/runloop';
@@ -114,19 +113,6 @@ assign(proto, {
   },
 
   rebound(update) {
-    const aliases = this.fragment && this.fragment.aliases;
-    if (aliases) {
-      for (const k in aliases) {
-        if (aliases[k].rebound) aliases[k].rebound(update);
-        else {
-          aliases[k].unreference();
-          aliases[k] = 0;
-        }
-      }
-      if (this.template.z) {
-        resolveAliases(this.template.z, this.containerFragment || this.up, aliases);
-      }
-    }
     if (this._attrs) {
       keys(this._attrs).forEach(k => this._attrs[k].rebound(update));
     }
@@ -185,8 +171,6 @@ assign(proto, {
 
   unbind(view) {
     this.fragment.unbind(view);
-
-    this.fragment.aliases = null;
 
     this.unbindAttrs(view);
 
@@ -247,17 +231,12 @@ function createFragment(self, partial) {
 
   if (self.fn) options.cssIds = self.fn._cssIds;
 
-  const fragment = (self.fragment = new Fragment(options));
-
-  // partials may have aliases that need to be in place before binding
-  if (self.template.z) {
-    fragment.aliases = resolveAliases(self.template.z, self.containerFragment || self.up);
-  }
+  self.fragment = new Fragment(options);
 }
 
 function contextifyTemplate(self) {
   if (self.template.c) {
-    self.partial = [{ t: SECTION, n: SECTION_WITH, f: self.partial }];
+    self.partial = [{ t: SECTION, n: SECTION_WITH, f: self.partial, z: self.template.z }];
     assign(self.partial[0], self.template.c);
     if (self.yielder) self.partial[0].y = self;
   }

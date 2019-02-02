@@ -1280,4 +1280,21 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, '5');
   });
+
+  test(`partial with context and aliases`, t => {
+    new Ractive({
+      target: fixture,
+      template: `{{#with foo}}{{>bar baz, 42 as foo}}{{/with}}`,
+      partials: {
+        bar: `{{.foo}} {{foo}}`
+      },
+      data: {
+        foo: {
+          baz: { foo: 99 }
+        }
+      }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '99 42');
+  });
 }

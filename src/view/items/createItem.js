@@ -13,7 +13,6 @@ import {
   YIELDER
 } from 'config/types';
 import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from 'config/types';
-import Alias from './Alias';
 import Attribute from './element/Attribute';
 import BindingFlag from './element/BindingFlag';
 import Comment from './Comment';
@@ -42,7 +41,7 @@ import Await from './Await';
 import { isString, isFunction } from 'utils/is';
 
 const constructors = {};
-constructors[ALIAS] = Alias;
+constructors[ALIAS] = Section;
 constructors[ANCHOR] = Component;
 constructors[AWAIT] = Await;
 constructors[DOCTYPE] = Doctype;

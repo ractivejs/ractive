@@ -45,6 +45,14 @@ export default function readPartial(parser, tag) {
         partial.c = {};
         refineExpression(context, partial.c);
       }
+
+      // allow aliases after context
+      if (parser.matchString(',')) {
+        aliases = readAliases(parser);
+        if (aliases && aliases.length) {
+          partial.z = aliases;
+        }
+      }
     }
 
     if (type !== '>' && (!partial.c && !partial.z)) {

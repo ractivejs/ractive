@@ -1,4 +1,5 @@
 import {
+  ALIAS,
   SECTION_EACH,
   SECTION_IF,
   SECTION_IF_WITH,
@@ -34,7 +35,8 @@ export default class Section extends MustacheContainer {
   constructor(options) {
     super(options);
 
-    this.sectionType = options.template.n || null;
+    this.isAlias = options.template.t === ALIAS;
+    this.sectionType = options.template.n || (this.isAlias && SECTION_WITH) || null;
     this.templateSectionType = this.sectionType;
     this.subordinate = options.template.l === 1;
     this.fragment = null;
@@ -49,7 +51,7 @@ export default class Section extends MustacheContainer {
     }
 
     // if we managed to bind, we need to create children
-    if (this.model) {
+    if (this.model || this.isAlias) {
       this.dirty = true;
       this.update();
     } else if (
@@ -138,7 +140,7 @@ export default class Section extends MustacheContainer {
       this.fragment.context = this.model;
     }
 
-    if (!this.model && this.sectionType !== SECTION_UNLESS) return;
+    if (!this.model && this.sectionType !== SECTION_UNLESS && !this.isAlias) return;
 
     this.dirty = false;
 
@@ -173,7 +175,9 @@ export default class Section extends MustacheContainer {
     const fragmentShouldExist =
       this.sectionType === SECTION_EACH || // each always gets a fragment, which may have no iterations
       this.sectionType === SECTION_WITH || // with (partial context) always gets a fragment
-      (siblingFalsey && (this.sectionType === SECTION_UNLESS ? !this.isTruthy() : this.isTruthy())); // if, unless, and if-with depend on siblings and the condition
+      (siblingFalsey &&
+        (this.sectionType === SECTION_UNLESS ? !this.isTruthy() : this.isTruthy())) || // if, unless, and if-with depend on siblings and the condition
+      this.isAlias;
 
     if (fragmentShouldExist) {
       if (!this.fragment) this.fragment = this.detached;

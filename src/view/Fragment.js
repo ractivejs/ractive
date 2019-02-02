@@ -8,6 +8,19 @@ import processItems from './helpers/processItems';
 import parseJSON from 'utils/parseJSON';
 import { createDocumentFragment } from 'utils/dom';
 import KeyModel from 'src/model/specials/KeyModel';
+import resolve from './resolvers/resolve';
+
+function resolveAliases(aliases, fragment, dest = {}) {
+  for (let i = 0; i < aliases.length; i++) {
+    if (!dest[aliases[i].n]) {
+      const m = resolve(fragment, aliases[i].x);
+      dest[aliases[i].n] = m;
+      m.reference();
+    }
+  }
+
+  return dest;
+}
 
 export default class Fragment {
   constructor(options) {
@@ -46,6 +59,14 @@ export default class Fragment {
 
   bind(context) {
     this.context = context;
+
+    if (this.owner.template.z) {
+      this.aliases = resolveAliases(
+        this.owner.template.z,
+        this.owner.containerFragment || this.parent
+      );
+    }
+
     const len = this.items.length;
     for (let i = 0; i < len; i++) this.items[i].bind();
     this.bound = true;
@@ -207,6 +228,19 @@ export default class Fragment {
   }
 
   rebound(update) {
+    if (this.owner.template.z) {
+      const aliases = this.aliases;
+      for (const k in aliases) {
+        if (aliases[k].rebound) aliases[k].rebound(update);
+        else {
+          aliases[k].unreference();
+          aliases[k] = 0;
+        }
+      }
+
+      resolveAliases(this.owner.template.z, this.owner.containerFragment || this.parent, aliases);
+    }
+
     this.items.forEach(x => x.rebound(update));
     if (update) {
       if (this.rootModel) this.rootModel.applyValue(this.context.getKeypath(this.ractive.root));
@@ -268,6 +302,14 @@ export default class Fragment {
   }
 
   unbind(view) {
+    if (this.owner.template.z && !this.owner.yielder) {
+      for (const k in this.aliases) {
+        this.aliases[k].unreference();
+      }
+
+      this.aliases = {};
+    }
+
     this.context = null;
     const len = this.items.length;
     for (let i = 0; i < len; i++) this.items[i].unbind(view);
