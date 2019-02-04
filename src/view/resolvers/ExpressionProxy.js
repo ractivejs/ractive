@@ -72,15 +72,19 @@ export default class ExpressionProxy extends Model {
 
     const dependencies = stopCapturing();
     // remove missing deps
-    this.dependencies.filter(d => !~dependencies.indexOf(d)).forEach(d => {
-      d.unregister(this);
-      removeFromArray(this.dependencies, d);
-    });
+    this.dependencies
+      .filter(d => !~dependencies.indexOf(d))
+      .forEach(d => {
+        d.unregister(this);
+        removeFromArray(this.dependencies, d);
+      });
     // register new deps
-    dependencies.filter(d => !~this.dependencies.indexOf(d)).forEach(d => {
-      d.register(this);
-      this.dependencies.push(d);
-    });
+    dependencies
+      .filter(d => !~this.dependencies.indexOf(d))
+      .forEach(d => {
+        d.register(this);
+        this.dependencies.push(d);
+      });
 
     return result;
   }

@@ -29,10 +29,10 @@ export default function() {
 
   test('progressive enhancement for svg elements', t => {
     /*
-		 * list is grabbed from https://developer.mozilla.org/en-US/docs/Web/SVG/Element using the following code:
-		 *
-		 * Array.prototype.slice.call( document.getElementById( 'SVG_elements' ).nextElementSibling.querySelectorAll( 'code' )).map( el => el.innerText )
-		 */
+     * list is grabbed from https://developer.mozilla.org/en-US/docs/Web/SVG/Element using the following code:
+     *
+     * Array.prototype.slice.call( document.getElementById( 'SVG_elements' ).nextElementSibling.querySelectorAll( 'code' )).map( el => el.innerText )
+     */
     const listOfSvgElements = [
       '<a>',
       '<altGlyph>',
