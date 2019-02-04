@@ -1193,7 +1193,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * Get a Context object for the given node or node that matches the given query.
 	 * @param query
 	 */
-	getContext(nodeOrQuery?: HTMLElement | string): ContextHelper;
+	getContext(nodeOrQuery: HTMLElement | string): ContextHelper;
 
 	/**
 	 * Render this instance into the given target, optionally using the given anchor. If the instance is already attached to the DOM, it will first be detached.
