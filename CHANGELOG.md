@@ -1,5 +1,21 @@
 # changelog
 
+# 1.3.0
+
+* Bug fixes
+	* Checkbox name bindings will now operate on a clone of the array, so that observers will get proper old and new values. This is a regression from the behavior in 0.7 (#3293)
+
+* Experimental new features
+	* Referencing a special `data` keypath on a Ractive instance that via the data model will automatically create a link to the target instance's data. The target instance can be accessed as a property of the instance e.g. `@this.myChildInstance.data.someKey` or directly in the data e.g. `ractive.set('myChildInstance', someInstance)` and `~/myChildInstance.data.someKey`.
+	* Partials with context can now also supply aliases, which is useful for transplanting template supplied to a different component using the context object context support from 1.1.0 e.g. `{{>.content .context, true as remote, some.thing as item}}` where the `.content` template will have access to `remote` and `item` from the caller's context.
+
+
+# 0.10.14 / 1.0.4 / 1.1.2 / 1.2.1
+
+* Bug fixes
+	* Checkbox name bindings will now operate on a clone of the array, so that observers will get proper old and new values. This is a regression from the behavior in 0.7 (#3293)
+
+
 # 1.2.0
 
 * Bug fixes
