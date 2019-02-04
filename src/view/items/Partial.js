@@ -356,15 +356,17 @@ function initMacro(self) {
     if (isArray(template.m)) {
       const attrs = template.m;
       template.p[extras] = template.m = attrs.filter(a => !~fn.attributes.indexOf(a.n));
-      attrs.filter(a => ~fn.attributes.indexOf(a.n)).forEach(a => {
-        const fragment = new Fragment({
-          template: a.f,
-          owner: self
+      attrs
+        .filter(a => ~fn.attributes.indexOf(a.n))
+        .forEach(a => {
+          const fragment = new Fragment({
+            template: a.f,
+            owner: self
+          });
+          fragment.bubble = invalidate;
+          fragment.findFirstNode = noop;
+          self._attrs[a.n] = fragment;
         });
-        fragment.bubble = invalidate;
-        fragment.findFirstNode = noop;
-        self._attrs[a.n] = fragment;
-      });
     } else {
       template.p[extras] = [];
     }

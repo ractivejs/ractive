@@ -63,9 +63,8 @@ const JsonParser = Parser.extend({
 
       if (stringLiteral && values) {
         return {
-          v: stringLiteral.v.replace(
-            placeholderPattern,
-            (match, $1) => ($1 in values ? values[$1] : $1)
+          v: stringLiteral.v.replace(placeholderPattern, (match, $1) =>
+            $1 in values ? values[$1] : $1
           )
         };
       }
