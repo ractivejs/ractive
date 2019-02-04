@@ -94,9 +94,11 @@ export default class ConditionalAttribute extends Item {
 
         // any attributes that previously existed but no longer do
         // must be removed
-        this.attributes.filter(a => notIn(attrs, a)).forEach(a => {
-          this.node.removeAttribute(a.name);
-        });
+        this.attributes
+          .filter(a => notIn(attrs, a))
+          .forEach(a => {
+            this.node.removeAttribute(a.name);
+          });
 
         attrs.forEach(a => {
           this.node.setAttribute(a.name, a.value);

@@ -91,8 +91,8 @@ export default class Attribute extends Item {
     const value = this.fragment
       ? this.fragment.toString()
       : this.value != null
-        ? '' + this.value
-        : '';
+      ? '' + this.value
+      : '';
     attribute = false;
     return value;
   }
@@ -104,8 +104,8 @@ export default class Attribute extends Item {
     const value = this.fragment
       ? this.fragment.valueOf()
       : booleanAttributes[this.name.toLowerCase()]
-        ? true
-        : this.value;
+      ? true
+      : this.value;
     attribute = false;
     return value;
   }

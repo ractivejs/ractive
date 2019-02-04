@@ -78,8 +78,8 @@ export function initCSS(options, target, proto) {
     options.css === true
       ? ''
       : isString(options.css) && !hasCurly.test(options.css)
-        ? getElement(options.css) || options.css
-        : options.css;
+      ? getElement(options.css) || options.css
+      : options.css;
   let cssProp = css;
 
   const id = options.cssId || uuid();
