@@ -1711,7 +1711,7 @@ export default function() {
     inputs = r.findAll('input');
     t.ok(inputs[0].checked && !inputs[1].checked);
   });
-  
+
   test('Old and new values should be set correctly with named checkbox bindings (#3293)', t => {
     const ractive = new Ractive({
       el: fixture,
@@ -1721,13 +1721,17 @@ export default function() {
       data: { colors: ['green'] }
     });
 
-    ractive.observe('colors', function(newValue, oldValue) {
-      t.deepEqual(newValue, ['green', 'red'], 'new value should be correct');
-      t.deepEqual(oldValue, ['green'], 'old value should be correct');
-    }, {
-      init: false
-    });
-    
+    ractive.observe(
+      'colors',
+      (newValue, oldValue) => {
+        t.deepEqual(newValue, ['green', 'red'], 'new value should be correct');
+        t.deepEqual(oldValue, ['green'], 'old value should be correct');
+      },
+      {
+        init: false
+      }
+    );
+
     fire(ractive.find('#red'), 'click');
   });
 }
