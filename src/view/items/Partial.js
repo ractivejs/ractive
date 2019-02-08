@@ -127,6 +127,7 @@ assign(proto, {
 
   resetTemplate() {
     if (this.fn && this.proxy) {
+      this.last = 0;
       if (this.externalChange) {
         if (isFunction(this.proxy.teardown)) this.proxy.teardown();
         this.fn = this.proxy = null;
@@ -136,7 +137,6 @@ assign(proto, {
       }
     }
 
-    const partial = this.partial;
     this.partial = null;
 
     if (this.refName) {
@@ -147,7 +147,13 @@ assign(proto, {
       partialFromValue(this, this.model.get());
     }
 
-    if (!this.fn && partial === this.partial) return false;
+    if (!this.fn) {
+      if (this.last && this.partial === this.last) return false;
+      else if (this.partial) {
+        this.last = this.partial;
+        contextifyTemplate(this);
+      }
+    }
 
     this.unbindAttrs();
 
@@ -219,7 +225,7 @@ assign(proto, {
 });
 
 function createFragment(self, partial) {
-  self.partial = partial;
+  self.partial = self.last = partial;
   contextifyTemplate(self);
 
   const options = {
