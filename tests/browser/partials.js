@@ -1280,4 +1280,24 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, '5');
   });
+
+  test(`dynamic partials retain context (#3297)`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: `{{#each list}}{{#with ~/part}}{{>. ^^/}}{{/with}}{{/each}}`,
+      partials: {
+        foo: '(foo {{.}})',
+        bar: '(bar {{.}})'
+      },
+      data: {
+        list: [1, 2],
+        part: 'foo'
+      }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '(foo 1)(foo 2)');
+
+    r.set('part', 'bar');
+    t.htmlEqual(fixture.innerHTML, '(bar 1)(bar 2)');
+  });
 }
