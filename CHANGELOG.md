@@ -1,5 +1,11 @@
 # changelog
 
+# 1.4.0 (unreleased, edge)
+
+* Experimental new features
+	* The current operation promise is available to things like observers and decorators using `Ractive.tick`, which will return `undefined` if there is not currently an operation in progress (#3295)
+
+
 # 1.3.0
 
 * Bug fixes

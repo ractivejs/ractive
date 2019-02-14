@@ -1,7 +1,7 @@
 import { addToArray } from 'utils/array';
 import TransitionManager from './TransitionManager';
 
-let batch;
+export let batch;
 
 const runloop = {
   active() {
