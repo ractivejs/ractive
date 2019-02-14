@@ -29,6 +29,8 @@ import { data as sharedData } from './model/specials/SharedModel';
 import { extern } from './shared/getRactiveContext';
 import { warn } from 'utils/log';
 
+import { batch } from './global/runloop';
+
 import { assign, defineProperty, defineProperties } from 'utils/object';
 
 export default function Ractive(options) {
@@ -90,6 +92,11 @@ defineProperties(Ractive, {
   // support
   enhance: { writable: true, value: false },
   svg: { value: svg },
+  tick: {
+    get() {
+      return batch && batch.promise;
+    }
+  },
 
   // version
   VERSION: { value: 'BUILD_PLACEHOLDER_VERSION' },
