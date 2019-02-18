@@ -1,7 +1,7 @@
 /*
-	Ractive.js v1.1.3
-	Build: 6950f6f1f008e56fe53ee65cc59143b8ee8a6cbb
-	Date: Mon Feb 18 2019 21:05:05 GMT+0000 (UTC)
+	Ractive.js v1.2.2
+	Build: 4b6e7e7d39cb246e3bf75d780c3ee29e2eed3628
+	Date: Mon Feb 18 2019 21:09:53 GMT+0000 (UTC)
 	Website: https://ractive.js.org
 	License: MIT
 */
@@ -175,13 +175,27 @@ if (typeof window !== 'undefined' && window.performance && !window.performance.n
   };
 }
 
+/* eslint no-console:"off" */
+var win = typeof window !== 'undefined' ? window : null;
+var doc = win ? document : null;
+var isClient = !!doc;
+var base = typeof global !== 'undefined' ? global : win;
+var hasConsole =
+  typeof console !== 'undefined' && isFunction(console.warn) && isFunction(console.warn.apply);
+
+var svg = doc
+  ? doc.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1')
+  : false;
+
+var vendors = ['o', 'ms', 'moz', 'webkit'];
+
 /* istanbul ignore if */
-if (typeof window !== 'undefined' && !window.Promise) {
+if (!base.Promise) {
   var PENDING = {};
   var FULFILLED = {};
   var REJECTED = {};
 
-  var Promise$1 = (window.Promise = function(callback) {
+  var Promise$1 = (base.Promise = function(callback) {
     var fulfilledHandlers = [];
     var rejectedHandlers = [];
     var state = PENDING;
@@ -239,18 +253,30 @@ if (typeof window !== 'undefined' && !window.Promise) {
       },
       catch: function catch$1(onRejected) {
         return this.then(null, onRejected);
+      },
+      finally: function finally$1(callback) {
+        return this.then(
+          function (v) {
+            callback();
+            return v;
+          },
+          function (e) {
+            callback();
+            throw e;
+          }
+        );
       }
     };
   });
 
   Promise$1.all = function(promises) {
-    return new Promise$1(function (fulfil, reject) {
+    return new Promise$1(function (fulfill, reject) {
       var result = [];
       var pending;
       var i;
 
       if (!promises.length) {
-        fulfil(result);
+        fulfill(result);
         return;
       }
 
@@ -258,11 +284,11 @@ if (typeof window !== 'undefined' && !window.Promise) {
         if (promise && isFunction(promise.then)) {
           promise.then(function (value) {
             result[i] = value;
-            --pending || fulfil(result);
+            --pending || fulfill(result);
           }, reject);
         } else {
           result[i] = promise;
-          --pending || fulfil(result);
+          --pending || fulfill(result);
         }
       };
 
@@ -274,13 +300,36 @@ if (typeof window !== 'undefined' && !window.Promise) {
     });
   };
 
+  Promise$1.race = function(promises) {
+    return new Promise$1(function (fulfill, reject) {
+      var pending = true;
+      function ok(v) {
+        if (!pending) { return; }
+        pending = false;
+        fulfill(v);
+      }
+      function fail(e) {
+        if (!pending) { return; }
+        pending = false;
+        reject(e);
+      }
+      for (var i = 0; i < promises.length; i++) {
+        if (promises[i] && isFunction(promises[i].then)) {
+          promises[i].then(ok, fail);
+        }
+      }
+    });
+  };
+
   Promise$1.resolve = function(value) {
+    if (value && isFunction(value.then)) { return value; }
     return new Promise$1(function (fulfill) {
       fulfill(value);
     });
   };
 
   Promise$1.reject = function(reason) {
+    if (reason && isFunction(reason.then)) { return reason; }
     return new Promise$1(function (fulfill, reject) {
       reject(reason);
     });
@@ -456,19 +505,6 @@ var easing = {
   }
 };
 
-/* eslint no-console:"off" */
-var win = typeof window !== 'undefined' ? window : null;
-var doc = win ? document : null;
-var isClient = !!doc;
-var hasConsole =
-  typeof console !== 'undefined' && isFunction(console.warn) && isFunction(console.warn.apply);
-
-var svg = doc
-  ? doc.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1')
-  : false;
-
-var vendors = ['o', 'ms', 'moz', 'webkit'];
-
 function noop() {}
 
 /* global console */
@@ -481,13 +517,13 @@ var welcome;
 
 if (hasConsole) {
   var welcomeIntro = [
-    "%cRactive.js %c1.1.3 %cin debug mode, %cmore...",
+    "%cRactive.js %c1.2.2 %cin debug mode, %cmore...",
     'color: rgb(114, 157, 52); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
-  var welcomeMessage = "You're running Ractive 1.1.3 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  var welcomeMessage = "You're running Ractive 1.2.2 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   welcome = function () {
     if (Ractive.WELCOME_MESSAGE === false) {
@@ -2638,10 +2674,7 @@ var SharedModel = (function (Model) {
 
 var SharedModel$1 = new SharedModel(data, 'shared');
 
-var GlobalModel = new SharedModel(
-  typeof global !== 'undefined' ? global : window,
-  'global'
-);
+var GlobalModel = new SharedModel(base, 'global');
 
 function findContext(fragment) {
   var frag = fragment;
@@ -2749,7 +2782,7 @@ function resolveReference(fragment, ref) {
 
       return f.getKeypath(root);
     } else if (base === '@context') {
-      return new ContextModel(fragment.getContext());
+      return new SharedModel(fragment.getContext(), 'context').joinAll(keys$$1);
     } else if (base === '@local') {
       // @context-local data
       return fragment.getContext()._data.joinAll(keys$$1);
@@ -2759,6 +2792,10 @@ function resolveReference(fragment, ref) {
     } else if (base === '@helpers') {
       // @helpers instance model
       return fragment.ractive.viewmodel.getHelpers().joinAll(keys$$1);
+    } else if (base === '@macro') {
+      var handle = findMacro(fragment);
+      if (handle) { return new SharedModel(handle, 'macro').joinAll(keys$$1); }
+      else { return; }
     } else {
       // nope
       throw new Error(("Invalid special reference '" + base + "'"));
@@ -2880,26 +2917,17 @@ function findIter(start) {
   return fragment.isIteration && fragment;
 }
 
+function findMacro(start) {
+  var fragment = start;
+  while (fragment) {
+    if (fragment.owner.handle) { return fragment.owner.handle; }
+    fragment = up(fragment);
+  }
+}
+
 function badReference(key) {
   throw new Error(("An index or key reference (" + key + ") cannot have child properties"));
 }
-
-var ContextModel = function ContextModel(context) {
-  this.context = context;
-};
-var ContextModel__proto__ = ContextModel.prototype;
-
-ContextModel__proto__.get = function get () {
-  return this.context;
-};
-
-ContextModel__proto__.getKeypath = function getKeypath () {
-  return '@context';
-};
-
-var proto = ContextModel.prototype;
-proto.register = noop;
-proto.unregister = noop;
 
 var extern = {};
 
@@ -2930,9 +2958,9 @@ var FakeFragment = function FakeFragment(ractive) {
 FakeFragment.prototype.findContext = function findContext () {
   return this.ractive.viewmodel;
 };
-var proto$1 = FakeFragment.prototype;
-proto$1.getContext = getContext;
-proto$1.find = proto$1.findComponent = proto$1.findAll = proto$1.findAllComponents = noop;
+var proto = FakeFragment.prototype;
+proto.getContext = getContext;
+proto.find = proto.findComponent = proto.findAll = proto.findAllComponents = noop;
 
 function findParentWithContext(fragment) {
   var frag = fragment;
@@ -6142,7 +6170,7 @@ function extendOtherMethods(parent, target, options) {
       // if this is a method that overwrites a method, wrap it:
       if (isFunction(member)) {
         if (
-          (key in proto$10 ||
+          (key in proto$9 ||
             (key.slice(0, 2) === 'on' && key.slice(2) in hooks && key in target)) &&
           !_super.test(member.toString())
         ) {
@@ -6808,11 +6836,11 @@ function refreshPathDeps(proxy) {
 }
 
 var eproto = ExpressionProxy.prototype;
-var proto$2 = ReferenceExpressionProxy.prototype;
+var proto$1 = ReferenceExpressionProxy.prototype;
 
-proto$2.unreference = eproto.unreference;
-proto$2.unregister = eproto.unregister;
-proto$2.unregisterLink = eproto.unregisterLink;
+proto$1.unreference = eproto.unreference;
+proto$1.unregister = eproto.unregister;
+proto$1.unregisterLink = eproto.unregisterLink;
 
 function resolve(fragment, template) {
   if (template.r) {
@@ -8240,9 +8268,9 @@ function Comment(options) {
   Item.call(this, options);
 }
 
-var proto$3 = create(Item.prototype);
+var proto$2 = create(Item.prototype);
 
-assign(proto$3, {
+assign(proto$2, {
   bind: noop,
   unbind: noop,
   update: noop,
@@ -8272,7 +8300,7 @@ assign(proto$3, {
   }
 });
 
-Comment.prototype = proto$3;
+Comment.prototype = proto$2;
 
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself
@@ -9315,8 +9343,8 @@ var Doctype = (function (Item) {
   return Doctype;
 }(Item));
 
-var proto$4 = Doctype.prototype;
-proto$4.bind = proto$4.render = proto$4.teardown = proto$4.unbind = proto$4.unrender = proto$4.update = noop;
+var proto$3 = Doctype.prototype;
+proto$3.bind = proto$3.render = proto$3.teardown = proto$3.unbind = proto$3.unrender = proto$3.update = noop;
 
 var Binding = function Binding(element, name) {
   if ( name === void 0 ) name = 'value';
@@ -11277,8 +11305,8 @@ EventDirective__proto__.unrender = function unrender () {
   this.events.forEach(function (e) { return e.unrender(); });
 };
 
-var proto$5 = EventDirective.prototype;
-proto$5.firstNode = proto$5.rebound = proto$5.update = noop;
+var proto$4 = EventDirective.prototype;
+proto$4.firstNode = proto$4.rebound = proto$4.update = noop;
 
 function progressiveText(item, target, occupants, text) {
   if (occupants) {
@@ -11403,9 +11431,9 @@ function MustacheContainer(options) {
   Mustache.call(this, options);
 }
 
-var proto$6 = (MustacheContainer.prototype = Object.create(ContainerItem.prototype));
+var proto$5 = (MustacheContainer.prototype = Object.create(ContainerItem.prototype));
 
-assign(proto$6, Mustache.prototype, { constructor: MustacheContainer });
+assign(proto$5, Mustache.prototype, { constructor: MustacheContainer });
 
 var Interpolator = (function (Mustache) {
   function Interpolator () {
@@ -12309,9 +12337,9 @@ function Partial(options) {
   }
 }
 
-var proto$7 = (Partial.prototype = create(MustacheContainer.prototype));
+var proto$6 = (Partial.prototype = create(MustacheContainer.prototype));
 
-assign(proto$7, {
+assign(proto$6, {
   constructor: Partial,
 
   bind: function bind() {
@@ -12634,7 +12662,8 @@ function initMacro(self) {
     name: self.template.e || self.name,
     attributes: {},
     setTemplate: setTemplate.bind(self),
-    template: template
+    template: template,
+    macro: fn
   }));
 
   if (!template.p) { template.p = {}; }
@@ -12679,7 +12708,7 @@ function initMacro(self) {
   }
 
   self.initing = 1;
-  self.proxy = fn(handle, handle.attributes) || {};
+  self.proxy = fn.call(self.ractive, handle, handle.attributes) || {};
   if (!self.partial) { self.partial = []; }
   self.fnTemplate = self.partial;
   self.initing = 0;
@@ -13850,8 +13879,8 @@ var Text = (function (Item) {
   return Text;
 }(Item));
 
-var proto$8 = Text.prototype;
-proto$8.bind = proto$8.unbind = proto$8.update = noop;
+var proto$7 = Text.prototype;
+proto$7.bind = proto$7.unbind = proto$7.update = noop;
 
 var visible;
 var hidden = 'hidden';
@@ -14500,8 +14529,8 @@ Transition__proto__.unregisterCompleteHandler = function unregisterCompleteHandl
   removeFromArray(this.onComplete, fn);
 };
 
-var proto$9 = Transition.prototype;
-proto$9.destroyed = proto$9.firstNode = proto$9.rebound = proto$9.render = proto$9.unrender = proto$9.update = noop;
+var proto$8 = Transition.prototype;
+proto$8.destroyed = proto$8.firstNode = proto$8.rebound = proto$8.render = proto$8.unrender = proto$8.update = noop;
 
 function nearestProp(prop, ractive, rendering) {
   var instance = ractive;
@@ -15810,7 +15839,7 @@ function use() {
   return this;
 }
 
-var proto$10 = {
+var proto$9 = {
   add: Ractive$add,
   animate: Ractive$animate,
   attachChild: attachChild,
@@ -16110,10 +16139,10 @@ if (win && !win.Ractive) {
   /* istanbul ignore next */
   if (~opts$1.indexOf('ForceGlobal')) { win.Ractive = Ractive; }
 } else if (win) {
-  warn("Ractive already appears to be loaded while loading 1.1.3.");
+  warn("Ractive already appears to be loaded while loading 1.2.2.");
 }
 
-assign(Ractive.prototype, proto$10, defaults);
+assign(Ractive.prototype, proto$9, defaults);
 Ractive.prototype.constructor = Ractive;
 
 // alias prototype as `defaults`
@@ -16148,7 +16177,7 @@ defineProperties(Ractive, {
   svg: { value: svg },
 
   // version
-  VERSION: { value: '1.1.3' },
+  VERSION: { value: '1.2.2' },
 
   // plugins
   adaptors: { writable: true, value: {} },
