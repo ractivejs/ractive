@@ -1,9 +1,17 @@
 # changelog
 
-# 1.4.0 (unreleased, edge)
+# 1.3.1
+
+See also the changes from 1.1.3 / 1.2.2 / 1.3.1 below
 
 * Experimental new features
 	* The current operation promise is available to things like observers and decorators using `Ractive.tick`, which will return `undefined` if there is not currently an operation in progress (#3295)
+
+
+# 1.1.3 / 1.2.2 / 1.3.1
+
+* Bug fixes
+	Dynamic partials with context will now have the correct context applied when they update (#3297)
 
 
 # 1.3.0
