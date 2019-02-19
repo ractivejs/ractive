@@ -12,6 +12,7 @@ npm run test:chrome
 npm run test:electron
 npm run test:coverage
 
+set +e
 npm run report:coveralls
 
 echo "build complete"

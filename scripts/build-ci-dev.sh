@@ -15,7 +15,9 @@ npm run test:electron
 npm run test:coverage
 
 if [ "$FORCE_LOCAL_BUILD" = "" ]; then
+  set +e
   npm run report:coveralls
+  set -e
 fi
 
 rm -rf .build
