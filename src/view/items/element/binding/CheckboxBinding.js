@@ -18,7 +18,10 @@ export default class CheckboxBinding extends Binding {
 
   unrender() {
     this.element.off('change', handleDomEvent);
-    this.element.off('click', handleDomEvent);
+
+    if (this.node.attachEvent) {
+      this.element.off('click', handleDomEvent);
+    }
   }
 
   getInitialValue() {
