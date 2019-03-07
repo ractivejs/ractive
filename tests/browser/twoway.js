@@ -1734,4 +1734,20 @@ export default function() {
 
     fire(ractive.find('#red'), 'click');
   });
+
+  test(`checkbox bindings shouldn't decrement a delegated click listener if they never incremented it (#3299)`, t => {
+    const ractive = new Ractive({
+      el: fixture,
+      template: `<div>{{#each items}}<input type="checkbox" checked="{{.check}}" on-click="something" /><button on-click="@context.splice('../', @index, 1)">placeholder</button>{{/each}}</div>`,
+      data: {
+        items: [{}, {}, {}]
+      }
+    });
+
+    fire(ractive.find('button'), 'click');
+    fire(ractive.find('button'), 'click');
+    fire(ractive.find('button'), 'click');
+
+    t.equal(fixture.querySelectorAll('button').length, 0);
+  });
 }
