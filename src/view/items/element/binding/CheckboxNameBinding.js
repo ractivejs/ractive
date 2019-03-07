@@ -123,7 +123,10 @@ export default class CheckboxNameBinding extends Binding {
     const el = this.element;
 
     el.off('change', handleDomEvent);
-    el.off('click', handleDomEvent);
+
+    if (this.node.attachEvent) {
+      el.off('click', handleDomEvent);
+    }
   }
 
   arrayContains(selectValue, optionValue) {

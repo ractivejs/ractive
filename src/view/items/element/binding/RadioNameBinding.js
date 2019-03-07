@@ -95,7 +95,10 @@ export default class RadioNameBinding extends Binding {
     const el = this.element;
 
     el.off('change', handleDomEvent);
-    el.off('click', handleDomEvent);
+
+    if (this.node.attachEvent) {
+      el.off('click', handleDomEvent);
+    }
   }
 
   updateName() {
