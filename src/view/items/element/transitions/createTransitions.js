@@ -78,6 +78,7 @@ if (!isClient) {
       };
 
       function transitionEndHandler(event) {
+        if (event.target !== t.node) return;
         const index = changedProperties.indexOf(event.propertyName);
 
         if (index !== -1) {
