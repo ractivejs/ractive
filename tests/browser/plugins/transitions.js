@@ -1201,4 +1201,42 @@ export default function() {
 
     r.render(fixture).then(() => r.push('list', 'main'));
   });
+
+  test(`transitioning a nested element doesn't break a transitioning element`, t => {
+    const done = t.async();
+    let start = 0;
+
+    const Cmp = Ractive.extend({
+      template: '{{#if show}}<div go-out><button /></div>{{/if}}',
+      data() {
+        return { show: true };
+      },
+      transitions: {
+        go(trans) {
+          trans.setStyle('opacity', 1);
+          return trans.animateStyle('opacity', 0, { duration: 50 }).then(() => {
+            t.ok(+new Date() - start > 50, 'took at least 50ms');
+          });
+        }
+      },
+      css: `
+        button {
+          opacity: 1;
+          transition: opacity 10ms ease;
+        }
+        button.foo {
+          opacity: 0;
+        }
+      `
+    });
+
+    const r = new Cmp({
+      target: fixture
+    });
+
+    const btn = r.find('button');
+    start = new Date();
+    r.toggle('show').then(done);
+    btn.setAttribute('class', 'foo');
+  });
 }
