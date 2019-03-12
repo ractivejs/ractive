@@ -1,5 +1,12 @@
 # changelog
 
+# 1.3.2 / 1.2.3 / 1.1.4
+
+* Bug fixes
+	* Checked bindings will no longer interfere with click listeners that happen to be handled by the same delegate for non-IE browsers (#3299)
+	* Nested transition events, possibly not related to any ractive transitions, will no longer cause active transitions on an element to terminate early.
+
+
 # 1.3.1
 
 See also the changes from 1.1.3 / 1.2.2 / 1.3.1 below
