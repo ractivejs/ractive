@@ -1,5 +1,11 @@
 # changelog
 
+# 1.3.3
+
+* New features
+	* The ractive binary now supports loading partials from external files using a `src` attribute on the `template` element e.g. `<template id="my-template" src="./my-template.ractive.html">`. Currently, only `style` attributes at the top level of the resulting template are processed for inclusion, so `link` and `script` files are treated as if they appeared directly in an inline partial of the parent template.
+
+
 # 1.3.2 / 1.2.3 / 1.1.4
 
 * Bug fixes
