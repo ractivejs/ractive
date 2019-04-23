@@ -1,5 +1,11 @@
 # changelog
 
+# 1.3.4
+
+* Bug fixes
+	* The ractive binary now correctly resolves relative imports/links/hrefs for components in nested folders.
+
+
 # 1.3.3
 
 * New features
