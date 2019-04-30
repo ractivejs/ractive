@@ -1,5 +1,11 @@
 # changelog
 
+# 1.3.5
+
+* Bug fixes
+	* The ractive binary should no longer barf on input and should more gracefully handle absolute vs relative paths.
+
+
 # 1.3.4
 
 * Bug fixes
