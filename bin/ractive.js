@@ -21,9 +21,13 @@ const opts = {
 };
 
 function mkReadFile(file) {
-  const base = path.join(opts.base, path.dirname(file));
+  const base = path.isAbsolute(file)
+    ? path.dirname(file)
+    : path.join(opts.base, path.dirname(file));
   return function readFile(name) {
-    return Promise.resolve(fs.readFileSync(path.join(base, name), { encoding: 'utf8' }));
+    return Promise.resolve(
+      fs.readFileSync(path.isAbsolute(name) ? name : path.join(base, name), { encoding: 'utf8' })
+    );
   };
 }
 
@@ -103,7 +107,7 @@ const commands = {
           .readToString(opts.input)
           .then(string => {
             return component
-              .build(string, opts, mkReadFile(opts.input))
+              .build(string, opts, mkReadFile(''))
               .then(string => util.writeToStream(opts.output, string));
           })
           .then(null, err => {
