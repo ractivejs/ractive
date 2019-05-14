@@ -1215,7 +1215,8 @@ export default function() {
         go(trans) {
           trans.setStyle('opacity', 1);
           return trans.animateStyle('opacity', 0, { duration: 50 }).then(() => {
-            t.ok(+new Date() - start > 50, 'took at least 50ms');
+            const diff = +new Date() - start;
+            t.ok(diff, `took at least 50ms, but got ${diff}ms`);
           });
         }
       },
