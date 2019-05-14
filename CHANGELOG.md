@@ -1,5 +1,11 @@
 # changelog
 
+# 1.3.6
+
+* Bug fixes
+	* Improved macro typings.
+
+
 # 1.3.5
 
 * Bug fixes
