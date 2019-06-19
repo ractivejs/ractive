@@ -4,6 +4,7 @@ import { fillGaps, hasOwn } from 'utils/object';
 import parser from 'src/Ractive/config/runtime-parser';
 import { findInstance } from 'shared/registry';
 import { isArray, isFunction } from 'utils/is';
+import { addFunctions } from 'shared/getFunction';
 
 export default function getPartialTemplate(ractive, name, up) {
   // If the partial in instance or view heirarchy instances, great
@@ -80,7 +81,13 @@ function getPartialFromRegistry(ractive, name, up) {
   // store for reset
   if (fn) partial._fn = fn;
 
-  return partial.v ? partial.t : partial;
+  // if the partial is a pre-parsed template object, import any expressions and update the registry
+  if (partial.v) {
+    addFunctions(partial);
+    return (instance.partials[name] = partial.t);
+  } else {
+    return partial;
+  }
 }
 
 function findOwner(ractive, key) {
