@@ -1317,4 +1317,19 @@ export default function() {
     r.set('part', 'bar');
     t.htmlEqual(fixture.innerHTML, '(bar 1)(bar 2)');
   });
+
+  test(`manual yield via partial with context context finds correct parent element`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: `<p>{{#with foo.bar}}<div />{{/with}}</p>{{#if !!.ctx}}<span {{>.bar .ctx}}></span>{{/if}}`,
+      data: {
+        foo: { bar: { baz: 'sure' } },
+        bar: Ractive.parse('data-foo="{{.baz}}"', { attributes: true }).t
+      }
+    });
+
+    r.set('ctx', r.getContext('div'));
+
+    t.htmlEqual(fixture.innerHTML, '<p><div></div></p><span data-foo="sure"></span>');
+  });
 }
