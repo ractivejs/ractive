@@ -155,7 +155,7 @@ export default class Section extends MustacheContainer {
       if (this.rendered) this.fragment.unbind().unrender(true);
       this.fragment = null;
     } else if (this.rendered && !this.yield && value instanceof Context) {
-      if (this.rendered) this.fragment.unbind().unrender(true);
+      if (this.rendered && this.fragment) this.fragment.unbind().unrender(true);
       this.fragment = null;
     }
 

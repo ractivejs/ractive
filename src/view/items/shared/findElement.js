@@ -8,7 +8,7 @@ export default function findElement(start, orComponent = true, name) {
   ) {
     // start is a fragment - look at the owner
     if (start.owner) start = start.owner;
-    else if (start.component)
+    else if (start.component || start.yield)
       // start is a component or yielder - look at the container
       start = start.containerFragment || start.component.up;
     else if (start.parent)
