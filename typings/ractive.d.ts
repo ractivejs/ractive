@@ -1,7 +1,7 @@
 // Type definitions for Ractive edge
 // Project: https://ractive.js.org/
 // Definitions By: Chris Reeves <https://github.com/evs-chris>
-// Version: 1.3
+// Version: 1.0.0-edge+2018-04-22
 
 export interface ValueMap {
 	[key: string]: any;
@@ -541,7 +541,6 @@ export class MacroHelper extends ContextHelper {
 }
 
 export interface MacroOpts {
-	attributes?: string[];
 	cssId?: string;
 	noCssTransform?: boolean;
 	css?: string | CssFn;
@@ -1560,7 +1559,7 @@ export module Ractive {
 	 * @param macro
 	 * @param options
 	 */
-	function macro(macro: MacroFn, options?: MacroOpts): Macro;
+	function macro(macro: MacroFn, options: MacroOpts): Macro;
 
 	/**
 	 * Parse the given template string into a template.j
