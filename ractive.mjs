@@ -1,7 +1,7 @@
 /*
-	Ractive.js v1.3.6
-	Build: ca7978799ad20334cb9e5c4e8f2f939e4ad14c4c
-	Date: Tue May 14 2019 21:58:15 GMT+0000 (UTC)
+	Ractive.js v1.3.7
+	Build: b08dbe658885ce71d2da35ca5b573b9b7401be98
+	Date: Thu Jul 25 2019 19:13:37 GMT+0000 (UTC)
 	Website: https://ractive.js.org
 	License: MIT
 */
@@ -521,13 +521,13 @@ var welcome;
 
 if (hasConsole) {
   var welcomeIntro = [
-    "%cRactive.js %c1.3.6 %cin debug mode, %cmore...",
+    "%cRactive.js %c1.3.7 %cin debug mode, %cmore...",
     'color: rgb(114, 157, 52); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
-  var welcomeMessage = "You're running Ractive 1.3.6 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  var welcomeMessage = "You're running Ractive 1.3.7 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   welcome = function () {
     if (Ractive.WELCOME_MESSAGE === false) {
@@ -7612,7 +7612,7 @@ function findElement(start, orComponent, name) {
   ) {
     // start is a fragment - look at the owner
     if (start.owner) { start = start.owner; }
-    else if (start.component)
+    else if (start.component || start.yield)
       // start is a component or yielder - look at the container
       { start = start.containerFragment || start.component.up; }
     else if (start.parent)
@@ -15248,7 +15248,13 @@ function getPartialFromRegistry(ractive, name, up) {
   // store for reset
   if (fn) { partial._fn = fn; }
 
-  return partial.v ? partial.t : partial;
+  // if the partial is a pre-parsed template object, import any expressions and update the registry
+  if (partial.v) {
+    addFunctions(partial);
+    return (instance.partials[name] = partial.t);
+  } else {
+    return partial;
+  }
 }
 
 function findOwner(ractive, key) {
@@ -16490,7 +16496,7 @@ var Section = (function (MustacheContainer) {
       if (this.rendered) { this.fragment.unbind().unrender(true); }
       this.fragment = null;
     } else if (this.rendered && !this.yield && value instanceof Context) {
-      if (this.rendered) { this.fragment.unbind().unrender(true); }
+      if (this.rendered && this.fragment) { this.fragment.unbind().unrender(true); }
       this.fragment = null;
     }
 
@@ -19117,7 +19123,7 @@ if (win && !win.Ractive) {
   /* istanbul ignore next */
   if (~opts$1.indexOf('ForceGlobal')) { win.Ractive = Ractive; }
 } else if (win) {
-  warn("Ractive already appears to be loaded while loading 1.3.6.");
+  warn("Ractive already appears to be loaded while loading 1.3.7.");
 }
 
 assign(Ractive.prototype, proto$9, defaults);
@@ -19164,7 +19170,7 @@ defineProperties(Ractive, {
   },
 
   // version
-  VERSION: { value: '1.3.6' },
+  VERSION: { value: '1.3.7' },
 
   // plugins
   adaptors: { writable: true, value: {} },
