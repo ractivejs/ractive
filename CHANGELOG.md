@@ -1,5 +1,12 @@
 # changelog
 
+# 1.2.4, 1.3.7
+
+* Bug fixes
+	* Partials loaded from the registry, as opposed to being embedded in the template, now properly contribute expression functions for CSP (#3306)
+	* Partials with a Context context will consistently find the correct parent element.
+
+
 # 1.3.6
 
 * Bug fixes
