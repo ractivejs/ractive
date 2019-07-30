@@ -82,14 +82,16 @@ export default class ReferenceExpressionProxy extends LinkModel {
     }));
 
     const pathChanged = () => {
-      const model = base.joinAll(
-        members.reduce((list, m) => {
-          const k = m.get();
-          if (isArray(k)) return list.concat(k);
-          else list.push(escapeKey(String(k)));
-          return list;
-        }, [])
-      );
+      const model =
+        base &&
+        base.joinAll(
+          members.reduce((list, m) => {
+            const k = m.get();
+            if (isArray(k)) return list.concat(k);
+            else list.push(escapeKey(String(k)));
+            return list;
+          }, [])
+        );
 
       if (model !== this.model) {
         this.model = model;
