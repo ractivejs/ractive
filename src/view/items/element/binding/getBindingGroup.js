@@ -24,6 +24,7 @@ class BindingGroup {
 
   bind() {
     this.value = this.model.get();
+    this.bindings.forEach(b => b.lastVal(true, this.value));
     this.model.registerTwowayBinding(this);
     this.bound = true;
   }
