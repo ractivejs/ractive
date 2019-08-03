@@ -1750,4 +1750,19 @@ export default function() {
 
     t.equal(fixture.querySelectorAll('button').length, 0);
   });
+
+  test(`radio name binding gets initialized correctly for undefined values (#3309)`, t => {
+    new Ractive({
+      target: fixture,
+      template: `<input type="radio" name="{{val}}" value="{{undefined}}" /><input type="radio" name="{{val}}" value="sure" /><span>{{'' + val}}</span>`,
+      data: {
+        val: 'sure'
+      }
+    });
+
+    const span = fixture.querySelector('span');
+    t.htmlEqual(span.innerHTML, 'sure');
+    fire(fixture.querySelector('input'), 'click');
+    t.htmlEqual(span.innerHTML, 'undefined');
+  });
 }
