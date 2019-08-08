@@ -949,7 +949,12 @@ const renderTests = [
 		name: 'HTML entities in static attributes',
 		template: '<span data-foo="&#x2713;"></span>',
 		result: '<span data-foo="&#x2713;"></span>'
-	},
+  },
+  {
+    name: 'Proper escaping in static attributes (#3311)',
+    template: `<span data-foo='{ "x": 1 }' />`,
+    result: '<span data-foo="{ &quot;x&quot;: 1 }"></span>'
+  },
 	{
 		name: 'HTML entities in dynamic attributes',
 		template: '<span data-foo="{{foo}}"></span>',
