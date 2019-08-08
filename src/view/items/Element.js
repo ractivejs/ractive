@@ -387,7 +387,10 @@ export default class Element extends ContainerItem {
 
     if (this.statics)
       keys(this.statics).forEach(
-        k => k !== 'class' && k !== 'style' && (attrs = ` ${k}="${this.statics[k]}"` + attrs)
+        k =>
+          k !== 'class' &&
+          k !== 'style' &&
+          (attrs = ` ${k}="${safeAttributeString(this.statics[k])}"` + attrs)
       );
 
     // Special case - selected options
