@@ -242,9 +242,10 @@ function createFragment(self, partial) {
 
 function contextifyTemplate(self) {
   if (self.template.c) {
-    self.partial = [{ t: SECTION, n: SECTION_WITH, f: self.partial, z: self.template.z }];
+    self.partial = [{ t: SECTION, n: SECTION_WITH, f: self.partial }];
     assign(self.partial[0], self.template.c);
     if (self.yielder) self.partial[0].y = self;
+    else self.partial[0].z = self.template.z;
   }
 }
 

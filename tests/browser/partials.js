@@ -1298,6 +1298,32 @@ export default function() {
     t.htmlEqual(fixture.innerHTML, '99 42');
   });
 
+  test(`yield with context and aliases #3316`, t => {
+    const cmp = Ractive.extend({
+      template: `{{yield part with baz, 'str' as lit, foo as param, fn() as fn}}`,
+      partials: {
+        part: `{{JSON.stringify(.)}}, {{lit}}, {{param}}, {{fn}}`
+      },
+      data() {
+        return {
+          fn() {
+            return 'fn!';
+          },
+          foo: 'foo!',
+          baz: { baz: 42 }
+        };
+      }
+    });
+
+    new Ractive({
+      target: fixture,
+      components: { cmp },
+      template: '<cmp />'
+    });
+
+    t.htmlEqual(fixture.innerHTML, '{"baz":42}, str, foo!, fn!');
+  });
+
   test(`dynamic partials retain context (#3297)`, t => {
     const r = new Ractive({
       target: fixture,
