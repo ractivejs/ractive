@@ -1,5 +1,21 @@
 # changelog
 
+# 1.3.8
+
+See also the changes from 1.2.5 / 1.3.8 below
+
+* Bug fixes
+    * Additional aliases in a yield with context will now resolve correctly (#3316)
+
+
+# 1.2.5, 1.3.8
+
+* Bug fixes
+    * Reference expressions that have their model disappear will no longer throw (#3308)
+    * Radio name bindings are now properly initialized such that setting an initially set binding to `undefined` will actually apply the `undefined` (#3309)
+    * Static attributes will be properly escaped again (#3311)
+
+
 # 1.2.4, 1.3.7
 
 * Bug fixes
@@ -151,7 +167,7 @@ See also the changes from 0.10.11 / 1.0.1 below.
 
 * Bug fixes
 	* The bin now properly handles `$PARTIAL` references without a property access
-	
+
 * Other changes
 	* `Ractive.getContext` will now check parent elements for context so that non-managed DOM that is owned by managed DOM can still be easily interacted with
 
@@ -356,7 +372,7 @@ See also the changes from 0.10.11 / 1.0.1 below.
 * New features (experimental)
 	* __Async components__: Components added to the component registry may be a promise or a function that returns a promise. While the promise is unresolved, the template will be left blank or display an options `async-loading` partial if supplied. When the promise resolves, the component will be rendered or supplied to an optional `async-loaded` partial as `{{>component}}` if the `async-loaded` partial is supplied. If the promise rejects, the template will be emptied or the `async-failed` partial will be rendered, if supplied.
 	* The low-level construct that enables async components is the super or macro partial, which is also available for general use. A macro partial is one that provides a function that takes a context handle that can set the partial's template at any time.
-		* Macro partials can also have scoped `css` using the same mechanism as components.  
+		* Macro partials can also have scoped `css` using the same mechanism as components.
 		* They are created with `Ractive.macro( ( handle, args ) => { ... }, { options } )` and should be passed into a partials registry
 		* They can be invoked using regular partial syntax or using element syntax as a lightweight component e.g. `<macro attr1="{{foo}}">content partial</macro>`
 		* The handle passed to the macro function can be used to:
@@ -487,7 +503,7 @@ See also the changes from 0.10.11 / 1.0.1 below.
 	* Partial context (`{{>foo thisIsTheContext}}`) now only applies inside the partial template, meaning it is no longer equivalent to `{{#with thisIsTheContext}}{{>foo}}{{/with}}`. The with is wrapped around the content of `foo`, so that the context doesn't interfere with the partial expression.
 	* Any partial may be yielded, so yielding non-inline partials will no longer warn.
 	* The same partial may be yielded multiple times.
-	* Events now fire in an initial implicit `this.` namespace. This means that with `this.on( '*.foo', handler )`, `handler` will be called if and component fires a `foo` event or if the `this` instance fires a `foo` event. 
+	* Events now fire in an initial implicit `this.` namespace. This means that with `this.on( '*.foo', handler )`, `handler` will be called if and component fires a `foo` event or if the `this` instance fires a `foo` event.
 	* The `noIntro` option now applies to any nested components that are also being rendered, unless they have their own explicit setting.
 	* Legacy builds removed. Only regular and runtime builds are now available.
 	* Library does not contain polyfills anymore for the following APIs:
