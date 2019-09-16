@@ -1,7 +1,7 @@
 /*
-	Ractive.js v1.2.4
-	Build: e32c15a3e6199e254555fdbb825571dae4c664cd
-	Date: Thu Jul 25 2019 19:17:55 GMT+0000 (UTC)
+	Ractive.js v1.2.5
+	Build: 7893d2418630f97b775ccfd9c981f578a10bd476
+	Date: Mon Sep 16 2019 20:44:13 GMT+0000 (UTC)
 	Website: https://ractive.js.org
 	License: MIT
 */
@@ -528,13 +528,13 @@ var welcome;
 
 if (hasConsole) {
   var welcomeIntro = [
-    "%cRactive.js %c1.2.4 %cin debug mode, %cmore...",
+    "%cRactive.js %c1.2.5 %cin debug mode, %cmore...",
     'color: rgb(114, 157, 52); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
-  var welcomeMessage = "You're running Ractive 1.2.4 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  var welcomeMessage = "You're running Ractive 1.2.5 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   welcome = function () {
     if (Ractive.WELCOME_MESSAGE === false) {
@@ -10521,14 +10521,16 @@ var ReferenceExpressionProxy = (function (LinkModel) {
     }));
 
     var pathChanged = function () {
-      var model = base.joinAll(
-        members.reduce(function (list, m) {
-          var k = m.get();
-          if (isArray(k)) { return list.concat(k); }
-          else { list.push(escapeKey(String(k))); }
-          return list;
-        }, [])
-      );
+      var model =
+        base &&
+        base.joinAll(
+          members.reduce(function (list, m) {
+            var k = m.get();
+            if (isArray(k)) { return list.concat(k); }
+            else { list.push(escapeKey(String(k))); }
+            return list;
+          }, [])
+        );
 
       if (model !== this$1.model) {
         this$1.model = model;
@@ -12810,7 +12812,10 @@ BindingGroup__proto__.add = function add (binding) {
 };
 
 BindingGroup__proto__.bind = function bind () {
+    var this$1 = this;
+
   this.value = this.model.get();
+  this.bindings.forEach(function (b) { return b.lastVal(true, this$1.value); });
   this.model.registerTwowayBinding(this);
   this.bound = true;
 };
@@ -14042,7 +14047,9 @@ var Element = (function (ContainerItem) {
 
     if (this.statics)
       { keys(this.statics).forEach(
-        function (k) { return k !== 'class' && k !== 'style' && (attrs = " " + k + "=\"" + (this$1.statics[k]) + "\"" + attrs); }
+        function (k) { return k !== 'class' &&
+          k !== 'style' &&
+          (attrs = " " + k + "=\"" + (safeAttributeString(this$1.statics[k])) + "\"" + attrs); }
       ); }
 
     // Special case - selected options
@@ -19136,7 +19143,7 @@ if (win && !win.Ractive) {
   /* istanbul ignore next */
   if (~opts$1.indexOf('ForceGlobal')) { win.Ractive = Ractive; }
 } else if (win) {
-  warn("Ractive already appears to be loaded while loading 1.2.4.");
+  warn("Ractive already appears to be loaded while loading 1.2.5.");
 }
 
 assign(Ractive.prototype, proto$9, defaults);
@@ -19178,7 +19185,7 @@ defineProperties(Ractive, {
   svg: { value: svg },
 
   // version
-  VERSION: { value: '1.2.4' },
+  VERSION: { value: '1.2.5' },
 
   // plugins
   adaptors: { writable: true, value: {} },
