@@ -82,7 +82,7 @@ export default class ModelBase {
         children.push(this.joinKey(i));
       });
     } else if (isObject(value) || isFunction(value)) {
-      children = objectKeys(value).map(key => this.joinKey(key));
+      children = objectKeys(value).map(key => this.joinKey(escapeKey(key)));
     } else if (value != null) {
       children = [];
     }
