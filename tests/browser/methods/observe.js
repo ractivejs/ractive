@@ -621,6 +621,26 @@ export default function() {
     ractive.set('gup.foo.bar', { baz: 2 });
   });
 
+  test('An observed wildcard can be an escaped string (#3319)', t => {
+    t.expect(4);
+
+    const ractive = new Ractive({
+      el: fixture,
+      template: 'blah',
+      data: { gup: { 'foo.bar': { baz: 1 } } }
+    });
+
+    let expected = 1;
+
+    ractive.observe('gup.*.baz', (n, o, keypath) => {
+      t.deepEqual(n, expected);
+      t.equal(keypath, 'gup.foo\\.bar.baz');
+    });
+
+    expected = 2;
+    ractive.set('gup.foo\\.bar', { baz: 2 });
+  });
+
   test('Pattern observers fire when ractive.update() is called without parameters', t => {
     t.expect(2);
 
