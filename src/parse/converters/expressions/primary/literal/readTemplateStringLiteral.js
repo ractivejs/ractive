@@ -83,7 +83,10 @@ export default function readTemplateStringLiteral(parser) {
 
   if (!parser.matchString('`')) parser.error("Expected closing '`'");
 
-  if (parts.length === 1) {
+  if (!parts.length) {
+    // empty string literal
+    return { t: STRING_LITERAL, v: '' };
+  } else if (parts.length === 1) {
     return parts[0];
   } else {
     let result = parts.pop();
