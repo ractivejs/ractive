@@ -894,6 +894,11 @@ const parseTests = [
 		parsed: {v:4,t:[{t:2,x:{r:['name','names'],s:'"hello, "+(_1[(""+(_0)+"Guy")])+"!"'}}]}
 	},
 	{
+		name: 'empty string template',
+		template: '{{ `` }}',
+		parsed: {v:4,t:[{t:2,x:{r:[],s:'""'}}]}
+	},
+	{
 		name: 'csp: true',
 		template: '{{x + 1}}<a {{#if x + 2}}data-id={{x + 3}}{{/if}} slide-in="x+4" on-click="proxy" on-focus="method(x + 5)">{{foo.bar[x + 6].baz}}</a>',
 		options: { csp: true },
