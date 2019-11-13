@@ -1,3 +1,5 @@
+import { addToArray } from '../utils/array';
+
 const stack = [];
 let captureGroup;
 
@@ -13,6 +15,6 @@ export function stopCapturing() {
 
 export function capture(model) {
   if (captureGroup) {
-    captureGroup.push(model);
+    addToArray(captureGroup, model);
   }
 }
