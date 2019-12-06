@@ -1539,6 +1539,9 @@ export module Ractive {
 	let DEBUG: boolean;
 	let DEBUG_PROMISES: boolean;
 
+	/** Render component styles in their own style tags rather than in a single shared tag - defaults to false */
+	let perComponentStyleElements: boolean;
+
 	/** true if Ractive detects that this environment supports svg. */
 	const svg: boolean;
 

@@ -12,6 +12,12 @@ let isDirty = false;
 let styleElement = null;
 let useCssText = null;
 
+// flag to use multiple style tags
+let _splitTag = false;
+export function splitTag(v) {
+  return v === undefined ? _splitTag : (_splitTag = v);
+}
+
 export function addCSS(styleDefinition) {
   styleDefinitions.push(styleDefinition);
   isDirty = true;
@@ -24,10 +30,24 @@ export function applyCSS(force) {
   // can call toCSS to get the updated CSS.
   if (!styleElement || (!force && !isDirty)) return;
 
-  if (useCssText) {
-    styleElement.styleSheet.cssText = getCSS(null);
+  if (_splitTag) {
+    styleDefinitions.forEach(s => {
+      const el = getStyle(s.id);
+      if (el) {
+        const css = getCSS(s.id);
+        if (useCssText) {
+          el.styleSheet.cssText !== css && (el.styleSheet.cssText = css);
+        } else {
+          el.innerHTML !== css && (el.innerHTML = css);
+        }
+      }
+    });
   } else {
-    styleElement.innerHTML = getCSS(null);
+    if (useCssText) {
+      styleElement.styleSheet.cssText = getCSS(null);
+    } else {
+      styleElement.innerHTML = getCSS(null);
+    }
   }
 
   isDirty = false;
@@ -46,17 +66,26 @@ export function getCSS(cssIds) {
   );
 }
 
-function style() {
-  // If we're on the browser, additional setup needed.
-  if (doc && !styleElement) {
-    styleElement = doc.createElement('style');
-    styleElement.type = 'text/css';
-    styleElement.setAttribute('data-ractive-css', '');
+function getStyle(id) {
+  return doc && (doc.querySelector(`[data-ractive-css="${id}"]`) || makeStyle(id));
+}
 
-    doc.getElementsByTagName('head')[0].appendChild(styleElement);
+function makeStyle(id) {
+  if (doc) {
+    const el = doc.createElement('style');
+    el.type = 'text/css';
+    el.setAttribute('data-ractive-css', id || '');
 
-    useCssText = !!styleElement.styleSheet;
+    doc.getElementsByTagName('head')[0].appendChild(el);
+
+    if (useCssText === null) useCssText = !!el.styleSheet;
+
+    return el;
   }
+}
+
+function style() {
+  if (!styleElement) styleElement = makeStyle();
 
   return styleElement;
 }

@@ -18,7 +18,7 @@ import isInstance from './Ractive/static/isInstance';
 import use from './Ractive/static/use';
 import construct from './Ractive/construct';
 import initialise from './Ractive/initialise';
-import { getCSS } from './global/css';
+import { getCSS, splitTag } from './global/css';
 import { escapeKey, unescapeKey, normalise } from './shared/keypaths';
 import { joinKeys, splitKeypath } from './Ractive/static/keypaths';
 import shared from './Ractive/shared';
@@ -115,6 +115,7 @@ defineProperties(Ractive, {
 
   // CSS variables
   cssData: { configurable: true, value: {} },
+  perComponentStyleElements: { get: splitTag, set: splitTag },
 
   // access to @shared without an instance
   sharedData: { value: sharedData },
