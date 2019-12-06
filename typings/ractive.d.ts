@@ -1107,6 +1107,13 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	attachChild(child: Ractive, opts?: AttachOpts): Promise<void>;
 
 	/**
+	 * Create a new computation at the given path. This is the runtime equivalent of adding computed entries during initialization.
+	 * @param keypath the keypath at which the computation will exist. This can include wildcards.
+	 * @param computation the computation descriptor to install at the given keypath
+	 */
+	compute(keypath: string, computation: Computation<T>): Promise<void>;
+
+	/**
 	 * Detach this instance from the DOM.
 	 */
 	detach(): DocumentFragment;
