@@ -382,9 +382,9 @@ export interface ComputationDescriptor<T extends Ractive<T> = Ractive> {
 	/**
 	 * Called when Ractive is asked to set a computed keypath.
 	 */
-	set?: (value: any) => void;
+	set?: (this: T, value: any, context: any, keypath: string) => void;
 }
-export type ComputationFn<T extends Ractive<T> = Ractive> = (this: T) => any;
+export type ComputationFn<T extends Ractive<T> = Ractive> = (this: T, context: any, keypath: string) => any;
 export type Computation<T extends Ractive<T> = Ractive> = string | ComputationFn<T> | ComputationDescriptor<T>;
 
 export type CssFn = (data: DataGetFn) => string;

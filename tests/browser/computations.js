@@ -1,6 +1,7 @@
 import { hasUsableConsole, onWarn } from '../helpers/test-config';
 import { initModule } from '../helpers/test-config';
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
 export default function() {
   initModule('computations.js');
@@ -1328,6 +1329,34 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, '123');
     t.equal(count, 3);
+  });
+
+  test(`computeds receive context and keypath on get and set`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: `{{#with list.1}}<input value="{{.wat}}" />{{/with}}`,
+      computed: {
+        'list.*.wat': {
+          get(ctx, path) {
+            t.equal(path, 'list.1.wat');
+            return ctx.num + 1;
+          },
+          set(v, ctx, path) {
+            t.equal(path, 'list.1.wat');
+            ctx.num = +v - 1;
+          }
+        }
+      },
+      data: {
+        list: [{ num: 1 }, { num: 2 }, { num: 3 }]
+      }
+    });
+
+    const input = fixture.querySelector('input');
+    t.equal(input.value, 3);
+    input.value = 10;
+    fire(input, 'change');
+    t.equal(r.get('list.1.num'), 9);
   });
 
   test(`an expression that throws can safely reference a context model`, t => {

@@ -75,7 +75,7 @@ export default class Computation extends Model {
     let result;
 
     try {
-      result = this.signature.getter.call(this.root.ractive, this.getContext());
+      result = this.signature.getter.call(this.root.ractive, this.getContext(), this.getKeypath());
     } catch (err) {
       warnIfDebug(`Failed to compute ${this.getKeypath()}: ${err.message || err}`);
 
@@ -118,7 +118,7 @@ export default class Computation extends Model {
       throw new Error(`Cannot set read-only computed value '${this.key}'`);
     }
 
-    this.signature.setter(value);
+    this.signature.setter(value, this.getContext(), this.getKeypath());
     this.mark();
   }
 
