@@ -1,5 +1,20 @@
 # changelog
 
+# 1.4.0 (edge, unreleased)
+
+* Expermental new features
+	* Computation setter functions now receive a context argument, and both getter and setter functions now receive a keypath argument.
+	* Component styles can be split into multiple managed style tags in the document head by setting `Ractive.perComponentStyleElements` to `true`.
+
+
+# 1.2.6, 1.3.9
+
+* Bug fixes
+	* Escaped keypaths can now be observed correctly (#3319, thanks @ilessiivi)
+	* Empty string templates will no longer cause an error during parsing.
+	* Multiple references to the same model during capture for a computation will no longer result in ballooning dependencies.
+
+
 # 1.3.8
 
 See also the changes from 1.2.5 / 1.3.8 below
