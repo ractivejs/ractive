@@ -186,4 +186,25 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, '<div id="move-test-target">root</div><span>cmp</span>');
   });
+
+  test(`three (or more) levels of nested transition don't prematurely detach innermost nodes (#3324)`, t => {
+    const cmp1 = Ractive.extend({ template: '{{yield}}' });
+    const cmp2 = Ractive.extend({ template: `{{{'<b>test</b>'}}}` });
+    const done = t.async();
+
+    const r = new Ractive({
+      components: { cmp1, cmp2 },
+      template: '{{#if show}}<div go-out><cmp1><cmp2 /></cmp1></div>{{/if}}',
+      data: { show: true },
+      target: fixture,
+      transitions: {
+        go(tr) {
+          t.ok(fixture.querySelector('b'), 'triple is still rendered');
+          tr.complete();
+        }
+      }
+    });
+
+    r.set('show', false).then(done, done);
+  });
 }
