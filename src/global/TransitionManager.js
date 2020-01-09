@@ -88,7 +88,7 @@ function check(tm) {
 
     if (tm.parent) tm.parent.decrementOutros(tm);
 
-    if (!tm.parent || tm.parent.outrosComplete) {
+    if (allOutrosComplete(tm)) {
       tm.detachNodes();
     }
   }
@@ -105,6 +105,10 @@ function check(tm) {
       tm.parent.decrementTotal();
     }
   }
+}
+
+function allOutrosComplete(manager) {
+  return !manager || (manager.outrosComplete && allOutrosComplete(manager.parent));
 }
 
 // check through the detach queue to see if a node is up or downstream from a
