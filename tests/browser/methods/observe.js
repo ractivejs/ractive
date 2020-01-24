@@ -259,8 +259,8 @@ export default function() {
     ractive.set('bar', true);
   });
 
-  test('Errors inside observers are not caught', t => {
-    t.expect(2);
+  test('Errors inside observers are caught', t => {
+    t.expect(0);
 
     const ractive = new Ractive({
       data: {
@@ -278,10 +278,10 @@ export default function() {
 
     try {
       ractive.observe('bar.*', () => {
-        throw new Error('test');
+        throw new Error('test wild');
       });
     } catch (err) {
-      t.equal(err.message, 'test');
+      t.equal(err.message, 'test wild');
     }
   });
 
