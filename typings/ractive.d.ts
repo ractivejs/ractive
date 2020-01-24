@@ -1181,7 +1181,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * @param ctx an optional context or object to be merged with a context
 	 * @param args additional args to pass to the event listeners
 	 */
-	fire(name: string, ctx: ContextHelper | {}, ...args: any[]): boolean;
+	fire(name: string, ctx?: ContextHelper | {}, ...args: any[]): boolean;
 
 	/**
 	 * Retrieve the root object of this instance's data.
@@ -1207,7 +1207,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * @param target
 	 * @param anchor
 	 */
-	insert(target: Target, anchor: Target): void;
+	insert(target: Target, anchor?: Target): void;
 
 	/**
 	 * Create a link to the given source keypath at the given target keypath, similar to a symlink in filesystems. This allows safely referencing the same data at two places in the same instance or across instances if given a target instance. Cross-instance links are also known as mappings.
