@@ -1,6 +1,7 @@
 import { removeFromArray } from 'utils/array';
 import { isArray, isUndefined } from 'utils/is';
 import runloop from 'src/global/runloop';
+import { warnIfDebug } from 'utils/log';
 
 function negativeOne() {
   return -1;
@@ -33,7 +34,13 @@ export default class ArrayObserver {
   }
 
   dispatch() {
-    this.callback(this.pending);
+    try {
+      this.callback(this.pending);
+    } catch (err) {
+      warnIfDebug(
+        `Failed to execute array observer callback for '${this.keypath}': ${err.message || err}`
+      );
+    }
     this.pending = null;
     if (this.options.once) this.cancel();
   }

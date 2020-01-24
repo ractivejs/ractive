@@ -3,6 +3,7 @@ import { removeFromArray } from 'utils/array';
 import { isArray, isEqual } from 'utils/is';
 import runloop from 'src/global/runloop';
 import { create, keys } from 'utils/object';
+import { warnIfDebug } from 'utils/log';
 
 const star = /\*+/g;
 
@@ -74,7 +75,13 @@ export default class PatternObserver {
         }
       }
 
-      this.callback.apply(this.context, args);
+      try {
+        this.callback.apply(this.context, args);
+      } catch (err) {
+        warnIfDebug(
+          `Failed to execute pattern observer callback for '${this.keypath}': ${err.message || err}`
+        );
+      }
     });
 
     updateOld(this, newValues, this.partial);
