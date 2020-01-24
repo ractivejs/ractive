@@ -1,4 +1,5 @@
 import { doc } from '../config/environment';
+import { isArray } from '../utils/is';
 
 const PREFIX = '/* Ractive.js component styles */';
 
@@ -54,6 +55,7 @@ export function applyCSS(force) {
 }
 
 export function getCSS(cssIds) {
+  if (cssIds && !isArray(cssIds)) cssIds = [cssIds];
   const filteredStyleDefinitions = cssIds
     ? styleDefinitions.filter(style => ~cssIds.indexOf(style.id))
     : styleDefinitions;
