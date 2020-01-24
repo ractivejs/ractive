@@ -3,6 +3,7 @@ import { removeFromArray } from 'utils/array';
 import runloop from 'src/global/runloop';
 import { rebindMatch } from 'shared/rebind';
 import { create } from 'utils/object';
+import { warnIfDebug } from 'utils/log';
 
 export default class Observer {
   constructor(ractive, model, callback, options) {
@@ -41,7 +42,13 @@ export default class Observer {
 
   dispatch() {
     if (!this.cancelled) {
-      this.callback.call(this.context, this.newValue, this.oldValue, this.keypath);
+      try {
+        this.callback.call(this.context, this.newValue, this.oldValue, this.keypath);
+      } catch (err) {
+        warnIfDebug(
+          `Failed to execute observer callback for '${this.keypath}': ${err.message || err}`
+        );
+      }
       updateOld(this, true);
       this.dirty = false;
     }
@@ -90,7 +97,14 @@ function updateOld(observer, fresh) {
       ? observer.model.get()
       : observer.newValue
     : observer.newValue;
-  observer.oldValue = observer.oldFn
-    ? observer.oldFn.call(observer.oldContext, undefined, next, observer.keypath)
-    : next;
+  try {
+    observer.oldValue = observer.oldFn
+      ? observer.oldFn.call(observer.oldContext, undefined, next, observer.keypath)
+      : next;
+  } catch (err) {
+    warnIfDebug(
+      `Failed to execute observer oldValue callback for '${this.keypath}': ${err.message || err}`
+    );
+    observer.oldValue = next;
+  }
 }
