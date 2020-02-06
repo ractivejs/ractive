@@ -1,7 +1,7 @@
 // Type definitions for Ractive edge
 // Project: https://ractive.js.org/
 // Definitions By: Chris Reeves <https://github.com/evs-chris>
-// Version: 1.3
+// Version: 1.0.0-edge+2018-04-22
 
 export interface ValueMap {
 	[key: string]: any;
@@ -541,7 +541,6 @@ export class MacroHelper extends ContextHelper {
 }
 
 export interface MacroOpts {
-	attributes?: string[];
 	cssId?: string;
 	noCssTransform?: boolean;
 	css?: string | CssFn;
@@ -1182,7 +1181,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * @param ctx an optional context or object to be merged with a context
 	 * @param args additional args to pass to the event listeners
 	 */
-	fire(name: string, ctx: ContextHelper | {}, ...args: any[]): boolean;
+	fire(name: string, ctx?: ContextHelper | {}, ...args: any[]): boolean;
 
 	/**
 	 * Retrieve the root object of this instance's data.
@@ -1208,7 +1207,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * @param target
 	 * @param anchor
 	 */
-	insert(target: Target, anchor: Target): void;
+	insert(target: Target, anchor?: Target): void;
 
 	/**
 	 * Create a link to the given source keypath at the given target keypath, similar to a symlink in filesystems. This allows safely referencing the same data at two places in the same instance or across instances if given a target instance. Cross-instance links are also known as mappings.
@@ -1567,7 +1566,7 @@ export module Ractive {
 	 * @param macro
 	 * @param options
 	 */
-	function macro(macro: MacroFn, options?: MacroOpts): Macro;
+	function macro(macro: MacroFn, options: MacroOpts): Macro;
 
 	/**
 	 * Parse the given template string into a template.j
