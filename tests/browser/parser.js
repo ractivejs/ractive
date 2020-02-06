@@ -106,4 +106,10 @@ export default function() {
     const tpl = Ractive.parse('<div style="color: green;" />');
     t.equal(tpl.t[0].m[0].f, 'color: green;');
   });
+
+  test(`special refs that happen to contain context don't fail to parse (#3326)`, t => {
+    t.expect(0);
+    Ractive.parse('{{@shared.context}}');
+    Ractive.parse('{{@style.context}}');
+  });
 }
