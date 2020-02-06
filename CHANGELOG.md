@@ -7,6 +7,18 @@
 	* Component styles can be split into multiple managed style tags in the document head by setting `Ractive.perComponentStyleElements` to `true`.
 
 
+# 1.2.7, 1.3.10
+
+* Bug fixes
+        * Fixes in typings.
+        * Nested transition managers will no longer cause early detaches (#3224)
+        * CSS ids that overlap will no longer cause the contained id to be duplicated e.g. with `table` and `tab`, `tab` would be duplicated.
+        * Special refs that aren't `@context` but contain `context` in their path will no longer error (#3326)
+
+* Breaking Changes
+        * Observer callbacks that throw are now handled like computations that throw. This is technically a breaking change, but much more likely is that the previous behavior would cause Ractive's internal runloop to stall and cause unpredictable behavior.
+
+
 # 1.2.6, 1.3.9
 
 * Bug fixes
