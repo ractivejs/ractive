@@ -186,6 +186,8 @@ export default class ModelBase {
       this._link.rebind(next, previous, false);
     }
 
+    if (next === this) return;
+
     // tell the deps to move to the new target
     let i = this.deps.length;
     while (i--) {
