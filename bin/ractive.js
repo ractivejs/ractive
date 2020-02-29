@@ -20,15 +20,8 @@ const opts = {
   base: process.cwd()
 };
 
-function mkReadFile(file) {
-  const base = path.isAbsolute(file)
-    ? path.dirname(file)
-    : path.join(opts.base, path.dirname(file));
-  return function readFile(name) {
-    return Promise.resolve(
-      fs.readFileSync(path.isAbsolute(name) ? name : path.join(base, name), { encoding: 'utf8' })
-    );
-  };
+function readFile(name) {
+  return Promise.resolve(fs.readFileSync(path.resolve(opts.base, name), { encoding: 'utf8' }));
 }
 
 function dirIndexOrFile(name) {
@@ -83,16 +76,14 @@ const commands = {
             util
               .readToString(fs.createReadStream(path.join(opts.directory, f)))
               .then(string => {
-                return component
-                  .build(string, opts, mkReadFile(path.join(opts.directory, f)))
-                  .then(string => {
-                    const file = path.join(
-                      opts.output,
-                      f.replace(ext, opts.outputExtension || '.js')
-                    );
-                    util.mkdirp(path.dirname(file));
-                    util.writeToStream(fs.createWriteStream(file), string);
-                  });
+                return component.build(string, opts, readFile).then(string => {
+                  const file = path.join(
+                    opts.output,
+                    f.replace(ext, opts.outputExtension || '.js')
+                  );
+                  util.mkdirp(path.dirname(file));
+                  util.writeToStream(fs.createWriteStream(file), string);
+                });
               })
               .then(step, err => {
                 console.error(err && typeof err === 'object' ? err.stack : err);
@@ -107,7 +98,7 @@ const commands = {
           .readToString(opts.input)
           .then(string => {
             return component
-              .build(string, opts, mkReadFile(''))
+              .build(string, opts, readFile)
               .then(string => util.writeToStream(opts.output, string));
           })
           .then(null, err => {
