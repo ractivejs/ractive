@@ -264,4 +264,43 @@ export default function() {
       o.link('foo', 'foo');
     }, /cannot be linked to itself/);
   });
+
+  test(`relinking a link with a link linked to it updates the linked link`, t => {
+    const r = new Ractive();
+    const l = new Ractive({
+      data: { things: [{ name: 'a' }, { name: 'b' }] }
+    });
+    const f = new Ractive({
+      target: fixture,
+      template: '{{thing.name}}'
+    });
+
+    r.link('things.0', 'thing', { instance: l });
+    f.link('thing', 'thing', { instance: r });
+
+    t.htmlEqual(fixture.innerHTML, 'a');
+
+    r.link('things.1', 'thing', { instance: l });
+
+    t.htmlEqual(fixture.innerHTML, 'b');
+  });
+
+  test(`relinking an internal link with a link linked to it updates the linked link`, t => {
+    const r = new Ractive({
+      data: { things: [{ name: 'a' }, { name: 'b' }] }
+    });
+    const f = new Ractive({
+      target: fixture,
+      template: '{{thing.name}}'
+    });
+
+    r.link('things.0', 'some.thing', { instance: r });
+    f.link('some.thing', 'thing', { instance: r });
+
+    t.htmlEqual(fixture.innerHTML, 'a');
+
+    r.link('things.1', 'some.thing', { instance: r });
+
+    t.htmlEqual(fixture.innerHTML, 'b');
+  });
 }
