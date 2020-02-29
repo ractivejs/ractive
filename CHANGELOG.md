@@ -7,6 +7,12 @@
 	* Component styles can be split into multiple managed style tags in the document head by setting `Ractive.perComponentStyleElements` to `true`.
 
 
+# 1.2.8, 1.3.11
+
+* Bug fixes
+        * Avoid an issue with linking a reference expression's dependencies when the underlying linked model hasn't actually changed and causing the same dependency to get added to the linked model exponentially on each new link.
+
+
 # 1.2.7, 1.3.10
 
 * Bug fixes
