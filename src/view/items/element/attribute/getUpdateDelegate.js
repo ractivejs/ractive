@@ -271,7 +271,7 @@ function updateInlineStyle(reset) {
 function updateClassName(reset) {
   const value = reset ? [] : readClass(safeToStringValue(this.getValue()));
 
-  // watch out for werdo svg elements
+  // watch out for weirdo svg elements
   let cls = this.node.className;
   cls = cls.baseVal !== undefined ? cls.baseVal : cls;
 
@@ -294,7 +294,7 @@ function updateClassName(reset) {
 function updateInlineClass(reset) {
   const name = this.name.substr(6);
 
-  // watch out for werdo svg elements
+  // watch out for weirdo svg elements
   let cls = this.node.className;
   cls = cls.baseVal !== undefined ? cls.baseVal : cls;
 
