@@ -1009,7 +1009,7 @@ export interface Static<T extends Ractive<T> = Ractive> {
 
 	adaptors: Registry<Adaptor>;
 	components: Registry<Component>;
-	css: string|CssFn;
+	css?: string|CssFn;
 	decorators: Registry<Decorator<T>>;
 	easings: Registry<Easing>;
 	events: Registry<EventPlugin<T>>;
