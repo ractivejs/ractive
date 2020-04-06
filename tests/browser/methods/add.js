@@ -55,4 +55,19 @@ export default function() {
     t.equal(ractive.get('items[1].count'), 3);
     t.equal(ractive.get('items[2].count'), 4);
   });
+
+  test(`add promise resolves with the new value`, t => {
+    const r = new Ractive({
+      data: { foo: 0 }
+    });
+    const done = t.async();
+
+    r.add('foo').then(v => {
+      t.equal(v, 1);
+      r.add('foo', 10).then(v => {
+        t.equal(v, 11);
+        done();
+      });
+    });
+  });
 }

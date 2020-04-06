@@ -27,4 +27,19 @@ export default function() {
     ractive.subtract('foo', 3);
     t.equal(ractive.get('foo'), 5);
   });
+
+  test(`subtract promise resolves with the new value`, t => {
+    const r = new Ractive({
+      data: { foo: 10 }
+    });
+    const done = t.async();
+
+    r.subtract('foo').then(v => {
+      t.equal(v, 9);
+      r.subtract('foo', 10).then(v => {
+        t.equal(v, -1);
+        done();
+      });
+    });
+  });
 }

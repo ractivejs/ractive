@@ -53,7 +53,8 @@ export function set(pairs, options) {
 
   keep = k;
 
-  return promise;
+  if (pairs.length === 1) return promise.then(() => pairs[0][1]);
+  else return promise;
 }
 
 const star = /\*/;

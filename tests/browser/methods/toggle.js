@@ -55,4 +55,17 @@ export default function() {
 
     t.throws(() => r.toggle(42));
   });
+
+  test(`toggle returns the new value in the promise`, t => {
+    const r = new Ractive();
+    const done = t.async();
+
+    r.toggle('foo').then(v => {
+      t.ok(v, 'toggled on');
+      r.toggle('foo').then(v => {
+        t.ok(!v, 'toggled off');
+        done();
+      });
+    });
+  });
 }

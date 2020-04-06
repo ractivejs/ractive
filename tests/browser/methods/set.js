@@ -209,4 +209,20 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, '4361');
   });
+
+  test(`set promise resolves with the set value`, t => {
+    const r = new Ractive();
+    const done = t.async();
+
+    r.set('foo', 'bar').then(v => {
+      t.equal(v, 'bar');
+      r.set('foo', 12).then(v => {
+        t.equal(v, 12);
+        r.set({ foo: 'bar', baz: 'bat' }).then(v => {
+          t.ok(v === undefined);
+          done();
+        });
+      });
+    });
+  });
 }
