@@ -3,7 +3,6 @@ import { warnOnce } from 'utils/log';
 import { missingPlugin } from 'config/errors';
 import noop from 'utils/noop';
 import runloop from 'src/global/runloop';
-import { rebindMatch } from 'src/shared/rebind';
 import findElement from '../shared/findElement';
 import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
 import Fragment from '../../Fragment';
@@ -56,24 +55,8 @@ export default class Decorator {
     this.bubble();
   }
 
-  rebind(next, previous, safe) {
-    const idx = this.models.indexOf(previous);
-    if (!~idx) return;
-
-    next = rebindMatch(this.template.f.r[idx], next, previous);
-    if (next === previous) return;
-
-    previous.unregister(this);
-    this.models.splice(idx, 1, next);
-    if (next) next.addShuffleRegister(this, 'mark');
-
-    if (!safe) this.bubble();
-  }
-
   rebound(update) {
-    teardownArgsFn(this, this.template);
-    setupArgsFn(this, this.template, this.up, { register: true });
-    if (update) this.bubble();
+    if (this.model) this.model.rebound(update);
   }
 
   render() {
@@ -93,16 +76,7 @@ export default class Decorator {
 
       this.node = this.element.node;
 
-      let args;
-      if (this.fn) {
-        args = this.models.map(model => {
-          if (!model) return undefined;
-
-          return model.get();
-        });
-        args = this.fn.apply(this.ractive, args);
-      }
-
+      const args = this.model ? this.model.get() : [];
       this.handle = fn.apply(this.ractive, [this.node].concat(args));
 
       if (!this.handle || !this.handle.teardown) {
@@ -148,8 +122,8 @@ export default class Decorator {
         this.unrender();
         this.render();
       } else {
-        const args = this.models.map(model => model && model.get());
-        instance.update.apply(this.ractive, this.fn.apply(this.ractive, args));
+        const args = this.model ? this.model.get() : [];
+        instance.update.apply(this.ractive, args);
       }
     }
   }

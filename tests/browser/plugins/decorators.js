@@ -683,4 +683,38 @@ export default function() {
       components: { cmp }
     });
   });
+
+  test(`decorators with captured deps update with the capture deps (#3329)`, t => {
+    const r = new Ractive({
+      template: '<div as-foo="t()" /><div as-bar="t()" />',
+      data: {
+        t() {
+          return r.get('bar');
+        },
+        bar: 'sure'
+      },
+      decorators: {
+        foo(n, str) {
+          n.innerHTML = str;
+          return {
+            teardown() {},
+            update(str) {
+              n.innerHTML = str;
+            }
+          };
+        },
+        bar(n, str) {
+          n.innerHTML = str;
+          return {
+            teardown() {}
+          };
+        }
+      }
+    });
+    r.render(fixture);
+
+    t.htmlEqual(fixture.innerHTML, '<div>sure</div><div>sure</div>');
+    r.set('bar', 'why not?');
+    t.htmlEqual(fixture.innerHTML, '<div>why not?</div><div>why not?</div>');
+  });
 }

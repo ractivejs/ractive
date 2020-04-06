@@ -1,11 +1,14 @@
 import getFunction from 'shared/getFunction';
+import ExpressionProxy from 'src/view/resolvers/ExpressionProxy';
 import resolveReference from '../../resolvers/resolveReference';
 
 export function setupArgsFn(item, template, fragment, opts = {}) {
   if (template && template.f && template.f.s) {
-    item.fn = getFunction(template.f.s, template.f.r.length);
-    if (opts.register === true) {
-      item.models = resolveArgs(item, template, fragment, opts);
+    if (opts.register) {
+      item.model = new ExpressionProxy(fragment, template.f);
+      item.model.register(item);
+    } else {
+      item.fn = getFunction(template.f.s, template.f.r.length);
     }
   }
 }
@@ -17,20 +20,11 @@ export function resolveArgs(item, template, fragment, opts = {}) {
     if (opts.specialRef && (model = opts.specialRef(ref, i))) return model;
 
     model = resolveReference(fragment, ref);
-    if (opts.register === true) {
-      model.register(item);
-    }
 
     return model;
   });
 }
 
-export function teardownArgsFn(item, template) {
-  if (template && template.f && template.f.s) {
-    if (item.models)
-      item.models.forEach(m => {
-        if (m && m.unregister) m.unregister(item);
-      });
-    item.models = null;
-  }
+export function teardownArgsFn(item) {
+  if (item.model) item.model.unregister(item);
 }
