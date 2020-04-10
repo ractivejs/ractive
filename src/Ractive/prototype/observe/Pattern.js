@@ -4,6 +4,7 @@ import { isArray, isEqual } from 'utils/is';
 import runloop from 'src/global/runloop';
 import { create, keys } from 'utils/object';
 import { warnIfDebug } from 'utils/log';
+import { joinKeys } from 'src/Ractive/static/keypaths';
 
 const star = /\*+/g;
 
@@ -34,6 +35,7 @@ export default class PatternObserver {
 
     this.dirty = false;
     this.changed = [];
+    this.cache = [];
     this.partial = false;
     this.links = options.links;
 
@@ -89,8 +91,12 @@ export default class PatternObserver {
     this.dirty = false;
   }
 
-  notify(key) {
-    this.changed.push(key);
+  notify(keys) {
+    const path = joinKeys(keys);
+    if (!~this.cache.indexOf(path)) {
+      this.cache.push(path);
+      this.changed.push(keys);
+    }
   }
 
   shuffle(newIndices) {
@@ -122,12 +128,16 @@ export default class PatternObserver {
         let count = 0;
 
         if (this.recursive) {
-          this.changed.forEach(keys => {
+          const changed = this.changed.slice();
+          this.changed.length = 0;
+          this.dirty = true;
+          changed.forEach(keys => {
             const model = this.baseModel.joinAll(keys);
             if (model.isLink && !this.links) return;
             count++;
             this.newValues[model.getKeypath(this.ractive)] = model.get();
           });
+          this.dirty = false;
         } else {
           const ok = this.baseModel.isRoot
             ? this.changed.map(keys => keys.map(escapeKey).join('.'))
@@ -161,6 +171,7 @@ export default class PatternObserver {
       runloop.addObserver(this, this.defer);
       this.dirty = true;
       this.changed.length = 0;
+      this.cache = [];
 
       if (this.once) this.cancel();
     }
