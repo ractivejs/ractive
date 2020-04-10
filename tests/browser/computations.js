@@ -1360,4 +1360,32 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, 'shared foo style bar');
   });
+
+  test(`pattern computeds behind an expression don't get stuck (#3331)`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: `{{#with baz.key}}<div class-foo="foo" class-bar="!bar" />{{/with}}`,
+      computed: {
+        'baz.*.foo'(b) {
+          return b.sure;
+        },
+        'baz.*.bar'(b) {
+          return !b.sure;
+        }
+      },
+      data: {
+        baz: { key: { sure: true } }
+      }
+    });
+
+    const div = r.find('div');
+
+    t.ok(div.classList.contains('foo'));
+    t.ok(div.classList.contains('bar'));
+
+    r.toggle('baz.key.sure');
+
+    t.ok(!div.classList.contains('foo'));
+    t.ok(!div.classList.contains('bar'));
+  });
 }

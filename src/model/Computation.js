@@ -40,7 +40,6 @@ export default class Computation extends Model {
     if (shouldCapture) capture(this);
 
     if (this.dirty) {
-      this.dirty = false;
       const old = this.value;
       this.value = this.getValue();
       // this may cause a view somewhere to update, so it must be in a runloop
@@ -53,6 +52,7 @@ export default class Computation extends Model {
       }
       if (this.wrapper) this.newWrapperValue = this.value;
       this.adapt();
+      this.dirty = false;
     }
 
     // if capturing, this value needs to be unwrapped because it's for external use
@@ -99,6 +99,7 @@ export default class Computation extends Model {
     }
 
     const dependencies = stopCapturing();
+    if (this.parent.keypath && !~dependencies.indexOf(this.parent)) dependencies.push(this.parent);
     this.setDependencies(dependencies);
 
     return result;
