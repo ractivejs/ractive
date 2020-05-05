@@ -1,6 +1,6 @@
 import { escapeKey, unescapeKey } from 'shared/keypaths';
 import { addToArray, removeFromArray } from 'utils/array';
-import { isArray, isObject, isFunction } from 'utils/is';
+import { isArray, isObject, isObjectLike, isFunction } from 'utils/is';
 import bind from 'utils/bind';
 import { create, keys as objectKeys } from 'utils/object';
 
@@ -97,7 +97,7 @@ export default class ModelBase {
 
   getVirtual(shouldCapture) {
     const value = this.get(shouldCapture, { virtual: false });
-    if (isObject(value)) {
+    if (isObjectLike(value)) {
       const result = isArray(value) ? [] : create(null);
 
       let keys = objectKeys(value);
