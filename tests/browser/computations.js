@@ -1388,4 +1388,19 @@ export default function() {
     t.ok(!div.classList.contains('foo'));
     t.ok(!div.classList.contains('bar'));
   });
+
+  test(`pattern computeds in an array come out in a virtual get (#3333)`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: `{{#each things}}{{.foo}} {{.bar}}{{/each}}`,
+      data: { things: [{ foo: 1 }] },
+      computed: {
+        'things.*.bar'() {
+          return 2;
+        }
+      }
+    });
+
+    t.deepEqual(r.get('things', { virtual: true }), [{ foo: 1, bar: 2 }]);
+  });
 }
