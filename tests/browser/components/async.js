@@ -1,4 +1,3 @@
-/* global document */
 import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 

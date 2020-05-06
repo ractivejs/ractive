@@ -1,4 +1,3 @@
-/* global console */
 /* eslint no-console:"off" */
 
 import { capture, startCapturing, stopCapturing } from 'src/global/capture';
@@ -34,6 +33,7 @@ export default class Computation extends Model {
 
   get setRoot() {
     if (this.signature.setter) return this;
+    return undefined;
   }
 
   get(shouldCapture, opts) {

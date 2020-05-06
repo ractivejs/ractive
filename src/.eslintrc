@@ -1,6 +1,21 @@
 {
+	"extends": [
+		"plugin:@typescript-eslint/recommended"
+	],
+	"parser": "@typescript-eslint/parser",
 	"env": {
 		"browser": true,
 		"node": true
-	}
+	},
+	"overrides": [{
+		// disable typescript rules for JS files
+		"files": ["*.js"],
+		"rules": {
+			"@typescript-eslint/explicit-function-return-type": ["off"],
+			"@typescript-eslint/no-use-before-define": ["off"],
+			"@typescript-eslint/no-var-requires": ["off"],
+			"@typescript-eslint/no-empty-function": ["off"],
+			"@typescript-eslint/camelcase": ["off"]
+		}
+	}]
 }

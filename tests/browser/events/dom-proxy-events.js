@@ -486,10 +486,10 @@ export default function() {
     ractive.on('bar-reproxy', (ctx, arg1) => {
       t.equal(arg1, 'qux');
     });
-    ractive.on('bizz-reproxy', function() {
+    ractive.on('bizz-reproxy', function (...args) {
       // original args are implicitly included...
-      t.equal(arguments.length, 2);
-      t.equal(arguments[1], 'buzz');
+      t.equal(args.length, 2);
+      t.equal(args[1], 'buzz');
     });
 
     const component = ractive.findComponent('Component');

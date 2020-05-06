@@ -2,8 +2,6 @@ import tests from '../helpers/samples/parse';
 import { initModule } from '../helpers/test-config';
 import { test } from 'qunit';
 
-/* global navigator */
-
 export default function() {
   initModule('parse.js');
 

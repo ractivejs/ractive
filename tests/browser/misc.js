@@ -1377,7 +1377,7 @@ export default function() {
     const ractive = new Ractive();
 
     const obj = { foo: 'bar' };
-    obj.constructor = obj.constructor;
+    // obj.constructor = obj.constructor;
 
     ractive.set(obj);
     t.equal(ractive.get('foo'), 'bar');

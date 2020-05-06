@@ -1,4 +1,3 @@
-/* global global */
 import Model from '../Model';
 import { base } from 'config/environment';
 

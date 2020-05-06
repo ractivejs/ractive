@@ -4,8 +4,6 @@ import { test } from 'qunit';
 export default function() {
   initModule('aliases');
 
-  /* global navigator */
-
   test('simple template aliases', t => {
     new Ractive({
       el: fixture,
