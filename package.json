@@ -10,6 +10,7 @@
   "typings": "typings/ractive.d.ts",
   "devDependencies": {
     "@evs-chris/buble": "^0.15.2",
+    "@rollup/plugin-typescript": "^3.1.1",
     "cheerio": "^1.0.0-rc.3",
     "coveralls": "^3.0.4",
     "electron": "^3.1.11",
@@ -33,8 +34,9 @@
     "puppeteer": "^1.17.0",
     "qunitjs": "^2.4.1",
     "rollup": "^0.55.3",
-    "rollup-plugin-alias": "^1.5.2",
-    "rollup-plugin-istanbul": "^2"
+    "rollup-plugin-istanbul": "^2",
+    "tslib": "^1.11.2",
+    "typescript": "^3.8.3"
   },
   "scripts": {
     "start": "gobble --env=dev:browser serve",

@@ -7,7 +7,7 @@ const fsPlus = require('fs-plus');
 const gobble = require('gobble');
 const buble = require('@evs-chris/buble');
 const rollupLib = require('rollup');
-const rollupAlias = require('rollup-plugin-alias');
+const rollupTypescript = require('@rollup/plugin-typescript');
 const istanbul = require('rollup-plugin-istanbul');
 const MagicString = require('magic-string');
 
@@ -22,22 +22,7 @@ const banner = `/*
 	License: MIT
 */`;
 
-/**
- * Ractive aliases
- *
- * @warning keep aliases aligned with jsconfig.json
- */
-const ractiveAliases = rollupAlias({
-  resolve: ['.js'],
-
-  src: path.resolve('./src'),
-  config: path.resolve('./src/config'),
-  parse: path.resolve('./src/parse'),
-  shared: path.resolve('./src/shared'),
-  utils: path.resolve('./src/utils')
-});
-
-const ractiveRollupPlugins = [ractiveAliases];
+const ractiveRollupPlugins = [rollupTypescript()];
 
 const placeholders = { BUILD_PLACEHOLDER_VERSION: version };
 
@@ -64,7 +49,6 @@ module.exports = {
     const lib = buildUmdLib(
       'ractive.js',
       ractiveRollupPlugins.concat(
-        ractiveAliases,
         istanbul({
           exclude: ['src/polyfills/*.js']
         })

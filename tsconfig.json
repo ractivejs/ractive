@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "src/*": ["src/*"],
+      "config/*": ["src/config/*"],
+      "parse/*": ["src/parse/*"],
+      "shared/*": ["src/shared/*"],
+      "utils/*": ["src/utils/*"]
+    },
+    "allowJs": true,
+    "target": "es5",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "include": [
+    "./src/**/*"
+  ]
+}
