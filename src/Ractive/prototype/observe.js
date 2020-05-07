@@ -46,7 +46,7 @@ export default function observe(keypath, callback, options) {
 
   // add observers to the Ractive instance, so they can be
   // cancelled on ractive.teardown()
-  this._observers.push.apply(this._observers, observers);
+  this._observers.push(...observers);
 
   return {
     cancel: () => observers.forEach(o => o.cancel()),

@@ -99,12 +99,12 @@ export function build(ractive, keypath, value, isolated) {
   if (isObject(keypath)) {
     for (const k in keypath) {
       if (hasOwn(keypath, k)) {
-        sets.push.apply(sets, gather(ractive, k, null, isolated).map(m => [m, keypath[k], k]));
+        sets.push(...gather(ractive, k, null, isolated).map(m => [m, keypath[k], k]));
       }
     }
   } else {
     // set a single keypath
-    sets.push.apply(sets, gather(ractive, keypath, null, isolated).map(m => [m, value, keypath]));
+    sets.push(...gather(ractive, keypath, null, isolated).map(m => [m, value, keypath]));
   }
 
   return sets;

@@ -22,8 +22,7 @@ export default function initialise(ractive, userOptions, options) {
   config.init(ractive.constructor, ractive, userOptions);
 
   // call any passed in plugins
-  if (isArray(userOptions.use))
-    ractive.use.apply(ractive, userOptions.use.filter(p => !p.construct));
+  if (isArray(userOptions.use)) ractive.use(...userOptions.use.filter(p => !p.construct));
 
   hooks.config.fire(ractive);
 

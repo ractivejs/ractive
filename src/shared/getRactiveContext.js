@@ -8,13 +8,14 @@ export default function getRactiveContext(ractive, ...assigns) {
     ractive.fragment ||
     ractive._fakeFragment ||
     (ractive._fakeFragment = new FakeFragment(ractive));
-  return fragment.getContext.apply(fragment, assigns);
+  return fragment.getContext(...assigns);
 }
 
 export function getContext(...assigns) {
   if (!this.ctx) this.ctx = new extern.Context(this);
   assigns.unshift(create(this.ctx));
-  return assign.apply(null, assigns);
+
+  return assign(...assigns);
 }
 
 export class FakeFragment {

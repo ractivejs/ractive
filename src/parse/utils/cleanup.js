@@ -105,7 +105,7 @@ export default function cleanup(
 
       item.l.forEach(s => (s.l = 1));
       item.l.unshift(i + 1, 0);
-      items.splice.apply(items, item.l);
+      items.splice(...item.l);
       delete item.l; // TODO would be nice if there was a way around this
     }
 

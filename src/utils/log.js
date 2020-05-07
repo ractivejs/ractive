@@ -43,7 +43,7 @@ Found a bug? Raise an issue:
     }
     const message = 'WELCOME_MESSAGE' in Ractive ? Ractive.WELCOME_MESSAGE : welcomeMessage;
     const hasGroup = !!console.groupCollapsed;
-    if (hasGroup) console.groupCollapsed.apply(console, welcomeIntro);
+    if (hasGroup) console.groupCollapsed(...welcomeIntro);
     console.log(message);
     if (hasGroup) {
       console.groupEnd(welcomeIntro);
@@ -78,16 +78,16 @@ Found a bug? Raise an issue:
       }
     }
 
-    console.warn.apply(
-      console,
-      ['%cRactive.js: %c' + message, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);'].concat(
-        args
-      )
+    console.warn(
+      '%cRactive.js: %c' + message,
+      'color: rgb(114, 157, 52);',
+      'color: rgb(85, 85, 85);',
+      ...args
     );
   };
 
-  log = function() {
-    console.log.apply(console, arguments);
+  log = function(...args) {
+    console.log(...args);
   };
 } else {
   printWarning = log = welcome = noop;
@@ -102,9 +102,9 @@ function fatal(message, ...args) {
   throw new Error(message);
 }
 
-function logIfDebug() {
+function logIfDebug(...args) {
   if (Ractive.DEBUG) {
-    log.apply(null, arguments);
+    log(...args);
   }
 }
 
@@ -124,15 +124,15 @@ function warnOnce(message, ...args) {
   printWarning(message, args);
 }
 
-function warnIfDebug() {
+function warnIfDebug(...args) {
   if (Ractive.DEBUG) {
-    warn.apply(null, arguments);
+    warn(...args);
   }
 }
 
-function warnOnceIfDebug() {
+function warnOnceIfDebug(...args) {
   if (Ractive.DEBUG) {
-    warnOnce.apply(null, arguments);
+    warnOnce(...args);
   }
 }
 

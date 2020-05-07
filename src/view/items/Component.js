@@ -210,7 +210,7 @@ export default class Component extends Item {
 
   getContext(...assigns) {
     assigns.unshift(this.instance);
-    return getRactiveContext.apply(null, assigns);
+    return getRactiveContext(...assigns);
   }
 
   rebound(update) {

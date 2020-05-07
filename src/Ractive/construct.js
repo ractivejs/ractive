@@ -48,7 +48,7 @@ export default function construct(ractive, options) {
 
   // plugins that need to run at construct
   if (isArray(options.use)) {
-    ractive.use.apply(ractive, options.use.filter(p => p.construct));
+    ractive.use(...options.use.filter(p => p.construct));
   }
 
   hooks.construct.fire(ractive, options);
@@ -98,7 +98,7 @@ function getAdaptors(ractive, protoAdapt, options) {
     srcs.push(ractive.parent.viewmodel.adaptors);
   }
 
-  return combine.apply(null, srcs);
+  return combine(...srcs);
 
   function lookup(adaptor) {
     if (isString(adaptor)) {

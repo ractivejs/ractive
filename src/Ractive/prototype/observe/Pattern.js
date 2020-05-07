@@ -188,7 +188,7 @@ function updateOld(observer, vals, partial) {
       const args = [olds[k], vals[k], k];
       const parts = observer.pattern.exec(k);
       if (parts) {
-        args.push.apply(args, parts.slice(1));
+        args.push(...parts.slice(1));
       }
       observer.oldValues[k] = observer.oldFn.apply(observer.oldContext, args);
     });

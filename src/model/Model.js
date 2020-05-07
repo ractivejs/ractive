@@ -1,5 +1,5 @@
 import ModelBase, { checkDataLink, maybeBind, shuffle } from './ModelBase';
-import LinkModel from './LinkModel'; // eslint-disable-line no-unused-vars
+import './LinkModel';
 import getComputationSignature from 'src/Ractive/helpers/getComputationSignature';
 import { capture } from 'src/global/capture';
 import { isArray, isEqual, isNumeric, isObjectLike, isUndefined } from 'utils/is';

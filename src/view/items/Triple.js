@@ -49,7 +49,7 @@ export default class Triple extends Mustache {
 
       const queryAllResult = node.querySelectorAll(selector);
       if (queryAllResult) {
-        result.push.apply(result, queryAllResult);
+        result.push(...queryAllResult);
       }
     }
   }

@@ -46,6 +46,8 @@ export default class EventDirective {
           return model ? model.get() : undefined;
         });
         try {
+          // todo check if passing null as this is necessary for getFunction output
+          // eslint-disable-next-line prefer-spread
           args = getFunction(args.s, rs.length).apply(null, rs);
         } catch (err) {
           args = null;

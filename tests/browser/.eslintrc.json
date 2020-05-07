@@ -1,11 +1,14 @@
 {
-	"env": {
-		"browser": true,
-		"qunit": true
-	},
-	"globals": {
-		"Ractive": true,
-		"fixture": true,
-		"simulant": true
-	}
+  "env": {
+    "browser": true,
+    "qunit": true
+  },
+  "globals": {
+    "Ractive": true,
+    "fixture": true,
+    "simulant": true
+  },
+  "rules": {
+    "prefer-arrow-callback": ["off"]
+  }
 }

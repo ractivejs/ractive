@@ -110,7 +110,7 @@ function extendOne(Parent, options = {}, Target) {
 
   defineProperty(Child, 'helpers', { writable: true, value: proto.helpers });
 
-  if (isArray(options.use)) Child.use.apply(Child, options.use);
+  if (isArray(options.use)) Child.use(...options.use);
 
   return Child;
 }

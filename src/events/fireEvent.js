@@ -33,7 +33,7 @@ function variants(name, initial) {
   if (base) {
     // include non-this-namespaced versions
     if (parts.length > 2) {
-      result.push.apply(result, variants(name, false));
+      result.push(...variants(name, false));
     } else {
       result.push('*');
       result.push(name);

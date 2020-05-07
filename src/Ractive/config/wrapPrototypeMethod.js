@@ -4,14 +4,14 @@ import { isFunction } from 'utils/is';
 export default function wrap(parent, name, method) {
   if (!/_super/.test(method)) return method;
 
-  function wrapper() {
+  function wrapper(...args) {
     const superMethod = getSuperMethod(wrapper._parent, name);
     const hasSuper = '_super' in this;
     const oldSuper = this._super;
 
     this._super = superMethod;
 
-    const result = method.apply(this, arguments);
+    const result = method.apply(this, args);
 
     if (hasSuper) {
       this._super = oldSuper;

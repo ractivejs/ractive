@@ -46,7 +46,7 @@ export default class ModelBase {
       if (key === '*') {
         matches = [];
         existingMatches.forEach(model => {
-          matches.push.apply(matches, model.getValueChildren(model.get()));
+          matches.push(...model.getValueChildren(model.get()));
         });
       } else {
         matches = existingMatches.map(model => model.joinKey(key));
@@ -89,7 +89,7 @@ export default class ModelBase {
 
     const computed = this.computed;
     if (computed) {
-      children.push.apply(children, objectKeys(computed).map(k => this.joinKey(k)));
+      children.push(...objectKeys(computed).map(k => this.joinKey(k)));
     }
 
     return children;

@@ -190,7 +190,7 @@ export default class Element extends ContainerItem {
 
     if (!this.ctx) this.ctx = new Context(this.up, this);
     assigns.unshift(create(this.ctx));
-    return assign.apply(null, assigns);
+    return assign(...assigns);
   }
 
   off(event, callback, capture = false) {
