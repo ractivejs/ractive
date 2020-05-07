@@ -1,4 +1,3 @@
-/*global document, HTMLParagraphElement */
 import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 

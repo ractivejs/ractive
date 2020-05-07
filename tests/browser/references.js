@@ -90,7 +90,7 @@ export default function() {
   });
 
   test('@global special ref gives access to the vm global object', t => {
-    /* global global, window */
+    /* global global */
     const target = typeof global !== 'undefined' ? global : window;
     const r = new Ractive({
       el: fixture,

@@ -27,7 +27,7 @@ function deepClone(source) {
   const target = {};
 
   for (const key in source) {
-    if (source.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
       target[key] = deepClone(source[key]);
     }
   }

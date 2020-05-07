@@ -1,4 +1,3 @@
-/*global window */
 import { fire } from 'simulant';
 import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';

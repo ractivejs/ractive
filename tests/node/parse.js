@@ -8,7 +8,7 @@ export default function() {
     // disable for tests unless explicitly specified
     // we can just test the signatures, so set csp false
     parseTest.options = parseTest.options || { csp: false };
-    if (!parseTest.options.hasOwnProperty('csp')) {
+    if (!Object.prototype.hasOwnProperty.call(parseTest.options, 'csp')) {
       parseTest.options.csp = false;
     }
 

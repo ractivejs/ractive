@@ -1,4 +1,3 @@
-/* global document */
 import { initModule, hasUsableConsole, onWarn } from '../helpers/test-config';
 import { fire } from 'simulant';
 import { test } from 'qunit';
@@ -254,7 +253,7 @@ export default function() {
       el: fixture
     });
 
-    t.ok(!ractive.partials.hasOwnProperty('foo'));
+    t.ok(!Object.prototype.hasOwnProperty.call(ractive.partials, 'foo'));
     t.deepEqual(Component.partials.foo, [{ t: 7, e: 'p', f: [{ t: 2, r: 'foo' }] }]);
   });
 

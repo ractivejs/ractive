@@ -1,4 +1,3 @@
-/* global console */
 /* eslint no-console:"off" */
 
 import { hasConsole } from '../config/environment';

@@ -27,7 +27,10 @@ export default function() {
 
       registryLocation[name].foo = definition;
 
-      t.ok(registryLocation.hasOwnProperty(name), `should have ${name} global registry`);
+      t.ok(
+        Object.prototype.hasOwnProperty.call(registryLocation, name),
+        `should have ${name} global registry`
+      );
       t.strictEqual(
         ractive[name].foo,
         registryLocation[name].foo,

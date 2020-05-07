@@ -1,4 +1,3 @@
-/* global document */
 import { fire } from 'simulant';
 import { hasUsableConsole, onWarn, initModule } from '../helpers/test-config';
 import { test } from 'qunit';

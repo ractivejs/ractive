@@ -18,7 +18,7 @@ export default function() {
       // disable for tests unless explicitly specified
       // we can just test the signatures, so set false
       theTest.options = theTest.options || { csp: false };
-      if (!theTest.options.hasOwnProperty('csp')) {
+      if (!Object.prototype.hasOwnProperty.call(theTest.options, 'csp')) {
         theTest.options.csp = false;
       }
       if (theTest.error) {

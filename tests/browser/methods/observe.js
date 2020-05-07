@@ -1838,7 +1838,7 @@ export default function() {
             t.ok(o === '' && v !== o, 'old value is empty string and new is ' + v);
           },
           old(o, n) {
-            if (!this.hasOwnProperty('old')) this.old = n;
+            if (!Object.prototype.hasOwnProperty.call(this, 'old')) this.old = n;
             return this.old;
           }
         },
@@ -1917,7 +1917,7 @@ export default function() {
           },
           old(o, n, k, p) {
             t.ok(k === 'foo.val' && p === 'val');
-            if (!this.hasOwnProperty('old')) this.old = n;
+            if (!Object.prototype.hasOwnProperty.call(this, 'old')) this.old = n;
             return this.old;
           }
         },

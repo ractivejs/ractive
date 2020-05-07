@@ -16,7 +16,7 @@
     "cheerio": "^1.0.0-rc.3",
     "coveralls": "^3.0.4",
     "electron": "^3.1.11",
-    "eslint": "^5.14.0",
+    "eslint": "^6.8.0",
     "eslint-plugin-prettier": "^2.7",
     "fs-plus": "^3.1.1",
     "gobble": "^0.12.0",

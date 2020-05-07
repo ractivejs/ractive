@@ -1,8 +1,6 @@
 import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
-/* globals window, document */
-
 export default function() {
   initModule('render/misc');
 
