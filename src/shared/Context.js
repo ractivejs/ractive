@@ -19,6 +19,8 @@ const modelSort = makeArrayMethod('sort').model;
 const modelSplice = makeArrayMethod('splice').model;
 const modelReverse = makeArrayMethod('reverse').model;
 
+export const localFragment = {};
+
 class ContextData extends Model {
   constructor(options) {
     super(null, null);

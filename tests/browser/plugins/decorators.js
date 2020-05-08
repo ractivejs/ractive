@@ -717,4 +717,26 @@ export default function() {
     r.set('bar', 'why not?');
     t.htmlEqual(fixture.innerHTML, '<div>why not?</div><div>why not?</div>');
   });
+
+  test(`decorator in a a yield`, t => {
+    t.expect(1);
+    const cmp = Ractive.extend({
+      template: `<div {{yield attrs}}></div>`
+    });
+
+    new Ractive({
+      template: `<cmp bind-attrs />`,
+      decorators: {
+        foo() {
+          t.ok('decorator called');
+          return { teardown() {} };
+        }
+      },
+      data: {
+        attrs: { t: [{ t: 71, n: 'foo' }] }
+      },
+      components: { cmp },
+      target: fixture
+    });
+  });
 }

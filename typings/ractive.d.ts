@@ -1198,6 +1198,12 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	get(keypath: string, opts?: GetOpts): any;
 
 	/**
+	 * Get a Context object for the current plugin's location in the template. This is only available in decorator and custom event plugins.
+	 * @param query
+	 */
+	getLocalContext(): ContextHelper;
+
+	/**
 	 * Get a Context object for the given node or node that matches the given query.
 	 * @param query
 	 */

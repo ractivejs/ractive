@@ -12,6 +12,7 @@ import findContainer from './prototype/findContainer';
 import findParent from './prototype/findParent';
 import fire from './prototype/fire';
 import get from './prototype/get';
+import getLocalContext from './prototype/getLocalContext';
 import getContext from './prototype/getContext';
 import insert from './prototype/insert';
 import link from './prototype/link';
@@ -61,6 +62,7 @@ const proto = {
   findParent,
   fire,
   get,
+  getLocalContext,
   getContext,
   insert,
   link,

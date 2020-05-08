@@ -6,6 +6,7 @@
 	* Computation setter functions now receive a context argument, and both getter and setter functions now receive a keypath argument.
 	* Component styles can be split into multiple managed style tags in the document head by setting `Ractive.perComponentStyleElements` to `true`.
         * Methods that set a single value will now return the new value as the resolution of the returned promise e.g. `r.toggle('foo')` if `foo` is falsey will return a promise that resolves to `true`. `add`/`subtract`/`set` behave similarly.
+        * Decorators and custom events can now access their local context, in the case of a yielded attribute partial, with `this.getLocalContext()`.
 
 
 # 1.2.9, 1.3.12
