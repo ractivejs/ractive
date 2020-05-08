@@ -17,7 +17,7 @@ export default class Decorator {
     this.owner = options.owner || options.up.owner || findElement(options.up);
     this.element = this.owner.attributeByName ? this.owner : findElement(options.up);
     this.up = options.up || this.owner.up;
-    this.ractive = this.owner.ractive;
+    this.ractive = this.up.ractive || this.owner.ractive;
     const template = (this.template = options.template);
 
     this.name = template.n;
