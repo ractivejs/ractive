@@ -8,6 +8,14 @@
         * Methods that set a single value will now return the new value as the resolution of the returned promise e.g. `r.toggle('foo')` if `foo` is falsey will return a promise that resolves to `true`. `add`/`subtract`/`set` behave similarly.
 
 
+# 1.2.9, 1.3.12
+
+* Bug fixes
+        * Track decorator args as expressions so that updates, so that they get notified when their deps change (#3329)
+        * Wildcard computations now implicitly depend on their parent so that they get invalidated when the parent changes (#3331)
+        * Wildcard computations in arrays are now included in a virtual get (#3333)
+
+
 # 1.2.8, 1.3.11
 
 * Bug fixes
