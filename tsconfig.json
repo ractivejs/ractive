@@ -11,7 +11,8 @@
     "allowJs": true,
     "target": "es5",
     "noUnusedLocals": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": true,
+    "noEmit": true
   },
   "include": [
     "./src/**/*"
