@@ -38,6 +38,7 @@
     "rollup": "^0.55.3",
     "rollup-plugin-istanbul": "^2",
     "tslib": "^1.11.2",
+    "typedoc": "^0.17.6",
     "typescript": "^3.8.3"
   },
   "scripts": {
@@ -69,6 +70,7 @@
     "build:ci:pr": "sh ./scripts/build-ci-pr.sh",
     "build:ci:dev": "sh ./scripts/build-ci-dev.sh",
     "report:coveralls": "cat .build/coverage/combined/lcov.info | coveralls",
-    "release:manual": "sh ./scripts/release-manual.sh"
+    "release:manual": "sh ./scripts/release-manual.sh",
+    "doc": "typedoc"
   }
 }
