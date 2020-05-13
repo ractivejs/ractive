@@ -7,6 +7,28 @@ import PatternObserver from './observe/Pattern';
 import ArrayObserver from './observe/Array';
 import { keys } from 'utils/object';
 
+/**
+ * Observes the data at a particular keypath.
+ * Unless specified otherwise, the callback will be fired immediately,
+ * with `undefined` as `oldValue`. Thereafter it will be called whenever the observed keypath changes.
+ *
+ * @example ractive.observe(keypath, callback[, options])
+ * @example ractive.observe(map[, options])
+ *
+ * @param keypath The keypath to observe, or a group of space-separated keypaths.
+ *                Any of the keys can be a `*` character, which is treated as a wildcard. A `**` means recursive.
+ *                The difference between `*` and `**` is that `*` provides your callback function value and keypath
+ *                arguments containing the path of the what actually changed, at any level of the keypath.
+ *                So instead of getting the same parent value on every change, you get the changed value from whatever arbitrarily
+ *                deep keypath changed.
+ *
+ * @param callback The function that will be called, with `newValue`, `oldValue` and keypath as arguments
+ *                 (see Observers for more nuance regarding these arguments), whenever the observed keypath changes value.
+ *                 By default the function will be called with ractive as this. Any wildcards in the keypath will have their
+ *                 matches passed to the callback at the end of the arguments list as well.
+ *
+ * @param options A map of keypath-observer pairs.
+ */
 export default function observe(keypath, callback, options) {
   const observers = [];
   let map;
