@@ -19,7 +19,7 @@
   ],
   "typedocOptions": {
     "inputFiles": [
-      "./src"
+      "./src/Ractive"
     ],
     "mode": "modules",
     "out": "docs",
