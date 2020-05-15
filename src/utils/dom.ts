@@ -2,33 +2,39 @@ import { isClient, svg, vendors, win, doc } from 'config/environment';
 import Namespace from 'src/config/namespace';
 import { isString, isNumber } from 'utils/is';
 
-let createElement, matches, div, methodNames, unprefixed, prefixed, i, j, makeFunction;
+let createElement, matches;
 
 // Test for SVG support
 if (!svg) {
   /* istanbul ignore next */
-  createElement = (type, ns, extend) => {
-    if (ns && ns !== Namespace.html) {
+  createElement = (
+    type: string,
+    namespace: string,
+    extend?: ElementCreationOptions
+  ): HTMLElement => {
+    if (namespace && namespace !== Namespace.html) {
       throw "This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you're trying to render SVG in an older browser. See http://ractive.js.org/support/#svgs for more information";
     }
 
     return extend ? doc.createElement(type, extend) : doc.createElement(type);
   };
 } else {
-  createElement = (type, ns, extend) => {
-    if (!ns || ns === Namespace.html) {
+  createElement = (type: string, namespace: string, extend?: ElementCreationOptions): Element => {
+    if (!namespace || namespace === Namespace.html) {
       return extend ? doc.createElement(type, extend) : doc.createElement(type);
     }
 
-    return extend ? doc.createElementNS(ns, type, extend) : doc.createElementNS(ns, type);
+    return extend
+      ? doc.createElementNS(namespace, type, extend)
+      : doc.createElementNS(namespace, type);
   };
 }
 
-export function createDocumentFragment() {
+export function createDocumentFragment(): DocumentFragment {
   return doc.createDocumentFragment();
 }
 
-function getElement(input) {
+function getElement(input: HTMLElement): HTMLElement {
   let output;
 
   if (!input || typeof input === 'boolean') {
@@ -76,16 +82,19 @@ function getElement(input) {
 if (!isClient) {
   matches = null;
 } else {
-  div = createElement('div');
-  methodNames = ['matches', 'matchesSelector'];
+  const div = createElement('div');
+  const methodNames = ['matches', 'matchesSelector'];
 
-  makeFunction = function(methodName) {
-    return function(node, selector) {
+  const makeFunction = function(
+    methodName: string
+  ): (node: HTMLElement, selector: string) => boolean {
+    return function(node: HTMLElement, selector: string): boolean {
       return node[methodName](selector);
     };
   };
 
-  i = methodNames.length;
+  let i = methodNames.length;
+  let unprefixed: string;
 
   while (i-- && !matches) {
     unprefixed = methodNames[i];
@@ -93,9 +102,10 @@ if (!isClient) {
     if (div[unprefixed]) {
       matches = makeFunction(unprefixed);
     } else {
-      j = vendors.length;
+      let j = vendors.length;
       while (j--) {
-        prefixed = vendors[i] + unprefixed.substr(0, 1).toUpperCase() + unprefixed.substring(1);
+        const prefixed =
+          vendors[i] + unprefixed.substr(0, 1).toUpperCase() + unprefixed.substring(1);
 
         if (div[prefixed]) {
           matches = makeFunction(prefixed);
@@ -105,53 +115,59 @@ if (!isClient) {
     }
   }
 
-  // IE8... and apparently phantom some?
-  /* istanbul ignore next */
-  if (!matches) {
-    matches = function(node, selector) {
-      let parentNode, i;
+  // TODO IE8 is no longer supported and phantom is not used. Maybe we can remove this code?
+  // // IE8... and apparently phantom some?
+  // /* istanbul ignore next */
+  // if (!matches) {
+  //   matches = function(node: HTMLElement, selector: string): bo {
+  //     let parentNode, i;
 
-      parentNode = node.parentNode;
+  //     parentNode = node.parentNode;
 
-      if (!parentNode) {
-        // empty dummy <div>
-        div.innerHTML = '';
+  //     if (!parentNode) {
+  //       // empty dummy <div>
+  //       div.innerHTML = '';
 
-        parentNode = div;
-        node = node.cloneNode();
+  //       parentNode = div;
+  //       node = node.cloneNode();
 
-        div.appendChild(node);
-      }
+  //       div.appendChild(node);
+  //     }
 
-      const nodes = parentNode.querySelectorAll(selector);
+  //     const nodes = parentNode.querySelectorAll(selector);
 
-      i = nodes.length;
-      while (i--) {
-        if (nodes[i] === node) {
-          return true;
-        }
-      }
+  //     i = nodes.length;
+  //     while (i--) {
+  //       if (nodes[i] === node) {
+  //         return true;
+  //       }
+  //     }
 
-      return false;
-    };
-  }
+  //     return false;
+  //   };
+  // }
 }
 
-function detachNode(node) {
-  // stupid ie
-  // eslint-disable-next-line valid-typeof
-  if (node && typeof node.parentNode !== 'unknown' && node.parentNode) {
+function detachNode(node: HTMLElement): HTMLElement | null {
+  /**
+   * I'm going to remove `typeof node.parentNode !== 'unknown'` match.
+   * It was only occuring in IE < 8 which is no longer supported from 0.8
+   *
+   * @see https://github.com/ractivejs/ractive/blob/dev/CHANGELOG.md#080
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof#IE-specific_notes
+   */
+  if (node && node.parentNode) {
     node.parentNode.removeChild(node);
   }
 
   return node;
 }
 
-function safeToStringValue(value) {
+function safeToStringValue(value): string {
   return value == null || (isNumber(value) && isNaN(value)) || !value.toString ? '' : '' + value;
 }
 
-function safeAttributeString(string) {
+function safeAttributeString(string: string): string {
   return safeToStringValue(string)
     .replace(/&/g, '&amp;')
     .replace(/"/g, '&quot;')
