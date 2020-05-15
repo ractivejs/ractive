@@ -5,7 +5,7 @@ const splitPattern = /([^\\](?:\\\\)*)\./;
 const escapeKeyPattern = /\\|\./g;
 const unescapeKeyPattern = /((?:\\)+)\1|\\(\.)/g;
 
-export function escapeKey(key) {
+export function escapeKey(key: string): string {
   if (isString(key)) {
     return key.replace(escapeKeyPattern, '\\$&');
   }
@@ -13,13 +13,13 @@ export function escapeKey(key) {
   return key;
 }
 
-export function normalise(ref) {
+export function normalise(ref: string): string {
   return ref ? ref.replace(refPattern, '.$1') : '';
 }
 
-export function splitKeypath(keypath) {
+export function splitKeypath(keypath: string): Array<string> {
   const result = [];
-  let match;
+  let match: RegExpExecArray;
 
   keypath = normalise(keypath);
 
@@ -34,7 +34,7 @@ export function splitKeypath(keypath) {
   return result;
 }
 
-export function unescapeKey(key) {
+export function unescapeKey(key: string): string {
   if (isString(key)) {
     return key.replace(unescapeKeyPattern, '$1$2');
   }
