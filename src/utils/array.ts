@@ -34,7 +34,7 @@ export function arrayContentsMatch(a, b): boolean {
   return true;
 }
 
-export function ensureArray(x: unknown): unknown {
+export function ensureArray(x) {
   if (isString(x)) {
     return [x];
   }
@@ -46,11 +46,11 @@ export function ensureArray(x: unknown): unknown {
   return x;
 }
 
-export function lastItem(array: unknown[]): unknown {
+export function lastItem(array) {
   return array[array.length - 1];
 }
 
-export function removeFromArray(array: unknown[], member: unknown): void {
+export function removeFromArray(array, member): void {
   if (!array) {
     return;
   }
@@ -62,7 +62,7 @@ export function removeFromArray(array: unknown[], member: unknown): void {
   }
 }
 
-export function combine(...arrays): unknown[] {
+export function combine(...arrays) {
   const res = arrays.concat.apply([], arrays);
   let i = res.length;
   while (i--) {
@@ -73,7 +73,7 @@ export function combine(...arrays): unknown[] {
   return res;
 }
 
-export function toArray(arrayLike): Array<unknown> {
+export function toArray(arrayLike) {
   const array = [];
   let i = arrayLike.length;
   while (i--) {
@@ -83,7 +83,7 @@ export function toArray(arrayLike): Array<unknown> {
   return array;
 }
 
-export function findMap(array, fn): unknown {
+export function findMap(array, fn) {
   const len = array.length;
   for (let i = 0; i < len; i++) {
     const result = fn(array[i]);
@@ -91,7 +91,7 @@ export function findMap(array, fn): unknown {
   }
 }
 
-export function buildNewIndices(one, two, comparator): unknown {
+export function buildNewIndices(one, two, comparator) {
   let oldArray = one;
   let newArray = two;
   if (comparator) {
