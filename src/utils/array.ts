@@ -1,6 +1,8 @@
 import { isArray, isString, isUndefined } from './is';
 
-export function addToArray(array, value) {
+// TODO refine types on params and return
+
+export function addToArray(array: unknown[], value: unknown): void {
   const index = array.indexOf(value);
 
   if (index === -1) {
@@ -8,19 +10,12 @@ export function addToArray(array, value) {
   }
 }
 
-export function arrayContains(array, value) {
-  for (let i = 0, c = array.length; i < c; i++) {
-    if (array[i] == value) {
-      return true;
-    }
-  }
-
-  return false;
+export function arrayContains(array: unknown[], value: unknown): boolean {
+  const valueIndex = array.indexOf(value);
+  return valueIndex !== -1;
 }
 
-export function arrayContentsMatch(a, b) {
-  let i;
-
+export function arrayContentsMatch(a, b): boolean {
   if (!isArray(a) || !isArray(b)) {
     return false;
   }
@@ -29,7 +24,7 @@ export function arrayContentsMatch(a, b) {
     return false;
   }
 
-  i = a.length;
+  let i = a.length;
   while (i--) {
     if (a[i] !== b[i]) {
       return false;
@@ -39,7 +34,7 @@ export function arrayContentsMatch(a, b) {
   return true;
 }
 
-export function ensureArray(x) {
+export function ensureArray(x: unknown): unknown {
   if (isString(x)) {
     return [x];
   }
@@ -51,11 +46,11 @@ export function ensureArray(x) {
   return x;
 }
 
-export function lastItem(array) {
+export function lastItem(array: unknown[]): unknown {
   return array[array.length - 1];
 }
 
-export function removeFromArray(array, member) {
+export function removeFromArray(array: unknown[], member: unknown): void {
   if (!array) {
     return;
   }
@@ -67,7 +62,7 @@ export function removeFromArray(array, member) {
   }
 }
 
-export function combine(...arrays) {
+export function combine(...arrays): unknown[] {
   const res = arrays.concat.apply([], arrays);
   let i = res.length;
   while (i--) {
@@ -78,7 +73,7 @@ export function combine(...arrays) {
   return res;
 }
 
-export function toArray(arrayLike) {
+export function toArray(arrayLike): Array<unknown> {
   const array = [];
   let i = arrayLike.length;
   while (i--) {
@@ -88,7 +83,7 @@ export function toArray(arrayLike) {
   return array;
 }
 
-export function findMap(array, fn) {
+export function findMap(array, fn): unknown {
   const len = array.length;
   for (let i = 0; i < len; i++) {
     const result = fn(array[i]);
@@ -96,7 +91,7 @@ export function findMap(array, fn) {
   }
 }
 
-export function buildNewIndices(one, two, comparator) {
+export function buildNewIndices(one, two, comparator): unknown {
   let oldArray = one;
   let newArray = two;
   if (comparator) {
