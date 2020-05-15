@@ -1,4 +1,4 @@
-import { svg } from 'config/namespaces';
+import Namespace from 'src/config/namespace';
 import { createElement } from 'utils/dom';
 
 const elementCache = {};
@@ -39,7 +39,7 @@ export default function(html, node) {
     if (container.tagName === 'SELECT') {
       selectedOption = container.options[container.selectedIndex];
     }
-  } else if (node.namespaceURI === svg) {
+  } else if (node.namespaceURI === Namespace.svg) {
     container = element('DIV');
     container.innerHTML = '<svg class="x">' + html + '</svg>';
     container = container.querySelector('.x');

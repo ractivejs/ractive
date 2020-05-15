@@ -1,5 +1,5 @@
 import { INTERPOLATOR } from 'config/types';
-import namespaces from 'config/namespaces';
+import Namespace from 'src/config/namespace';
 import { safeAttributeString } from 'utils/dom';
 import { booleanAttributes } from 'utils/html';
 import hyphenateCamel from 'utils/hyphenateCamel';
@@ -19,7 +19,7 @@ function lookupNamespace(node, prefix) {
     node = node.parentNode;
   }
 
-  return namespaces[prefix];
+  return Namespace[prefix];
 }
 
 let attribute = false;
@@ -115,7 +115,7 @@ export default class Attribute extends Item {
     this.node = node;
 
     // should we use direct property access, or setAttribute?
-    if (!node.namespaceURI || node.namespaceURI === namespaces.html) {
+    if (!node.namespaceURI || node.namespaceURI === Namespace.html) {
       this.propertyName = propertyNames[this.name] || this.name;
 
       if (node[this.propertyName] !== undefined) {

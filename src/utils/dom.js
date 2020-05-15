@@ -1,5 +1,5 @@
 import { isClient, svg, vendors, win, doc } from 'config/environment';
-import { html } from 'config/namespaces';
+import Namespace from 'src/config/namespace';
 import { isString, isNumber } from 'utils/is';
 
 let createElement, matches, div, methodNames, unprefixed, prefixed, i, j, makeFunction;
@@ -8,7 +8,7 @@ let createElement, matches, div, methodNames, unprefixed, prefixed, i, j, makeFu
 if (!svg) {
   /* istanbul ignore next */
   createElement = (type, ns, extend) => {
-    if (ns && ns !== html) {
+    if (ns && ns !== Namespace.html) {
       throw "This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you're trying to render SVG in an older browser. See http://ractive.js.org/support/#svgs for more information";
     }
 
@@ -16,7 +16,7 @@ if (!svg) {
   };
 } else {
   createElement = (type, ns, extend) => {
-    if (!ns || ns === html) {
+    if (!ns || ns === Namespace.html) {
       return extend ? doc.createElement(type, extend) : doc.createElement(type);
     }
 

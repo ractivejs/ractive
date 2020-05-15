@@ -1,5 +1,5 @@
 import { doc } from 'config/environment';
-import { svg } from 'config/namespaces';
+import Namespace from 'src/config/namespace';
 import { createElement } from 'utils/dom';
 import { toArray } from 'utils/array';
 import noop from 'utils/noop';
@@ -51,7 +51,7 @@ export default class ConditionalAttribute extends Item {
   render() {
     this.node = this.owner.node;
     if (this.node) {
-      this.isSvg = this.node.namespaceURI === svg;
+      this.isSvg = this.node.namespaceURI === Namespace.svg;
     }
 
     attributes = true;

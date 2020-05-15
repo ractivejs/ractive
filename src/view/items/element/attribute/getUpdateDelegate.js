@@ -1,4 +1,4 @@
-import { html } from 'config/namespaces';
+import Namespace from 'src/config/namespace';
 import { safeToStringValue } from 'utils/dom';
 import { arrayContains } from 'utils/array';
 import noop from 'utils/noop';
@@ -66,7 +66,7 @@ export default function getUpdateDelegate(attribute) {
   if (name.indexOf('style-') === 0) return updateInlineStyle;
 
   // special case - class names. IE fucks things up, again
-  if (name === 'class' && (!node.namespaceURI || node.namespaceURI === html))
+  if (name === 'class' && (!node.namespaceURI || node.namespaceURI === Namespace.html))
     return updateClassName;
 
   if (name.indexOf('class-') === 0) return updateInlineClass;

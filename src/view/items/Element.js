@@ -1,6 +1,6 @@
 import { ATTRIBUTE, BINDING_FLAG, DECORATOR, DELEGATE_FLAG, EVENT, TRANSITION } from 'config/types';
 import { win } from 'config/environment';
-import { html, svg } from 'config/namespaces';
+import Namespace from 'src/config/namespace';
 import { toArray, addToArray, removeFromArray } from 'utils/array';
 import { escapeHtml, voidElements } from 'utils/html';
 import { createElement, detachNode, matches, safeAttributeString } from 'utils/dom';
@@ -300,7 +300,7 @@ export default class Element extends ContainerItem {
     if (!node) {
       const name = this.template.e;
       node = createElement(
-        this.namespace === html ? name.toLowerCase() : name,
+        this.namespace === Namespace.html ? name.toLowerCase() : name,
         this.namespace,
         this.getAttribute('is')
       );
@@ -530,13 +530,13 @@ function getNamespace(element) {
   if (xmlns) return xmlns;
 
   // ...or SVG namespace, if this is an <svg> element
-  if (element.name === 'svg') return svg;
+  if (element.name === 'svg') return Namespace.svg;
 
   const parent = element.parent;
 
   if (parent) {
     // ...or HTML, if the parent is a <foreignObject>
-    if (parent.name === 'foreignobject') return html;
+    if (parent.name === 'foreignobject') return Namespace.html;
 
     // ...or inherit from the parent node
     return parent.node.namespaceURI;
