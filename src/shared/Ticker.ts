@@ -1,19 +1,20 @@
 import runloop from 'src/global/runloop';
+import { EasingFunction } from 'types/Easings';
+import { assign } from 'src/utils/object';
 
 // TODO what happens if a transition is aborted?
 
-const tickers = [];
+const tickers: Ticker[] = [];
 let running = false;
 
-function tick() {
+function tick(): void {
   runloop.start();
 
   const now = performance.now();
 
-  let i;
-  let ticker;
+  let ticker: Ticker;
 
-  for (i = 0; i < tickers.length; i += 1) {
+  for (let i = 0; i < tickers.length; i += 1) {
     ticker = tickers[i];
 
     if (!ticker.tick(now)) {
@@ -31,12 +32,26 @@ function tick() {
   }
 }
 
+export interface TickerOptions {
+  duration: number;
+  easing: EasingFunction;
+  step: (value: number) => void;
+  complete: () => void;
+}
+
 export default class Ticker {
-  constructor(options) {
-    this.duration = options.duration;
-    this.step = options.step;
-    this.complete = options.complete;
-    this.easing = options.easing;
+  private duration: number;
+  private easing: EasingFunction;
+  private step: (value: number) => void;
+  private complete: (value: unknown) => void;
+
+  private start: number;
+  private end: number;
+
+  private running: boolean;
+
+  constructor(options: TickerOptions) {
+    assign(this, options);
 
     this.start = performance.now();
     this.end = this.start + this.duration;
@@ -47,7 +62,7 @@ export default class Ticker {
     if (!running) requestAnimationFrame(tick);
   }
 
-  tick(now) {
+  tick(now: number): boolean {
     if (!this.running) return false;
 
     if (now > this.end) {
@@ -65,8 +80,8 @@ export default class Ticker {
     return true;
   }
 
-  stop() {
-    if (this.abort) this.abort();
+  stop(): void {
+    // if (this.abort) this.abort();
     this.running = false;
   }
 }
