@@ -2,7 +2,7 @@ import { keys } from 'utils/object';
 import { isFunction } from 'utils/is';
 
 // https://github.com/kangax/html-minifier/issues/63#issuecomment-37763316
-//export const booleanAttributes = /^(allowFullscreen|async|autofocus|autoplay|checked|compact|controls|declare|default|defaultChecked|defaultMuted|defaultSelected|defer|disabled|enabled|formNoValidate|hidden|indeterminate|inert|isMap|itemScope|loop|multiple|muted|noHref|noResize|noShade|noValidate|noWrap|open|pauseOnExit|readOnly|required|reversed|scoped|seamless|selected|sortable|translate|trueSpeed|typeMustMatch|visible)$/i;
+// export const booleanAttributes = /^(allowFullscreen|async|autofocus|autoplay|checked|compact|controls|declare|default|defaultChecked|defaultMuted|defaultSelected|defer|disabled|enabled|formNoValidate|hidden|indeterminate|inert|isMap|itemScope|loop|multiple|muted|noHref|noResize|noShade|noValidate|noWrap|open|pauseOnExit|readOnly|required|reversed|scoped|seamless|selected|sortable|translate|trueSpeed|typeMustMatch|visible)$/i;
 export const booleanAttributes = {
   allowfullscreen: 1,
   async: 1,
@@ -363,33 +363,12 @@ const entityPattern = new RegExp(
 const codePointSupport = isFunction(String.fromCodePoint);
 const codeToChar = codePointSupport ? String.fromCodePoint : String.fromCharCode;
 
-export function decodeCharacterReferences(html) {
-  return html.replace(entityPattern, (match, entity) => {
-    let code;
-
-    // Handle named entities
-    if (entity[0] !== '#') {
-      code = htmlEntities[entity];
-    } else if (entity[1] === 'x') {
-      code = parseInt(entity.substring(2), 16);
-    } else {
-      code = parseInt(entity.substring(1), 10);
-    }
-
-    if (!code) {
-      return match;
-    }
-
-    return codeToChar(validateCode(code));
-  });
-}
-
 const lessThan = /</g;
 const greaterThan = />/g;
 const amp = /&/g;
 const invalid = 65533;
 
-export function escapeHtml(str) {
+export function escapeHtml(str: string): string {
   return str
     .replace(amp, '&amp;')
     .replace(lessThan, '&lt;')
@@ -402,7 +381,7 @@ export function escapeHtml(str) {
 //
 // Source: http://en.wikipedia.org/wiki/Character_encodings_in_HTML#Illegal_characters
 /* istanbul ignore next */
-function validateCode(code) {
+function validateCode(code: number): number {
   if (!code) {
     return invalid;
   }
@@ -451,4 +430,25 @@ function validateCode(code) {
   }
 
   return invalid;
+}
+
+export function decodeCharacterReferences(html: string): string {
+  return html.replace(entityPattern, (match, entity: string) => {
+    let code: number;
+
+    // Handle named entities
+    if (entity[0] !== '#') {
+      code = htmlEntities[entity];
+    } else if (entity[1] === 'x') {
+      code = parseInt(entity.substring(2), 16);
+    } else {
+      code = parseInt(entity.substring(1), 10);
+    }
+
+    if (!code) {
+      return match;
+    }
+
+    return codeToChar(validateCode(code));
+  });
 }
