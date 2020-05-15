@@ -1,10 +1,24 @@
 import { win, doc, vendors } from './environment';
 
-export let visible;
+export let visible: boolean;
 let hidden = 'hidden';
 
+function onChange(): void {
+  visible = !doc[hidden];
+}
+
+/* istanbul ignore next */
+function onHide(): void {
+  visible = false;
+}
+
+/* istanbul ignore next */
+function onShow(): void {
+  visible = true;
+}
+
 if (doc) {
-  let prefix;
+  let prefix: string;
 
   /* istanbul ignore next */
   if (hidden in doc) {
@@ -29,8 +43,9 @@ if (doc) {
   } else {
     // gah, we're in an old browser
     if ('onfocusout' in doc) {
-      doc.addEventListener('focusout', onHide);
-      doc.addEventListener('focusin', onShow);
+      // Why `as Document` because otherwise doc has type never (only inside this if)
+      (doc as Document).addEventListener('focusout', onHide);
+      (doc as Document).addEventListener('focusin', onShow);
     } else {
       win.addEventListener('pagehide', onHide);
       win.addEventListener('blur', onHide);
@@ -41,18 +56,4 @@ if (doc) {
 
     visible = true; // until proven otherwise. Not ideal but hey
   }
-}
-
-function onChange() {
-  visible = !doc[hidden];
-}
-
-/* istanbul ignore next */
-function onHide() {
-  visible = false;
-}
-
-/* istanbul ignore next */
-function onShow() {
-  visible = true;
 }
