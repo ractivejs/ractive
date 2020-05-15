@@ -17,7 +17,7 @@ export function normalise(ref: string): string {
   return ref ? ref.replace(refPattern, '.$1') : '';
 }
 
-export function splitKeypath(keypath: string): Array<string> {
+export function splitKeypath(keypath: string): string[] {
   const result = [];
   let match: RegExpExecArray;
 

@@ -13,9 +13,9 @@ const value = /\0(\d+)/g;
 export default function(
   css: string,
   callback: Function,
-  additionalReplaceRules: Array<RegExp> = []
+  additionalReplaceRules: RegExp[] = []
 ): object | string {
-  const values: Array<string> = [];
+  const values: string[] = [];
   const reconstruct = function(css: string): string {
     return css.replace(value, (_match: string, n: number) => values[n]);
   };
