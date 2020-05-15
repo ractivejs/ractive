@@ -6,6 +6,7 @@
       "config/*": ["src/config/*"],
       "parse/*": ["src/parse/*"],
       "shared/*": ["src/shared/*"],
+      "types/*": ["src/types/*"],
       "utils/*": ["src/utils/*"]
     },
     "allowJs": true,
