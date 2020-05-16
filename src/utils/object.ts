@@ -1,4 +1,4 @@
-import { PlainObject } from 'types/PlainObject';
+import { ValueMap } from 'types/ValueMap';
 
 const obj = Object;
 
@@ -18,7 +18,7 @@ export function hasOwn(obj: object, prop: string): boolean {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-export function fillGaps(target: PlainObject, ...sources: PlainObject[]): PlainObject {
+export function fillGaps(target: ValueMap, ...sources: ValueMap[]): ValueMap {
   for (let i = 0; i < sources.length; i++) {
     const source = sources[i];
     for (const key in source) {
@@ -31,7 +31,7 @@ export function fillGaps(target: PlainObject, ...sources: PlainObject[]): PlainO
   return target;
 }
 
-export function toPairs(obj: PlainObject = {}): PlainObject[] {
+export function toPairs(obj: ValueMap = {}): ValueMap[] {
   const pairs = [];
   for (const key in obj) {
     // Source can be a prototype-less object.
