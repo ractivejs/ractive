@@ -1,11 +1,11 @@
 import { hasOwn } from 'utils/object';
 import { isString, isObjectType } from 'utils/is';
-
-const prefixers = {};
+import { Keypath } from 'types/Keypath';
+import { ValueMap } from 'types/ValueMap';
 
 // TODO this is legacy. sooner we can replace the old adaptor API the better
 /* istanbul ignore next */
-function prefixKeypath(obj, prefix) {
+function prefixKeypath(obj: ValueMap, prefix: string): ValueMap {
   const prefixed = {};
 
   if (!prefix) {
@@ -23,15 +23,22 @@ function prefixKeypath(obj, prefix) {
   return prefixed;
 }
 
-export default function getPrefixer(rootKeypath) {
-  let rootDot;
+type PrefixerFunction = (relativeKeypath: Keypath, value: any) => Keypath | ValueMap;
+
+interface Prefixers {
+  [key: string]: PrefixerFunction;
+}
+const prefixers: Prefixers = {};
+
+export default function getPrefixer(rootKeypath: Keypath): PrefixerFunction {
+  let rootDot: Keypath;
 
   if (!prefixers[rootKeypath]) {
     rootDot = rootKeypath ? rootKeypath + '.' : '';
 
     /* istanbul ignore next */
-    prefixers[rootKeypath] = function(relativeKeypath, value) {
-      let obj;
+    prefixers[rootKeypath] = function(relativeKeypath: Keypath, value): Keypath | ValueMap {
+      let obj: ValueMap;
 
       if (isString(relativeKeypath)) {
         obj = {};
