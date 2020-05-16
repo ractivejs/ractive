@@ -50,7 +50,7 @@ class Runloop {
   }
 
   public end(): void {
-    this.flushChanges();
+    flushChanges();
 
     if (!batch.previousBatch) batch.transitionManager.start();
     else batch.transitionManager.checkStart();
@@ -120,54 +120,54 @@ class Runloop {
 
     return target.promise || Promise.resolve();
   }
-
-  private dispatch(observer): void {
-    observer.dispatch();
-  }
-
-  private flushChanges(): void {
-    let which = batch.immediateObservers;
-    batch.immediateObservers = [];
-    which.forEach(this.dispatch);
-
-    // Now that changes have been fully propagated, we can update the DOM
-    // and complete other tasks
-    let i = batch.fragments.length;
-    let fragment;
-
-    which = batch.fragments;
-    batch.fragments = [];
-
-    while (i--) {
-      fragment = which[i];
-      fragment.update();
-    }
-
-    batch.transitionManager.ready();
-
-    which = batch.deferredObservers;
-    batch.deferredObservers = [];
-    which.forEach(this.dispatch);
-
-    const tasks = batch.tasks;
-    batch.tasks = [];
-
-    for (i = 0; i < tasks.length; i += 1) {
-      tasks[i]();
-    }
-
-    // If updating the view caused some model blowback - e.g. a triple
-    // containing <option> elements caused the binding on the <select>
-    // to update - then we start over
-    if (
-      batch.fragments.length ||
-      batch.immediateObservers.length ||
-      batch.deferredObservers.length ||
-      batch.tasks.length
-    ) {
-      return this.flushChanges();
-    }
-  }
 }
 
 export default Runloop.getInstance();
+
+function dispatch(observer): void {
+  observer.dispatch();
+}
+
+function flushChanges(): void {
+  let which = batch.immediateObservers;
+  batch.immediateObservers = [];
+  which.forEach(dispatch);
+
+  // Now that changes have been fully propagated, we can update the DOM
+  // and complete other tasks
+  let i = batch.fragments.length;
+  let fragment;
+
+  which = batch.fragments;
+  batch.fragments = [];
+
+  while (i--) {
+    fragment = which[i];
+    fragment.update();
+  }
+
+  batch.transitionManager.ready();
+
+  which = batch.deferredObservers;
+  batch.deferredObservers = [];
+  which.forEach(dispatch);
+
+  const tasks = batch.tasks;
+  batch.tasks = [];
+
+  for (i = 0; i < tasks.length; i += 1) {
+    tasks[i]();
+  }
+
+  // If updating the view caused some model blowback - e.g. a triple
+  // containing <option> elements caused the binding on the <select>
+  // to update - then we start over
+  if (
+    batch.fragments.length ||
+    batch.immediateObservers.length ||
+    batch.deferredObservers.length ||
+    batch.tasks.length
+  ) {
+    return flushChanges();
+  }
+}
