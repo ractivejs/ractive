@@ -7,6 +7,9 @@
 		"browser": true,
 		"node": true
 	},
+	"rules": {
+		"@typescript-eslint/no-use-before-define": ["off"]
+	},
 	"overrides": [{
 		// disable typescript rules for JS files
 		"files": ["*.js"],
