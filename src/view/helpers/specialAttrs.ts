@@ -3,7 +3,11 @@ import { isString } from 'utils/is';
 
 const space = /\s+/;
 
-export function readStyle(css) {
+export type CSSPropertiesValueMap = {
+  [key: string]: string;
+};
+
+export function readStyle(css: string): CSSPropertiesValueMap {
   if (!isString(css)) return {};
 
   return cleanCss(css, (css, reconstruct) => {
@@ -12,15 +16,15 @@ export function readStyle(css) {
       .filter(rule => !!rule.trim())
       .map(reconstruct)
       .reduce((rules, rule) => {
-        const i = rule.indexOf(':');
-        const name = rule.substr(0, i).trim();
-        rules[name] = rule.substr(i + 1).trim();
+        const separatorIndex = rule.indexOf(':');
+        const name = rule.substr(0, separatorIndex).trim();
+        rules[name] = rule.substr(separatorIndex + 1).trim();
         return rules;
       }, {});
-  });
+  }) as CSSPropertiesValueMap;
 }
 
-export function readClass(str) {
+export function readClass(str: string): string[] {
   const list = str.split(space);
 
   // remove any empty entries
