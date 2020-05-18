@@ -94,6 +94,10 @@ export default class Decorator {
     }, true);
   }
 
+  shuffled() {
+    if (this.handle && this.handle.shuffled) this.handle.shuffled();
+  }
+
   toString() {
     return '';
   }

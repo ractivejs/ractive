@@ -6,7 +6,7 @@ import { escapeHtml, voidElements } from 'utils/html';
 import { createElement, detachNode, matches, safeAttributeString } from 'utils/dom';
 import runloop from 'src/global/runloop';
 import Context from 'shared/Context';
-import { destroyed } from 'shared/methodCallers';
+import { destroyed, shuffled } from 'shared/methodCallers';
 import { ContainerItem } from './shared/Item';
 import Fragment from '../Fragment';
 import ConditionalAttribute from './element/ConditionalAttribute';
@@ -378,6 +378,11 @@ export default class Element extends ContainerItem {
     }
 
     this.rendered = true;
+  }
+
+  shuffled() {
+    super.shuffled();
+    this.decorators.forEach(shuffled);
   }
 
   toString() {

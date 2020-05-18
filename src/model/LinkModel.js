@@ -156,6 +156,8 @@ export default class LinkModel extends ModelBase {
       c.relinking(target.joinKey(c.key), safe);
     });
 
+    if (!safe) this.keypath = undefined;
+
     if (this.rootLink)
       this.addShuffleTask(() => {
         this.relinked();

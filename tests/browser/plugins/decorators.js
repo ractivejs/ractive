@@ -739,4 +739,40 @@ export default function() {
       target: fixture
     });
   });
+
+  test(`decorators are notified of shuffling due to reference expression changes`, t => {
+    t.expect(4);
+
+    let path, child;
+    const r = new Ractive({
+      target: fixture,
+      template: `{{#with foo[bar]}}<div as-check />{{/with}}`,
+      data: {
+        bar: 'baz',
+        foo: {
+          baz: {},
+          bat: {}
+        }
+      },
+      decorators: {
+        check(node) {
+          const ctx = this.getContext(node);
+          path = ctx.resolve();
+          child = ctx.resolve('.foo');
+          return {
+            teardown() {},
+            shuffled() {
+              path = ctx.resolve();
+              child = ctx.resolve('.foo');
+            }
+          };
+        }
+      }
+    });
+    t.equal(path, 'foo.baz');
+    t.equal(child, 'foo.baz.foo');
+    r.set('bar', 'bat');
+    t.equal(path, 'foo.bat');
+    t.equal(child, 'foo.bat.foo');
+  });
 }

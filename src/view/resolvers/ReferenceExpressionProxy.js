@@ -98,6 +98,7 @@ export default class ReferenceExpressionProxy extends LinkModel {
         this.relinking(model);
         fireShuffleTasks();
         refreshPathDeps(this);
+        this.fragment.shuffled();
       }
     };
 
