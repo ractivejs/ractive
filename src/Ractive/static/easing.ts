@@ -21,18 +21,18 @@
 // You can add additional easing functions to this list, and they
 // will be globally available.
 
-export default {
-  linear(pos) {
+const Easings = {
+  linear(pos: number): number {
     return pos;
   },
-  easeIn(pos) {
+  easeIn(pos: number): number {
     /* istanbul ignore next */
     return Math.pow(pos, 3);
   },
-  easeOut(pos) {
+  easeOut(pos: number): number {
     return Math.pow(pos - 1, 3) + 1;
   },
-  easeInOut(pos) {
+  easeInOut(pos: number): number {
     /* istanbul ignore next */
     if ((pos /= 0.5) < 1) {
       return 0.5 * Math.pow(pos, 3);
@@ -41,3 +41,5 @@ export default {
     return 0.5 * (Math.pow(pos - 2, 3) + 2);
   }
 };
+
+export default Easings;
