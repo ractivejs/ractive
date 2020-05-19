@@ -21,7 +21,7 @@ export function rebindMatch(template, next, previous, fragment) {
     return next;
 
   const parts = keypath.split('/');
-  let keys = splitKeypath(parts[parts.length - 1]);
+  let keys: string[] | boolean = splitKeypath(parts[parts.length - 1]);
   const last = keys[keys.length - 1];
 
   // check the keypath against the model keypath to see if it matches
@@ -29,7 +29,8 @@ export function rebindMatch(template, next, previous, fragment) {
 
   // check to see if this was an alias
   if (model && keys.length === 1 && last !== model.key && fragment) {
-    keys = findAlias(last, fragment) || keys;
+    const alias = findAlias(last, fragment);
+    keys = alias ? (alias as string[]) : keys;
   }
 
   let i = keys.length;
@@ -51,7 +52,7 @@ export function rebindMatch(template, next, previous, fragment) {
   else return next;
 }
 
-function findAlias(name, fragment) {
+function findAlias(name, fragment): string[] | boolean {
   while (fragment) {
     const z = fragment.aliases;
     if (z && z[name]) {
