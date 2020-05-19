@@ -3,34 +3,63 @@ import { addToArray, removeFromArray } from 'utils/array';
 import { isArray, isObject, isObjectLike, isFunction } from 'utils/is';
 import bind from 'utils/bind';
 import { create, keys as objectKeys } from 'utils/object';
+import { Keypath } from 'types/Keypath';
 
 const shuffleTasks = { early: [], mark: [] };
 const registerQueue = { early: [], mark: [] };
 export const noVirtual = { virtual: false };
 
 export default class ModelBase {
+  public deps = [];
+
+  public children = [];
+  public childByKey = {};
+  public links = [];
+
+  public bindings = [];
+
+  // TODO add correct typing
+
+  public parent: any;
+  public root: any;
+
+  public ractive: any;
+
+  public _link: any;
+
+  public keypath: Keypath;
+  public key: string;
+
+  public length: number;
+
+  public computed: any;
+
+  public dataModel: any;
+
+  public patterns: any[];
+
+  public value: any;
+
   constructor(parent) {
-    this.deps = [];
-
-    this.children = [];
-    this.childByKey = {};
-    this.links = [];
-
-    this.bindings = [];
-
     if (parent) {
       this.parent = parent;
       this.root = parent.root;
     }
   }
 
-  addShuffleTask(task, stage = 'early') {
+  public get: Function;
+  public set: Function;
+  public joinKey: Function;
+  public retrieve: Function;
+
+  addShuffleTask(task, stage = 'early'): void {
     shuffleTasks[stage].push(task);
   }
-  addShuffleRegister(item, stage = 'early') {
+  addShuffleRegister(item, stage = 'early'): void {
     registerQueue[stage].push({ model: this, item });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   downstreamChanged() {}
 
   findMatches(keys) {
@@ -38,9 +67,8 @@ export default class ModelBase {
 
     let existingMatches = [this];
     let matches;
-    let i;
 
-    for (i = 0; i < len; i += 1) {
+    for (let i = 0; i < len; i += 1) {
       const key = keys[i];
 
       if (key === '*') {
@@ -58,7 +86,7 @@ export default class ModelBase {
     return matches;
   }
 
-  getKeypath(ractive) {
+  getKeypath(ractive?) {
     if (ractive !== this.ractive && this._link) return this._link.target.getKeypath(ractive);
 
     if (!this.keypath) {
@@ -78,7 +106,7 @@ export default class ModelBase {
       if ('length' in this && this.length !== value.length) {
         children.push(this.joinKey('length'));
       }
-      value.forEach((m, i) => {
+      value.forEach((_m, i) => {
         children.push(this.joinKey(i));
       });
     } else if (isObject(value) || isFunction(value)) {
@@ -152,6 +180,7 @@ export default class ModelBase {
   }
 
   joinAll(keys, opts) {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     let model = this;
     for (let i = 0; i < keys.length; i += 1) {
       if (
@@ -216,8 +245,11 @@ export default class ModelBase {
     }
   }
 
+  public refs: number;
+
   reference() {
-    'refs' in this ? this.refs++ : (this.refs = 1);
+    const hasRefs = 'refs' in this;
+    hasRefs ? this.refs++ : (this.refs = 1);
   }
 
   register(dep) {
@@ -229,6 +261,7 @@ export default class ModelBase {
   }
 
   registerPatternObserver(observer) {
+    // TODO maybe we should initialise as empty array
     (this.patterns || (this.patterns = [])).push(observer);
     this.register(observer);
   }
@@ -292,7 +325,7 @@ export function maybeBind(model, value, shouldBind) {
   return value;
 }
 
-function updateFromBindings(model) {
+function updateFromBindings(model: ModelBase): void {
   model.updateFromBindings(true);
 }
 
