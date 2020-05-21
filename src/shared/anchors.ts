@@ -1,3 +1,5 @@
+// TODO add correct typings
+
 export function findAnchors(fragment, name = null) {
   const res = [];
 

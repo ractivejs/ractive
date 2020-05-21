@@ -1,7 +1,7 @@
 import noop from 'utils/noop';
 import { assign, create } from 'utils/object';
 
-export const extern = {};
+export const extern: { Context?: any } = {};
 
 export default function getRactiveContext(ractive, ...assigns) {
   const fragment =
@@ -15,21 +15,27 @@ export function getContext(...assigns) {
   if (!this.ctx) this.ctx = new extern.Context(this);
   assigns.unshift(create(this.ctx));
 
-  return assign(...assigns);
+  const [target, ...rest] = assigns;
+
+  return assign(target, ...rest);
 }
 
 export class FakeFragment {
+  public ractive;
+
   constructor(ractive) {
     this.ractive = ractive;
   }
+
+  getContext = getContext;
+  findComponent = noop;
+  findAll = noop;
+  findAllComponents = noop;
 
   findContext() {
     return this.ractive.viewmodel;
   }
 }
-const proto = FakeFragment.prototype;
-proto.getContext = getContext;
-proto.find = proto.findComponent = proto.findAll = proto.findAllComponents = noop;
 
 export function findParentWithContext(fragment) {
   let frag = fragment;
