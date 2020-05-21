@@ -1,3 +1,5 @@
+// TODO add correct typings
+
 export function findInViewHierarchy(registryName, ractive, name) {
   const instance = findInstance(registryName, ractive, name);
   return instance ? instance[registryName][name] : null;
