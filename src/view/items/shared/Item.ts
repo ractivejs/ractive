@@ -1,17 +1,35 @@
 import { createDocumentFragment } from 'utils/dom';
-import noop from 'utils/noop';
+
+interface ItemOptions {
+  up: any; // TODO add correct types
+  template: any; // TODO add correct types
+  index: number;
+}
 
 export default class Item {
-  constructor(options) {
+  // TODO add correct types
+  public up;
+  public ractive;
+
+  public template;
+  public type;
+  public index: number;
+
+  public dirty = false;
+
+  public fragment: any;
+
+  constructor(options: ItemOptions) {
     this.up = options.up;
     this.ractive = options.up.ractive;
 
     this.template = options.template;
-    this.index = options.index;
     this.type = options.template.t;
-
-    this.dirty = false;
+    this.index = options.index;
   }
+
+  findAll() {}
+  findAllComponents() {}
 
   bubble() {
     if (!this.dirty) {
@@ -49,11 +67,8 @@ export default class Item {
   }
 }
 
-Item.prototype.findAll = noop;
-Item.prototype.findAllComponents = noop;
-
 export class ContainerItem extends Item {
-  constructor(options) {
+  constructor(options: ItemOptions) {
     super(options);
   }
 
@@ -61,25 +76,27 @@ export class ContainerItem extends Item {
     return this.fragment ? this.fragment.detach() : createDocumentFragment();
   }
 
-  find(selector) {
+  find(selector?) {
     if (this.fragment) {
       return this.fragment.find(selector);
     }
   }
 
-  findAll(selector, options) {
+  // todo use findOptions?
+  findAll(selector?, options?) {
     if (this.fragment) {
       this.fragment.findAll(selector, options);
     }
   }
 
-  findComponent(name) {
+  findComponent(name?) {
     if (this.fragment) {
       return this.fragment.findComponent(name);
     }
   }
 
-  findAllComponents(name, options) {
+  // todo use findOptions?
+  findAllComponents(name?, options?) {
     if (this.fragment) {
       this.fragment.findAllComponents(name, options);
     }
@@ -89,7 +106,7 @@ export class ContainerItem extends Item {
     return this.fragment && this.fragment.firstNode(skipParent);
   }
 
-  toString(escape) {
+  toString(escape?: boolean): string {
     return this.fragment ? this.fragment.toString(escape) : '';
   }
 }
