@@ -1,7 +1,8 @@
 import { TEXT } from 'config/types';
+import Item from '../items/shared/Item';
 
 // TODO all this code needs to die
-export default function processItems(items, values, guid, counter = 0) {
+export default function processItems(items: Item[], values, guid: string, counter = 0): string {
   return items
     .map(item => {
       if (item.type === TEXT) {

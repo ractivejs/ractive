@@ -19,6 +19,9 @@ export default class Item {
 
   public fragment: any;
 
+  public model;
+  public newModel;
+
   constructor(options: ItemOptions) {
     this.up = options.up;
     this.ractive = options.up.ractive;

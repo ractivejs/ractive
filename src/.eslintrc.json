@@ -11,7 +11,8 @@
     "@typescript-eslint/no-use-before-define": ["off"],
     "@typescript-eslint/no-empty-function": ["error", {
       "allow": ["methods"]
-    }]
+    }],
+    "@typescript-eslint/no-unused-vars":["error"]
   },
   "overrides": [{
     // disable typescript rules for JS files
