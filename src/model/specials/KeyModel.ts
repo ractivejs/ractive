@@ -4,16 +4,31 @@ import { capture } from 'src/global/capture';
 import { handleChange } from 'src/shared/methodCallers';
 import noop from 'utils/noop';
 
+// TODO add correct typings
+
 export default class KeyModel {
+  public value: any;
+  public key: any;
+  public context: any;
+  public instance: any;
+
+  public isReadonly = true;
+  public isKey = true;
+  public deps = [];
+  public links = [];
+  public children = [];
+
+  public upstream: any;
+
   constructor(value, context, instance) {
-    this.value = this.key = value;
+    this.value = value;
+    this.key = value;
     this.context = context;
-    this.isReadonly = this.isKey = true;
-    this.deps = [];
-    this.links = [];
-    this.children = [];
     this.instance = instance;
   }
+
+  reference = noop;
+  unreference = noop;
 
   applyValue(value) {
     if (value !== this.value) {
@@ -76,6 +91,3 @@ export default class KeyModel {
     removeFromArray(this.links, link);
   }
 }
-
-KeyModel.prototype.reference = noop;
-KeyModel.prototype.unreference = noop;

@@ -1,20 +1,23 @@
 import { addToArray } from 'utils/array';
 import ModelBase from 'src/model/ModelBase';
+import KeyModel from 'src/model/specials/KeyModel';
 
 const stack = [];
-let captureGroup: ModelBase[];
+let captureGroup: CapturableModel[];
+
+type CapturableModel = ModelBase | KeyModel;
 
 export function startCapturing(): void {
   stack.push((captureGroup = []));
 }
 
-export function capture(model: ModelBase): void {
+export function capture(model: CapturableModel): void {
   if (captureGroup) {
     addToArray(captureGroup, model);
   }
 }
 
-export function stopCapturing(): ModelBase[] {
+export function stopCapturing(): CapturableModel[] {
   const dependencies = stack.pop();
   captureGroup = stack[stack.length - 1];
   return dependencies;
