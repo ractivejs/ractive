@@ -1,5 +1,7 @@
 import { findInViewHierarchy } from 'shared/registry';
 
-export function findPlugin(name, type, instance) {
+// TODO add correct typings
+
+export function findPlugin(name: string, type: string, instance) {
   return findInViewHierarchy(type, instance, name);
 }
