@@ -1,10 +1,12 @@
-import { STRING_LITERAL } from '../../../../../config/types';
 import makeQuotedStringMatcher from './stringLiteral/makeQuotedStringMatcher';
+import TemplateElementType from 'config/types';
+import { LiteralTemplateElement } from 'parse/templateElements';
 
 const singleMatcher = makeQuotedStringMatcher(`"`);
 const doubleMatcher = makeQuotedStringMatcher(`'`);
 
-export default function(parser) {
+// todo add correct type on Parser
+export default function(parser): LiteralTemplateElement {
   const start = parser.pos;
   const quote = parser.matchString(`'`) || parser.matchString(`"`);
 
@@ -17,7 +19,7 @@ export default function(parser) {
     }
 
     return {
-      t: STRING_LITERAL,
+      t: TemplateElementType.STRING_LITERAL,
       v: string
     };
   }
