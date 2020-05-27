@@ -9,8 +9,9 @@ export const escapeSequencePattern = /^\\(?:[`'"\\bfnrt]|0(?![0-9])|x[0-9a-fA-F]
 export const lineContinuationPattern = /^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/;
 
 // Helper for defining getDoubleQuotedString and getSingleQuotedString.
-export default function(okQuote) {
-  return function(parser) {
+export default function(okQuote: string) {
+  // todo add parser type
+  return function(parser): string {
     let literal = '"';
     let done = false;
     let next;
