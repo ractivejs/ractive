@@ -1,7 +1,9 @@
+import Parser from 'parse/Parser';
+
 const delimiterChangePattern = /^[^\s=]+/;
 const whitespacePattern = /^\s+/;
 
-export default function readDelimiterChange(parser) {
+export default function readDelimiterChange(parser: Parser): [string, string] {
   if (!parser.matchString('=')) {
     return null;
   }
