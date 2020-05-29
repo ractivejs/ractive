@@ -1,7 +1,7 @@
 import { warnIfDebug } from 'utils/log';
 import { create, hasOwn } from 'utils/object';
 import { BaseParseOpts } from 'types/ParseOptions';
-import { TemplateDefinition } from './templateElements';
+import { TemplateItemDefinition } from './TemplateItems';
 
 const leadingWhitespace = /^\s+/;
 
@@ -17,7 +17,7 @@ class ParseError extends Error {
   }
 }
 
-export type Converter = (parser: Parser) => TemplateDefinition;
+export type Converter = (parser: Parser) => TemplateItemDefinition;
 
 export interface CustomParser {
   init: (str: string, options: BaseParseOpts) => void;
@@ -37,11 +37,6 @@ class Parser {
   public result: any;
 
   protected converters: Converter[];
-
-  // todo maybe the following properties can be moved to standard parser?
-  // if yes update also the converter function parser param type
-  public relaxedNames: any[];
-  public inEvent: boolean;
 
   constructor(str: string, options: BaseParseOpts) {
     this.str = str;

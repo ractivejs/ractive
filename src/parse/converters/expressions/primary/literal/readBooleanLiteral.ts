@@ -1,14 +1,14 @@
-import TemplateElementType from 'config/types';
+import TemplateItemType from 'config/types';
 import Parser from 'parse/Parser';
-import { ValueTemplateElement } from 'parse/templateElements';
+import { ValueTemplateItem } from 'parse/TemplateItems';
 
-export default function readBooleanLiteral(parser: Parser): ValueTemplateElement {
+export default function readBooleanLiteral(parser: Parser): ValueTemplateItem {
   const remaining = parser.remaining();
 
   if (remaining.substr(0, 4) === 'true') {
     parser.pos += 4;
     return {
-      t: TemplateElementType.BOOLEAN_LITERAL,
+      t: TemplateItemType.BOOLEAN_LITERAL,
       v: 'true'
     };
   }
@@ -16,7 +16,7 @@ export default function readBooleanLiteral(parser: Parser): ValueTemplateElement
   if (remaining.substr(0, 5) === 'false') {
     parser.pos += 5;
     return {
-      t: TemplateElementType.BOOLEAN_LITERAL,
+      t: TemplateItemType.BOOLEAN_LITERAL,
       v: 'false'
     };
   }

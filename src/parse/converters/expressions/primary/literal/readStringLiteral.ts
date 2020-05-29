@@ -1,12 +1,12 @@
 import makeQuotedStringMatcher from './stringLiteral/makeQuotedStringMatcher';
-import TemplateElementType from 'config/types';
-import { ValueTemplateElement } from 'parse/templateElements';
+import TemplateItemType from 'config/types';
+import { ValueTemplateItem } from 'parse/TemplateItems';
 import Parser from 'parse/Parser';
 
 const singleMatcher = makeQuotedStringMatcher(`"`);
 const doubleMatcher = makeQuotedStringMatcher(`'`);
 
-export default function(parser: Parser): ValueTemplateElement {
+export default function(parser: Parser): ValueTemplateItem {
   const start = parser.pos;
   const quote = parser.matchString(`'`) || parser.matchString(`"`);
 
@@ -19,7 +19,7 @@ export default function(parser: Parser): ValueTemplateElement {
     }
 
     return {
-      t: TemplateElementType.STRING_LITERAL,
+      t: TemplateItemType.STRING_LITERAL,
       v: string
     };
   }

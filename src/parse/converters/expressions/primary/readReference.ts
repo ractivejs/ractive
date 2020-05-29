@@ -1,12 +1,8 @@
-import TemplateElementType from 'src/config/types';
+import TemplateItemType from 'config/types';
 import { normalise } from 'src/shared/keypaths';
 import { legalReference, relaxedName } from '../shared/patterns';
-import Parser from 'parse/Parser';
-import {
-  ReferenceTemplateElement,
-  ValueTemplateElement,
-  BrackedTemplateElement
-} from 'parse/templateElements';
+import { ReferenceTemplateItem, ValueTemplateItem, BrackedTemplateItem } from 'parse/TemplateItems';
+import { StandardParser } from 'parse/_parse';
 
 // if a reference is a browser global, we don't deference it later, so it needs special treatment
 const globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null|Object|Number|String|Boolean)\b/;
@@ -18,8 +14,8 @@ const prefixPattern = /^(?:\@\.|\@|~\/|(?:\^\^\/(?:\^\^\/)*(?:\.\.\/)*)|(?:\.\.\
 const specials = /^(key|index|keypath|rootpath|this|global|shared|context|event|node|local|style|helpers|last|macro)/;
 
 export default function readReference(
-  parser: Parser
-): ReferenceTemplateElement | ValueTemplateElement | BrackedTemplateElement {
+  parser: StandardParser
+): ReferenceTemplateItem | ValueTemplateItem | BrackedTemplateItem {
   let prefix: string, name: string, global: string, reference: string;
 
   const startPos = parser.pos;
@@ -53,9 +49,9 @@ export default function readReference(
     } else if (!name.indexOf('context')) {
       parser.pos = parser.pos - (name.length - 7);
       return {
-        t: TemplateElementType.BRACKETED,
+        t: TemplateItemType.BRACKETED,
         x: {
-          t: TemplateElementType.REFERENCE,
+          t: TemplateItemType.REFERENCE,
           n: '@context'
         }
       };
@@ -74,7 +70,7 @@ export default function readReference(
     parser.pos = startPos + global.length;
 
     return {
-      t: TemplateElementType.GLOBAL,
+      t: TemplateItemType.GLOBAL,
       v: global
     };
   }
@@ -102,7 +98,7 @@ export default function readReference(
   }
 
   return {
-    t: TemplateElementType.REFERENCE,
+    t: TemplateItemType.REFERENCE,
     n: reference.replace(/^this\./, './').replace(/^this$/, '.')
   };
 }

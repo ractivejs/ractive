@@ -3,7 +3,7 @@ import readStringLiteral from 'parse/converters/expressions/primary/literal/read
 import readKey from 'parse/converters/expressions/shared/readKey';
 import { hasOwn, keys } from 'utils/object';
 import { BaseParseOpts } from 'types/ParseOptions';
-import { SimpleTemplateElement } from 'parse/templateElements';
+import { SimpleTemplateItem } from 'parse/TemplateItems';
 
 /**
  * simple JSON parser, without the restrictions of JSON parse
@@ -33,7 +33,7 @@ class JsonParser extends Parser implements CustomParser {
     this.values = options.values;
 
     this.converters = [
-      function getPlaceholder(parser: JsonParser): SimpleTemplateElement {
+      function getPlaceholder(parser: JsonParser): SimpleTemplateItem {
         if (!parser.values) return null;
 
         const placeholder = parser.matchPattern(placeholderAtStartPattern);
@@ -43,17 +43,17 @@ class JsonParser extends Parser implements CustomParser {
         }
       },
 
-      function getSpecial(parser: JsonParser): SimpleTemplateElement {
+      function getSpecial(parser: JsonParser): SimpleTemplateItem {
         const special = parser.matchPattern(specialsPattern);
         if (special) return { v: specials[special] };
       },
 
-      function getNumber(parser: JsonParser): SimpleTemplateElement {
+      function getNumber(parser: JsonParser): SimpleTemplateItem {
         const number = parser.matchPattern(numberPattern);
         if (number) return { v: +number };
       },
 
-      function getString(parser: JsonParser): SimpleTemplateElement {
+      function getString(parser: JsonParser): SimpleTemplateItem {
         const stringLiteral = readStringLiteral(parser);
         const values = parser.values;
 
@@ -68,7 +68,7 @@ class JsonParser extends Parser implements CustomParser {
         return stringLiteral;
       },
 
-      function getObject(parser: JsonParser): SimpleTemplateElement {
+      function getObject(parser: JsonParser): SimpleTemplateItem {
         if (!parser.matchString('{')) return null;
 
         const result = {};
@@ -97,7 +97,7 @@ class JsonParser extends Parser implements CustomParser {
         return null;
       },
 
-      function getArray(parser: JsonParser): SimpleTemplateElement {
+      function getArray(parser: JsonParser): SimpleTemplateItem {
         if (!parser.matchString('[')) return null;
 
         const result = [];

@@ -1,4 +1,4 @@
-enum TemplateElementType {
+enum TemplateItemType {
   TEXT = 1,
   INTERPOLATOR = 2,
   TRIPLE = 3,
@@ -58,7 +58,7 @@ enum TemplateElementType {
   DELEGATE_FLAG = 74
 }
 
-export default TemplateElementType;
+export default TemplateItemType;
 
 // todo remove const and use enum
 

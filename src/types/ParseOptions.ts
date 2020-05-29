@@ -37,10 +37,42 @@ export interface BaseParseOpts {
   tripleDelimiters?: ParseDelimiters;
 }
 
+export interface InterpolateOpts {
+  script?: boolean;
+  textarea?: boolean;
+  template?: boolean;
+  style?: boolean;
+}
+
 export interface ParseOpts extends BaseParseOpts {
   /** If true, the parser will operate as if in a tag e.g. foo="bar" is parsed as an attribute rather than a string. */
   attributes?: boolean;
 
   /** If true, will parse elements as plain text, which allows the resulting template to be used to produce templates that are also later parsed. */
   textOnlyMode?: boolean;
+
+  /**
+   * Map of elements that indicates whether or not to read mustaches within the element.
+   * Defaults to `{ script: false, textarea: true, template: false, style: false }`.
+   * Elements present within the map treat nested tags as text rather than elements.
+   */
+  interpolate?: InterpolateOpts;
+
+  /**
+   * When `true` will include line positions on each node of the parser output.Defaults to `false`
+   */
+  includeLinePositions?: boolean;
+
+  /**
+   * Setting this to `false` will cause any template expressions to be replaced with a noop.
+   * This is useful if you don't trust the templates you are using in contexts like server-side rendering,
+   * as a content security policy or simply using the runtime-only version of Ractive that has no parser cover
+   * the browser environment pretty well.
+   */
+  allowExpressions?: boolean;
+
+  /**
+   * @todo write doc
+   */
+  expression: boolean;
 }

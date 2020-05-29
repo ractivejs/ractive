@@ -1,5 +1,5 @@
 import { TEMPLATE_VERSION } from 'config/template';
-import Parser from './Parser';
+import Parser, { CustomParser } from './Parser';
 import readMustache from './converters/readMustache';
 import readTriple from './converters/mustache/readTriple';
 import readUnescaped from './converters/mustache/readUnescaped';
@@ -20,6 +20,8 @@ import flattenExpression from './utils/flattenExpression';
 import shared from '../Ractive/shared';
 import { assign, keys } from 'utils/object';
 import { isObjectType } from 'utils/is';
+import { ParseOpts, ParseDelimiters, InterpolateOpts } from 'types/ParseOptions';
+import { TemplateItemDefinition, TemplateModel, ExpressionTempleteItem } from './TemplateItems';
 
 // See https://github.com/ractivejs/template-spec for information
 // about the Ractive template specification
@@ -40,14 +42,46 @@ const preserveWhitespaceElements = { pre: 1, script: 1, style: 1, textarea: 1 };
 
 const defaultInterpolate = { textarea: true, script: true, style: true, template: true };
 
-const StandardParser = Parser.extend({
-  init(str, options) {
-    const tripleDelimiters = options.tripleDelimiters || shared.defaults.tripleDelimiters;
-    const staticDelimiters = options.staticDelimiters || shared.defaults.staticDelimiters;
-    const staticTripleDelimiters =
-      options.staticTripleDelimiters || shared.defaults.staticTripleDelimiters;
+interface StandardParserTag {
+  isStatic: boolean;
+  isTriple: boolean;
+  open: string;
+  close: string;
+  readers: any[]; // todo use converter type
+}
 
-    this.standardDelimiters = options.delimiters || shared.defaults.delimiters;
+// todo replace (shared as any) with correct type
+export class StandardParser extends Parser implements CustomParser {
+  // options
+  public standardDelimiters: ParseDelimiters;
+  public stripComments: boolean;
+  public preserveWhitespace: boolean;
+  public allowExpressions: boolean;
+  public interpolate: InterpolateOpts;
+  public sanitizeElements: string[];
+  public sanitizeEventAttributes: boolean;
+  public includeLinePositions: boolean;
+  public textOnlyMode: boolean;
+  public csp: boolean;
+  public expression: boolean;
+
+  public tags: StandardParserTag[];
+  public contextLines: any;
+  public sectionDepth: number;
+  public elementStack: any[];
+
+  public relaxedNames: any[];
+  public inEvent: boolean;
+  public inTag: boolean;
+  public whiteSpaceElements;
+
+  init(_str: string, options: ParseOpts): void {
+    const tripleDelimiters = options.tripleDelimiters || (shared as any).defaults.tripleDelimiters;
+    const staticDelimiters = options.staticDelimiters || (shared as any).defaults.staticDelimiters;
+    const staticTripleDelimiters =
+      options.staticTripleDelimiters || (shared as any).defaults.staticTripleDelimiters;
+
+    this.standardDelimiters = options.delimiters || (shared as any).defaults.delimiters;
 
     this.tags = [
       {
@@ -80,7 +114,7 @@ const StandardParser = Parser.extend({
       }
     ];
 
-    this.contextLines = options.contextLines || shared.defaults.contextLines;
+    this.contextLines = options.contextLines || (shared as any).defaults.contextLines;
 
     this.sortMustacheTags();
 
@@ -90,7 +124,7 @@ const StandardParser = Parser.extend({
     this.interpolate = assign(
       {},
       defaultInterpolate,
-      shared.defaults.interpolate,
+      (shared as any).defaults.interpolate,
       options.interpolate
     );
 
@@ -116,14 +150,15 @@ const StandardParser = Parser.extend({
     this.allowExpressions = options.allowExpressions;
 
     if (options.expression) this.converters = [readExpression];
+    else this.converters = [readTemplate];
 
     if (options.attributes) this.inTag = true;
 
     // special whitespace handling requested for certain elements
     this.whiteSpaceElements = assign({}, options.preserveWhitespace, preserveWhitespaceElements);
-  },
+  }
 
-  postProcess(result, options) {
+  postProcess(result, options: ParseOpts): TemplateModel | ExpressionTempleteItem {
     const [parserResult] = result;
 
     if (options.expression) {
@@ -160,19 +195,19 @@ const StandardParser = Parser.extend({
 
       return parserResult;
     }
-  },
+  }
 
-  converters: [readTemplate],
-
-  sortMustacheTags() {
-    // Sort in order of descending opening delimiter length (longer first),
-    // to protect against opening delimiters being substrings of each other
+  /**
+   * Sort in order of descending opening delimiter length (longer first),
+   * to protect against opening delimiters being substrings of each other
+   */
+  sortMustacheTags(): void {
     this.tags.sort((a, b) => {
       return b.open.length - a.open.length;
     });
   }
-});
+}
 
-export default function parse(template, options) {
+export default function parse(template: string, options: ParseOpts): TemplateItemDefinition {
   return new StandardParser(template, options || {}).result;
 }
