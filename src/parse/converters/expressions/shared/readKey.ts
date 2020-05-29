@@ -2,6 +2,7 @@ import readStringLiteral from '../primary/literal/readStringLiteral';
 import readNumberLiteral from '../primary/literal/readNumberLiteral';
 import { name as namePattern } from './patterns';
 import { LiteralTemplateElement } from 'parse/templateElements';
+import Parser from 'parse/Parser';
 
 const identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -9,10 +10,8 @@ const identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
  * can be any name, string literal, or number literal
  *
  * @see http://mathiasbynens.be/notes/javascript-properties
- *
- * @todo add parser type
  */
-export default function readKey(parser): string {
+export default function readKey(parser: Parser): string {
   let token: LiteralTemplateElement | string;
 
   if ((token = readStringLiteral(parser))) {
