@@ -38,6 +38,11 @@ class Parser {
 
   protected converters: Converter[];
 
+  // todo maybe the following properties can be moved to standard parser?
+  // if yes update also the converter function parser param type
+  public relaxedNames: any[];
+  public inEvent: boolean;
+
   constructor(str: string, options: BaseParseOpts) {
     this.str = str;
     this.options = options || {};
