@@ -1,4 +1,4 @@
-// import { warnIfDebug } from 'utils/log';
+import { warnIfDebug } from 'utils/log';
 import { create, hasOwn } from 'utils/object';
 import { BaseParseOpts } from 'types/ParseOptions';
 import { TemplateDefinition } from './templateElements';
@@ -208,8 +208,7 @@ class Parser {
     const msg = this.getContextMessage(this.pos, message)[2];
 
     // todo restore after log converted to ts
-    // warnIfDebug(msg);
-    console.warn(msg);
+    warnIfDebug(msg);
   }
 
   public static extend = function(proto) {

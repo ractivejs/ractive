@@ -10,7 +10,6 @@
   "typings": "typings/ractive.d.ts",
   "devDependencies": {
     "@evs-chris/buble": "^0.15.2",
-    "@rollup/plugin-typescript": "^3.1.1",
     "@typescript-eslint/eslint-plugin": "^2.31.0",
     "@typescript-eslint/parser": "^2.31.0",
     "cheerio": "^1.0.0-rc.3",
@@ -37,6 +36,7 @@
     "qunitjs": "^2.4.1",
     "rollup": "^0.55.3",
     "rollup-plugin-istanbul": "^2",
+    "rollup-plugin-typescript2": "^0.27.1",
     "tslib": "^1.11.2",
     "typedoc": "^0.17.6",
     "typescript": "^3.8.3"

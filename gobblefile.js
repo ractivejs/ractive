@@ -7,7 +7,14 @@ const fsPlus = require('fs-plus');
 const gobble = require('gobble');
 const buble = require('@evs-chris/buble');
 const rollupLib = require('rollup');
-const rollupTypescript = require('@rollup/plugin-typescript');
+
+/**
+ * with rollup-plugin-typescript2 we can import js files in ts files
+ * with @rollup/plugin-typescript that will break the compilation process
+ */
+// const rollupTypescript = require('@rollup/plugin-typescript');
+const rollupTypescript = require('rollup-plugin-typescript2');
+
 const istanbul = require('rollup-plugin-istanbul');
 const MagicString = require('magic-string');
 
