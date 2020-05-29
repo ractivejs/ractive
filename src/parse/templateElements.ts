@@ -11,13 +11,28 @@ export interface SimpleTemplateElement {
   v: string | any;
 }
 
-export interface LiteralTemplateElement {
+export interface ValueTemplateElement {
   t:
     | TemplateElementType.STRING_LITERAL
     | TemplateElementType.NUMBER_LITERAL
     | TemplateElementType.BOOLEAN_LITERAL
-    | TemplateElementType.REGEXP_LITERAL;
+    | TemplateElementType.REGEXP_LITERAL
+    | TemplateElementType.GLOBAL;
   v: string;
 }
 
-export type TemplateDefinition = SimpleTemplateElement | LiteralTemplateElement;
+export interface ReferenceTemplateElement {
+  t: TemplateElementType.REFERENCE;
+  n: string;
+}
+
+export interface BrackedTemplateElement {
+  t: TemplateElementType.BRACKETED;
+  x: ReferenceTemplateElement;
+}
+
+export type TemplateDefinition =
+  | SimpleTemplateElement
+  | ValueTemplateElement
+  | ReferenceTemplateElement
+  | BrackedTemplateElement;

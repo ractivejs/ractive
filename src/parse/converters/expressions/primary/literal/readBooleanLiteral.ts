@@ -1,8 +1,8 @@
 import TemplateElementType from 'config/types';
 import Parser from 'parse/Parser';
-import { LiteralTemplateElement } from 'parse/templateElements';
+import { ValueTemplateElement } from 'parse/templateElements';
 
-export default function readBooleanLiteral(parser: Parser): LiteralTemplateElement {
+export default function readBooleanLiteral(parser: Parser): ValueTemplateElement {
   const remaining = parser.remaining();
 
   if (remaining.substr(0, 4) === 'true') {
