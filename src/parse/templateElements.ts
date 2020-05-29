@@ -12,7 +12,10 @@ export interface SimpleTemplateElement {
 }
 
 export interface LiteralTemplateElement {
-  t: TemplateElementType.STRING_LITERAL | TemplateElementType.NUMBER_LITERAL;
+  t:
+    | TemplateElementType.STRING_LITERAL
+    | TemplateElementType.NUMBER_LITERAL
+    | TemplateElementType.REGEXP_LITERAL;
   v: string;
 }
 
