@@ -1,9 +1,11 @@
-import { COMMENT } from 'config/types';
+import TemplateItemType from 'config/types';
+import { StandardParser } from 'parse/_parse';
+import { CommentTemplateItem } from 'parse/TemplateItems';
 
 const OPEN_COMMENT = '<!--';
 const CLOSE_COMMENT = '-->';
 
-export default function readHtmlComment(parser) {
+export default function readHtmlComment(parser: StandardParser): CommentTemplateItem {
   const start = parser.pos;
 
   if (parser.textOnlyMode || !parser.matchString(OPEN_COMMENT)) {
@@ -20,8 +22,8 @@ export default function readHtmlComment(parser) {
   const content = remaining.substr(0, endIndex);
   parser.pos += endIndex + 3;
 
-  const comment = {
-    t: COMMENT,
+  const comment: CommentTemplateItem = {
+    t: TemplateItemType.COMMENT,
     c: content
   };
 
