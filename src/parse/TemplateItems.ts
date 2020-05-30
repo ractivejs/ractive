@@ -79,6 +79,11 @@ export interface KeyValuePairTemplateItem {
   p?: boolean; // spreak, v contains a spread syntax (...)
 }
 
+export interface ObjectLiteralTemplateItem {
+  t: TemplateItemType.OBJECT_LITERAL;
+  m: KeyValuePairTemplateItem[];
+}
+
 export type TemplateItemDefinition =
   | SimpleTemplateItem
   | ValueTemplateItem

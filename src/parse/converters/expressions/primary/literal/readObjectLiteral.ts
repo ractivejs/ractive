@@ -1,7 +1,9 @@
-import { OBJECT_LITERAL } from '../../../../../config/types';
 import readKeyValuePairs from './objectLiteral/keyValuePairs';
+import TemplateItemType from 'config/types';
+import { ObjectLiteralTemplateItem } from 'parse/TemplateItems';
+import { StandardParser } from 'parse/_parse';
 
-export default function(parser) {
+export default function(parser: StandardParser): ObjectLiteralTemplateItem {
   const start = parser.pos;
 
   // allow whitespace
@@ -23,7 +25,7 @@ export default function(parser) {
   }
 
   return {
-    t: OBJECT_LITERAL,
+    t: TemplateItemType.OBJECT_LITERAL,
     m: keyValuePairs
   };
 }
