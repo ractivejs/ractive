@@ -48,7 +48,7 @@ export interface ReferenceTemplateItem {
 
 export interface BrackedTemplateItem {
   t: TemplateItemType.BRACKETED;
-  x: ReferenceTemplateItem;
+  x: ReferenceTemplateItem | ExpressionTempleteItem | OperatorTemplateItem;
 }
 
 export interface ExpressionTempleteItem {
@@ -58,6 +58,12 @@ export interface ExpressionTempleteItem {
   // body of the function function name and reference param
   // are replaced by _{index}
   s: string;
+}
+
+export interface OperatorTemplateItem {
+  t: TemplateItemType.INFIX_OPERATOR | TemplateItemType.PREFIX_OPERATOR;
+  s: string; // type of peration (e.g. +)
+  o: any[]; // operators
 }
 
 export interface CommentTemplateItem {
