@@ -1,5 +1,4 @@
 import { warnIfDebug } from 'utils/log';
-import { create, hasOwn } from 'utils/object';
 import { BaseParseOpts } from 'types/ParseOptions';
 import { TemplateItemDefinition } from './TemplateItems';
 
@@ -75,7 +74,7 @@ class Parser {
     return items;
   }
 
-  read(converters?): any {
+  read(converters?: Converter[]): any {
     let i: number;
     let item;
 
@@ -162,7 +161,7 @@ class Parser {
   error(message: string): void {
     const [lineNum, columnNum, msg] = this.getContextMessage(this.pos, message);
 
-    const error = new ParseError(msg as string);
+    const error = new ParseError(msg);
 
     error.line = lineNum;
     error.character = columnNum;
@@ -202,28 +201,8 @@ class Parser {
   warn(message: string): void {
     const msg = this.getContextMessage(this.pos, message)[2];
 
-    // todo restore after log converted to ts
     warnIfDebug(msg);
   }
-
-  public static extend = function(proto) {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const Parent = this;
-    const Child = function(str, options) {
-      Parser.call(this, str, options);
-    };
-
-    Child.prototype = create(Parent.prototype);
-
-    for (const key in proto) {
-      if (hasOwn(proto, key)) {
-        Child.prototype[key] = proto[key];
-      }
-    }
-
-    Child.extend = Parser.extend;
-    return Child;
-  };
 }
 
 export default Parser;
