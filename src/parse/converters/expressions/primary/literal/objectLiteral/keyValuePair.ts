@@ -1,9 +1,11 @@
-import { KEY_VALUE_PAIR, REFERENCE } from 'src/config/types';
+import TemplateItemType from 'config/types';
 import readKey from '../../../shared/readKey';
-import readExpression from '../../../../readExpression';
+import readExpression from 'parse/converters/readExpression';
 import { name as namePattern, spreadPattern } from '../../../shared/patterns';
+import { StandardParser } from 'parse/_parse';
+import { KeyValuePairTemplateItem } from 'parse/TemplateItems';
 
-export default function readKeyValuePair(parser) {
+export default function readKeyValuePair(parser: StandardParser): KeyValuePairTemplateItem {
   let spread;
   const start = parser.pos;
 
@@ -28,11 +30,11 @@ export default function readKeyValuePair(parser) {
       parser.error(`Expected a valid reference, but found '${key}' instead.`);
     }
 
-    const pair = {
-      t: KEY_VALUE_PAIR,
+    const pair: KeyValuePairTemplateItem = {
+      t: TemplateItemType.KEY_VALUE_PAIR,
       k: key,
       v: {
-        t: REFERENCE,
+        t: TemplateItemType.REFERENCE,
         n: key
       }
     };
@@ -61,7 +63,7 @@ export default function readKeyValuePair(parser) {
   }
 
   return {
-    t: KEY_VALUE_PAIR,
+    t: TemplateItemType.KEY_VALUE_PAIR,
     k: key,
     v: value
   };

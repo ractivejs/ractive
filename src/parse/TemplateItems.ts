@@ -55,8 +55,8 @@ export interface ExpressionTempleteItem {
   // function name or param dinamic names
   r: string[];
 
-  // body of the function function name and reference param
-  // are replaced by _{index}
+  // body of the function, includes also reference param
+  // are that are replaced by _{index}
   s: string;
 }
 
@@ -70,6 +70,13 @@ export interface CommentTemplateItem {
   t: TemplateItemType.COMMENT;
   c?: string; // content is available only for html comments
   q?: [number, number, number]; // line position
+}
+
+export interface KeyValuePairTemplateItem {
+  t: TemplateItemType.KEY_VALUE_PAIR;
+  k: string;
+  v: ReferenceTemplateItem | ExpressionTempleteItem;
+  p?: boolean; // spreak, v contains a spread syntax (...)
 }
 
 export type TemplateItemDefinition =
