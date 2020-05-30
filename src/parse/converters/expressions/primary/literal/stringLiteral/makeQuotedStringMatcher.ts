@@ -1,3 +1,5 @@
+import { StandardParser } from 'parse/_parse';
+
 // Match one or more characters until: ", ', \, or EOL/EOF.
 // EOL/EOF is written as (?!.) (meaning there's no non-newline char next).
 const stringMiddlePattern = /^(?=.)[^"'\\]+?(?:(?!.)|(?=["'\\]))/;
@@ -10,8 +12,7 @@ export const lineContinuationPattern = /^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/;
 
 // Helper for defining getDoubleQuotedString and getSingleQuotedString.
 export default function(okQuote: string) {
-  // todo add parser type
-  return function(parser): string {
+  return function(parser: StandardParser): string {
     let literal = '"';
     let done = false;
     let next;
