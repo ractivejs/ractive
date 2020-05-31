@@ -109,11 +109,21 @@ export interface ArrayLiteralTemplateItem {
   p?: boolean; // spreak, v contains a spread syntax (...)
 }
 
+// define output of readLiteral
 export type LiteralTemplateDefinition =
   | ValueTemplateItem
   | BrackedTemplateItem
   | ObjectLiteralTemplateItem
   | ArrayLiteralTemplateItem;
+
+// define output of readPrimary
+export type PrimaryExpressionTemplateDefinition =
+  | ValueTemplateItem
+  | BrackedTemplateItem
+  | ObjectLiteralTemplateItem
+  | ArrayLiteralTemplateItem
+  | ReferenceTemplateItem
+  | GlobalValueTemplateItem;
 
 // EXPRESSIONS <<<
 
