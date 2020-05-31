@@ -1,12 +1,19 @@
-import { PREFIX_OPERATOR } from 'config/types';
+import TemplateItemType from 'config/types';
 import { expectedExpression } from './shared/errors';
 import readMemberOrInvocation from './readMemberOrInvocation';
 import readExpression from '../readExpression';
+import { StandardParser } from 'parse/_parse';
+import { PrefixOperatorTemplateItem } from 'parse/TemplateItems';
 
-let readTypeOf;
+let readTypeOf: ReadTypeOfConverter;
 
-const makePrefixSequenceMatcher = function(symbol, fallthrough) {
-  return function(parser) {
+type ReadTypeOfConverter = (parser: StandardParser) => PrefixOperatorTemplateItem;
+
+const makePrefixSequenceMatcher = function(
+  symbol: string,
+  fallthrough: ReadTypeOfConverter
+): ReadTypeOfConverter {
+  return function(parser: StandardParser) {
     let expression;
 
     if ((expression = fallthrough(parser))) {
@@ -25,11 +32,11 @@ const makePrefixSequenceMatcher = function(symbol, fallthrough) {
     }
 
     return {
+      t: TemplateItemType.PREFIX_OPERATOR,
       s: symbol,
-      o: expression,
-      t: PREFIX_OPERATOR
+      o: expression
     };
-  };
+  } as ReadTypeOfConverter;
 };
 
 // create all prefix sequence matchers, return readTypeOf

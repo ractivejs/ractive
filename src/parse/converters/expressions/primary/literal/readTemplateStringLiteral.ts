@@ -5,7 +5,7 @@ import {
   lineContinuationPattern
 } from './stringLiteral/makeQuotedStringMatcher';
 import { StandardParser } from 'parse/_parse';
-import { BrackedTemplateItem, ValueTemplateItem, OperatorTemplateItem } from 'parse/TemplateItems';
+import { BrackedTemplateItem, ValueTemplateItem } from 'parse/TemplateItems';
 
 // Match one or more characters until: ", ', or \
 const stringMiddlePattern = /^[^`"\\\$]+?(?:(?=[`"\\\$]))/;
@@ -101,7 +101,7 @@ export default function readTemplateStringLiteral(
         t: TemplateItemType.INFIX_OPERATOR,
         s: '+',
         o: [part, result]
-      } as OperatorTemplateItem;
+      };
     }
 
     return {

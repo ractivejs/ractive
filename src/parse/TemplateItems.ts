@@ -75,10 +75,18 @@ export interface BrackedTemplateItem {
   x: ExpressionTemplateItem;
 }
 
-export interface OperatorTemplateItem {
-  t: TemplateItemType.INFIX_OPERATOR | TemplateItemType.PREFIX_OPERATOR;
-  s: string; // type of peration (e.g. +)
-  o: any[]; // operators
+export interface InfixOperatorTemplateItem {
+  t: TemplateItemType.INFIX_OPERATOR;
+  s: string; // type of operation (e.g. +)
+
+  // operators, the secondo element can be another InfixOperator
+  o: [ValueTemplateItem, ValueTemplateItem | InfixOperatorTemplateItem];
+}
+
+export interface PrefixOperatorTemplateItem {
+  t: TemplateItemType.PREFIX_OPERATOR;
+  s: string;
+  o: ExpressionTemplateItem;
 }
 
 export interface ConditionalOperatorTemplateItem {
@@ -94,19 +102,19 @@ export interface KeyValuePairTemplateItem {
   t: TemplateItemType.KEY_VALUE_PAIR;
   k: string;
   v: ExpressionTemplateItem;
-  p?: boolean; // spreak, v contains a spread syntax (...)
+  p?: boolean; // spread, v contains a spread syntax (...)
 }
 
 export interface ObjectLiteralTemplateItem {
   t: TemplateItemType.OBJECT_LITERAL;
   m: KeyValuePairTemplateItem[];
-  p?: boolean; // spreak, v contains a spread syntax (...)
+  p?: boolean; // spread, v contains a spread syntax (...)
 }
 
 export interface ArrayLiteralTemplateItem {
   t: TemplateItemType.ARRAY_LITERAL;
   m: ExpressionTemplateItem[]; // todo add correct type (related to readExpression)
-  p?: boolean; // spreak, v contains a spread syntax (...)
+  p?: boolean; // spread, v contains a spread syntax (...)
 }
 
 // define output of readLiteral

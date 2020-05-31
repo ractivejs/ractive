@@ -65,6 +65,9 @@ export class StandardParser extends Parser implements CustomParser {
   public csp: boolean;
   public expression: boolean;
 
+  // todo this option is read but never set maybe we can remove it
+  public strictRefinement: boolean;
+
   public tags: StandardParserTag[];
   public contextLines: any;
   public sectionDepth: number;

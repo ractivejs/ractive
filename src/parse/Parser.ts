@@ -23,9 +23,10 @@ export interface CustomParser {
 }
 
 // todo add correct return types on props and methods
+// todo need to add parser type <T> and use it in result and postProcess function
 class Parser {
   public str: string;
-  public options: any;
+  public options: BaseParseOpts;
   public pos: number;
 
   public lines: string[];
@@ -177,9 +178,9 @@ class Parser {
   }
 
   matchPattern(pattern: RegExp): string {
-    let match: RegExpExecArray;
+    const match = pattern.exec(this.remaining());
 
-    if ((match = pattern.exec(this.remaining()))) {
+    if (match) {
       this.pos += match[0].length;
       return match[1] || match[0];
     }

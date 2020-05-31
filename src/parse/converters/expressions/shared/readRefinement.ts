@@ -1,9 +1,11 @@
 import { REFINEMENT } from 'config/types';
 import { expectedExpression } from './errors';
 import { name as namePattern } from './patterns';
-import readExpression from '../../readExpression';
+import readExpression from 'parse/converters/readExpression';
+import { RefinementTemplateItem } from 'parse/TemplateItems';
+import { StandardParser } from 'parse/_parse';
 
-export default function readRefinement(parser) {
+export default function readRefinement(parser: StandardParser): RefinementTemplateItem {
   // some things call for strict refinement (partial names), meaning no space between reference and refinement
   if (!parser.strictRefinement) {
     parser.sp();
