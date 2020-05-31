@@ -1,4 +1,5 @@
 import noop from 'utils/noop';
+
 import Item from './shared/Item';
 
 export default class Doctype extends Item {

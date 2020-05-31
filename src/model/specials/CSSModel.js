@@ -1,5 +1,6 @@
-import { SharedModel } from './SharedModel';
 import { applyChanges } from '../../Ractive/static/styleSet';
+
+import { SharedModel } from './SharedModel';
 
 export default class CSSModel extends SharedModel {
   constructor(component) {

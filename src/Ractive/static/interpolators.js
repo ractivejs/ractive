@@ -1,5 +1,5 @@
-import { isArray, isObject, isNumeric } from 'utils/is';
 import interpolate from 'shared/interpolate';
+import { isArray, isObject, isNumeric } from 'utils/is';
 import { hasOwn } from 'utils/object';
 
 const interpolators = {

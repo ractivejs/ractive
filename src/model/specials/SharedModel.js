@@ -1,5 +1,6 @@
-import Model from '../Model';
 import { base } from 'config/environment';
+
+import Model from '../Model';
 
 export const data = {};
 

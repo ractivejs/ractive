@@ -1,5 +1,6 @@
 import getFunction from 'shared/getFunction';
 import ExpressionProxy from 'src/view/resolvers/ExpressionProxy';
+
 import resolveReference from '../../resolvers/resolveReference';
 
 export function setupArgsFn(item, template, fragment, opts = {}) {

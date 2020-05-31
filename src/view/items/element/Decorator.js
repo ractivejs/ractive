@@ -1,11 +1,12 @@
-import { findInViewHierarchy } from 'shared/registry';
-import { warnOnce } from 'utils/log';
 import { missingPlugin } from 'config/errors';
-import noop from 'utils/noop';
+import { findInViewHierarchy } from 'shared/registry';
 import runloop from 'src/global/runloop';
-import findElement from '../shared/findElement';
-import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
+import { warnOnce } from 'utils/log';
+import noop from 'utils/noop';
+
 import Fragment from '../../Fragment';
+import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
+import findElement from '../shared/findElement';
 
 const missingDecorator = {
   update: noop,

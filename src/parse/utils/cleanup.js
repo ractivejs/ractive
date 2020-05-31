@@ -1,7 +1,8 @@
 import { COMMENT, ELEMENT } from 'config/types';
+import { isString } from 'utils/is';
+
 import stripStandalones from './stripStandalones';
 import trimWhitespace from './trimWhitespace';
-import { isString } from 'utils/is';
 
 const contiguousWhitespace = /[ \t\f\r\n]+/g;
 const leadingWhitespace = /^[ \t\f\r\n]+/;

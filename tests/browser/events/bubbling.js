@@ -1,6 +1,7 @@
-import { initModule, beforeEach } from '../../helpers/test-config';
-import { fire } from 'simulant';
 import { test } from 'qunit';
+import { fire } from 'simulant';
+
+import { initModule, beforeEach } from '../../helpers/test-config';
 
 export default function() {
   let Component;

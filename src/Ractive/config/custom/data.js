@@ -1,6 +1,6 @@
-import { fatal, warnIfDebug, warnOnceIfDebug } from 'utils/log';
-import { isArray, isObject, isFunction, isObjectType } from 'utils/is';
 import bind from 'utils/bind';
+import { isArray, isObject, isFunction, isObjectType } from 'utils/is';
+import { fatal, warnIfDebug, warnOnceIfDebug } from 'utils/log';
 
 function validate(data) {
   // Warn if userOptions.data is a non-POJO

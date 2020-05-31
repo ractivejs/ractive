@@ -1,4 +1,5 @@
 import { TEXT } from 'config/types';
+
 import Item from '../items/shared/Item';
 
 // TODO all this code needs to die

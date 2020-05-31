@@ -3,13 +3,15 @@ import Namespace from 'src/config/namespace';
 import { safeAttributeString } from 'utils/dom';
 import { booleanAttributes } from 'utils/html';
 import hyphenateCamel from 'utils/hyphenateCamel';
+import { isArray, isString, isUndefined } from 'utils/is';
+
 import Fragment from '../../Fragment';
-import Item from '../shared/Item';
 import findElement from '../shared/findElement';
+import Item from '../shared/Item';
+
 import getUpdateDelegate from './attribute/getUpdateDelegate';
 import propertyNames from './attribute/propertyNames';
 import { inAttributes } from './ConditionalAttribute';
-import { isArray, isString, isUndefined } from 'utils/is';
 
 function lookupNamespace(node, prefix) {
   const qualified = `xmlns:${prefix}`;
@@ -157,7 +159,8 @@ export default class Attribute extends Item {
     if (
       this.name === 'value' &&
       (this.element.getAttribute('contenteditable') !== undefined ||
-        (this.element.name === 'select' || this.element.name === 'textarea'))
+        this.element.name === 'select' ||
+        this.element.name === 'textarea')
     ) {
       return;
     }

@@ -1,5 +1,6 @@
-import { createFunction } from '../Ractive/config/runtime-parser';
 import { create, keys } from 'utils/object';
+
+import { createFunction } from '../Ractive/config/runtime-parser';
 
 const functions = create(null);
 

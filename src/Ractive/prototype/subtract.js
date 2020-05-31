@@ -1,5 +1,6 @@
-import add from './shared/add';
 import { isNumber, isObjectType } from 'utils/is';
+
+import add from './shared/add';
 
 export default function Ractive$subtract(keypath, d, options) {
   const num = isNumber(d) ? -d : -1;

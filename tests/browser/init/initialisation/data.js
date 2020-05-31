@@ -1,5 +1,6 @@
-import { hasUsableConsole, afterEach, onWarn, initModule } from '../../../helpers/test-config';
 import { test } from 'qunit';
+
+import { hasUsableConsole, afterEach, onWarn, initModule } from '../../../helpers/test-config';
 
 export default function() {
   const defaultData = Ractive.defaults.data;

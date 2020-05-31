@@ -1,7 +1,8 @@
 import { INFIX_OPERATOR } from 'config/types';
-import readTypeof, { TypeofOrMemberOrInvocationOrPrimary } from './readTypeof';
 import { StandardParser } from 'parse/_parse';
 import { InfixOperatorTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+
+import readTypeof, { TypeofOrMemberOrInvocationOrPrimary } from './readTypeof';
 
 export type LogicalOrTypeofOrMemberOrInvocationOrPrimary =
   | TypeofOrMemberOrInvocationOrPrimary

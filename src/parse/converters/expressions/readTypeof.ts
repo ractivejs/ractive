@@ -1,9 +1,11 @@
 import TemplateItemType from 'config/types';
-import { expectedExpression } from './shared/errors';
-import readMemberOrInvocation, { MemberOrInvocationOrPrimary } from './readMemberOrInvocation';
-import readExpression from '../readExpression';
 import { StandardParser } from 'parse/_parse';
 import { PrefixOperatorTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+
+import readExpression from '../readExpression';
+
+import readMemberOrInvocation, { MemberOrInvocationOrPrimary } from './readMemberOrInvocation';
+import { expectedExpression } from './shared/errors';
 
 /**
  * Includes template item reutorn by this module and readMemberOrInvocation

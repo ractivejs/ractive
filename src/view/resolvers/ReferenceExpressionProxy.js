@@ -1,13 +1,13 @@
-import { fireShuffleTasks } from 'src/model/ModelBase';
 import { REFERENCE } from 'config/types';
-import { rebindMatch } from 'shared/rebind';
-import { isArray, isString } from 'utils/is';
 import { escapeKey } from 'shared/keypaths';
-import ExpressionProxy from './ExpressionProxy';
-import resolveReference from './resolveReference';
-import resolve from './resolve';
-
+import { rebindMatch } from 'shared/rebind';
 import LinkModel, { Missing } from 'src/model/LinkModel';
+import { fireShuffleTasks } from 'src/model/ModelBase';
+import { isArray, isString } from 'utils/is';
+
+import ExpressionProxy from './ExpressionProxy';
+import resolve from './resolve';
+import resolveReference from './resolveReference';
 
 export default class ReferenceExpressionProxy extends LinkModel {
   constructor(fragment, template) {

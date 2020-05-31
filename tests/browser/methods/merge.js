@@ -1,5 +1,6 @@
-import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
+
+import { initModule } from '../../helpers/test-config';
 
 export default function() {
   initModule('methods/merge.js');
@@ -403,7 +404,7 @@ export default function() {
     t.htmlEqual(fixture.innerHTML, 'c<span>c</span><span>b</span><span>a</span>');
 
     /*eslint-disable no-unused-vars*/
-    const [postC, postB, postA] = r.findAll('span');
+    const [, postB, postA] = r.findAll('span');
     /*eslint-enable no-unused-vars*/
 
     t.equal(postA.myId, 'a');

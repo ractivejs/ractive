@@ -1,18 +1,20 @@
 import { ANCHOR, COMPONENT } from 'config/types';
-import { warnIfDebug, warnOnceIfDebug } from 'utils/log';
-import { addToArray, removeFromArray } from 'utils/array';
-import noop from 'utils/noop';
-import fireEvent from 'src/events/fireEvent';
+import getFunction from 'shared/getFunction';
 import { splitKeypath } from 'shared/keypaths';
 import { findInViewHierarchy } from 'shared/registry';
-import findElement from './findElement';
-import { DOMEvent, CustomEvent } from '../element/ElementEvents';
-import RactiveEvent from '../component/RactiveEvent';
-import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
+import fireEvent from 'src/events/fireEvent';
 import Context from 'src/shared/Context';
+import { addToArray, removeFromArray } from 'utils/array';
 import { isArray, isString } from 'utils/is';
-import getFunction from 'shared/getFunction';
+import { warnIfDebug, warnOnceIfDebug } from 'utils/log';
+import noop from 'utils/noop';
+
 import resolveReference from '../../resolvers/resolveReference';
+import RactiveEvent from '../component/RactiveEvent';
+import { DOMEvent, CustomEvent } from '../element/ElementEvents';
+import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
+
+import findElement from './findElement';
 
 const specialPattern = /^(event|arguments|@node|@event|@context)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;

@@ -1,8 +1,9 @@
 import { TEMPLATE_VERSION } from 'config/template';
 import { addFunctions } from 'shared/getFunction';
-import parser from '../runtime-parser';
-import { hasOwn } from 'utils/object';
 import { isFunction, isNumber, isString } from 'utils/is';
+import { hasOwn } from 'utils/object';
+
+import parser from '../runtime-parser';
 
 export default {
   name: 'template',
@@ -126,9 +127,7 @@ function validate(template) {
   } else if (template.v !== TEMPLATE_VERSION) {
     // Check we're using the correct version
     throw new Error(
-      `Mismatched template version (expected ${TEMPLATE_VERSION}, got ${
-        template.v
-      }) Please ensure you are using the latest version of Ractive.js in your build process as well as in your app`
+      `Mismatched template version (expected ${TEMPLATE_VERSION}, got ${template.v}) Please ensure you are using the latest version of Ractive.js in your build process as well as in your app`
     );
   }
 }

@@ -1,7 +1,3 @@
-import readPrimary from './readPrimary';
-import readExpressionList from './shared/readExpressionList';
-import readRefinement from './shared/readRefinement';
-import { expectedParen } from './shared/errors';
 import TemplateItemType from 'config/types';
 import { StandardParser } from 'parse/_parse';
 import {
@@ -9,6 +5,11 @@ import {
   InvocationTemplateItem,
   PrimaryExpressionTemplateDefinition
 } from 'parse/converters/expressions/expressionDefinitions';
+
+import readPrimary from './readPrimary';
+import { expectedParen } from './shared/errors';
+import readExpressionList from './shared/readExpressionList';
+import readRefinement from './shared/readRefinement';
 
 /**
  * Return value of this function must include also primary returned values

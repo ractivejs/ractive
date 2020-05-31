@@ -1,5 +1,6 @@
-import getLowestIndex from './utils/getLowestIndex';
 import { decodeCharacterReferences } from 'utils/html';
+
+import getLowestIndex from './utils/getLowestIndex';
 
 export default function readText(parser) {
   let index, disallowed, barrier;

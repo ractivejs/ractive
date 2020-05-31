@@ -1,5 +1,5 @@
-import { isObjectType } from 'utils/is';
 import { FindOptions } from 'src/types/Options';
+import { isObjectType } from 'utils/is';
 
 // TODO replace unkown with Ractive after we create ractive file
 

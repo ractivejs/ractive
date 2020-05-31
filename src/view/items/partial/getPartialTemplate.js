@@ -1,10 +1,10 @@
 import { noRegistryFunctionReturn } from 'config/errors';
+import { addFunctions } from 'shared/getFunction';
+import { findInstance } from 'shared/registry';
+import parser from 'src/Ractive/config/runtime-parser';
+import { isArray, isFunction } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import { fillGaps, hasOwn } from 'utils/object';
-import parser from 'src/Ractive/config/runtime-parser';
-import { findInstance } from 'shared/registry';
-import { isArray, isFunction } from 'utils/is';
-import { addFunctions } from 'shared/getFunction';
 
 export default function getPartialTemplate(ractive, name, up) {
   // If the partial in instance or view heirarchy instances, great

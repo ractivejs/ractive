@@ -1,7 +1,7 @@
-import { hasOwn } from 'utils/object';
-import { isString, isObjectType } from 'utils/is';
 import { Keypath } from 'types/Keypath';
 import { ValueMap } from 'types/ValueMap';
+import { isString, isObjectType } from 'utils/is';
+import { hasOwn } from 'utils/object';
 
 // TODO this is legacy. sooner we can replace the old adaptor API the better
 /* istanbul ignore next */

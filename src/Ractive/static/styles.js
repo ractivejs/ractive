@@ -1,5 +1,6 @@
-import { isFunction } from 'utils/is';
 import { addCSS, applyCSS } from 'src/global/css';
+import { isFunction } from 'utils/is';
+
 import { recomputeCSS } from './styleSet';
 
 const styles = [];

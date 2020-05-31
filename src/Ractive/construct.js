@@ -1,17 +1,19 @@
-import { fatal, warnIfDebug, welcome } from 'utils/log';
 import { missingPlugin } from 'config/errors';
-import { ensureArray, combine } from 'utils/array';
-import { findInViewHierarchy } from 'shared/registry';
-import dataConfigurator from './config/custom/data';
-import RootModel from 'src/model/RootModel';
-import hooks from 'src/events/Hook';
-import subscribe from './helpers/subscribe';
-import Ractive from '../Ractive';
 import { ATTRIBUTE, BINDING_FLAG, DECORATOR, INTERPOLATOR, TRANSITION } from 'config/types';
-import { assign, create, hasOwn } from 'utils/object';
-import { isArray, isString } from 'utils/is';
+import { findInViewHierarchy } from 'shared/registry';
+import hooks from 'src/events/Hook';
+import RootModel from 'src/model/RootModel';
 import { compute } from 'src/Ractive/prototype/compute';
+import { ensureArray, combine } from 'utils/array';
+import { isArray, isString } from 'utils/is';
+import { fatal, warnIfDebug, welcome } from 'utils/log';
+import { assign, create, hasOwn } from 'utils/object';
+
+import Ractive from '../Ractive';
 import getRactiveContext from '../shared/getRactiveContext';
+
+import dataConfigurator from './config/custom/data';
+import subscribe from './helpers/subscribe';
 
 const registryNames = [
   'adaptors',

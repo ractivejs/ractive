@@ -5,33 +5,32 @@ import './polyfills/performance.now';
 import './polyfills/Promise';
 import './polyfills/requestAnimationFrame';
 
-import defaults from './Ractive/config/defaults';
-import easing from './Ractive/static/easing';
-import interpolators from './Ractive/static/interpolators';
+import { warn } from 'utils/log';
+import { assign, defineProperty, defineProperties } from 'utils/object';
+
 import { svg, win } from './config/environment';
-import proto from './Ractive/prototype';
 import { extend, extendWith } from './extend/_extend';
 import macro from './extend/_macro';
-import parse from './parse/_parse';
-import getContext from './Ractive/static/getContext';
-import isInstance from './Ractive/static/isInstance';
-import use from './Ractive/static/use';
-import construct from './Ractive/construct';
-import initialise from './Ractive/initialise';
 import { getCSS, splitTag } from './global/css';
-import { escapeKey, unescapeKey, normalise } from './shared/keypaths';
-import { joinKeys, splitKeypath } from './Ractive/static/keypaths';
-import shared from './Ractive/shared';
-import { findPlugin } from './Ractive/static/findPlugin';
-import parseJSON from './utils/parseJSON';
+import { batch } from './global/runloop';
 import CSSModel from './model/specials/CSSModel';
 import { data as sharedData } from './model/specials/SharedModel';
+import parse from './parse/_parse';
+import defaults from './Ractive/config/defaults';
+import construct from './Ractive/construct';
+import initialise from './Ractive/initialise';
+import proto from './Ractive/prototype';
+import shared from './Ractive/shared';
+import easing from './Ractive/static/easing';
+import { findPlugin } from './Ractive/static/findPlugin';
+import getContext from './Ractive/static/getContext';
+import interpolators from './Ractive/static/interpolators';
+import isInstance from './Ractive/static/isInstance';
+import { joinKeys, splitKeypath } from './Ractive/static/keypaths';
+import use from './Ractive/static/use';
 import { extern } from './shared/getRactiveContext';
-import { warn } from 'utils/log';
-
-import { batch } from './global/runloop';
-
-import { assign, defineProperty, defineProperties } from 'utils/object';
+import { escapeKey, unescapeKey, normalise } from './shared/keypaths';
+import parseJSON from './utils/parseJSON';
 
 export default function Ractive(options) {
   if (!(this instanceof Ractive)) return new Ractive(options);

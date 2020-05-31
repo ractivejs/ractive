@@ -1,7 +1,7 @@
 import { splitKeypath } from 'shared/keypaths';
-import { isString, isFunction } from 'utils/is';
 import runloop from 'src/global/runloop';
 import { fireShuffleTasks } from 'src/model/ModelBase';
+import { isString, isFunction } from 'utils/is';
 
 export function compute(path, computed) {
   this.computed[path] = computed;

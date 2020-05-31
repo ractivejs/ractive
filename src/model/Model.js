@@ -1,15 +1,16 @@
-import ModelBase, { checkDataLink, maybeBind, shuffle } from './ModelBase';
-import './LinkModel';
-import getComputationSignature from 'src/Ractive/helpers/getComputationSignature';
-import { capture } from 'src/global/capture';
-import { isArray, isEqual, isNumeric, isObjectLike, isUndefined } from 'utils/is';
+import { unescapeKey } from 'shared/keypaths';
 import { handleChange, mark, markForce, marked, teardown } from 'shared/methodCallers';
 import Ticker from 'shared/Ticker';
-import getPrefixer from './helpers/getPrefixer';
-import { unescapeKey } from 'shared/keypaths';
+import { capture } from 'src/global/capture';
+import getComputationSignature from 'src/Ractive/helpers/getComputationSignature';
+import { buildNewIndices } from 'utils/array';
+import { isArray, isEqual, isNumeric, isObjectLike, isUndefined } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn, keys } from 'utils/object';
-import { buildNewIndices } from 'utils/array';
+
+import './LinkModel';
+import getPrefixer from './helpers/getPrefixer';
+import ModelBase, { checkDataLink, maybeBind, shuffle } from './ModelBase';
 
 export const shared = {};
 

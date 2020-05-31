@@ -1,8 +1,8 @@
 import { noRegistryFunctionReturn } from 'config/errors';
-import { warnIfDebug } from 'utils/log';
 import { findInstance } from 'shared/registry';
-import { hasOwn } from 'utils/object';
 import { isFunction, isString } from 'utils/is';
+import { warnIfDebug } from 'utils/log';
+import { hasOwn } from 'utils/object';
 
 // finds the component constructor in the registry or view hierarchy registries
 export default function getComponentConstructor(ractive, name) {

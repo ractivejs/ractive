@@ -1,8 +1,9 @@
 import runloop from 'src/global/runloop';
+import { isUndefined } from 'utils/is';
 import { warnOnceIfDebug } from 'utils/log';
 import noop from 'utils/noop';
+
 import findElement from '../../shared/findElement';
-import { isUndefined } from 'utils/is';
 
 export default class Binding {
   constructor(element, name = 'value') {
@@ -18,11 +19,7 @@ export default class Binding {
     if (model.isReadonly && !model.setRoot) {
       const keypath = model.getKeypath().replace(/^@/, '');
       warnOnceIfDebug(
-        `Cannot use two-way binding on <${
-          element.name
-        }> element: ${keypath} is read-only. To suppress this warning use <${
-          element.name
-        } twoway='false'...>`,
+        `Cannot use two-way binding on <${element.name}> element: ${keypath} is read-only. To suppress this warning use <${element.name} twoway='false'...>`,
         { ractive: this.ractive }
       );
       return false;

@@ -1,5 +1,5 @@
-import noop from 'utils/noop';
 import { isFunction } from 'utils/is';
+import noop from 'utils/noop';
 
 export default function wrap(parent, name, method) {
   if (!/_super/.test(method)) return method;

@@ -1,6 +1,8 @@
-import { PARTIAL, YIELDER } from 'src/config/types';
-import readExpression from '../readExpression';
 import refineExpression from 'parse/utils/refineExpression';
+import { PARTIAL, YIELDER } from 'src/config/types';
+
+import readExpression from '../readExpression';
+
 import { readAliases } from './readAliases';
 
 export default function readPartial(parser, tag) {
@@ -55,7 +57,7 @@ export default function readPartial(parser, tag) {
       }
     }
 
-    if (type !== '>' && (!partial.c && !partial.z)) {
+    if (type !== '>' && !partial.c && !partial.z) {
       // {{yield with}} requires some aliases
       parser.error(`Expected a context or one or more aliases`);
     }

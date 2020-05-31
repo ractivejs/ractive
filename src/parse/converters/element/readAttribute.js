@@ -1,3 +1,8 @@
+import flattenExpression from 'parse/utils/flattenExpression';
+import refineExpression from 'parse/utils/refineExpression';
+import { decodeCharacterReferences } from 'src/utils/html';
+import { isString } from 'utils/is';
+
 import {
   ARRAY_LITERAL,
   ATTRIBUTE,
@@ -8,14 +13,10 @@ import {
   TRANSITION,
   EVENT
 } from '../../../config/types';
-import getLowestIndex from '../utils/getLowestIndex';
-import readMustache from '../readMustache';
-import { decodeCharacterReferences } from 'src/utils/html';
 import readExpressionList from '../expressions/shared/readExpressionList';
 import readExpressionOrReference from '../readExpressionOrReference';
-import flattenExpression from 'parse/utils/flattenExpression';
-import refineExpression from 'parse/utils/refineExpression';
-import { isString } from 'utils/is';
+import readMustache from '../readMustache';
+import getLowestIndex from '../utils/getLowestIndex';
 
 const attributeNamePattern = /^[^\s"'>\/=(]+/;
 const onPattern = /^on/;

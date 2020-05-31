@@ -1,8 +1,9 @@
 import { INTERPOLATOR, ELEMENT } from 'config/types';
-import Item from '../shared/Item';
+import { isArray } from 'utils/is';
+
 import Fragment from '../../Fragment';
 import findElement from '../shared/findElement';
-import { isArray } from 'utils/is';
+import Item from '../shared/Item';
 
 export default class BindingFlag extends Item {
   constructor(options) {

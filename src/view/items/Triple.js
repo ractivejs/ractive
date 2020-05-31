@@ -1,10 +1,11 @@
+import runloop from 'src/global/runloop';
 import { createDocumentFragment, matches } from 'utils/dom';
 import { detachNode } from 'utils/dom';
 import { decodeCharacterReferences } from 'utils/html';
-import runloop from 'src/global/runloop';
+
+import { inAttribute } from './element/Attribute';
 import Mustache from './shared/Mustache';
 import insertHtml from './triple/insertHtml';
-import { inAttribute } from './element/Attribute';
 
 export default class Triple extends Mustache {
   constructor(options) {

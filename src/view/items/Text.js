@@ -1,10 +1,11 @@
 import { TEXT } from 'config/types';
-import { escapeHtml } from 'utils/html';
 import { detachNode } from 'utils/dom';
+import { escapeHtml } from 'utils/html';
 import noop from 'utils/noop';
+
+import { inAttributes } from './element/ConditionalAttribute';
 import Item from './shared/Item';
 import progressiveText from './shared/progressiveText';
-import { inAttributes } from './element/ConditionalAttribute';
 
 export default class Text extends Item {
   constructor(options) {

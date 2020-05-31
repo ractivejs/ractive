@@ -1,5 +1,6 @@
-import Element from '../../Element';
 import { isFunction } from 'utils/is';
+
+import Element from '../../Element';
 
 export default class Input extends Element {
   render(target, occupants) {

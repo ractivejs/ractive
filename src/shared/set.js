@@ -1,10 +1,12 @@
+import resolveReference from 'src/view/resolvers/resolveReference';
 import { isArray, isObject, isObjectType, isFunction, isString, isUndefined } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
-import resolveReference from 'src/view/resolvers/resolveReference';
-import runloop from '../global/runloop';
-import { splitKeypath } from './keypaths';
-import { FakeFragment } from './getRactiveContext';
 import { hasOwn } from 'utils/object';
+
+import runloop from '../global/runloop';
+
+import { FakeFragment } from './getRactiveContext';
+import { splitKeypath } from './keypaths';
 
 export let keep = false;
 

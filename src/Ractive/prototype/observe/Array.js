@@ -1,6 +1,6 @@
+import runloop from 'src/global/runloop';
 import { removeFromArray } from 'utils/array';
 import { isArray, isUndefined } from 'utils/is';
-import runloop from 'src/global/runloop';
 import { warnIfDebug } from 'utils/log';
 
 function negativeOne() {

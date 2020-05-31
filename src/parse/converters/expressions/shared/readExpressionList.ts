@@ -1,8 +1,10 @@
-import { expectedExpression } from './errors';
-import readExpression from '../../readExpression';
-import { spreadPattern } from './patterns';
 import { StandardParser } from 'parse/_parse';
+
+import readExpression from '../../readExpression';
 import { ExpressionTemplateItem, ExpressionWithSpread } from '../expressionDefinitions';
+
+import { expectedExpression } from './errors';
+import { spreadPattern } from './patterns';
 
 export default function readExpressionList(
   parser: StandardParser,

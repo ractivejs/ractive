@@ -6,15 +6,17 @@ import {
   SECTION_UNLESS,
   SECTION_WITH
 } from 'config/types';
-import { createDocumentFragment } from 'utils/dom';
-import { isArray, isObject, isObjectLike, isUndefined } from 'utils/is';
 import { keep } from 'shared/set';
 import runloop from 'src/global/runloop';
+import Context from 'src/shared/Context';
+import { createDocumentFragment } from 'utils/dom';
+import { isArray, isObject, isObjectLike, isUndefined } from 'utils/is';
+import { keys } from 'utils/object';
+
 import Fragment from '../Fragment';
 import RepeatedFragment from '../RepeatedFragment';
+
 import { MustacheContainer } from './shared/Mustache';
-import { keys } from 'utils/object';
-import Context from 'src/shared/Context';
 
 function isEmpty(value) {
   return (

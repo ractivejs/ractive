@@ -1,6 +1,6 @@
+import { unrenderChild, updateAnchors } from 'shared/anchors';
 import hooks from 'src/events/Hook';
 import runloop from 'src/global/runloop';
-import { unrenderChild, updateAnchors } from 'shared/anchors';
 
 export default function attachChild(child, options = {}) {
   const children = this._children;
@@ -8,9 +8,7 @@ export default function attachChild(child, options = {}) {
 
   if (child.parent && child.parent !== this)
     throw new Error(
-      `Instance ${child._guid} is already attached to a different instance ${
-        child.parent._guid
-      }. Please detach it from the other instance using detachChild first.`
+      `Instance ${child._guid} is already attached to a different instance ${child.parent._guid}. Please detach it from the other instance using detachChild first.`
     );
   else if (child.parent)
     throw new Error(`Instance ${child._guid} is already attached to this instance.`);

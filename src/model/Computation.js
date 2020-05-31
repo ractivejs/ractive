@@ -1,13 +1,14 @@
 /* eslint no-console:"off" */
 
+import { hasConsole } from 'config/environment';
 import { capture, startCapturing, stopCapturing } from 'src/global/capture';
+import runloop from 'src/global/runloop';
+import { isEqual } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
+
+import ComputationChild from './ComputationChild';
 import Model, { shared } from './Model';
 import { maybeBind, noVirtual } from './ModelBase';
-import ComputationChild from './ComputationChild';
-import { hasConsole } from 'config/environment';
-import { isEqual } from 'utils/is';
-import runloop from 'src/global/runloop';
 
 export default class Computation extends Model {
   constructor(parent, signature, key) {

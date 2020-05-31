@@ -1,9 +1,11 @@
 /* eslint no-console:"off" */
 
+import { isObjectType } from 'utils/is';
+
 import { hasConsole } from '../config/environment';
 import Ractive from '../Ractive';
+
 import noop from './noop';
-import { isObjectType } from 'utils/is';
 
 const alreadyWarned = {};
 let log, printWarning, welcome;

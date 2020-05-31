@@ -1,5 +1,6 @@
-import { onWarn, initModule } from '../helpers/test-config';
 import { test } from 'qunit';
+
+import { onWarn, initModule } from '../helpers/test-config';
 
 export default function() {
   initModule('rebind.js');
@@ -347,7 +348,10 @@ export default function() {
 		{{/}}
 	{{/}}`,
       data: {
-        items: [{ name: 'foo', disabled: true }, { name: 'bar', disabled: true }]
+        items: [
+          { name: 'foo', disabled: true },
+          { name: 'bar', disabled: true }
+        ]
       }
     });
 
@@ -371,7 +375,10 @@ export default function() {
 		{{/}}
 	{{/}}`,
       data: {
-        items: [{ name: 'foo', disabled: false }, { name: 'bar', disabled: false }]
+        items: [
+          { name: 'foo', disabled: false },
+          { name: 'bar', disabled: false }
+        ]
       }
     });
 
@@ -393,7 +400,10 @@ export default function() {
 		{{/}}
 	{{/}}`,
       data: {
-        items: [{ name: 'foo', disabled: false }, { name: 'bar', disabled: false }]
+        items: [
+          { name: 'foo', disabled: false },
+          { name: 'bar', disabled: false }
+        ]
       }
     });
 

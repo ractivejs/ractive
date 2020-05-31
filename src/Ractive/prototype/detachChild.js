@@ -1,6 +1,6 @@
+import { updateAnchors } from 'shared/anchors';
 import hooks from 'src/events/Hook';
 import runloop from 'src/global/runloop';
-import { updateAnchors } from 'shared/anchors';
 
 export default function detachChild(child) {
   const children = this._children;

@@ -1,10 +1,10 @@
+import CSSModel from 'src/model/specials/CSSModel';
+import { initCSS } from 'src/Ractive/config/custom/css/css';
+import { isFunction } from 'utils/is';
+import { assign, create, defineProperties, defineProperty } from 'utils/object';
+
 import styleGet from '../Ractive/static/styleGet';
 import styleSet from '../Ractive/static/styleSet';
-import CSSModel from 'src/model/specials/CSSModel';
-import { assign, create, defineProperties, defineProperty } from 'utils/object';
-import { isFunction } from 'utils/is';
-
-import { initCSS } from 'src/Ractive/config/custom/css/css';
 
 export default function macro(fn, opts) {
   if (!isFunction(fn)) throw new Error(`The macro must be a function`);

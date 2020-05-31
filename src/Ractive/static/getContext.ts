@@ -1,7 +1,7 @@
 import { doc } from 'config/environment';
 import getRactiveContext from 'shared/getRactiveContext';
-import { isString } from 'utils/is';
 import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
+import { isString } from 'utils/is';
 
 const query = doc?.querySelector;
 

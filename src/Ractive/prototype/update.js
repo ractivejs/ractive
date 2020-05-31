@@ -1,6 +1,6 @@
+import { splitKeypath } from 'shared/keypaths';
 import hooks from 'src/events/Hook';
 import runloop from 'src/global/runloop';
-import { splitKeypath } from 'shared/keypaths';
 import { isString } from 'utils/is';
 
 export function update(ractive, model, options) {

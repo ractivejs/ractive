@@ -1,6 +1,7 @@
-import { initModule, hasUsableConsole, onWarn } from '../../helpers/test-config';
-import { fire } from 'simulant';
 import { test } from 'qunit';
+import { fire } from 'simulant';
+
+import { initModule, hasUsableConsole, onWarn } from '../../helpers/test-config';
 
 // TODO tidy up, move some of these tests into separate files
 

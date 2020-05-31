@@ -1,17 +1,18 @@
+import { isArray, isFunction } from 'utils/is';
+import { create, defineProperties, toPairs, defineProperty } from 'utils/object';
+
+import Ractive from '../Ractive';
 import config from '../Ractive/config/config';
 import dataConfigurator from '../Ractive/config/custom/data';
 import construct from '../Ractive/construct';
 import initialise from '../Ractive/initialise';
-import Ractive from '../Ractive';
 import isInstance from '../Ractive/static/isInstance';
-import styleSet from '../Ractive/static/styleSet';
+import sharedGet from '../Ractive/static/sharedGet';
+import sharedSet from '../Ractive/static/sharedSet';
 import styleGet from '../Ractive/static/styleGet';
 import { addStyle, hasStyle } from '../Ractive/static/styles';
-import sharedSet from '../Ractive/static/sharedSet';
-import sharedGet from '../Ractive/static/sharedGet';
+import styleSet from '../Ractive/static/styleSet';
 import use from '../Ractive/static/use';
-import { create, defineProperties, toPairs, defineProperty } from 'utils/object';
-import { isArray, isFunction } from 'utils/is';
 
 const callsSuper = /super\s*\(|\.call\s*\(\s*this/;
 

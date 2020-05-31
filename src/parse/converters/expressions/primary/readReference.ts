@@ -1,12 +1,13 @@
 import TemplateItemType from 'config/types';
-import { normalise } from 'src/shared/keypaths';
-import { legalReference, relaxedName } from '../shared/patterns';
+import { StandardParser } from 'parse/_parse';
 import {
   ReferenceTemplateItem,
   BrackedTemplateItem,
   GlobalValueTemplateItem
 } from 'parse/converters/expressions/expressionDefinitions';
-import { StandardParser } from 'parse/_parse';
+import { normalise } from 'src/shared/keypaths';
+
+import { legalReference, relaxedName } from '../shared/patterns';
 
 // if a reference is a browser global, we don't deference it later, so it needs special treatment
 const globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null|Object|Number|String|Boolean)\b/;

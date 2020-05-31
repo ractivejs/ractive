@@ -1,5 +1,5 @@
-import { warnIfDebug } from 'utils/log';
 import { BaseParseOpts } from 'types/ParseOptions';
+import { warnIfDebug } from 'utils/log';
 
 const leadingWhitespace = /^\s+/;
 

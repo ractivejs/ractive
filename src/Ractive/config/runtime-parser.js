@@ -1,9 +1,9 @@
-import { fromExpression } from 'parse/utils/createFunction';
 import { doc } from 'config/environment';
-import { fatal } from 'utils/log';
-import { addFunctions } from 'shared/getFunction';
 import parse from 'parse/_parse';
+import { fromExpression } from 'parse/utils/createFunction';
+import { addFunctions } from 'shared/getFunction';
 import { isString } from 'utils/is';
+import { fatal } from 'utils/log';
 
 const parseOptions = [
   'delimiters',
@@ -39,7 +39,10 @@ export function createFunctionFromString(str, bindTo) {
   throwNoParse(parse, 'compution string "${str}"', COMPUTATION_INSTRUCTIONS);
   const tpl = parse(str, { expression: true });
   return function() {
-    return tpl.e.apply(bindTo, tpl.r.map(r => bindTo.get(r)));
+    return tpl.e.apply(
+      bindTo,
+      tpl.r.map(r => bindTo.get(r))
+    );
   };
 }
 

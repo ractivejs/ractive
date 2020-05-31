@@ -1,10 +1,12 @@
-import { logIfDebug, warnIfDebug, warnOnceIfDebug } from 'utils/log';
+import hooks from 'src/events/Hook';
+import Fragment from 'src/view/Fragment';
 import { getElement } from 'utils/dom';
 import { isArray } from 'utils/is';
-import config from './config/config';
-import Fragment from 'src/view/Fragment';
-import hooks from 'src/events/Hook';
+import { logIfDebug, warnIfDebug, warnOnceIfDebug } from 'utils/log';
+
 import Ractive from '../Ractive';
+
+import config from './config/config';
 import subscribe from './helpers/subscribe';
 
 export default function initialise(ractive, userOptions, options) {

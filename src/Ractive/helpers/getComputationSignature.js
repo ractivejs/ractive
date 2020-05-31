@@ -1,7 +1,8 @@
-import { fatal } from 'utils/log';
 import bind from 'utils/bind';
-import { createFunctionFromString } from '../config/runtime-parser';
 import { isFunction, isString, isObjectType } from 'utils/is';
+import { fatal } from 'utils/log';
+
+import { createFunctionFromString } from '../config/runtime-parser';
 
 export default function getComputationSignature(ractive, key, signature) {
   let getter;

@@ -1,5 +1,6 @@
 import TemplateItemType from 'config/types';
 import Parser from 'parse/Parser';
+
 import { ValueTemplateItem } from '../../expressionDefinitions';
 
 // bulletproof number regex from https://gist.github.com/Rich-Harris/7544330

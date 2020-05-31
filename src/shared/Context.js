@@ -1,15 +1,17 @@
-import resolveReference from 'src/view/resolvers/resolveReference';
-import Model from 'src/model/Model';
-import { isNumeric, isObject, isNumber, isObjectType, isString } from 'utils/is';
-import runloop from 'src/global/runloop';
-import findElement from 'src/view/items/shared/findElement';
-import { set as sharedSet } from './set';
-import makeArrayMethod from '../Ractive/prototype/shared/makeArrayMethod';
-import { animate as protoAnimate } from '../Ractive/prototype/animate';
-import { update as protoUpdate } from '../Ractive/prototype/update';
-import getRactiveContext, { extern, findParentWithContext } from './getRactiveContext';
-import { hasOwn } from 'utils/object';
 import { ELEMENT } from 'config/types';
+import runloop from 'src/global/runloop';
+import Model from 'src/model/Model';
+import findElement from 'src/view/items/shared/findElement';
+import resolveReference from 'src/view/resolvers/resolveReference';
+import { isNumeric, isObject, isNumber, isObjectType, isString } from 'utils/is';
+import { hasOwn } from 'utils/object';
+
+import { animate as protoAnimate } from '../Ractive/prototype/animate';
+import makeArrayMethod from '../Ractive/prototype/shared/makeArrayMethod';
+import { update as protoUpdate } from '../Ractive/prototype/update';
+
+import getRactiveContext, { extern, findParentWithContext } from './getRactiveContext';
+import { set as sharedSet } from './set';
 
 const modelPush = makeArrayMethod('push').model;
 const modelPop = makeArrayMethod('pop').model;

@@ -1,9 +1,9 @@
+import interpolate from 'shared/interpolate';
+import { splitKeypath } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
 import easing from 'src/Ractive/static/easing';
-import interpolate from 'shared/interpolate';
 import { isEqual, isFunction, isObjectType } from 'utils/is';
 import noop from 'utils/noop';
-import { splitKeypath } from 'shared/keypaths';
 import { defineProperty, keys as objectKeys } from 'utils/object';
 
 function immediate(value) {

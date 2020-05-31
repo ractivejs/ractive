@@ -1,5 +1,6 @@
 import TemplateItemType from 'config/types';
 import Parser from 'parse/Parser';
+
 import { ValueTemplateItem } from '../../expressionDefinitions';
 
 export default function readBooleanLiteral(parser: Parser): ValueTemplateItem {

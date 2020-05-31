@@ -1,6 +1,6 @@
 import runloop from 'src/global/runloop';
-import { EasingFunction } from 'types/Easings';
 import { assign } from 'src/utils/object';
+import { EasingFunction } from 'types/Easings';
 
 // TODO what happens if a transition is aborted?
 

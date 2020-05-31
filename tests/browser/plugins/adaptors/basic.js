@@ -1,7 +1,8 @@
+import { test } from 'qunit';
 import { fire } from 'simulant';
+
 import Model from '../../../helpers/Model';
 import { onWarn, initModule } from '../../../helpers/test-config';
-import { test } from 'qunit';
 
 export default function() {
   initModule('plugins/adaptors/basic.js');

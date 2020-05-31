@@ -1,6 +1,7 @@
-import { fire } from 'simulant';
-import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
+import { fire } from 'simulant';
+
+import { initModule } from '../../helpers/test-config';
 
 export default function() {
   initModule('methods/observe.js');
@@ -873,7 +874,10 @@ export default function() {
 					<input value='{{value}}'>{{value}}
 				{{/each}}`,
       data: {
-        items: [{ min: 10, max: 90, value: 0 }, { min: 10, max: 90, value: 100 }]
+        items: [
+          { min: 10, max: 90, value: 0 },
+          { min: 10, max: 90, value: 100 }
+        ]
       }
     });
 

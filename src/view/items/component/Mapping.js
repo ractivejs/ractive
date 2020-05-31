@@ -1,13 +1,14 @@
-import { INTERPOLATOR } from '../../../config/types';
-import Item from '../shared/Item';
-import Fragment from '../../Fragment';
-import findElement from '../shared/findElement';
-import parseJSON from '../../../utils/parseJSON';
-import resolve from '../../resolvers/resolve';
-import runloop from '../../../global/runloop';
-import { warnIfDebug } from 'utils/log';
 import { splitKeypath } from 'shared/keypaths';
 import { isArray, isObjectType, isString, isUndefined } from 'utils/is';
+import { warnIfDebug } from 'utils/log';
+
+import { INTERPOLATOR } from '../../../config/types';
+import runloop from '../../../global/runloop';
+import parseJSON from '../../../utils/parseJSON';
+import Fragment from '../../Fragment';
+import resolve from '../../resolvers/resolve';
+import findElement from '../shared/findElement';
+import Item from '../shared/Item';
 
 export default class Mapping extends Item {
   constructor(options) {

@@ -1,8 +1,9 @@
 import runloop from 'src/global/runloop';
-import config from '../config/config';
-import hooks from '../../events/Hook';
-import dataConfigurator from '../config/custom/data';
 import { isObjectType } from 'utils/is';
+
+import hooks from '../../events/Hook';
+import config from '../config/config';
+import dataConfigurator from '../config/custom/data';
 
 const shouldRerender = ['template', 'partials', 'components', 'decorators', 'events'];
 

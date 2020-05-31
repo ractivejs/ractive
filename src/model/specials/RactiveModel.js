@@ -1,6 +1,8 @@
-import { SharedModel } from './SharedModel';
-import { Missing } from '../LinkModel';
 import { create } from 'utils/object';
+
+import { Missing } from '../LinkModel';
+
+import { SharedModel } from './SharedModel';
 
 export default class RactiveModel extends SharedModel {
   constructor(ractive) {

@@ -1,13 +1,15 @@
-import { createDocumentFragment } from 'utils/dom';
-import { isArray, isObject, isObjectType, isUndefined } from 'utils/is';
-import { findMap, buildNewIndices } from 'utils/array';
-import { toEscapedString, toString, shuffled, update } from 'shared/methodCallers';
-import Fragment, { getKeypath } from './Fragment';
 import { ELEMENT } from 'config/types';
 import { getContext } from 'shared/getRactiveContext';
-import { keys } from 'utils/object';
+import { toEscapedString, toString, shuffled, update } from 'shared/methodCallers';
 import KeyModel from 'src/model/specials/KeyModel';
+import { findMap, buildNewIndices } from 'utils/array';
+import { createDocumentFragment } from 'utils/dom';
+import { isArray, isObject, isObjectType, isUndefined } from 'utils/is';
+import { keys } from 'utils/object';
+
 import { splitKeypath } from '../shared/keypaths';
+
+import Fragment, { getKeypath } from './Fragment';
 import resolve from './resolvers/resolve';
 
 const keypathString = /^"(\\"|[^"])+"$/;

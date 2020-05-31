@@ -1,7 +1,9 @@
-import readKeyValuePairs from './objectLiteral/keyValuePairs';
 import TemplateItemType from 'config/types';
 import { StandardParser } from 'parse/_parse';
+
 import { ObjectLiteralTemplateItem } from '../../expressionDefinitions';
+
+import readKeyValuePairs from './objectLiteral/keyValuePairs';
 
 export default function(parser: StandardParser): ObjectLiteralTemplateItem {
   const start = parser.pos;

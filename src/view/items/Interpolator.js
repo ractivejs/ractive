@@ -1,9 +1,10 @@
-import progressiveText from './shared/progressiveText';
-import { escapeHtml } from 'utils/html';
 import { safeToStringValue } from 'utils/dom';
 import { detachNode } from 'utils/dom';
-import Mustache from './shared/Mustache';
+import { escapeHtml } from 'utils/html';
+
 import { inAttributes } from './element/ConditionalAttribute';
+import Mustache from './shared/Mustache';
+import progressiveText from './shared/progressiveText';
 
 export default class Interpolator extends Mustache {
   bubble() {

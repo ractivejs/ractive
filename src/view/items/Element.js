@@ -1,20 +1,22 @@
-import { ATTRIBUTE, BINDING_FLAG, DECORATOR, DELEGATE_FLAG, EVENT, TRANSITION } from 'config/types';
 import { win } from 'config/environment';
-import Namespace from 'src/config/namespace';
-import { toArray, addToArray, removeFromArray } from 'utils/array';
-import { escapeHtml, voidElements } from 'utils/html';
-import { createElement, detachNode, matches, safeAttributeString } from 'utils/dom';
-import runloop from 'src/global/runloop';
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, DELEGATE_FLAG, EVENT, TRANSITION } from 'config/types';
 import Context from 'shared/Context';
 import { destroyed } from 'shared/methodCallers';
-import { ContainerItem } from './shared/Item';
-import Fragment from '../Fragment';
-import ConditionalAttribute from './element/ConditionalAttribute';
-import createItem from './createItem';
-import findElement from './shared/findElement';
-import selectBinding from './element/binding/selectBinding';
-import { assign, create, defineProperty, keys } from 'utils/object';
+import Namespace from 'src/config/namespace';
+import runloop from 'src/global/runloop';
+import { toArray, addToArray, removeFromArray } from 'utils/array';
+import { createElement, detachNode, matches, safeAttributeString } from 'utils/dom';
+import { escapeHtml, voidElements } from 'utils/html';
 import { isString } from 'utils/is';
+import { assign, create, defineProperty, keys } from 'utils/object';
+
+import Fragment from '../Fragment';
+
+import createItem from './createItem';
+import selectBinding from './element/binding/selectBinding';
+import ConditionalAttribute from './element/ConditionalAttribute';
+import findElement from './shared/findElement';
+import { ContainerItem } from './shared/Item';
 
 const endsWithSemi = /;\s*$/;
 

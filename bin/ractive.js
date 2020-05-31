@@ -2,12 +2,12 @@
 /* eslint-env node */
 /* eslint-disable no-console */
 
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
 
-const util = require('../lib/util');
-const parse = require('../lib/parse');
 const component = require('../lib/component');
+const parse = require('../lib/parse');
+const util = require('../lib/util');
 
 const args = process.argv.slice();
 

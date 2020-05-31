@@ -1,5 +1,6 @@
-import { splitKeypath } from './keypaths';
 import { isString } from 'utils/is';
+
+import { splitKeypath } from './keypaths';
 
 // this is the dry method of checking to see if a rebind applies to
 // a particular keypath because in some cases, a dep may be bound

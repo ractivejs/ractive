@@ -1,5 +1,6 @@
 import runloop from 'src/global/runloop';
 import getSelectedOptions from 'utils/getSelectedOptions';
+
 import Binding from './Binding';
 import handleDomEvent from './handleDomEvent';
 

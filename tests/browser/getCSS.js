@@ -1,6 +1,7 @@
-import { initModule } from '../helpers/test-config';
-import { createIsolatedEnv } from '../helpers/Environment';
 import QUnit, { test } from 'qunit';
+
+import { createIsolatedEnv } from '../helpers/Environment';
+import { initModule } from '../helpers/test-config';
 
 export default function() {
   initModule('getCss.js');

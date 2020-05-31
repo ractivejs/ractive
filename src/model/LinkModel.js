@@ -1,11 +1,13 @@
-import ModelBase, { fireShuffleTasks, maybeBind, shuffle } from './ModelBase';
-import { capture } from '../global/capture';
 import { handleChange, marked, markedAll, teardown } from 'shared/methodCallers';
 import { rebindMatch } from 'shared/rebind';
 import resolveReference from 'src/view/resolvers/resolveReference';
+import { isUndefined } from 'utils/is';
 import noop from 'utils/noop';
 import { hasOwn } from 'utils/object';
-import { isUndefined } from 'utils/is';
+
+import { capture } from '../global/capture';
+
+import ModelBase, { fireShuffleTasks, maybeBind, shuffle } from './ModelBase';
 
 // temporary placeholder target for detached implicit links
 export const Missing = {

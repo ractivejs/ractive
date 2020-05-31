@@ -1,13 +1,15 @@
 import { ANCHOR, DOCTYPE, ELEMENT, ATTRIBUTE } from 'config/types';
-import { voidElements } from 'utils/html';
-import { READERS, PARTIAL_READERS } from '../_parse';
 import cleanup from 'parse/utils/cleanup';
-import readMustache from './readMustache';
+import { voidElements } from 'utils/html';
+import hyphenateCamel from 'utils/hyphenateCamel';
+import { isString } from 'utils/is';
+import { create } from 'utils/object';
+
+import { READERS, PARTIAL_READERS } from '../_parse';
+
 import readClosingTag from './element/readClosingTag';
 import readClosing from './mustache/section/readClosing';
-import { create } from 'utils/object';
-import { isString } from 'utils/is';
-import hyphenateCamel from 'utils/hyphenateCamel';
+import readMustache from './readMustache';
 
 const tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/;
 const anchorPattern = /^[a-zA-Z_$][-a-zA-Z0-9_$]*/;

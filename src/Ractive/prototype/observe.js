@@ -1,11 +1,12 @@
-import { isObject, isFunction } from 'utils/is';
-import { warnOnceIfDebug } from 'utils/log';
 import { splitKeypath } from 'shared/keypaths';
 import resolveReference from 'src/view/resolvers/resolveReference';
+import { isObject, isFunction } from 'utils/is';
+import { warnOnceIfDebug } from 'utils/log';
+import { keys } from 'utils/object';
+
+import ArrayObserver from './observe/Array';
 import Observer from './observe/Observer';
 import PatternObserver from './observe/Pattern';
-import ArrayObserver from './observe/Array';
-import { keys } from 'utils/object';
 
 /**
  * Observes the data at a particular keypath.

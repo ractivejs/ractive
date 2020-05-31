@@ -1,5 +1,6 @@
-import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
+
+import { initModule } from '../../helpers/test-config';
 
 export default function() {
   initModule('render/elements.js');
@@ -116,7 +117,10 @@ export default function() {
       el: fixture,
       template: '<svg><g>{{#each points}}{{>.type}}{{/each}}</g></svg>',
       data: {
-        points: [{ x: 10, y: 10, r: 10, type: 'point' }, { x: 20, y: 20, r: 2, type: 'point' }]
+        points: [
+          { x: 10, y: 10, r: 10, type: 'point' },
+          { x: 20, y: 20, r: 2, type: 'point' }
+        ]
       },
       partials: {
         point: '<point />'

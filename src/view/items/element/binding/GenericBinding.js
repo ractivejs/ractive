@@ -1,4 +1,5 @@
 import { isNumeric } from 'utils/is';
+
 import Binding from './Binding';
 import handleDomEvent from './handleDomEvent';
 

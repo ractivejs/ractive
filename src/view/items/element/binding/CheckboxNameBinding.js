@@ -1,7 +1,8 @@
+import { isArray } from 'utils/is';
+
 import Binding from './Binding';
 import getBindingGroup from './getBindingGroup';
 import handleDomEvent from './handleDomEvent';
-import { isArray } from 'utils/is';
 
 const push = [].push;
 

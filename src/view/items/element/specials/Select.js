@@ -1,7 +1,8 @@
 import { toArray } from 'utils/array';
 import getSelectedOptions from 'utils/getSelectedOptions';
-import Element from '../../Element';
 import { isArray, isFunction } from 'utils/is';
+
+import Element from '../../Element';
 
 export default class Select extends Element {
   constructor(options) {

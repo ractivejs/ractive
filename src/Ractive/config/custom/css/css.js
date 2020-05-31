@@ -1,12 +1,13 @@
-import { addCSS, applyCSS } from 'src/global/css';
-import transformCss from './transform';
-import { uuid } from 'utils/id';
-import { warnIfDebug } from 'utils/log';
-import { getElement } from 'utils/dom';
 import { splitKeypath } from 'shared/keypaths';
+import { addCSS, applyCSS } from 'src/global/css';
 import CSSModel from 'src/model/specials/CSSModel';
-import { assign, create, defineProperty } from 'utils/object';
+import { getElement } from 'utils/dom';
+import { uuid } from 'utils/id';
 import { isString, isFunction, isObjectType } from 'utils/is';
+import { warnIfDebug } from 'utils/log';
+import { assign, create, defineProperty } from 'utils/object';
+
+import transformCss from './transform';
 
 const hasCurly = /\{/;
 export default {

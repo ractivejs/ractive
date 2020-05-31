@@ -1,5 +1,5 @@
-import readExpression from '../readExpression';
 import refineExpression from '../../utils/refineExpression';
+import readExpression from '../readExpression';
 
 const legalAlias = /^(?:[a-zA-Z$_0-9]|\\\.)+(?:(?:(?:[a-zA-Z$_0-9]|\\\.)+)|(?:\[[0-9]+\]))*/;
 const asRE = /^as/i;

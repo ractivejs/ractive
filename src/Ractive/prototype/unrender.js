@@ -1,7 +1,7 @@
 import hooks from 'src/events/Hook';
-import { warnIfDebug } from 'utils/log';
-import { removeFromArray } from 'utils/array';
 import runloop from 'src/global/runloop';
+import { removeFromArray } from 'utils/array';
+import { warnIfDebug } from 'utils/log';
 
 export default function Ractive$unrender() {
   if (!this.fragment.rendered) {

@@ -1,5 +1,7 @@
 import { INLINE_PARTIAL } from 'config/types';
+
 import { READERS } from '../_parse';
+
 import readClosing from './mustache/section/readClosing';
 
 const partialDefinitionSectionPattern = /^\s*#\s*partial\s+/;

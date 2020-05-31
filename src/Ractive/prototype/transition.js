@@ -1,7 +1,8 @@
 import runloop from 'src/global/runloop';
-import Transition from '../../view/items/element/Transition';
-import { fatal } from 'utils/log';
 import { isObject } from 'utils/is';
+import { fatal } from 'utils/log';
+
+import Transition from '../../view/items/element/Transition';
 
 export default function Ractive$transition(name, node, params) {
   if (node instanceof HTMLElement) {

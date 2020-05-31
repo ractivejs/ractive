@@ -1,9 +1,9 @@
 import { escapeKey, unescapeKey } from 'shared/keypaths';
-import { addToArray, removeFromArray } from 'utils/array';
-import { isArray, isObject, isObjectLike, isFunction } from 'utils/is';
-import bind from 'utils/bind';
-import { create, keys as objectKeys } from 'utils/object';
 import { Keypath } from 'types/Keypath';
+import { addToArray, removeFromArray } from 'utils/array';
+import bind from 'utils/bind';
+import { isArray, isObject, isObjectLike, isFunction } from 'utils/is';
+import { create, keys as objectKeys } from 'utils/object';
 
 const shuffleTasks = { early: [], mark: [] };
 const registerQueue = { early: [], mark: [] };

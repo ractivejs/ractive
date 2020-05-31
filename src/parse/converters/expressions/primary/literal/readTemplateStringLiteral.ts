@@ -1,14 +1,15 @@
-import readExpression from 'parse/converters/readExpression';
 import TemplateItemType from 'config/types';
-import {
-  escapeSequencePattern,
-  lineContinuationPattern
-} from './stringLiteral/makeQuotedStringMatcher';
 import { StandardParser } from 'parse/_parse';
 import {
   BrackedTemplateItem,
   ValueTemplateItem
 } from 'parse/converters/expressions/expressionDefinitions';
+import readExpression from 'parse/converters/readExpression';
+
+import {
+  escapeSequencePattern,
+  lineContinuationPattern
+} from './stringLiteral/makeQuotedStringMatcher';
 
 // Match one or more characters until: ", ', or \
 const stringMiddlePattern = /^[^`"\\\$]+?(?:(?=[`"\\\$]))/;

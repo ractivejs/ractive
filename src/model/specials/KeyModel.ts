@@ -1,7 +1,7 @@
-import { addToArray, removeFromArray } from 'utils/array';
 import { unescapeKey } from 'shared/keypaths';
 import { capture } from 'src/global/capture';
 import { handleChange } from 'src/shared/methodCallers';
+import { addToArray, removeFromArray } from 'utils/array';
 import noop from 'utils/noop';
 
 // TODO add correct typings

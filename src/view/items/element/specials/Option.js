@@ -1,7 +1,8 @@
 import { removeFromArray } from 'utils/array';
+import { isArray, isUndefined } from 'utils/is';
+
 import Element from '../../Element';
 import findElement from '../../shared/findElement';
-import { isArray, isUndefined } from 'utils/is';
 
 export default class Option extends Element {
   constructor(options) {

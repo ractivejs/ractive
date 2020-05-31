@@ -1,9 +1,11 @@
 import { CONDITIONAL } from 'config/types';
+import { StandardParser } from 'parse/_parse';
+import { ConditionalOperatorTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+
+import readExpression from '../readExpression';
+
 import readLogicalOr, { LogicalOrTypeofOrMemberOrInvocationOrPrimary } from './readLogicalOr';
 import { expectedExpression } from './shared/errors';
-import readExpression from '../readExpression';
-import { ConditionalOperatorTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
-import { StandardParser } from 'parse/_parse';
 
 export type ConditionalOrLogicalOrTypeofOrMemberOrInvocationOrPrimary =
   | LogicalOrTypeofOrMemberOrInvocationOrPrimary

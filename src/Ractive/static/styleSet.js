@@ -1,9 +1,10 @@
-import { applyCSS } from '../../global/css';
-import transformCSS from '../config/custom/css/transform';
-import { evalCSS } from '../config/custom/css/css';
-import { build, set } from '../../shared/set';
-import runloop from '../../global/runloop';
 import { isObjectType, isFunction } from 'utils/is';
+
+import { applyCSS } from '../../global/css';
+import runloop from '../../global/runloop';
+import { build, set } from '../../shared/set';
+import { evalCSS } from '../config/custom/css/css';
+import transformCSS from '../config/custom/css/transform';
 
 export default function setCSSData(keypath, value, options) {
   const opts = isObjectType(keypath) ? value : options;

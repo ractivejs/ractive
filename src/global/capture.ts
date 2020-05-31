@@ -1,6 +1,6 @@
-import { addToArray } from 'utils/array';
 import ModelBase from 'src/model/ModelBase';
 import KeyModel from 'src/model/specials/KeyModel';
+import { addToArray } from 'utils/array';
 
 const stack = [];
 let captureGroup: CapturableModel[];

@@ -3,9 +3,9 @@ import SharedModel, {
   GlobalModel,
   SharedModel as ContextModel
 } from 'src/model/specials/SharedModel';
+import { isFunction } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn } from 'utils/object';
-import { isFunction } from 'utils/is';
 
 function findContext(fragment) {
   let frag = fragment;

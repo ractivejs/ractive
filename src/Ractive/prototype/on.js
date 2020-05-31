@@ -1,7 +1,8 @@
-import trim from './shared/trim';
-import notEmptyString from './shared/notEmptyString';
-import { hasOwn } from 'utils/object';
 import { isObjectType, isString } from 'utils/is';
+import { hasOwn } from 'utils/object';
+
+import notEmptyString from './shared/notEmptyString';
+import trim from './shared/trim';
 
 export default function Ractive$on(eventName, callback) {
   // eventName may already be a map

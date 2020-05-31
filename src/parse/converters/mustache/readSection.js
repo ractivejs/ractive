@@ -10,14 +10,16 @@ import {
   THEN
 } from 'config/types';
 import { READERS } from 'parse/_parse';
+import refineExpression from 'parse/utils/refineExpression';
+import { keys } from 'utils/object';
+
+import { name } from '../expressions/shared/patterns';
+import readExpression from '../readExpression';
+
+import handlebarsBlockCodes from './handlebarsBlockCodes';
+import { readAlias, readAliases } from './readAliases';
 import readClosing from './section/readClosing';
 import readInlineBlock from './section/readInlineBlock';
-import handlebarsBlockCodes from './handlebarsBlockCodes';
-import readExpression from '../readExpression';
-import refineExpression from 'parse/utils/refineExpression';
-import { readAlias, readAliases } from './readAliases';
-import { keys } from 'utils/object';
-import { name } from '../expressions/shared/patterns';
 
 const indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
 const keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
@@ -140,9 +142,7 @@ export default function readSection(parser, tag) {
         if (!block) {
           if (child.r)
             parser.warn(
-              `Expected ${tag.open}/${expectedClose}${tag.close} but found ${tag.open}/${child.r}${
-                tag.close
-              }`
+              `Expected ${tag.open}/${expectedClose}${tag.close} but found ${tag.open}/${child.r}${tag.close}`
             );
         } else {
           parser.pos = pos;

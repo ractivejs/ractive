@@ -1,8 +1,10 @@
-import readStringLiteral from '../primary/literal/readStringLiteral';
-import readNumberLiteral from '../primary/literal/readNumberLiteral';
-import { name as namePattern } from './patterns';
-import { ValueTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 import { StandardParser } from 'parse/_parse';
+import { ValueTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+
+import readNumberLiteral from '../primary/literal/readNumberLiteral';
+import readStringLiteral from '../primary/literal/readStringLiteral';
+
+import { name as namePattern } from './patterns';
 
 const identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 

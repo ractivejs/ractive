@@ -1,13 +1,11 @@
-import { fatal } from 'utils/log';
 import runloop from 'src/global/runloop';
+import { fatal } from 'utils/log';
 
 class DOMEvent {
   constructor(name, owner) {
     if (name.indexOf('*') !== -1) {
       fatal(
-        `Only component proxy-events may contain "*" wildcards, <${
-          owner.name
-        } on-${name}="..."/> is not valid`
+        `Only component proxy-events may contain "*" wildcards, <${owner.name} on-${name}="..."/> is not valid`
       );
     }
 

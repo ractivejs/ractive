@@ -1,6 +1,7 @@
-import { build, set } from '../../shared/set';
-import SharedModel from '../../model/specials/SharedModel';
 import { isObjectType } from 'utils/is';
+
+import SharedModel from '../../model/specials/SharedModel';
+import { build, set } from '../../shared/set';
 
 export default function sharedSet(keypath, value, options) {
   const opts = isObjectType(keypath) ? value : options;

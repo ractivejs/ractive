@@ -1,6 +1,6 @@
+import { cancel } from 'shared/methodCallers';
 import hooks from 'src/events/Hook';
 import { removeFromArray } from 'utils/array';
-import { cancel } from 'shared/methodCallers';
 import { warnIfDebug } from 'utils/log';
 
 // Teardown. This goes through the root fragment and all its children, removing observers

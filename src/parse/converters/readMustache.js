@@ -1,7 +1,8 @@
 import { DELIMCHANGE } from 'config/types';
-import readDelimiterChange from './mustache/readDelimiterChange';
-import readRegexpLiteral from './expressions/primary/literal/readRegexpLiteral';
+
 import { readAttributeOrDirective } from './element/readAttribute';
+import readRegexpLiteral from './expressions/primary/literal/readRegexpLiteral';
+import readDelimiterChange from './mustache/readDelimiterChange';
 
 const delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
 

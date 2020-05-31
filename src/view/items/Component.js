@@ -1,10 +1,3 @@
-import runloop from 'src/global/runloop';
-import { updateAnchors } from 'shared/anchors';
-import { bind, render as callRender, unbind, unrender, update } from 'shared/methodCallers';
-import { teardown } from 'src/Ractive/prototype/teardown';
-import getRactiveContext from 'shared/getRactiveContext';
-import { warnIfDebug } from 'utils/log';
-import { createDocumentFragment } from 'utils/dom';
 import {
   ANCHOR,
   ATTRIBUTE,
@@ -15,15 +8,23 @@ import {
   TRANSITION,
   YIELDER
 } from 'config/types';
+import { updateAnchors } from 'shared/anchors';
+import getRactiveContext from 'shared/getRactiveContext';
+import { bind, render as callRender, unbind, unrender, update } from 'shared/methodCallers';
+import runloop from 'src/global/runloop';
+import parser from 'src/Ractive/config/runtime-parser';
 import construct from 'src/Ractive/construct';
 import initialise from 'src/Ractive/initialise';
+import { teardown } from 'src/Ractive/prototype/teardown';
 import render from 'src/Ractive/render';
-import Item from './shared/Item';
-import ConditionalAttribute from './element/ConditionalAttribute';
-import createItem from './createItem';
-import parser from 'src/Ractive/config/runtime-parser';
-import { assign, create } from 'utils/object';
+import { createDocumentFragment } from 'utils/dom';
 import { isArray, isString } from 'utils/is';
+import { warnIfDebug } from 'utils/log';
+import { assign, create } from 'utils/object';
+
+import createItem from './createItem';
+import ConditionalAttribute from './element/ConditionalAttribute';
+import Item from './shared/Item';
 
 export default class Component extends Item {
   constructor(options, ComponentConstructor) {

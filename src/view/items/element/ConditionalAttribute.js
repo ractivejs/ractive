@@ -1,8 +1,9 @@
 import { doc } from 'config/environment';
 import Namespace from 'src/config/namespace';
-import { createElement } from 'utils/dom';
 import { toArray } from 'utils/array';
+import { createElement } from 'utils/dom';
 import noop from 'utils/noop';
+
 import Fragment from '../../Fragment';
 import Item from '../shared/Item';
 

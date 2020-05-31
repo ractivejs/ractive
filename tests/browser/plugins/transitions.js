@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 import {
   afterEach,
   beforeEach,
@@ -5,7 +7,6 @@ import {
   onWarn,
   initModule
 } from '../../helpers/test-config';
-import { test } from 'qunit';
 
 export default function() {
   let Ractive_original;

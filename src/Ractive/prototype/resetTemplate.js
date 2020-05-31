@@ -1,6 +1,7 @@
-import { createDocumentFragment } from 'utils/dom';
-import Fragment from 'src/view/Fragment';
 import runloop from 'src/global/runloop';
+import Fragment from 'src/view/Fragment';
+import { createDocumentFragment } from 'utils/dom';
+
 import { default as templateConfigurator } from '../config/custom/template';
 
 // TODO should resetTemplate be asynchronous? i.e. should it be a case

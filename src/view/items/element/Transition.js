@@ -1,16 +1,18 @@
 import { win } from 'config/environment';
+import { missingPlugin } from 'config/errors';
+import { visible } from 'config/visibility';
+import { findInViewHierarchy } from 'shared/registry';
 import { addToArray, removeFromArray } from 'utils/array';
 import { isArray, isObject, isFunction, isNumber, isString, isUndefined } from 'utils/is';
-import noop from 'utils/noop';
 import { warnOnceIfDebug } from 'utils/log';
-import { missingPlugin } from 'config/errors';
-import { findInViewHierarchy } from 'shared/registry';
-import { visible } from 'config/visibility';
-import findElement from '../shared/findElement';
-import prefix from './transitions/prefix';
-import createTransitions from './transitions/createTransitions';
-import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
+import noop from 'utils/noop';
 import { assign, hasOwn, keys } from 'utils/object';
+
+import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
+import findElement from '../shared/findElement';
+
+import createTransitions from './transitions/createTransitions';
+import prefix from './transitions/prefix';
 
 const getComputedStyle = win && win.getComputedStyle;
 const resolved = Promise.resolve();

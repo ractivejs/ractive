@@ -1,7 +1,8 @@
 import { ATTRIBUTE, CATCH, ELEMENT, ELSE, INTERPOLATOR, SECTION, THEN } from 'src/config/types';
-import Partial from './Partial';
-import { assign } from 'utils/object';
 import { isFunction, isUndefined } from 'utils/is';
+import { assign } from 'utils/object';
+
+import Partial from './Partial';
 
 function extract(tpl, type, name) {
   const p = tpl.f.find(s => s.t === type);

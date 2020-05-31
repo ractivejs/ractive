@@ -1,9 +1,10 @@
 import TemplateItemType from 'config/types';
-import readKey from '../../../shared/readKey';
-import readExpression from 'parse/converters/readExpression';
-import { name as namePattern, spreadPattern } from '../../../shared/patterns';
 import { StandardParser } from 'parse/_parse';
 import { KeyValuePairTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+import readExpression from 'parse/converters/readExpression';
+
+import { name as namePattern, spreadPattern } from '../../../shared/patterns';
+import readKey from '../../../shared/readKey';
 
 export default function readKeyValuePair(parser: StandardParser): KeyValuePairTemplateItem {
   let spread;

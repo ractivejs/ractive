@@ -1,5 +1,6 @@
-import { onWarn, initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
+
+import { onWarn, initModule } from '../../helpers/test-config';
 
 export default function() {
   initModule('components/attributes.js');

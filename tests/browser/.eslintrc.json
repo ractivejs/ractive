@@ -9,6 +9,10 @@
     "simulant": true
   },
   "rules": {
-    "prefer-arrow-callback": ["off"]
+    "prefer-arrow-callback": ["off"],
+    "prefer-rest-params":["off"],
+
+    // todo correctly resolve qunit and simulant then remove this
+    "import/no-unresolved": ["off"]
   }
 }

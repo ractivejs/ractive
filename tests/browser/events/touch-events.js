@@ -1,6 +1,7 @@
-import { fire } from 'simulant';
-import { onWarn, initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
+import { fire } from 'simulant';
+
+import { onWarn, initModule } from '../../helpers/test-config';
 
 export default function() {
   initModule('events/touch-events.js');

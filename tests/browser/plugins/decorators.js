@@ -1,5 +1,6 @@
-import { hasUsableConsole, onWarn, initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
+
+import { hasUsableConsole, onWarn, initModule } from '../../helpers/test-config';
 
 export default function() {
   initModule('plugins/decorators.js');

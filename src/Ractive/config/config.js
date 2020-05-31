@@ -1,16 +1,18 @@
+import hooks from 'src/events/Hook';
+import { isFunction } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
+import { hasOwn, keys } from 'utils/object';
+
+import RactiveProto from '../prototype';
+
 import adaptConfigurator from './custom/adapt';
 import cssConfigurator from './custom/css/css';
 import dataConfigurator from './custom/data';
 import templateConfigurator from './custom/template';
 import defaults from './defaults';
+import deprecate from './deprecate';
 import registries from './registries';
 import wrapPrototype from './wrapPrototypeMethod';
-import deprecate from './deprecate';
-import RactiveProto from '../prototype';
-import { hasOwn, keys } from 'utils/object';
-import { isFunction } from 'utils/is';
-import hooks from 'src/events/Hook';
 
 const config = {
   extend: (Parent, proto, options, Child) => configure('extend', Parent, proto, options, Child),
@@ -33,7 +35,10 @@ const isStandardKey = makeObj(defaultKeys.filter(key => !custom[key]));
 
 // blacklisted keys that we don't double extend
 const isBlacklisted = makeObj(
-  defaultKeys.concat(registries.map(r => r.name), ['on', 'observe', 'attributes', 'cssData', 'use'])
+  defaultKeys.concat(
+    registries.map(r => r.name),
+    ['on', 'observe', 'attributes', 'cssData', 'use']
+  )
 );
 
 const order = [].concat(

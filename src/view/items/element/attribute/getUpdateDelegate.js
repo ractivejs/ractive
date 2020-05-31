@@ -1,11 +1,11 @@
 import Namespace from 'src/config/namespace';
-import { safeToStringValue } from 'utils/dom';
-import { arrayContains } from 'utils/array';
-import noop from 'utils/noop';
-import hyphenateCamel from 'utils/hyphenateCamel';
 import { readStyle, readClass } from 'src/view/helpers/specialAttrs';
-import { keys as objectKeys } from 'utils/object';
+import { arrayContains } from 'utils/array';
+import { safeToStringValue } from 'utils/dom';
+import hyphenateCamel from 'utils/hyphenateCamel';
 import { isArray, isString, isUndefined } from 'utils/is';
+import noop from 'utils/noop';
+import { keys as objectKeys } from 'utils/object';
 
 const textTypes = [
   undefined,

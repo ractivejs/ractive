@@ -1,6 +1,7 @@
-import Partial from './Partial';
 import { ELEMENT } from 'config/types';
 import { assign } from 'utils/object';
+
+import Partial from './Partial';
 
 export default function asyncProxy(promise, options) {
   const partials = options.template.p || {};

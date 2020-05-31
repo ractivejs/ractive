@@ -1,5 +1,6 @@
-import { afterEach, initModule } from '../../../helpers/test-config';
 import { test } from 'qunit';
+
+import { afterEach, initModule } from '../../../helpers/test-config';
 
 export default function() {
   const defaultData = Ractive.defaults.data;

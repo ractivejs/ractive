@@ -1,15 +1,17 @@
 import { ELEMENT, PARTIAL, SECTION, SECTION_WITH, YIELDER } from 'config/types';
-import { assign, create, hasOwn, keys } from 'utils/object';
-import { isArray, isFunction, isObjectType, isString } from 'utils/is';
-import noop from 'utils/noop';
-import { MustacheContainer } from './shared/Mustache';
-import Fragment from '../Fragment';
-import getPartialTemplate from './partial/getPartialTemplate';
-import { warnOnceIfDebug, warnIfDebug } from 'utils/log';
-import parser from 'src/Ractive/config/runtime-parser';
-import runloop from 'src/global/runloop';
-import { applyCSS } from 'src/global/css';
 import { splitKeypath } from 'shared/keypaths';
+import { applyCSS } from 'src/global/css';
+import runloop from 'src/global/runloop';
+import parser from 'src/Ractive/config/runtime-parser';
+import { isArray, isFunction, isObjectType, isString } from 'utils/is';
+import { warnOnceIfDebug, warnIfDebug } from 'utils/log';
+import noop from 'utils/noop';
+import { assign, create, hasOwn, keys } from 'utils/object';
+
+import Fragment from '../Fragment';
+
+import getPartialTemplate from './partial/getPartialTemplate';
+import { MustacheContainer } from './shared/Mustache';
 
 export default function Partial(options) {
   MustacheContainer.call(this, options);

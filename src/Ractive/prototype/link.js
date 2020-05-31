@@ -1,6 +1,6 @@
 import { splitKeypath } from 'shared/keypaths';
-import resolveReference from 'src/view/resolvers/resolveReference';
 import runloop from 'src/global/runloop';
+import resolveReference from 'src/view/resolvers/resolveReference';
 
 export default function link(there, here, options) {
   let model;

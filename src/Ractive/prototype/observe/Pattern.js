@@ -1,10 +1,10 @@
 import { escapeKey } from 'shared/keypaths';
+import runloop from 'src/global/runloop';
+import { joinKeys } from 'src/Ractive/static/keypaths';
 import { removeFromArray } from 'utils/array';
 import { isArray, isEqual } from 'utils/is';
-import runloop from 'src/global/runloop';
-import { create, keys } from 'utils/object';
 import { warnIfDebug } from 'utils/log';
-import { joinKeys } from 'src/Ractive/static/keypaths';
+import { create, keys } from 'utils/object';
 
 const star = /\*+/g;
 

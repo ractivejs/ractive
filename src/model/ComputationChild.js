@@ -1,8 +1,9 @@
-import { capture } from 'src/global/capture';
-import Model from './Model';
 import { handleChange, mark, marked } from 'shared/methodCallers';
-import { hasOwn } from 'utils/object';
+import { capture } from 'src/global/capture';
 import { isUndefined } from 'utils/is';
+import { hasOwn } from 'utils/object';
+
+import Model from './Model';
 
 export default class ComputationChild extends Model {
   constructor(parent, key) {

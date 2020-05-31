@@ -1,5 +1,5 @@
-import { assign, create, keys } from 'utils/object';
 import { addFunctions } from 'shared/getFunction';
+import { assign, create, keys } from 'utils/object';
 
 const registryNames = [
   'adaptors',

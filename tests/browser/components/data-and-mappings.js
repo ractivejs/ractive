@@ -1,7 +1,8 @@
-import Model from '../../helpers/Model';
-import { initModule, onWarn } from '../../helpers/test-config';
 import { test } from 'qunit';
 import { fire } from 'simulant';
+
+import Model from '../../helpers/Model';
+import { initModule, onWarn } from '../../helpers/test-config';
 
 export default function() {
   initModule('components/data-and-mappings.js');

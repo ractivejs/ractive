@@ -1,4 +1,5 @@
 import { test } from 'qunit';
+
 import { initModule, onWarn } from '../helpers/test-config';
 
 export default function() {

@@ -1,9 +1,11 @@
 import { ATTRIBUTE } from 'config/types';
 import runloop from 'src/global/runloop';
-import Input from './Input';
-import { isBindable } from '../binding/selectBinding';
-import createItem from '../../createItem';
+
 import Fragment from '../../../Fragment';
+import createItem from '../../createItem';
+import { isBindable } from '../binding/selectBinding';
+
+import Input from './Input';
 
 export default class Textarea extends Input {
   constructor(options) {

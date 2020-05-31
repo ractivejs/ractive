@@ -1,6 +1,7 @@
 import { removeFromArray } from 'utils/array';
-import trim from './shared/trim';
+
 import notEmptyString from './shared/notEmptyString';
+import trim from './shared/trim';
 
 export default function Ractive$off(eventName, callback) {
   // if no event is specified, remove _all_ event listeners

@@ -1,6 +1,7 @@
-import { fire } from 'simulant';
-import { hasUsableConsole, onWarn, initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
+import { fire } from 'simulant';
+
+import { hasUsableConsole, onWarn, initModule } from '../../helpers/test-config';
 
 export default function() {
   initModule('components/yield.js');

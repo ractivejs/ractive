@@ -1,4 +1,5 @@
 import { addToArray } from 'utils/array';
+
 import TransitionManager from './TransitionManager';
 
 // TODO add correct typings

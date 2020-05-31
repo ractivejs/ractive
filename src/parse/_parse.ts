@@ -1,30 +1,32 @@
 import { TEMPLATE_VERSION } from 'config/template';
-import Parser, { CustomParser } from './Parser';
-import readMustache from './converters/readMustache';
+import { ParseOpts, ParseDelimiters, InterpolateOpts } from 'types/ParseOptions';
+import { isObjectType } from 'utils/is';
+import { assign, keys } from 'utils/object';
+
+import shared from '../Ractive/shared';
+
+import readInterpolator from './converters/mustache/readInterpolator';
+import readMustacheComment from './converters/mustache/readMustacheComment';
+import readPartial from './converters/mustache/readPartial';
+import readSection from './converters/mustache/readSection';
 import readTriple from './converters/mustache/readTriple';
 import readUnescaped from './converters/mustache/readUnescaped';
-import readPartial from './converters/mustache/readPartial';
-import readMustacheComment from './converters/mustache/readMustacheComment';
-import readInterpolator from './converters/mustache/readInterpolator';
-import readSection from './converters/mustache/readSection';
-import readHtmlComment from './converters/readHtmlComment';
 import readElement from './converters/readElement';
-import readText from './converters/readText';
+import readExpression from './converters/readExpression';
+import readHtmlComment from './converters/readHtmlComment';
+import readMustache from './converters/readMustache';
 import readPartialDefinitionSection from './converters/readPartialDefinitionSection';
 import readTemplate from './converters/readTemplate';
-import readExpression from './converters/readExpression';
-import { fromExpression } from './utils/createFunction';
-import cleanup from './utils/cleanup';
-import insertExpressions from './utils/insertExpressions';
-import flattenExpression from './utils/flattenExpression';
-import shared from '../Ractive/shared';
-import { assign, keys } from 'utils/object';
-import { isObjectType } from 'utils/is';
-import { ParseOpts, ParseDelimiters, InterpolateOpts } from 'types/ParseOptions';
+import readText from './converters/readText';
 import {
   TemplateModel,
   ExpressionFunctionTemplateItem
 } from './converters/templateItemDefinitions';
+import Parser, { CustomParser } from './Parser';
+import cleanup from './utils/cleanup';
+import { fromExpression } from './utils/createFunction';
+import flattenExpression from './utils/flattenExpression';
+import insertExpressions from './utils/insertExpressions';
 
 // See https://github.com/ractivejs/template-spec for information
 // about the Ractive template specification

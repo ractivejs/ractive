@@ -1,6 +1,7 @@
 import { CATCH, ELSE, ELSEIF, THEN } from 'config/types';
-import readExpression from '../../readExpression';
+
 import { name } from '../../expressions/shared/patterns';
+import readExpression from '../../readExpression';
 
 const patterns = {
   else: /^\s*else\s*/,

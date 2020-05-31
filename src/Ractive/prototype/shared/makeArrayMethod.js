@@ -1,6 +1,6 @@
+import getNewIndices from 'shared/getNewIndices';
 import { splitKeypath } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
-import getNewIndices from 'shared/getNewIndices';
 import { isArray, isUndefined } from 'utils/is';
 
 const arrayProto = Array.prototype;

@@ -1,6 +1,7 @@
 const { module, test } = QUnit;
-import renderTests from '../helpers/samples/render';
 import cheerio from 'cheerio';
+
+import renderTests from '../helpers/samples/render';
 
 function normaliseHTML(html) {
   return cheerio

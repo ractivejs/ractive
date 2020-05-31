@@ -1,13 +1,14 @@
 import { ELEMENT, YIELDER } from 'config/types';
-import runloop from 'src/global/runloop';
-import { findMap } from 'utils/array';
 import { getContext, findParentWithContext } from 'shared/getRactiveContext';
 import { shuffled, toEscapedString, toString } from 'shared/methodCallers';
-import createItem from './items/createItem';
-import processItems from './helpers/processItems';
-import parseJSON from 'utils/parseJSON';
-import { createDocumentFragment } from 'utils/dom';
+import runloop from 'src/global/runloop';
 import KeyModel from 'src/model/specials/KeyModel';
+import { findMap } from 'utils/array';
+import { createDocumentFragment } from 'utils/dom';
+import parseJSON from 'utils/parseJSON';
+
+import processItems from './helpers/processItems';
+import createItem from './items/createItem';
 import resolve from './resolvers/resolve';
 
 function resolveAliases(aliases, fragment, dest = {}) {

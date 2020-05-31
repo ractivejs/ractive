@@ -1,9 +1,9 @@
-import Parser, { CustomParser } from 'parse/Parser';
+import { SimpleTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 import readStringLiteral from 'parse/converters/expressions/primary/literal/readStringLiteral';
 import readKey from 'parse/converters/expressions/shared/readKey';
-import { hasOwn, keys } from 'utils/object';
+import Parser, { CustomParser } from 'parse/Parser';
 import { BaseParseOpts } from 'types/ParseOptions';
-import { SimpleTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+import { hasOwn, keys } from 'utils/object';
 
 /**
  * simple JSON parser, without the restrictions of JSON parse

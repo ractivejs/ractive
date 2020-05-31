@@ -1,6 +1,7 @@
+import { test } from 'qunit';
+
 import tests from '../../helpers/samples/render';
 import { onWarn, initModule } from '../../helpers/test-config';
-import { test } from 'qunit';
 
 export default function() {
   initModule('render/output.js');

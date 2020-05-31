@@ -1,5 +1,5 @@
-import { isFunction, isObjectType } from 'utils/is';
 import { base } from 'config/environment';
+import { isFunction, isObjectType } from 'utils/is';
 
 /* istanbul ignore if */
 if (!base.Promise) {

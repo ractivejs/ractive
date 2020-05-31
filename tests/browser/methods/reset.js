@@ -1,5 +1,6 @@
-import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
+
+import { initModule } from '../../helpers/test-config';
 
 export default function() {
   initModule('methods/reset.js');
@@ -29,7 +30,10 @@ export default function() {
     // ractive.reset(fn(), cb)
     // Otherwise introduces ambiguity...
     t.throws(() => {
-      ractive.reset(() => {}, () => {});
+      ractive.reset(
+        () => {},
+        () => {}
+      );
     });
   });
 

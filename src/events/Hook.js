@@ -1,5 +1,6 @@
-import fireEvent from './fireEvent';
 import getRactiveContext from '../shared/getRactiveContext';
+
+import fireEvent from './fireEvent';
 
 export class Hook {
   constructor(event) {
