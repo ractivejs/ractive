@@ -70,6 +70,18 @@ export interface ReferenceTemplateItem {
 // output of readExpression
 export type ExpressionTemplateItem = any; // todo refine
 
+export interface MemberTemplateItem {
+  t: TemplateItemType.MEMBER;
+  x: PrimaryExpressionTemplateDefinition;
+  r: RefinementTemplateItem;
+}
+
+export interface InvocationTemplateItem {
+  t: TemplateItemType.INVOCATION;
+  x: PrimaryExpressionTemplateDefinition;
+  o?: ExpressionTemplateItem[];
+}
+
 export interface BrackedTemplateItem {
   t: TemplateItemType.BRACKETED;
   x: ExpressionTemplateItem;
@@ -115,6 +127,12 @@ export interface ArrayLiteralTemplateItem {
   t: TemplateItemType.ARRAY_LITERAL;
   m: ExpressionTemplateItem[]; // todo add correct type (related to readExpression)
   p?: boolean; // spread, v contains a spread syntax (...)
+}
+
+export interface RefinementTemplateItem {
+  t: TemplateItemType.REFINEMENT;
+  n?: string;
+  x?: ExpressionTemplateItem;
 }
 
 // define output of readLiteral

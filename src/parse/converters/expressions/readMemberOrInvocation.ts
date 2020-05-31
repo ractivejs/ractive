@@ -1,11 +1,24 @@
-import { MEMBER, INVOCATION } from 'config/types';
 import readPrimary from './readPrimary';
 import readExpressionList from './shared/readExpressionList';
 import readRefinement from './shared/readRefinement';
 import { expectedParen } from './shared/errors';
+import TemplateItemType from 'config/types';
+import { StandardParser } from 'parse/_parse';
+import {
+  MemberTemplateItem,
+  InvocationTemplateItem,
+  PrimaryExpressionTemplateDefinition
+} from 'parse/TemplateItems';
 
-export default function(parser) {
-  let expression = readPrimary(parser);
+export type MemberOrInvocationOrPrimary =
+  | PrimaryExpressionTemplateDefinition
+  | MemberTemplateItem
+  | InvocationTemplateItem;
+
+export default function readMemberOfInvocation(
+  parser: StandardParser
+): MemberOrInvocationOrPrimary {
+  let expression: MemberOrInvocationOrPrimary = readPrimary(parser);
 
   if (!expression) return null;
 
@@ -13,10 +26,10 @@ export default function(parser) {
     const refinement = readRefinement(parser);
     if (refinement) {
       expression = {
-        t: MEMBER,
+        t: TemplateItemType.MEMBER,
         x: expression,
         r: refinement
-      };
+      } as MemberTemplateItem;
     } else if (parser.matchString('(')) {
       parser.sp();
       const expressionList = readExpressionList(parser, true);
@@ -28,9 +41,9 @@ export default function(parser) {
       }
 
       expression = {
-        t: INVOCATION,
+        t: TemplateItemType.INVOCATION,
         x: expression
-      };
+      } as InvocationTemplateItem;
 
       if (expressionList) expression.o = expressionList;
     } else {
