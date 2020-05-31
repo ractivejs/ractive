@@ -10,6 +10,9 @@ import {
   PrimaryExpressionTemplateDefinition
 } from 'parse/TemplateItems';
 
+/**
+ * Return value of this function must include also primary returned values
+ */
 export type MemberOrInvocationOrPrimary =
   | PrimaryExpressionTemplateDefinition
   | MemberTemplateItem

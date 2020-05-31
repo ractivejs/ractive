@@ -1,19 +1,26 @@
 import TemplateItemType from 'config/types';
 import { expectedExpression } from './shared/errors';
-import readMemberOrInvocation from './readMemberOrInvocation';
+import readMemberOrInvocation, { MemberOrInvocationOrPrimary } from './readMemberOrInvocation';
 import readExpression from '../readExpression';
 import { StandardParser } from 'parse/_parse';
 import { PrefixOperatorTemplateItem } from 'parse/TemplateItems';
 
-let readTypeOf: ReadTypeOfConverter;
+/**
+ * Includes template item reutorn by this module and readMemberOrInvocation
+ */
+export type TypeofOrMemberOrInvocationOrPrimary =
+  | PrefixOperatorTemplateItem
+  | MemberOrInvocationOrPrimary;
 
-type ReadTypeOfConverter = (parser: StandardParser) => PrefixOperatorTemplateItem;
+type ReadTypeOfConverter = (parser: StandardParser) => TypeofOrMemberOrInvocationOrPrimary;
+
+let readTypeOf: ReadTypeOfConverter;
 
 const makePrefixSequenceMatcher = function(
   symbol: string,
   fallthrough: ReadTypeOfConverter
 ): ReadTypeOfConverter {
-  return function(parser: StandardParser) {
+  return function(parser: StandardParser): TypeofOrMemberOrInvocationOrPrimary {
     let expression;
 
     if ((expression = fallthrough(parser))) {
@@ -36,16 +43,16 @@ const makePrefixSequenceMatcher = function(
       s: symbol,
       o: expression
     };
-  } as ReadTypeOfConverter;
+  };
 };
 
 // create all prefix sequence matchers, return readTypeOf
-(function() {
-  let i, len, matcher, fallthrough;
+{
+  let i: number, len: number, matcher: ReadTypeOfConverter;
 
   const prefixOperators = '! ~ + - typeof'.split(' ');
 
-  fallthrough = readMemberOrInvocation;
+  let fallthrough: ReadTypeOfConverter = readMemberOrInvocation;
   for (i = 0, len = prefixOperators.length; i < len; i += 1) {
     matcher = makePrefixSequenceMatcher(prefixOperators[i], fallthrough);
     fallthrough = matcher;
@@ -55,6 +62,6 @@ const makePrefixSequenceMatcher = function(
   // fallthrough for the multiplication sequence matcher we're about to create
   // (we're skipping void and delete)
   readTypeOf = fallthrough;
-})();
+}
 
 export default readTypeOf;
