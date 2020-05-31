@@ -1,7 +1,11 @@
 import TemplateItemType from 'config/types';
 import { normalise } from 'src/shared/keypaths';
 import { legalReference, relaxedName } from '../shared/patterns';
-import { ReferenceTemplateItem, ValueTemplateItem, BrackedTemplateItem } from 'parse/TemplateItems';
+import {
+  ReferenceTemplateItem,
+  BrackedTemplateItem,
+  GlobalValueTemplateItem
+} from 'parse/TemplateItems';
 import { StandardParser } from 'parse/_parse';
 
 // if a reference is a browser global, we don't deference it later, so it needs special treatment
@@ -15,7 +19,7 @@ const specials = /^(key|index|keypath|rootpath|this|global|shared|context|event|
 
 export default function readReference(
   parser: StandardParser
-): ReferenceTemplateItem | ValueTemplateItem | BrackedTemplateItem {
+): ReferenceTemplateItem | GlobalValueTemplateItem | BrackedTemplateItem {
   let prefix: string, name: string, global: string, reference: string;
 
   const startPos = parser.pos;

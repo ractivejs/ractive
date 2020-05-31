@@ -1,16 +1,14 @@
 import { fromExpression } from './createFunction';
 import { isArray, isObject } from 'utils/is';
 import { keys } from 'utils/object';
-import { ExpressionTempleteItem, TemplateItemDefinition } from 'parse/TemplateItems';
+import { ExpressionFunctionTemplateItem } from 'parse/TemplateItems';
 
 type ExpressionRegistry = {
   [key: string]: Function;
 };
 
-export default function insertExpressions(
-  obj: TemplateItemDefinition,
-  expr: ExpressionRegistry
-): void {
+// todo set obj correct type
+export default function insertExpressions(obj, expr: ExpressionRegistry): void {
   keys(obj).forEach(key => {
     if (isExpression(key, obj)) return addTo(obj, expr);
 
@@ -19,11 +17,11 @@ export default function insertExpressions(
   });
 }
 
-function isExpression(key: string, obj: any): obj is ExpressionTempleteItem {
+function isExpression(key: string, obj: any): obj is ExpressionFunctionTemplateItem {
   return key === 's' && isArray(obj.r);
 }
 
-function addTo(obj: ExpressionTempleteItem, expr: ExpressionRegistry): void {
+function addTo(obj: ExpressionFunctionTemplateItem, expr: ExpressionRegistry): void {
   const { s, r } = obj;
   if (!expr[s]) expr[s] = fromExpression(s, r.length);
 }

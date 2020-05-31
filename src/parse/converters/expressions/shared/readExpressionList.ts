@@ -1,8 +1,9 @@
 import { expectedExpression } from './errors';
 import readExpression from '../../readExpression';
 import { spreadPattern } from './patterns';
+import { StandardParser } from 'parse/_parse';
 
-export default function readExpressionList(parser, spread) {
+export default function readExpressionList(parser: StandardParser, spread: boolean) {
   let isSpread;
   const expressions = [];
 

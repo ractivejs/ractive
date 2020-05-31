@@ -1,6 +1,5 @@
 import { warnIfDebug } from 'utils/log';
 import { BaseParseOpts } from 'types/ParseOptions';
-import { TemplateItemDefinition } from './TemplateItems';
 
 const leadingWhitespace = /^\s+/;
 
@@ -16,7 +15,7 @@ class ParseError extends Error {
   }
 }
 
-export type Converter = (parser: Parser) => TemplateItemDefinition;
+export type Converter = (parser: Parser) => any;
 
 export interface CustomParser {
   init: (str: string, options: BaseParseOpts) => void;

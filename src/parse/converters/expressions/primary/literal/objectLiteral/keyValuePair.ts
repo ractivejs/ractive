@@ -26,16 +26,16 @@ export default function readKeyValuePair(parser: StandardParser): KeyValuePairTe
 
   // es2015 shorthand property
   if (refKey && (parser.nextChar() === ',' || parser.nextChar() === '}')) {
-    if (!spread && !namePattern.test(key)) {
+    if (!spread && !namePattern.test(key as string)) {
       parser.error(`Expected a valid reference, but found '${key}' instead.`);
     }
 
     const pair: KeyValuePairTemplateItem = {
       t: TemplateItemType.KEY_VALUE_PAIR,
-      k: key,
+      k: key as string,
       v: {
         t: TemplateItemType.REFERENCE,
-        n: key
+        n: key as string
       }
     };
 
@@ -64,7 +64,7 @@ export default function readKeyValuePair(parser: StandardParser): KeyValuePairTe
 
   return {
     t: TemplateItemType.KEY_VALUE_PAIR,
-    k: key,
+    k: key as string,
     v: value
   };
 }

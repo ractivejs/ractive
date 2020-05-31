@@ -21,7 +21,7 @@ import shared from '../Ractive/shared';
 import { assign, keys } from 'utils/object';
 import { isObjectType } from 'utils/is';
 import { ParseOpts, ParseDelimiters, InterpolateOpts } from 'types/ParseOptions';
-import { TemplateItemDefinition, TemplateModel, ExpressionTempleteItem } from './TemplateItems';
+import { TemplateModel, ExpressionFunctionTemplateItem } from './TemplateItems';
 
 // See https://github.com/ractivejs/template-spec for information
 // about the Ractive template specification
@@ -158,7 +158,7 @@ export class StandardParser extends Parser implements CustomParser {
     this.whiteSpaceElements = assign({}, options.preserveWhitespace, preserveWhitespaceElements);
   }
 
-  postProcess(result, options: ParseOpts): TemplateModel | ExpressionTempleteItem {
+  postProcess(result, options: ParseOpts): TemplateModel | ExpressionFunctionTemplateItem {
     const [parserResult] = result;
 
     if (options.expression) {
@@ -208,6 +208,6 @@ export class StandardParser extends Parser implements CustomParser {
   }
 }
 
-export default function parse(template: string, options: ParseOpts): TemplateItemDefinition {
+export default function parse(template: string, options: ParseOpts): TemplateModel {
   return new StandardParser(template, options || {}).result;
 }
