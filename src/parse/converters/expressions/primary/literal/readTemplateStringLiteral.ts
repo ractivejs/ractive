@@ -5,7 +5,10 @@ import {
   lineContinuationPattern
 } from './stringLiteral/makeQuotedStringMatcher';
 import { StandardParser } from 'parse/_parse';
-import { BrackedTemplateItem, ValueTemplateItem } from 'parse/TemplateItems';
+import {
+  BrackedTemplateItem,
+  ValueTemplateItem
+} from 'parse/converters/expressions/expressionDefinitions';
 
 // Match one or more characters until: ", ', or \
 const stringMiddlePattern = /^[^`"\\\$]+?(?:(?=[`"\\\$]))/;

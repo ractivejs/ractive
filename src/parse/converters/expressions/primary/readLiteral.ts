@@ -6,7 +6,19 @@ import readObjectLiteral from './literal/readObjectLiteral';
 import readArrayLiteral from './literal/readArrayLiteral';
 import readRegexpLiteral from './literal/readRegexpLiteral';
 import { StandardParser } from 'parse/_parse';
-import { LiteralTemplateDefinition } from 'parse/TemplateItems';
+import {
+  ValueTemplateItem,
+  BrackedTemplateItem,
+  ObjectLiteralTemplateItem,
+  ArrayLiteralTemplateItem
+} from 'parse/converters/expressions/expressionDefinitions';
+
+// define output of readLiteral
+export type LiteralTemplateDefinition =
+  | ValueTemplateItem
+  | BrackedTemplateItem
+  | ObjectLiteralTemplateItem
+  | ArrayLiteralTemplateItem;
 
 export default function readLiteral(parser: StandardParser): LiteralTemplateDefinition {
   return (

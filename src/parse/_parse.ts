@@ -21,7 +21,10 @@ import shared from '../Ractive/shared';
 import { assign, keys } from 'utils/object';
 import { isObjectType } from 'utils/is';
 import { ParseOpts, ParseDelimiters, InterpolateOpts } from 'types/ParseOptions';
-import { TemplateModel, ExpressionFunctionTemplateItem } from './TemplateItems';
+import {
+  TemplateModel,
+  ExpressionFunctionTemplateItem
+} from './converters/templateItemDefinitions';
 
 // See https://github.com/ractivejs/template-spec for information
 // about the Ractive template specification
@@ -77,6 +80,7 @@ export class StandardParser extends Parser implements CustomParser {
   public inEvent: boolean;
   public inTag: boolean;
   public whiteSpaceElements;
+  public inUnquotedAttribute: boolean;
 
   init(_str: string, options: ParseOpts): void {
     const tripleDelimiters = options.tripleDelimiters || (shared as any).defaults.tripleDelimiters;

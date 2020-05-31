@@ -1,10 +1,18 @@
 import { CONDITIONAL } from 'config/types';
-import readLogicalOr from './readLogicalOr';
+import readLogicalOr, { LogicalOrTypeofOrMemberOrInvocationOrPrimary } from './readLogicalOr';
 import { expectedExpression } from './shared/errors';
 import readExpression from '../readExpression';
+import { ConditionalOperatorTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+import { StandardParser } from 'parse/_parse';
+
+export type ConditionalOrLogicalOrTypeofOrMemberOrInvocationOrPrimary =
+  | LogicalOrTypeofOrMemberOrInvocationOrPrimary
+  | ConditionalOperatorTemplateItem;
 
 // The conditional operator is the lowest precedence operator, so we start here
-export default function getConditional(parser) {
+export default function readConditional(
+  parser: StandardParser
+): ConditionalOrLogicalOrTypeofOrMemberOrInvocationOrPrimary {
   const expression = readLogicalOr(parser);
   if (!expression) {
     return null;

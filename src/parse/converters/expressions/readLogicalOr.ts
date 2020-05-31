@@ -1,15 +1,21 @@
 import { INFIX_OPERATOR } from 'config/types';
-import readTypeof from './readTypeof';
+import readTypeof, { TypeofOrMemberOrInvocationOrPrimary } from './readTypeof';
+import { StandardParser } from 'parse/_parse';
+import { InfixOperatorTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+
+export type LogicalOrTypeofOrMemberOrInvocationOrPrimary =
+  | TypeofOrMemberOrInvocationOrPrimary
+  | InfixOperatorTemplateItem;
 
 let readLogicalOr;
 
-const makeInfixSequenceMatcher = function(symbol, fallthrough) {
-  return function(parser) {
+const makeInfixSequenceMatcher = function(symbol: string, fallthrough: Function) {
+  return function(parser: StandardParser): LogicalOrTypeofOrMemberOrInvocationOrPrimary {
     // > and / have to be quoted
     if (parser.inUnquotedAttribute && (symbol === '>' || symbol === '/'))
       return fallthrough(parser);
 
-    let start, left, right;
+    let start: number, left, right;
 
     left = fallthrough(parser);
     if (!left) {
@@ -57,7 +63,7 @@ const makeInfixSequenceMatcher = function(symbol, fallthrough) {
 };
 
 // create all infix sequence matchers, and return readLogicalOr
-(function() {
+{
   let i, len, matcher, fallthrough;
 
   // All the infix operators on order of precedence (source: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/Operator_Precedence)
@@ -77,6 +83,6 @@ const makeInfixSequenceMatcher = function(symbol, fallthrough) {
 
   // Logical OR is the fallthrough for the conditional matcher
   readLogicalOr = fallthrough;
-})();
+}
 
 export default readLogicalOr;

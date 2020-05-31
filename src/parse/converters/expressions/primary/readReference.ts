@@ -5,7 +5,7 @@ import {
   ReferenceTemplateItem,
   BrackedTemplateItem,
   GlobalValueTemplateItem
-} from 'parse/TemplateItems';
+} from 'parse/converters/expressions/expressionDefinitions';
 import { StandardParser } from 'parse/_parse';
 
 // if a reference is a browser global, we don't deference it later, so it needs special treatment

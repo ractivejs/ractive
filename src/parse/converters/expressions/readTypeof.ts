@@ -3,14 +3,14 @@ import { expectedExpression } from './shared/errors';
 import readMemberOrInvocation, { MemberOrInvocationOrPrimary } from './readMemberOrInvocation';
 import readExpression from '../readExpression';
 import { StandardParser } from 'parse/_parse';
-import { PrefixOperatorTemplateItem } from 'parse/TemplateItems';
+import { PrefixOperatorTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 
 /**
  * Includes template item reutorn by this module and readMemberOrInvocation
  */
 export type TypeofOrMemberOrInvocationOrPrimary =
-  | PrefixOperatorTemplateItem
-  | MemberOrInvocationOrPrimary;
+  | MemberOrInvocationOrPrimary
+  | PrefixOperatorTemplateItem;
 
 type ReadTypeOfConverter = (parser: StandardParser) => TypeofOrMemberOrInvocationOrPrimary;
 

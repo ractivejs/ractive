@@ -8,7 +8,7 @@ import {
   MemberTemplateItem,
   InvocationTemplateItem,
   PrimaryExpressionTemplateDefinition
-} from 'parse/TemplateItems';
+} from 'parse/converters/expressions/expressionDefinitions';
 
 /**
  * Return value of this function must include also primary returned values

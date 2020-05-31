@@ -3,7 +3,7 @@ import readKey from '../../../shared/readKey';
 import readExpression from 'parse/converters/readExpression';
 import { name as namePattern, spreadPattern } from '../../../shared/patterns';
 import { StandardParser } from 'parse/_parse';
-import { KeyValuePairTemplateItem } from 'parse/TemplateItems';
+import { KeyValuePairTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 
 export default function readKeyValuePair(parser: StandardParser): KeyValuePairTemplateItem {
   let spread;

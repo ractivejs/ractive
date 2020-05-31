@@ -1,7 +1,9 @@
 import readConditional from './expressions/readConditional';
 import readReference from './expressions/primary/readReference';
+import { StandardParser } from 'parse/_parse';
+import { ExpressionTemplateItem } from './expressions/expressionDefinitions';
 
-export default function readExpression(parser) {
+export default function readExpression(parser: StandardParser): ExpressionTemplateItem {
   // if eval is false, no expressions
   if (parser.allowExpressions === false) {
     const ref = readReference(parser);

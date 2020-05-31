@@ -1,7 +1,7 @@
 import { fromExpression } from './createFunction';
 import { isArray, isObject } from 'utils/is';
 import { keys } from 'utils/object';
-import { ExpressionFunctionTemplateItem } from 'parse/TemplateItems';
+import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 
 type ExpressionRegistry = {
   [key: string]: Function;

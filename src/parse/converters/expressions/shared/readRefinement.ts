@@ -2,7 +2,7 @@ import { REFINEMENT } from 'config/types';
 import { expectedExpression } from './errors';
 import { name as namePattern } from './patterns';
 import readExpression from 'parse/converters/readExpression';
-import { RefinementTemplateItem } from 'parse/TemplateItems';
+import { RefinementTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 import { StandardParser } from 'parse/_parse';
 
 export default function readRefinement(parser: StandardParser): RefinementTemplateItem {

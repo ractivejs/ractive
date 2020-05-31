@@ -1,49 +1,5 @@
 import TemplateItemType from 'config/types';
 
-/**
- * This file contains all definition of abstract syntax for ractive template returned
- * by converters functions.
- * @todo change name to abstract something?
- *
- * @see https://github.com/ractivejs/template-spec
- *
- * @todo consider to add an enum to store key value
- *
- * t -> type
- * x -> expresion
- */
-
-/** */
-export interface TemplateModel {
-  v: number;
-  t: any[]; // add correct type after readTemplate conversion is complete
-  p?: {
-    [key: string]: any; // todo define type for partial
-  };
-
-  // expression storage
-  e?: {
-    [key: string]: ExpressionFunctionTemplateItem;
-  };
-}
-
-// UTILS >>>
-
-// function description on template model
-// this in code is referred as expression but these word seems to include more than function
-export interface ExpressionFunctionTemplateItem {
-  // function name and if there are ny param dinamic names
-  r: string[];
-
-  // body of the function, includes also reference param
-  // are that are replaced by _{index}
-  s: string;
-}
-
-// UTILS <<<
-
-// EXPRESSIONS >>>
-
 export interface SimpleTemplateItem {
   v: string | any;
 }
@@ -65,10 +21,8 @@ export interface GlobalValueTemplateItem {
 export interface ReferenceTemplateItem {
   t: TemplateItemType.REFERENCE;
   n: string;
+  p?: boolean;
 }
-
-// output of readExpression
-export type ExpressionTemplateItem = any; // todo refine
 
 export interface MemberTemplateItem {
   t: TemplateItemType.MEMBER;
@@ -80,6 +34,7 @@ export interface InvocationTemplateItem {
   t: TemplateItemType.INVOCATION;
   x: PrimaryExpressionTemplateDefinition;
   o?: ExpressionTemplateItem[];
+  p?: boolean;
 }
 
 export interface BrackedTemplateItem {
@@ -135,11 +90,24 @@ export interface RefinementTemplateItem {
   x?: ExpressionTemplateItem;
 }
 
-// define output of readLiteral
-export type LiteralTemplateDefinition =
+// output of readExpression
+export type ExpressionTemplateItem =
   | ValueTemplateItem
   | BrackedTemplateItem
   | ObjectLiteralTemplateItem
+  | ArrayLiteralTemplateItem
+  | ReferenceTemplateItem
+  | GlobalValueTemplateItem
+  | MemberTemplateItem
+  | InvocationTemplateItem
+  | PrefixOperatorTemplateItem
+  | InfixOperatorTemplateItem
+  | ConditionalOperatorTemplateItem;
+
+// expression with spread support
+export type ExpressionWithSpread =
+  | ReferenceTemplateItem
+  | InvocationTemplateItem
   | ArrayLiteralTemplateItem;
 
 // define output of readPrimary
@@ -150,15 +118,3 @@ export type PrimaryExpressionTemplateDefinition =
   | ArrayLiteralTemplateItem
   | ReferenceTemplateItem
   | GlobalValueTemplateItem;
-
-// EXPRESSIONS <<<
-
-// ELEMENTS >>>
-
-export interface CommentTemplateItem {
-  t: TemplateItemType.COMMENT;
-  c?: string; // content is available only for html comments
-  q?: [number, number, number]; // line position
-}
-
-// ELEMENTS <<<

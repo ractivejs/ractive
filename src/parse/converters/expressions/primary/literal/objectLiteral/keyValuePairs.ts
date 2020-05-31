@@ -1,6 +1,6 @@
 import getKeyValuePair from './keyValuePair';
-import { KeyValuePairTemplateItem } from 'parse/TemplateItems';
 import { StandardParser } from 'parse/_parse';
+import { KeyValuePairTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 
 export default function readKeyValuePairs(parser: StandardParser): KeyValuePairTemplateItem[] {
   const start = parser.pos;

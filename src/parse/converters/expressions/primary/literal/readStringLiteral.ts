@@ -1,6 +1,6 @@
 import makeQuotedStringMatcher from './stringLiteral/makeQuotedStringMatcher';
 import TemplateItemType from 'config/types';
-import { ValueTemplateItem } from 'parse/TemplateItems';
+import { ValueTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 import Parser from 'parse/Parser';
 
 const singleMatcher = makeQuotedStringMatcher(`"`);

@@ -2,8 +2,12 @@ import { expectedExpression } from './errors';
 import readExpression from '../../readExpression';
 import { spreadPattern } from './patterns';
 import { StandardParser } from 'parse/_parse';
+import { ExpressionTemplateItem, ExpressionWithSpread } from '../expressionDefinitions';
 
-export default function readExpressionList(parser: StandardParser, spread: boolean) {
+export default function readExpressionList(
+  parser: StandardParser,
+  spread: boolean
+): ExpressionTemplateItem[] {
   let isSpread;
   const expressions = [];
 
@@ -26,7 +30,7 @@ export default function readExpressionList(parser: StandardParser, spread: boole
     }
 
     if (isSpread) {
-      expr.p = true;
+      (expr as ExpressionWithSpread).p = true;
     }
 
     expressions.push(expr);

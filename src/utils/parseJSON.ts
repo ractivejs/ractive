@@ -3,7 +3,7 @@ import readStringLiteral from 'parse/converters/expressions/primary/literal/read
 import readKey from 'parse/converters/expressions/shared/readKey';
 import { hasOwn, keys } from 'utils/object';
 import { BaseParseOpts } from 'types/ParseOptions';
-import { SimpleTemplateItem } from 'parse/TemplateItems';
+import { SimpleTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 
 /**
  * simple JSON parser, without the restrictions of JSON parse

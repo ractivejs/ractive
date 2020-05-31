@@ -1,5 +1,5 @@
 import TemplateItemType from 'config/types';
-import { ValueTemplateItem } from 'parse/TemplateItems';
+import { ValueTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 import { StandardParser } from 'parse/_parse';
 
 const regexpPattern = /^(\/(?:[^\n\r\u2028\u2029/\\[]|\\.|\[(?:[^\n\r\u2028\u2029\]\\]|\\.)*])+\/(?:([gimuy])(?![a-z]*\2))*(?![a-zA-Z_$0-9]))/;
