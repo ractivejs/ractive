@@ -83,7 +83,7 @@ export class StandardParser extends Parser implements CustomParser {
   public inTag: boolean;
   public whiteSpaceElements;
 
-  /**  are we inside an HTML attribute */
+  public inAttribute: boolean;
   public inUnquotedAttribute: boolean;
 
   /**  contains the name of the HTML tag currently parsed */
