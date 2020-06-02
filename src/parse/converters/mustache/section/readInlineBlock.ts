@@ -4,7 +4,7 @@ import { StandardParser } from 'parse/_parse';
 import { name } from '../../expressions/shared/patterns';
 import readExpression from '../../readExpression';
 import {
-  TagConverter,
+  ParserTag,
   ElseMustacheTemplateItem,
   ElseIfMustacheTemplateItem,
   ThenMustacheTemplateItem,
@@ -31,25 +31,25 @@ type InlineBlockTemplateItem =
 
 export function readInlineBlock(
   parser: StandardParser,
-  tag: TagConverter,
+  tag: ParserTag,
   type: 'else'
 ): ElseMustacheTemplateItem;
 
 export function readInlineBlock(
   parser: StandardParser,
-  tag: TagConverter,
+  tag: ParserTag,
   type: 'elseif'
 ): ElseIfMustacheTemplateItem;
 
 export function readInlineBlock(
   parser: StandardParser,
-  tag: TagConverter,
+  tag: ParserTag,
   type: 'then' | 'catch'
 ): ThenMustacheTemplateItem | CatchMustacheTemplateItem;
 
 export function readInlineBlock(
   parser: StandardParser,
-  tag: TagConverter,
+  tag: ParserTag,
   type: InlineBlockType
 ): InlineBlockTemplateItem {
   const start = parser.pos;

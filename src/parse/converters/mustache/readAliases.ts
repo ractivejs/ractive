@@ -1,21 +1,27 @@
-import refineExpression from '../../utils/refineExpression';
+import { StandardParser } from 'parse/_parse';
+import { refineExpression } from 'parse/utils/refineExpression';
+
 import readExpression from '../readExpression';
+
+import {
+  AliasDefinitionTemplateItem,
+  AliasDefinitionRefinedTemplateItem
+} from './mustacheDefinitions';
 
 const legalAlias = /^(?:[a-zA-Z$_0-9]|\\\.)+(?:(?:(?:[a-zA-Z$_0-9]|\\\.)+)|(?:\[[0-9]+\]))*/;
 const asRE = /^as/i;
 
-export function readAliases(parser) {
-  const aliases = [];
-  let alias;
+export function readAliases(parser: StandardParser): AliasDefinitionRefinedTemplateItem[] {
+  const aliases: AliasDefinitionRefinedTemplateItem[] = [];
   const start = parser.pos;
 
   parser.sp();
 
-  alias = readAlias(parser);
+  let alias = readAlias(parser);
 
   if (alias) {
     alias.x = refineExpression(alias.x, {});
-    aliases.push(alias);
+    aliases.push(alias as AliasDefinitionRefinedTemplateItem);
 
     parser.sp();
 
@@ -27,7 +33,7 @@ export function readAliases(parser) {
       }
 
       alias.x = refineExpression(alias.x, {});
-      aliases.push(alias);
+      aliases.push(alias as AliasDefinitionRefinedTemplateItem);
 
       parser.sp();
     }
@@ -39,12 +45,12 @@ export function readAliases(parser) {
   return null;
 }
 
-export function readAlias(parser) {
+export function readAlias(parser: StandardParser): AliasDefinitionTemplateItem {
   const start = parser.pos;
 
   parser.sp();
 
-  const expr = readExpression(parser, []);
+  const expr = readExpression(parser);
 
   if (!expr) {
     parser.pos = start;

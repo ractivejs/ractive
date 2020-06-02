@@ -1,5 +1,7 @@
 import TemplateItemType from 'config/types';
 
+import { ExpressionFunctionTemplateItem } from '../templateItemDefinitions';
+
 export interface SimpleTemplateItem {
   v: string | any;
 }
@@ -88,6 +90,25 @@ export interface RefinementTemplateItem {
   t: TemplateItemType.REFINEMENT;
   n?: string;
   x?: ExpressionTemplateItem;
+}
+
+/** @see getReferenceExpression */
+export interface ReferenceExpressionTemplateItem {
+  /** expression ( `proxies` / `~/selected ) */
+  r: string;
+  m: (string | ExpressionFunctionTemplateItem)[];
+}
+
+/**
+ * Properties that are filled when a mustache
+ * element is passed to {@link refineExpression}
+ * */
+export interface ExpressionRefinementTemplateItem {
+  x?: ExpressionFunctionTemplateItem;
+
+  r?: string;
+
+  rx?: ReferenceExpressionTemplateItem;
 }
 
 // output of readExpression

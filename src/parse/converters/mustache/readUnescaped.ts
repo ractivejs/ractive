@@ -1,9 +1,15 @@
 import { TRIPLE } from 'config/types';
-import refineExpression from 'parse/utils/refineExpression';
+import { StandardParser } from 'parse/_parse';
+import { refineExpression } from 'parse/utils/refineExpression';
 
 import readExpression from '../readExpression';
 
-export default function readUnescaped(parser, tag) {
+import { ParserTag, TripleMustacheTemplateItem } from './mustacheDefinitions';
+
+export default function readUnescaped(
+  parser: StandardParser,
+  tag: ParserTag
+): TripleMustacheTemplateItem {
   if (!parser.matchString('&')) {
     return null;
   }
@@ -23,5 +29,6 @@ export default function readUnescaped(parser, tag) {
   const triple = { t: TRIPLE };
   refineExpression(expression, triple); // TODO handle this differently - it's mysterious
 
-  return triple;
+  // force casting since population is done as side effect of refineExpression
+  return triple as TripleMustacheTemplateItem;
 }

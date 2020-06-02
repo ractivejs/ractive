@@ -1,14 +1,25 @@
-import refineExpression from 'parse/utils/refineExpression';
-import { PARTIAL, YIELDER } from 'src/config/types';
+import TemplateItemType from 'config/types';
+import { StandardParser } from 'parse/_parse';
+import { refineExpression } from 'parse/utils/refineExpression';
 
 import readExpression from '../readExpression';
 
+import {
+  ParserTag,
+  PartialMustacheTemplateItem,
+  AliasDefinitionRefinedTemplateItem
+} from './mustacheDefinitions';
 import { readAliases } from './readAliases';
 
-export default function readPartial(parser, tag) {
+export default function readPartial(
+  parser: StandardParser,
+  tag: ParserTag
+): PartialMustacheTemplateItem {
   const type = parser.matchString('>') || parser.matchString('yield');
-  const partial = { t: type === '>' ? PARTIAL : YIELDER };
-  let aliases;
+  const partial: PartialMustacheTemplateItem = {
+    t: type === '>' ? TemplateItemType.PARTIAL : TemplateItemType.YIELDER
+  };
+  let aliases: AliasDefinitionRefinedTemplateItem[] | string;
 
   if (!type) return null;
 
@@ -16,9 +27,7 @@ export default function readPartial(parser, tag) {
 
   if (type === '>' || !(aliases = parser.matchString('with'))) {
     // Partial names can include hyphens, so we can't use readExpression
-    // blindly. Instead, we use the `relaxedNames` flag to indicate that
-    // `foo-bar` should be read as a single name, rather than 'subtract
-    // bar from foo'
+    // blindly. Instead, we use the `relaxedNames`.
     parser.relaxedNames = parser.strictRefinement = true;
     const expression = readExpression(parser);
     parser.relaxedNames = parser.strictRefinement = false;

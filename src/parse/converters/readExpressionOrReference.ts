@@ -1,9 +1,14 @@
-import { REFERENCE } from 'config/types';
+import TemplateItemType from 'config/types';
+import { StandardParser } from 'parse/_parse';
 
+import { ExpressionTemplateItem, ReferenceTemplateItem } from './expressions/expressionDefinitions';
 import readReference from './expressions/primary/readReference';
 import readExpression from './readExpression';
 
-export default function readExpressionOrReference(parser, expectedFollowers) {
+export default function readExpressionOrReference(
+  parser: StandardParser,
+  expectedFollowers: string[]
+): ExpressionTemplateItem | ReferenceTemplateItem {
   const start = parser.pos;
   const expression = readExpression(parser);
 
@@ -12,7 +17,7 @@ export default function readExpressionOrReference(parser, expectedFollowers) {
     const ref = parser.matchPattern(/^(\w+)/);
     if (ref) {
       return {
-        t: REFERENCE,
+        t: TemplateItemType.REFERENCE,
         n: ref
       };
     }

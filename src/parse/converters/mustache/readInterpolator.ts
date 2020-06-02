@@ -1,9 +1,15 @@
 import { INTERPOLATOR } from 'config/types';
-import refineExpression from 'parse/utils/refineExpression';
+import { StandardParser } from 'parse/_parse';
+import { refineExpression } from 'parse/utils/refineExpression';
 
 import readExpressionOrReference from '../readExpressionOrReference';
 
-export default function readInterpolator(parser, tag) {
+import { InterpolatorTemplateItem, ParserTag } from './mustacheDefinitions';
+
+export default function readInterpolator(
+  parser: StandardParser,
+  tag: ParserTag
+): InterpolatorTemplateItem {
   let expression, err;
 
   const start = parser.pos;
@@ -40,7 +46,7 @@ export default function readInterpolator(parser, tag) {
     }
   }
 
-  const interpolator = { t: INTERPOLATOR };
+  const interpolator: InterpolatorTemplateItem = { t: INTERPOLATOR };
   refineExpression(expression, interpolator); // TODO handle this differently - it's mysterious
 
   return interpolator;

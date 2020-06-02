@@ -1,5 +1,5 @@
 import flattenExpression from 'parse/utils/flattenExpression';
-import refineExpression from 'parse/utils/refineExpression';
+import { refineExpression } from 'parse/utils/refineExpression';
 import { decodeCharacterReferences } from 'src/utils/html';
 import { isString } from 'utils/is';
 

@@ -78,11 +78,15 @@ export class StandardParser extends Parser implements CustomParser {
   public sectionDepth: number;
   public elementStack: any[];
 
-  public relaxedNames: any[];
   public inEvent: boolean;
   public inTag: boolean;
   public whiteSpaceElements;
 
+  /**
+   * flag to indicate that `foo-bar` should be read as a single name,
+   * rather than 'subtract bar from foo'
+   */
+  public relaxedNames: boolean;
   public inAttribute: boolean;
   public inUnquotedAttribute: boolean;
 

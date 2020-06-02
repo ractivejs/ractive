@@ -3,7 +3,9 @@ import { StandardParser } from 'parse/_parse';
 
 import { CommentTemplateItem } from '../templateItemDefinitions';
 
-export default function readComment(parser: StandardParser, tag): CommentTemplateItem {
+import { ParserTag } from './mustacheDefinitions';
+
+export default function readComment(parser: StandardParser, tag: ParserTag): CommentTemplateItem {
   if (!parser.matchString('!')) {
     return null;
   }
