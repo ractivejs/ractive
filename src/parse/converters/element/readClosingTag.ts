@@ -1,9 +1,12 @@
-import { CLOSING_TAG } from 'src/config/types';
+import TemplateItemType from 'config/types';
+import { StandardParser } from 'parse/_parse';
+
+import { ClosingTagTemplateItem } from './elementDefinitions';
 
 const closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
 
-export default function readClosingTag(parser) {
-  let tag;
+export default function readClosingTag(parser: StandardParser): ClosingTagTemplateItem {
+  let tag: string;
 
   const start = parser.pos;
 
@@ -19,7 +22,7 @@ export default function readClosingTag(parser) {
     }
 
     return {
-      t: CLOSING_TAG,
+      t: TemplateItemType.CLOSING_TAG,
       e: tag
     };
   }

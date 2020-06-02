@@ -82,7 +82,12 @@ export class StandardParser extends Parser implements CustomParser {
   public inEvent: boolean;
   public inTag: boolean;
   public whiteSpaceElements;
+
+  /**  are we inside an HTML attribute */
   public inUnquotedAttribute: boolean;
+
+  /**  contains the name of the HTML tag currently parsed */
+  public inside: string;
 
   init(_str: string, options: ParseOpts): void {
     const tripleDelimiters = options.tripleDelimiters || (shared as any).defaults.tripleDelimiters;
