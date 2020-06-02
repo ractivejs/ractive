@@ -1,6 +1,12 @@
-import { CLOSING } from 'config/types';
+import TemplateItemType from 'config/types';
+import { StandardParser } from 'parse/_parse';
 
-export default function readClosing(parser, tag) {
+import { ClosingMustacheTemplateItem, TagConverter } from '../mustacheDefinitions';
+
+export default function readClosing(
+  parser: StandardParser,
+  tag: TagConverter
+): ClosingMustacheTemplateItem {
   const start = parser.pos;
 
   if (!parser.matchString(tag.open)) {
@@ -20,8 +26,8 @@ export default function readClosing(parser, tag) {
   const index = remaining.indexOf(tag.close);
 
   if (index !== -1) {
-    const closing = {
-      t: CLOSING,
+    const closing: ClosingMustacheTemplateItem = {
+      t: TemplateItemType.CLOSING,
       r: remaining.substr(0, index).split(' ')[0]
     };
 

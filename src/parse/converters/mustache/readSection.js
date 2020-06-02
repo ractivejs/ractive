@@ -142,7 +142,9 @@ export default function readSection(parser, tag) {
         if (!block) {
           if (child.r)
             parser.warn(
-              `Expected ${tag.open}/${expectedClose}${tag.close} but found ${tag.open}/${child.r}${tag.close}`
+              `Expected ${tag.open}/${expectedClose}${tag.close} but found ${tag.open}/${child.r}${
+                tag.close
+              }`
             );
         } else {
           parser.pos = pos;
