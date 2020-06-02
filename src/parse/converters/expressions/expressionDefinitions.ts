@@ -102,7 +102,10 @@ export type ExpressionTemplateItem =
   | InvocationTemplateItem
   | PrefixOperatorTemplateItem
   | InfixOperatorTemplateItem
-  | ConditionalOperatorTemplateItem;
+  | ConditionalOperatorTemplateItem
+
+  // added this for flattenExpression. I don't think this is returned
+  | RefinementTemplateItem;
 
 // expression with spread support
 export type ExpressionWithSpread =
@@ -118,3 +121,5 @@ export type PrimaryExpressionTemplateDefinition =
   | ArrayLiteralTemplateItem
   | ReferenceTemplateItem
   | GlobalValueTemplateItem;
+
+export type ExpressionWithValue = SimpleTemplateItem | ValueTemplateItem | GlobalValueTemplateItem;
