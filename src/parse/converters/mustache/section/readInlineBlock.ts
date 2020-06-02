@@ -47,7 +47,7 @@ export function readInlineBlock(
   type: 'then' | 'catch'
 ): ThenMustacheTemplateItem | CatchMustacheTemplateItem;
 
-export default function readInlineBlock(
+export function readInlineBlock(
   parser: StandardParser,
   tag: TagConverter,
   type: InlineBlockType

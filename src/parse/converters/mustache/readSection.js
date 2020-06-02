@@ -19,7 +19,7 @@ import readExpression from '../readExpression';
 import handlebarsBlockCodes from './handlebarsBlockCodes';
 import { readAlias, readAliases } from './readAliases';
 import readClosing from './section/readClosing';
-import readInlineBlock from './section/readInlineBlock';
+import { readInlineBlock } from './section/readInlineBlock';
 
 const indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
 const keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
@@ -142,9 +142,7 @@ export default function readSection(parser, tag) {
         if (!block) {
           if (child.r)
             parser.warn(
-              `Expected ${tag.open}/${expectedClose}${tag.close} but found ${tag.open}/${child.r}${
-                tag.close
-              }`
+              `Expected ${tag.open}/${expectedClose}${tag.close} but found ${tag.open}/${child.r}${tag.close}`
             );
         } else {
           parser.pos = pos;
