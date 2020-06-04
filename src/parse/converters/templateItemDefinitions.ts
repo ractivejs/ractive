@@ -31,17 +31,21 @@ export interface TemplateModel {
 
 // UTILS >>>
 
-// function description on template model
-// this in code is referred as expression but these word seems to include more than function
+/**
+ * function description on template model
+ * this in code is referred as expression but these word seems to include more than function
+ */
 export interface ExpressionFunctionTemplateItem {
-  // function name and if there are ny param dinamic names
+  /** function name and if there are ny param dinamic names  */
   r: string[];
 
-  // body of the function, includes also reference param
-  // are that are replaced by _{index}
+  /**
+   * body of the function, includes also reference param
+   * are that are replaced by _{index}
+   */
   s: string;
 
-  // return the related function definition based on `r` and `s` properties
+  /** return the related function definition based on `r` and `s` properties */
   e?: Function;
 }
 

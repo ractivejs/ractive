@@ -113,6 +113,12 @@ export interface AwaitMustacheTemplateItem {
 
 export interface InterpolatorTemplateItem extends ExpressionRefinementTemplateItem {
   t: TemplateItemType.INTERPOLATOR;
+
+  /**
+   * Fragments
+   * used in {@link readAttribute}
+   */
+  f?: FragmentTemplateItem[];
 }
 
 export interface TripleMustacheTemplateItem extends ExpressionRefinementTemplateItem {

@@ -92,7 +92,7 @@ export class StandardParser extends Parser implements CustomParser {
   public contextLines: any;
   public sectionDepth: number;
   public elementStack: any[];
-
+  public spreadArgs: boolean;
   public whiteSpaceElements: WhitespaceElements;
 
   /**

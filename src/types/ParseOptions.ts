@@ -27,7 +27,7 @@ export interface BaseParseOpts {
 
   /**
    * When `true`, preserves whitespace in templates.
-   * Whitespace inside the <pre> element is preserved regardless of the value of this option.
+   * Whitespace inside the \<pre\> element is preserved regardless of the value of this option.
    * Defaults to `false`. If the value is a map, whitespace is not preserved by default,
    * and the elements named in the map will have whitespace preserved based on the value of the boolean associated with their name.
    */
@@ -86,5 +86,5 @@ export interface ParseOpts extends BaseParseOpts {
   /**
    * @todo write doc
    */
-  expression: boolean;
+  expression?: boolean;
 }

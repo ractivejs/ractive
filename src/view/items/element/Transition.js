@@ -17,6 +17,7 @@ import prefix from './transitions/prefix';
 const getComputedStyle = win && win.getComputedStyle;
 const resolved = Promise.resolve();
 
+/** todo use TransitionTrigger for keys */
 const names = {
   t0: 'intro-outro',
   t1: 'intro',

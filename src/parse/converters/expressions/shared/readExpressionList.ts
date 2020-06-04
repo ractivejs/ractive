@@ -8,7 +8,7 @@ import { spreadPattern } from './patterns';
 
 export default function readExpressionList(
   parser: StandardParser,
-  spread: boolean
+  spread?: boolean
 ): ExpressionTemplateItem[] {
   let isSpread;
   const expressions = [];
