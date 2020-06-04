@@ -8,6 +8,13 @@ export interface SanitizeOpts {
   eventAttributes?: boolean;
 }
 
+export interface WhitespaceElements {
+  pre: number;
+  script: number;
+  style: number;
+  textarea: number;
+}
+
 export interface BaseParseOpts {
   /** The number of lines of template above and below a line with an error to include in the error message. */
   contextLines?: number;
@@ -18,8 +25,13 @@ export interface BaseParseOpts {
   /** The regular mustach delimiters - defaults to {{ }}. */
   delimiters?: ParseDelimiters;
 
-  /** Whether or not to collapse consective whitespace into a single space. */
-  preserveWhitespace?: boolean;
+  /**
+   * When `true`, preserves whitespace in templates.
+   * Whitespace inside the <pre> element is preserved regardless of the value of this option.
+   * Defaults to `false`. If the value is a map, whitespace is not preserved by default,
+   * and the elements named in the map will have whitespace preserved based on the value of the boolean associated with their name.
+   */
+  preserveWhitespace?: boolean | WhitespaceElements;
 
   /** Whether or not to remove certain elements and event attributes from the parsed template. */
   sanitize?: boolean | SanitizeOpts;

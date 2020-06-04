@@ -1,5 +1,10 @@
 import { TEMPLATE_VERSION } from 'config/template';
-import { ParseOpts, ParseDelimiters, InterpolateOpts } from 'types/ParseOptions';
+import {
+  ParseOpts,
+  ParseDelimiters,
+  InterpolateOpts,
+  WhitespaceElements
+} from 'types/ParseOptions';
 import { isObjectType } from 'utils/is';
 import { assign, keys } from 'utils/object';
 
@@ -43,9 +48,19 @@ const TRIPLE_READERS = [readTriple];
 export const READERS = [readMustache, readHtmlComment, readElement, readText];
 export const PARTIAL_READERS = [readPartialDefinitionSection];
 
-const preserveWhitespaceElements = { pre: 1, script: 1, style: 1, textarea: 1 };
+const preserveWhitespaceElements: WhitespaceElements = {
+  pre: 1,
+  script: 1,
+  style: 1,
+  textarea: 1
+};
 
-const defaultInterpolate = { textarea: true, script: true, style: true, template: true };
+const defaultInterpolate: InterpolateOpts = {
+  textarea: true,
+  script: true,
+  style: true,
+  template: true
+};
 
 interface StandardParserTag {
   isStatic: boolean;
@@ -78,19 +93,20 @@ export class StandardParser extends Parser implements CustomParser {
   public sectionDepth: number;
   public elementStack: any[];
 
-  public inEvent: boolean;
-  public inTag: boolean;
-  public whiteSpaceElements;
+  public whiteSpaceElements: WhitespaceElements;
 
   /**
    * flag to indicate that `foo-bar` should be read as a single name,
    * rather than 'subtract bar from foo'
    */
   public relaxedNames: boolean;
+
+  public inEvent: boolean;
+  public inTag: boolean;
   public inAttribute: boolean;
   public inUnquotedAttribute: boolean;
 
-  /**  contains the name of the HTML tag currently parsed */
+  /** contains the name of the HTML tag currently parsed */
   public inside: string;
 
   init(_str: string, options: ParseOpts): void {
