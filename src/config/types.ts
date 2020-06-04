@@ -67,7 +67,7 @@ export const INTERPOLATOR = 2;
 export const TRIPLE = 3;
 export const SECTION = 4;
 export const INVERTED = 5;
-export const CLOSING = 6;
+// export const CLOSING = 6;
 export const ELEMENT = 7;
 export const PARTIAL = 8;
 export const COMMENT = 9;
@@ -83,25 +83,25 @@ export const ALIAS = 19;
 
 export const AWAIT = 55;
 
-export const NUMBER_LITERAL = 20;
-export const STRING_LITERAL = 21;
-export const ARRAY_LITERAL = 22;
+// export const NUMBER_LITERAL = 20;
+// export const STRING_LITERAL = 21;
+// export const ARRAY_LITERAL = 22;
 export const OBJECT_LITERAL = 23;
-export const BOOLEAN_LITERAL = 24;
-export const REGEXP_LITERAL = 25;
+// export const BOOLEAN_LITERAL = 24;
+// export const REGEXP_LITERAL = 25;
 
-export const GLOBAL = 26;
-export const KEY_VALUE_PAIR = 27;
+// export const GLOBAL = 26;
+// export const KEY_VALUE_PAIR = 27;
 
 export const REFERENCE = 30;
-export const REFINEMENT = 31;
-export const MEMBER = 32;
-export const PREFIX_OPERATOR = 33;
-export const BRACKETED = 34;
-export const CONDITIONAL = 35;
-export const INFIX_OPERATOR = 36;
+// export const REFINEMENT = 31;
+// export const MEMBER = 32;
+// export const PREFIX_OPERATOR = 33;
+// export const BRACKETED = 34;
+// export const CONDITIONAL = 35;
+// export const INFIX_OPERATOR = 36;
 
-export const INVOCATION = 40;
+// export const INVOCATION = 40;
 
 export const SECTION_IF = 50;
 export const SECTION_UNLESS = 51;
@@ -110,7 +110,7 @@ export const SECTION_WITH = 53;
 export const SECTION_IF_WITH = 54;
 
 export const ELSE = 60;
-export const ELSEIF = 61;
+// export const ELSEIF = 61;
 export const THEN = 62;
 export const CATCH = 63;
 

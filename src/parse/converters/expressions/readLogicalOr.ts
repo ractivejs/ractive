@@ -1,4 +1,4 @@
-import { INFIX_OPERATOR } from 'config/types';
+import TemplateItemType from 'config/types';
 import { StandardParser } from 'parse/_parse';
 import { InfixOperatorTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 
@@ -52,7 +52,7 @@ const makeInfixSequenceMatcher = function(symbol: string, fallthrough: Function)
       }
 
       left = {
-        t: INFIX_OPERATOR,
+        t: TemplateItemType.INFIX_OPERATOR,
         s: symbol,
         o: [left, right]
       };

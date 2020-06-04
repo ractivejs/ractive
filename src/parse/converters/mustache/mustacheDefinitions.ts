@@ -47,7 +47,7 @@ export interface CatchMustacheTemplateItem {
 // Inline blocks <<
 
 // Alias >>
-/** Single alias definition, retuen value of {@link readAlias} */
+/** Single alias definition, returned value of {@link readAlias} */
 export interface AliasDefinitionTemplateItem {
   n: string;
 

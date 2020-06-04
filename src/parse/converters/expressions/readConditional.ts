@@ -1,4 +1,4 @@
-import { CONDITIONAL } from 'config/types';
+import TemplateItemType from 'config/types';
 import { StandardParser } from 'parse/_parse';
 import { ConditionalOperatorTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 
@@ -50,7 +50,7 @@ export default function readConditional(
   }
 
   return {
-    t: CONDITIONAL,
+    t: TemplateItemType.CONDITIONAL,
     o: [expression, ifTrue, ifFalse]
   };
 }

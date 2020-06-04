@@ -1,4 +1,4 @@
-import { REFINEMENT } from 'config/types';
+import TemplateItemType from 'config/types';
 import { StandardParser } from 'parse/_parse';
 import { RefinementTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 import readExpression from 'parse/converters/readExpression';
@@ -19,7 +19,7 @@ export default function readRefinement(parser: StandardParser): RefinementTempla
     const name = parser.matchPattern(namePattern);
     if (name) {
       return {
-        t: REFINEMENT,
+        t: TemplateItemType.REFINEMENT,
         n: name
       };
     }
@@ -39,7 +39,7 @@ export default function readRefinement(parser: StandardParser): RefinementTempla
     if (!parser.matchString(']')) parser.error(`Expected ']'`);
 
     return {
-      t: REFINEMENT,
+      t: TemplateItemType.REFINEMENT,
       x: expr
     };
   }

@@ -1,7 +1,7 @@
+import TemplateItemType from 'config/types';
 import { StandardParser } from 'parse/_parse';
 import { BrackedTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 import readExpression from 'parse/converters/readExpression';
-import { BRACKETED } from 'src/config/types';
 
 import { expectedExpression, expectedParen } from '../shared/errors';
 
@@ -19,7 +19,7 @@ export default function readBracketedExpression(parser: StandardParser): Bracked
   if (!parser.matchString(')')) parser.error(expectedParen);
 
   return {
-    t: BRACKETED,
+    t: TemplateItemType.BRACKETED,
     x: expr
   };
 }
