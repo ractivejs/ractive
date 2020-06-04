@@ -1,6 +1,7 @@
 import { StandardParser } from 'parse/_parse';
 import { refineExpression } from 'parse/utils/refineExpression';
 
+import { ExpressionTemplateItem } from '../expressions/expressionDefinitions';
 import readExpression from '../readExpression';
 
 import {
@@ -17,23 +18,25 @@ export function readAliases(parser: StandardParser): AliasDefinitionRefinedTempl
 
   parser.sp();
 
-  let alias = readAlias(parser);
+  // we are going for sure to process this alias using refineExpression
+  // so force type to AliasDefinitionRefinedTemplateItem
+  let alias = readAlias(parser) as AliasDefinitionRefinedTemplateItem;
 
   if (alias) {
-    alias.x = refineExpression(alias.x, {});
-    aliases.push(alias as AliasDefinitionRefinedTemplateItem);
+    alias.x = refineExpression(alias.x as ExpressionTemplateItem, {});
+    aliases.push(alias);
 
     parser.sp();
 
     while (parser.matchString(',')) {
-      alias = readAlias(parser);
+      alias = readAlias(parser) as AliasDefinitionRefinedTemplateItem;
 
       if (!alias) {
         parser.error('Expected another alias.');
       }
 
-      alias.x = refineExpression(alias.x, {});
-      aliases.push(alias as AliasDefinitionRefinedTemplateItem);
+      alias.x = refineExpression(alias.x as ExpressionTemplateItem, {});
+      aliases.push(alias);
 
       parser.sp();
     }

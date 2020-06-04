@@ -1,4 +1,4 @@
-import { TRIPLE } from 'config/types';
+import TemplateItemType from 'config/types';
 import { StandardParser } from 'parse/_parse';
 import { refineExpression } from 'parse/utils/refineExpression';
 
@@ -26,9 +26,9 @@ export default function readUnescaped(
     parser.error(`Expected closing delimiter '${tag.close}'`);
   }
 
-  const triple = { t: TRIPLE };
+  const triple: TripleMustacheTemplateItem = { t: TemplateItemType.TRIPLE };
   refineExpression(expression, triple); // TODO handle this differently - it's mysterious
 
   // force casting since population is done as side effect of refineExpression
-  return triple as TripleMustacheTemplateItem;
+  return triple;
 }

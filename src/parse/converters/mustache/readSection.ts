@@ -29,7 +29,6 @@ export default function readSection(
 ): SectionMustacheTemplateItem | AliasTemplateItem | AwaitMustacheTemplateItem {
   let expression: ExpressionTemplateItem;
   let section: SectionMustacheTemplateItem | AliasTemplateItem | AwaitMustacheTemplateItem;
-  // let section: any;
   let child;
   let children;
   let hasElse;

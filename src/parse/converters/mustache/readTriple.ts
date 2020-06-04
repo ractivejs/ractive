@@ -20,8 +20,8 @@ export default function readTriple(
     parser.error(`Expected closing delimiter '${tag.close}'`);
   }
 
-  const triple = { t: TemplateItemType.TRIPLE };
+  const triple: TripleMustacheTemplateItem = { t: TemplateItemType.TRIPLE };
   refineExpression(expression, triple); // TODO handle this differently - it's mysterious
 
-  return triple as TripleMustacheTemplateItem;
+  return triple;
 }
