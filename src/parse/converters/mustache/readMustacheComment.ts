@@ -1,11 +1,12 @@
 import TemplateItemType from 'config/types';
-import { StandardParser } from 'parse/_parse';
+import { StandardParser, StandardParserTag } from 'parse/_parse';
 
 import { CommentTemplateItem } from '../templateItemDefinitions';
 
-import { ParserTag } from './mustacheDefinitions';
-
-export default function readComment(parser: StandardParser, tag: ParserTag): CommentTemplateItem {
+export default function readComment(
+  parser: StandardParser,
+  tag: StandardParserTag
+): CommentTemplateItem {
   if (!parser.matchString('!')) {
     return null;
   }

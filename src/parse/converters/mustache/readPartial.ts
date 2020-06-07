@@ -1,11 +1,10 @@
 import TemplateItemType from 'config/types';
-import { StandardParser } from 'parse/_parse';
+import { StandardParser, StandardParserTag } from 'parse/_parse';
 import { refineExpression } from 'parse/utils/refineExpression';
 
 import readExpression from '../readExpression';
 
 import {
-  ParserTag,
   PartialMustacheTemplateItem,
   AliasDefinitionRefinedTemplateItem
 } from './mustacheDefinitions';
@@ -13,7 +12,7 @@ import { readAliases } from './readAliases';
 
 export default function readPartial(
   parser: StandardParser,
-  tag: ParserTag
+  tag: StandardParserTag
 ): PartialMustacheTemplateItem {
   const type = parser.matchString('>') || parser.matchString('yield');
   const partial: PartialMustacheTemplateItem = {

@@ -1,14 +1,14 @@
 import { INTERPOLATOR } from 'config/types';
-import { StandardParser } from 'parse/_parse';
+import { StandardParser, StandardParserTag } from 'parse/_parse';
 import { refineExpression } from 'parse/utils/refineExpression';
 
 import readExpressionOrReference from '../readExpressionOrReference';
 
-import { InterpolatorTemplateItem, ParserTag } from './mustacheDefinitions';
+import { InterpolatorTemplateItem } from './mustacheDefinitions';
 
 export default function readInterpolator(
   parser: StandardParser,
-  tag: ParserTag
+  tag: StandardParserTag
 ): InterpolatorTemplateItem {
   let expression, err;
 

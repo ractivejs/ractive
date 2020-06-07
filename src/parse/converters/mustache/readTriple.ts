@@ -1,14 +1,14 @@
 import TemplateItemType from 'config/types';
-import { StandardParser } from 'parse/_parse';
+import { StandardParser, StandardParserTag } from 'parse/_parse';
 import { refineExpression } from 'parse/utils/refineExpression';
 
 import readExpression from '../readExpression';
 
-import { ParserTag, TripleMustacheTemplateItem } from './mustacheDefinitions';
+import { TripleMustacheTemplateItem } from './mustacheDefinitions';
 
 export default function readTriple(
   parser: StandardParser,
-  tag: ParserTag
+  tag: StandardParserTag
 ): TripleMustacheTemplateItem {
   const expression = readExpression(parser);
 

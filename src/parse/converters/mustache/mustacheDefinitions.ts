@@ -4,11 +4,7 @@ import {
   ExpressionTemplateItem,
   ExpressionRefinementTemplateItem
 } from '../expressions/expressionDefinitions';
-
-export interface ParserTag {
-  open: string;
-  close: string;
-}
+import { CommentTemplateItem } from '../templateItemDefinitions';
 
 /**
  * todo refine what items can be used as fragments (Section for sure)
@@ -133,3 +129,18 @@ export interface PartialMustacheTemplateItem extends ExpressionRefinementTemplat
 
   z?: AliasDefinitionRefinedTemplateItem[];
 }
+
+export interface DelimiterChangeToken {
+  t: TemplateItemType.DELIMCHANGE;
+  exclude: true;
+}
+
+/** Used in {@link readMustache} */
+export type MustachePrimaryItem =
+  | string
+  | AliasDefinitionTemplateItem
+  | TripleMustacheTemplateItem
+  | SectionMustacheTemplateItem
+  | PartialMustacheTemplateItem
+  | CommentTemplateItem
+  | DelimiterChangeToken;

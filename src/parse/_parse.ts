@@ -36,17 +36,27 @@ import insertExpressions from './utils/insertExpressions';
 // See https://github.com/ractivejs/template-spec for information
 // about the Ractive template specification
 
-const STANDARD_READERS = [
+export interface StandardParserTag {
+  isStatic: boolean;
+  isTriple: boolean;
+  open: string;
+  close: string;
+  readers: Reader[];
+}
+
+export type Reader = (parser: StandardParser, tag?: StandardParserTag) => any;
+
+const STANDARD_READERS: Reader[] = [
   readPartial,
   readUnescaped,
   readSection,
   readInterpolator,
   readMustacheComment
 ];
-const TRIPLE_READERS = [readTriple];
+const TRIPLE_READERS: Reader[] = [readTriple];
 
-export const READERS = [readMustache, readHtmlComment, readElement, readText];
-export const PARTIAL_READERS = [readPartialDefinitionSection];
+export const READERS: Reader[] = [readMustache, readHtmlComment, readElement, readText];
+export const PARTIAL_READERS: Reader[] = [readPartialDefinitionSection];
 
 const preserveWhitespaceElements: WhitespaceElements = {
   pre: 1,
@@ -61,14 +71,6 @@ const defaultInterpolate: InterpolateOpts = {
   style: true,
   template: true
 };
-
-interface StandardParserTag {
-  isStatic: boolean;
-  isTriple: boolean;
-  open: string;
-  close: string;
-  readers: any[]; // todo use converter type
-}
 
 // todo replace (shared as any) with correct type
 export class StandardParser extends Parser implements CustomParser {

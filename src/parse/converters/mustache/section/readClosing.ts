@@ -1,11 +1,11 @@
 import TemplateItemType from 'config/types';
-import { StandardParser } from 'parse/_parse';
+import { StandardParser, StandardParserTag } from 'parse/_parse';
 
-import { ClosingMustacheTemplateItem, ParserTag } from '../mustacheDefinitions';
+import { ClosingMustacheTemplateItem } from '../mustacheDefinitions';
 
 export default function readClosing(
   parser: StandardParser,
-  tag: ParserTag
+  tag: StandardParserTag
 ): ClosingMustacheTemplateItem {
   const start = parser.pos;
 

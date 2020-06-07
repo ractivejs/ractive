@@ -1,5 +1,5 @@
 import TemplateItemType from 'config/types';
-import { READERS, StandardParser } from 'parse/_parse';
+import { READERS, StandardParser, StandardParserTag } from 'parse/_parse';
 import { refineExpression } from 'parse/utils/refineExpression';
 import { keys } from 'utils/object';
 
@@ -9,7 +9,6 @@ import readExpression from '../readExpression';
 
 import handlebarsBlockCodes from './handlebarsBlockCodes';
 import {
-  ParserTag,
   SectionMustacheTemplateItem,
   AliasTemplateItem,
   FragmentTemplateItem,
@@ -25,7 +24,7 @@ const handlebarsBlockPattern = new RegExp('^(' + keys(handlebarsBlockCodes).join
 
 export default function readSection(
   parser: StandardParser,
-  tag: ParserTag
+  tag: StandardParserTag
 ): SectionMustacheTemplateItem | AliasTemplateItem | AwaitMustacheTemplateItem {
   let expression: ExpressionTemplateItem;
   let section: SectionMustacheTemplateItem | AliasTemplateItem | AwaitMustacheTemplateItem;

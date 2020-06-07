@@ -1,10 +1,9 @@
 import TemplateItemType from 'config/types';
-import { StandardParser } from 'parse/_parse';
+import { StandardParser, StandardParserTag } from 'parse/_parse';
 
 import { name } from '../../expressions/shared/patterns';
 import readExpression from '../../readExpression';
 import {
-  ParserTag,
   ElseMustacheTemplateItem,
   ElseIfMustacheTemplateItem,
   ThenMustacheTemplateItem,
@@ -31,25 +30,25 @@ type InlineBlockTemplateItem =
 
 export function readInlineBlock(
   parser: StandardParser,
-  tag: ParserTag,
+  tag: StandardParserTag,
   type: 'else'
 ): ElseMustacheTemplateItem;
 
 export function readInlineBlock(
   parser: StandardParser,
-  tag: ParserTag,
+  tag: StandardParserTag,
   type: 'elseif'
 ): ElseIfMustacheTemplateItem;
 
 export function readInlineBlock(
   parser: StandardParser,
-  tag: ParserTag,
+  tag: StandardParserTag,
   type: 'then' | 'catch'
 ): ThenMustacheTemplateItem | CatchMustacheTemplateItem;
 
 export function readInlineBlock(
   parser: StandardParser,
-  tag: ParserTag,
+  tag: StandardParserTag,
   type: InlineBlockType
 ): InlineBlockTemplateItem {
   const start = parser.pos;

@@ -1,13 +1,21 @@
-import { DELIMCHANGE } from 'config/types';
+import TemplateItemType from 'config/types';
+import { StandardParser, StandardParserTag, Reader } from 'parse/_parse';
 
+import { AttributesOrDirectiveTemplateItem } from './element/elementDefinitions';
 import { readAttributeOrDirective } from './element/readAttribute';
 import readRegexpLiteral from './expressions/primary/literal/readRegexpLiteral';
+import { MustachePrimaryItem, DelimiterChangeToken } from './mustache/mustacheDefinitions';
 import readDelimiterChange from './mustache/readDelimiterChange';
 
-const delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
+const delimiterChangeToken: DelimiterChangeToken = {
+  t: TemplateItemType.DELIMCHANGE,
+  exclude: true
+};
 
-export default function readMustache(parser) {
-  let mustache, i;
+export default function readMustache(
+  parser: StandardParser
+): MustachePrimaryItem | AttributesOrDirectiveTemplateItem {
+  let mustache: MustachePrimaryItem | AttributesOrDirectiveTemplateItem, i: number;
 
   // If we're inside a <script> or <style> tag, and we're not
   // interpolating, bug out
@@ -30,9 +38,7 @@ export default function readMustache(parser) {
   }
 }
 
-function readMustacheOfType(parser, tag) {
-  let mustache, reader, i;
-
+function readMustacheOfType(parser: StandardParser, tag: StandardParserTag): MustachePrimaryItem {
   const start = parser.pos;
 
   if (parser.matchString('\\' + tag.open)) {
@@ -44,6 +50,7 @@ function readMustacheOfType(parser, tag) {
   }
 
   // delimiter change?
+  let mustache: [string, string];
   if ((mustache = readDelimiterChange(parser))) {
     // find closing delimiter or abort...
     if (!parser.matchString(tag.close)) {
@@ -77,19 +84,21 @@ function readMustacheOfType(parser, tag) {
     }
   }
 
+  // todo integrate MustachePrimaryItem with the s and q properties
+  let mustacheItem: MustachePrimaryItem, reader: Reader, i: number;
   for (i = 0; i < tag.readers.length; i += 1) {
     reader = tag.readers[i];
 
-    if ((mustache = reader(parser, tag))) {
+    if ((mustacheItem = reader(parser, tag))) {
       if (tag.isStatic) {
-        mustache.s = 1;
+        (mustacheItem as any).s = 1;
       }
 
       if (parser.includeLinePositions) {
-        mustache.q = parser.getLinePos(start);
+        (mustacheItem as any).q = parser.getLinePos(start);
       }
 
-      return mustache;
+      return mustacheItem;
     }
   }
 
