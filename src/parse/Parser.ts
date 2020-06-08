@@ -15,6 +15,8 @@ class ParseError extends Error {
   }
 }
 
+export type LinePosition = [number, number, number];
+
 export type Converter = (parser: Parser) => any;
 
 export interface CustomParser {
@@ -145,7 +147,7 @@ class Parser {
     ];
   }
 
-  getLinePos(char: number): [number, number, number] {
+  getLinePos(char: number): LinePosition {
     let lineNum = 0;
     let lineStart = 0;
 

@@ -1,21 +1,28 @@
-import { ANCHOR, DOCTYPE, ELEMENT, ATTRIBUTE } from 'config/types';
+import TemplateItemType from 'config/types';
 import cleanup from 'parse/utils/cleanup';
 import { voidElements } from 'utils/html';
 import hyphenateCamel from 'utils/hyphenateCamel';
 import { isString } from 'utils/is';
 import { create } from 'utils/object';
 
-import { READERS, PARTIAL_READERS } from '../_parse';
+import { READERS, PARTIAL_READERS, StandardParser, StandardParserTag } from '../_parse';
 
+import { ClosingTagTemplateItem, ExcludedElementTemplateItem } from './element/elementDefinitions';
 import readClosingTag from './element/readClosingTag';
 import readClosing from './mustache/section/readClosing';
 import readMustache from './readMustache';
+import {
+  DoctypeTemplateItem,
+  ElementTemplateItem,
+  AnchorTemplateItem,
+  PartialRegistryTemplateItem
+} from './templateItemDefinitions';
 
 const tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/;
 const anchorPattern = /^[a-zA-Z_$][-a-zA-Z0-9_$]*/;
 const validTagNameFollower = /^[\s\n\/>]/;
 const semiEnd = /;\s*$/;
-const exclude = { exclude: true };
+const exclude: ExcludedElementTemplateItem = { exclude: true };
 
 // based on http://developers.whatwg.org/syntax.html#syntax-tag-omission
 const disallowedContents = {
@@ -37,20 +44,21 @@ const disallowedContents = {
   th: ['td', 'th', 'tr']
 };
 
-export default readElement;
-
-function readElement(parser) {
-  let attribute,
-    selfClosing,
-    children,
-    partials,
-    hasPartials,
-    child,
-    closed,
-    pos,
-    remaining,
-    closingTag,
-    anchor;
+export default function readElement(
+  parser: StandardParser
+): ElementTemplateItem | AnchorTemplateItem | ExcludedElementTemplateItem | DoctypeTemplateItem {
+  // todo add correct typings on all variables below
+  let attribute;
+  let selfClosing: boolean;
+  let children;
+  let partials: PartialRegistryTemplateItem;
+  let hasPartials: boolean;
+  let child;
+  let closed: boolean;
+  let pos: number;
+  let remaining: string;
+  let closingTag: ClosingTagTemplateItem;
+  let anchor: string;
 
   const start = parser.pos;
 
@@ -67,28 +75,32 @@ function readElement(parser) {
     return null;
   }
 
-  const element = {};
+  const element: ElementTemplateItem = {} as ElementTemplateItem;
   if (parser.includeLinePositions) {
     element.q = parser.getLinePos(start);
   }
 
   // check for doctype decl
   if (parser.matchString('!')) {
-    element.t = DOCTYPE;
+    const doctypeTemplateElement: DoctypeTemplateItem = (element as unknown) as DoctypeTemplateItem;
+    doctypeTemplateElement.t = TemplateItemType.DOCTYPE;
     if (!parser.matchPattern(/^doctype/i)) {
       parser.error('Expected DOCTYPE declaration');
     }
 
-    element.a = parser.matchPattern(/^(.+?)>/);
-    return element;
+    doctypeTemplateElement.a = parser.matchPattern(/^(.+?)>/);
+    return doctypeTemplateElement;
   } else if ((anchor = parser.matchString('#'))) {
     // check for anchor
     parser.sp();
-    element.t = ANCHOR;
-    element.n = parser.matchPattern(anchorPattern);
+
+    // create a reference to element but with AnchorTemplateItem type
+    const anchor = (element as unknown) as AnchorTemplateItem;
+    anchor.t = TemplateItemType.ANCHOR;
+    anchor.n = parser.matchPattern(anchorPattern);
   } else {
     // otherwise, it's an element/component
-    element.t = ELEMENT;
+    element.t = TemplateItemType.ELEMENT;
 
     // element name
     element.e = parser.matchPattern(tagNamePattern);
@@ -131,7 +143,8 @@ function readElement(parser) {
     return null;
   }
 
-  const lowerCaseName = (element.e || element.n).toLowerCase();
+  const templateItemName = getTemplateItemName(element);
+  const lowerCaseName = templateItemName.toLowerCase();
   const preserveWhitespace = parser.preserveWhitespace;
 
   if (!selfClosing && (anchor || !voidElements[element.e.toLowerCase()])) {
@@ -196,7 +209,7 @@ function readElement(parser) {
             parser.error(errorMessage);
           }
         }
-      } else if (anchor && readAnchorClose(parser, element.n)) {
+      } else if (anchor && readAnchorClose(parser, templateItemName)) {
         closed = true;
       } else {
         // implicit close by closing section tag. TODO clean this up
@@ -204,7 +217,10 @@ function readElement(parser) {
           open: parser.standardDelimiters[0],
           close: parser.standardDelimiters[1]
         };
-        if (readClosing(parser, tag) || readInline(parser, tag)) {
+        if (
+          readClosing(parser, tag as StandardParserTag) ||
+          readInline(parser, tag as StandardParserTag)
+        ) {
           closed = true;
           parser.pos = pos;
         } else if ((child = parser.read(PARTIAL_READERS))) {
@@ -251,77 +267,14 @@ function readElement(parser) {
     return exclude;
   }
 
-  if (
-    element.m &&
-    lowerCaseName !== 'input' &&
-    lowerCaseName !== 'select' &&
-    lowerCaseName !== 'textarea' &&
-    lowerCaseName !== 'option'
-  ) {
-    const attrs = element.m;
-    let classes, styles, cls, style;
-    let i = 0;
-    let a;
-    while (i < attrs.length) {
-      a = attrs[i];
-
-      if (a.t !== ATTRIBUTE) {
-        i++;
-        continue;
-      }
-
-      if (a.n.indexOf('class-') === 0 && !a.f) {
-        // static class directives
-        (classes || (classes = [])).push(a.n.slice(6));
-        attrs.splice(i, 1);
-      } else if (a.n.indexOf('style-') === 0 && isString(a.f)) {
-        // static style directives
-        (styles || (styles = [])).push(`${hyphenateCamel(a.n.slice(6))}: ${a.f};`);
-        attrs.splice(i, 1);
-      } else if (a.n === 'class' && isString(a.f)) {
-        // static class attrs
-        (classes || (classes = [])).push(a.f);
-        attrs.splice(i, 1);
-      } else if (a.n === 'style' && isString(a.f)) {
-        // static style attrs
-        (styles || (styles = [])).push(a.f + (semiEnd.test(a.f) ? '' : ';'));
-        attrs.splice(i, 1);
-      } else if (a.n === 'class') {
-        cls = a;
-        i++;
-      } else if (a.n === 'style') {
-        style = a;
-        i++;
-      } else if (
-        !~a.n.indexOf(':') &&
-        a.n !== 'value' &&
-        a.n !== 'contenteditable' &&
-        isString(a.f)
-      ) {
-        a.g = 1;
-        i++;
-      } else {
-        i++;
-      }
-    }
-
-    if (classes) {
-      if (!cls || !isString(cls.f))
-        attrs.unshift({ t: ATTRIBUTE, n: 'class', f: classes.join(' '), g: 1 });
-      else cls.f += ' ' + classes.join(' ');
-    } else if (cls && isString(cls.f)) cls.g = 1;
-
-    if (styles) {
-      if (!style || !isString(style.f))
-        attrs.unshift({ t: ATTRIBUTE, n: 'style', f: styles.join(' '), g: 1 });
-      else style.f += '; ' + styles.join(' ');
-    } else if (style && isString(style.f)) style.g = 1;
+  if (element.t === TemplateItemType.ELEMENT) {
+    processInputElement(element);
   }
 
   return element;
 }
 
-function canContain(name, remaining) {
+function canContain(name: string, remaining: string): boolean {
   const match = /^<([a-zA-Z][a-zA-Z0-9]*)/.exec(remaining);
   const disallowed = disallowedContents[name];
 
@@ -332,7 +285,7 @@ function canContain(name, remaining) {
   return !~disallowed.indexOf(match[1].toLowerCase());
 }
 
-function readAnchorClose(parser, name) {
+function readAnchorClose(parser: StandardParser, name: string): boolean {
   const pos = parser.pos;
   if (!parser.matchString('</')) {
     return null;
@@ -357,7 +310,7 @@ function readAnchorClose(parser, name) {
 }
 
 const inlines = /^\s*(elseif|else|then|catch)\s*/;
-function readInline(parser, tag) {
+function readInline(parser: StandardParser, tag: StandardParserTag): boolean {
   const pos = parser.pos;
   if (!parser.matchString(tag.open)) return;
   if (parser.matchPattern(inlines)) {
@@ -365,4 +318,81 @@ function readInline(parser, tag) {
   } else {
     parser.pos = pos;
   }
+}
+
+function processInputElement(element: ElementTemplateItem): void {
+  const lowerCaseName = element.e.toLowerCase();
+  if (
+    element.m &&
+    lowerCaseName !== 'input' &&
+    lowerCaseName !== 'select' &&
+    lowerCaseName !== 'textarea' &&
+    lowerCaseName !== 'option'
+  ) {
+    const attrs = element.m;
+    let classes, styles, cls, style;
+    let i = 0;
+    let attribute;
+    while (i < attrs.length) {
+      attribute = attrs[i];
+
+      if (attribute.t !== TemplateItemType.ATTRIBUTE) {
+        i++;
+        continue;
+      }
+
+      if (attribute.n.indexOf('class-') === 0 && !attribute.f) {
+        // static class directives
+        (classes || (classes = [])).push(attribute.n.slice(6));
+        attrs.splice(i, 1);
+      } else if (attribute.n.indexOf('style-') === 0 && isString(attribute.f)) {
+        // static style directives
+        (styles || (styles = [])).push(`${hyphenateCamel(attribute.n.slice(6))}: ${attribute.f};`);
+        attrs.splice(i, 1);
+      } else if (attribute.n === 'class' && isString(attribute.f)) {
+        // static class attrs
+        (classes || (classes = [])).push(attribute.f);
+        attrs.splice(i, 1);
+      } else if (attribute.n === 'style' && isString(attribute.f)) {
+        // static style attrs
+        (styles || (styles = [])).push(attribute.f + (semiEnd.test(attribute.f) ? '' : ';'));
+        attrs.splice(i, 1);
+      } else if (attribute.n === 'class') {
+        cls = attribute;
+        i++;
+      } else if (attribute.n === 'style') {
+        style = attribute;
+        i++;
+      } else if (
+        !~attribute.n.indexOf(':') &&
+        attribute.n !== 'value' &&
+        attribute.n !== 'contenteditable' &&
+        isString(attribute.f)
+      ) {
+        attribute.g = 1;
+        i++;
+      } else {
+        i++;
+      }
+    }
+
+    if (classes) {
+      if (!cls || !isString(cls.f))
+        attrs.unshift({ t: TemplateItemType.ATTRIBUTE, n: 'class', f: classes.join(' '), g: 1 });
+      else cls.f += ' ' + classes.join(' ');
+    } else if (cls && isString(cls.f)) cls.g = 1;
+
+    if (styles) {
+      if (!style || !isString(style.f))
+        attrs.unshift({ t: TemplateItemType.ATTRIBUTE, n: 'style', f: styles.join(' '), g: 1 });
+      else style.f += '; ' + styles.join(' ');
+    } else if (style && isString(style.f)) style.g = 1;
+  }
+}
+
+function getTemplateItemName(input: ElementTemplateItem | AnchorTemplateItem): string {
+  if (input.t === TemplateItemType.ANCHOR) {
+    return input.n;
+  }
+  return input.e;
 }

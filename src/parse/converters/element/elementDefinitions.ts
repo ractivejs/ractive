@@ -93,6 +93,9 @@ export interface GenericAttributeTemplateItem {
   n: string;
 
   f?: GenericAttributeTemplateValue;
+
+  /** todo what is this? */
+  g?: number;
 }
 
 export type AttributeWithArguments =

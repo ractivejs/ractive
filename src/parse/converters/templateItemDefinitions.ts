@@ -1,5 +1,12 @@
 import TemplateItemType from 'config/types';
+import { LinePosition } from 'parse/Parser';
 
+import {
+  GenericAttributeTemplateItem,
+  TransitionDirectiveTemplateItem,
+  DecoratorDirectiveTemplateItem,
+  EventDirectiveTemplateItem
+} from './element/elementDefinitions';
 import { FragmentTemplateItem } from './mustache/mustacheDefinitions';
 
 /**
@@ -58,8 +65,66 @@ export interface InlinePartialDefinitionTemplateItem {
   f: FragmentTemplateItem[];
 }
 
+export interface PartialRegistryTemplateItem {
+  [key: string]: ElementTemplateItem;
+}
+
+export interface ElementTemplateItem {
+  t: TemplateItemType.ELEMENT;
+
+  /**
+   * Element name
+   * @example `div`
+   * @example `input`
+   */
+  e: string;
+
+  /**
+   * Atrributes on the element
+   */
+  m: (
+    | GenericAttributeTemplateItem
+    | TransitionDirectiveTemplateItem
+    | DecoratorDirectiveTemplateItem
+    | EventDirectiveTemplateItem
+  )[];
+
+  /**
+   * Content of the element
+   */
+  f: (string | ElementTemplateItem)[];
+
+  /** todo add type */
+  p?: PartialRegistryTemplateItem;
+
+  /** include line positon data */
+  q?: LinePosition;
+}
+
+export interface DoctypeTemplateItem {
+  t: TemplateItemType.DOCTYPE;
+
+  /** Doctype value */
+  a: string;
+
+  /** include line positon data */
+  q?: LinePosition;
+}
+
+export interface AnchorTemplateItem {
+  t: TemplateItemType.ANCHOR;
+
+  /** anchor name */
+  n: string;
+}
+
+export type PrimaryElementTemplateItem = ElementTemplateItem | DoctypeTemplateItem;
+
 export interface CommentTemplateItem {
   t: TemplateItemType.COMMENT;
-  c?: string; // content is available only for html comments
-  q?: [number, number, number]; // line position
+
+  /** content is available only for html comments */
+  c?: string;
+
+  q?: LinePosition;
 }
