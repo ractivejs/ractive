@@ -1,5 +1,7 @@
 import TemplateItemType from 'config/types';
 
+import { FragmentTemplateItem } from './mustache/mustacheDefinitions';
+
 /**
  * This file contains all definition of abstract syntax for ractive template returned
  * by converters functions.
@@ -29,8 +31,6 @@ export interface TemplateModel {
   };
 }
 
-// UTILS >>>
-
 /**
  * function description on template model
  * this in code is referred as expression but these word seems to include more than function
@@ -49,14 +49,17 @@ export interface ExpressionFunctionTemplateItem {
   e?: Function;
 }
 
-// UTILS <<<
+export interface InlinePartialDefinitionTemplateItem {
+  t: TemplateItemType.INLINE_PARTIAL;
 
-// ELEMENTS >>>
+  /** Partial name */
+  n: string;
+
+  f: FragmentTemplateItem[];
+}
 
 export interface CommentTemplateItem {
   t: TemplateItemType.COMMENT;
   c?: string; // content is available only for html comments
   q?: [number, number, number]; // line position
 }
-
-// ELEMENTS <<<

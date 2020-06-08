@@ -1,12 +1,15 @@
-import { INLINE_PARTIAL } from 'config/types';
+import TemplateItemType from 'config/types';
 
-import { READERS } from '../_parse';
+import { READERS, StandardParser, StandardParserTag } from '../_parse';
 
 import readClosing from './mustache/section/readClosing';
+import { InlinePartialDefinitionTemplateItem } from './templateItemDefinitions';
 
 const partialDefinitionSectionPattern = /^\s*#\s*partial\s+/;
 
-export default function readPartialDefinitionSection(parser) {
+export default function readPartialDefinitionSection(
+  parser: StandardParser
+): InlinePartialDefinitionTemplateItem {
   let child, closed;
 
   const start = parser.pos;
@@ -38,7 +41,8 @@ export default function readPartialDefinitionSection(parser) {
   const [open, close] = delimiters;
 
   do {
-    if ((child = readClosing(parser, { open, close }))) {
+    // We don't need all StandardParserTag inside readClosing so force type
+    if ((child = readClosing(parser, { open, close } as StandardParserTag))) {
       if (child.r !== 'partial') {
         parser.error(`Expected ${open}/partial${close}`);
       }
@@ -56,7 +60,7 @@ export default function readPartialDefinitionSection(parser) {
   } while (!closed);
 
   return {
-    t: INLINE_PARTIAL,
+    t: TemplateItemType.INLINE_PARTIAL,
     n: name,
     f: content
   };
