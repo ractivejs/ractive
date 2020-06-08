@@ -87,6 +87,7 @@
 		"prefer-arrow-callback": "error",
 		"prefer-const": "error",
 		"no-useless-escape": 0,
+		"no-console": "error",
 
 		"@typescript-eslint/no-use-before-define": ["off"],
 		"@typescript-eslint/no-empty-function": ["error", {
