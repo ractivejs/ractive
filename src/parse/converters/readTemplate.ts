@@ -1,18 +1,26 @@
 import { TEMPLATE_VERSION } from 'config/template';
-import { READERS, PARTIAL_READERS } from 'parse/_parse';
+import { READERS, PARTIAL_READERS, StandardParser } from 'parse/_parse';
 import cleanup from 'parse/utils/cleanup';
 import { create } from 'utils/object';
 
-export default function readTemplate(parser) {
+import {
+  TemplateModel,
+  InlinePartialDefinitionTemplateItem,
+  PartialRegistryTemplateItem
+} from './templateItemDefinitions';
+
+export default function readTemplate(parser: StandardParser): TemplateModel {
   const fragment = [];
-  const partials = create(null);
+
+  const partials: PartialRegistryTemplateItem = create(null);
   let hasPartials = false;
 
   const preserveWhitespace = parser.preserveWhitespace;
 
   while (parser.pos < parser.str.length) {
     const pos = parser.pos;
-    let item, partial;
+    let item;
+    let partial: InlinePartialDefinitionTemplateItem;
 
     if ((partial = parser.read(PARTIAL_READERS))) {
       if (partials[partial.n]) {
@@ -38,7 +46,7 @@ export default function readTemplate(parser) {
     }
   }
 
-  const result = {
+  const result: TemplateModel = {
     v: TEMPLATE_VERSION,
     t: fragment
   };

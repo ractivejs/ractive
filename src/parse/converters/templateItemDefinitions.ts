@@ -9,6 +9,13 @@ import {
 } from './element/elementDefinitions';
 import { FragmentTemplateItem } from './mustache/mustacheDefinitions';
 
+// todo replace occurrences of string where it makes sense
+export type TextTemplateItem = string;
+
+export interface PartialRegistryTemplateItem {
+  [key: string]: FragmentTemplateItem[];
+}
+
 /**
  * This file contains all definition of abstract syntax for ractive template returned
  * by converters functions.
@@ -28,9 +35,8 @@ import { FragmentTemplateItem } from './mustache/mustacheDefinitions';
 export interface TemplateModel {
   v: number;
   t: any[]; // add correct type after readTemplate conversion is complete
-  p?: {
-    [key: string]: any; // todo define type for partial
-  };
+
+  p?: PartialRegistryTemplateItem;
 
   // expression storage
   e?: {
@@ -65,10 +71,6 @@ export interface InlinePartialDefinitionTemplateItem {
   f: FragmentTemplateItem[];
 }
 
-export interface PartialRegistryTemplateItem {
-  [key: string]: ElementTemplateItem;
-}
-
 export interface ElementTemplateItem {
   t: TemplateItemType.ELEMENT;
 
@@ -94,7 +96,6 @@ export interface ElementTemplateItem {
    */
   f: (string | ElementTemplateItem)[];
 
-  /** todo add type */
   p?: PartialRegistryTemplateItem;
 
   /** include line positon data */

@@ -1,9 +1,10 @@
 import { StandardParser } from 'parse/_parse';
+import { TextTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { decodeCharacterReferences } from 'utils/html';
 
 import getLowestIndex from './utils/getLowestIndex';
 
-export default function readText(parser: StandardParser): string {
+export default function readText(parser: StandardParser): TextTemplateItem {
   let index: number, disallowed: string[], barrier: string;
 
   const remaining = parser.remaining();
