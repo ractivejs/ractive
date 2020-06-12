@@ -3,6 +3,10 @@
 // Definitions By: Chris Reeves <https://github.com/evs-chris>
 // Version: 1.3
 
+// no need to run eslint on this file since we are converting the source to ts so
+// we will
+/* eslint-disable */
+
 export interface ValueMap {
   [key: string]: any;
 }
@@ -457,7 +461,7 @@ export interface GetOpts {
   /**
    * Whether or not to unwrap the value if it happens to be wrapped, returning the original value. Defaults to true.
    */
-  unwrap?: boolean;;
+  unwrap?: boolean;
 }
 
 export type Helper = (this: Ractive, ...args: any[]) => any;
@@ -1112,7 +1116,7 @@ export interface Static<T extends Ractive<T> = Ractive> {
 
 export interface Children extends Array<Ractive> {
   /** Lists of instances targetting anchors by name. */
-  byName: { [key: string]: Ractive[] };;
+  byName: { [key: string]: Ractive[] };
 }
 export class Ractive<T extends Ractive<T> = Ractive<any>> {
   constructor(opts?: InitOpts<T>);
@@ -1254,6 +1258,12 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
    * @param opts
    */
   get(keypath: string, opts?: GetOpts): any;
+
+  /**
+   * Get a Context object for the current plugin's location in the template. This is only available in decorator and custom event plugins.
+   * @param query
+   */
+  getLocalContext(): ContextHelper;
 
   /**
    * Get a Context object for the given node or node that matches the given query.

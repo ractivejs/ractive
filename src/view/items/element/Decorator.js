@@ -1,6 +1,7 @@
 import { missingPlugin } from 'config/errors';
 import { findInViewHierarchy } from 'shared/registry';
 import runloop from 'src/global/runloop';
+import { localFragment } from 'src/shared/Context';
 import { warnOnce } from 'utils/log';
 import noop from 'utils/noop';
 
@@ -18,7 +19,7 @@ export default class Decorator {
     this.owner = options.owner || options.up.owner || findElement(options.up);
     this.element = this.owner.attributeByName ? this.owner : findElement(options.up);
     this.up = options.up || this.owner.up;
-    this.ractive = this.owner.ractive;
+    this.ractive = this.up.ractive || this.owner.ractive;
     const template = (this.template = options.template);
 
     this.name = template.n;
@@ -63,11 +64,12 @@ export default class Decorator {
   render() {
     this.shouldDestroy = false;
     if (this.handle) this.unrender();
+    const ractive = this.ractive;
     runloop.scheduleTask(() => {
       // bail if the host element has managed to become unrendered
       if (!this.element.rendered) return;
 
-      const fn = findInViewHierarchy('decorators', this.ractive, this.name);
+      const fn = findInViewHierarchy('decorators', ractive, this.name);
 
       if (!fn) {
         warnOnce(missingPlugin(this.name, 'decorator'));
@@ -78,7 +80,9 @@ export default class Decorator {
       this.node = this.element.node;
 
       const args = this.model ? this.model.get() : [];
-      this.handle = fn.apply(this.ractive, [this.node].concat(args));
+      localFragment.f = this.up;
+      this.handle = fn.apply(ractive, [this.node].concat(args));
+      localFragment.f = null;
 
       if (!this.handle || !this.handle.teardown) {
         throw new Error(
@@ -89,6 +93,10 @@ export default class Decorator {
       // watch out for decorators that cause their host element to be unrendered
       if (this.shouldDestroy) this.destroyed();
     }, true);
+  }
+
+  shuffled() {
+    if (this.handle && this.handle.shuffled) this.handle.shuffled();
   }
 
   toString() {

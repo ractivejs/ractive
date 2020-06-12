@@ -13,6 +13,7 @@ import findParent from './prototype/findParent';
 import fire from './prototype/fire';
 import get from './prototype/get';
 import getContext from './prototype/getContext';
+import getLocalContext from './prototype/getLocalContext';
 import insert from './prototype/insert';
 import link from './prototype/link';
 import observe from './prototype/observe';
@@ -61,6 +62,7 @@ const proto = {
   findParent,
   fire,
   get,
+  getLocalContext,
   getContext,
   insert,
   link,

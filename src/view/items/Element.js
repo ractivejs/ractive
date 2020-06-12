@@ -1,7 +1,7 @@
 import { win } from 'config/environment';
 import { ATTRIBUTE, BINDING_FLAG, DECORATOR, DELEGATE_FLAG, EVENT, TRANSITION } from 'config/types';
 import Context from 'shared/Context';
-import { destroyed } from 'shared/methodCallers';
+import { destroyed, shuffled } from 'shared/methodCallers';
 import Namespace from 'src/config/namespace';
 import runloop from 'src/global/runloop';
 import { toArray, addToArray, removeFromArray } from 'utils/array';
@@ -380,6 +380,11 @@ export default class Element extends ContainerItem {
     }
 
     this.rendered = true;
+  }
+
+  shuffled() {
+    super.shuffled();
+    this.decorators.forEach(shuffled);
   }
 
   toString() {

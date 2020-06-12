@@ -1,4 +1,5 @@
 import runloop from 'src/global/runloop';
+import { localFragment } from 'src/shared/Context';
 import { fatal } from 'utils/log';
 
 class DOMEvent {
@@ -66,6 +67,7 @@ class CustomEvent {
     runloop.scheduleTask(() => {
       const node = this.owner.node;
 
+      localFragment.f = directive.up;
       this.handler = this.eventPlugin.apply(
         this.owner.ractive,
         [
@@ -80,6 +82,7 @@ class CustomEvent {
           }
         ].concat(this.args || [])
       );
+      localFragment.f = null;
     });
   }
 

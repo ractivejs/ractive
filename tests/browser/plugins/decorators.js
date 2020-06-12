@@ -718,4 +718,62 @@ export default function() {
     r.set('bar', 'why not?');
     t.htmlEqual(fixture.innerHTML, '<div>why not?</div><div>why not?</div>');
   });
+
+  test(`decorator in a a yield`, t => {
+    t.expect(1);
+    const cmp = Ractive.extend({
+      template: `<div {{yield attrs}}></div>`
+    });
+
+    new Ractive({
+      template: `<cmp bind-attrs />`,
+      decorators: {
+        foo() {
+          t.ok('decorator called');
+          return { teardown() {} };
+        }
+      },
+      data: {
+        attrs: { t: [{ t: 71, n: 'foo' }] }
+      },
+      components: { cmp },
+      target: fixture
+    });
+  });
+
+  test(`decorators are notified of shuffling due to reference expression changes`, t => {
+    t.expect(4);
+
+    let path, child;
+    const r = new Ractive({
+      target: fixture,
+      template: `{{#with foo[bar]}}<div as-check />{{/with}}`,
+      data: {
+        bar: 'baz',
+        foo: {
+          baz: {},
+          bat: {}
+        }
+      },
+      decorators: {
+        check(node) {
+          const ctx = this.getContext(node);
+          path = ctx.resolve();
+          child = ctx.resolve('.foo');
+          return {
+            teardown() {},
+            shuffled() {
+              path = ctx.resolve();
+              child = ctx.resolve('.foo');
+            }
+          };
+        }
+      }
+    });
+    t.equal(path, 'foo.baz');
+    t.equal(child, 'foo.baz.foo');
+    r.set('bar', 'bat');
+    t.equal(path, 'foo.bat');
+    t.equal(child, 'foo.bat.foo');
+  });
 }
