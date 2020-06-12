@@ -4,16 +4,18 @@ import {
   ExpressionTemplateItem,
   ExpressionRefinementTemplateItem
 } from '../expressions/expressionDefinitions';
-import { CommentTemplateItem } from '../templateItemDefinitions';
+import {
+  CommentTemplateItem,
+  ElementTemplateItem,
+  TextTemplateItem
+} from '../templateItemDefinitions';
 
-/**
- * todo refine what items can be used as fragments (Section for sure)
- *
- * @see {@link readSection}
- */
-export interface FragmentTemplateItem {
-  [key: string]: any;
-}
+/**  @see {@link readSection} */
+export type FragmentTemplateItem =
+  | SectionMustacheTemplateItem
+  | InterpolatorTemplateItem
+  | ElementTemplateItem
+  | TextTemplateItem;
 
 export interface ClosingMustacheTemplateItem {
   t: TemplateItemType.CLOSING;
@@ -24,6 +26,8 @@ export interface ClosingMustacheTemplateItem {
 // Inline blocks >>
 export interface ElseMustacheTemplateItem {
   t: TemplateItemType.ELSE;
+
+  f?: SectionFragmentTemplateItem[];
 }
 
 export interface ElseIfMustacheTemplateItem {
@@ -34,11 +38,13 @@ export interface ElseIfMustacheTemplateItem {
 export interface ThenMustacheTemplateItem {
   t: TemplateItemType.THEN;
   n?: string;
+  f?: SectionFragmentTemplateItem[];
 }
 
 export interface CatchMustacheTemplateItem {
-  t: TemplateItemType.THEN;
+  t: TemplateItemType.CATCH;
   n?: string;
+  f?: SectionFragmentTemplateItem[];
 }
 // Inline blocks <<
 
@@ -73,11 +79,17 @@ export interface AliasTemplateItem {
 // Alias <<
 
 // Section >>
+export type SectionFragmentTemplateItem =
+  | FragmentTemplateItem
+  | CatchMustacheTemplateItem
+  | ThenMustacheTemplateItem
+  | ElseMustacheTemplateItem;
+
 export interface SectionMustacheTemplateItem extends ExpressionRefinementTemplateItem {
   t: TemplateItemType.SECTION;
 
   /** Fragments */
-  f?: FragmentTemplateItem[];
+  f?: SectionFragmentTemplateItem[];
 
   /** todo undestrand what is this */
   l?: SectionMustacheTemplateItem[];
