@@ -1,12 +1,21 @@
-import { COMMENT, DELIMCHANGE, SECTION, INVERTED } from 'config/types';
+import TemplateItemType from 'config/types';
+import {
+  SectionMustacheTemplateItem,
+  DelimiterChangeToken
+} from 'parse/converters/mustache/mustacheDefinitions';
+import { CommentTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { lastItem } from 'utils/array';
 import { isString } from 'utils/is';
 
 const leadingLinebreak = /^[ \t\f\r\n]*\r?\n/;
 const trailingLinebreak = /\r?\n[ \t\f\r\n]*$/;
 
-export default function(items) {
-  let i, current, backOne, backTwo, lastSectionItem;
+export default function stripStandalones(items: unknown[]): unknown[] {
+  let i: number;
+  let current: unknown;
+  let backOne: unknown;
+  let backTwo: unknown;
+  let lastSectionItem;
 
   for (i = 1; i < items.length; i += 1) {
     current = items[i];
@@ -14,7 +23,11 @@ export default function(items) {
     backTwo = items[i - 2];
 
     // if we're at the end of a [text][comment][text] sequence...
-    if (isString(current) && isComment(backOne) && isString(backTwo)) {
+    if (
+      isString(current) &&
+      (isComment(backOne) || isDelimiterChange(backOne)) &&
+      isString(backTwo)
+    ) {
       // ... and the comment is a standalone (i.e. line breaks either side)...
       if (trailingLinebreak.test(backTwo) && leadingLinebreak.test(current)) {
         // ... then we want to remove the whitespace after the first line break
@@ -57,10 +70,14 @@ export default function(items) {
   return items;
 }
 
-function isComment(item) {
-  return item.t === COMMENT || item.t === DELIMCHANGE;
+function isComment(item): item is CommentTemplateItem {
+  return item.t === TemplateItemType.COMMENT;
 }
 
-function isSection(item) {
-  return (item.t === SECTION || item.t === INVERTED) && item.f;
+function isDelimiterChange(item): item is DelimiterChangeToken {
+  return item.t === TemplateItemType.DELIMCHANGE;
+}
+
+function isSection(item): item is SectionMustacheTemplateItem {
+  return item.t === TemplateItemType.SECTION && item.f;
 }

@@ -1,3 +1,6 @@
+// todo remove const and use enum
+// todo rename file in TemplateItemType
+
 enum TemplateItemType {
   TEXT = 1,
   INTERPOLATOR = 2,
@@ -59,8 +62,6 @@ enum TemplateItemType {
 }
 
 export default TemplateItemType;
-
-// todo remove const and use enum
 
 export const TEXT = 1;
 export const INTERPOLATOR = 2;
