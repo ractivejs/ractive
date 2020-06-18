@@ -148,7 +148,9 @@ if (!isClient) {
   // }
 }
 
-function detachNode(node: HTMLElement): HTMLElement | null {
+function detachNode(node: HTMLElement): typeof node | null;
+function detachNode(node: globalThis.Text): typeof node | null;
+function detachNode(node: HTMLElement | globalThis.Text): typeof node | null {
   /**
    * I'm going to remove `typeof node.parentNode !== 'unknown'` match.
    * It was only occuring in IE < 8 which is no longer supported from 0.8
@@ -163,7 +165,7 @@ function detachNode(node: HTMLElement): HTMLElement | null {
   return node;
 }
 
-function safeToStringValue(value): string {
+function safeToStringValue(value: unknown): string {
   return value == null || (isNumber(value) && isNaN(value)) || !value.toString ? '' : '' + value;
 }
 

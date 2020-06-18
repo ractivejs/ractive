@@ -1,6 +1,7 @@
+import TemplateItemType from 'config/types';
 import { createDocumentFragment } from 'utils/dom';
 
-interface ItemOptions {
+export interface ItemOptions {
   up: any; // TODO add correct types
   template: any; // TODO add correct types
   index: number;
@@ -8,19 +9,19 @@ interface ItemOptions {
 
 export default class Item {
   // TODO add correct types
-  public up;
-  public ractive;
+  public up: any;
+  public ractive: any;
 
   public template;
-  public type;
+  public type: TemplateItemType;
   public index: number;
 
   public dirty = false;
 
   public fragment: any;
 
-  public model;
-  public newModel;
+  public model: any;
+  public newModel: any;
 
   constructor(options: ItemOptions) {
     this.up = options.up;
@@ -34,14 +35,14 @@ export default class Item {
   findAll() {}
   findAllComponents() {}
 
-  bubble() {
+  bubble(): void {
     if (!this.dirty) {
       this.dirty = true;
       this.up.bubble();
     }
   }
 
-  destroyed() {
+  destroyed(): void {
     if (this.fragment) this.fragment.destroyed();
   }
 
@@ -57,15 +58,15 @@ export default class Item {
     return this.up.findNextNode(this);
   }
 
-  rebound(update) {
+  rebound(update): void {
     if (this.fragment) this.fragment.rebound(update);
   }
 
-  shuffled() {
+  shuffled(): void {
     if (this.fragment) this.fragment.shuffled();
   }
 
-  valueOf() {
+  valueOf(): string {
     return this.toString();
   }
 }
@@ -75,7 +76,7 @@ export class ContainerItem extends Item {
     super(options);
   }
 
-  detach() {
+  detach(): DocumentFragment {
     return this.fragment ? this.fragment.detach() : createDocumentFragment();
   }
 

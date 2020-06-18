@@ -1,46 +1,53 @@
-import { TEXT } from 'config/types';
+import TemplateItemType from 'config/types';
+import { TextTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { detachNode } from 'utils/dom';
 import { escapeHtml } from 'utils/html';
-import noop from 'utils/noop';
 
 import { inAttributes } from './element/ConditionalAttribute';
-import Item from './shared/Item';
+import Item, { ItemOptions } from './shared/Item';
 import progressiveText from './shared/progressiveText';
 
 export default class Text extends Item {
-  constructor(options) {
+  public node: globalThis.Text;
+  public rendered: boolean;
+  public template: TextTemplateItem;
+
+  constructor(options: ItemOptions) {
     super(options);
-    this.type = TEXT;
+
+    this.type = TemplateItemType.TEXT;
   }
 
-  detach() {
+  detach(): globalThis.Text {
     return detachNode(this.node);
   }
 
-  firstNode() {
+  firstNode(): globalThis.Text {
     return this.node;
   }
 
-  render(target, occupants) {
+  // todo add types
+  render(target: HTMLElement, occupants): void {
     if (inAttributes()) return;
     this.rendered = true;
 
     progressiveText(this, target, occupants, this.template);
   }
 
-  toString(escape) {
+  toString(escape: boolean): string {
     return escape ? escapeHtml(this.template) : this.template;
   }
 
-  unrender(shouldDestroy) {
+  unrender(shouldDestroy: boolean): void {
     if (this.rendered && shouldDestroy) this.detach();
     this.rendered = false;
   }
 
-  valueOf() {
+  valueOf(): string {
     return this.template;
   }
-}
 
-const proto = Text.prototype;
-proto.bind = proto.unbind = proto.update = noop;
+  bind(): void {}
+  unbind(): void {}
+  update(): void {}
+}

@@ -20,7 +20,7 @@ export default class KeyModel {
 
   public upstream: any;
 
-  constructor(value, context, instance) {
+  constructor(value, context?, instance?) {
     this.value = value;
     this.key = value;
     this.context = context;
