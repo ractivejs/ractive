@@ -4,10 +4,10 @@ import { detachNode } from 'utils/dom';
 import { escapeHtml } from 'utils/html';
 
 import { inAttributes } from './element/ConditionalAttribute';
-import Item, { ItemOptions } from './shared/Item';
+import Item, { ItemOptions, BaseItemInterface } from './shared/Item';
 import progressiveText from './shared/progressiveText';
 
-export default class Text extends Item {
+export default class Text extends Item implements BaseItemInterface {
   public node: globalThis.Text;
   public rendered: boolean;
   public template: TextTemplateItem;
@@ -34,11 +34,11 @@ export default class Text extends Item {
     progressiveText(this, target, occupants, this.template);
   }
 
-  toString(escape: boolean): string {
+  toString(escape?: boolean): string {
     return escape ? escapeHtml(this.template) : this.template;
   }
 
-  unrender(shouldDestroy: boolean): void {
+  unrender(shouldDestroy?: boolean): void {
     if (this.rendered && shouldDestroy) this.detach();
     this.rendered = false;
   }

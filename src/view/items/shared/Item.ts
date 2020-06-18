@@ -114,3 +114,15 @@ export class ContainerItem extends Item {
     return this.fragment ? this.fragment.toString(escape) : '';
   }
 }
+
+/**
+ * basic function that needs to be implemented when extenidng an Item.
+ * Might worth to give a more semantic name
+ */
+export interface BaseItemInterface {
+  bind: () => void;
+  render: (target: HTMLElement, ...args) => void;
+  update: () => void;
+  unbind: () => void;
+  unrender: () => void;
+}
