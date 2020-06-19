@@ -1,12 +1,15 @@
 import { isArray } from 'utils/is';
 
-import Binding from './Binding';
-import getBindingGroup from './getBindingGroup';
+import Element from '../../Element';
+import Input from '../specials/Input';
+
+import Binding, { BindingWithInitialValue, BasicBindingInterface } from './Binding';
+import getBindingGroup, { BindingGroup } from './getBindingGroup';
 import handleDomEvent from './handleDomEvent';
 
 const push = [].push;
 
-function getValue() {
+function getValue(): unknown[] {
   const all = this.bindings
     .filter(b => b.node && b.node.checked)
     .map(b => b.element.getAttribute('value'));
@@ -17,8 +20,17 @@ function getValue() {
   return res;
 }
 
-export default class CheckboxNameBinding extends Binding {
-  constructor(element) {
+export default class CheckboxNameBinding extends Binding
+  implements BindingWithInitialValue, BasicBindingInterface {
+  /** @override */
+  public element: Input;
+
+  public checkboxName: boolean;
+  public group: BindingGroup;
+  public noInitialValue: boolean;
+  public isChecked: boolean;
+
+  constructor(element: Element) {
     super(element, 'name');
 
     this.checkboxName = true; // so that ractive.updateModel() knows what to do with this
@@ -45,13 +57,13 @@ export default class CheckboxNameBinding extends Binding {
     }
   }
 
-  bind() {
+  bind(): void {
     if (!this.group.bound) {
       this.group.bind();
     }
   }
 
-  getInitialValue() {
+  getInitialValue(): [] {
     // This only gets called once per group (of inputs that
     // share a name), because it only gets called if there
     // isn't an initial value. By the same token, we can make
@@ -63,11 +75,11 @@ export default class CheckboxNameBinding extends Binding {
     return [];
   }
 
-  getValue() {
+  getValue(): unknown[] {
     return this.group.value;
   }
 
-  handleChange() {
+  handleChange(): void {
     this.isChecked = this.element.node.checked;
     this.group.value = this.model.get().slice();
     const value = this.element.getAttribute('value');
@@ -81,7 +93,7 @@ export default class CheckboxNameBinding extends Binding {
     super.handleChange();
   }
 
-  render() {
+  render(): void {
     super.render();
 
     const node = this.node;
@@ -105,7 +117,7 @@ export default class CheckboxNameBinding extends Binding {
     }
   }
 
-  setFromNode(node) {
+  setFromNode(node): void {
     this.group.bindings.forEach(binding => (binding.wasUndefined = true));
 
     if (node.checked) {
@@ -116,11 +128,11 @@ export default class CheckboxNameBinding extends Binding {
     }
   }
 
-  unbind() {
+  unbind(): void {
     this.group.remove(this);
   }
 
-  unrender() {
+  unrender(): void {
     const el = this.element;
 
     el.off('change', handleDomEvent);
@@ -130,7 +142,7 @@ export default class CheckboxNameBinding extends Binding {
     }
   }
 
-  arrayContains(selectValue, optionValue) {
+  arrayContains(selectValue: unknown[], optionValue: unknown): boolean {
     let i = selectValue.length;
     while (i--) {
       if (this.element.compare(optionValue, selectValue[i])) return true;
@@ -138,7 +150,7 @@ export default class CheckboxNameBinding extends Binding {
     return false;
   }
 
-  removeFromArray(array, item) {
+  removeFromArray(array: unknown[], item: unknown): void {
     if (!array) return;
     let i = array.length;
     while (i--) {
