@@ -1,12 +1,25 @@
 import runloop from 'src/global/runloop';
 import { isUndefined } from 'utils/is';
 import { warnOnceIfDebug } from 'utils/log';
-import noop from 'utils/noop';
 
+import Element from '../../Element';
 import findElement from '../../shared/findElement';
 
-export default class Binding {
-  constructor(element, name = 'value') {
+export type BindingValue = unknown;
+
+export default abstract class Binding {
+  public element: Element;
+  public ractive: any;
+  public attribute: any;
+  public model: any;
+  public node: any;
+  public lastValue: BindingValue;
+
+  public wasUndefined: boolean;
+  public rendered: boolean;
+  public resetValue;
+
+  constructor(element: Element, name = 'value') {
     this.element = element;
     this.ractive = element.ractive;
     this.attribute = element.attributeByName[name];
@@ -22,7 +35,7 @@ export default class Binding {
         `Cannot use two-way binding on <${element.name}> element: ${keypath} is read-only. To suppress this warning use <${element.name} twoway='false'...>`,
         { ractive: this.ractive }
       );
-      return false;
+      return;
     }
 
     this.attribute.isTwoway = true;
@@ -32,8 +45,11 @@ export default class Binding {
     let value = model.get();
     this.wasUndefined = isUndefined(value);
 
-    if (isUndefined(value) && this.getInitialValue) {
-      value = this.getInitialValue();
+    // Use any casting since not all bindings have getInitialValue function
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (isUndefined(value) && typeof (this as any).getInitialValue === 'function') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      value = (this as any).getInitialValue();
       model.set(value);
     }
     this.lastVal(true, value);
@@ -45,11 +61,13 @@ export default class Binding {
     }
   }
 
-  bind() {
+  abstract getValue(): BindingValue;
+
+  bind(): void {
     this.model.registerTwowayBinding(this);
   }
 
-  handleChange() {
+  handleChange(): void {
     const value = this.getValue();
     if (this.lastVal() === value) return;
 
@@ -65,12 +83,14 @@ export default class Binding {
     runloop.end();
   }
 
-  lastVal(setting, value) {
+  lastVal(): BindingValue;
+  lastVal(setting: boolean, value: unknown): void;
+  lastVal(setting?: boolean, value?: BindingValue): void | BindingValue {
     if (setting) this.lastValue = value;
     else return this.lastValue;
   }
 
-  rebind(next, previous) {
+  rebind(next, previous): void {
     if (this.model && this.model === previous) previous.unregisterTwowayBinding(this);
     if (next) {
       this.model = next;
@@ -78,25 +98,34 @@ export default class Binding {
     }
   }
 
-  rebound() {
+  rebound(): void {
     if (this.model) this.model.unregisterTwowayBinding(this);
     this.model = this.attribute.interpolator.model;
     this.model && this.model.registerTwowayBinding(this);
   }
 
-  render() {
+  render(): void {
     this.node = this.element.node;
     this.node._ractive.binding = this;
     this.rendered = true; // TODO is this used anywhere?
   }
 
-  setFromNode(node) {
+  setFromNode(node): void {
     this.model.set(node.value);
   }
 
-  unbind() {
+  unbind(): void {
     this.model && this.model.unregisterTwowayBinding(this);
   }
+
+  abstract unrender(): void;
 }
 
-Binding.prototype.unrender = noop;
+export interface BindingWithInitialValue {
+  getInitialValue(): BindingValue;
+}
+
+export interface BasicBindingInterface {
+  render: () => void;
+  unrender: () => void;
+}

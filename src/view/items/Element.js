@@ -114,6 +114,10 @@ export default class Element extends ContainerItem {
     }
 
     this.binding = null; // filled in later
+
+    // added to avoid typescript errors
+    this.root = undefined;
+    this.lazy = undefined;
   }
 
   bind() {

@@ -76,7 +76,7 @@ export class ContainerItem extends Item {
     super(options);
   }
 
-  detach(): DocumentFragment {
+  detach() {
     return this.fragment ? this.fragment.detach() : createDocumentFragment();
   }
 

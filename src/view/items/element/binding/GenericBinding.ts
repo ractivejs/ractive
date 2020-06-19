@@ -1,19 +1,19 @@
 import { isNumeric } from 'utils/is';
 
-import Binding from './Binding';
+import Binding, { BindingValue, BindingWithInitialValue, BasicBindingInterface } from './Binding';
 import handleDomEvent from './handleDomEvent';
 
-function handleBlur() {
+function handleBlur(): void {
   handleDomEvent.call(this);
 
   const value = this._ractive.binding.model.get();
   this.value = value == undefined ? '' : value;
 }
 
-function handleDelay(delay) {
+function handleDelay(delay: number): () => void {
   let timeout;
 
-  return function() {
+  return function(): void {
     if (timeout) clearTimeout(timeout);
 
     timeout = setTimeout(() => {
@@ -24,22 +24,25 @@ function handleDelay(delay) {
   };
 }
 
-export default class GenericBinding extends Binding {
-  getInitialValue() {
+export default class GenericBinding extends Binding
+  implements BindingWithInitialValue, BasicBindingInterface {
+  public handler: () => void;
+
+  getInitialValue(): BindingValue {
     return '';
   }
 
-  getValue() {
+  getValue(): BindingValue {
     return this.node.value;
   }
 
-  render() {
+  render(): void {
     super.render();
 
     // any lazy setting for this element overrides the root
     // if the value is a number, it's a timeout
     let lazy = this.ractive.lazy;
-    let timeout = false;
+    let timeout = 0;
     const el = this.element;
 
     if ('lazy' in this.element) {
@@ -71,7 +74,7 @@ export default class GenericBinding extends Binding {
     }
   }
 
-  unrender() {
+  unrender(): void {
     const el = this.element;
     this.rendered = false;
 

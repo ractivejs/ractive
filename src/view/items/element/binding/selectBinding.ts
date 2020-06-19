@@ -1,6 +1,10 @@
-import { INTERPOLATOR, TRIPLE } from 'config/types';
+import TemplateItemType from 'config/types';
 import { warnIfDebug } from 'utils/log';
 
+import Element from '../../Element';
+import Attribute from '../Attribute';
+
+import Binding from './Binding';
 import CheckboxBinding from './CheckboxBinding';
 import CheckboxNameBinding from './CheckboxNameBinding';
 import ContentEditableBinding from './ContentEditableBinding';
@@ -12,30 +16,27 @@ import RadioBinding from './RadioBinding';
 import RadioNameBinding from './RadioNameBinding';
 import SingleSelectBinding from './SingleSelectBinding';
 
-export function isBindable(attribute) {
+export function isBindable(attribute: Attribute): boolean {
   // The fragment must be a single non-string fragment
-  if (
-    !attribute ||
-    !attribute.template.f ||
-    attribute.template.f.length !== 1 ||
-    attribute.template.f[0].s
-  )
+  if (!attribute?.template?.f || attribute.template.f.length !== 1 || attribute.template.f[0].s)
     return false;
 
+  const attributeTemplateType = attribute.template.f[0].t;
+
   // A binding is an interpolator `{{ }}`, yey.
-  if (attribute.template.f[0].t === INTERPOLATOR) return true;
+  if (attributeTemplateType === TemplateItemType.INTERPOLATOR) return true;
 
   // The above is probably the only true case. For the rest, show an appropriate
   // warning before returning false.
 
   // You can't bind a triple curly. HTML values on an attribute makes no sense.
-  if (attribute.template.f[0].t === TRIPLE)
+  if (attributeTemplateType === TemplateItemType.TRIPLE)
     warnIfDebug('It is not possible create a binding using a triple mustache.');
 
   return false;
 }
 
-export default function selectBinding(element) {
+export default function selectBinding(element: Element): typeof Binding {
   const name = element.name;
   const attributes = element.attributeByName;
   if (name !== 'input' && name !== 'textarea' && name !== 'select' && !attributes.contenteditable)
