@@ -1,17 +1,19 @@
 import runloop from 'src/global/runloop';
+import Model from 'src/model/Model';
 import { isUndefined } from 'utils/is';
 import { warnOnceIfDebug } from 'utils/log';
 
 import Element from '../../Element';
 import findElement from '../../shared/findElement';
+import Attribute from '../Attribute';
 
 export type BindingValue = unknown;
 
 export default abstract class Binding {
   public element: Element;
   public ractive: any;
-  public attribute: any;
-  public model: any;
+  public attribute: Attribute;
+  public model: Model;
   public node: any;
   public lastValue: BindingValue;
 
@@ -110,7 +112,7 @@ export default abstract class Binding {
     this.rendered = true; // TODO is this used anywhere?
   }
 
-  setFromNode(node): void {
+  setFromNode(node: HTMLInputElement): void {
     this.model.set(node.value);
   }
 
@@ -128,4 +130,5 @@ export interface BindingWithInitialValue {
 export interface BasicBindingInterface {
   render: () => void;
   unrender: () => void;
+  getValue(): BindingValue;
 }

@@ -1,12 +1,15 @@
-import Binding from './Binding';
+import Element from '../../Element';
+
+import Binding, { BindingWithInitialValue, BasicBindingInterface, BindingValue } from './Binding';
 import handleDomEvent from './handleDomEvent';
 
-export default class CheckboxBinding extends Binding {
-  constructor(element) {
+export default class CheckboxBinding extends Binding
+  implements BindingWithInitialValue, BasicBindingInterface {
+  constructor(element: Element) {
     super(element, 'checked');
   }
 
-  render() {
+  render(): void {
     super.render();
 
     this.element.on('change', handleDomEvent);
@@ -16,7 +19,7 @@ export default class CheckboxBinding extends Binding {
     }
   }
 
-  unrender() {
+  unrender(): void {
     this.element.off('change', handleDomEvent);
 
     if (this.node.attachEvent) {
@@ -24,15 +27,15 @@ export default class CheckboxBinding extends Binding {
     }
   }
 
-  getInitialValue() {
+  getInitialValue(): BindingValue {
     return !!this.element.getAttribute('checked');
   }
 
-  getValue() {
+  getValue(): BindingValue {
     return this.node.checked;
   }
 
-  setFromNode(node) {
+  setFromNode(node: HTMLInputElement): void {
     this.model.set(node.checked);
   }
 }
