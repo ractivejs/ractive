@@ -90,6 +90,7 @@ export type GenericAttributeTemplateValue =
 export interface GenericAttributeTemplateItem {
   t: TemplateItemType.ATTRIBUTE;
 
+  /** attribute name */
   n: string;
 
   f?: GenericAttributeTemplateValue;

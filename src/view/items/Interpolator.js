@@ -7,6 +7,15 @@ import Mustache from './shared/Mustache';
 import progressiveText from './shared/progressiveText';
 
 export default class Interpolator extends Mustache {
+  constructor(options) {
+    super(options);
+
+    // avoid error on typescript due to missing attributes
+    this.owner = undefined;
+    this.twowayBinding = undefined;
+    this.bound = undefined;
+  }
+
   bubble() {
     if (this.owner) this.owner.bubble();
     super.bubble();

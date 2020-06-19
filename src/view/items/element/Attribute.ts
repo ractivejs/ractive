@@ -1,4 +1,4 @@
-import { INTERPOLATOR } from 'config/types';
+import TemplateItemType from 'config/types';
 import Namespace from 'src/config/namespace';
 import { safeAttributeString } from 'utils/dom';
 import { booleanAttributes } from 'utils/html';
@@ -6,14 +6,16 @@ import hyphenateCamel from 'utils/hyphenateCamel';
 import { isArray, isString, isUndefined } from 'utils/is';
 
 import Fragment from '../../Fragment';
+import Element from '../Element';
+import Interpolator from '../Interpolator';
 import findElement from '../shared/findElement';
-import Item from '../shared/Item';
+import Item, { ItemOptions } from '../shared/Item';
 
-import getUpdateDelegate from './attribute/getUpdateDelegate';
+import getUpdateDelegate, { UpdateDelegate } from './attribute/getUpdateDelegate';
 import propertyNames from './attribute/propertyNames';
 import { inAttributes } from './ConditionalAttribute';
 
-function lookupNamespace(node, prefix) {
+function lookupNamespace(node, prefix): string {
   const qualified = `xmlns:${prefix}`;
 
   while (node) {
@@ -25,12 +27,38 @@ function lookupNamespace(node, prefix) {
 }
 
 let attribute = false;
-export function inAttribute() {
+export function inAttribute(): boolean {
   return attribute;
 }
 
+interface AttributeOptions extends ItemOptions {
+  owner: Element;
+  element: Element;
+}
+
 export default class Attribute extends Item {
-  constructor(options) {
+  public name: string;
+  public namespace: string;
+  public owner: Element;
+  public element: Element;
+  public node: HTMLElement;
+  public template: any; // maybe GenericAttributeTemplateItem
+
+  public updateDelegate: UpdateDelegate;
+  public value: any;
+  public interpolator: Interpolator;
+  public style: string;
+  public inlineClass: string;
+
+  public propertyName: string;
+  public useProperty: boolean;
+
+  public rendered: boolean;
+  public isTwoway: boolean;
+  public locked: boolean;
+  public isBoolean: boolean;
+
+  constructor(options: AttributeOptions) {
     super(options);
 
     this.name = options.template.n;
@@ -66,19 +94,21 @@ export default class Attribute extends Item {
     this.interpolator =
       this.fragment &&
       this.fragment.items.length === 1 &&
-      this.fragment.items[0].type === INTERPOLATOR &&
+      this.fragment.items[0].type === TemplateItemType.INTERPOLATOR &&
       this.fragment.items[0];
 
     if (this.interpolator) this.interpolator.owner = this;
+
+    this.isTwoway = undefined;
   }
 
-  bind() {
+  bind(): void {
     if (this.fragment) {
       this.fragment.bind();
     }
   }
 
-  bubble() {
+  bubble(): void {
     if (!this.dirty) {
       this.up.bubble();
       this.element.bubble();
@@ -88,7 +118,7 @@ export default class Attribute extends Item {
 
   firstNode() {}
 
-  getString() {
+  getString(): string {
     attribute = true;
     const value = this.fragment
       ? this.fragment.toString()
@@ -112,7 +142,7 @@ export default class Attribute extends Item {
     return value;
   }
 
-  render() {
+  render(): void {
     const node = this.element.node;
     this.node = node;
 
@@ -149,7 +179,7 @@ export default class Attribute extends Item {
     this.updateDelegate();
   }
 
-  toString() {
+  toString(): string {
     if (inAttributes()) return '';
     attribute = true;
 
@@ -211,17 +241,17 @@ export default class Attribute extends Item {
     return str ? `${this.name}="${str}"` : this.name;
   }
 
-  unbind(view) {
+  unbind(view): void {
     if (this.fragment) this.fragment.unbind(view);
   }
 
-  unrender() {
+  unrender(): void {
     this.updateDelegate(true);
 
     this.rendered = false;
   }
 
-  update() {
+  update(): void {
     if (this.dirty) {
       let binding;
       this.dirty = false;

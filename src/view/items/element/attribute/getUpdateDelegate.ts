@@ -7,6 +7,8 @@ import { isArray, isString, isUndefined } from 'utils/is';
 import noop from 'utils/noop';
 import { keys as objectKeys } from 'utils/object';
 
+import Attribute from '../Attribute';
+
 const textTypes = [
   undefined,
   'text',
@@ -20,7 +22,9 @@ const textTypes = [
   'submit'
 ];
 
-export default function getUpdateDelegate(attribute) {
+export type UpdateDelegate = (reset?: boolean) => void;
+
+export default function getUpdateDelegate(attribute: Attribute): UpdateDelegate {
   const { element, name } = attribute;
 
   if (name === 'value') {
@@ -84,7 +88,7 @@ export default function getUpdateDelegate(attribute) {
   return updateAttribute;
 }
 
-function updateMultipleSelectValue(reset) {
+const updateMultipleSelectValue: UpdateDelegate = function(reset) {
   let value = this.getValue();
 
   if (!isArray(value)) value = [value];
@@ -102,9 +106,9 @@ function updateMultipleSelectValue(reset) {
       option.selected = arrayContains(value, optionValue);
     }
   }
-}
+};
 
-function updateSelectValue(reset) {
+const updateSelectValue: UpdateDelegate = function(reset) {
   const value = this.getValue();
 
   if (!this.locked) {
@@ -133,18 +137,18 @@ function updateSelectValue(reset) {
 
     if (!wasSelected) this.node.selectedIndex = -1;
   }
-}
+};
 
-function updateContentEditableValue(reset) {
+const updateContentEditableValue: UpdateDelegate = function(reset) {
   const value = this.getValue();
 
   if (!this.locked) {
     if (reset) this.node.innerHTML = '';
     else this.node.innerHTML = isUndefined(value) ? '' : value;
   }
-}
+};
 
-function updateRadioValue(reset) {
+const updateRadioValue: UpdateDelegate = function(reset) {
   const node = this.node;
   const wasChecked = node.checked;
 
@@ -163,9 +167,9 @@ function updateRadioValue(reset) {
   if (wasChecked && !node.checked && this.element.binding && this.element.binding.rendered) {
     this.element.binding.group.model.set(this.element.binding.group.getValue());
   }
-}
+};
 
-function updateValue(reset) {
+const updateValue: UpdateDelegate = function(reset) {
   if (!this.locked) {
     if (reset) {
       this.node.removeAttribute('value');
@@ -177,9 +181,9 @@ function updateValue(reset) {
       this.node.setAttribute('value', safeToStringValue(value));
     }
   }
-}
+};
 
-function updateStringValue(reset) {
+const updateStringValue: UpdateDelegate = function(reset) {
   if (!this.locked) {
     if (reset) {
       this.node._ractive.value = '';
@@ -199,14 +203,14 @@ function updateStringValue(reset) {
       this.node.setAttribute('value', safeValue);
     }
   }
-}
+};
 
-function updateRadioName(reset) {
+const updateRadioName: UpdateDelegate = function(reset) {
   if (reset) this.node.checked = false;
   else this.node.checked = this.element.compare(this.getValue(), this.element.binding.getValue());
-}
+};
 
-function updateCheckboxName(reset) {
+const updateCheckboxName: UpdateDelegate = function(reset) {
   const { element, node } = this;
   const binding = element.binding;
 
@@ -229,9 +233,9 @@ function updateCheckboxName(reset) {
     }
     binding.isChecked = node.checked = false;
   }
-}
+};
 
-function updateStyleAttribute(reset) {
+const updateStyleAttribute: UpdateDelegate = function(reset) {
   const props = reset ? {} : readStyle(this.getValue() || '');
   const style = this.node.style;
   const keys = objectKeys(props);
@@ -253,9 +257,9 @@ function updateStyleAttribute(reset) {
   }
 
   this.previous = keys;
-}
+};
 
-function updateInlineStyle(reset) {
+const updateInlineStyle: UpdateDelegate = function(reset) {
   if (!this.style) {
     this.style = hyphenateCamel(this.name.substr(6));
   }
@@ -266,9 +270,9 @@ function updateInlineStyle(reset) {
   const safe = value.replace('!important', '');
   this.node.style.setProperty(this.style, safe, safe.length !== value.length ? 'important' : '');
   this.last = this.node.style.getPropertyValue(this.style);
-}
+};
 
-function updateClassName(reset) {
+const updateClassName: UpdateDelegate = function(reset) {
   const value = reset ? [] : readClass(safeToStringValue(this.getValue()));
 
   // watch out for weirdo svg elements
@@ -289,9 +293,9 @@ function updateClassName(reset) {
   }
 
   this.previous = value;
-}
+};
 
-function updateInlineClass(reset) {
+const updateInlineClass: UpdateDelegate = function(reset) {
   const name = this.name.substr(6);
 
   // watch out for weirdo svg elements
@@ -311,9 +315,9 @@ function updateInlineClass(reset) {
   } else {
     this.node.className = attr.join(' ');
   }
-}
+};
 
-function updateBoolean(reset) {
+const updateBoolean: UpdateDelegate = function(reset) {
   // with two-way binding, only update if the change wasn't initiated by the user
   // otherwise the cursor will often be sent to the wrong place
   if (!this.locked) {
@@ -333,9 +337,9 @@ function updateBoolean(reset) {
       }
     }
   }
-}
+};
 
-export function updateAttribute(reset) {
+export const updateAttribute: UpdateDelegate = function(reset) {
   if (reset) {
     if (this.node.getAttribute(this.name) === this.value) {
       this.node.removeAttribute(this.name);
@@ -344,9 +348,9 @@ export function updateAttribute(reset) {
     this.value = safeToStringValue(this.getString());
     this.node.setAttribute(this.name, this.value);
   }
-}
+};
 
-export function updateNamespacedAttribute(reset) {
+export const updateNamespacedAttribute: UpdateDelegate = function(reset) {
   if (reset) {
     if (
       this.value ===
@@ -362,4 +366,4 @@ export function updateNamespacedAttribute(reset) {
       this.value
     );
   }
-}
+};
