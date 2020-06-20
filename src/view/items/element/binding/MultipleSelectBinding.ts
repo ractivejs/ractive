@@ -2,17 +2,23 @@ import { arrayContentsMatch } from 'utils/array';
 import getSelectedOptions from 'utils/getSelectedOptions';
 import { isUndefined } from 'utils/is';
 
-import Binding from './Binding';
+import Select from '../specials/Select';
+
+import Binding, { BindingWithInitialValue, BindingValue } from './Binding';
 import handleDomEvent from './handleDomEvent';
 
-export default class MultipleSelectBinding extends Binding {
-  getInitialValue() {
+export default class MultipleSelectBinding extends Binding
+  implements BindingWithInitialValue, BindingWithInitialValue {
+  /** @override */
+  public element: Select;
+
+  getInitialValue(): BindingValue {
     return this.element.options
       .filter(option => option.getAttribute('selected'))
       .map(option => option.getAttribute('value'));
   }
 
-  getValue() {
+  getValue(): BindingValue {
     const options = this.element.node.options;
     const len = options.length;
 
@@ -30,7 +36,7 @@ export default class MultipleSelectBinding extends Binding {
     return selectedValues;
   }
 
-  handleChange() {
+  handleChange(): this {
     const attribute = this.attribute;
     const previousValue = attribute.getValue();
 
@@ -43,7 +49,7 @@ export default class MultipleSelectBinding extends Binding {
     return this;
   }
 
-  render() {
+  render(): void {
     super.render();
 
     this.element.on('change', handleDomEvent);
@@ -54,20 +60,21 @@ export default class MultipleSelectBinding extends Binding {
     }
   }
 
-  setFromNode(node) {
+  setFromNode(node): void {
     const selectedOptions = getSelectedOptions(node);
     let i = selectedOptions.length;
     const result = new Array(i);
 
     while (i--) {
-      const option = selectedOptions[i];
+      // todo add correct type when we will have an inrerface for augmented HTML elements
+      const option: any = selectedOptions[i];
       result[i] = option._ractive ? option._ractive.value : option.value;
     }
 
     this.model.set(result);
   }
 
-  unrender() {
+  unrender(): void {
     this.element.off('change', handleDomEvent);
   }
 }

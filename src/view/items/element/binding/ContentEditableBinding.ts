@@ -1,16 +1,17 @@
-import Binding from './Binding';
+import Binding, { BindingWithInitialValue, BasicBindingInterface } from './Binding';
 import handleDomEvent from './handleDomEvent';
 
-export default class ContentEditableBinding extends Binding {
-  getInitialValue() {
+export default class ContentEditableBinding extends Binding
+  implements BindingWithInitialValue, BasicBindingInterface {
+  getInitialValue(): string {
     return this.element.fragment ? this.element.fragment.toString() : '';
   }
 
-  getValue() {
+  getValue(): string {
     return this.element.node.innerHTML;
   }
 
-  render() {
+  render(): void {
     super.render();
 
     const el = this.element;
@@ -27,11 +28,11 @@ export default class ContentEditableBinding extends Binding {
     }
   }
 
-  setFromNode(node) {
+  setFromNode(node: HTMLInputElement): void {
     this.model.set(node.innerHTML);
   }
 
-  unrender() {
+  unrender(): void {
     const el = this.element;
 
     el.off('blur', handleDomEvent);
