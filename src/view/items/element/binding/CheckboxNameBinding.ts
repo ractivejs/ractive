@@ -1,18 +1,18 @@
 import { isArray } from 'utils/is';
 
-import Element from '../../Element';
 import Input from '../specials/Input';
 
-import Binding, { BindingWithInitialValue, BasicBindingInterface } from './Binding';
+import Binding, { BindingWithInitialValue, BasicBindingInterface, BindingValue } from './Binding';
 import getBindingGroup, { BindingGroup } from './getBindingGroup';
 import handleDomEvent from './handleDomEvent';
 
 const push = [].push;
 
+/** `this` must be a {@link BindingGroup} instance */
 function getValue(): unknown[] {
-  const all = this.bindings
-    .filter(b => b.node && b.node.checked)
-    .map(b => b.element.getAttribute('value'));
+  const all: BindingValue[] = this.bindings
+    .filter((b: Binding) => b.node && b.node.checked)
+    .map((b: Binding) => b.element.getAttribute('value'));
   const res = [];
   all.forEach(v => {
     if (!this.bindings[0].arrayContains(res, v)) res.push(v);
@@ -22,15 +22,12 @@ function getValue(): unknown[] {
 
 export default class CheckboxNameBinding extends Binding
   implements BindingWithInitialValue, BasicBindingInterface {
-  /** @override */
-  public element: Input;
-
   public checkboxName: boolean;
   public group: BindingGroup;
   public noInitialValue: boolean;
   public isChecked: boolean;
 
-  constructor(element: Element) {
+  constructor(element: Input) {
     super(element, 'name');
 
     this.checkboxName = true; // so that ractive.updateModel() knows what to do with this

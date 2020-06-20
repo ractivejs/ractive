@@ -2,6 +2,8 @@ import Model from 'src/model/Model';
 import { removeFromArray } from 'utils/array';
 
 import Binding from './Binding';
+import CheckboxNameBinding from './CheckboxNameBinding';
+import RadioNameBinding from './RadioNameBinding';
 
 export default function getBindingGroup(
   group: string,
@@ -19,7 +21,7 @@ export class BindingGroup {
   public getValue: Function;
   public value: unknown[];
   public noInitialValue: boolean;
-  public bindings: any[];
+  public bindings: Binding[];
   public bound: boolean;
 
   constructor(hash: string, model: Model, getValue: Function) {
@@ -36,7 +38,9 @@ export class BindingGroup {
     this.noInitialValue = undefined;
   }
 
-  add(binding): void {
+  add(binding: CheckboxNameBinding): void;
+  add(binding: RadioNameBinding): void;
+  add(binding: Binding): void {
     this.bindings.push(binding);
   }
 
@@ -47,7 +51,9 @@ export class BindingGroup {
     this.bound = true;
   }
 
-  remove(binding): void {
+  remove(binding: CheckboxNameBinding): void;
+  remove(binding: RadioNameBinding): void;
+  remove(binding: Binding): void {
     removeFromArray(this.bindings, binding);
     if (!this.bindings.length) {
       this.unbind();

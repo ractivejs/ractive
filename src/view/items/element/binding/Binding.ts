@@ -3,14 +3,14 @@ import Model from 'src/model/Model';
 import { isUndefined } from 'utils/is';
 import { warnOnceIfDebug } from 'utils/log';
 
-import Element from '../../Element';
 import findElement from '../../shared/findElement';
 import Attribute from '../Attribute';
+import Input from '../specials/Input';
 
 export type BindingValue = unknown;
 
 export default abstract class Binding {
-  public element: Element;
+  public element: Input;
   public ractive: any;
   public attribute: Attribute;
   public model: Model;
@@ -19,9 +19,9 @@ export default abstract class Binding {
 
   public wasUndefined: boolean;
   public rendered: boolean;
-  public resetValue;
+  public resetValue: BindingValue;
 
-  constructor(element: Element, name = 'value') {
+  constructor(element: Input, name = 'value') {
     this.element = element;
     this.ractive = element.ractive;
     this.attribute = element.attributeByName[name];
@@ -108,7 +108,8 @@ export default abstract class Binding {
 
   render(): void {
     this.node = this.element.node;
-    this.node._ractive.binding = this;
+    // todo remove any casting
+    (this.node as any)._ractive.binding = this;
     this.rendered = true; // TODO is this used anywhere?
   }
 
