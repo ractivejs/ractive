@@ -113,7 +113,7 @@ export default abstract class Binding {
     this.rendered = true; // TODO is this used anywhere?
   }
 
-  setFromNode(node: HTMLInputElement): void {
+  setFromNode(node: HTMLSelectElement | HTMLInputElement): void {
     this.model.set(node.value);
   }
 

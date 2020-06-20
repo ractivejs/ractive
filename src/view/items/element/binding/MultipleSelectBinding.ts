@@ -11,6 +11,8 @@ export default class MultipleSelectBinding extends Binding
   implements BindingWithInitialValue, BindingWithInitialValue {
   /**
    * Add check to avoid compatibility error  on Input element
+   * @warning same as {@link SingleSelectBinding}
+   *
    * @override
    */
   public element: Select & { checked: boolean };
@@ -63,7 +65,7 @@ export default class MultipleSelectBinding extends Binding
     }
   }
 
-  setFromNode(node): void {
+  setFromNode(node: HTMLSelectElement): void {
     const selectedOptions = getSelectedOptions(node);
     let i = selectedOptions.length;
     const result = new Array(i);

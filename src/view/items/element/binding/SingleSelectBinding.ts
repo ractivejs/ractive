@@ -1,11 +1,22 @@
 import runloop from 'src/global/runloop';
 import getSelectedOptions from 'utils/getSelectedOptions';
 
-import Binding from './Binding';
+import Select from '../specials/Select';
+
+import Binding, { BindingWithInitialValue, BasicBindingInterface, BindingValue } from './Binding';
 import handleDomEvent from './handleDomEvent';
 
-export default class SingleSelectBinding extends Binding {
-  forceUpdate() {
+export default class SingleSelectBinding extends Binding
+  implements BindingWithInitialValue, BasicBindingInterface {
+  /**
+   * Add check to avoid compatibility error  on Input element
+   * @warning same as {@link MultipleSelectBinding}
+   *
+   * @override
+   */
+  public element: Select & { checked: boolean };
+
+  forceUpdate(): void {
     const value = this.getValue();
 
     if (value !== undefined) {
@@ -15,7 +26,7 @@ export default class SingleSelectBinding extends Binding {
     }
   }
 
-  getInitialValue() {
+  getInitialValue(): void {
     if (this.element.getAttribute('value') !== undefined) {
       return;
     }
@@ -63,7 +74,7 @@ export default class SingleSelectBinding extends Binding {
     return value;
   }
 
-  getValue() {
+  getValue(): BindingValue {
     const options = this.node.options;
     const len = options.length;
 
@@ -77,17 +88,18 @@ export default class SingleSelectBinding extends Binding {
     }
   }
 
-  render() {
+  render(): void {
     super.render();
     this.element.on('change', handleDomEvent);
   }
 
-  setFromNode(node) {
-    const option = getSelectedOptions(node)[0];
+  setFromNode(node: HTMLSelectElement): void {
+    // todo add correct type when we will have an inrerface for augmented HTML elements
+    const option: any = getSelectedOptions(node)[0];
     this.model.set(option._ractive ? option._ractive.value : option.value);
   }
 
-  unrender() {
+  unrender(): void {
     this.element.off('change', handleDomEvent);
   }
 }
