@@ -9,16 +9,19 @@ import handleDomEvent from './handleDomEvent';
 
 export default class MultipleSelectBinding extends Binding
   implements BindingWithInitialValue, BindingWithInitialValue {
-  /** @override */
-  public element: Select;
+  /**
+   * Add check to avoid compatibility error  on Input element
+   * @override
+   */
+  public element: Select & { checked: boolean };
 
-  getInitialValue(): BindingValue {
+  getInitialValue(): BindingValue[] {
     return this.element.options
       .filter(option => option.getAttribute('selected'))
       .map(option => option.getAttribute('value'));
   }
 
-  getValue(): BindingValue {
+  getValue(): BindingValue[] {
     const options = this.element.node.options;
     const len = options.length;
 

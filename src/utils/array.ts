@@ -2,7 +2,7 @@ import { isArray, isString, isUndefined } from './is';
 
 // TODO refine types on params and return
 
-export function addToArray(array: unknown[], value: unknown): void {
+export function addToArray<T>(array: T[], value: T): void {
   const index = array.indexOf(value);
 
   if (index === -1) {
@@ -10,12 +10,12 @@ export function addToArray(array: unknown[], value: unknown): void {
   }
 }
 
-export function arrayContains(array: unknown[], value: unknown): boolean {
+export function arrayContains<T>(array: T[], value: T): boolean {
   const valueIndex = array.indexOf(value);
   return valueIndex !== -1;
 }
 
-export function arrayContentsMatch(a, b): boolean {
+export function arrayContentsMatch<T>(a: T[], b: T[]): boolean {
   if (!isArray(a) || !isArray(b)) {
     return false;
   }
@@ -46,11 +46,11 @@ export function ensureArray(x) {
   return x;
 }
 
-export function lastItem(array) {
+export function lastItem<T>(array: T[]): T {
   return array[array.length - 1];
 }
 
-export function removeFromArray(array, member): void {
+export function removeFromArray<T>(array: T[], member: T): void {
   if (!array) {
     return;
   }

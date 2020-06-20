@@ -1,4 +1,4 @@
-import Namespace from 'src/config/namespace';
+import Namespace from 'config/namespace';
 import { readStyle, readClass } from 'src/view/helpers/specialAttrs';
 import { arrayContains } from 'utils/array';
 import { safeToStringValue } from 'utils/dom';
@@ -22,6 +22,7 @@ const textTypes = [
   'submit'
 ];
 
+// todo refine types inside UpdateDelegate functions
 export type UpdateDelegate = (reset?: boolean) => void;
 
 export default function getUpdateDelegate(attribute: Attribute): UpdateDelegate {

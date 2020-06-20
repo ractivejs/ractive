@@ -1,16 +1,23 @@
-import Binding from './Binding';
-import getBindingGroup from './getBindingGroup';
+import Model from 'src/model/Model';
+
+import Input from '../specials/Input';
+
+import Binding, { BindingValue, BindingWithInitialValue, BasicBindingInterface } from './Binding';
+import getBindingGroup, { BindingGroup } from './getBindingGroup';
 import handleDomEvent from './handleDomEvent';
 
-function getValue() {
-  const checked = this.bindings.filter(b => b.node.checked);
+function getValue(): BindingValue {
+  const checked = this.bindings.filter((b: RadioNameBinding) => b.node.checked);
   if (checked.length > 0) {
     return checked[0].element.getAttribute('value');
   }
 }
 
-export default class RadioNameBinding extends Binding {
-  constructor(element) {
+export default class RadioNameBinding extends Binding
+  implements BindingWithInitialValue, BasicBindingInterface {
+  private group: BindingGroup<BindingValue, RadioNameBinding>;
+
+  constructor(element: Input) {
     super(element, 'name');
 
     this.group = getBindingGroup('radioname', this.model, getValue);
@@ -20,26 +27,26 @@ export default class RadioNameBinding extends Binding {
       this.group.value = this.getValue();
     }
 
-    this.attribute.interpolator.pathChanged = () => this.updateName();
+    this.attribute.interpolator.pathChanged = (): void => this.updateName();
   }
 
-  bind() {
+  bind(): void {
     if (!this.group.bound) {
       this.group.bind();
     }
   }
 
-  getInitialValue() {
+  getInitialValue(): void {
     if (this.element.getAttribute('checked')) {
       return this.element.getAttribute('value');
     }
   }
 
-  getValue() {
+  getValue(): BindingValue {
     return this.element.getAttribute('value');
   }
 
-  handleChange() {
+  handleChange(): void {
     // If this <input> is the one that's checked, then the value of its
     // `name` model gets set to its value
     if (this.node.checked) {
@@ -50,23 +57,23 @@ export default class RadioNameBinding extends Binding {
     this.updateName();
   }
 
-  lastVal(setting, value) {
+  lastVal(setting?: boolean, value?: BindingValue): BindingValue {
     if (!this.group) return;
     if (setting) this.group.lastValue = value;
     else return this.group.lastValue;
   }
 
-  rebind(next, previous) {
+  rebind(next: Model, previous: Model): void {
     super.rebind(next, previous);
     this.updateName();
   }
 
-  rebound(update) {
-    super.rebound(update);
+  rebound(): void {
+    super.rebound();
     this.updateName();
   }
 
-  render() {
+  render(): void {
     super.render();
 
     const node = this.node;
@@ -81,17 +88,17 @@ export default class RadioNameBinding extends Binding {
     }
   }
 
-  setFromNode(node) {
+  setFromNode(node: HTMLInputElement): void {
     if (node.checked) {
       this.group.model.set(this.element.getAttribute('value'));
     }
   }
 
-  unbind() {
+  unbind(): void {
     this.group.remove(this);
   }
 
-  unrender() {
+  unrender(): void {
     const el = this.element;
 
     el.off('change', handleDomEvent);
@@ -101,7 +108,7 @@ export default class RadioNameBinding extends Binding {
     }
   }
 
-  updateName() {
+  updateName(): void {
     if (this.node) this.node.name = `{{${this.model.getKeypath()}}}`;
   }
 }

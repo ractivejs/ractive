@@ -14,6 +14,7 @@ export default class Interpolator extends Mustache {
     this.owner = undefined;
     this.twowayBinding = undefined;
     this.bound = undefined;
+    this.pathChanged = undefined;
   }
 
   bubble() {

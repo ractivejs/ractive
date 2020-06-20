@@ -9,10 +9,10 @@ import handleDomEvent from './handleDomEvent';
 const push = [].push;
 
 /** `this` must be a {@link BindingGroup} instance */
-function getValue(): unknown[] {
+function getValue(): BindingValue[] {
   const all: BindingValue[] = this.bindings
-    .filter((b: Binding) => b.node && b.node.checked)
-    .map((b: Binding) => b.element.getAttribute('value'));
+    .filter((b: CheckboxNameBinding) => b.node && b.node.checked)
+    .map((b: CheckboxNameBinding) => b.element.getAttribute('value'));
   const res = [];
   all.forEach(v => {
     if (!this.bindings[0].arrayContains(res, v)) res.push(v);
@@ -23,7 +23,7 @@ function getValue(): unknown[] {
 export default class CheckboxNameBinding extends Binding
   implements BindingWithInitialValue, BasicBindingInterface {
   public checkboxName: boolean;
-  public group: BindingGroup;
+  public group: BindingGroup<BindingValue[], CheckboxNameBinding>;
   public noInitialValue: boolean;
   public isChecked: boolean;
 
@@ -72,7 +72,7 @@ export default class CheckboxNameBinding extends Binding
     return [];
   }
 
-  getValue(): unknown[] {
+  getValue(): BindingValue[] {
     return this.group.value;
   }
 
@@ -139,7 +139,7 @@ export default class CheckboxNameBinding extends Binding
     }
   }
 
-  arrayContains(selectValue: unknown[], optionValue: unknown): boolean {
+  arrayContains(selectValue: unknown[], optionValue: BindingValue): boolean {
     let i = selectValue.length;
     while (i--) {
       if (this.element.compare(optionValue, selectValue[i])) return true;
@@ -147,7 +147,7 @@ export default class CheckboxNameBinding extends Binding
     return false;
   }
 
-  removeFromArray(array: unknown[], item: unknown): void {
+  removeFromArray(array: BindingValue[], item: BindingValue): void {
     if (!array) return;
     let i = array.length;
     while (i--) {

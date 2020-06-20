@@ -85,14 +85,14 @@ export default abstract class Binding {
     runloop.end();
   }
 
-  lastVal(): BindingValue;
-  lastVal(setting: boolean, value: unknown): void;
-  lastVal(setting?: boolean, value?: BindingValue): void | BindingValue {
+  lastVal(): void;
+  lastVal(setting: boolean, value: BindingValue): BindingValue;
+  lastVal(setting?: boolean, value?: BindingValue): BindingValue | void {
     if (setting) this.lastValue = value;
     else return this.lastValue;
   }
 
-  rebind(next, previous): void {
+  rebind(next: Model, previous: Model): void {
     if (this.model && this.model === previous) previous.unregisterTwowayBinding(this);
     if (next) {
       this.model = next;
