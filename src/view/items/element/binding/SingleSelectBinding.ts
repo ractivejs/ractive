@@ -14,7 +14,7 @@ export default class SingleSelectBinding extends Binding
    *
    * @override
    */
-  public element: Select & { checked: boolean };
+  public element: Select;
 
   forceUpdate(): void {
     const value = this.getValue();

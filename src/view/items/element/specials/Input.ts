@@ -3,13 +3,13 @@ import { isFunction } from 'utils/is';
 import Element from '../../Element';
 
 export default class Input extends Element {
+  public checked: boolean;
+
   render(target, occupants) {
     super.render(target, occupants);
     this.node.defaultValue = this.node.value;
-
-    // avoid errors
-    this.checked = undefined;
   }
+
   compare(value, attrValue) {
     const comparator = this.getAttribute('value-comparator');
     if (comparator) {

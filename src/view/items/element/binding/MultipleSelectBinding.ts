@@ -15,7 +15,7 @@ export default class MultipleSelectBinding extends Binding
    *
    * @override
    */
-  public element: Select & { checked: boolean };
+  public element: Select;
 
   getInitialValue(): BindingValue[] {
     return this.element.options

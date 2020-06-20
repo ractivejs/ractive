@@ -4,7 +4,6 @@ import { warnIfDebug } from 'utils/log';
 import Element from '../../Element';
 import Attribute from '../Attribute';
 
-import Binding from './Binding';
 import CheckboxBinding from './CheckboxBinding';
 import CheckboxNameBinding from './CheckboxNameBinding';
 import ContentEditableBinding from './ContentEditableBinding';
@@ -36,7 +35,16 @@ export function isBindable(attribute: Attribute): boolean {
   return false;
 }
 
-export default function selectBinding(element: Element): typeof Binding {
+export default function selectBinding(
+  element: Element
+):
+  | typeof ContentEditableBinding
+  | typeof RadioNameBinding
+  | typeof RadioBinding
+  | typeof CheckboxBinding
+  | typeof GenericBinding
+  | typeof MultipleSelectBinding
+  | typeof SingleSelectBinding {
   const name = element.name;
   const attributes = element.attributeByName;
   if (name !== 'input' && name !== 'textarea' && name !== 'select' && !attributes.contenteditable)

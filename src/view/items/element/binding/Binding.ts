@@ -6,11 +6,14 @@ import { warnOnceIfDebug } from 'utils/log';
 import findElement from '../../shared/findElement';
 import Attribute from '../Attribute';
 import Input from '../specials/Input';
+import Select from '../specials/Select';
 
 export type BindingValue = unknown;
 
+type BindingAttributeName = 'value' | 'name' | 'checked';
+
 export default abstract class Binding {
-  public element: Input;
+  public element: Input | Select;
   public ractive: any;
   public attribute: Attribute;
   public model: Model;
@@ -21,7 +24,7 @@ export default abstract class Binding {
   public rendered: boolean;
   public resetValue: BindingValue;
 
-  constructor(element: Input, name = 'value') {
+  constructor(element: Input, name: BindingAttributeName = 'value') {
     this.element = element;
     this.ractive = element.ractive;
     this.attribute = element.attributeByName[name];

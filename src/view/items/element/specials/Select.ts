@@ -2,25 +2,29 @@ import { toArray } from 'utils/array';
 import getSelectedOptions from 'utils/getSelectedOptions';
 import { isArray, isFunction } from 'utils/is';
 
-import Element from '../../Element';
+import Element, { ElementOptions } from '../../Element';
+import SingleSelectBinding from '../binding/SingleSelectBinding';
 
 export default class Select extends Element {
-  constructor(options) {
+  public options: any[];
+  private selectedOptions: any[];
+
+  constructor(options: ElementOptions) {
     super(options);
     this.options = [];
-  }
 
-  foundNode(node) {
-    if (this.binding) {
-      const selectedOptions = getSelectedOptions(node);
+    this.foundNode = (node: HTMLSelectElement): void => {
+      if (this.binding) {
+        const selectedOptions = getSelectedOptions(node);
 
-      if (selectedOptions.length > 0) {
-        this.selectedOptions = selectedOptions;
+        if (selectedOptions.length > 0) {
+          this.selectedOptions = selectedOptions;
+        }
       }
-    }
+    };
   }
 
-  render(target, occupants) {
+  render(target, occupants): void {
     super.render(target, occupants);
     this.sync();
 
@@ -34,7 +38,7 @@ export default class Select extends Element {
     this.rendered = true;
   }
 
-  sync() {
+  sync(): void {
     const selectNode = this.node;
 
     if (!selectNode) return;
@@ -57,6 +61,7 @@ export default class Select extends Element {
 
     // If the <select> has a specified value, that should override
     // these options
+    const binding: SingleSelectBinding = (this.binding as unknown) as SingleSelectBinding;
     if (selectValue !== undefined) {
       let optionWasSelected;
 
@@ -74,23 +79,25 @@ export default class Select extends Element {
       });
 
       if (!optionWasSelected && !isMultiple) {
-        if (this.binding) {
-          this.binding.forceUpdate();
+        if (binding) {
+          binding.forceUpdate();
         }
       }
-    } else if (this.binding && this.binding.forceUpdate) {
+    } else if (binding?.forceUpdate) {
       // Otherwise the value should be initialised according to which
       // <option> element is selected, if twoway binding is in effect
-      this.binding.forceUpdate();
+      binding.forceUpdate();
     }
   }
-  valueContains(selectValue, optionValue) {
+
+  valueContains(selectValue: unknown[], optionValue: unknown): boolean {
     let i = selectValue.length;
     while (i--) {
       if (this.compare(optionValue, selectValue[i])) return true;
     }
   }
-  compare(optionValue, selectValue) {
+
+  compare(optionValue: unknown, selectValue: unknown): boolean {
     const comparator = this.getAttribute('value-comparator');
     if (comparator) {
       if (isFunction(comparator)) {
@@ -102,7 +109,8 @@ export default class Select extends Element {
     }
     return selectValue == optionValue;
   }
-  update() {
+
+  update(): void {
     const dirty = this.dirty;
     super.update();
     if (dirty) {
