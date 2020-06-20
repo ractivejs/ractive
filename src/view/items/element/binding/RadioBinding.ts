@@ -1,28 +1,32 @@
 import runloop from 'src/global/runloop';
 import { removeFromArray } from 'utils/array';
 
-import Binding from './Binding';
+import Input from '../specials/Input';
+
+import Binding, { BasicBindingInterface, BindingWithInitialValue } from './Binding';
 import handleDomEvent from './handleDomEvent';
 
-const siblings = {};
+const siblings: { [key: string]: RadioBinding[] } = {};
 
-function getSiblings(hash) {
+function getSiblings(hash: string): RadioBinding[] {
   return siblings[hash] || (siblings[hash] = []);
 }
 
-export default class RadioBinding extends Binding {
-  constructor(element) {
+export default class RadioBinding extends Binding implements BasicBindingInterface {
+  private siblings: RadioBinding[];
+
+  constructor(element: Input) {
     super(element, 'checked');
 
     this.siblings = getSiblings(this.ractive._guid + this.element.getAttribute('name'));
     this.siblings.push(this);
   }
 
-  getValue() {
+  getValue(): BindingWithInitialValue {
     return this.node.checked;
   }
 
-  handleChange() {
+  handleChange(): void {
     runloop.start();
 
     this.siblings.forEach(binding => {
@@ -32,7 +36,7 @@ export default class RadioBinding extends Binding {
     runloop.end();
   }
 
-  render() {
+  render(): void {
     super.render();
 
     this.element.on('change', handleDomEvent);
@@ -42,15 +46,15 @@ export default class RadioBinding extends Binding {
     }
   }
 
-  setFromNode(node) {
+  setFromNode(node): void {
     this.model.set(node.checked);
   }
 
-  unbind() {
+  unbind(): void {
     removeFromArray(this.siblings, this);
   }
 
-  unrender() {
+  unrender(): void {
     this.element.off('change', handleDomEvent);
 
     if (this.node.attachEvent) {
