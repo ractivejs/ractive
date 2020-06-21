@@ -1,5 +1,5 @@
 import { win } from 'config/environment';
-import { ATTRIBUTE, BINDING_FLAG, DECORATOR, DELEGATE_FLAG, EVENT, TRANSITION } from 'config/types';
+import TemplateItemType from 'config/types';
 import Context from 'shared/Context';
 import { destroyed, shuffled } from 'shared/methodCallers';
 import Namespace from 'src/config/namespace';
@@ -13,15 +13,47 @@ import { assign, create, defineProperty, keys } from 'utils/object';
 import Fragment from '../Fragment';
 
 import createItem from './createItem';
+import Attribute from './element/Attribute';
+import Binding from './element/binding/Binding';
 import selectBinding from './element/binding/selectBinding';
 import ConditionalAttribute from './element/ConditionalAttribute';
+import Decorator from './element/Decorator';
+import Input from './element/specials/Input';
+import Transition from './element/Transition';
 import findElement from './shared/findElement';
-import { ContainerItem } from './shared/Item';
+import { ContainerItem, ItemOptions } from './shared/Item';
 
 const endsWithSemi = /;\s*$/;
 
+export interface ElementOptions extends ItemOptions {
+  deferContent: boolean;
+}
+
 export default class Element extends ContainerItem {
-  constructor(options) {
+  public name: string;
+  private namespace: string;
+  public parent: Element;
+  public node: any;
+  public root: any;
+
+  private decorators: Decorator[];
+  private statics: { [key: string]: string };
+  public attributeByName: { [key: string]: Attribute };
+  protected attributes: any[] & { binding?: boolean; unbinding?: boolean };
+  public binding: Binding;
+  private ctx: Context;
+  private listeners: { [key: string]: Function[] & { refs?: number } };
+  protected foundNode: Function;
+  protected isSelected: Function;
+  private intro: Transition;
+  private outro: Transition;
+
+  protected rendered: boolean;
+  public delegate: boolean;
+  public lazy: boolean;
+  public twoway: boolean;
+
+  constructor(options: ElementOptions) {
     super(options);
 
     this.name = options.template.e.toLowerCase();
@@ -40,6 +72,7 @@ export default class Element extends ContainerItem {
     // create attributes
     this.attributeByName = {};
 
+    // todo refine types
     let attrs;
     let n, attr, val, cls, name, template, leftovers;
 
@@ -54,11 +87,11 @@ export default class Element extends ContainerItem {
           : template.n;
       } else {
         switch (template.t) {
-          case ATTRIBUTE:
-          case BINDING_FLAG:
-          case DECORATOR:
-          case EVENT:
-          case TRANSITION:
+          case TemplateItemType.ATTRIBUTE:
+          case TemplateItemType.BINDING_FLAG:
+          case TemplateItemType.DECORATOR:
+          case TemplateItemType.EVENT:
+          case TemplateItemType.TRANSITION:
             attr = createItem({
               owner: this,
               up: this.up,
@@ -76,7 +109,7 @@ export default class Element extends ContainerItem {
 
             break;
 
-          case DELEGATE_FLAG:
+          case TemplateItemType.DELEGATE_FLAG:
             this.delegate = false;
             break;
 
@@ -120,7 +153,7 @@ export default class Element extends ContainerItem {
     this.lazy = undefined;
   }
 
-  bind() {
+  bind(): void {
     const attrs = this.attributes;
     if (attrs) {
       attrs.binding = true;
@@ -137,28 +170,29 @@ export default class Element extends ContainerItem {
   }
 
   createTwowayBinding() {
-    if ('twoway' in this ? this.twoway : this.ractive.twoway) {
+    const hasTwoWay = 'twoway' in this;
+    if (hasTwoWay ? this.twoway : this.ractive.twoway) {
       const Binding = selectBinding(this);
       if (Binding) {
-        const binding = new Binding(this);
+        const binding = new Binding((this as unknown) as Input);
         if (binding && binding.model) return binding;
       }
     }
   }
 
-  destroyed() {
+  destroyed(): void {
     if (this.attributes) this.attributes.forEach(destroyed);
     if (this.fragment) this.fragment.destroyed();
   }
 
-  detach() {
+  detach(): HTMLElement {
     // if this element is no longer rendered, the transitions are complete and the attributes can be torn down
     if (!this.rendered) this.destroyed();
 
     return detachNode(this.node);
   }
 
-  find(selector, options) {
+  find(selector?, options?) {
     if (this.node && matches(this.node, selector)) return this.node;
     if (this.fragment) {
       return this.fragment.find(selector, options);
@@ -185,21 +219,21 @@ export default class Element extends ContainerItem {
     return this.node;
   }
 
-  getAttribute(name) {
+  getAttribute(name: string) {
     if (this.statics && name in this.statics) return this.statics[name];
     const attribute = this.attributeByName[name];
     return attribute ? attribute.getValue() : undefined;
   }
 
-  getContext(...assigns) {
+  getContext(...assigns: unknown[]): Context {
     if (this.fragment) return this.fragment.getContext(...assigns);
 
     if (!this.ctx) this.ctx = new Context(this.up, this);
-    assigns.unshift(create(this.ctx));
-    return assign(...assigns);
+    const target = create(this.ctx);
+    return assign(target, ...assigns);
   }
 
-  off(event, callback, capture = false) {
+  off(event: string, callback: Function, capture = false): void {
     const delegate = this.up.delegate;
     const ref = this.listeners && this.listeners[event];
 
@@ -225,7 +259,7 @@ export default class Element extends ContainerItem {
     }
   }
 
-  on(event, callback, capture = false) {
+  on(event: string, callback: Function, capture = false): void {
     const delegate = this.up.delegate;
     const ref = (this.listeners || (this.listeners = {}))[event] || (this.listeners[event] = []);
 
@@ -256,7 +290,7 @@ export default class Element extends ContainerItem {
     addToArray(this.listeners[event], callback);
   }
 
-  recreateTwowayBinding() {
+  recreateTwowayBinding(): void {
     if (this.binding) {
       this.binding.unbind();
       this.binding.unrender();
@@ -268,13 +302,13 @@ export default class Element extends ContainerItem {
     }
   }
 
-  rebound(update) {
+  rebound(update): void {
     super.rebound(update);
     if (this.attributes) this.attributes.forEach(x => x.rebound(update));
-    if (this.binding) this.binding.rebound(update);
+    if (this.binding) this.binding.rebound();
   }
 
-  render(target, occupants) {
+  render(target, occupants): void {
     // TODO determine correct namespace
     this.namespace = getNamespace(this);
 
@@ -386,12 +420,12 @@ export default class Element extends ContainerItem {
     this.rendered = true;
   }
 
-  shuffled() {
+  shuffled(): void {
     super.shuffled();
     this.decorators.forEach(shuffled);
   }
 
-  toString() {
+  toString(): string {
     const tagName = this.template.e;
 
     let attrs = (this.attributes && this.attributes.map(stringifyAttribute).join('')) || '';
@@ -461,7 +495,7 @@ export default class Element extends ContainerItem {
     return str;
   }
 
-  unbind(view) {
+  unbind(view): void {
     const attrs = this.attributes;
     if (attrs) {
       attrs.unbinding = true;
@@ -470,11 +504,11 @@ export default class Element extends ContainerItem {
       attrs.unbinding = false;
     }
 
-    if (this.binding) this.binding.unbind(view);
+    if (this.binding) this.binding.unbind();
     if (this.fragment) this.fragment.unbind(view);
   }
 
-  unrender(shouldDestroy) {
+  unrender(shouldDestroy: boolean): void {
     if (!this.rendered) return;
     this.rendered = false;
 
@@ -506,7 +540,7 @@ export default class Element extends ContainerItem {
     if (this.binding) this.binding.unrender();
   }
 
-  update() {
+  update(): void {
     if (this.dirty) {
       this.dirty = false;
 
@@ -521,7 +555,7 @@ export default class Element extends ContainerItem {
   }
 }
 
-function inputIsCheckedRadio(element) {
+function inputIsCheckedRadio(element: Element): unknown {
   const nameAttr = element.attributeByName.name;
   return (
     element.getAttribute('type') === 'radio' &&
@@ -530,12 +564,12 @@ function inputIsCheckedRadio(element) {
   );
 }
 
-function stringifyAttribute(attribute) {
+function stringifyAttribute(attribute: Attribute): string {
   const str = attribute.toString();
   return str ? ' ' + str : '';
 }
 
-function getNamespace(element) {
+function getNamespace(element: Element): string {
   // Use specified namespace...
   const xmlns = element.getAttribute('xmlns');
   if (xmlns) return xmlns;
@@ -556,7 +590,8 @@ function getNamespace(element) {
   return element.ractive.el.namespaceURI;
 }
 
-function delegateHandler(ev) {
+// todo refine types
+function delegateHandler(ev): boolean {
   const name = ev.type;
   const end = ev.currentTarget;
   const endEl = end._ractive && end._ractive.proxy;
@@ -583,7 +618,7 @@ function delegateHandler(ev) {
 }
 
 const UIEvent = win !== null ? win.UIEvent : null;
-function shouldFire(event, start, end) {
+function shouldFire(event: UIEvent, start, end): boolean {
   if (UIEvent && event instanceof UIEvent) {
     let node = start;
     while (node && node !== end) {
@@ -595,7 +630,7 @@ function shouldFire(event, start, end) {
   return true;
 }
 
-function handler(ev) {
+function handler(ev: Event): void {
   const el = this._ractive.proxy;
   let listeners;
   if (el.listeners && (listeners = el.listeners[ev.type])) {

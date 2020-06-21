@@ -36,7 +36,7 @@ export default class RadioNameBinding extends Binding
     }
   }
 
-  getInitialValue(): void {
+  getInitialValue(): unknown {
     if (this.element.getAttribute('checked')) {
       return this.element.getAttribute('value');
     }

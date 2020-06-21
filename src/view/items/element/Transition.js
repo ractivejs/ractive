@@ -33,6 +33,10 @@ export default class Transition {
     this.up = options.up;
     this.options = options;
     this.onComplete = [];
+
+    // avoid ts errors
+    this.isIntro = false;
+    this.isOutro = false;
   }
 
   animateStyle(style, value, options) {
