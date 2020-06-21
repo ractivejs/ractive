@@ -1,15 +1,18 @@
-import { ATTRIBUTE } from 'config/types';
+import TemplateItemType from 'config/types';
+import { ElementTemplateItem } from 'parse/converters/templateItemDefinitions';
 import runloop from 'src/global/runloop';
 
 import Fragment from '../../../Fragment';
 import createItem from '../../createItem';
+import { ElementOptions } from '../../Element';
+import Attribute from '../Attribute';
 import { isBindable } from '../binding/selectBinding';
 
 import Input from './Input';
 
 export default class Textarea extends Input {
-  constructor(options) {
-    const template = options.template;
+  constructor(options: ElementOptions) {
+    const template: ElementTemplateItem = options.template;
 
     options.deferContent = true;
 
@@ -17,11 +20,11 @@ export default class Textarea extends Input {
 
     // check for single interpolator binding
     if (!this.attributeByName.value) {
-      if (template.f && isBindable({ template })) {
+      if (template.f && isBindable({ template } as Attribute)) {
         (this.attributes || (this.attributes = [])).push(
           createItem({
             owner: this,
-            template: { t: ATTRIBUTE, f: template.f, n: 'value' },
+            template: { t: TemplateItemType.ATTRIBUTE, f: template.f, n: 'value' },
             up: this.up
           })
         );
@@ -35,7 +38,7 @@ export default class Textarea extends Input {
     }
   }
 
-  bubble() {
+  bubble(): void {
     if (!this.dirty) {
       this.dirty = true;
 
