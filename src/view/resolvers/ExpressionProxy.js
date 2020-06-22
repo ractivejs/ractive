@@ -9,6 +9,7 @@ import noop from 'utils/noop';
 
 import resolveReference from './resolveReference';
 
+// todo add ModelWithRebound interface
 export default class ExpressionProxy extends Model {
   constructor(fragment, template) {
     super(fragment.ractive.viewmodel, null);

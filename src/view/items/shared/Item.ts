@@ -1,4 +1,5 @@
 import TemplateItemType from 'config/types';
+import Fragment from 'src/view/Fragment';
 import { createDocumentFragment } from 'utils/dom';
 
 export interface ItemOptions {
@@ -18,7 +19,7 @@ export default class Item {
 
   public dirty = false;
 
-  public fragment: any;
+  public fragment: Fragment;
 
   public model: any;
   public newModel: any;
@@ -76,7 +77,11 @@ export class ContainerItem extends Item {
     super(options);
   }
 
-  detach() {
+  /**
+   * Function signature include also Element to be compatible
+   * with other classes which extend this class
+   */
+  detach(): DocumentFragment | Element {
     return this.fragment ? this.fragment.detach() : createDocumentFragment();
   }
 

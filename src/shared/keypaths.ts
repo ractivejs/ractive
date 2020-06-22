@@ -35,7 +35,10 @@ export function splitKeypath(keypath: Keypath): string[] {
   return result;
 }
 
-export function unescapeKey(key: string): string {
+export function unescapeKey<T>(key: T): T;
+export function unescapeKey(key: string): string;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function unescapeKey(key: any): any {
   if (isString(key)) {
     return key.replace(unescapeKeyPattern, '$1$2');
   }

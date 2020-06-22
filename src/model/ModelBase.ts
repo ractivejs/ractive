@@ -1,29 +1,67 @@
 import { escapeKey, unescapeKey } from 'shared/keypaths';
+import Observer from 'src/Ractive/prototype/observe/Observer';
+import PatternObserver from 'src/Ractive/prototype/observe/Pattern';
+import Decorator from 'src/view/items/element/Decorator';
+import Interpolator from 'src/view/items/Interpolator';
+import Section from 'src/view/items/Section';
+import Triple from 'src/view/items/Triple';
+import ExpressionProxy from 'src/view/resolvers/ExpressionProxy';
+import ReferenceExpressionProxy from 'src/view/resolvers/ReferenceExpressionProxy';
 import { Keypath } from 'types/Keypath';
 import { addToArray, removeFromArray } from 'utils/array';
 import bind from 'utils/bind';
 import { isArray, isObject, isObjectLike, isFunction } from 'utils/is';
 import { create, keys as objectKeys } from 'utils/object';
 
+import Computation from './Computation';
+import LinkModel from './LinkModel';
+import Model from './Model';
+import RootModel from './RootModel';
+
 const shuffleTasks = { early: [], mark: [] };
 const registerQueue = { early: [], mark: [] };
 export const noVirtual = { virtual: false };
 
+/**
+ * The following interface can be applied to:
+ * - ExpressionProxy
+ * - ReferenceExpressionProxy
+ */
+export interface ModelWithRebound extends ModelBase {
+  rebound: Function;
+}
+
+export interface ModelWithRelinking extends ModelBase {
+  relinking: Function;
+}
+
+type Pattern = RootModel | LinkModel | PatternObserver | Model;
+type Link = Model | ReferenceExpressionProxy | LinkModel;
+type ModelBaseDependency =
+  | Triple
+  | PatternObserver
+  | Decorator
+  | Computation
+  | Observer
+  | Section
+  | ExpressionProxy
+  | Interpolator;
+
+// TODO add correct types
+// TODO maybe we can convert this class to an abstract class
 export default class ModelBase {
-  public deps = [];
-
-  public children = [];
-  public childByKey = {};
-  public links = [];
-
-  public bindings = [];
-
-  // TODO add correct typing
-
   public parent: any;
   public root: any;
 
   public ractive: any;
+
+  public deps: ModelBaseDependency[] = [];
+
+  public children = [];
+  public childByKey = {};
+  public links: Link[] = [];
+
+  public bindings = [];
 
   public _link: any;
 
@@ -36,7 +74,7 @@ export default class ModelBase {
 
   public dataModel: any;
 
-  public patterns: any[];
+  public patterns: Pattern[] = [];
 
   public value: any;
 
@@ -59,7 +97,6 @@ export default class ModelBase {
     registerQueue[stage].push({ model: this, item });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   downstreamChanged() {}
 
   findMatches(keys) {
@@ -86,7 +123,7 @@ export default class ModelBase {
     return matches;
   }
 
-  getKeypath(ractive?) {
+  getKeypath(ractive?): Keypath {
     if (ractive !== this.ractive && this._link) return this._link.target.getKeypath(ractive);
 
     if (!this.keypath) {
@@ -220,14 +257,17 @@ export default class ModelBase {
     // tell the deps to move to the new target
     let i = this.deps.length;
     while (i--) {
-      if (this.deps[i].rebind) this.deps[i].rebind(next, previous, safe);
+      const dep = this.deps[i];
+      if ('rebind' in dep && typeof dep.rebind === 'function') dep.rebind(next, previous, safe);
     }
 
     i = this.links.length;
     while (i--) {
       const link = this.links[i];
       // only relink the root of the link tree
-      if (link.owner && link.owner._link) link.relinking(next, safe);
+      if ('owner' in link && link.owner?._link) {
+        (link as ModelWithRelinking).relinking(next, safe);
+      }
     }
 
     i = this.children.length;
@@ -247,51 +287,50 @@ export default class ModelBase {
 
   public refs: number;
 
-  reference() {
+  reference(): void {
     const hasRefs = 'refs' in this;
     hasRefs ? this.refs++ : (this.refs = 1);
   }
 
-  register(dep) {
+  register(dep: ModelBaseDependency): void {
     this.deps.push(dep);
   }
 
-  registerLink(link) {
+  registerLink(link: Link): void {
     addToArray(this.links, link);
   }
 
-  registerPatternObserver(observer) {
-    // TODO maybe we should initialise as empty array
-    (this.patterns || (this.patterns = [])).push(observer);
-    this.register(observer);
+  registerPatternObserver(observer: Pattern): void {
+    this.patterns.push(observer);
+    this.register(observer as ModelBaseDependency);
   }
 
   registerTwowayBinding(binding) {
     this.bindings.push(binding);
   }
 
-  unreference() {
+  unreference(): void {
     if ('refs' in this) this.refs--;
   }
 
-  unregister(dep) {
+  unregister(dep: ModelBaseDependency): void {
     removeFromArray(this.deps, dep);
   }
 
-  unregisterLink(link) {
+  unregisterLink(link: Link): void {
     removeFromArray(this.links, link);
   }
 
-  unregisterPatternObserver(observer) {
+  unregisterPatternObserver(observer: Pattern): void {
     removeFromArray(this.patterns, observer);
-    this.unregister(observer);
+    this.unregister(observer as ModelBaseDependency);
   }
 
   unregisterTwowayBinding(binding) {
     removeFromArray(this.bindings, binding);
   }
 
-  updateFromBindings(cascade) {
+  updateFromBindings(cascade: boolean): void {
     let i = this.bindings.length;
     while (i--) {
       const value = this.bindings[i].getValue();

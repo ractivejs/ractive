@@ -1,7 +1,9 @@
-import { ELEMENT, YIELDER } from 'config/types';
+import TemplateItemType from 'config/types';
+import { AliasDefinitionRefinedTemplateItem } from 'parse/converters/mustache/mustacheDefinitions';
 import { getContext, findParentWithContext } from 'shared/getRactiveContext';
 import { shuffled, toEscapedString, toString } from 'shared/methodCallers';
 import runloop from 'src/global/runloop';
+import ModelBase, { ModelWithRebound } from 'src/model/ModelBase';
 import KeyModel from 'src/model/specials/KeyModel';
 import { findMap } from 'utils/array';
 import { createDocumentFragment } from 'utils/dom';
@@ -11,7 +13,21 @@ import processItems from './helpers/processItems';
 import createItem from './items/createItem';
 import resolve from './resolvers/resolve';
 
-function resolveAliases(aliases, fragment, dest = {}) {
+/**
+ * todo refine dest values which can be
+ * - KeyModel
+ * - ReferenceExpressionProxy
+ * - LinkModel
+ * - Model
+ * - ExpressionProxy
+ */
+type ViewAliases = { [key: string]: ModelBase };
+
+function resolveAliases(
+  aliases: AliasDefinitionRefinedTemplateItem[],
+  fragment: Fragment,
+  dest: ViewAliases = {}
+): typeof dest {
   for (let i = 0; i < aliases.length; i++) {
     if (!dest[aliases[i].n]) {
       const m = resolve(fragment, aliases[i].x);
@@ -23,9 +39,46 @@ function resolveAliases(aliases, fragment, dest = {}) {
   return dest;
 }
 
+type Owner = any; // Element | Section | Partial | Attribute;
+
+interface FragmentOptions {
+  owner: Owner;
+  ractive?: any;
+  cssIds?: string[];
+  template: any;
+}
+
 export default class Fragment {
-  constructor(options) {
-    this.owner = options.owner; // The item that owns this fragment - an element, section, partial, or attribute
+  /** The item that owns this fragment - an element, section, partial, or attribute */
+  private owner: any;
+  private isRoot: boolean;
+  public parent: any;
+  public ractive: any;
+  private template: any;
+
+  private componentParent: any;
+  public context: ModelBase;
+  public cssIds: string[];
+  public iterations: any;
+  public items: any[];
+  private aliases: ViewAliases;
+  private pathModel: KeyModel;
+  private rootModel: KeyModel;
+  private keyModel: KeyModel;
+  private key: string;
+  private index: number;
+  private idxModel: KeyModel;
+  private value: unknown;
+
+  public delegate: boolean;
+  private rendered: boolean;
+  private dirty: boolean;
+  private dirtyValue: boolean;
+  private bound: boolean;
+  private updating: boolean;
+
+  constructor(options: FragmentOptions) {
+    this.owner = options.owner;
 
     this.isRoot = !options.owner.up;
     this.parent = this.isRoot ? null : this.owner.up;
@@ -58,7 +111,13 @@ export default class Fragment {
     this.createItems();
   }
 
-  bind(context) {
+  // LinkModel
+  // ExpressionProxy
+  // ReferenceExpressionProxy
+  // ComputationChild
+  // Model
+  // RootModel
+  bind(context?: ModelBase): this {
     this.context = context;
 
     if (this.owner.template.z) {
@@ -80,7 +139,7 @@ export default class Fragment {
     return this;
   }
 
-  bubble() {
+  bubble(): void {
     this.dirtyValue = true;
 
     if (!this.dirty) {
@@ -99,27 +158,42 @@ export default class Fragment {
     }
   }
 
-  createItems() {
+  createItems(): void {
     // this is a hot code path
     const max = this.template.length;
     this.items = [];
-    for (let i = 0; i < max; i++) {
-      this.items[i] = createItem({
+
+    // todo refine items type
+    // 'Triple'
+    // 'Attribute'
+    // 'Textarea'
+    // 'Option'
+    // 'Select'
+    // 'BindingFlag'
+    // 'Section'
+    // 'Interpolator'
+    // 'Input'
+    // 'Component'
+    // 'Element'
+    // 'Partial'
+    // 'Text'
+    for (let index = 0; index < max; index++) {
+      this.items[index] = createItem({
         up: this,
-        template: this.template[i],
-        index: i
+        template: this.template[index],
+        index
       });
     }
   }
 
-  destroyed() {
+  destroyed(): void {
     const len = this.items.length;
     for (let i = 0; i < len; i++) this.items[i].destroyed();
     if (this.pathModel) this.pathModel.destroyed();
     if (this.rootModel) this.rootModel.destroyed();
   }
 
-  detach() {
+  detach(): DocumentFragment {
     const docFrag = createDocumentFragment();
     const xs = this.items;
     const len = xs.length;
@@ -129,21 +203,21 @@ export default class Fragment {
     return docFrag;
   }
 
-  find(selector, options) {
+  find(selector, options?) {
     return findMap(this.items, i => i.find(selector, options));
   }
 
-  findAll(selector, options) {
+  findAll(selector, options): void {
     if (this.items) {
       this.items.forEach(i => i.findAll && i.findAll(selector, options));
     }
   }
 
-  findComponent(name, options) {
+  findComponent(name, options?) {
     return findMap(this.items, i => i.findComponent(name, options));
   }
 
-  findAllComponents(name, options) {
+  findAllComponents(name, options): void {
     if (this.items) {
       this.items.forEach(i => i.findAllComponents && i.findAllComponents(name, options));
     }
@@ -155,7 +229,7 @@ export default class Fragment {
     else return base.context;
   }
 
-  findNextNode(item) {
+  findNextNode(item?) {
     // search for the next node going forward
     if (item) {
       let it;
@@ -184,10 +258,11 @@ export default class Fragment {
   }
 
   findParentNode() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     let fragment = this;
 
     do {
-      if (fragment.owner.type === ELEMENT) {
+      if (fragment.owner.type === TemplateItemType.ELEMENT) {
         return fragment.owner.node;
       }
 
@@ -196,7 +271,7 @@ export default class Fragment {
         return fragment.ractive.el;
       }
 
-      if (fragment.owner.type === YIELDER) {
+      if (fragment.owner.type === TemplateItemType.YIELDER) {
         fragment = fragment.owner.containerFragment;
       } else {
         fragment = fragment.componentParent || fragment.parent; // TODO ugh
@@ -214,28 +289,29 @@ export default class Fragment {
     return this.parent.findNextNode(this.owner);
   }
 
-  getKey() {
+  getKey(): KeyModel {
     return this.keyModel || (this.keyModel = new KeyModel(this.key));
   }
 
-  getIndex() {
+  getIndex(): KeyModel {
     return this.idxModel || (this.idxModel = new KeyModel(this.index));
   }
 
-  rebind(next) {
+  rebind(next): void {
     this.context = next;
     if (this.rootModel) this.rootModel.context = this.context;
     if (this.pathModel) this.pathModel.context = this.context;
   }
 
-  rebound(update) {
+  rebound(update): void {
     if (this.owner.template.z) {
       const aliases = this.aliases;
       for (const k in aliases) {
-        if (aliases[k].rebound) aliases[k].rebound(update);
-        else {
+        if ('rebound' in aliases[k]) {
+          (aliases[k] as ModelWithRebound).rebound(update);
+        } else {
           aliases[k].unreference();
-          aliases[k] = 0;
+          aliases[k] = null;
         }
       }
 
@@ -249,7 +325,7 @@ export default class Fragment {
     }
   }
 
-  render(target, occupants) {
+  render(target, occupants?): void {
     if (this.rendered) throw new Error('Fragment is already rendered!');
     this.rendered = true;
 
@@ -260,7 +336,7 @@ export default class Fragment {
     }
   }
 
-  resetTemplate(template) {
+  resetTemplate(template): void {
     const wasBound = this.bound;
     const wasRendered = this.rendered;
 
@@ -292,17 +368,17 @@ export default class Fragment {
     }
   }
 
-  shuffled() {
+  shuffled(): void {
     this.items.forEach(shuffled);
     if (this.rootModel) this.rootModel.applyValue(this.context.getKeypath(this.ractive.root));
     if (this.pathModel) this.pathModel.applyValue(this.context.getKeypath());
   }
 
-  toString(escape) {
+  toString(escape?: boolean): string {
     return this.items.map(escape ? toEscapedString : toString).join('');
   }
 
-  unbind(view) {
+  unbind(view?): this {
     if (this.owner.template.z && !this.owner.yielder) {
       for (const k in this.aliases) {
         this.aliases[k].unreference();
@@ -319,13 +395,13 @@ export default class Fragment {
     return this;
   }
 
-  unrender(shouldDestroy) {
+  unrender(shouldDestroy?: boolean): void {
     const len = this.items.length;
     for (let i = 0; i < len; i++) this.items[i].unrender(shouldDestroy);
     this.rendered = false;
   }
 
-  update() {
+  update(): void {
     if (this.dirty) {
       if (!this.updating) {
         this.dirty = false;
@@ -339,7 +415,7 @@ export default class Fragment {
     }
   }
 
-  valueOf() {
+  valueOf(): unknown {
     if (this.items.length === 1) {
       return this.items[0].valueOf();
     }
@@ -356,13 +432,14 @@ export default class Fragment {
 
     return this.value;
   }
-}
-Fragment.prototype.getContext = getContext;
-Fragment.prototype.getKeypath = getKeypath;
 
-export function getKeypath(root) {
+  getContext = getContext;
+  getKeypath = getKeypath;
+}
+
+export function getKeypath(root): KeyModel {
   const base = findParentWithContext(this);
-  let model;
+  let model: KeyModel;
   if (root) {
     if (!this.rootModel) {
       this.rootModel = new KeyModel(

@@ -1,26 +1,40 @@
 import { unescapeKey } from 'shared/keypaths';
+import { handleChange } from 'shared/methodCallers';
 import { capture } from 'src/global/capture';
-import { handleChange } from 'src/shared/methodCallers';
+import Interpolator from 'src/view/items/Interpolator';
+import Section from 'src/view/items/Section';
+import ExpressionProxy from 'src/view/resolvers/ExpressionProxy';
 import { addToArray, removeFromArray } from 'utils/array';
 import noop from 'utils/noop';
 
-// TODO add correct typings
+import LinkModel from '../LinkModel';
+import ModelBase from '../ModelBase';
+
+type KeyModelValue = string | number;
+type KeyModelDependency = Section | ExpressionProxy | Interpolator;
 
 export default class KeyModel {
-  public value: any;
-  public key: any;
-  public context: any;
-  public instance: any;
+  public value: KeyModelValue;
+  public key: KeyModelValue;
+
+  /**
+   * - RootModel
+   * - Model
+   * - LinkModel
+   * - Model
+   */
+  public context: ModelBase;
+  public instance: any; // TODO add ractive type here and in the constructor
+
+  public deps: KeyModelDependency[] = [];
+  public links: LinkModel[] = [];
+  public children: KeyModel[] = [];
+  public upstream: KeyModel;
 
   public isReadonly = true;
   public isKey = true;
-  public deps = [];
-  public links = [];
-  public children = [];
 
-  public upstream: any;
-
-  constructor(value, context?, instance?) {
+  constructor(value: string | number, context?: ModelBase, instance?) {
     this.value = value;
     this.key = value;
     this.context = context;
@@ -30,7 +44,7 @@ export default class KeyModel {
   reference = noop;
   unreference = noop;
 
-  applyValue(value) {
+  applyValue(value: KeyModelValue): void {
     if (value !== this.value) {
       this.value = this.key = value;
       this.deps.forEach(handleChange);
@@ -41,24 +55,24 @@ export default class KeyModel {
     }
   }
 
-  destroyed() {
+  destroyed(): void {
     if (this.upstream) this.upstream.unregisterChild(this);
   }
 
-  get(shouldCapture) {
+  get(shouldCapture: boolean): KeyModelValue {
     if (shouldCapture) capture(this);
     return unescapeKey(this.value);
   }
 
-  getKeypath() {
+  getKeypath(): KeyModelValue {
     return unescapeKey(this.value);
   }
 
-  has() {
+  has(): boolean {
     return false;
   }
 
-  rebind(next, previous) {
+  rebind(next, previous): void {
     let i = this.deps.length;
     while (i--) this.deps[i].rebind(next, previous, false);
 
@@ -66,28 +80,28 @@ export default class KeyModel {
     while (i--) this.links[i].relinking(next, false);
   }
 
-  register(dependant) {
+  register(dependant: KeyModelDependency): void {
     this.deps.push(dependant);
   }
 
-  registerChild(child) {
+  registerChild(child: KeyModel): void {
     addToArray(this.children, child);
     child.upstream = this;
   }
 
-  registerLink(link) {
+  registerLink(link: LinkModel): void {
     addToArray(this.links, link);
   }
 
-  unregister(dependant) {
+  unregister(dependant: KeyModelDependency): void {
     removeFromArray(this.deps, dependant);
   }
 
-  unregisterChild(child) {
+  unregisterChild(child: KeyModel): void {
     removeFromArray(this.children, child);
   }
 
-  unregisterLink(link) {
+  unregisterLink(link: LinkModel): void {
     removeFromArray(this.links, link);
   }
 }

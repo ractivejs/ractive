@@ -14,6 +14,7 @@ import ModelBase, { checkDataLink, maybeBind, shuffle } from './ModelBase';
 
 export const shared = {};
 
+// todo implements ModelWithRelinking
 export default class Model extends ModelBase {
   constructor(parent, key) {
     super(parent);

@@ -9,6 +9,7 @@ import ExpressionProxy from './ExpressionProxy';
 import resolve from './resolve';
 import resolveReference from './resolveReference';
 
+// todo add ModelWithRebound interface
 export default class ReferenceExpressionProxy extends LinkModel {
   constructor(fragment, template) {
     super(null, null, null, '@undefined');

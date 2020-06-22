@@ -32,6 +32,7 @@ export const Missing = {
 };
 Missing.parent = Missing;
 
+// todo implements ModelWithRelinking
 export default class LinkModel extends ModelBase {
   constructor(parent, owner, target, key) {
     super(parent);
