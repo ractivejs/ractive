@@ -1,6 +1,6 @@
+import { fireShuffleTasks } from 'model/ModelBase';
 import { splitKeypath } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
-import { fireShuffleTasks } from 'src/model/ModelBase';
 import { isString, isFunction } from 'utils/is';
 
 export function compute(path, computed) {

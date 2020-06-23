@@ -1,5 +1,5 @@
+import Model from 'model/Model';
 import runloop from 'src/global/runloop';
-import Model from 'src/model/Model';
 import { isUndefined } from 'utils/is';
 import { warnOnceIfDebug } from 'utils/log';
 

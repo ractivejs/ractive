@@ -1,4 +1,4 @@
-import Model from 'src/model/Model';
+import Model from 'model/Model';
 import { removeFromArray } from 'utils/array';
 
 import Binding from './Binding';

@@ -1,5 +1,5 @@
-import ModelBase from 'src/model/ModelBase';
-import KeyModel from 'src/model/specials/KeyModel';
+import ModelBase from 'model/ModelBase';
+import KeyModel from 'model/specials/KeyModel';
 import { addToArray } from 'utils/array';
 
 const stack = [];

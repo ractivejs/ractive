@@ -1,6 +1,6 @@
+import CSSModel from 'model/specials/CSSModel';
 import { splitKeypath } from 'shared/keypaths';
 import { addCSS, applyCSS } from 'src/global/css';
-import CSSModel from 'src/model/specials/CSSModel';
 import { getElement } from 'utils/dom';
 import { uuid } from 'utils/id';
 import { isString, isFunction, isObjectType } from 'utils/is';

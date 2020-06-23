@@ -1,8 +1,8 @@
+import Computation from 'model/Computation';
+import Model from 'model/Model';
 import getFunction from 'shared/getFunction';
 import { rebindMatch } from 'shared/rebind';
 import { startCapturing, stopCapturing } from 'src/global/capture';
-import Computation from 'src/model/Computation';
-import Model from 'src/model/Model';
 import { removeFromArray } from 'utils/array';
 import { warnIfDebug } from 'utils/log';
 import noop from 'utils/noop';

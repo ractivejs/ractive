@@ -1,8 +1,5 @@
+import SharedModel, { GlobalModel, SharedModel as ContextModel } from 'model/specials/SharedModel';
 import { splitKeypath } from 'shared/keypaths';
-import SharedModel, {
-  GlobalModel,
-  SharedModel as ContextModel
-} from 'src/model/specials/SharedModel';
 import { isFunction } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn } from 'utils/object';

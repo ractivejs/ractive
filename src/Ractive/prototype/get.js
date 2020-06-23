@@ -1,7 +1,7 @@
 import { FakeFragment } from 'shared/getRactiveContext';
 import { splitKeypath } from 'shared/keypaths';
-import resolveReference from 'src/view/resolvers/resolveReference';
 import { isString } from 'utils/is';
+import resolveReference from 'view/resolvers/resolveReference';
 
 export default function Ractive$get(keypath, opts) {
   if (!isString(keypath)) return this.viewmodel.get(true, keypath);

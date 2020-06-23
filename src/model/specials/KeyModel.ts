@@ -1,11 +1,11 @@
 import { unescapeKey } from 'shared/keypaths';
 import { handleChange } from 'shared/methodCallers';
 import { capture } from 'src/global/capture';
-import Interpolator from 'src/view/items/Interpolator';
-import Section from 'src/view/items/Section';
-import ExpressionProxy from 'src/view/resolvers/ExpressionProxy';
 import { addToArray, removeFromArray } from 'utils/array';
 import noop from 'utils/noop';
+import Interpolator from 'view/items/Interpolator';
+import Section from 'view/items/Section';
+import ExpressionProxy from 'view/resolvers/ExpressionProxy';
 
 import LinkModel from '../LinkModel';
 import ModelBase from '../ModelBase';

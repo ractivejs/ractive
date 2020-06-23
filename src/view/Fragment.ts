@@ -1,10 +1,10 @@
 import TemplateItemType from 'config/types';
+import ModelBase, { ModelWithRebound } from 'model/ModelBase';
+import KeyModel from 'model/specials/KeyModel';
 import { AliasDefinitionRefinedTemplateItem } from 'parse/converters/mustache/mustacheDefinitions';
 import { getContext, findParentWithContext } from 'shared/getRactiveContext';
 import { shuffled, toEscapedString, toString } from 'shared/methodCallers';
 import runloop from 'src/global/runloop';
-import ModelBase, { ModelWithRebound } from 'src/model/ModelBase';
-import KeyModel from 'src/model/specials/KeyModel';
 import { findMap } from 'utils/array';
 import { createDocumentFragment } from 'utils/dom';
 import parseJSON from 'utils/parseJSON';

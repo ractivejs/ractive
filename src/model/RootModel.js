@@ -1,8 +1,8 @@
 import { splitKeypath, unescapeKey } from 'shared/keypaths';
 import { handleChange, mark } from 'shared/methodCallers';
 import { capture } from 'src/global/capture';
-import resolveReference from 'src/view/resolvers/resolveReference';
 import noop from 'utils/noop';
+import resolveReference from 'view/resolvers/resolveReference';
 
 import Model from './Model';
 import RactiveModel from './specials/RactiveModel';

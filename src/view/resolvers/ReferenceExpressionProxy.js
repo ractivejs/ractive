@@ -1,8 +1,8 @@
 import { REFERENCE } from 'config/types';
+import LinkModel, { Missing } from 'model/LinkModel';
+import { fireShuffleTasks } from 'model/ModelBase';
 import { escapeKey } from 'shared/keypaths';
 import { rebindMatch } from 'shared/rebind';
-import LinkModel, { Missing } from 'src/model/LinkModel';
-import { fireShuffleTasks } from 'src/model/ModelBase';
 import { isArray, isString } from 'utils/is';
 
 import ExpressionProxy from './ExpressionProxy';

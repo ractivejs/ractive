@@ -1,8 +1,8 @@
 import { missingPlugin } from 'config/errors';
 import { ATTRIBUTE, BINDING_FLAG, DECORATOR, INTERPOLATOR, TRANSITION } from 'config/types';
+import RootModel from 'model/RootModel';
 import { findInViewHierarchy } from 'shared/registry';
 import hooks from 'src/events/Hook';
-import RootModel from 'src/model/RootModel';
 import { compute } from 'src/Ractive/prototype/compute';
 import { ensureArray, combine } from 'utils/array';
 import { isArray, isString } from 'utils/is';

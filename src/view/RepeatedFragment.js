@@ -1,7 +1,7 @@
 import { ELEMENT } from 'config/types';
+import KeyModel from 'model/specials/KeyModel';
 import { getContext } from 'shared/getRactiveContext';
 import { toEscapedString, toString, shuffled, update } from 'shared/methodCallers';
-import KeyModel from 'src/model/specials/KeyModel';
 import { findMap, buildNewIndices } from 'utils/array';
 import { createDocumentFragment } from 'utils/dom';
 import { isArray, isObject, isObjectType, isUndefined } from 'utils/is';

@@ -1,10 +1,10 @@
 import { ELEMENT } from 'config/types';
+import Model from 'model/Model';
 import runloop from 'src/global/runloop';
-import Model from 'src/model/Model';
-import findElement from 'src/view/items/shared/findElement';
-import resolveReference from 'src/view/resolvers/resolveReference';
 import { isNumeric, isObject, isNumber, isObjectType, isString } from 'utils/is';
 import { hasOwn } from 'utils/object';
+import findElement from 'view/items/shared/findElement';
+import resolveReference from 'view/resolvers/resolveReference';
 
 import { animate as protoAnimate } from '../Ractive/prototype/animate';
 import makeArrayMethod from '../Ractive/prototype/shared/makeArrayMethod';

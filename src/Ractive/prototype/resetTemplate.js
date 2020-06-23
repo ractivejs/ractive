@@ -1,6 +1,6 @@
 import runloop from 'src/global/runloop';
-import Fragment from 'src/view/Fragment';
 import { createDocumentFragment } from 'utils/dom';
+import Fragment from 'view/Fragment';
 
 import { default as templateConfigurator } from '../config/custom/template';
 

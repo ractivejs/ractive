@@ -1,6 +1,6 @@
-import Fragment from 'src/view/Fragment';
 import noop from 'utils/noop';
 import { assign, create } from 'utils/object';
+import Fragment from 'view/Fragment';
 
 export const extern: { Context?: any } = {};
 

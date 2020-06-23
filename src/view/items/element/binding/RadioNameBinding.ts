@@ -1,4 +1,4 @@
-import Model from 'src/model/Model';
+import Model from 'model/Model';
 
 import Input from '../specials/Input';
 

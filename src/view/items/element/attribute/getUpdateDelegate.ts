@@ -1,11 +1,11 @@
 import Namespace from 'config/namespace';
-import { readStyle, readClass } from 'src/view/helpers/specialAttrs';
 import { arrayContains } from 'utils/array';
 import { safeToStringValue } from 'utils/dom';
 import hyphenateCamel from 'utils/hyphenateCamel';
 import { isArray, isString, isUndefined } from 'utils/is';
 import noop from 'utils/noop';
 import { keys as objectKeys } from 'utils/object';
+import { readStyle, readClass } from 'view/helpers/specialAttrs';
 
 import Attribute from '../Attribute';
 

@@ -1,7 +1,7 @@
-import resolveReference from 'src/view/resolvers/resolveReference';
 import { isArray, isObject, isObjectType, isFunction, isString, isUndefined } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn } from 'utils/object';
+import resolveReference from 'view/resolvers/resolveReference';
 
 import runloop from '../global/runloop';
 

@@ -1,17 +1,17 @@
 import { escapeKey, unescapeKey } from 'shared/keypaths';
 import Observer from 'src/Ractive/prototype/observe/Observer';
 import PatternObserver from 'src/Ractive/prototype/observe/Pattern';
-import Decorator from 'src/view/items/element/Decorator';
-import Interpolator from 'src/view/items/Interpolator';
-import Section from 'src/view/items/Section';
-import Triple from 'src/view/items/Triple';
-import ExpressionProxy from 'src/view/resolvers/ExpressionProxy';
-import ReferenceExpressionProxy from 'src/view/resolvers/ReferenceExpressionProxy';
 import { Keypath } from 'types/Keypath';
 import { addToArray, removeFromArray } from 'utils/array';
 import bind from 'utils/bind';
 import { isArray, isObject, isObjectLike, isFunction } from 'utils/is';
 import { create, keys as objectKeys } from 'utils/object';
+import Decorator from 'view/items/element/Decorator';
+import Interpolator from 'view/items/Interpolator';
+import Section from 'view/items/Section';
+import Triple from 'view/items/Triple';
+import ExpressionProxy from 'view/resolvers/ExpressionProxy';
+import ReferenceExpressionProxy from 'view/resolvers/ReferenceExpressionProxy';
 
 import Computation from './Computation';
 import LinkModel from './LinkModel';

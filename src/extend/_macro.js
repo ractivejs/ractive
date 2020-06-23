@@ -1,4 +1,4 @@
-import CSSModel from 'src/model/specials/CSSModel';
+import CSSModel from 'model/specials/CSSModel';
 import { initCSS } from 'src/Ractive/config/custom/css/css';
 import { isFunction } from 'utils/is';
 import { assign, create, defineProperties, defineProperty } from 'utils/object';

@@ -1,6 +1,6 @@
 import TemplateItemType from 'config/types';
-import Fragment from 'src/view/Fragment';
 import { createDocumentFragment } from 'utils/dom';
+import Fragment from 'view/Fragment';
 
 export interface ItemOptions {
   up: any; // TODO add correct types

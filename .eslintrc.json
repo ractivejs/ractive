@@ -43,6 +43,9 @@
 				"pattern": "config/**",
 				"group": "internal"
 			}, {
+				"pattern": "model/**",
+				"group": "internal"
+			},{
 				"pattern": "parse/**",
 				"group": "internal"
 			}, {
@@ -53,6 +56,9 @@
 				"group": "internal"
 			}, {
 				"pattern": "utils/**",
+				"group": "internal"
+			}, {
+				"pattern": "view/**",
 				"group": "internal"
 			}],
 			"newlines-between": "always",

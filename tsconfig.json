@@ -3,10 +3,12 @@
     "baseUrl": ".",
     "paths": {
       "config/*": ["src/config/*"],
+      "model/*": ["src/model/*"],
       "parse/*": ["src/parse/*"],
       "shared/*": ["src/shared/*"],
       "types/*": ["src/types/*"],
-      "utils/*": ["src/utils/*"]
+      "utils/*": ["src/utils/*"],
+      "view/*": ["src/view/*"]
     },
     "allowJs": true,
     "target": "es5",

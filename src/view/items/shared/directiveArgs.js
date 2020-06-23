@@ -1,5 +1,5 @@
 import getFunction from 'shared/getFunction';
-import ExpressionProxy from 'src/view/resolvers/ExpressionProxy';
+import ExpressionProxy from 'view/resolvers/ExpressionProxy';
 
 import resolveReference from '../../resolvers/resolveReference';
 

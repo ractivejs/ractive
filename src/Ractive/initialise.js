@@ -1,8 +1,8 @@
 import hooks from 'src/events/Hook';
-import Fragment from 'src/view/Fragment';
 import { getElement } from 'utils/dom';
 import { isArray } from 'utils/is';
 import { logIfDebug, warnIfDebug, warnOnceIfDebug } from 'utils/log';
+import Fragment from 'view/Fragment';
 
 import Ractive from '../Ractive';
 
