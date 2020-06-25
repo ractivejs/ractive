@@ -1,105 +1,143 @@
 import { escapeKey, unescapeKey } from 'shared/keypaths';
-import Observer from 'src/Ractive/prototype/observe/Observer';
-import PatternObserver from 'src/Ractive/prototype/observe/Pattern';
 import { Keypath } from 'types/Keypath';
-import { addToArray, removeFromArray } from 'utils/array';
+import { addToArray, removeFromArray, Indexes } from 'utils/array';
 import bind from 'utils/bind';
 import { isArray, isObject, isObjectLike, isFunction } from 'utils/is';
 import { create, keys as objectKeys } from 'utils/object';
-import Decorator from 'view/items/element/Decorator';
-import Interpolator from 'view/items/Interpolator';
-import Section from 'view/items/Section';
-import Triple from 'view/items/Triple';
-import ExpressionProxy from 'view/resolvers/ExpressionProxy';
-import ReferenceExpressionProxy from 'view/resolvers/ReferenceExpressionProxy';
 
 import Computation from './Computation';
 import LinkModel from './LinkModel';
-import Model from './Model';
 import RootModel from './RootModel';
+import RactiveModel from './specials/RactiveModel';
 
-const shuffleTasks = { early: [], mark: [] };
-const registerQueue = { early: [], mark: [] };
+interface ShuffleTaskRegistry<T> {
+  early: T[];
+  mark: T[];
+}
+
+const shuffleTasks: ShuffleTaskRegistry<Function> = { early: [], mark: [] };
+const registerQueue: ShuffleTaskRegistry<{ model: ModelBase; item: any }> = { early: [], mark: [] };
+
 export const noVirtual = { virtual: false };
 
+type ShuffleFunction = (newIndices: Indexes, unsafe?: boolean) => void;
+
 /**
- * The following interface can be applied to:
+ * TODO Implement this interface in the following classes
+ * - Triple
+ * - PatternObserver
+ * - Decorator
+ * - Observer
+ * - Section
  * - ExpressionProxy
- * - ReferenceExpressionProxy
+ * - Interpolator
  */
-export interface ModelWithRebound extends ModelBase {
-  rebound: Function;
+export interface ModelDependency {
+  handleChange(path?: unknown): void;
+  rebind(prev: ModelBase, next: ModelBase, safe: boolean): void;
+  shuffle: ShuffleFunction;
 }
 
-export interface ModelWithRelinking extends ModelBase {
-  relinking: Function;
+/** When adding a pattern to the model is also tracked as a depency */
+export interface ModelPattern extends ModelDependency {
+  notify: (path: string[]) => void;
 }
 
-type Pattern = RootModel | LinkModel | PatternObserver | Model;
-type Link = Model | ReferenceExpressionProxy | LinkModel;
-type ModelBaseDependency =
-  | Triple
-  | PatternObserver
-  | Decorator
-  | Computation
-  | Observer
-  | Section
-  | ExpressionProxy
-  | Interpolator;
+export interface ModelBinding {
+  rebind(prev: ModelBase, next: ModelBase, safe: boolean): void;
+  getValue: Function;
+}
+
+// Options >>
+export interface ModelGetOpts {
+  virtual?: boolean;
+  unwrap?: boolean;
+  shouldBind?: boolean;
+}
+
+export interface ModelJoinOpts {
+  lastLink?: boolean;
+}
+
+export interface ModelLinkOpts {
+  implicit?: boolean;
+  mapping?: boolean;
+}
+// Options <<
 
 // TODO add correct types
-// TODO maybe we can convert this class to an abstract class
-export default class ModelBase {
-  public parent: any;
-  public root: any;
+export default abstract class ModelBase {
+  protected parent: ModelBase;
+  protected root: RootModel | RactiveModel;
 
-  public ractive: any;
+  public ractive: any; // TODO add ractive type
 
-  public deps: ModelBaseDependency[] = [];
+  public deps: ModelDependency[];
 
-  public children = [];
-  public childByKey = {};
-  public links: Link[] = [];
+  public children: ModelBase[];
+  public childByKey: { [key: string]: any };
 
-  public bindings = [];
+  public links: LinkModel[];
 
-  public _link: any;
+  public bindings: ModelBinding[];
+
+  public _link: LinkModel;
 
   public keypath: Keypath;
   public key: string;
 
   public length: number;
+  public refs: number;
 
-  public computed: any;
+  public computed: { [key: string]: Computation };
 
   public dataModel: any;
 
-  public patterns: Pattern[] = [];
+  public patterns: ModelPattern[];
 
   public value: any;
 
-  constructor(parent) {
+  /**
+   * isModel a LinkModel?
+   * Maybe this can be replaced with `instanceof LinkModel` check
+   */
+  public isLink: boolean;
+
+  constructor(parent: ModelBase) {
+    this.deps = [];
+
+    this.children = [];
+    this.childByKey = {};
+
+    this.links = [];
+    this.bindings = [];
+
+    this.patterns = [];
+
     if (parent) {
       this.parent = parent;
       this.root = parent.root;
     }
   }
 
-  public get: Function;
-  public set: Function;
-  public joinKey: Function;
-  public retrieve: Function;
+  abstract get(shouldCapture?: boolean, opts?: ModelGetOpts);
+  abstract set(value: unknown): void;
 
-  addShuffleTask(task, stage = 'early'): void {
+  abstract joinKey(key: string | number, opts?: ModelJoinOpts): ModelBase;
+
+  retrieve(): any {}
+
+  addShuffleTask(task: Function, stage = 'early'): void {
     shuffleTasks[stage].push(task);
   }
   addShuffleRegister(item, stage = 'early'): void {
     registerQueue[stage].push({ model: this, item });
   }
 
-  downstreamChanged() {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  downstreamChanged(_path: string[], _depth?: number): void {}
 
-  findMatches(keys) {
+  findMatches(keys: string[]): string[] {
     const len = keys.length;
 
     let existingMatches = [this];
@@ -123,6 +161,7 @@ export default class ModelBase {
     return matches;
   }
 
+  // TODO add ractive type
   getKeypath(ractive?): Keypath {
     if (ractive !== this.ractive && this._link) return this._link.target.getKeypath(ractive);
 
@@ -136,8 +175,9 @@ export default class ModelBase {
     return this.keypath;
   }
 
-  getValueChildren(value) {
+  getValueChildren(value: unknown) {
     let children;
+
     if (isArray(value)) {
       children = [];
       if ('length' in this && this.length !== value.length) {
@@ -160,7 +200,7 @@ export default class ModelBase {
     return children;
   }
 
-  getVirtual(shouldCapture) {
+  getVirtual(shouldCapture?: boolean) {
     const value = this.get(shouldCapture, { virtual: false });
     if (isObjectLike(value)) {
       const result = isArray(value) ? [] : create(null);
@@ -191,10 +231,12 @@ export default class ModelBase {
       }
 
       return result;
-    } else return value;
+    }
+
+    return value;
   }
 
-  has(key) {
+  has(key: string): boolean {
     if (this._link) return this._link.has(key);
 
     const value = this.get(false, noVirtual);
@@ -206,7 +248,7 @@ export default class ModelBase {
     let computed = this.computed;
     if (computed && key in this.computed) return true;
 
-    computed = this.root.ractive && this.root.ractive.computed;
+    computed = this.root.ractive?.computed;
     if (computed) {
       objectKeys(computed).forEach(k => {
         if (computed[k].pattern && computed[k].pattern.test(this.getKeypath())) return true;
@@ -216,25 +258,20 @@ export default class ModelBase {
     return false;
   }
 
-  joinAll(keys, opts) {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    let model = this;
+  joinAll(keys: string[], opts?: ModelJoinOpts): this {
+    // add any to avoid warning on below reassign. Maybe we can find a more clean solution?
+    let model: any = this; // eslint-disable-line @typescript-eslint/no-this-alias
     for (let i = 0; i < keys.length; i += 1) {
-      if (
-        opts &&
-        opts.lastLink === false &&
-        i + 1 === keys.length &&
-        model.childByKey[keys[i]] &&
-        model.childByKey[keys[i]]._link
-      )
+      if (opts?.lastLink === false && i + 1 === keys.length && this.childByKey[keys[i]]?._link) {
         return model.childByKey[keys[i]];
+      }
       model = model.joinKey(keys[i], opts);
     }
 
     return model;
   }
 
-  notifyUpstream(startPath) {
+  notifyUpstream(startPath?: string[]): void {
     let parent = this.parent;
     const path = startPath || [this.key];
     while (parent) {
@@ -247,7 +284,7 @@ export default class ModelBase {
     }
   }
 
-  rebind(next, previous, safe) {
+  rebind(next: ModelBase, previous: ModelBase, safe?: boolean): void {
     if (this._link) {
       this._link.rebind(next, previous, false);
     }
@@ -263,10 +300,10 @@ export default class ModelBase {
 
     i = this.links.length;
     while (i--) {
-      const link = this.links[i];
+      const link: LinkModel = this.links[i] as LinkModel;
       // only relink the root of the link tree
-      if ('owner' in link && link.owner?._link) {
-        (link as ModelWithRelinking).relinking(next, safe);
+      if (link.owner?._link) {
+        link.relinking(next, safe);
       }
     }
 
@@ -285,27 +322,25 @@ export default class ModelBase {
     }
   }
 
-  public refs: number;
-
   reference(): void {
     const hasRefs = 'refs' in this;
     hasRefs ? this.refs++ : (this.refs = 1);
   }
 
-  register(dep: ModelBaseDependency): void {
+  register(dep: ModelDependency): void {
     this.deps.push(dep);
   }
 
-  registerLink(link: Link): void {
+  registerLink(link: LinkModel): void {
     addToArray(this.links, link);
   }
 
-  registerPatternObserver(observer: Pattern): void {
+  registerPatternObserver(observer: ModelPattern): void {
     this.patterns.push(observer);
-    this.register(observer as ModelBaseDependency);
+    this.register(observer);
   }
 
-  registerTwowayBinding(binding) {
+  registerTwowayBinding(binding: ModelBinding): void {
     this.bindings.push(binding);
   }
 
@@ -313,20 +348,20 @@ export default class ModelBase {
     if ('refs' in this) this.refs--;
   }
 
-  unregister(dep: ModelBaseDependency): void {
+  unregister(dep: ModelDependency): void {
     removeFromArray(this.deps, dep);
   }
 
-  unregisterLink(link: Link): void {
+  unregisterLink(link: LinkModel): void {
     removeFromArray(this.links, link);
   }
 
-  unregisterPatternObserver(observer: Pattern): void {
+  unregisterPatternObserver(observer: ModelPattern): void {
     removeFromArray(this.patterns, observer);
-    this.unregister(observer as ModelBaseDependency);
+    this.unregister(observer);
   }
 
-  unregisterTwowayBinding(binding) {
+  unregisterTwowayBinding(binding: ModelBinding): void {
     removeFromArray(this.bindings, binding);
   }
 
@@ -349,10 +384,47 @@ export default class ModelBase {
       if (this._link) this._link.updateFromBindings(cascade);
     }
   }
+
+  link(model: ModelBase, keypath: Keypath, options?: ModelLinkOpts): LinkModel {
+    const lnk = this._link || new LinkModel(this.parent, this, model, this.key);
+    lnk.implicit = options?.implicit;
+    lnk.mapping = options?.mapping;
+    lnk.sourcePath = keypath;
+    lnk.rootLink = true;
+    if (this._link) this._link.relinking(model, false);
+    this.rebind(lnk, this, false);
+    fireShuffleTasks();
+
+    this._link = lnk;
+    lnk.markedAll();
+
+    this.notifyUpstream();
+    return lnk;
+  }
+
+  unlink(): void {
+    if (this._link) {
+      const ln = this._link;
+      this._link = undefined;
+      ln.rebind(this, ln, false);
+      fireShuffleTasks();
+      ln.teardown();
+      this.notifyUpstream();
+    }
+  }
+}
+
+/**
+ * The following interface can be applied to:
+ * - ExpressionProxy
+ * - ReferenceExpressionProxy
+ */
+export interface ModelWithRebound extends ModelBase {
+  rebound: Function;
 }
 
 // TODO: this may be better handled by overriding `get` on models with a parent that isRoot
-export function maybeBind(model, value, shouldBind) {
+export function maybeBind(model, value, shouldBind: boolean) {
   if (shouldBind && isFunction(value) && model.parent && model.parent.isRoot) {
     if (!model.boundValue) {
       model.boundValue = bind(value._r_unbound || value, model.parent.ractive);
@@ -381,7 +453,7 @@ export function findBoundValue(list) {
   }
 }
 
-export function fireShuffleTasks(stage) {
+export function fireShuffleTasks(stage?: keyof ShuffleTaskRegistry<unknown>): void {
   if (!stage) {
     fireShuffleTasks('early');
     fireShuffleTasks('mark');
@@ -398,7 +470,20 @@ export function fireShuffleTasks(stage) {
   }
 }
 
-export function shuffle(model, newIndices, link, unsafe) {
+export interface ModelWithShuffle extends ModelBase {
+  shuffling: boolean;
+  source: Function;
+  shuffle: ShuffleFunction;
+  mark: (force?: boolean) => void;
+  marked?: () => void;
+}
+
+export function shuffle(
+  model: ModelWithShuffle,
+  newIndices: Indexes,
+  link: boolean,
+  unsafe?: boolean
+): void {
   model.shuffling = true;
 
   let i = newIndices.length;
@@ -425,7 +510,8 @@ export function shuffle(model, newIndices, link, unsafe) {
 
   i = model.deps.length;
   while (i--) {
-    if (model.deps[i].shuffle) model.deps[i].shuffle(newIndices);
+    // TSRChange - `model.deps[i].shuffle === 'function'` -> was `model.deps[i].shuffle`
+    if (typeof model.deps[i].shuffle === 'function') model.deps[i].shuffle(newIndices);
   }
 
   model[link ? 'marked' : 'mark']();
@@ -436,7 +522,7 @@ export function shuffle(model, newIndices, link, unsafe) {
   model.shuffling = false;
 }
 
-export function checkDataLink(model, value) {
+export function checkDataLink(model: ModelBase, value): void {
   if (value !== model.dataModel) {
     if (value && value.viewmodel && value.viewmodel.isRoot && model.childByKey.data) {
       model.childByKey.data.link(value.viewmodel, 'data');

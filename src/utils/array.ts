@@ -1,7 +1,5 @@
 import { isArray, isString, isUndefined } from './is';
 
-// TODO refine types on params and return
-
 export function addToArray<T>(array: T[], value: T): void {
   const index = array.indexOf(value);
 
@@ -34,7 +32,11 @@ export function arrayContentsMatch<T>(a: T[], b: T[]): boolean {
   return true;
 }
 
-export function ensureArray(x) {
+export function ensureArray(x: string): [string];
+export function ensureArray(x: undefined): [];
+export function ensureArray<T extends Array<unknown>>(x: T): T;
+
+export function ensureArray(x: unknown): unknown {
   if (isString(x)) {
     return [x];
   }
@@ -62,7 +64,7 @@ export function removeFromArray<T>(array: T[], member: T): void {
   }
 }
 
-export function combine(...arrays) {
+export function combine<T>(...arrays: T[]): T[] {
   const res = arrays.concat.apply([], arrays);
   let i = res.length;
   while (i--) {
@@ -73,7 +75,7 @@ export function combine(...arrays) {
   return res;
 }
 
-export function toArray(arrayLike) {
+export function toArray<T>(arrayLike: ArrayLike<T>): T[] {
   const array = [];
   let i = arrayLike.length;
   while (i--) {
@@ -83,7 +85,7 @@ export function toArray(arrayLike) {
   return array;
 }
 
-export function findMap(array, fn) {
+export function findMap<T, X>(array: T[], fn: (item: T) => X): X {
   const len = array.length;
   for (let i = 0; i < len; i++) {
     const result = fn(array[i]);
@@ -91,21 +93,30 @@ export function findMap(array, fn) {
   }
 }
 
-export function buildNewIndices(one, two, comparator) {
-  let oldArray = one;
-  let newArray = two;
-  if (comparator) {
-    oldArray = oldArray.map(comparator);
-    newArray = newArray.map(comparator);
+export interface Indexes extends Array<number> {
+  oldLen?: number;
+  newLen?: number;
+  same?: boolean;
+}
+
+export function buildNewIndices<T>(one: T[], two: T[]): Indexes;
+export function buildNewIndices<T, X>(one: T[], two: T[], mapper: (item: T) => X): Indexes;
+
+export function buildNewIndices<T, X>(one: T[], two: T[], mapper?: (item: T) => X): Indexes {
+  let oldArray: unknown[] = one;
+  let newArray: unknown[] = two;
+  if (mapper) {
+    oldArray = oldArray.map(mapper);
+    newArray = newArray.map(mapper);
   }
 
   const oldLength = oldArray.length;
 
-  const usedIndices = {};
+  const usedIndices: { [key: string]: boolean } = {};
   let firstUnusedIndex = 0;
 
-  const result = oldArray.map(item => {
-    let index;
+  const result: Indexes = oldArray.map(item => {
+    let index: number;
     let start = firstUnusedIndex;
 
     do {

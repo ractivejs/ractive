@@ -6,7 +6,7 @@ import { splitKeypath } from './keypaths';
 // a particular keypath because in some cases, a dep may be bound
 // directly to a particular keypath e.g. foo.bars.0.baz and need
 // to avoid getting kicked to foo.bars.1.baz if foo.bars is unshifted
-export function rebindMatch(template, next, previous, fragment) {
+export function rebindMatch(template, next, previous, fragment?) {
   const keypath = template.r || template;
 
   // no valid keypath, go with next

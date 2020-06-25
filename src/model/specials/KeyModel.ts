@@ -21,7 +21,6 @@ export default class KeyModel {
    * - RootModel
    * - Model
    * - LinkModel
-   * - Model
    */
   public context: ModelBase;
   public instance: any; // TODO add ractive type here and in the constructor

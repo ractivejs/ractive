@@ -1,17 +1,22 @@
-/* eslint no-console:"off" */
-
 import { hasConsole } from 'config/environment';
 import { capture, startCapturing, stopCapturing } from 'src/global/capture';
 import runloop from 'src/global/runloop';
+import { ComputationSignature } from 'src/Ractive/helpers/getComputationSignature';
 import { isEqual } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 
 import ComputationChild from './ComputationChild';
 import Model, { shared } from './Model';
-import { maybeBind, noVirtual } from './ModelBase';
+import { maybeBind, noVirtual, ModelDependency, ModelGetOpts } from './ModelBase';
 
-export default class Computation extends Model {
-  constructor(parent, signature, key) {
+export default class Computation extends Model implements ModelDependency {
+  public signature: ComputationSignature;
+  public dependencies: Model[];
+  public pattern: RegExp;
+
+  private dirty: boolean;
+
+  constructor(parent: Model, signature: ComputationSignature, key: string) {
     super(parent, key);
 
     this.signature = signature;
@@ -20,11 +25,6 @@ export default class Computation extends Model {
     this.isComputed = true;
 
     this.dependencies = [];
-
-    this.children = [];
-    this.childByKey = {};
-
-    this.deps = [];
 
     this.dirty = true;
 
@@ -37,7 +37,7 @@ export default class Computation extends Model {
     return undefined;
   }
 
-  get(shouldCapture, opts) {
+  get(shouldCapture?: boolean, opts?: ModelGetOpts) {
     if (shouldCapture) capture(this);
 
     if (this.dirty) {
@@ -80,6 +80,7 @@ export default class Computation extends Model {
     } catch (err) {
       warnIfDebug(`Failed to compute ${this.getKeypath()}: ${err.message || err}`);
 
+      /* eslint-disable no-console */
       // TODO this is all well and good in Chrome, but...
       // ...also, should encapsulate this stuff better, and only
       // show it if Ractive.DEBUG
@@ -97,6 +98,7 @@ export default class Computation extends Model {
         );
         if (console.groupCollapsed) console.groupEnd();
       }
+      /* eslint-enable no-console */
     }
 
     const dependencies = stopCapturing();
@@ -106,16 +108,16 @@ export default class Computation extends Model {
     return result;
   }
 
-  mark() {
+  mark(): void {
     this.handleChange();
   }
 
-  rebind(next, previous) {
+  rebind(next, previous): void {
     // computations will grab all of their deps again automagically
     if (next !== previous) this.handleChange();
   }
 
-  set(value) {
+  set(value): void {
     if (this.isReadonly) {
       throw new Error(`Cannot set read-only computed value '${this.key}'`);
     }
@@ -124,7 +126,7 @@ export default class Computation extends Model {
     this.mark();
   }
 
-  setDependencies(dependencies) {
+  setDependencies(dependencies: Model[]): void {
     // unregister any soft dependencies we no longer have
     let i = this.dependencies.length;
     while (i--) {
@@ -142,7 +144,9 @@ export default class Computation extends Model {
     this.dependencies = dependencies;
   }
 
-  teardown() {
+  handleChange(): void {}
+
+  teardown(): void {
     let i = this.dependencies.length;
     while (i--) {
       if (this.dependencies[i]) this.dependencies[i].unregister(this);
@@ -155,6 +159,8 @@ export default class Computation extends Model {
 const prototype = Computation.prototype;
 const child = ComputationChild.prototype;
 prototype.handleChange = child.handleChange;
-prototype.joinKey = child.joinKey;
+
+// function signature do not match return types so use any
+prototype.joinKey = child.joinKey as any;
 
 shared.Computation = Computation;

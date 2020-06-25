@@ -1,10 +1,15 @@
 import { splitKeypath, unescapeKey } from 'shared/keypaths';
 import { handleChange, mark } from 'shared/methodCallers';
 import { capture } from 'src/global/capture';
+import { Adaptor } from 'types/Adaptor';
+import { Keypath } from 'types/Keypath';
 import noop from 'utils/noop';
+import Fragment from 'view/Fragment';
 import resolveReference from 'view/resolvers/resolveReference';
 
+import LinkModel from './LinkModel';
 import Model from './Model';
+import { ModelGetOpts, ModelLinkOpts, ModelJoinOpts } from './ModelBase';
 import RactiveModel from './specials/RactiveModel';
 import SharedModel, { GlobalModel, SharedModel as SharedBase } from './specials/SharedModel';
 
@@ -27,8 +32,20 @@ const specialModels = {
 };
 specialModels['@'] = specialModels['@this'];
 
+export interface RootModelOpts {
+  // TODO add ractive type
+  ractive: any;
+  data: any;
+  adapt: Adaptor[];
+}
+
 export default class RootModel extends Model {
-  constructor(options) {
+  private helpers: SharedBase;
+  private ractiveModel: RactiveModel;
+
+  public adaptors: Adaptor[];
+
+  constructor(options: RootModelOpts) {
     super(null, null);
 
     this.isRoot = true;
@@ -40,13 +57,14 @@ export default class RootModel extends Model {
     this.adapt();
   }
 
-  attached(fragment) {
+  attached(fragment: Fragment): void {
     attachImplicits(this, fragment);
   }
 
-  createLink(keypath, target, targetPath, options) {
+  createLink(keypath: Keypath, target, targetPath, options: ModelLinkOpts): LinkModel {
     const keys = splitKeypath(keypath);
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     let model = this;
     while (keys.length) {
       const key = keys.shift();
@@ -56,11 +74,11 @@ export default class RootModel extends Model {
     return model.link(target, targetPath, options);
   }
 
-  detached() {
+  detached(): void {
     detachImplicits(this);
   }
 
-  get(shouldCapture, options) {
+  get(shouldCapture: boolean, options: ModelGetOpts) {
     if (shouldCapture) capture(this);
 
     if (!options || options.virtual !== false) {
@@ -70,16 +88,16 @@ export default class RootModel extends Model {
     }
   }
 
-  getHelpers() {
+  getHelpers(): SharedBase {
     if (!this.helpers) this.helpers = new SharedBase(this.ractive.helpers, 'helpers', this.ractive);
     return this.helpers;
   }
 
-  getKeypath() {
+  getKeypath(): Keypath {
     return '';
   }
 
-  getRactiveModel() {
+  getRactiveModel(): RactiveModel {
     return this.ractiveModel || (this.ractiveModel = new RactiveModel(this.ractive));
   }
 
@@ -97,7 +115,7 @@ export default class RootModel extends Model {
     return children;
   }
 
-  has(key) {
+  has(key: string): boolean {
     if (key[0] === '~' && key[1] === '/') key = key.slice(2);
     if (specialModels[key] || key === '') return true;
 
@@ -111,7 +129,7 @@ export default class RootModel extends Model {
     }
   }
 
-  joinKey(key, opts) {
+  joinKey(key: string, opts?: ModelJoinOpts): this | LinkModel {
     if (key[0] === '~' && key[1] === '/') key = key.slice(2);
 
     if (key[0] === '@') {
@@ -122,7 +140,7 @@ export default class RootModel extends Model {
     }
   }
 
-  set(value) {
+  set(value): void {
     // TODO wrapping root node is a baaaad idea. We should prevent this
     const wrapper = this.wrapper;
     if (wrapper) {
@@ -147,17 +165,19 @@ export default class RootModel extends Model {
     return this.wrapper ? this.wrapper.get() : this.value;
   }
 
-  teardown() {
+  teardown(): void {
     super.teardown();
     this.ractiveModel && this.ractiveModel.teardown();
   }
-}
-RootModel.prototype.update = noop;
 
-function attachImplicits(model, fragment) {
-  if (model._link && model._link.implicit && model._link.isDetached()) {
-    model.attach(fragment);
-  }
+  update = noop;
+}
+
+function attachImplicits(model: RootModel, fragment: Fragment): void {
+  // TSRChange - attach function doesn't exists on RootModel maybe this code is not longer valid?
+  // if (model._link && model._link.implicit && model._link.isDetached()) {
+  //   model.attach(fragment);
+  // }
 
   // look for virtual children to relink and cascade
   for (const k in model.childByKey) {
@@ -174,7 +194,7 @@ function attachImplicits(model, fragment) {
   }
 }
 
-function detachImplicits(model) {
+function detachImplicits(model: RootModel): void {
   if (model._link && model._link.implicit) {
     model.unlink();
   }

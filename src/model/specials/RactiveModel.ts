@@ -1,19 +1,22 @@
 import { create } from 'utils/object';
 
-import { Missing } from '../LinkModel';
+import LinkModel, { Missing } from '../LinkModel';
 
 import { SharedModel } from './SharedModel';
 
 export default class RactiveModel extends SharedModel {
+  // TODO add ractive type
   constructor(ractive) {
     super(ractive, '@this');
     this.ractive = ractive;
   }
 
-  joinKey(key) {
+  joinKey(key: string): this | LinkModel {
     const model = super.joinKey(key);
 
-    if ((key === 'root' || key === 'parent') && !model.isLink) return initLink(model, key);
+    // TSRChange - `model instanceof LinkModel` -> was `!model.isLink`
+    if ((key === 'root' || key === 'parent') && !(model instanceof LinkModel))
+      return initLink(model, key);
     else if (key === 'data') return this.ractive.viewmodel;
     else if (key === 'cssData') return this.ractive.constructor._cssModel;
 
@@ -21,7 +24,7 @@ export default class RactiveModel extends SharedModel {
   }
 }
 
-function initLink(model, key) {
+function initLink(model: RactiveModel, key: string): LinkModel {
   model.applyValue = function(value) {
     this.parent.value[key] = value;
     if (value && value.viewmodel) {
@@ -43,7 +46,7 @@ function initLink(model, key) {
     };
   }
 
-  model.applyValue(model.parent.ractive[key], key);
+  model.applyValue(model.parent.ractive[key], !!key);
   model._link.set = v => model.applyValue(v);
   model._link.applyValue = v => model.applyValue(v);
 

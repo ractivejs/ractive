@@ -1,11 +1,16 @@
 import { base } from 'config/environment';
+import { Adaptor } from 'types/Adaptor';
+import { Keypath } from 'types/Keypath';
 
 import Model from '../Model';
 
 export const data = {};
 
 export class SharedModel extends Model {
-  constructor(value, name, ractive) {
+  public adaptors: Adaptor[];
+
+  // TODO add ractive type
+  constructor(value, name: string, ractive?) {
     super(null, `@${name}`);
     this.key = `@${name}`;
     this.value = value;
@@ -15,7 +20,7 @@ export class SharedModel extends Model {
     this.ractive = ractive;
   }
 
-  getKeypath() {
+  getKeypath(): Keypath {
     return this.key;
   }
 

@@ -1,17 +1,32 @@
+import { Computation as ComputationType, ComputationDescriptor } from 'types/Computation';
+import { Keypath } from 'types/Keypath';
 import bind from 'utils/bind';
 import { isFunction, isString, isObjectType } from 'utils/is';
 import { fatal } from 'utils/log';
 
 import { createFunctionFromString } from '../config/runtime-parser';
 
-export default function getComputationSignature(ractive, key, signature) {
+export interface ComputationSignature {
+  // TODO add ractive type on this param
+  getter: (this: any, context: any, keypath: Keypath) => any;
+  setter: (value: any, context: any, keypath: Keypath) => void;
+  getterString: string;
+  setterString: string;
+  getterUseStack: boolean;
+}
+
+export default function getComputationSignature(
+  ractive, // TODO add ractive type
+  key: string,
+  signature: ComputationType<any> // TODO add ractive type
+): ComputationSignature {
   let getter;
   let setter;
 
   // useful for debugging
-  let getterString;
-  let getterUseStack;
-  let setterString;
+  let getterString: string;
+  let getterUseStack: boolean;
+  let setterString: string;
 
   if (isFunction(signature)) {
     getter = bind(signature, ractive);
@@ -24,7 +39,8 @@ export default function getComputationSignature(ractive, key, signature) {
     getterString = signature;
   }
 
-  if (isObjectType(signature)) {
+  // TODO add ractive type
+  if (isObjectType<ComputationDescriptor<any>>(signature)) {
     if (isString(signature.get)) {
       getter = createFunctionFromString(signature.get, ractive);
       getterString = signature.get;

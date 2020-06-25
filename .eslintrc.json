@@ -95,11 +95,15 @@
 		"no-useless-escape": 0,
 		"no-console": "error",
 		"no-dupe-class-members": "off",
+
 		"@typescript-eslint/no-use-before-define": "off",
 		"@typescript-eslint/no-empty-function": ["error", {
 			"allow": ["methods"]
 		}],
-		"@typescript-eslint/no-unused-vars": "error"
+		"@typescript-eslint/no-unused-vars": "error",
+		"@typescript-eslint/explicit-function-return-type": ["warn", {
+			"allowExpressions": true
+		}]
 	},
 	"overrides": [{
 		// disable typescript rules for JS files

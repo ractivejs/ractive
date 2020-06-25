@@ -1,3 +1,4 @@
+import { RactiveHTMLOptionElement } from 'types/RactiveHTMLElement';
 import { toArray } from 'utils/array';
 import getSelectedOptions from 'utils/getSelectedOptions';
 import { isArray, isFunction } from 'utils/is';
@@ -8,6 +9,11 @@ import SingleSelectBinding from '../binding/SingleSelectBinding';
 export default class Select extends Element {
   public options: any[];
   private selectedOptions: any[];
+
+  /**
+   * @override
+   */
+  public node: HTMLSelectElement;
 
   constructor(options: ElementOptions) {
     super(options);
@@ -65,7 +71,7 @@ export default class Select extends Element {
     if (selectValue !== undefined) {
       let optionWasSelected;
 
-      options.forEach(o => {
+      options.forEach((o: RactiveHTMLOptionElement) => {
         const optionValue = o._ractive ? o._ractive.value : o.value;
         const shouldSelect = isMultiple
           ? array && this.valueContains(selectValue, optionValue)

@@ -4,9 +4,14 @@ import { isUndefined } from 'utils/is';
 import { hasOwn } from 'utils/object';
 
 import Model from './Model';
+import { ModelGetOpts } from './ModelBase';
 
 export default class ComputationChild extends Model {
-  constructor(parent, key) {
+  public parent;
+
+  private dirty: boolean;
+
+  constructor(parent, key: string) {
     super(parent, key);
 
     this.isReadonly = !this.root.ractive.syncComputedChildren;
@@ -18,13 +23,13 @@ export default class ComputationChild extends Model {
     return this.parent.setRoot;
   }
 
-  applyValue(value) {
+  applyValue(value): void {
     super.applyValue(value);
 
     if (!this.isReadonly) {
-      let source = this.parent;
+      let source: any = this.parent;
       // computed models don't have a shuffle method
-      while (source && source.shuffle) {
+      while (source?.shuffle) {
         source = source.parent;
       }
 
@@ -38,7 +43,7 @@ export default class ComputationChild extends Model {
     }
   }
 
-  get(shouldCapture, opts) {
+  get(shouldCapture?: boolean, opts?: ModelGetOpts) {
     if (shouldCapture) capture(this);
 
     if (this.dirty) {
@@ -54,7 +59,7 @@ export default class ComputationChild extends Model {
       : this.value;
   }
 
-  handleChange() {
+  handleChange(): void {
     if (this.dirty) return;
     this.dirty = true;
 
@@ -65,7 +70,7 @@ export default class ComputationChild extends Model {
     this.children.forEach(handleChange);
   }
 
-  joinKey(key) {
+  joinKey(key: string): this {
     if (isUndefined(key) || key === '') return this;
 
     if (!hasOwn(this.childByKey, key)) {

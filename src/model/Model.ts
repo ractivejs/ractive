@@ -2,21 +2,62 @@ import { unescapeKey } from 'shared/keypaths';
 import { handleChange, mark, markForce, marked, teardown } from 'shared/methodCallers';
 import Ticker from 'shared/Ticker';
 import { capture } from 'src/global/capture';
+import Ractive from 'src/Ractive';
 import getComputationSignature from 'src/Ractive/helpers/getComputationSignature';
+import { AdaptorHandle } from 'types/Adaptor';
+import { Computation as ComputationType } from 'types/Computation';
+import { EasingFunction } from 'types/Easings';
+import { ValueMap } from 'types/ValueMap';
 import { buildNewIndices } from 'utils/array';
 import { isArray, isEqual, isNumeric, isObjectLike, isUndefined } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn, keys } from 'utils/object';
 
 import './LinkModel';
+import Computation from './Computation';
 import getPrefixer from './helpers/getPrefixer';
-import ModelBase, { checkDataLink, maybeBind, shuffle } from './ModelBase';
+import LinkModel from './LinkModel';
+import ModelBase, {
+  checkDataLink,
+  maybeBind,
+  shuffle,
+  ModelWithShuffle,
+  ModelGetOpts,
+  ModelJoinOpts
+} from './ModelBase';
 
-export const shared = {};
+export const shared: { Computation?: typeof Computation } = {};
 
-// todo implements ModelWithRelinking
-export default class Model extends ModelBase {
-  constructor(parent, key) {
+export type AnimatePromise = Promise<Function> & { stop?: Function };
+
+export interface ModelAnimateOpts {
+  duration: number;
+  easing: EasingFunction;
+  step: (t: number, value: any) => void;
+  complete: (to: number) => void;
+}
+
+export default class Model extends ModelBase implements ModelWithShuffle {
+  /** @override */
+  public parent: Model;
+
+  private ticker: Ticker;
+  protected isReadonly: boolean;
+  protected isArray: boolean;
+  public isRoot: boolean;
+  private rewrap: boolean;
+  protected boundValue: any;
+
+  protected wrapper: AdaptorHandle;
+  protected wrapperValue: any;
+  protected newWrapperValue: any;
+
+  public shuffling: boolean;
+
+  /** used to check if model is `Computation` or `ComputationChild` */
+  public isComputed: boolean;
+
+  constructor(parent, key: string) {
     super(parent);
 
     this.ticker = null;
@@ -33,7 +74,7 @@ export default class Model extends ModelBase {
     }
   }
 
-  adapt() {
+  adapt(): void {
     const adaptors = this.root.adaptors;
     const len = adaptors.length;
 
@@ -45,7 +86,7 @@ export default class Model extends ModelBase {
     const value = this.wrapper
       ? 'newWrapperValue' in this
         ? this.newWrapperValue
-        : this.wrapperValue
+        : (this as Model).wrapperValue
       : this.value;
 
     // TODO remove this legacy nonsense
@@ -78,14 +119,13 @@ export default class Model extends ModelBase {
       }
     }
 
-    let i;
-
-    for (i = 0; i < len; i += 1) {
+    for (let i = 0; i < len; i += 1) {
       const adaptor = adaptors[i];
       if (adaptor.filter(value, keypath, ractive)) {
         this.wrapper = adaptor.wrap(ractive, value, keypath, getPrefixer(keypath));
         this.wrapperValue = value;
-        this.wrapper.__model = this; // massive temporary hack to enable array adaptor
+        // TSRChange - comment since it's not used elsewhere
+        // this.wrapper.__model = this; // massive temporary hack to enable array adaptor
 
         this.value = this.wrapper.get();
 
@@ -94,11 +134,11 @@ export default class Model extends ModelBase {
     }
   }
 
-  animate(from, to, options, interpolator) {
+  animate(_from, to, options: ModelAnimateOpts, interpolator): AnimatePromise {
     if (this.ticker) this.ticker.stop();
 
     let fulfilPromise;
-    const promise = new Promise(fulfil => (fulfilPromise = fulfil));
+    const promise: AnimatePromise = new Promise(fulfil => (fulfilPromise = fulfil));
 
     this.ticker = new Ticker({
       duration: options.duration,
@@ -121,7 +161,7 @@ export default class Model extends ModelBase {
     return promise;
   }
 
-  applyValue(value, notify = true) {
+  applyValue(value, notify = true): void {
     if (isEqual(value, this.value)) return;
     if (this.boundValue) this.boundValue = null;
 
@@ -173,7 +213,7 @@ export default class Model extends ModelBase {
     }
   }
 
-  compute(key, computed) {
+  compute(key: string, computed: ComputationType<Ractive>): Computation {
     const registry = this.computed || (this.computed = {});
 
     if (registry[key]) {
@@ -190,14 +230,16 @@ export default class Model extends ModelBase {
     return registry[key];
   }
 
-  createBranch(key) {
+  createBranch(key: number): [];
+  createBranch(key: string): ValueMap;
+  createBranch(key: number | string): [] | ValueMap {
     const branch = isNumeric(key) ? [] : {};
     this.applyValue(branch, false);
 
     return branch;
   }
 
-  get(shouldCapture, opts) {
+  get(shouldCapture?: boolean, opts?: ModelGetOpts) {
     if (this._link) return this._link.get(shouldCapture, opts);
     if (shouldCapture) capture(this);
     // if capturing, this value needs to be unwrapped because it's for external use
@@ -211,7 +253,7 @@ export default class Model extends ModelBase {
     );
   }
 
-  joinKey(key, opts) {
+  joinKey(key: string, opts?: ModelJoinOpts): this | LinkModel {
     if (this._link) {
       if (opts && opts.lastLink !== false && (isUndefined(key) || key === '')) return this;
       return this._link.joinKey(key);
@@ -245,7 +287,7 @@ export default class Model extends ModelBase {
 
       if (key === 'data') {
         const val = this.retrieve();
-        if (val && val.viewmodel && val.viewmodel.isRoot) {
+        if (val?.viewmodel?.isRoot) {
           child.link(val.viewmodel, 'data');
           this.dataModel = val;
         }
@@ -257,13 +299,13 @@ export default class Model extends ModelBase {
     return child;
   }
 
-  mark(force) {
+  mark(force?: boolean): void {
     if (this._link) return this._link.mark(force);
 
     const old = this.value;
     const value = this.retrieve();
 
-    if (this.dataModel || (value && value.viewmodel && value.viewmodel.isRoot)) {
+    if (this.dataModel || value?.viewmodel?.isRoot) {
       checkDataLink(this, value);
     }
 
@@ -292,34 +334,35 @@ export default class Model extends ModelBase {
     }
   }
 
-  merge(array, comparator) {
+  merge<T, X>(array: T[], comparator?: (item: T) => X): void {
     const newIndices = buildNewIndices(
       this.value === array ? recreateArray(this) : this.value,
       array,
       comparator
     );
+
     this.parent.value[this.key] = array;
     this.shuffle(newIndices, true);
   }
 
   retrieve() {
-    return this.parent.value ? this.parent.value[this.key] : undefined;
+    return this.parent.value?.[this.key];
   }
 
-  set(value) {
+  set(value): void {
     if (this.ticker) this.ticker.stop();
     this.applyValue(value);
   }
 
-  shuffle(newIndices, unsafe) {
+  shuffle(newIndices: number[], unsafe?: boolean): void {
     shuffle(this, newIndices, false, unsafe);
   }
 
-  source() {
+  source(): this {
     return this;
   }
 
-  teardown() {
+  teardown(): void {
     if (this._link) {
       this._link.teardown();
       this._link = null;
@@ -330,7 +373,7 @@ export default class Model extends ModelBase {
   }
 }
 
-function recreateArray(model) {
+function recreateArray(model: Model): any[] {
   const array = [];
 
   for (let i = 0; i < model.length; i++) {

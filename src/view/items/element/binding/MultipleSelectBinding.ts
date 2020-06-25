@@ -1,3 +1,4 @@
+import { RactiveHTMLOptionElement } from 'types/RactiveHTMLElement';
 import { arrayContentsMatch } from 'utils/array';
 import getSelectedOptions from 'utils/getSelectedOptions';
 import { isUndefined } from 'utils/is';
@@ -30,7 +31,7 @@ export default class MultipleSelectBinding extends Binding
     const selectedValues = [];
 
     for (let i = 0; i < len; i += 1) {
-      const option = options[i];
+      const option: RactiveHTMLOptionElement = options[i];
 
       if (option.selected) {
         const optionValue = option._ractive ? option._ractive.value : option.value;
@@ -71,8 +72,7 @@ export default class MultipleSelectBinding extends Binding
     const result = new Array(i);
 
     while (i--) {
-      // todo add correct type when we will have an inrerface for augmented HTML elements
-      const option: any = selectedOptions[i];
+      const option: RactiveHTMLOptionElement = selectedOptions[i];
       result[i] = option._ractive ? option._ractive.value : option.value;
     }
 
