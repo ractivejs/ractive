@@ -2,9 +2,11 @@ import noop from 'utils/noop';
 import { assign, create } from 'utils/object';
 import Fragment from 'view/Fragment';
 
-export const extern: { Context?: any } = {};
+import Context from './Context';
 
-export default function getRactiveContext(ractive, ...assigns) {
+export const extern: { Context?: typeof Context } = {};
+
+export default function getRactiveContext(ractive, ...assigns): Context {
   const fragment: Fragment =
     ractive.fragment ||
     ractive._fakeFragment ||
@@ -12,7 +14,7 @@ export default function getRactiveContext(ractive, ...assigns) {
   return fragment.getContext(...assigns);
 }
 
-export function getContext(...assigns: unknown[]): typeof extern.Context {
+export function getContext(...assigns: unknown[]): Context {
   if (!this.ctx) this.ctx = new extern.Context(this);
   const target = create(this.ctx);
 
@@ -20,6 +22,7 @@ export function getContext(...assigns: unknown[]): typeof extern.Context {
 }
 
 export class FakeFragment {
+  // TODO add ractive type
   public ractive;
 
   constructor(ractive) {

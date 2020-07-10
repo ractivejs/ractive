@@ -2,7 +2,7 @@ import TemplateItemType from 'config/types';
 import { createDocumentFragment } from 'utils/dom';
 import Fragment from 'view/Fragment';
 
-export interface ItemOptions {
+export interface ItemOpts {
   up: any; // TODO add correct types
   template: any; // TODO add correct types
   index: number;
@@ -24,7 +24,7 @@ export default class Item {
   public model: any;
   public newModel: any;
 
-  constructor(options: ItemOptions) {
+  constructor(options: ItemOpts) {
     this.up = options.up;
     this.ractive = options.up.ractive;
 
@@ -32,9 +32,6 @@ export default class Item {
     this.type = options.template.t;
     this.index = options.index;
   }
-
-  findAll() {}
-  findAllComponents() {}
 
   bubble(): void {
     if (!this.dirty) {
@@ -47,13 +44,19 @@ export default class Item {
     if (this.fragment) this.fragment.destroyed();
   }
 
-  find() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  find(_selector, _options) {
     return null;
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  findAll(_selector, _options): void {}
 
-  findComponent() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  findComponent(_name, _options) {
     return null;
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  findAllComponents(_name, _options) {}
 
   findNextNode() {
     return this.up.findNextNode(this);
@@ -73,7 +76,7 @@ export default class Item {
 }
 
 export class ContainerItem extends Item {
-  constructor(options: ItemOptions) {
+  constructor(options: ItemOpts) {
     super(options);
   }
 
@@ -92,7 +95,7 @@ export class ContainerItem extends Item {
   }
 
   // todo use findOptions?
-  findAll(selector?, options?) {
+  findAll(selector?, options?): void {
     if (this.fragment) {
       this.fragment.findAll(selector, options);
     }

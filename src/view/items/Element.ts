@@ -21,11 +21,11 @@ import Decorator from './element/Decorator';
 import Input from './element/specials/Input';
 import Transition from './element/Transition';
 import findElement from './shared/findElement';
-import { ContainerItem, ItemOptions } from './shared/Item';
+import { ContainerItem, ItemOpts } from './shared/Item';
 
 const endsWithSemi = /;\s*$/;
 
-export interface ElementOptions extends ItemOptions {
+export interface ElementOpts extends ItemOpts {
   deferContent: boolean;
 }
 
@@ -53,7 +53,7 @@ export default class Element extends ContainerItem {
   public lazy: boolean;
   public twoway: boolean;
 
-  constructor(options: ElementOptions) {
+  constructor(options: ElementOpts) {
     super(options);
 
     this.name = options.template.e.toLowerCase();

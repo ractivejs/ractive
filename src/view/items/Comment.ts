@@ -2,14 +2,14 @@ import { doc } from 'config/environment';
 import { CommentTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { detachNode } from 'utils/dom';
 
-import Item, { ItemOptions } from './shared/Item';
+import Item, { ItemOpts } from './shared/Item';
 
 export default class Comment extends Item {
   public rendered: boolean;
   public node: globalThis.Comment;
   public template: CommentTemplateItem;
 
-  constructor(options: ItemOptions) {
+  constructor(options: ItemOpts) {
     super(options);
   }
 

@@ -19,7 +19,7 @@ export function normalise(ref: string): Keypath {
 }
 
 export function splitKeypath(keypath: Keypath): string[] {
-  const result = [];
+  const result: string[] = [];
   let match: RegExpExecArray;
 
   keypath = normalise(keypath);
@@ -36,7 +36,6 @@ export function splitKeypath(keypath: Keypath): string[] {
 }
 
 export function unescapeKey<T>(key: T): T;
-export function unescapeKey(key: string): string;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function unescapeKey(key: any): any {
   if (isString(key)) {

@@ -1,28 +1,31 @@
 import runloop from 'src/global/runloop';
+import { toArray } from 'utils/array';
 import { createDocumentFragment, matches } from 'utils/dom';
 import { detachNode } from 'utils/dom';
 import { decodeCharacterReferences } from 'utils/html';
 
 import { inAttribute } from './element/Attribute';
-import Mustache from './shared/Mustache';
+import Mustache, { MustacheOpts } from './shared/Mustache';
 import insertHtml from './triple/insertHtml';
 
 export default class Triple extends Mustache {
-  constructor(options) {
+  private nodes: Element[];
+  private rendered: boolean;
+
+  constructor(options: MustacheOpts) {
     super(options);
   }
 
-  detach() {
+  detach(): DocumentFragment {
     const docFrag = createDocumentFragment();
     if (this.nodes) this.nodes.forEach(node => docFrag.appendChild(node));
     return docFrag;
   }
 
-  find(selector) {
+  find(selector?: string): Element {
     const len = this.nodes.length;
-    let i;
 
-    for (i = 0; i < len; i += 1) {
+    for (let i = 0; i < len; i += 1) {
       const node = this.nodes[i];
 
       if (node.nodeType !== 1) continue;
@@ -36,12 +39,11 @@ export default class Triple extends Mustache {
     return null;
   }
 
-  findAll(selector, options) {
+  findAll(selector: string, options): void {
     const { result } = options;
     const len = this.nodes.length;
-    let i;
 
-    for (i = 0; i < len; i += 1) {
+    for (let i = 0; i < len; i += 1) {
       const node = this.nodes[i];
 
       if (node.nodeType !== 1) continue;
@@ -50,20 +52,21 @@ export default class Triple extends Mustache {
 
       const queryAllResult = node.querySelectorAll(selector);
       if (queryAllResult) {
-        result.push(...queryAllResult);
+        // TSRChange - add to array invocation
+        result.push(...toArray(queryAllResult));
       }
     }
   }
 
-  findComponent() {
+  findComponent(): null {
     return null;
   }
 
-  firstNode() {
+  firstNode(): Element {
     return this.rendered && this.nodes[0];
   }
 
-  render(target, occupants, anchor) {
+  render(target: Element, occupants?: Node[], anchor?: Node): void {
     if (!this.nodes) {
       const html = this.model ? this.model.get() : '';
       this.nodes = insertHtml(html, target);
@@ -74,7 +77,7 @@ export default class Triple extends Mustache {
     // progressive enhancement
     if (occupants) {
       let i = -1;
-      let next;
+      let next: Element;
 
       // start with the first node that should be rendered
       while (occupants.length && (next = this.nodes[i + 1])) {
@@ -120,14 +123,14 @@ export default class Triple extends Mustache {
     this.rendered = true;
   }
 
-  toString() {
+  toString(): string {
     let value = this.model && this.model.get();
     value = value != null ? '' + value : '';
 
     return inAttribute() ? decodeCharacterReferences(value) : value;
   }
 
-  unrender() {
+  unrender(): void {
     if (this.nodes)
       this.nodes.forEach(node => {
         // defer detachment until all relevant outros are done
@@ -142,7 +145,7 @@ export default class Triple extends Mustache {
     this.nodes = null;
   }
 
-  update() {
+  update(): void {
     if (this.rendered && this.dirty) {
       this.dirty = false;
 

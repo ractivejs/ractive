@@ -1,10 +1,10 @@
 import Namespace from 'src/config/namespace';
 import { createElement } from 'utils/dom';
 
-const elementCache = {};
+const elementCache: { [key: string]: Element | HTMLElement } = {};
 
-let ieBug;
-let ieBlacklist;
+let ieBug: boolean;
+let ieBlacklist: { [key: string]: [string, string] };
 
 try {
   createElement('table').innerHTML = 'foo';
@@ -20,27 +20,28 @@ try {
   };
 }
 
-export default function(html, node) {
-  const nodes = [];
+export default function insertHtml(html: string, node: Element): Element[] {
+  const nodes: Element[] = [];
 
   // render 0 and false
   if (html == null || html === '') return nodes;
 
-  let container;
-  let wrapper;
-  let selectedOption;
+  let container: Element;
+  let wrapper: [string, string];
+  let selectedOption: HTMLOptionElement;
 
   /* istanbul ignore if */
   if (ieBug && (wrapper = ieBlacklist[node.tagName])) {
-    container = element('DIV');
+    container = element('div');
     container.innerHTML = wrapper[0] + html + wrapper[1];
     container = container.querySelector('.x');
 
-    if (container.tagName === 'SELECT') {
+    // TSRChange - replace `container.tagName === 'SELECT'` with instanceof
+    if (container instanceof HTMLSelectElement) {
       selectedOption = container.options[container.selectedIndex];
     }
   } else if (node.namespaceURI === Namespace.svg) {
-    container = element('DIV');
+    container = element('div');
     container.innerHTML = '<svg class="x">' + html + '</svg>';
     container = container.querySelector('.x');
   } else if (node.tagName === 'TEXTAREA') {
@@ -55,7 +56,8 @@ export default function(html, node) {
     container = element(node.tagName);
     container.innerHTML = html;
 
-    if (container.tagName === 'SELECT') {
+    // TSRChange - replace `container.tagName === 'SELECT'` with instanceof
+    if (container instanceof HTMLSelectElement) {
       selectedOption = container.options[container.selectedIndex];
     }
   }
@@ -71,12 +73,11 @@ export default function(html, node) {
   // become selected. So now we have to deselect them. IE8, you
   // amaze me. You really do
   // ...and now Chrome too
-  let i;
   if (node.tagName === 'SELECT') {
-    i = nodes.length;
+    let i = nodes.length;
     while (i--) {
       if (nodes[i] !== selectedOption) {
-        nodes[i].selected = false;
+        (nodes[i] as HTMLOptionElement).selected = false;
       }
     }
   }
@@ -84,6 +85,6 @@ export default function(html, node) {
   return nodes;
 }
 
-function element(tagName) {
+function element(tagName: string): Element {
   return elementCache[tagName] || (elementCache[tagName] = createElement(tagName));
 }

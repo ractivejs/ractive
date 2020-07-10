@@ -281,7 +281,7 @@ export default class Fragment {
     throw new Error('Could not find parent node'); // TODO link to issue tracker
   }
 
-  firstNode(skipParent) {
+  firstNode(skipParent: boolean) {
     const node = findMap(this.items, i => i.firstNode(true));
     if (node) return node;
     if (skipParent) return null;

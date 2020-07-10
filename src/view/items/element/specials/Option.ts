@@ -2,7 +2,7 @@ import { ElementTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { removeFromArray } from 'utils/array';
 import { isArray, isUndefined } from 'utils/is';
 
-import Element, { ElementOptions } from '../../Element';
+import Element, { ElementOpts } from '../../Element';
 import findElement from '../../shared/findElement';
 
 import Select from './Select';
@@ -15,7 +15,7 @@ export default class Option extends Element {
   private select: Select;
   public template: ElementTemplateItemRuntime;
 
-  constructor(options: ElementOptions) {
+  constructor(options: ElementOpts) {
     const template: ElementTemplateItemRuntime = options.template;
     if (!template.a) template.a = {};
 

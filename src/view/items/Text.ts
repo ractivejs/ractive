@@ -4,7 +4,7 @@ import { detachNode } from 'utils/dom';
 import { escapeHtml } from 'utils/html';
 
 import { inAttributes } from './element/ConditionalAttribute';
-import Item, { ItemOptions, BaseItemInterface } from './shared/Item';
+import Item, { ItemOpts, BaseItemInterface } from './shared/Item';
 import progressiveText from './shared/progressiveText';
 
 export default class Text extends Item implements BaseItemInterface {
@@ -12,7 +12,7 @@ export default class Text extends Item implements BaseItemInterface {
   public rendered: boolean;
   public template: TextTemplateItem;
 
-  constructor(options: ItemOptions) {
+  constructor(options: ItemOpts) {
     super(options);
 
     this.type = TemplateItemType.TEXT;

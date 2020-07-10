@@ -1,5 +1,5 @@
 import { isClient, svg, vendors, win, doc } from 'config/environment';
-import Namespace from 'src/config/namespace';
+import Namespace from 'config/namespace';
 import { isString, isNumber } from 'utils/is';
 
 let createElement, matches;
@@ -19,7 +19,11 @@ if (!svg) {
     return extend ? doc.createElement(type, extend) : doc.createElement(type);
   };
 } else {
-  createElement = (type: string, namespace: string, extend?: ElementCreationOptions): Element => {
+  createElement = (
+    type: string,
+    namespace: string,
+    extend?: ElementCreationOptions
+  ): HTMLElement | Element => {
     if (!namespace || namespace === Namespace.html) {
       return extend ? doc.createElement(type, extend) : doc.createElement(type);
     }
@@ -35,7 +39,7 @@ export function createDocumentFragment(): DocumentFragment {
 }
 
 function getElement(input: HTMLElement): HTMLElement {
-  let output;
+  let output: HTMLElement;
 
   if (!input || typeof input === 'boolean') {
     return;
@@ -115,7 +119,7 @@ if (!isClient) {
     }
   }
 
-  // TODO IE8 is no longer supported and phantom is not used. Maybe we can remove this code?
+  // TSRChange - IE8 is no longer supported and phantom is not used. Maybe we can remove this code?
   // // IE8... and apparently phantom some?
   // /* istanbul ignore next */
   // if (!matches) {
@@ -148,10 +152,7 @@ if (!isClient) {
   // }
 }
 
-function detachNode(node: HTMLElement): typeof node | null;
-function detachNode(node: globalThis.Text): typeof node | null;
-function detachNode(node: globalThis.Comment): typeof node | null;
-function detachNode(node: HTMLElement | globalThis.Text | globalThis.Comment): typeof node | null {
+function detachNode<T extends Node>(node: T): T | null {
   /**
    * I'm going to remove `typeof node.parentNode !== 'unknown'` match.
    * It was only occuring in IE < 8 which is no longer supported from 0.8

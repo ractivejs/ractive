@@ -3,7 +3,7 @@ import { toArray } from 'utils/array';
 import getSelectedOptions from 'utils/getSelectedOptions';
 import { isArray, isFunction } from 'utils/is';
 
-import Element, { ElementOptions } from '../../Element';
+import Element, { ElementOpts } from '../../Element';
 import SingleSelectBinding from '../binding/SingleSelectBinding';
 
 export default class Select extends Element {
@@ -15,7 +15,7 @@ export default class Select extends Element {
    */
   public node: HTMLSelectElement;
 
-  constructor(options: ElementOptions) {
+  constructor(options: ElementOpts) {
     super(options);
     this.options = [];
 

@@ -4,14 +4,14 @@ import runloop from 'src/global/runloop';
 
 import Fragment from '../../../Fragment';
 import createItem from '../../createItem';
-import { ElementOptions } from '../../Element';
+import { ElementOpts } from '../../Element';
 import Attribute from '../Attribute';
 import { isBindable } from '../binding/selectBinding';
 
 import Input from './Input';
 
 export default class Textarea extends Input {
-  constructor(options: ElementOptions) {
+  constructor(options: ElementOpts) {
     const template: ElementTemplateItem = options.template;
 
     options.deferContent = true;

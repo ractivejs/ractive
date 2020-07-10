@@ -1,14 +1,6 @@
-import {
-  ANCHOR,
-  ATTRIBUTE,
-  BINDING_FLAG,
-  COMPONENT,
-  DECORATOR,
-  EVENT,
-  TRANSITION,
-  YIELDER
-} from 'config/types';
+import TemplateItemType from 'config/types';
 import { updateAnchors } from 'shared/anchors';
+import Context from 'shared/Context';
 import getRactiveContext from 'shared/getRactiveContext';
 import { bind, render as callRender, unbind, unrender, update } from 'shared/methodCallers';
 import runloop from 'src/global/runloop';
@@ -24,14 +16,36 @@ import { assign, create } from 'utils/object';
 
 import createItem from './createItem';
 import ConditionalAttribute from './element/ConditionalAttribute';
-import Item from './shared/Item';
+import Item, { ItemOpts } from './shared/Item';
 
 export default class Component extends Item {
-  constructor(options, ComponentConstructor) {
+  private isAnchor: boolean;
+  private name: string;
+  private extern: boolean;
+
+  public attributes: Item[];
+  public attributeByName: Record<string, Item>;
+
+  public _partials: any;
+  public item: Item;
+  public instance: any;
+  public eventHandlers: any[]; // TODO this array is never edited maybe we can remove it?
+  public mappings: any[]; // TODO this array is never edited maybe we can remove it?
+  public rendered: boolean;
+  public bound: boolean;
+  public target: HTMLElement;
+  public occupants: HTMLElement[];
+  public shouldDestroy: boolean;
+  public addChild: Function;
+  public removeChild: Function;
+
+  constructor(options: ItemOpts, ComponentConstructor) {
     super(options);
+
     let template = options.template;
-    this.isAnchor = template.t === ANCHOR;
-    this.type = this.isAnchor ? ANCHOR : COMPONENT; // override ELEMENT from super
+    this.isAnchor = template.t === TemplateItemType.ANCHOR;
+    // override ELEMENT from super
+    this.type = this.isAnchor ? TemplateItemType.ANCHOR : TemplateItemType.COMPONENT;
     let attrs = template.m;
 
     const partials = template.p || {};
@@ -62,7 +76,7 @@ export default class Component extends Item {
       let fragment = options.up;
       let container;
       while (fragment) {
-        if (fragment.owner.type === YIELDER) {
+        if (fragment.owner.type === TemplateItemType.YIELDER) {
           container = fragment.owner.container;
           break;
         }
@@ -102,8 +116,8 @@ export default class Component extends Item {
       const leftovers = [];
       attrs.forEach(template => {
         switch (template.t) {
-          case ATTRIBUTE:
-          case EVENT:
+          case TemplateItemType.ATTRIBUTE:
+          case TemplateItemType.EVENT:
             this.attributes.push(
               createItem({
                 owner: this,
@@ -113,9 +127,9 @@ export default class Component extends Item {
             );
             break;
 
-          case TRANSITION:
-          case BINDING_FLAG:
-          case DECORATOR:
+          case TemplateItemType.TRANSITION:
+          case TemplateItemType.BINDING_FLAG:
+          case TemplateItemType.DECORATOR:
             break;
 
           default:
@@ -138,7 +152,7 @@ export default class Component extends Item {
     this.eventHandlers = [];
   }
 
-  bind() {
+  bind(): void {
     if (!this.isAnchor) {
       this.attributes.forEach(bind);
       this.eventHandlers.forEach(bind);
@@ -159,18 +173,18 @@ export default class Component extends Item {
     }
   }
 
-  bubble() {
+  bubble(): void {
     if (!this.dirty) {
       this.dirty = true;
       this.up.bubble();
     }
   }
 
-  destroyed() {
+  destroyed(): void {
     if (!this.isAnchor && this.instance.fragment) this.instance.fragment.destroyed();
   }
 
-  detach() {
+  detach(): DocumentFragment {
     if (this.isAnchor) {
       if (this.instance) return this.instance.fragment.detach();
       return createDocumentFragment();
@@ -187,7 +201,7 @@ export default class Component extends Item {
     if (this.instance) this.instance.fragment.findAll(selector, options);
   }
 
-  findComponent(name, options) {
+  findComponent(name: string, options) {
     if (!name || this.name === name) return this.instance;
 
     if (this.instance.fragment) {
@@ -195,7 +209,7 @@ export default class Component extends Item {
     }
   }
 
-  findAllComponents(name, options) {
+  findAllComponents(name: string, options) {
     const { result } = options;
 
     if (this.instance && (!name || this.name === name)) {
@@ -209,16 +223,15 @@ export default class Component extends Item {
     if (this.instance) return this.instance.fragment.firstNode(skipParent);
   }
 
-  getContext(...assigns) {
-    assigns.unshift(this.instance);
-    return getRactiveContext(...assigns);
+  getContext(...assigns): Context {
+    return getRactiveContext(this.instance, ...assigns);
   }
 
-  rebound(update) {
+  rebound(update: boolean): void {
     this.attributes.forEach(x => x.rebound(update));
   }
 
-  render(target, occupants) {
+  render(target, occupants): void {
     if (this.isAnchor) {
       this.rendered = true;
       this.target = target;
@@ -248,7 +261,7 @@ export default class Component extends Item {
     }
   }
 
-  shuffled() {
+  shuffled(): void {
     super.shuffled();
     this.instance &&
       !this.instance.isolated &&
@@ -256,11 +269,11 @@ export default class Component extends Item {
       this.instance.fragment.shuffled();
   }
 
-  toString() {
+  toString(): string {
     if (this.instance) return this.instance.toHTML();
   }
 
-  unbind(view) {
+  unbind(view): void {
     if (!this.isAnchor) {
       this.bound = false;
 
@@ -271,7 +284,7 @@ export default class Component extends Item {
     }
   }
 
-  unrender(shouldDestroy) {
+  unrender(shouldDestroy: boolean): void {
     this.shouldDestroy = shouldDestroy;
 
     if (this.isAnchor) {
@@ -291,7 +304,7 @@ export default class Component extends Item {
     this.rendered = false;
   }
 
-  update() {
+  update(): void {
     this.dirty = false;
     if (this.instance) {
       this.instance.fragment.update();
@@ -301,7 +314,9 @@ export default class Component extends Item {
   }
 }
 
-function addChild(meta) {
+// TODO understand what is meta
+
+function addChild(meta): void {
   if (this.item) this.removeChild(this.item);
 
   const child = meta.instance;
@@ -319,7 +334,7 @@ function addChild(meta) {
   }
 }
 
-function removeChild(meta) {
+function removeChild(meta): void {
   // unrender as necessary
   if (this.item === meta) {
     unrenderItem(this, meta);
@@ -327,7 +342,7 @@ function removeChild(meta) {
   }
 }
 
-function renderItem(anchor, meta) {
+function renderItem(anchor: Component, meta): void {
   if (!anchor.rendered) return;
 
   meta.shouldDestroy = false;
@@ -361,7 +376,7 @@ function renderItem(anchor, meta) {
   }
 }
 
-function unrenderItem(anchor, meta) {
+function unrenderItem(anchor: Component, meta): void {
   if (!anchor.rendered) return;
 
   meta.shouldDestroy = true;
@@ -381,7 +396,7 @@ function unrenderItem(anchor, meta) {
 }
 
 let checking = [];
-export function checkAnchors() {
+export function checkAnchors(): void {
   const list = checking;
   checking = [];
 

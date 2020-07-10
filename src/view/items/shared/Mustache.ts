@@ -1,12 +1,19 @@
 import { rebindMatch } from 'shared/rebind';
 import { assign } from 'utils/object';
+import resolve from 'view/resolvers/resolve';
 
-import resolve from '../../resolvers/resolve';
+import Item, { ContainerItem, ItemOpts } from './Item';
 
-import Item, { ContainerItem } from './Item';
+export interface MustacheOpts extends ItemOpts {
+  owner: any;
+}
 
 export default class Mustache extends Item {
-  constructor(options) {
+  public parent: any;
+  private isStatic: boolean;
+  private containerFragment: any;
+
+  constructor(options: MustacheOpts) {
     super(options);
 
     if (options.owner) this.parent = options.owner;
@@ -17,7 +24,7 @@ export default class Mustache extends Item {
     this.dirty = false;
   }
 
-  bind(pre) {
+  bind(pre): void {
     // yield mustaches and inner contexts should resolve in container context
     const start = this.template.y
       ? this.template.y.containerFragment
@@ -39,11 +46,11 @@ export default class Mustache extends Item {
     }
   }
 
-  handleChange() {
+  handleChange(): void {
     this.bubble();
   }
 
-  rebind(next, previous, safe) {
+  rebind(next, previous, safe): boolean {
     if (this.isStatic) return;
 
     next = rebindMatch(this.template, next, previous, this.up);
@@ -58,7 +65,7 @@ export default class Mustache extends Item {
     return true;
   }
 
-  rebound(update) {
+  rebound(update: boolean): void {
     if (this.model) {
       if (this.model.rebound) this.model.rebound(update);
       else {
@@ -80,7 +87,7 @@ export default class Mustache extends Item {
     if (this.fragment) this.fragment.rebound(update);
   }
 
-  unbind() {
+  unbind(): void {
     if (!this.isStatic) {
       this.model && this.model.unregister(this);
       this.model = undefined;
@@ -88,7 +95,8 @@ export default class Mustache extends Item {
   }
 }
 
-export function MustacheContainer(options) {
+// TODO implement an interface to define MustacheContainer behaviuor
+export function MustacheContainer(options): void {
   Mustache.call(this, options);
 }
 

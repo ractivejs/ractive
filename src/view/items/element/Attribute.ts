@@ -9,7 +9,7 @@ import Fragment from '../../Fragment';
 import Element from '../Element';
 import Interpolator from '../Interpolator';
 import findElement from '../shared/findElement';
-import Item, { ItemOptions } from '../shared/Item';
+import Item, { ItemOpts } from '../shared/Item';
 
 import getUpdateDelegate, { UpdateDelegate } from './attribute/getUpdateDelegate';
 import propertyNames from './attribute/propertyNames';
@@ -31,7 +31,7 @@ export function inAttribute(): boolean {
   return attribute;
 }
 
-interface AttributeOptions extends ItemOptions {
+interface AttributeOptions extends ItemOpts {
   owner: Element;
   element: Element;
 }
