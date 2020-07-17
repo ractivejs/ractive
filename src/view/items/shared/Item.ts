@@ -127,10 +127,10 @@ export class ContainerItem extends Item {
  * basic function that needs to be implemented when extenidng an Item.
  * Might worth to give a more semantic name
  */
-export interface BaseItemInterface {
+export interface BaseItemInterface extends Item {
   bind: () => void;
   render: (target: HTMLElement, ...args) => void;
   update: () => void;
   unbind: () => void;
-  unrender: () => void;
+  unrender: (shouldDestroy?: boolean) => void;
 }

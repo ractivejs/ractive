@@ -21,7 +21,7 @@ import resolve from './resolvers/resolve';
  * - Model
  * - ExpressionProxy
  */
-type ViewAliases = { [key: string]: ModelBase };
+type ViewAliases = { [key: string]: ModelBase | KeyModel };
 
 function resolveAliases(
   aliases: AliasDefinitionRefinedTemplateItem[],
@@ -39,11 +39,10 @@ function resolveAliases(
   return dest;
 }
 
-type Owner = any; // Element | Section | Partial | Attribute;
-
-interface FragmentOptions {
-  owner: Owner;
-  ractive?: any;
+export interface FragmentOpts {
+  /** Element | Section | Partial | Attribute */
+  owner: any;
+  ractive?: any; // TODO add ractive type
   cssIds?: string[];
   template: any;
 }
@@ -53,31 +52,34 @@ export default class Fragment {
   private owner: any;
   private isRoot: boolean;
   public parent: any;
-  public ractive: any;
+  public ractive: any; // TODO add ractive type
   private template: any;
 
   private componentParent: any;
   public context: ModelBase;
   public cssIds: string[];
+  public isIteration: boolean;
   public iterations: any;
   public items: any[];
-  private aliases: ViewAliases;
-  private pathModel: KeyModel;
-  private rootModel: KeyModel;
-  private keyModel: KeyModel;
-  private key: string;
-  private index: number;
-  private idxModel: KeyModel;
-  private value: unknown;
+  public aliases: ViewAliases;
+  public pathModel: KeyModel;
+  public rootModel: KeyModel;
+  public keyModel: KeyModel;
+  public key: string | number;
+  public index: number;
+  public idxModel: KeyModel;
+  public value: unknown;
+  public lastValue: any;
+  public shouldRebind: number;
 
   public delegate: boolean;
   private rendered: boolean;
-  private dirty: boolean;
+  public dirty: boolean;
   private dirtyValue: boolean;
   private bound: boolean;
   private updating: boolean;
 
-  constructor(options: FragmentOptions) {
+  constructor(options: FragmentOpts) {
     this.owner = options.owner;
 
     this.isRoot = !options.owner.up;
@@ -437,7 +439,7 @@ export default class Fragment {
   getKeypath = getKeypath;
 }
 
-export function getKeypath(root): KeyModel {
+export function getKeypath(root?): KeyModel {
   const base = findParentWithContext(this);
   let model: KeyModel;
   if (root) {

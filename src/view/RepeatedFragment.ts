@@ -1,4 +1,5 @@
 import { ELEMENT } from 'config/types';
+import Model from 'model/Model';
 import KeyModel from 'model/specials/KeyModel';
 import { getContext } from 'shared/getRactiveContext';
 import { toEscapedString, toString, shuffled, update } from 'shared/methodCallers';
@@ -9,13 +10,53 @@ import { keys } from 'utils/object';
 
 import { splitKeypath } from '../shared/keypaths';
 
-import Fragment, { getKeypath } from './Fragment';
+import Fragment, { getKeypath, FragmentOpts } from './Fragment';
+import Element from './items/Element';
 import resolve from './resolvers/resolve';
 
 const keypathString = /^"(\\"|[^"])+"$/;
 
+export interface RepeatedFragmentOpts extends FragmentOpts {
+  indexRef?: string;
+  keyRef?: string;
+}
+
 export default class RepeatedFragment {
-  constructor(options) {
+  private owner: any;
+  private parent: any;
+  private ractive: any; // TODO add ractive type
+  private template: any;
+
+  // boolean | number | Element
+  private delegate: any;
+
+  public context: Model;
+  private iterations: Fragment[];
+  private indexRef: string;
+  public keyRef: string;
+  private pendingNewIndices: any[];
+  private previousIterations: any;
+  public aliases: any;
+  private shuffler: any;
+  public source: any;
+  private values: any;
+  private length: number;
+  private bubbled: number[];
+  private rebounding: number;
+
+  private lastModel: KeyModel;
+  private pathModel: KeyModel;
+  private rootModel: KeyModel;
+
+  private rendered: boolean;
+  private isArray: boolean;
+  private updating: boolean;
+
+  public bound: boolean;
+  public up: RepeatedFragment;
+  public cssIds: string[];
+
+  constructor(options: RepeatedFragmentOpts) {
     this.parent = options.owner.up;
 
     // bit of a hack, so reference resolution works without another
@@ -49,7 +90,7 @@ export default class RepeatedFragment {
     this.isArray = false;
   }
 
-  bind(context) {
+  bind(context: Model): this {
     this.context = context;
     this.bound = true;
     const value = context.get();
@@ -111,16 +152,17 @@ export default class RepeatedFragment {
     return this;
   }
 
-  bubble(index) {
+  bubble(index?: number): void {
     if (!this.bubbled) this.bubbled = [];
     this.bubbled.push(index);
 
     if (!this.rebounding) this.owner.bubble();
   }
 
-  createIteration(key, index) {
+  createIteration(key, index): Fragment {
     const fragment = new Fragment({
-      owner: this,
+      // TODO avoid error
+      owner: (this as unknown) as Fragment,
       template: this.template
     });
 
@@ -133,14 +175,14 @@ export default class RepeatedFragment {
     return fragment.bind(fragment.context);
   }
 
-  destroyed() {
+  destroyed(): void {
     const len = this.iterations.length;
     for (let i = 0; i < len; i++) this.iterations[i].destroyed();
     if (this.pathModel) this.pathModel.destroyed();
     if (this.rootModel) this.rootModel.destroyed();
   }
 
-  detach() {
+  detach(): DocumentFragment {
     const docFrag = createDocumentFragment();
     this.iterations.forEach(fragment => docFrag.appendChild(fragment.detach()));
     return docFrag;
@@ -185,7 +227,7 @@ export default class RepeatedFragment {
     return this.lastModel || (this.lastModel = new KeyModel(this.length - 1));
   }
 
-  rebind(next) {
+  rebind(next): void {
     this.context = next;
     if (this.source) return;
     this.iterations.forEach(fragment => {
@@ -193,7 +235,7 @@ export default class RepeatedFragment {
     });
   }
 
-  rebound(update) {
+  rebound(update: boolean): void {
     this.context = this.owner.model;
     this.iterations.forEach((f, i) => {
       f.context = contextFor(this, f, i);
@@ -201,7 +243,7 @@ export default class RepeatedFragment {
     });
   }
 
-  render(target, occupants) {
+  render(target, occupants): void {
     const xs = this.iterations;
     if (xs) {
       const len = xs.length;
@@ -240,15 +282,15 @@ export default class RepeatedFragment {
     if (!merge) this.bubble();
   }
 
-  shuffled() {
+  shuffled(): void {
     this.iterations.forEach(shuffled);
   }
 
-  toString(escape) {
+  toString(escape: boolean): string {
     return this.iterations ? this.iterations.map(escape ? toEscapedString : toString).join('') : '';
   }
 
-  unbind(view) {
+  unbind(view): this {
     this.bound = false;
     if (this.source) this.source.model.unregister(this.source);
     const iterations = this.pendingNewIndices ? this.previousIterations : this.iterations;
@@ -257,7 +299,7 @@ export default class RepeatedFragment {
     return this;
   }
 
-  unrender(shouldDestroy) {
+  unrender(shouldDestroy: boolean): void {
     let len = this.iterations.length;
     for (let i = 0; i < len; i++) this.iterations[i].unrender(shouldDestroy);
     if (this.pendingNewIndices && this.previousIterations) {
@@ -267,7 +309,7 @@ export default class RepeatedFragment {
     this.rendered = false;
   }
 
-  update() {
+  update(): void {
     if (this.pendingNewIndices) {
       this.bubbled.length = 0;
       this.updatePostShuffle();
@@ -413,11 +455,11 @@ export default class RepeatedFragment {
     this.updating = false;
   }
 
-  updateLast() {
+  updateLast(): void {
     if (this.lastModel) this.lastModel.applyValue(this.length - 1);
   }
 
-  updatePostShuffle() {
+  updatePostShuffle(): void {
     const newIndices = this.pendingNewIndices[0];
     const parentNode = this.rendered ? this.parent.findParentNode() : null;
     const nextNode = parentNode && this.owner.findNextNode();
@@ -494,7 +536,7 @@ export default class RepeatedFragment {
           idx++;
         }
 
-        if (next && isObjectType(next)) {
+        if (next && isObjectType<any>(next)) {
           if (next.shouldRebind || rebound) {
             next.rebound(rebound);
             next.shouldRebind = 0;
@@ -514,13 +556,13 @@ export default class RepeatedFragment {
     this.pendingNewIndices = null;
     this.previousIterations = null;
   }
+
+  getContext = getContext;
+  getKeypath = getKeypath;
 }
 
-RepeatedFragment.prototype.getContext = getContext;
-RepeatedFragment.prototype.getKeypath = getKeypath;
-
 // find the topmost delegate
-function findDelegate(start) {
+function findDelegate(start): Element {
   let frag = start;
   let delegate, el;
 
@@ -543,11 +585,15 @@ function findDelegate(start) {
       frag = frag.parent || frag.componentParent;
     }
   }
-
   return delegate;
 }
 
-function swizzleFragment(section, fragment, key, idx) {
+function swizzleFragment(
+  section: RepeatedFragment,
+  fragment: Fragment,
+  key: string | number,
+  idx: number
+): void {
   const model = section.context ? contextFor(section, fragment, key) : undefined;
 
   fragment.key = key;
@@ -568,17 +614,16 @@ function swizzleFragment(section, fragment, key, idx) {
 
   // handle any aliases
   const aliases = fragment.aliases;
-  section.aliases &&
-    section.aliases.forEach(a => {
-      if (a.x.r === '.') aliases[a.n] = model;
-      else if (a.x.r === '@index') aliases[a.n] = fragment.getIndex();
-      else if (a.x.r === '@key') aliases[a.n] = fragment.getKey();
-      else if (a.x.r === '@keypath') aliases[a.n] = fragment.getKeypath();
-      else if (a.x.r === '@rootpath') aliases[a.n] = fragment.getKeypath(true);
-    });
+  section.aliases?.forEach(a => {
+    if (a.x.r === '.') aliases[a.n] = model;
+    else if (a.x.r === '@index') aliases[a.n] = fragment.getIndex();
+    else if (a.x.r === '@key') aliases[a.n] = fragment.getKey();
+    else if (a.x.r === '@keypath') aliases[a.n] = fragment.getKeypath();
+    else if (a.x.r === '@rootpath') aliases[a.n] = fragment.getKeypath(true);
+  });
 }
 
-function shuffleValues(section, shuffler) {
+function shuffleValues(section: RepeatedFragment, shuffler: true | any[]): any[] {
   const array = section.context.get() || [];
   if (shuffler === true) {
     return array.slice();
@@ -587,7 +632,7 @@ function shuffleValues(section, shuffler) {
   }
 }
 
-function contextFor(section, fragment, key) {
+function contextFor(section, _fragment, key) {
   if (section.source) {
     let idx;
     const source = section.source.model.get();

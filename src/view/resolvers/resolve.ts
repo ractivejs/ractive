@@ -1,3 +1,5 @@
+import RepeatedFragment from 'view/RepeatedFragment';
+
 import Fragment from '../Fragment';
 
 import ExpressionProxy from './ExpressionProxy';
@@ -5,7 +7,7 @@ import ReferenceExpressionProxy from './ReferenceExpressionProxy';
 import resolveReference from './resolveReference';
 
 export default function resolve(
-  fragment: Fragment,
+  fragment: Fragment | RepeatedFragment,
   template
 ): ExpressionProxy | ReferenceExpressionProxy {
   if (template.r) {
