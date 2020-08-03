@@ -37,8 +37,8 @@ export default class Element extends ContainerItem {
   public root: any;
 
   private decorators: Decorator[];
-  private statics: { [key: string]: string };
-  public attributeByName: { [key: string]: Attribute };
+  private statics: Record<string, string>;
+  public attributeByName: Record<string, Attribute>;
   protected attributes: any[] & { binding?: boolean; unbinding?: boolean };
   public binding: Binding;
   private ctx: Context;

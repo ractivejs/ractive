@@ -3,9 +3,9 @@ import { createDocumentFragment } from 'utils/dom';
 import Fragment from 'view/Fragment';
 
 export interface ItemOpts {
-  up: any; // TODO add correct types
-  template: any; // TODO add correct types
-  index: number;
+  up: Item['up'];
+  template: Item['template'];
+  index: Item['index'];
 }
 
 export default class Item {
@@ -13,7 +13,7 @@ export default class Item {
   public up: any;
   public ractive: any;
 
-  public template;
+  public template: any;
   public type: TemplateItemType;
   public index: number;
 
@@ -127,10 +127,12 @@ export class ContainerItem extends Item {
  * basic function that needs to be implemented when extenidng an Item.
  * Might worth to give a more semantic name
  */
-export interface BaseItemInterface extends Item {
+export interface ItemBasicFunctions {
   bind: () => void;
   render: (target: HTMLElement, ...args) => void;
   update: () => void;
   unbind: () => void;
   unrender: (shouldDestroy?: boolean) => void;
 }
+
+export interface ItemBasicInterface extends Item, ItemBasicFunctions {}

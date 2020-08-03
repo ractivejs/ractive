@@ -2,8 +2,14 @@ import runloop from 'src/global/runloop';
 import { localFragment } from 'src/shared/Context';
 import { fatal } from 'utils/log';
 
-class DOMEvent {
-  constructor(name, owner) {
+import EventDirective, { RactiveEventInterface } from '../shared/EventDirective';
+
+class DOMEvent implements RactiveEventInterface {
+  private name: string;
+  private owner: any;
+  private handler;
+
+  constructor(name: DOMEvent['name'], owner: DOMEvent['owner']) {
     if (name.indexOf('*') !== -1) {
       fatal(
         `Only component proxy-events may contain "*" wildcards, <${owner.name} on-${name}="..."/> is not valid`
@@ -15,9 +21,9 @@ class DOMEvent {
     this.handler = null;
   }
 
-  bind() {}
+  bind(): void {}
 
-  render(directive) {
+  render(directive: EventDirective): void {
     const name = this.name;
 
     const register = () => {
@@ -45,25 +51,37 @@ class DOMEvent {
     }
   }
 
-  unbind() {}
+  unbind(): void {}
 
-  unrender() {
+  unrender(): void {
     if (this.handler) this.owner.off(this.name, this.handler);
   }
 }
 
-class CustomEvent {
-  constructor(eventPlugin, owner, name, args) {
+class CustomEvent implements RactiveEventInterface {
+  private eventPlugin: any;
+  private owner: any;
+  private name: any;
+  private handler: any;
+  private args: any;
+
+  constructor(
+    eventPlugin: CustomEvent['eventPlugin'],
+    owner: CustomEvent['owner'],
+    name: CustomEvent['name'],
+    args: CustomEvent['args']
+  ) {
     this.eventPlugin = eventPlugin;
     this.owner = owner;
     this.name = name;
-    this.handler = null;
     this.args = args;
+
+    this.handler = null;
   }
 
-  bind() {}
+  bind(): void {}
 
-  render(directive) {
+  render(directive: EventDirective): void {
     runloop.scheduleTask(() => {
       const node = this.owner.node;
 
@@ -72,7 +90,7 @@ class CustomEvent {
         this.owner.ractive,
         [
           node,
-          (event = {}) => {
+          (event: any = {}) => {
             if (event.original) event.event = event.original;
             else event.original = event.event;
 
@@ -86,9 +104,9 @@ class CustomEvent {
     });
   }
 
-  unbind() {}
+  unbind(): void {}
 
-  unrender() {
+  unrender(): void {
     this.handler.teardown();
   }
 }

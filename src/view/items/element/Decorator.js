@@ -28,6 +28,9 @@ export default class Decorator {
     this.handle = null;
 
     this.element.decorators.push(this);
+
+    // avoid ts errors
+    this.model = undefined;
   }
 
   bind() {

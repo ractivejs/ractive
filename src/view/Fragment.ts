@@ -49,7 +49,7 @@ export interface FragmentOpts {
 
 export default class Fragment {
   /** The item that owns this fragment - an element, section, partial, or attribute */
-  private owner: any;
+  public owner: any;
   private isRoot: boolean;
   public parent: any;
   public ractive: any; // TODO add ractive type

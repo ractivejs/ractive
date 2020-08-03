@@ -1,8 +1,8 @@
 import { DoctypeTemplateItem } from 'parse/converters/templateItemDefinitions';
 
-import Item, { BaseItemInterface } from './shared/Item';
+import Item, { ItemBasicInterface } from './shared/Item';
 
-export default class Doctype extends Item implements BaseItemInterface {
+export default class Doctype extends Item implements ItemBasicInterface {
   public template: DoctypeTemplateItem;
 
   toString(): string {

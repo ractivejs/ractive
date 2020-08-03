@@ -49,6 +49,9 @@ export default class Context {
     this.node = this.element && this.element.node;
     this.ractive = fragment.ractive;
     this.root = this;
+
+    // avoid ts errors
+    this.refire = undefined;
   }
 
   get decorators() {

@@ -1,13 +1,17 @@
 import { ANCHOR, COMPONENT } from 'config/types';
+import Model from 'model/Model';
+import { EventDirectiveTemplateItem } from 'parse/converters/element/elementDefinitions';
+import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
+import Context from 'shared/Context';
 import getFunction from 'shared/getFunction';
 import { splitKeypath } from 'shared/keypaths';
 import { findInViewHierarchy } from 'shared/registry';
 import fireEvent from 'src/events/fireEvent';
-import Context from 'src/shared/Context';
 import { addToArray, removeFromArray } from 'utils/array';
 import { isArray, isString } from 'utils/is';
 import { warnIfDebug, warnOnceIfDebug } from 'utils/log';
-import noop from 'utils/noop';
+import Fragment from 'view/Fragment';
+import ExpressionProxy from 'view/resolvers/ExpressionProxy';
 
 import resolveReference from '../../resolvers/resolveReference';
 import RactiveEvent from '../component/RactiveEvent';
@@ -15,21 +19,49 @@ import { DOMEvent, CustomEvent } from '../element/ElementEvents';
 import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
 
 import findElement from './findElement';
+import Item, { ItemBasicFunctions } from './Item';
 
 const specialPattern = /^(event|arguments|@node|@event|@context)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
 
-export default class EventDirective {
-  constructor(options) {
+export interface EventDirectiveOpts {
+  owner?: EventDirective['owner'];
+  template: EventDirective['element'];
+  up: EventDirective['up'];
+  ractive: EventDirective['up'];
+}
+
+/** Very very semantic */
+export interface RactiveEventInterface {
+  bind: (directive?: EventDirective) => void;
+  render: (directive?: EventDirective) => void;
+  unbind: () => void;
+  unrender: () => void;
+}
+
+export default class EventDirective implements ItemBasicFunctions {
+  private owner: Item;
+  private element: any;
+  private template: EventDirectiveTemplateItem;
+  public up: Fragment;
+  private ractive: any; // TODO add ractive type
+  private events: RactiveEventInterface[];
+
+  public model: ExpressionProxy;
+  public fn: any;
+  private action: string;
+
+  constructor(options: EventDirectiveOpts) {
     this.owner = options.owner || options.up.owner || findElement(options.up);
-    this.element = this.owner.attributeByName ? this.owner : findElement(options.up, true);
+    // TSRChange - changed check using in to avoid errors related to type (attributeByName is present in component and Element)
+    this.element = 'attributeByName' in this.owner ? this.owner : findElement(options.up, true);
     this.template = options.template;
     this.up = options.up;
     this.ractive = options.up.ractive;
     this.events = [];
   }
 
-  bind() {
+  bind(): void {
     // sometimes anchors will cause an unbind without unrender
     if (this.events.length) {
       this.events.forEach(e => e.unrender());
@@ -41,7 +73,7 @@ export default class EventDirective {
         this.events.push(new RactiveEvent(this.element, n));
       });
     } else {
-      let args;
+      let args: ExpressionFunctionTemplateItem;
       if ((args = this.template.a)) {
         const rs = args.r.map(r => {
           const model = resolveReference(this.up, r);
@@ -70,22 +102,25 @@ export default class EventDirective {
       });
     }
 
+    // TSRChange - removed it seems not used
     // method calls
-    this.models = null;
+    // this.models = null;
 
     addToArray(this.element.events || (this.element.events = []), this);
 
     setupArgsFn(this, this.template);
-    if (!this.fn) this.action = this.template.f;
+    if (!this.fn) {
+      this.action = this.template.f as string;
+    }
 
     this.events.forEach(e => e.bind(this));
   }
 
-  destroyed() {
+  destroyed(): void {
     this.events.forEach(e => e.unrender());
   }
 
-  fire(event, args = []) {
+  fire(event: Context | any, args = []): any {
     const context =
       event instanceof Context && event.refire ? event : this.element.getContext(event);
 
@@ -108,9 +143,11 @@ export default class EventDirective {
             // on-click="foo($1)"
             return {
               special: 'arguments',
-              keys: [dollarMatch[1] - 1].concat(
-                dollarMatch[2] ? splitKeypath(dollarMatch[2].substr(1)) : []
-              )
+              keys: [
+                // TSRChange - added number casting
+                Number(dollarMatch[1]) - 1,
+                ...(dollarMatch[2] ? splitKeypath(dollarMatch[2].substr(1)) : [])
+              ]
             };
           }
         }
@@ -120,7 +157,8 @@ export default class EventDirective {
         models.forEach(model => {
           if (!model) return values.push(undefined);
 
-          if (model.special) {
+          // TSRChange - replace `model.special` with in for type checking
+          if ('special' in model) {
             const which = model.special;
             let obj;
 
@@ -145,7 +183,8 @@ export default class EventDirective {
             return values.push(obj);
           }
 
-          if (model.wrapper) {
+          // TSRChange - added instanceof condition
+          if (model instanceof Model && model.wrapper) {
             return values.push(model.wrapperValue);
           }
 
@@ -183,29 +222,35 @@ export default class EventDirective {
 
       return result;
     } else {
-      return fireEvent(this.ractive, this.action, context, args);
+      const out = fireEvent(this.ractive, this.action, context, args);
+      return out;
     }
   }
 
-  handleChange() {}
+  handleChange(): void {}
 
-  render() {
+  render(): void {
     this.events.forEach(e => e.render(this));
   }
 
-  toString() {
+  toString(): string {
     return '';
   }
 
-  unbind(view) {
+  unbind(): void {
     removeFromArray(this.element.events, this);
-    this.events.forEach(e => e.unbind(view));
+    this.events.forEach(e => e.unbind());
   }
 
-  unrender() {
+  unrender(): void {
     this.events.forEach(e => e.unrender());
   }
+
+  firstNode(): void {}
+  rebound(): void {}
+  update(): void {}
 }
 
-const proto = EventDirective.prototype;
-proto.firstNode = proto.rebound = proto.update = noop;
+// TSRChange - move function inside body class
+// const proto = EventDirective.prototype;
+// proto.firstNode = proto.rebound = proto.update = noop;

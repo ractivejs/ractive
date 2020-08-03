@@ -4,10 +4,10 @@ import { detachNode } from 'utils/dom';
 import { escapeHtml } from 'utils/html';
 
 import { inAttributes } from './element/ConditionalAttribute';
-import Item, { ItemOpts, BaseItemInterface } from './shared/Item';
+import Item, { ItemOpts, ItemBasicInterface } from './shared/Item';
 import progressiveText from './shared/progressiveText';
 
-export default class Text extends Item implements BaseItemInterface {
+export default class Text extends Item implements ItemBasicInterface {
   public node: globalThis.Text;
   public rendered: boolean;
   public template: TextTemplateItem;

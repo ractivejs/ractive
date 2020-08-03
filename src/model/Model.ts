@@ -48,8 +48,8 @@ export default class Model extends ModelBase implements ModelWithShuffle {
   private rewrap: boolean;
   protected boundValue: any;
 
-  protected wrapper: AdaptorHandle;
-  protected wrapperValue: any;
+  public wrapper: AdaptorHandle;
+  public wrapperValue: any;
   protected newWrapperValue: any;
 
   public shuffling: boolean;
