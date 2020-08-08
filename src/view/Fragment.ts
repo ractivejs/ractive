@@ -5,6 +5,7 @@ import { AliasDefinitionRefinedTemplateItem } from 'parse/converters/mustache/mu
 import { getContext, findParentWithContext } from 'shared/getRactiveContext';
 import { shuffled, toEscapedString, toString } from 'shared/methodCallers';
 import runloop from 'src/global/runloop';
+import { RactiveFake } from 'types/RactiveFake';
 import { findMap } from 'utils/array';
 import { createDocumentFragment } from 'utils/dom';
 import parseJSON from 'utils/parseJSON';
@@ -41,10 +42,10 @@ function resolveAliases(
 
 export interface FragmentOpts {
   /** Element | Section | Partial | Attribute */
-  owner: any;
-  ractive?: any; // TODO add ractive type
-  cssIds?: string[];
-  template: any;
+  owner: Fragment['owner'];
+  ractive?: Fragment['ractive'];
+  cssIds?: Fragment['cssIds'];
+  template: Fragment['template'];
 }
 
 export default class Fragment {
@@ -52,7 +53,7 @@ export default class Fragment {
   public owner: any;
   private isRoot: boolean;
   public parent: any;
-  public ractive: any; // TODO add ractive type
+  public ractive: RactiveFake;
   private template: any;
 
   private componentParent: any;

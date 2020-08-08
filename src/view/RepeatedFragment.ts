@@ -3,6 +3,7 @@ import Model from 'model/Model';
 import KeyModel from 'model/specials/KeyModel';
 import { getContext } from 'shared/getRactiveContext';
 import { toEscapedString, toString, shuffled, update } from 'shared/methodCallers';
+import { RactiveFake } from 'types/RactiveFake';
 import { findMap, buildNewIndices } from 'utils/array';
 import { createDocumentFragment } from 'utils/dom';
 import { isArray, isObject, isObjectType, isUndefined } from 'utils/is';
@@ -17,14 +18,14 @@ import resolve from './resolvers/resolve';
 const keypathString = /^"(\\"|[^"])+"$/;
 
 export interface RepeatedFragmentOpts extends FragmentOpts {
-  indexRef?: string;
-  keyRef?: string;
+  indexRef?: RepeatedFragment['indexRef'];
+  keyRef?: RepeatedFragment['keyRef'];
 }
 
 export default class RepeatedFragment {
   private owner: any;
   private parent: any;
-  private ractive: any; // TODO add ractive type
+  private ractive: RactiveFake;
   private template: any;
 
   // boolean | number | Element

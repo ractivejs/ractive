@@ -1,4 +1,5 @@
 import TemplateItemType from 'config/types';
+import { GenericAttributeTemplateItem } from 'parse/converters/element/elementDefinitions';
 import { updateAnchors } from 'shared/anchors';
 import Context from 'shared/Context';
 import getRactiveContext from 'shared/getRactiveContext';
@@ -100,7 +101,10 @@ export default class Component extends Item {
       if (isArray(this.mappings)) {
         attrs = (attrs || []).concat(this.mappings);
       } else if (isString(this.mappings)) {
-        attrs = (attrs || []).concat(parser.parse(this.mappings, { attributes: true }).t);
+        // TODO this function returns an array of attribute template item, Ractive or Child. We need to refine the type
+        type P = GenericAttributeTemplateItem | any;
+        const parsedMappings = parser.parse<P>(this.mappings, { attributes: true });
+        attrs = (attrs || []).concat(parsedMappings.t);
       }
 
       // for hackability, this could be an open option

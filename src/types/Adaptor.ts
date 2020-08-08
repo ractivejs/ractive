@@ -1,7 +1,6 @@
 import { Keypath } from './Keypath';
+import { RactiveFake } from './RactiveFake';
 import { ValueMap } from './ValueMap';
-
-// TODO replace ractive type with correct type when available
 
 export interface Adaptor {
   /** Called when Ractive gets a new value to see if the adaptor should be applied.
@@ -10,7 +9,7 @@ export interface Adaptor {
    * @param ractive the Ractive instance that is applying the value to the given keypath
    * @returns true if the adaptor should be applied, false otherwisej
    */
-  filter: (value: any, keypath: string, ractive: any) => boolean;
+  filter: (value: any, keypath: string, ractive: RactiveFake) => boolean;
 
   /** Called when Ractive is applying the adaptor to a value
    * @param ractive the Ractive instance that is applying the adaptor
@@ -19,7 +18,12 @@ export interface Adaptor {
    * @param prefixer a helper function to prefix a value map with the current keypath
    * @returns the adaptor
    */
-  wrap: (ractive: any, value: any, keypath: string, prefixer: AdaptorPrefixer) => AdaptorHandle;
+  wrap: (
+    ractive: RactiveFake,
+    value: any,
+    keypath: string,
+    prefixer: AdaptorPrefixer
+  ) => AdaptorHandle;
 }
 export interface AdaptorHandle {
   /** Called when Ractive needs to retrieve the adapted value. */

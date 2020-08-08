@@ -1,6 +1,7 @@
 import { unescapeKey } from 'shared/keypaths';
 import { handleChange } from 'shared/methodCallers';
 import { capture } from 'src/global/capture';
+import { RactiveFake } from 'types/RactiveFake';
 import { addToArray, removeFromArray } from 'utils/array';
 import noop from 'utils/noop';
 import Interpolator from 'view/items/Interpolator';
@@ -23,7 +24,7 @@ export default class KeyModel {
    * - LinkModel
    */
   public context: ModelBase;
-  public instance: any; // TODO add ractive type here and in the constructor
+  public instance: RactiveFake;
 
   public deps: KeyModelDependency[] = [];
   public links: LinkModel[] = [];
@@ -33,7 +34,11 @@ export default class KeyModel {
   public isReadonly = true;
   public isKey = true;
 
-  constructor(value: string | number, context?: ModelBase, instance?) {
+  constructor(
+    value: KeyModel['value'],
+    context?: KeyModel['context'],
+    instance?: KeyModel['instance']
+  ) {
     this.value = value;
     this.key = value;
     this.context = context;

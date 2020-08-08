@@ -1,10 +1,10 @@
-// TODO add ractive type typings
+import { RactiveFake } from './RactiveFake';
 
 export class RactiveHTMLElement extends HTMLElement {
-  public _ractive: any;
-  public __ractive_instances__: any[];
+  public _ractive: RactiveFake;
+  public __ractive_instances__: RactiveFake[];
 }
 
 export interface RactiveHTMLOptionElement extends HTMLOptionElement {
-  _ractive?: any;
+  _ractive?: RactiveFake;
 }

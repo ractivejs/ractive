@@ -1,5 +1,6 @@
 import { escapeKey, unescapeKey } from 'shared/keypaths';
 import { Keypath } from 'types/Keypath';
+import { RactiveFake } from 'types/RactiveFake';
 import { addToArray, removeFromArray, Indexes } from 'utils/array';
 import bind from 'utils/bind';
 import { isArray, isObject, isObjectLike, isFunction } from 'utils/is';
@@ -34,8 +35,8 @@ type ShuffleFunction = (newIndices: Indexes, unsafe?: boolean) => void;
  */
 export interface ModelDependency {
   handleChange(path?: unknown): void;
-  rebind(prev: ModelBase, next: ModelBase, safe: boolean): void;
-  shuffle: ShuffleFunction;
+  rebind?: (prev: ModelBase, next: ModelBase, safe: boolean) => void;
+  shuffle?: ShuffleFunction;
 }
 
 /** When adding a pattern to the model is also tracked as a depency */
@@ -70,7 +71,7 @@ export default abstract class ModelBase {
   protected parent: ModelBase;
   protected root: RootModel | RactiveModel;
 
-  public ractive: any; // TODO add ractive type
+  public ractive: RactiveFake;
 
   public deps: ModelDependency[];
 
@@ -161,8 +162,7 @@ export default abstract class ModelBase {
     return matches;
   }
 
-  // TODO add ractive type
-  getKeypath(ractive?): Keypath {
+  getKeypath(ractive?: RactiveFake): Keypath {
     if (ractive !== this.ractive && this._link) return this._link.target.getKeypath(ractive);
 
     if (!this.keypath) {

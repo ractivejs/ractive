@@ -9,8 +9,11 @@ export const data = {};
 export class SharedModel extends Model {
   public adaptors: Adaptor[];
 
-  // TODO add ractive type
-  constructor(value, name: string, ractive?) {
+  constructor(
+    value: SharedModel['value'],
+    name: SharedModel['key'],
+    ractive?: SharedModel['ractive']
+  ) {
     super(null, `@${name}`);
     this.key = `@${name}`;
     this.value = value;
@@ -24,7 +27,7 @@ export class SharedModel extends Model {
     return this.key;
   }
 
-  retrieve() {
+  retrieve(): SharedModel['value'] {
     return this.value;
   }
 }

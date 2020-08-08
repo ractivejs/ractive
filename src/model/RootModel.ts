@@ -3,6 +3,7 @@ import { handleChange, mark } from 'shared/methodCallers';
 import { capture } from 'src/global/capture';
 import { Adaptor } from 'types/Adaptor';
 import { Keypath } from 'types/Keypath';
+import { RactiveFake } from 'types/RactiveFake';
 import noop from 'utils/noop';
 import Fragment from 'view/Fragment';
 import resolveReference from 'view/resolvers/resolveReference';
@@ -33,8 +34,7 @@ const specialModels = {
 specialModels['@'] = specialModels['@this'];
 
 export interface RootModelOpts {
-  // TODO add ractive type
-  ractive: any;
+  ractive: RactiveFake;
   data: any;
   adapt: Adaptor[];
 }

@@ -5,8 +5,7 @@ import LinkModel, { Missing } from '../LinkModel';
 import { SharedModel } from './SharedModel';
 
 export default class RactiveModel extends SharedModel {
-  // TODO add ractive type
-  constructor(ractive) {
+  constructor(ractive: RactiveModel['ractive']) {
     super(ractive, '@this');
     this.ractive = ractive;
   }
@@ -18,7 +17,7 @@ export default class RactiveModel extends SharedModel {
     if ((key === 'root' || key === 'parent') && !(model instanceof LinkModel))
       return initLink(model, key);
     else if (key === 'data') return this.ractive.viewmodel;
-    else if (key === 'cssData') return this.ractive.constructor._cssModel;
+    else if (key === 'cssData') return (this.ractive.constructor as any)._cssModel; // TODO remove this "workaround"
 
     return model;
   }
