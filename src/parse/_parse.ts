@@ -244,6 +244,6 @@ export class StandardParser extends Parser implements CustomParser {
   }
 }
 
-export default function parse(template: string, options: ParseOpts): TemplateModel {
+export default function parse<T>(template: string, options: ParseOpts): T {
   return new StandardParser(template, options || {}).result;
 }

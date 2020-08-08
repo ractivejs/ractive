@@ -1,7 +1,10 @@
 import { doc } from 'config/environment';
 import parse from 'parse/_parse';
+import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { fromExpression } from 'parse/utils/createFunction';
 import { addFunctions } from 'shared/getFunction';
+import { ParseOpts } from 'types/ParseOptions';
+import { RactiveFake } from 'types/RactiveFake';
 import { isString } from 'utils/is';
 import { fatal } from 'utils/log';
 
@@ -24,32 +27,35 @@ const TEMPLATE_INSTRUCTIONS = `Either preparse or use a ractive runtime source t
 
 const COMPUTATION_INSTRUCTIONS = `Either include a version of Ractive that can parse or convert your computation strings to functions.`;
 
-function throwNoParse(method, error, instructions) {
+function throwNoParse(method: Function, error: string, instructions: string): void {
   if (!method) {
     fatal(`Missing Ractive.parse - cannot parse ${error}. ${instructions}`);
   }
 }
 
-export function createFunction(body, length) {
+export function createFunction(body: string, length: number): Function {
   throwNoParse(fromExpression, 'new expression function', TEMPLATE_INSTRUCTIONS);
   return fromExpression(body, length);
 }
 
-export function createFunctionFromString(str, bindTo) {
+export function createFunctionFromString(
+  str: string,
+  bindTo: RactiveFake
+): () => (this: typeof bindTo) => any {
   throwNoParse(parse, 'compution string "${str}"', COMPUTATION_INSTRUCTIONS);
-  const tpl = parse(str, { expression: true });
+  const template = parse<ExpressionFunctionTemplateItem>(str, { expression: true });
   return function() {
-    return tpl.e.apply(
+    return template.e.apply(
       bindTo,
-      tpl.r.map(r => bindTo.get(r))
+      template.r.map(r => bindTo.get(r))
     );
   };
 }
 
 const parser = {
-  fromId(id, options) {
+  fromId(id: string, options: { noThrow?: boolean } = {}) {
     if (!doc) {
-      if (options && options.noThrow) {
+      if (options?.noThrow) {
         return;
       }
       throw new Error(`Cannot retrieve template #${id} as Ractive is not running in a browser.`);
@@ -57,30 +63,31 @@ const parser = {
 
     if (id) id = id.replace(/^#/, '');
 
-    let template;
+    let template: HTMLElement;
 
     if (!(template = doc.getElementById(id))) {
-      if (options && options.noThrow) {
+      if (options?.noThrow) {
         return;
       }
       throw new Error(`Could not find template element with id #${id}`);
     }
 
     if (template.tagName.toUpperCase() !== 'SCRIPT') {
-      if (options && options.noThrow) {
+      if (options?.noThrow) {
         return;
       }
       throw new Error(`Template element with id #${id}, must be a <script> element`);
     }
 
-    return 'textContent' in template ? template.textContent : template.innerHTML;
+    // TSRChange - was `'textContent' in template ? template.textContent : template.innerHTML;`
+    return template?.textContent || template.innerHTML;
   },
 
-  isParsed(template) {
+  isParsed(template: unknown) {
     return !isString(template);
   },
 
-  getParseOptions(ractive) {
+  getParseOptions(ractive: RactiveFake) {
     // Could be Ractive or a Component
     if (ractive.defaults) {
       ractive = ractive.defaults;
@@ -92,14 +99,14 @@ const parser = {
     }, {});
   },
 
-  parse(template, options) {
+  parse<T>(template: string, options: ParseOpts): T {
     throwNoParse(parse, 'template', TEMPLATE_INSTRUCTIONS);
-    const parsed = parse(template, options);
+    const parsed = parse<T>(template, options);
     addFunctions(parsed);
     return parsed;
   },
 
-  parseFor(template, ractive) {
+  parseFor(template, ractive: RactiveFake) {
     return this.parse(template, this.getParseOptions(ractive));
   }
 };

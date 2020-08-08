@@ -5,9 +5,10 @@ import {
   GenericAttributeTemplateItem,
   TransitionDirectiveTemplateItem,
   DecoratorDirectiveTemplateItem,
-  EventDirectiveTemplateItem
+  EventDirectiveTemplateItem,
+  AttributesOrDirectiveTemplateItem
 } from './element/elementDefinitions';
-import { FragmentTemplateItem } from './mustache/mustacheDefinitions';
+import { FragmentTemplateItem, MustachePrimaryItem } from './mustache/mustacheDefinitions';
 
 // todo replace occurrences of string where it makes sense
 export type TextTemplateItem = string;
@@ -34,7 +35,13 @@ export interface PartialRegistryTemplateItem {
 /** */
 export interface TemplateModel {
   v: number;
-  t: any[]; // add correct type after readTemplate conversion is complete
+  t: (
+    | MustachePrimaryItem
+    | AttributesOrDirectiveTemplateItem
+    | ElementTemplateItem
+    | CommentTemplateItem
+    | string
+  )[]; // add correct type after readTemplate conversion is complete
 
   p?: PartialRegistryTemplateItem;
 

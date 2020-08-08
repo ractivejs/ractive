@@ -1,13 +1,16 @@
 import runloop from 'src/global/runloop';
 import { localFragment } from 'src/shared/Context';
+import { EventPlugin, EventPluginHandle } from 'types/Events';
+import { RactiveFake } from 'types/RactiveFake';
 import { fatal } from 'utils/log';
 
+import Element from '../Element';
 import EventDirective, { RactiveEventInterface } from '../shared/EventDirective';
 
 class DOMEvent implements RactiveEventInterface {
   private name: string;
-  private owner: any;
-  private handler;
+  private owner: Element;
+  private handler: Function;
 
   constructor(name: DOMEvent['name'], owner: DOMEvent['owner']) {
     if (name.indexOf('*') !== -1) {
@@ -18,7 +21,6 @@ class DOMEvent implements RactiveEventInterface {
 
     this.name = name;
     this.owner = owner;
-    this.handler = null;
   }
 
   bind(): void {}
@@ -26,7 +28,7 @@ class DOMEvent implements RactiveEventInterface {
   render(directive: EventDirective): void {
     const name = this.name;
 
-    const register = () => {
+    const register = (): void => {
       const node = this.owner.node;
 
       this.owner.on(
@@ -59,11 +61,11 @@ class DOMEvent implements RactiveEventInterface {
 }
 
 class CustomEvent implements RactiveEventInterface {
-  private eventPlugin: any;
-  private owner: any;
-  private name: any;
-  private handler: any;
-  private args: any;
+  private eventPlugin: EventPlugin<RactiveFake>;
+  private owner: Element;
+  private name: string;
+  private handler: EventPluginHandle;
+  private args: unknown[];
 
   constructor(
     eventPlugin: CustomEvent['eventPlugin'],
@@ -86,20 +88,18 @@ class CustomEvent implements RactiveEventInterface {
       const node = this.owner.node;
 
       localFragment.f = directive.up;
-      this.handler = this.eventPlugin.apply(
-        this.owner.ractive,
-        [
-          node,
-          (event: any = {}) => {
-            if (event.original) event.event = event.original;
-            else event.original = event.event;
+      this.handler = this.eventPlugin.apply(this.owner.ractive, [
+        node,
+        (event: any = {}) => {
+          if (event.original) event.event = event.original;
+          else event.original = event.event;
 
-            event.name = this.name;
-            event.node = event.node || node;
-            return directive.fire(event);
-          }
-        ].concat(this.args || [])
-      );
+          event.name = this.name;
+          event.node = event.node || node;
+          return directive.fire(event);
+        },
+        ...(this.args || [])
+      ]);
       localFragment.f = null;
     });
   }

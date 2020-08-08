@@ -17,6 +17,7 @@ import { assign, create } from 'utils/object';
 
 import createItem from './createItem';
 import ConditionalAttribute from './element/ConditionalAttribute';
+import EventDirective from './shared/EventDirective';
 import Item, { ItemOpts } from './shared/Item';
 
 export default class Component extends Item {
@@ -39,6 +40,8 @@ export default class Component extends Item {
   public shouldDestroy: boolean;
   public addChild: Function;
   public removeChild: Function;
+
+  public events: EventDirective[];
 
   constructor(options: ItemOpts, ComponentConstructor) {
     super(options);

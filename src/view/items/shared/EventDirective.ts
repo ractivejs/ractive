@@ -1,7 +1,6 @@
-import { ANCHOR, COMPONENT } from 'config/types';
+import TemplateItemType from 'config/types';
 import Model from 'model/Model';
 import { EventDirectiveTemplateItem } from 'parse/converters/element/elementDefinitions';
-import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 import Context from 'shared/Context';
 import getFunction from 'shared/getFunction';
 import { splitKeypath } from 'shared/keypaths';
@@ -15,7 +14,9 @@ import Fragment from 'view/Fragment';
 import ExpressionProxy from 'view/resolvers/ExpressionProxy';
 
 import resolveReference from '../../resolvers/resolveReference';
+import Component from '../Component';
 import RactiveEvent from '../component/RactiveEvent';
+import Element from '../Element';
 import { DOMEvent, CustomEvent } from '../element/ElementEvents';
 import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
 
@@ -27,7 +28,7 @@ const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
 
 export interface EventDirectiveOpts {
   owner?: EventDirective['owner'];
-  template: EventDirective['element'];
+  template: EventDirective['template'];
   up: EventDirective['up'];
   ractive: EventDirective['up'];
 }
@@ -42,14 +43,14 @@ export interface RactiveEventInterface {
 
 export default class EventDirective implements ItemBasicFunctions {
   private owner: Item;
-  private element: any;
+  private element: Element | Component;
   private template: EventDirectiveTemplateItem;
   public up: Fragment;
   private ractive: RactiveFake;
   private events: RactiveEventInterface[];
 
   public model: ExpressionProxy;
-  public fn: any;
+  public fn: Function;
   private action: string;
 
   constructor(options: EventDirectiveOpts) {
@@ -69,12 +70,15 @@ export default class EventDirective implements ItemBasicFunctions {
       this.events = [];
     }
 
-    if (this.element.type === COMPONENT || this.element.type === ANCHOR) {
+    if (
+      this.element.type === TemplateItemType.COMPONENT ||
+      this.element.type === TemplateItemType.ANCHOR
+    ) {
       this.template.n.forEach(n => {
-        this.events.push(new RactiveEvent(this.element, n));
+        this.events.push(new RactiveEvent(this.element as Component, n));
       });
     } else {
-      let args: ExpressionFunctionTemplateItem;
+      let args;
       if ((args = this.template.a)) {
         const rs = args.r.map(r => {
           const model = resolveReference(this.up, r);
@@ -96,9 +100,9 @@ export default class EventDirective implements ItemBasicFunctions {
       this.template.n.forEach(n => {
         const fn = findInViewHierarchy('events', this.ractive, n);
         if (fn) {
-          this.events.push(new CustomEvent(fn, this.element, n, args));
+          this.events.push(new CustomEvent(fn, this.element as Element, n, args));
         } else {
-          this.events.push(new DOMEvent(n, this.element));
+          this.events.push(new DOMEvent(n, this.element as Element));
         }
       });
     }
@@ -164,9 +168,9 @@ export default class EventDirective implements ItemBasicFunctions {
             let obj;
 
             if (which === '@node') {
-              obj = this.element.node;
+              obj = (this.element as Element).node;
             } else if (which === '@event') {
-              obj = event && event.event;
+              obj = event?.event;
             } else if (which === 'event') {
               warnOnceIfDebug(
                 `The event reference available to event directives is deprecated and should be replaced with @context and @event`

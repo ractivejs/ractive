@@ -5,12 +5,12 @@ import Element from '../../Element';
 export default class Input extends Element {
   public checked: boolean;
 
-  render(target, occupants) {
+  render(target, occupants): void {
     super.render(target, occupants);
     this.node.defaultValue = this.node.value;
   }
 
-  compare(value, attrValue) {
+  compare(value, attrValue): boolean {
     const comparator = this.getAttribute('value-comparator');
     if (comparator) {
       if (isFunction(comparator)) {

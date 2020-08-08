@@ -20,6 +20,7 @@ import ConditionalAttribute from './element/ConditionalAttribute';
 import Decorator from './element/Decorator';
 import Input from './element/specials/Input';
 import Transition from './element/Transition';
+import EventDirective from './shared/EventDirective';
 import findElement from './shared/findElement';
 import { ContainerItem, ItemOpts } from './shared/Item';
 
@@ -52,6 +53,8 @@ export default class Element extends ContainerItem {
   public delegate: boolean;
   public lazy: boolean;
   public twoway: boolean;
+
+  public events: EventDirective[];
 
   constructor(options: ElementOpts) {
     super(options);
