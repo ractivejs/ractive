@@ -64,7 +64,7 @@ export default class Transition {
   private _fn: TransitionFunction;
   public _manager: TransitionManager;
   public fn: Function;
-  private params: Record<string, string | number>;
+  private params: ValueMap;
 
   constructor(options: TransitionOpts) {
     this.owner = options.owner || options.up.owner || findElement(options.up);

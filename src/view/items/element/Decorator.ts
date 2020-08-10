@@ -1,23 +1,46 @@
 import { missingPlugin } from 'config/errors';
+import { DecoratorDirectiveTemplateItem } from 'parse/converters/element/elementDefinitions';
 import { findInViewHierarchy } from 'shared/registry';
 import runloop from 'src/global/runloop';
 import { localFragment } from 'src/shared/Context';
+import { DecoratorHandle } from 'types/Decorator';
+import { RactiveFake } from 'types/RactiveFake';
 import { warnOnce } from 'utils/log';
 import noop from 'utils/noop';
+import ExpressionProxy from 'view/resolvers/ExpressionProxy';
 
 import Fragment from '../../Fragment';
-import { setupArgsFn, teardownArgsFn } from '../shared/directiveArgs';
+import Element from '../Element';
+import { teardownArgsFn, setupArgsFnWithRegister } from '../shared/directiveArgs';
 import findElement from '../shared/findElement';
 
-const missingDecorator = {
+const missingDecorator: DecoratorHandle = {
   update: noop,
   teardown: noop
 };
 
+interface DecoratorOpts {
+  owner: Decorator['owner'];
+  up: Decorator['up'];
+  template: Decorator['template'];
+}
+
 export default class Decorator {
-  constructor(options) {
+  private owner: any; // Partial | Section | Element
+  private element: Element;
+  private up: Fragment;
+  private ractive: RactiveFake;
+  private template: DecoratorDirectiveTemplateItem;
+  private name: string;
+  private node: HTMLElement;
+  private handle: DecoratorHandle;
+  public model: ExpressionProxy;
+  private dirty: boolean;
+  private shouldDestroy: boolean;
+
+  constructor(options: DecoratorOpts) {
     this.owner = options.owner || options.up.owner || findElement(options.up);
-    this.element = this.owner.attributeByName ? this.owner : findElement(options.up);
+    this.element = 'attributeByName' in this.owner ? this.owner : findElement(options.up);
     this.up = options.up || this.owner.up;
     this.ractive = this.up.ractive || this.owner.ractive;
     const template = (this.template = options.template);
@@ -28,18 +51,15 @@ export default class Decorator {
     this.handle = null;
 
     this.element.decorators.push(this);
-
-    // avoid ts errors
-    this.model = undefined;
   }
 
-  bind() {
+  bind(): void {
     // if the owner is the elment, make sure the context includes the element
     const frag = this.element === this.owner ? new Fragment({ owner: this.owner }) : this.up;
-    setupArgsFn(this, this.template, frag, { register: true });
+    setupArgsFnWithRegister(this, this.template, frag);
   }
 
-  bubble() {
+  bubble(): void {
     if (!this.dirty) {
       this.dirty = true;
       // decorators may be owned directly by an element or by a fragment if conditional
@@ -48,7 +68,7 @@ export default class Decorator {
     }
   }
 
-  destroyed() {
+  destroyed(): void {
     if (this.handle) {
       this.handle.teardown();
       this.handle = null;
@@ -56,15 +76,15 @@ export default class Decorator {
     this.shouldDestroy = true;
   }
 
-  handleChange() {
+  handleChange(): void {
     this.bubble();
   }
 
-  rebound(update) {
+  rebound(update): void {
     if (this.model) this.model.rebound(update);
   }
 
-  render() {
+  render(): void {
     this.shouldDestroy = false;
     if (this.handle) this.unrender();
     const ractive = this.ractive;
@@ -98,26 +118,26 @@ export default class Decorator {
     }, true);
   }
 
-  shuffled() {
+  shuffled(): void {
     if (this.handle && this.handle.shuffled) this.handle.shuffled();
   }
 
-  toString() {
+  toString(): string {
     return '';
   }
 
-  unbind() {
-    teardownArgsFn(this, this.template);
+  unbind(): void {
+    teardownArgsFn(this);
   }
 
-  unrender(shouldDestroy) {
+  unrender(shouldDestroy?: boolean): void {
     if ((!shouldDestroy || this.element.rendered) && this.handle) {
       this.handle.teardown();
       this.handle = null;
     }
   }
 
-  update() {
+  update(): void {
     const instance = this.handle;
 
     if (!this.dirty) {
@@ -139,6 +159,6 @@ export default class Decorator {
       }
     }
   }
-}
 
-Decorator.prototype.firstNode = noop;
+  firstNode = noop;
+}

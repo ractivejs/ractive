@@ -45,7 +45,7 @@ export interface FragmentOpts {
   owner: Fragment['owner'];
   ractive?: Fragment['ractive'];
   cssIds?: Fragment['cssIds'];
-  template: Fragment['template'];
+  template?: Fragment['template'];
 }
 
 export default class Fragment {

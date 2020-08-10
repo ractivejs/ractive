@@ -1,7 +1,8 @@
 import ModelBase from 'model/ModelBase';
 import {
   EventDirectiveTemplateItem,
-  TransitionDirectiveTemplateItem
+  TransitionDirectiveTemplateItem,
+  DecoratorDirectiveTemplateItem
 } from 'parse/converters/element/elementDefinitions';
 import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 import getFunction from 'shared/getFunction';
@@ -18,18 +19,22 @@ export function setupArgsFn(item: Transition, template: TransitionDirectiveTempl
 export function setupArgsFn(item: EventDirective, template: EventDirectiveTemplateItem): void;
 export function setupArgsFn(
   item: EventDirective | Transition,
-  template: EventDirectiveTemplateItem | TransitionDirectiveTemplateItem,
-  fragment?: Fragment,
-  opts: { register?: boolean } = {}
+  template: EventDirectiveTemplateItem | TransitionDirectiveTemplateItem
 ): void {
   if (template?.f && typeof template?.f !== 'string') {
-    if (opts.register) {
-      // Maybe only decorators enter here
-      (item as any).model = new ExpressionProxy(fragment, template.f);
-      (item as any).model.register(item);
-    } else {
-      item.fn = getFunction(template.f.s, template.f.r.length);
-    }
+    item.fn = getFunction(template.f.s, template.f.r.length);
+  }
+}
+
+// TSRChange - these function body was part of `setupArgsFn` using additional paramter.
+export function setupArgsFnWithRegister(
+  item: Decorator,
+  template: DecoratorDirectiveTemplateItem,
+  fragment: Fragment
+): void {
+  if (template?.f && typeof template?.f !== 'string') {
+    item.model = new ExpressionProxy(fragment, template.f);
+    item.model.register(item);
   }
 }
 

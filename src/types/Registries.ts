@@ -1,8 +1,8 @@
-import Decorator from 'view/items/element/Decorator';
 import Interpolator from 'view/items/Interpolator';
 import Partial from 'view/items/Partial';
 
 import { Adaptor } from './Adaptor';
+import { Decorator } from './Decorator';
 import { EasingFunction } from './Easings';
 import { EventPlugin } from './Events';
 import { RactiveFake } from './RactiveFake';
@@ -14,7 +14,7 @@ export type Registry<T> = Record<string, T>;
 export interface Registries {
   adaptors: Registry<Adaptor>;
   components: Registry<any>; // Component
-  decorators: Registry<Decorator>;
+  decorators: Registry<Decorator<RactiveFake>>;
   easings: Registry<EasingFunction>;
   events: Registry<EventPlugin<RactiveFake>>;
   interpolators: Registry<Interpolator>;

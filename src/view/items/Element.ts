@@ -37,7 +37,7 @@ export default class Element extends ContainerItem {
   public node: any;
   public root: any;
 
-  private decorators: Decorator[];
+  public decorators: Decorator[];
   private statics: Record<string, string>;
   public attributeByName: Record<string, Attribute>;
   public attributes: any[] & { binding?: boolean; unbinding?: boolean };
@@ -49,7 +49,7 @@ export default class Element extends ContainerItem {
   public intro: Transition;
   public outro: Transition;
 
-  protected rendered: boolean;
+  public rendered: boolean;
   public delegate: boolean;
   public lazy: boolean;
   public twoway: boolean;
