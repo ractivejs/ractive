@@ -14,16 +14,19 @@ import Transition from '../element/Transition';
 
 import EventDirective from './EventDirective';
 
+export function setupArgsFn(item: Transition, template: TransitionDirectiveTemplateItem): void;
+export function setupArgsFn(item: EventDirective, template: EventDirectiveTemplateItem): void;
 export function setupArgsFn(
-  item: EventDirective,
-  template: EventDirectiveTemplateItem,
+  item: EventDirective | Transition,
+  template: EventDirectiveTemplateItem | TransitionDirectiveTemplateItem,
   fragment?: Fragment,
   opts: { register?: boolean } = {}
 ): void {
   if (template?.f && typeof template?.f !== 'string') {
     if (opts.register) {
-      item.model = new ExpressionProxy(fragment, template.f);
-      item.model.register(item);
+      // Maybe only decorators enter here
+      (item as any).model = new ExpressionProxy(fragment, template.f);
+      (item as any).model.register(item);
     } else {
       item.fn = getFunction(template.f.s, template.f.r.length);
     }
@@ -41,7 +44,7 @@ export function resolveArgs(
   item: Transition,
   template: TransitionDirectiveTemplateItem,
   fragment: Fragment
-): (SpecialReference | ModelBase)[];
+): ModelBase[];
 export function resolveArgs(
   item: EventDirective,
   template: EventDirectiveTemplateItem,

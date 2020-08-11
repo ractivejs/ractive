@@ -1,15 +1,26 @@
 import { win } from 'config/environment';
 import { missingPlugin } from 'config/errors';
 import { visible } from 'config/visibility';
+import {
+  TransitionDirectiveTemplateItem,
+  TransitionTrigger
+} from 'parse/converters/element/elementDefinitions';
 import { findInViewHierarchy } from 'shared/registry';
+import TransitionManager from 'src/global/TransitionManager';
+import { RactiveFake } from 'types/RactiveFake';
+import { Transition as TransitionFunction } from 'types/Transition';
+import { ValueMap } from 'types/ValueMap';
 import { addToArray, removeFromArray } from 'utils/array';
 import { isArray, isObject, isFunction, isNumber, isString, isUndefined } from 'utils/is';
 import { warnOnceIfDebug } from 'utils/log';
 import noop from 'utils/noop';
 import { assign, hasOwn, keys } from 'utils/object';
+import Fragment from 'view/Fragment';
 
+import Element from '../Element';
 import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
 import findElement from '../shared/findElement';
+import Item from '../shared/Item';
 
 import createTransitions from './transitions/createTransitions';
 import prefix from './transitions/prefix';
@@ -17,29 +28,56 @@ import prefix from './transitions/prefix';
 const getComputedStyle = win && win.getComputedStyle;
 const resolved = Promise.resolve();
 
-/** todo use TransitionTrigger for keys */
 const names = {
   t0: 'intro-outro',
   t1: 'intro',
   t2: 'outro'
 };
 
+interface TransitionOpts {
+  owner: Transition['owner'];
+  up: Transition['up'];
+  template: Transition['template'];
+
+  name?: Transition['name'];
+  params?: Transition['params'];
+}
+
 export default class Transition {
-  constructor(options) {
+  private owner: Item; // Section | Element
+  public element: Element;
+  public ractive: RactiveFake;
+  private template: TransitionDirectiveTemplateItem;
+  private up: Fragment;
+  private options: TransitionOpts;
+  private onComplete: Function[];
+  public complete: Function;
+  public isIntro: boolean;
+  public isOutro: boolean;
+  public starting: boolean;
+
+  public node: HTMLElement;
+  private originals: Record<string, string | number>;
+  private targets: Record<string, string | number>;
+  public eventName: string;
+  public name: string | TransitionFunction;
+  private _fn: TransitionFunction;
+  public _manager: TransitionManager;
+  public fn: Function;
+  private params: Record<string, string | number>;
+
+  constructor(options: TransitionOpts) {
     this.owner = options.owner || options.up.owner || findElement(options.up);
-    this.element = this.owner.attributeByName ? this.owner : findElement(options.up);
+    // TSRChange - changed check using in to avoid errors related to type
+    this.element = 'attributeByName' in this.owner ? this.owner : findElement(options.up);
     this.ractive = this.owner.ractive;
     this.template = options.template;
     this.up = options.up;
     this.options = options;
     this.onComplete = [];
-
-    // avoid ts errors
-    this.isIntro = false;
-    this.isOutro = false;
   }
 
-  animateStyle(style, value, options) {
+  animateStyle(style, value, options): Promise<void> {
     if (arguments.length === 4) {
       throw new Error(
         't.animateStyle() returns a promise - use .then() instead of passing a callback'
@@ -119,7 +157,7 @@ export default class Transition {
     });
   }
 
-  bind() {
+  bind(): void {
     const options = this.options;
     const type = options.template && options.template.v;
     if (type) {
@@ -164,7 +202,7 @@ export default class Transition {
     }
   }
 
-  getStyle(props) {
+  getStyle(props: string | ValueMap): string | ValueMap {
     const computedStyle = getComputedStyle(this.node);
 
     if (isString(props)) {
@@ -184,14 +222,14 @@ export default class Transition {
       const prop = props[i];
       let value = computedStyle[prefix(prop)];
 
-      if (value === '0px') value = 0;
+      if (value === '0px') value = '0';
       styles[prop] = value;
     }
 
     return styles;
   }
 
-  processParams(params, defaults) {
+  processParams(params: ValueMap | number | string, defaults: ValueMap): ValueMap {
     if (isNumber(params)) {
       params = { duration: params };
     } else if (isString(params)) {
@@ -209,11 +247,11 @@ export default class Transition {
     return assign({}, defaults, params);
   }
 
-  registerCompleteHandler(fn) {
+  registerCompleteHandler(fn: Transition['onComplete'][0]): void {
     addToArray(this.onComplete, fn);
   }
 
-  setStyle(style, value) {
+  setStyle(style: string | ValueMap, value?): this {
     if (isString(style)) {
       const name = prefix(style);
       if (!hasOwn(this.originals, name)) this.originals[name] = this.node.style[name];
@@ -231,7 +269,7 @@ export default class Transition {
     return this;
   }
 
-  shouldFire(type) {
+  shouldFire(type: 'intro' | 'outro'): boolean {
     if (!this.ractive.transitionsEnabled) return false;
 
     // check for noIntro and noOutro cases, which only apply when the owner ractive is rendering and unrendering, respectively
@@ -263,7 +301,7 @@ export default class Transition {
     return true;
   }
 
-  start() {
+  start(): void {
     const node = (this.node = this.element.node);
     const originals = (this.originals = {}); //= node.getAttribute( 'style' );
     const targets = (this.targets = {});
@@ -302,27 +340,40 @@ export default class Transition {
     if (promise) promise.then(this.complete);
   }
 
-  toString() {
+  toString(): string {
     return '';
   }
 
-  unbind() {
+  unbind(): void {
     if (!this.element.attributes.unbinding) {
       const type = this.options && this.options.template && this.options.template.v;
-      if (type === 't0' || type === 't1') this.element.intro = null;
-      if (type === 't0' || type === 't2') this.element.outro = null;
+      if (type === TransitionTrigger.INTRO_OUTRO || type === TransitionTrigger.INTRO)
+        this.element.intro = null;
+      if (type === TransitionTrigger.INTRO_OUTRO || type === TransitionTrigger.OUTRO)
+        this.element.outro = null;
     }
   }
 
-  unregisterCompleteHandler(fn) {
+  unregisterCompleteHandler(fn: Transition['onComplete'][0]): void {
     removeFromArray(this.onComplete, fn);
   }
+
+  destroyed = noop;
+  firstNode = noop;
+  rebound = noop;
+  render = noop;
+  unrender = noop;
+  update = noop;
 }
 
-const proto = Transition.prototype;
-proto.destroyed = proto.firstNode = proto.rebound = proto.render = proto.unrender = proto.update = noop;
+// const proto = Transition.prototype;
+// proto.destroyed = proto.firstNode = proto.rebound = proto.render = proto.unrender = proto.update = noop;
 
-function nearestProp(prop, ractive, rendering) {
+function nearestProp<P extends 'noIntro' | 'noOutro' | 'nestedTransitions'>(
+  prop: P,
+  ractive: RactiveFake,
+  rendering?: boolean
+): RactiveFake[P] {
   let instance = ractive;
   while (instance) {
     if (

@@ -1,22 +1,21 @@
 import { removeFromArray } from 'utils/array';
 import { isFunction } from 'utils/is';
+import Transition from 'view/items/element/Transition';
 
 let id = 0;
-
-// TODO add correct types
 
 export default class TransitionManager {
   public callback: Function;
   public parent: TransitionManager;
 
-  public intros = [];
-  public outros = [];
-  public children = [];
+  public intros: Transition[];
+  public outros: Transition[];
+  public children: TransitionManager[];
 
   public totalChildren = 0;
   public outroChildren = 0;
 
-  public detachQueue = [];
+  public detachQueue: any[];
   public outrosComplete = false;
 
   public id: number;
@@ -25,7 +24,12 @@ export default class TransitionManager {
 
   public notifiedTotal: boolean;
 
-  constructor(callback, parent) {
+  constructor(callback: TransitionManager['callback'], parent: TransitionManager['parent']) {
+    this.intros = [];
+    this.outros = [];
+    this.children = [];
+    this.detachQueue = [];
+
     this.callback = callback;
     this.parent = parent;
 
@@ -36,13 +40,13 @@ export default class TransitionManager {
     }
   }
 
-  add(transition): void {
+  add(transition: Transition): void {
     const list = transition.isIntro ? this.intros : this.outros;
     transition.starting = true;
     list.push(transition);
   }
 
-  addChild(child): void {
+  addChild(child: TransitionManager): void {
     this.children.push(child);
 
     this.totalChildren += 1;
@@ -75,7 +79,7 @@ export default class TransitionManager {
     if (this.detachQueue.length) detachImmediate(this);
   }
 
-  remove(transition): void {
+  remove(transition: Transition): void {
     const list = transition.isIntro ? this.intros : this.outros;
     removeFromArray(list, transition);
     check(this);
@@ -119,7 +123,7 @@ function check(tm: TransitionManager): void {
   }
 }
 
-function allOutrosComplete(manager: TransitionManager): any {
+function allOutrosComplete(manager: TransitionManager): boolean {
   return !manager || (manager.outrosComplete && allOutrosComplete(manager.parent));
 }
 
@@ -155,7 +159,7 @@ function detachImmediate(manager: TransitionManager): void {
   }
 }
 
-function collectAllOutros(manager: TransitionManager, _list?): any[] {
+function collectAllOutros(manager: TransitionManager, _list?: Transition[]): Transition[] {
   let list = _list;
 
   // if there's no list, we're starting at the root to build one

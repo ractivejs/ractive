@@ -2,17 +2,17 @@ import { isClient, vendors } from 'config/environment';
 import { createElement } from 'utils/dom';
 import hyphenateCamel from 'utils/hyphenateCamel';
 
-let prefix;
+let prefix: (prop: string) => string;
 
 /* istanbul ignore next */
 if (!isClient) {
   prefix = null;
 } else {
-  const prefixCache = {};
+  const prefixCache: Record<string, string> = {};
   const testStyle = createElement('div').style;
 
   // technically this also normalizes on hyphenated styles as well
-  prefix = function(prop) {
+  prefix = function(prop: string) {
     if (!prefixCache[prop]) {
       const name = hyphenateCamel(prop);
 

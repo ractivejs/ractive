@@ -6,6 +6,7 @@ import { Adaptor } from './Adaptor';
 import { EasingFunction } from './Easings';
 import { EventPlugin } from './Events';
 import { RactiveFake } from './RactiveFake';
+import { Transition } from './Transition';
 
 export type Registry<T> = Record<string, T>;
 
@@ -19,4 +20,5 @@ export interface Registries {
   interpolators: Registry<Interpolator>;
   helpers: Registry<any>; // Helper
   partials: Registry<Partial>;
+  transitions: Registry<Transition>;
 }

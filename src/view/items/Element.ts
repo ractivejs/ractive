@@ -40,14 +40,14 @@ export default class Element extends ContainerItem {
   private decorators: Decorator[];
   private statics: Record<string, string>;
   public attributeByName: Record<string, Attribute>;
-  protected attributes: any[] & { binding?: boolean; unbinding?: boolean };
+  public attributes: any[] & { binding?: boolean; unbinding?: boolean };
   public binding: Binding;
   private ctx: Context;
   private listeners: { [key: string]: Function[] & { refs?: number } };
   protected foundNode: Function;
   protected isSelected: Function;
-  private intro: Transition;
-  private outro: Transition;
+  public intro: Transition;
+  public outro: Transition;
 
   protected rendered: boolean;
   public delegate: boolean;

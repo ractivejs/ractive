@@ -2,30 +2,39 @@ import { isClient } from 'config/environment';
 import { missingPlugin } from 'config/errors';
 import interpolate from 'shared/interpolate';
 import Ticker from 'shared/Ticker';
+import { TransitionOpts } from 'types/Transition';
 import { createElement } from 'utils/dom';
 import { isFunction, isString } from 'utils/is';
 import { warnIfDebug, warnOnceIfDebug } from 'utils/log';
 
+import Transition from '../Transition';
+
 import hyphenate from './hyphenate';
 
-let createTransitions;
+let createTransitions: (
+  t: Transition,
+  to: Record<string, string>,
+  options: TransitionOpts,
+  changedProperties: string[],
+  resolve: Function
+) => void;
 
 if (!isClient) {
   createTransitions = null;
 } else {
   const testStyle = createElement('div').style;
-  const linear = x => x;
+  const linear = (x: number): number => x;
 
   const canUseCssTransitions = {};
   const cannotUseCssTransitions = {};
 
   // determine some facts about our environment
-  let TRANSITION;
-  let TRANSITIONEND;
-  let CSS_TRANSITIONS_ENABLED;
-  let TRANSITION_DURATION;
-  let TRANSITION_PROPERTY;
-  let TRANSITION_TIMING_FUNCTION;
+  let TRANSITION: string;
+  let TRANSITIONEND: string;
+  let CSS_TRANSITIONS_ENABLED: boolean;
+  let TRANSITION_DURATION: string;
+  let TRANSITION_PROPERTY: string;
+  let TRANSITION_TIMING_FUNCTION: string;
 
   if (testStyle.transition !== undefined) {
     TRANSITION = 'transition';
@@ -49,15 +58,15 @@ if (!isClient) {
     // Wait a beat (otherwise the target styles will be applied immediately)
     // TODO use a fastdom-style mechanism?
     setTimeout(() => {
-      let jsTransitionsComplete;
-      let cssTransitionsComplete;
+      let jsTransitionsComplete: boolean;
+      let cssTransitionsComplete: boolean;
       let cssTimeout; // eslint-disable-line prefer-const
 
-      function transitionDone() {
+      function transitionDone(): void {
         clearTimeout(cssTimeout);
       }
 
-      function checkComplete() {
+      function checkComplete(): void {
         if (jsTransitionsComplete && cssTransitionsComplete) {
           t.unregisterCompleteHandler(transitionDone);
           // will changes to events and fire have an unexpected consequence here?
@@ -78,7 +87,7 @@ if (!isClient) {
         duration: style[TRANSITION_DURATION]
       };
 
-      function transitionEndHandler(event) {
+      function transitionEndHandler(event): void {
         if (event.target !== t.node) return;
         const index = changedProperties.indexOf(event.propertyName);
 
@@ -95,7 +104,7 @@ if (!isClient) {
         cssTransitionsDone();
       }
 
-      function cssTransitionsDone() {
+      function cssTransitionsDone(): void {
         style[TRANSITION_PROPERTY] = previous.property;
         style[TRANSITION_TIMING_FUNCTION] = previous.duration;
         style[TRANSITION_DURATION] = previous.timing;
@@ -112,14 +121,14 @@ if (!isClient) {
       cssTimeout = setTimeout(() => {
         changedProperties = [];
         cssTransitionsDone();
-      }, options.duration + (options.delay || 0) + 50);
+      }, Number(options.duration) + (options.delay || 0) + 50);
       t.registerCompleteHandler(transitionDone);
 
       style[TRANSITION_PROPERTY] = changedProperties.join(',');
       const easingName = hyphenate(options.easing || 'linear');
       style[TRANSITION_TIMING_FUNCTION] = easingName;
       const cssTiming = style[TRANSITION_TIMING_FUNCTION] === easingName;
-      style[TRANSITION_DURATION] = options.duration / 1000 + 's';
+      style[TRANSITION_DURATION] = Number(options.duration) / 1000 + 's';
 
       setTimeout(() => {
         let i = changedProperties.length;
@@ -210,7 +219,7 @@ if (!isClient) {
           }
 
           new Ticker({
-            duration: options.duration,
+            duration: Number(options.duration),
             easing,
             step(pos) {
               let i = propertiesToTransitionInJs.length;

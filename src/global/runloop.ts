@@ -1,4 +1,5 @@
 import { addToArray } from 'utils/array';
+import Transition from 'view/items/element/Transition';
 
 import TransitionManager from './TransitionManager';
 
@@ -83,7 +84,7 @@ class Runloop {
     }
   }
 
-  public registerTransition(transition): void {
+  public registerTransition(transition: Transition): void {
     transition._manager = batch.transitionManager;
     batch.transitionManager.add(transition);
   }
