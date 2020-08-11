@@ -1,3 +1,5 @@
+import ModelBase from 'model/ModelBase';
+import { ExpressionRefinementTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 import RepeatedFragment from 'view/RepeatedFragment';
 
 import Fragment from '../Fragment';
@@ -8,8 +10,8 @@ import resolveReference from './resolveReference';
 
 export default function resolve(
   fragment: Fragment | RepeatedFragment,
-  template
-): ExpressionProxy | ReferenceExpressionProxy {
+  template: ExpressionRefinementTemplateItem
+): ExpressionProxy | ReferenceExpressionProxy | ModelBase {
   if (template.r) {
     return resolveReference(fragment, template.r);
   } else if (template.x) {

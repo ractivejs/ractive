@@ -1,17 +1,30 @@
 import Computation from 'model/Computation';
+import LinkModel from 'model/LinkModel';
 import Model from 'model/Model';
+import ModelBase, { ModelWithRebound } from 'model/ModelBase';
+import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 import getFunction from 'shared/getFunction';
 import { rebindMatch } from 'shared/rebind';
 import { startCapturing, stopCapturing } from 'src/global/capture';
+import { Keypath } from 'types/Keypath';
 import { removeFromArray } from 'utils/array';
 import { warnIfDebug } from 'utils/log';
 import noop from 'utils/noop';
+import Fragment from 'view/Fragment';
+import RepeatedFragment from 'view/RepeatedFragment';
 
 import resolveReference from './resolveReference';
 
 // todo add ModelWithRebound interface
-export default class ExpressionProxy extends Model {
-  constructor(fragment, template) {
+export default class ExpressionProxy extends Model implements ModelWithRebound {
+  private fragment: Fragment | RepeatedFragment;
+  private template: ExpressionFunctionTemplateItem;
+  public dirty: boolean;
+  private fn: Function;
+  private models: ModelBase[];
+  private dependencies: ModelBase[];
+
+  constructor(fragment: ExpressionProxy['fragment'], template: ExpressionProxy['template']) {
     super(fragment.ractive.viewmodel, null);
 
     this.fragment = fragment;
@@ -29,6 +42,7 @@ export default class ExpressionProxy extends Model {
     this.models = this.template.r.map(ref => {
       return resolveReference(this.fragment, ref);
     });
+
     this.dependencies = [];
 
     this.shuffle = undefined;
@@ -36,7 +50,7 @@ export default class ExpressionProxy extends Model {
     this.bubble();
   }
 
-  bubble(actuallyChanged = true) {
+  bubble(actuallyChanged = true): void {
     // refresh the keypath
     this.keypath = undefined;
 
@@ -45,7 +59,7 @@ export default class ExpressionProxy extends Model {
     }
   }
 
-  getKeypath() {
+  getKeypath(): Keypath {
     if (!this.template) return '@undefined';
     if (!this.keypath) {
       this.keypath =
@@ -91,9 +105,9 @@ export default class ExpressionProxy extends Model {
     return result;
   }
 
-  notifyUpstream() {}
+  notifyUpstream(): void {}
 
-  rebind(next, previous, safe) {
+  rebind(next, previous, safe: boolean): void {
     const idx = this.models.indexOf(previous);
 
     if (~idx) {
@@ -107,7 +121,7 @@ export default class ExpressionProxy extends Model {
     this.bubble(!safe);
   }
 
-  rebound(update) {
+  rebound(update: boolean): void {
     this.models = this.template.r.map(ref => resolveReference(this.fragment, ref));
     if (update) this.bubble(true);
   }
@@ -116,36 +130,43 @@ export default class ExpressionProxy extends Model {
     return this.get();
   }
 
-  teardown() {
+  teardown(): void {
     this.fragment = undefined;
     if (this.dependencies) this.dependencies.forEach(d => d.unregister(this));
     super.teardown();
   }
 
-  unreference() {
+  unreference(): void {
     super.unreference();
     collect(this);
   }
 
-  unregister(dep) {
+  unregister(dep): void {
     super.unregister(dep);
     collect(this);
   }
 
-  unregisterLink(link) {
+  unregisterLink(link: LinkModel): void {
     super.unregisterLink(link);
     collect(this);
   }
+
+  get = Computation.prototype.get;
+  handleChange = Computation.prototype.handleChange;
+  joinKey = Computation.prototype.joinKey;
+  mark = Computation.prototype.mark;
+  unbind = noop;
 }
 
-const prototype = ExpressionProxy.prototype;
-const computation = Computation.prototype;
-prototype.get = computation.get;
-prototype.handleChange = computation.handleChange;
-prototype.joinKey = computation.joinKey;
-prototype.mark = computation.mark;
-prototype.unbind = noop;
+// TSRChange - move below function inside class body
+// const prototype = ExpressionProxy.prototype;
+// const computation = Computation.prototype;
+// prototype.get = computation.get;
+// prototype.handleChange = computation.handleChange;
+// prototype.joinKey = computation.joinKey;
+// prototype.mark = computation.mark;
+// prototype.unbind = noop;
 
-function collect(model) {
+function collect(model: ExpressionProxy): void {
   if (!model.deps.length && !model.refs && !model.links.length) model.teardown();
 }

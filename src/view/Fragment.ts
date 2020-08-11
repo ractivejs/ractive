@@ -51,12 +51,12 @@ export interface FragmentOpts {
 export default class Fragment {
   /** The item that owns this fragment - an element, section, partial, or attribute */
   public owner: any;
-  private isRoot: boolean;
+  public isRoot: boolean;
   public parent: any;
   public ractive: RactiveFake;
-  private template: any;
+  private template: any[];
 
-  private componentParent: any;
+  public componentParent: any;
   public context: ModelBase;
   public cssIds: string[];
   public isIteration: boolean;
@@ -440,7 +440,7 @@ export default class Fragment {
   getKeypath = getKeypath;
 }
 
-export function getKeypath(root?): KeyModel {
+export function getKeypath(this: Fragment, root?: boolean): KeyModel {
   const base = findParentWithContext(this);
   let model: KeyModel;
   if (root) {

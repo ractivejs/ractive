@@ -1,17 +1,35 @@
-import { REFERENCE } from 'config/types';
+import TemplateItemType from 'config/types';
 import LinkModel, { Missing } from 'model/LinkModel';
-import { fireShuffleTasks } from 'model/ModelBase';
+import ModelBase, { fireShuffleTasks, ModelWithRebound } from 'model/ModelBase';
+import {
+  ReferenceExpressionTemplateItem,
+  ReferenceTemplateItem
+} from 'parse/converters/expressions/expressionDefinitions';
+import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { escapeKey } from 'shared/keypaths';
 import { rebindMatch } from 'shared/rebind';
+import { Keypath } from 'types/Keypath';
 import { isArray, isString } from 'utils/is';
+import Fragment from 'view/Fragment';
+import RepeatedFragment from 'view/RepeatedFragment';
 
 import ExpressionProxy from './ExpressionProxy';
 import resolve from './resolve';
 import resolveReference from './resolveReference';
 
 // todo add ModelWithRebound interface
-export default class ReferenceExpressionProxy extends LinkModel {
-  constructor(fragment, template) {
+export default class ReferenceExpressionProxy extends LinkModel implements ModelWithRebound {
+  private fragment: Fragment | RepeatedFragment;
+  private model: any;
+  private template: ReferenceExpressionTemplateItem;
+  public base: ModelBase;
+  private proxy: any;
+  public members: any;
+
+  constructor(
+    fragment: ReferenceExpressionProxy['fragment'],
+    template: ReferenceExpressionProxy['template']
+  ) {
     super(null, null, null, '@undefined');
     this.root = fragment.ractive.viewmodel;
     this.template = template;
@@ -22,16 +40,16 @@ export default class ReferenceExpressionProxy extends LinkModel {
     this.rebound();
   }
 
-  getKeypath() {
+  getKeypath(): Keypath {
     return this.model ? this.model.getKeypath() : '@undefined';
   }
 
-  rebound() {
+  rebound(): void {
     const fragment = this.fragment;
     const template = this.template;
 
     let base = (this.base = resolve(fragment, template));
-    let idx;
+    let idx: number;
 
     if (this.proxy) {
       teardown(this);
@@ -45,7 +63,8 @@ export default class ReferenceExpressionProxy extends LinkModel {
             this.base = base = next;
           }
         } else if (~(idx = members.indexOf(previous))) {
-          next = rebindMatch(template.m[idx].n, next, previous);
+          const referenceTemplateItem = template.m[idx] as ReferenceTemplateItem;
+          next = rebindMatch(referenceTemplateItem.n, next, previous);
           if (next !== members[idx]) {
             members.splice(idx, 1, next || Missing);
           }
@@ -70,19 +89,20 @@ export default class ReferenceExpressionProxy extends LinkModel {
 
       let model;
 
-      if (tpl.t === REFERENCE) {
+      if ('t' in tpl && tpl.t === TemplateItemType.REFERENCE) {
         model = resolveReference(fragment, tpl.n);
+
         model.register(proxy);
 
         return model;
       }
 
-      model = new ExpressionProxy(fragment, tpl);
+      model = new ExpressionProxy(fragment, tpl as ExpressionFunctionTemplateItem);
       model.register(proxy);
       return model;
     }));
 
-    const pathChanged = () => {
+    const pathChanged = (): void => {
       const model =
         base &&
         base.joinAll(
@@ -106,23 +126,34 @@ export default class ReferenceExpressionProxy extends LinkModel {
     pathChanged();
   }
 
-  teardown() {
+  teardown(): void {
     teardown(this);
     super.teardown();
   }
 
-  unreference() {
+  unreference(): void {
     super.unreference();
     if (!this.deps.length && !this.refs) this.teardown();
   }
 
-  unregister(dep) {
+  unregister(dep): void {
     super.unregister(dep);
     if (!this.deps.length && !this.refs) this.teardown();
   }
+
+  unregisterLink = ExpressionProxy.prototype.unregisterLink;
 }
 
-function teardown(proxy) {
+// TSRChange - move below function inside class body
+// TSRChange - unreference & unregister are already present in body removed override
+// const eproto = ExpressionProxy.prototype;
+// const proto = ReferenceExpressionProxy.prototype;
+
+// proto.unreference = eproto.unreference;
+// proto.unregister = eproto.unregister;
+// proto.unregisterLink = eproto.unregisterLink;
+
+function teardown(proxy): void {
   if (proxy.base) proxy.base.unregister(proxy.proxy);
   if (proxy.models) {
     proxy.models.forEach(m => {
@@ -131,7 +162,7 @@ function teardown(proxy) {
   }
 }
 
-function refreshPathDeps(proxy) {
+function refreshPathDeps(proxy: ReferenceExpressionProxy | LinkModel): void {
   let len = proxy.deps.length;
   let i, v;
 
@@ -146,10 +177,3 @@ function refreshPathDeps(proxy) {
     refreshPathDeps(proxy.children[i]);
   }
 }
-
-const eproto = ExpressionProxy.prototype;
-const proto = ReferenceExpressionProxy.prototype;
-
-proto.unreference = eproto.unreference;
-proto.unregister = eproto.unregister;
-proto.unregisterLink = eproto.unregisterLink;

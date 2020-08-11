@@ -96,7 +96,7 @@ export interface RefinementTemplateItem {
 export interface ReferenceExpressionTemplateItem {
   /** expression ( `proxies` / `~/selected ) */
   r: string;
-  m: (string | ExpressionFunctionTemplateItem)[];
+  m: (string | ExpressionFunctionTemplateItem | ReferenceTemplateItem)[];
 }
 
 /**

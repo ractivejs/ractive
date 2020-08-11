@@ -24,9 +24,9 @@ export interface RepeatedFragmentOpts extends FragmentOpts {
 
 export default class RepeatedFragment {
   private owner: any;
-  private parent: any;
-  private ractive: RactiveFake;
-  private template: any;
+  public parent: any;
+  public ractive: RactiveFake;
+  public template: any;
 
   // boolean | number | Element
   private delegate: any;
@@ -162,8 +162,7 @@ export default class RepeatedFragment {
 
   createIteration(key, index): Fragment {
     const fragment = new Fragment({
-      // TODO avoid error
-      owner: (this as unknown) as Fragment,
+      owner: this,
       template: this.template
     });
 

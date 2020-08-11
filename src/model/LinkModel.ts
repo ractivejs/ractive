@@ -113,7 +113,7 @@ export default class LinkModel extends ModelBase implements ModelWithShuffle {
     return maybeBind(this, this.target.get(false, opts), bind);
   }
 
-  getKeypath(ractive: RactiveFake): Keypath {
+  getKeypath(ractive?: RactiveFake): Keypath {
     if (ractive && ractive !== this.root.ractive) return this.target.getKeypath(ractive);
 
     return super.getKeypath(ractive);
@@ -174,7 +174,7 @@ export default class LinkModel extends ModelBase implements ModelWithShuffle {
     this.children.forEach(c => c.relinked());
   }
 
-  relinking(target, safe: boolean): void {
+  relinking(target, safe?: boolean): void {
     if (this.rootLink && this.sourcePath)
       target = rebindMatch(this.sourcePath, target, this.target);
     if (!target || this.target === target) return;

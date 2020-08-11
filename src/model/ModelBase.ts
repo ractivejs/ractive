@@ -23,6 +23,8 @@ export const noVirtual = { virtual: false };
 
 type ShuffleFunction = (newIndices: Indexes, unsafe?: boolean) => void;
 
+export type ModelRebindFunction<T extends ModelBase> = (prev: T, next: T, safe?: boolean) => void;
+
 /**
  * TODO Implement this interface in the following classes
  * - Triple
@@ -35,7 +37,7 @@ type ShuffleFunction = (newIndices: Indexes, unsafe?: boolean) => void;
  */
 export interface ModelDependency {
   handleChange(path?: unknown): void;
-  rebind?: (prev: ModelBase, next: ModelBase, safe: boolean) => void;
+  rebind?: ModelRebindFunction<ModelBase>;
   shuffle?: ShuffleFunction;
 }
 
@@ -45,7 +47,7 @@ export interface ModelPattern extends ModelDependency {
 }
 
 export interface ModelBinding {
-  rebind(prev: ModelBase, next: ModelBase, safe: boolean): void;
+  rebind: ModelRebindFunction<ModelBase>;
   getValue: Function;
 }
 
@@ -68,7 +70,7 @@ export interface ModelLinkOpts {
 
 // TODO add correct types
 export default abstract class ModelBase {
-  protected parent: ModelBase;
+  public parent: ModelBase;
   protected root: RootModel | RactiveModel;
 
   public ractive: RactiveFake;
@@ -416,7 +418,6 @@ export default abstract class ModelBase {
 
 /**
  * The following interface can be applied to:
- * - ExpressionProxy
  * - ReferenceExpressionProxy
  */
 export interface ModelWithRebound extends ModelBase {

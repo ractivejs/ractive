@@ -1,8 +1,13 @@
+import ModelBase from 'model/ModelBase';
 import SharedModel, { GlobalModel, SharedModel as ContextModel } from 'model/specials/SharedModel';
 import { splitKeypath } from 'shared/keypaths';
 import { isFunction } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn } from 'utils/object';
+import Fragment from 'view/Fragment';
+import RepeatedFragment from 'view/RepeatedFragment';
+
+// TODO refine types
 
 function findContext(fragment) {
   let frag = fragment;
@@ -10,10 +15,15 @@ function findContext(fragment) {
   return frag;
 }
 
-export default function resolveReference(fragment, ref) {
+export default function resolveReference(
+  fragment: Fragment | RepeatedFragment,
+  ref: string
+): ModelBase {
   const initialFragment = fragment;
   // current context ref
-  if (ref === '.') return fragment.findContext();
+  if (ref === '.') {
+    return fragment.findContext();
+  }
 
   // ancestor references
   if (ref[0] === '~') return fragment.ractive.viewmodel.joinAll(splitKeypath(ref.slice(2)));
@@ -36,7 +46,7 @@ export default function resolveReference(fragment, ref) {
 
       // the current fragment should always be a context,
       // and if it happens to be an iteration, jump above the each block
-      if (frag.isIteration) {
+      if ('isIteration' in frag && frag.isIteration) {
         frag = frag.parent.parent;
       } else {
         // otherwise jump above the current fragment
@@ -99,7 +109,7 @@ export default function resolveReference(fragment, ref) {
     } else if (base === '@keypath' || base === '@rootpath') {
       // @keypath or @rootpath, the current keypath string
       const root = ref[1] === 'r' ? fragment.ractive.root : null;
-      let f = fragment;
+      let f = fragment as Fragment;
 
       while (
         f &&
@@ -108,7 +118,8 @@ export default function resolveReference(fragment, ref) {
         f = f.isRoot ? f.componentParent : f.parent;
       }
 
-      return f.getKeypath(root);
+      // TODO remove casting
+      return (f.getKeypath(root) as unknown) as ModelBase;
     } else if (base === '@context') {
       return new ContextModel(fragment.getContext(), 'context').joinAll(keys);
     } else if (base === '@local') {
@@ -116,6 +127,9 @@ export default function resolveReference(fragment, ref) {
       return fragment.getContext()._data.joinAll(keys);
     } else if (base === '@style') {
       // @style shared model
+      // todo fix _cssModel type error
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // @ts-ignore
       return fragment.ractive.constructor._cssModel.joinAll(keys);
     } else if (base === '@helpers') {
       // @helpers instance model
@@ -158,7 +172,8 @@ export default function resolveReference(fragment, ref) {
 
   while (fragment) {
     // repeated fragments
-    if (fragment.isIteration) {
+    // TSRChange - add in guard for type checking
+    if ('isIteration' in fragment && fragment.isIteration) {
       if (base === fragment.parent.keyRef) {
         model = fragment.getKey();
       } else if (base === fragment.parent.indexRef) {
@@ -201,12 +216,13 @@ export default function resolveReference(fragment, ref) {
     // don't consider alias blocks when checking for ambiguity
     if (fragment.context && !fragment.aliases) crossed = 1;
 
+    const componentParent = 'componentParent' in fragment && fragment.componentParent;
     if (
-      (fragment.componentParent || (!fragment.parent && fragment.ractive.component)) &&
+      (componentParent || (!fragment.parent && fragment.ractive.component)) &&
       !fragment.ractive.isolated
     ) {
       // ascend through component boundary
-      fragment = fragment.componentParent || fragment.ractive.component.up;
+      fragment = componentParent || fragment.ractive.component.up;
       createMapping = true;
     } else {
       fragment = fragment.parent;
@@ -252,6 +268,6 @@ function findMacro(start) {
   }
 }
 
-function badReference(key) {
+function badReference(key: string): void {
   throw new Error(`An index or key reference (${key}) cannot have child properties`);
 }

@@ -16,7 +16,6 @@ import { hasOwn, keys } from 'utils/object';
 import './LinkModel';
 import Computation from './Computation';
 import getPrefixer from './helpers/getPrefixer';
-import LinkModel from './LinkModel';
 import ModelBase, {
   checkDataLink,
   maybeBind,
@@ -253,7 +252,7 @@ export default class Model extends ModelBase implements ModelWithShuffle {
     );
   }
 
-  joinKey(key: string, opts?: ModelJoinOpts): this | LinkModel {
+  joinKey(key: string, opts?: ModelJoinOpts): any {
     if (this._link) {
       if (opts && opts.lastLink !== false && (isUndefined(key) || key === '')) return this;
       return this._link.joinKey(key);
