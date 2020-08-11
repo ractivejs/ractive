@@ -16,11 +16,12 @@ import { warnIfDebug } from 'utils/log';
 import { assign, create } from 'utils/object';
 
 import createItem from './createItem';
-import ConditionalAttribute from './element/ConditionalAttribute';
+import ConditionalAttribute, { ConditionalAttributeOwner } from './element/ConditionalAttribute';
 import EventDirective, { EventDirectiveOwner } from './shared/EventDirective';
 import Item, { ItemOpts } from './shared/Item';
 
-export default class Component extends Item implements EventDirectiveOwner {
+export default class Component extends Item
+  implements EventDirectiveOwner, ConditionalAttributeOwner {
   private isAnchor: boolean;
   private name: string;
   private extern: boolean;

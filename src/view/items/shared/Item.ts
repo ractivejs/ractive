@@ -5,7 +5,7 @@ import Fragment from 'view/Fragment';
 export interface ItemOpts {
   up: Item['up'];
   template: Item['template'];
-  index: Item['index'];
+  index?: Item['index'];
 }
 
 export default class Item {

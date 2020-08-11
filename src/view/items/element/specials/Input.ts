@@ -2,8 +2,9 @@ import { isFunction } from 'utils/is';
 
 import Element from '../../Element';
 import { BindingFlagOwner } from '../BindingFlag';
+import { ConditionalAttributeOwner } from '../ConditionalAttribute';
 
-export default class Input extends Element implements BindingFlagOwner {
+export default class Input extends Element implements BindingFlagOwner, ConditionalAttributeOwner {
   public checked: boolean;
 
   render(target, occupants): void {

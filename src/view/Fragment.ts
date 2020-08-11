@@ -328,7 +328,7 @@ export default class Fragment {
     }
   }
 
-  render(target, occupants?): void {
+  render(target?, occupants?): void {
     if (this.rendered) throw new Error('Fragment is already rendered!');
     this.rendered = true;
 

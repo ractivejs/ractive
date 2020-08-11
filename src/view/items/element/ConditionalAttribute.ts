@@ -5,17 +5,32 @@ import { createElement } from 'utils/dom';
 import noop from 'utils/noop';
 
 import Fragment from '../../Fragment';
-import Item from '../shared/Item';
+import Item, { ItemOpts } from '../shared/Item';
 
-const div = doc ? createElement('div') : null;
+const div: HTMLDivElement = doc ? createElement('div') : null;
 
 let attributes = false;
-export function inAttributes() {
+export function inAttributes(): boolean {
   return attributes;
 }
 
+/** Component | Element | Input */
+export interface ConditionalAttributeOwner extends Item {
+  node?: HTMLElement;
+}
+
+interface ConditionalAttributeOpts extends ItemOpts {
+  owner: ConditionalAttribute['owner'];
+}
+
 export default class ConditionalAttribute extends Item {
-  constructor(options) {
+  private owner: ConditionalAttributeOwner;
+  private attributes: Attr[];
+  private node: HTMLElement;
+  private isSvg: boolean;
+  private rendered: boolean;
+
+  constructor(options: ConditionalAttributeOpts) {
     super(options);
 
     this.attributes = [];
@@ -34,22 +49,22 @@ export default class ConditionalAttribute extends Item {
     this.dirty = false;
   }
 
-  bind() {
+  bind(): void {
     this.fragment.bind();
   }
 
-  bubble() {
+  bubble(): void {
     if (!this.dirty) {
       this.dirty = true;
       this.owner.bubble();
     }
   }
 
-  destroyed() {
+  destroyed(): void {
     this.unrender();
   }
 
-  render() {
+  render(): void {
     this.node = this.owner.node;
     if (this.node) {
       this.isSvg = this.node.namespaceURI === Namespace.svg;
@@ -64,22 +79,22 @@ export default class ConditionalAttribute extends Item {
     attributes = false;
   }
 
-  toString() {
+  toString(): string {
     return this.fragment.toString();
   }
 
-  unbind(view) {
+  unbind(view): void {
     this.fragment.unbind(view);
   }
 
-  unrender() {
+  unrender(): void {
     this.rendered = false;
     this.fragment.unrender();
   }
 
-  update() {
-    let str;
-    let attrs;
+  update(): void {
+    let str: string;
+    let attrs: Attr[];
 
     if (this.dirty) {
       this.dirty = false;
@@ -114,15 +129,19 @@ export default class ConditionalAttribute extends Item {
 }
 
 const onlyWhitespace = /^\s*$/;
-function parseAttributes(str, isSvg) {
+function parseAttributes(str: string, isSvg: boolean): Attr[] {
   if (onlyWhitespace.test(str)) return [];
   const tagName = isSvg ? 'svg' : 'div';
-  return str
-    ? (div.innerHTML = `<${tagName} ${str}></${tagName}>`) && toArray(div.childNodes[0].attributes)
-    : [];
+
+  if (str) {
+    div.innerHTML = `<${tagName} ${str}></${tagName}>`;
+    return toArray((div.childNodes[0] as HTMLElement).attributes);
+  }
+
+  return [];
 }
 
-function notIn(haystack, needle) {
+function notIn(haystack: Attr[], needle: Attr): boolean {
   let i = haystack.length;
 
   while (i--) {

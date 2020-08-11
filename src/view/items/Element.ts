@@ -16,7 +16,7 @@ import createItem from './createItem';
 import Attribute from './element/Attribute';
 import Binding from './element/binding/Binding';
 import selectBinding from './element/binding/selectBinding';
-import ConditionalAttribute from './element/ConditionalAttribute';
+import ConditionalAttribute, { ConditionalAttributeOwner } from './element/ConditionalAttribute';
 import Decorator, { DecoratorOwner } from './element/Decorator';
 import Input from './element/specials/Input';
 import Transition, { TransitionOwner } from './element/Transition';
@@ -31,7 +31,7 @@ export interface ElementOpts extends ItemOpts {
 }
 
 export default class Element extends ContainerItem
-  implements DecoratorOwner, TransitionOwner, EventDirectiveOwner {
+  implements DecoratorOwner, TransitionOwner, EventDirectiveOwner, ConditionalAttributeOwner {
   public name: string;
   private namespace: string;
   public parent: Element;
