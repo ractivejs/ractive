@@ -17,10 +17,10 @@ import Attribute from './element/Attribute';
 import Binding from './element/binding/Binding';
 import selectBinding from './element/binding/selectBinding';
 import ConditionalAttribute from './element/ConditionalAttribute';
-import Decorator from './element/Decorator';
+import Decorator, { DecoratorOwner } from './element/Decorator';
 import Input from './element/specials/Input';
-import Transition from './element/Transition';
-import EventDirective from './shared/EventDirective';
+import Transition, { TransitionOwner } from './element/Transition';
+import EventDirective, { EventDirectiveOwner } from './shared/EventDirective';
 import findElement from './shared/findElement';
 import { ContainerItem, ItemOpts } from './shared/Item';
 
@@ -30,7 +30,8 @@ export interface ElementOpts extends ItemOpts {
   deferContent: boolean;
 }
 
-export default class Element extends ContainerItem {
+export default class Element extends ContainerItem
+  implements DecoratorOwner, TransitionOwner, EventDirectiveOwner {
   public name: string;
   private namespace: string;
   public parent: Element;

@@ -13,6 +13,8 @@ import Fragment from '../Fragment';
 import getPartialTemplate from './partial/getPartialTemplate';
 import { MustacheContainer } from './shared/Mustache';
 
+// TODO implements DecoratorOwner
+// TODO implements EventDirectiveOwner
 export default function Partial(options) {
   MustacheContainer.call(this, options);
 

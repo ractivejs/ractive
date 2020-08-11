@@ -21,7 +21,7 @@ import { DOMEvent, CustomEvent } from '../element/ElementEvents';
 import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
 
 import findElement from './findElement';
-import Item, { ItemBasicFunctions } from './Item';
+import Item from './Item';
 
 const specialPattern = /^(event|arguments|@node|@event|@context)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
@@ -41,8 +41,13 @@ export interface RactiveEventInterface {
   unrender: () => void;
 }
 
-export default class EventDirective implements ItemBasicFunctions {
-  private owner: Item;
+/** Section | Partial | Component | Select | Input | Element  */
+export interface EventDirectiveOwner extends Item {
+  attributeByName?: any;
+}
+
+export default class EventDirective {
+  private owner: EventDirectiveOwner;
   private element: Element | Component;
   private template: EventDirectiveTemplateItem;
   public up: Fragment;

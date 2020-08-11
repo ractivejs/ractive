@@ -43,8 +43,13 @@ interface TransitionOpts {
   params?: Transition['params'];
 }
 
+/** Section | Element */
+export interface TransitionOwner extends Item {
+  ractive: RactiveFake;
+}
+
 export default class Transition {
-  private owner: Item; // Section | Element
+  private owner: TransitionOwner;
   public element: Element;
   public ractive: RactiveFake;
   private template: TransitionDirectiveTemplateItem;

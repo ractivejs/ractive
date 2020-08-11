@@ -13,6 +13,7 @@ import Fragment from '../../Fragment';
 import Element from '../Element';
 import { teardownArgsFn, setupArgsFnWithRegister } from '../shared/directiveArgs';
 import findElement from '../shared/findElement';
+import Item from '../shared/Item';
 
 const missingDecorator: DecoratorHandle = {
   update: noop,
@@ -25,8 +26,13 @@ interface DecoratorOpts {
   template: Decorator['template'];
 }
 
+/** Partial | Section | Element */
+export interface DecoratorOwner extends Item {
+  bubble(): void;
+}
+
 export default class Decorator {
-  private owner: any; // Partial | Section | Element
+  private owner: DecoratorOwner;
   private element: Element;
   private up: Fragment;
   private ractive: RactiveFake;

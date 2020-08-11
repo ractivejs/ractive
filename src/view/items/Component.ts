@@ -17,10 +17,10 @@ import { assign, create } from 'utils/object';
 
 import createItem from './createItem';
 import ConditionalAttribute from './element/ConditionalAttribute';
-import EventDirective from './shared/EventDirective';
+import EventDirective, { EventDirectiveOwner } from './shared/EventDirective';
 import Item, { ItemOpts } from './shared/Item';
 
-export default class Component extends Item {
+export default class Component extends Item implements EventDirectiveOwner {
   private isAnchor: boolean;
   private name: string;
   private extern: boolean;
