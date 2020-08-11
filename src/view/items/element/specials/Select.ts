@@ -5,8 +5,9 @@ import { isArray, isFunction } from 'utils/is';
 
 import Element, { ElementOpts } from '../../Element';
 import SingleSelectBinding from '../binding/SingleSelectBinding';
+import { BindingFlagOwner } from '../BindingFlag';
 
-export default class Select extends Element {
+export default class Select extends Element implements BindingFlagOwner {
   public options: any[];
   private selectedOptions: any[];
 

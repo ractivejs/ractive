@@ -15,6 +15,7 @@ import { MustacheContainer } from './shared/Mustache';
 
 // TODO implements DecoratorOwner
 // TODO implements EventDirectiveOwner
+// TODO implements BindingFlagOwner
 export default function Partial(options) {
   MustacheContainer.call(this, options);
 

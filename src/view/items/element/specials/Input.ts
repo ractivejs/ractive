@@ -1,8 +1,9 @@
 import { isFunction } from 'utils/is';
 
 import Element from '../../Element';
+import { BindingFlagOwner } from '../BindingFlag';
 
-export default class Input extends Element {
+export default class Input extends Element implements BindingFlagOwner {
   public checked: boolean;
 
   render(target, occupants): void {

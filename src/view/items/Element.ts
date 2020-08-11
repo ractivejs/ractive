@@ -52,7 +52,7 @@ export default class Element extends ContainerItem
 
   public rendered: boolean;
   public delegate: boolean;
-  public lazy: boolean;
+  public lazy: boolean | number;
   public twoway: boolean;
 
   public events: EventDirective[];

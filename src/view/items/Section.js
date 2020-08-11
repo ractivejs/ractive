@@ -36,6 +36,7 @@ function getType(value, hasIndexRef) {
 // TODO implements DecoratorOwner
 // TODO implements TransitionOwner
 // TODO implements EventDirectiveOwner
+// TODO implements BindingFlagOwner
 export default class Section extends MustacheContainer {
   constructor(options) {
     super(options);
