@@ -2,39 +2,43 @@ import { safeToStringValue } from 'utils/dom';
 import { detachNode } from 'utils/dom';
 import { escapeHtml } from 'utils/html';
 
+import Attribute from './element/Attribute';
+import Binding from './element/binding/Binding';
 import { inAttributes } from './element/ConditionalAttribute';
-import Mustache from './shared/Mustache';
+import Mustache, { MustacheOpts } from './shared/Mustache';
 import progressiveText from './shared/progressiveText';
 
 export default class Interpolator extends Mustache {
-  constructor(options) {
-    super(options);
+  public owner: Attribute;
+  public twowayBinding: Binding;
+  public bound: boolean;
+  public pathChanged: () => void;
+  private value: string;
+  private rendered: boolean;
+  private node: HTMLElement & { data: string };
 
-    // avoid error on typescript due to missing attributes
-    this.owner = undefined;
-    this.twowayBinding = undefined;
-    this.bound = undefined;
-    this.pathChanged = undefined;
+  constructor(options: MustacheOpts) {
+    super(options);
   }
 
-  bubble() {
+  bubble(): void {
     if (this.owner) this.owner.bubble();
     super.bubble();
   }
 
-  detach() {
+  detach(): Interpolator['node'] {
     return detachNode(this.node);
   }
 
-  firstNode() {
+  firstNode(): Interpolator['node'] {
     return this.node;
   }
 
-  getString() {
+  getString(): string {
     return this.model ? safeToStringValue(this.model.get()) : '';
   }
 
-  render(target, occupants) {
+  render(target, occupants): void {
     if (inAttributes()) return;
     const value = (this.value = this.getString());
 
@@ -43,17 +47,17 @@ export default class Interpolator extends Mustache {
     progressiveText(this, target, occupants, value);
   }
 
-  toString(escape) {
+  toString(escape: boolean): string {
     const string = this.getString();
     return escape ? escapeHtml(string) : string;
   }
 
-  unrender(shouldDestroy) {
+  unrender(shouldDestroy: boolean): void {
     if (shouldDestroy) this.detach();
     this.rendered = false;
   }
 
-  update() {
+  update(): void {
     if (this.dirty) {
       this.dirty = false;
       if (this.rendered) {
