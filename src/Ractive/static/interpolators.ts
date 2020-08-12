@@ -1,9 +1,12 @@
-import interpolate from 'shared/interpolate';
+import { interpolate } from 'shared/interpolate';
 import { isArray, isObject, isNumeric } from 'utils/is';
 import { hasOwn } from 'utils/object';
 
-const interpolators = {
-  number(from, to) {
+export type InterpolatorFunction<T> = (from: T, to: T) => (t: number) => T;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const interpolators: Record<string, InterpolatorFunction<any>> = {
+  number(from: number, to: number) {
     if (!isNumeric(from) || !isNumeric(to)) {
       return null;
     }
@@ -24,12 +27,12 @@ const interpolators = {
     };
   },
 
-  array(from, to) {
-    let len, i;
-
+  array<T>(from: T[], to: T[]) {
     if (!isArray(from) || !isArray(to)) {
       return null;
     }
+
+    let len: number, i: number;
 
     const intermediate = [];
     const interpolators = [];
@@ -59,14 +62,16 @@ const interpolators = {
     };
   },
 
-  object(from, to) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  object<T extends Record<string, any>>(from: T, to: T) {
     if (!isObject(from) || !isObject(to)) {
       return null;
     }
 
     const properties = [];
-    const intermediate = {};
-    const interpolators = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const intermediate: Record<string, any> = {};
+    const interpolators: Record<string, ReturnType<InterpolatorFunction<T>>> = {};
 
     for (const prop in from) {
       if (hasOwn(from, prop)) {

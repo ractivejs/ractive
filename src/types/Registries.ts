@@ -1,4 +1,4 @@
-import Interpolator from 'view/items/Interpolator';
+import { InterpolatorFunction } from 'src/Ractive/static/interpolators';
 import Partial from 'view/items/Partial';
 
 import { Adaptor } from './Adaptor';
@@ -17,7 +17,7 @@ export interface Registries {
   decorators: Registry<Decorator<RactiveFake>>;
   easings: Registry<EasingFunction>;
   events: Registry<EventPlugin<RactiveFake>>;
-  interpolators: Registry<Interpolator>;
+  interpolators: Registry<InterpolatorFunction<any>>;
   helpers: Registry<any>; // Helper
   partials: Registry<Partial>;
   transitions: Registry<Transition>;

@@ -4,9 +4,9 @@ import Ticker from 'shared/Ticker';
 import { capture } from 'src/global/capture';
 import Ractive from 'src/Ractive';
 import getComputationSignature from 'src/Ractive/helpers/getComputationSignature';
+import { AnimateOpts } from 'src/Ractive/prototype/animate';
 import { AdaptorHandle } from 'types/Adaptor';
 import { Computation as ComputationType } from 'types/Computation';
-import { EasingFunction } from 'types/Easings';
 import { ValueMap } from 'types/ValueMap';
 import { buildNewIndices } from 'utils/array';
 import { isArray, isEqual, isNumeric, isObjectLike, isUndefined } from 'utils/is';
@@ -27,14 +27,7 @@ import ModelBase, {
 
 export const shared: { Computation?: typeof Computation } = {};
 
-export type AnimatePromise = Promise<Function> & { stop?: Function };
-
-export interface ModelAnimateOpts {
-  duration: number;
-  easing: EasingFunction;
-  step: (t: number, value: any) => void;
-  complete: (to: number) => void;
-}
+export type AnimatePromise<T> = Promise<T> & { stop?: Function };
 
 export default class Model extends ModelBase implements ModelWithShuffle {
   /** @override */
@@ -56,7 +49,7 @@ export default class Model extends ModelBase implements ModelWithShuffle {
   /** used to check if model is `Computation` or `ComputationChild` */
   public isComputed: boolean;
 
-  constructor(parent, key: string) {
+  constructor(parent: Model['parent'], key: Model['key']) {
     super(parent);
 
     this.ticker = null;
@@ -133,11 +126,11 @@ export default class Model extends ModelBase implements ModelWithShuffle {
     }
   }
 
-  animate(_from, to, options: ModelAnimateOpts, interpolator): AnimatePromise {
+  animate<T>(_from, to: T, options: AnimateOpts, interpolator): AnimatePromise<T> {
     if (this.ticker) this.ticker.stop();
 
     let fulfilPromise;
-    const promise: AnimatePromise = new Promise(fulfil => (fulfilPromise = fulfil));
+    const promise: AnimatePromise<T> = new Promise(fulfil => (fulfilPromise = fulfil));
 
     this.ticker = new Ticker({
       duration: options.duration,
@@ -149,7 +142,8 @@ export default class Model extends ModelBase implements ModelWithShuffle {
       },
       complete: () => {
         this.applyValue(to);
-        if (options.complete) options.complete(to);
+        // TSRChange - remove paramter `to` (not used and not present in the doc)
+        if (options.complete) options.complete();
 
         this.ticker = null;
         fulfilPromise(to);

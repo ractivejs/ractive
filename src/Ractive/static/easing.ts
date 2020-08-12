@@ -1,3 +1,5 @@
+import { EasingFunction } from 'types/Easings';
+
 // These are a subset of the easing equations found at
 // https://raw.github.com/danro/easing-js - license info
 // follows:
@@ -21,7 +23,7 @@
 // You can add additional easing functions to this list, and they
 // will be globally available.
 
-const Easings = {
+const Easings: Record<string, EasingFunction> = {
   linear(pos: number): number {
     return pos;
   },

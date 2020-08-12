@@ -1,6 +1,6 @@
 import { isClient } from 'config/environment';
 import { missingPlugin } from 'config/errors';
-import interpolate from 'shared/interpolate';
+import { interpolate } from 'shared/interpolate';
 import Ticker from 'shared/Ticker';
 import { TransitionOpts } from 'types/Transition';
 import { createElement } from 'utils/dom';
@@ -137,7 +137,7 @@ if (!isClient) {
         let index;
         const propertiesToTransitionInJs = [];
         let prop;
-        let suffix;
+        let suffix: string;
         let interpolator;
 
         while (i--) {

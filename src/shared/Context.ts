@@ -1,5 +1,5 @@
 import TemplateItemType from 'config/types';
-import Model from 'model/Model';
+import Model, { AnimatePromise } from 'model/Model';
 import runloop from 'src/global/runloop';
 import { Keypath } from 'types/Keypath';
 import { SetOpts } from 'types/Options';
@@ -13,7 +13,7 @@ import EventDirective from 'view/items/shared/EventDirective';
 import findElement from 'view/items/shared/findElement';
 import resolveReference from 'view/resolvers/resolveReference';
 
-import { animate as protoAnimate } from '../Ractive/prototype/animate';
+import { animate as protoAnimate, AnimateOpts } from '../Ractive/prototype/animate';
 import makeArrayMethod from '../Ractive/prototype/shared/makeArrayMethod';
 import { update as protoUpdate } from '../Ractive/prototype/update';
 
@@ -108,8 +108,8 @@ export default class Context {
     );
   }
 
-  animate(keypath: Keypath, value: unknown, options) {
-    const model = findModel(this, keypath).model;
+  animate<T>(keypath: Keypath, value: T, options: AnimateOpts): AnimatePromise<T> {
+    const model: Model = findModel(this, keypath).model;
     return protoAnimate(this.ractive, model, value, options);
   }
 

@@ -1,8 +1,8 @@
-type Ractive<T> = any; // TODO use ractive type
+import { RactiveFake } from './RactiveFake';
 
-export type ComputationFn<T extends Ractive<T>> = (this: T, context: any, keypath: string) => any;
+export type ComputationFn<T extends RactiveFake> = (this: T, context: any, keypath: string) => any;
 
-export interface ComputationDescriptor<T extends Ractive<T>> {
+export interface ComputationDescriptor<T extends RactiveFake> {
   /**
    * Called when Ractive needs to get the computed value.
    * Computations are lazy, so this is only called when a dependency asks for a value.
@@ -15,7 +15,7 @@ export interface ComputationDescriptor<T extends Ractive<T>> {
   set?: (this: T, value: any, context: any, keypath: string) => void;
 }
 
-export type Computation<T extends Ractive<T>> =
+export type Computation<T extends RactiveFake> =
   | string
   | ComputationFn<T>
   | ComputationDescriptor<T>;
