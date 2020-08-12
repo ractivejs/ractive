@@ -1,8 +1,15 @@
-import { ELEMENT } from 'config/types';
+import TemplateItemType from 'config/types';
 import Model from 'model/Model';
 import runloop from 'src/global/runloop';
+import { Keypath } from 'types/Keypath';
+import { SetOpts } from 'types/Options';
+import { RactiveFake } from 'types/RactiveFake';
 import { isNumeric, isObject, isNumber, isObjectType, isString } from 'utils/is';
 import { hasOwn } from 'utils/object';
+import Fragment from 'view/Fragment';
+import Element from 'view/items/Element';
+import Decorator from 'view/items/element/Decorator';
+import EventDirective from 'view/items/shared/EventDirective';
 import findElement from 'view/items/shared/findElement';
 import resolveReference from 'view/resolvers/resolveReference';
 
@@ -21,10 +28,18 @@ const modelSort = makeArrayMethod('sort').model;
 const modelSplice = makeArrayMethod('splice').model;
 const modelReverse = makeArrayMethod('reverse').model;
 
-export const localFragment = {};
+export const localFragment: { f?: any } = {};
+
+interface ContextDataOpts {
+  ractive: ContextData['ractive'];
+  context: ContextData['context'];
+}
 
 class ContextData extends Model {
-  constructor(options) {
+  public adaptors: any[];
+  public context: Context;
+
+  constructor(options: ContextDataOpts) {
     super(null, null);
 
     this.isRoot = true;
@@ -35,33 +50,40 @@ class ContextData extends Model {
     this.context = options.context;
   }
 
-  getKeypath() {
+  getKeypath(): Keypath {
     return '@context.data';
   }
 
-  rebound() {}
+  rebound(): void {}
 }
 
 export default class Context {
-  constructor(fragment, element) {
+  public fragment: Fragment;
+  public element: Element;
+  public node: HTMLElement;
+  public ractive: RactiveFake;
+  public root: this;
+  public refire: any;
+  public model: ContextData;
+
+  static forRactive: (ractive: RactiveFake, ...assigns: unknown[]) => Context;
+
+  constructor(fragment: Context['fragment'], element?: Context['element']) {
     this.fragment = fragment;
     this.element = element || findElement(fragment);
     this.node = this.element && this.element.node;
     this.ractive = fragment.ractive;
     this.root = this;
-
-    // avoid ts errors
-    this.refire = undefined;
   }
 
-  get decorators() {
+  get decorators(): Record<string, Decorator> {
     const items = {};
     if (!this.element) return items;
     this.element.decorators.forEach(d => (items[d.name] = d.handle));
     return items;
   }
 
-  get _data() {
+  get _data(): ContextData {
     return (
       this.model ||
       (this.root.model = new ContextData({
@@ -72,9 +94,9 @@ export default class Context {
   }
 
   // the usual mutation suspects
-  add(keypath, d, options) {
+  add(keypath: Keypath, d: unknown, options?: SetOpts): Promise<void> {
     const num = isNumber(d) ? +d : 1;
-    const opts = isObjectType(d) ? d : options;
+    const opts = isObjectType<SetOpts>(d) ? d : options;
     return sharedSet(
       build(this, keypath, num).map(pair => {
         const [model, val] = pair;
@@ -86,7 +108,7 @@ export default class Context {
     );
   }
 
-  animate(keypath, value, options) {
+  animate(keypath: Keypath, value: unknown, options) {
     const model = findModel(this, keypath).model;
     return protoAnimate(this.ractive, model, value, options);
   }
@@ -149,7 +171,7 @@ export default class Context {
 
     do {
       base = el.component || el;
-      if (base.template.t === ELEMENT) {
+      if (base.template.t === TemplateItemType.ELEMENT) {
         if (findEvent(base, name)) return true;
       }
       el = el.up && el.up.owner;
@@ -176,13 +198,13 @@ export default class Context {
     };
   }
 
-  observe(keypath, callback, options = {}) {
+  observe(keypath, callback, options: any = {}) {
     if (isObject(keypath)) options = callback || {};
     options.fragment = this.fragment;
     return this.ractive.observe(keypath, callback, options);
   }
 
-  observeOnce(keypath, callback, options = {}) {
+  observeOnce(keypath, callback, options: any = {}) {
     if (isObject(keypath)) options = callback || {};
     options.fragment = this.fragment;
     return this.ractive.observeOnce(keypath, callback, options);
@@ -221,7 +243,7 @@ export default class Context {
     return this.ractive.readLink(this.resolve(keypath), options);
   }
 
-  resolve(path, ractive) {
+  resolve(path, ractive?) {
     const { model, instance } = findModel(this, path);
     return model ? model.getKeypath(ractive || instance) : path;
   }
@@ -295,7 +317,7 @@ export default class Context {
   }
 
   // two-way binding related helpers
-  isBound() {
+  isBound(): boolean {
     const { model } = this.getBindingModel(this);
     return !!model;
   }
@@ -326,7 +348,7 @@ Context.forRactive = getRactiveContext;
 extern.Context = Context;
 
 // TODO: at some point perhaps this could support relative * keypaths?
-function build(ctx, keypath, value) {
+function build(ctx: Context, keypath, value) {
   const sets = [];
 
   // set multiple keypaths in one go
@@ -354,6 +376,6 @@ function findModel(ctx, path) {
   return { model: resolveReference(frag, path), instance: frag.ractive };
 }
 
-function findEvent(el, name) {
+function findEvent(el: Element, name: string): EventDirective {
   return el.events && el.events.find && el.events.find(e => ~e.template.n.indexOf(name));
 }

@@ -37,9 +37,9 @@ export default class Decorator {
   private up: Fragment;
   private ractive: RactiveFake;
   private template: DecoratorDirectiveTemplateItem;
-  private name: string;
+  public name: string;
   private node: HTMLElement;
-  private handle: DecoratorHandle;
+  public handle: DecoratorHandle;
   public model: ExpressionProxy;
   private dirty: boolean;
   private shouldDestroy: boolean;

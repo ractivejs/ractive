@@ -38,6 +38,7 @@ export default class Element extends ContainerItem
   public node: any;
   public root: any;
 
+  public component: any;
   public decorators: Decorator[];
   private statics: Record<string, string>;
   public attributeByName: Record<string, Attribute>;

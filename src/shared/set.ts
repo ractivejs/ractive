@@ -1,3 +1,6 @@
+import Model from 'model/Model';
+import { Keypath } from 'types/Keypath';
+import { SetOpts } from 'types/Options';
 import { isArray, isObject, isObjectType, isFunction, isString, isUndefined } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn } from 'utils/object';
@@ -10,7 +13,13 @@ import { splitKeypath } from './keypaths';
 
 export let keep = false;
 
-export function set(pairs, options) {
+type SetPair<M extends Model, V> = [M, V, Keypath?];
+export function set<M extends Model, V>(pairs: [SetPair<M, V>], options?: SetOpts): Promise<V>;
+export function set<M extends Model, V>(pairs: SetPair<M, V>[], options?: SetOpts): Promise<void>;
+export function set<M extends Model, V>(
+  pairs: SetPair<M, V>[],
+  options?: SetOpts
+): Promise<void | V> {
   const k = keep;
 
   const deep = options && options.deep;
@@ -20,9 +29,7 @@ export function set(pairs, options) {
 
   let i = pairs.length;
   while (i--) {
-    const model = pairs[i][0];
-    const value = pairs[i][1];
-    const keypath = pairs[i][2];
+    const [model, value, keypath] = pairs[i];
 
     if (!model) {
       runloop.end();
@@ -55,8 +62,11 @@ export function set(pairs, options) {
 
   keep = k;
 
-  if (pairs.length === 1) return promise.then(() => pairs[0][1]);
-  else return promise;
+  if (pairs.length === 1) {
+    return promise.then(() => pairs[0][1]);
+  }
+
+  return promise;
 }
 
 const star = /\*/;

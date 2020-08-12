@@ -49,7 +49,7 @@ export interface EventDirectiveOwner extends Item {
 export default class EventDirective {
   private owner: EventDirectiveOwner;
   private element: Element | Component;
-  private template: EventDirectiveTemplateItem;
+  public template: EventDirectiveTemplateItem;
   public up: Fragment;
   private ractive: RactiveFake;
   private events: RactiveEventInterface[];
