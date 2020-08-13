@@ -1,3 +1,4 @@
+import ModelBase from 'model/ModelBase';
 import { rebindMatch } from 'shared/rebind';
 import { assign } from 'utils/object';
 import resolve from 'view/resolvers/resolve';
@@ -36,7 +37,7 @@ export default class Mustache extends Item {
       const value = model.get();
 
       if (this.isStatic) {
-        this.model = { get: () => value };
+        this.model = { get: () => value } as ModelBase;
         model.unreference();
         return;
       }

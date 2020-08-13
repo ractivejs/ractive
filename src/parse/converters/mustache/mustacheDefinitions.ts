@@ -127,6 +127,9 @@ export interface InterpolatorTemplateItem extends ExpressionRefinementTemplateIt
    * used in {@link readAttribute}
    */
   f?: FragmentTemplateItem[];
+
+  /** is static */
+  s?: boolean;
 }
 
 export interface TripleMustacheTemplateItem extends ExpressionRefinementTemplateItem {

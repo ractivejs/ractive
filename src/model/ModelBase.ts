@@ -100,6 +100,8 @@ export default abstract class ModelBase {
 
   public value: any;
 
+  public abstract isReadonly: boolean;
+
   /**
    * isModel a LinkModel?
    * Maybe this can be replaced with `instanceof LinkModel` check

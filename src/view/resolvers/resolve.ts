@@ -11,7 +11,7 @@ import resolveReference from './resolveReference';
 export default function resolve(
   fragment: Fragment | RepeatedFragment,
   template: ExpressionRefinementTemplateItem
-): ExpressionProxy | ReferenceExpressionProxy | ModelBase {
+): ModelBase {
   if (template.r) {
     return resolveReference(fragment, template.r);
   } else if (template.x) {

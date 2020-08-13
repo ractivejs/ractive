@@ -1,24 +1,49 @@
+import TemplateItemType from 'config/types';
+import {
+  GenericAttributeTemplateItem,
+  GenericAttributeTemplateValue
+} from 'parse/converters/element/elementDefinitions';
 import { splitKeypath } from 'shared/keypaths';
+import { Filter } from 'types/utils';
 import { isArray, isObjectType, isString, isUndefined } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 
-import { INTERPOLATOR } from '../../../config/types';
 import runloop from '../../../global/runloop';
 import parseJSON from '../../../utils/parseJSON';
 import Fragment from '../../Fragment';
 import resolve from '../../resolvers/resolve';
+import Component from '../Component';
+import Section from '../Section';
 import findElement from '../shared/findElement';
-import Item from '../shared/Item';
+import Item, { ItemOpts } from '../shared/Item';
+
+interface MappingOpts extends ItemOpts {
+  owner?: Mapping['owner'];
+  element: Mapping['element'];
+  /** @override */
+  template: Mapping['template'];
+}
+
+type MappingValue = Filter<GenericAttributeTemplateValue, Array<unknown>>;
 
 export default class Mapping extends Item {
-  constructor(options) {
+  public name: string;
+  public owner: Section | Component;
+  public element: Component;
+  public value: MappingValue;
+  public boundFragment: Fragment;
+  public link: any;
+  /** @override */
+  public template: GenericAttributeTemplateItem & { f: MappingValue };
+
+  constructor(options: MappingOpts) {
     super(options);
 
     this.name = options.template.n;
 
     this.owner = options.owner || options.up.owner || options.element || findElement(options.up);
     this.element =
-      options.element || (this.owner.attributeByName ? this.owner : findElement(options.up));
+      options.element || ('attributeByName' in this.owner ? this.owner : findElement(options.up));
     this.up = this.element.up; // shared
     this.ractive = this.up.ractive;
 
@@ -27,7 +52,7 @@ export default class Mapping extends Item {
     this.value = options.template.f;
   }
 
-  bind() {
+  bind(): void {
     const template = this.template.f;
     const viewmodel = this.element.instance.viewmodel;
 
@@ -38,11 +63,11 @@ export default class Mapping extends Item {
       const parsed = parseJSON(template);
       viewmodel.joinKey(this.name).set(parsed ? parsed.value : template);
     } else if (isArray(template)) {
-      createMapping(this, true);
+      createMapping(this);
     }
   }
 
-  rebound(update) {
+  rebound(update): void {
     if (this.boundFragment) this.boundFragment.rebound(update);
     if (this.link) {
       this.model = resolve(this.up, this.template.f[0]);
@@ -51,9 +76,9 @@ export default class Mapping extends Item {
     }
   }
 
-  render() {}
+  render(): void {}
 
-  unbind(view) {
+  unbind(view): void {
     if (this.model) this.model.unregister(this);
     if (this.boundFragment) this.boundFragment.unbind(view);
 
@@ -62,9 +87,9 @@ export default class Mapping extends Item {
     }
   }
 
-  unrender() {}
+  unrender(): void {}
 
-  update() {
+  update(): void {
     if (this.dirty) {
       this.dirty = false;
       if (this.boundFragment) this.boundFragment.update();
@@ -72,12 +97,17 @@ export default class Mapping extends Item {
   }
 }
 
-function createMapping(item) {
+function createMapping(item: Mapping): void {
   const template = item.template.f;
   const viewmodel = item.element.instance.viewmodel;
   const childData = viewmodel.value;
 
-  if (template.length === 1 && template[0].t === INTERPOLATOR) {
+  if (
+    isArray(template) &&
+    template.length === 1 &&
+    typeof template[0] !== 'string' &&
+    template[0].t === TemplateItemType.INTERPOLATOR
+  ) {
     const model = resolve(item.up, template[0]);
     const val = model.get(false);
 
@@ -100,8 +130,9 @@ function createMapping(item) {
       warnIfDebug(`Cannot copy non-computed object value from static mapping '${item.name}'`);
     }
 
+    // TSRChange - remove unregister invocation since it has no param an at least 1 param is needed
     // if the item isn't going to manage the model, give it a change to tear down if it's computed
-    if (model !== item.model) model.unregister();
+    // if (model !== item.model) model.unregister();
   } else {
     item.boundFragment = new Fragment({
       owner: item,

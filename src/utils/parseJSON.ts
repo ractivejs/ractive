@@ -164,7 +164,7 @@ function getKeyValuePair(parser) {
   return pair;
 }
 
-export default function(str: string, values: object): any {
+export default function parseJSON(str: string, values?: object): any {
   const parser = new JsonParser(str, { values } as BaseParseOpts);
   return parser.result;
 }

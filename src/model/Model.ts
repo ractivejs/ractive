@@ -34,7 +34,7 @@ export default class Model extends ModelBase implements ModelWithShuffle {
   public parent: Model;
 
   private ticker: Ticker;
-  protected isReadonly: boolean;
+  public isReadonly: boolean;
   protected isArray: boolean;
   public isRoot: boolean;
   private rewrap: boolean;

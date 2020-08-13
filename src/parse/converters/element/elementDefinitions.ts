@@ -1,5 +1,6 @@
 import TemplateItemType from 'config/types';
 
+import { ExpressionRefinementTemplateItem } from '../expressions/expressionDefinitions';
 import {
   SectionMustacheTemplateItem,
   InterpolatorTemplateItem,
@@ -78,7 +79,6 @@ export interface EventDirectiveTemplateItem {
 
 export type GenericAttributeTemplateValue =
   | (
-      | string
       | InterpolatorTemplateItem
       | TripleMustacheTemplateItem
       | SectionMustacheTemplateItem
@@ -87,7 +87,7 @@ export type GenericAttributeTemplateValue =
   | number
   | string;
 
-export interface GenericAttributeTemplateItem {
+export interface GenericAttributeTemplateItem extends ExpressionRefinementTemplateItem {
   t: TemplateItemType.ATTRIBUTE;
 
   /** attribute name */
