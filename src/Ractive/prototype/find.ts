@@ -1,4 +1,4 @@
-import { FindOptions } from 'src/types/Options';
+import { FindOpts } from 'src/types/Options';
 
 /**
  * Returns the first element inside a given Ractive instance matching a CSS selector.
@@ -21,7 +21,7 @@ import { FindOptions } from 'src/types/Options';
  * @param selector A CSS selector representing the element to find.
  * @param options
  */
-export default function Ractive$find(selector: string, options: FindOptions = {}): HTMLElement {
+export default function Ractive$find(selector: string, options: FindOpts = {}): HTMLElement {
   if (!this.rendered)
     throw new Error(
       `Cannot call ractive.find('${selector}') unless instance is rendered to the DOM`

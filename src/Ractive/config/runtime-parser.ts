@@ -3,7 +3,7 @@ import parse from 'parse/_parse';
 import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { fromExpression } from 'parse/utils/createFunction';
 import { addFunctions } from 'shared/getFunction';
-import { ParseOpts } from 'types/ParseOptions';
+import { ParseOpts } from 'types/Parse';
 import { RactiveFake } from 'types/RactiveFake';
 import { isString } from 'utils/is';
 import { fatal } from 'utils/log';

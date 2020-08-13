@@ -74,7 +74,7 @@ export default class Fragment {
   public shouldRebind: number;
 
   public delegate: boolean;
-  private rendered: boolean;
+  public rendered: boolean;
   public dirty: boolean;
   private dirtyValue: boolean;
   private bound: boolean;

@@ -1,4 +1,4 @@
-import { FindOptions } from 'src/types/Options';
+import { FindOpts } from 'src/types/Options';
 import { isObjectType } from 'utils/is';
 
 // TODO replace unkown with Ractive after we create ractive file
@@ -6,9 +6,9 @@ import { isObjectType } from 'utils/is';
 /**
  * Find the first component belonging to this instance.
  */
-export function Ractive$findComponent(opts?: FindOptions): unknown;
+export function Ractive$findComponent(opts?: FindOpts): unknown;
 
-export function Ractive$findComponent(name: string, opts?: FindOptions): unknown;
+export function Ractive$findComponent(name: string, opts?: FindOpts): unknown;
 
 /**
  * Returns the first component inside a given Ractive instance with the given `name` (or the first component of any kind if no name is given).
@@ -37,8 +37,8 @@ export function Ractive$findComponent(name: string, opts?: FindOptions): unknown
  * @param options
  */
 export default function Ractive$findComponent(
-  name: string | FindOptions,
-  options: FindOptions = {}
+  name: string | FindOpts,
+  options: FindOpts = {}
 ): unknown {
   if (isObjectType(name)) {
     options = name;

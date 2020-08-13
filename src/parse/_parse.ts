@@ -1,10 +1,5 @@
 import { TEMPLATE_VERSION } from 'config/template';
-import {
-  ParseOpts,
-  ParseDelimiters,
-  InterpolateOpts,
-  WhitespaceElements
-} from 'types/ParseOptions';
+import { ParseOpts, ParseDelimiters, InterpolateOpts, WhitespaceElements } from 'types/Parse';
 import { isObjectType } from 'utils/is';
 import { assign, keys } from 'utils/object';
 

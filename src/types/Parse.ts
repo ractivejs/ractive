@@ -1,5 +1,38 @@
 export type ParseDelimiters = [string, string];
 
+export interface ParsedTemplate {
+  /** The version of the template spec that produced this template. */
+  v: number;
+
+  /** The array of template nodes. */
+  t: any[];
+
+  /** If csp mode was used to parse, the map of expression string -> expression functions. */
+  e?: { [key: string]: Function };
+
+  /** If the template includes any partials, the map of partial name -> template nodes. */
+  p?: { [key: string]: any[] };
+}
+
+export interface ParseHelper {
+  /**
+   * Retrieves a template string from a script tag with the given id.j
+   */
+  fromId(id: string): string;
+
+  /**
+   * @returns true if the given value is a parsed template
+   */
+  isParsed(template: any): boolean;
+
+  /**
+   * Parse the given template with Ractive.parse.
+   */
+  parse(template: string, opts?: ParseOpts): ParsedTemplate;
+}
+
+export type ParseFn = (helper: ParseHelper) => string | Array<{} | string> | ParsedTemplate;
+
 export interface SanitizeOpts {
   /** A list of element names to remove from the template. */
   elements: string[];
