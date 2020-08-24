@@ -10,7 +10,7 @@ export interface ItemOpts {
 
 export default class Item {
   // TODO add correct types
-  public up: any;
+  public up: Fragment;
   public ractive: any;
 
   public template: any;

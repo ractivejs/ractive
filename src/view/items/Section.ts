@@ -1,14 +1,8 @@
-import {
-  ALIAS,
-  SECTION_EACH,
-  SECTION_IF,
-  SECTION_IF_WITH,
-  SECTION_UNLESS,
-  SECTION_WITH
-} from 'config/types';
+import TemplateItemType from 'config/types';
 import { keep } from 'shared/set';
 import runloop from 'src/global/runloop';
 import Context from 'src/shared/Context';
+import { RactiveFake } from 'types/RactiveFake';
 import { createDocumentFragment } from 'utils/dom';
 import { isArray, isObject, isObjectLike, isUndefined } from 'utils/is';
 import { keys } from 'utils/object';
@@ -16,9 +10,13 @@ import { keys } from 'utils/object';
 import Fragment from '../Fragment';
 import RepeatedFragment from '../RepeatedFragment';
 
-import { MustacheContainer } from './shared/Mustache';
+import { BindingFlagOwner } from './element/BindingFlag';
+import { DecoratorOwner } from './element/Decorator';
+import { TransitionOwner } from './element/Transition';
+import { EventDirectiveOwner } from './shared/EventDirective';
+import { MustacheContainer, MustacheOpts } from './shared/Mustache';
 
-function isEmpty(value) {
+function isEmpty(value: unknown): boolean {
   return (
     !value ||
     (isArray(value) && value.length === 0) ||
@@ -26,29 +24,42 @@ function isEmpty(value) {
   );
 }
 
-function getType(value, hasIndexRef) {
-  if (hasIndexRef || isArray(value)) return SECTION_EACH;
-  if (isObjectLike(value)) return SECTION_IF_WITH;
+function getType(value: unknown, hasIndexRef: unknown): TemplateItemType {
+  if (hasIndexRef || isArray(value)) return TemplateItemType.SECTION_EACH;
+  if (isObjectLike(value)) return TemplateItemType.SECTION_IF_WITH;
   if (isUndefined(value)) return null;
-  return SECTION_IF;
+  return TemplateItemType.SECTION_IF;
 }
 
-// TODO implements DecoratorOwner
-// TODO implements TransitionOwner
-// TODO implements EventDirectiveOwner
-// TODO implements BindingFlagOwner
-export default class Section extends MustacheContainer {
-  constructor(options) {
+interface SectionOpts extends MustacheOpts {
+  template: Section['template'];
+}
+
+export default class Section extends MustacheContainer
+  implements DecoratorOwner, TransitionOwner, EventDirectiveOwner, BindingFlagOwner {
+  public isAlias: boolean;
+  public sectionType: TemplateItemType;
+  public templateSectionType: TemplateItemType;
+  public subordinate: boolean;
+  public sibling: this;
+  public yield: Context;
+  public detached: Fragment;
+  public rendered: boolean;
+  public container: RactiveFake;
+  public nextSibling: this;
+
+  constructor(options: SectionOpts) {
     super(options);
 
-    this.isAlias = options.template.t === ALIAS;
-    this.sectionType = options.template.n || (this.isAlias && SECTION_WITH) || null;
+    this.isAlias = options.template.t === TemplateItemType.ALIAS;
+    this.sectionType =
+      options.template.n || (this.isAlias && TemplateItemType.SECTION_WITH) || null;
     this.templateSectionType = this.sectionType;
     this.subordinate = options.template.l === 1;
     this.fragment = null;
   }
 
-  bind() {
+  bind(): void {
     super.bind();
 
     if (this.subordinate) {
@@ -62,7 +73,7 @@ export default class Section extends MustacheContainer {
       this.update();
     } else if (
       this.sectionType &&
-      this.sectionType === SECTION_UNLESS &&
+      this.sectionType === TemplateItemType.SECTION_UNLESS &&
       (!this.sibling || !this.sibling.isTruthy())
     ) {
       this.fragment = new Fragment({
@@ -72,42 +83,49 @@ export default class Section extends MustacheContainer {
     }
   }
 
-  bubble() {
+  bubble(): void {
     if (!this.dirty && this.yield) {
       this.dirty = true;
       this.containerFragment.bubble();
     } else super.bubble();
   }
 
-  detach() {
+  detach(): DocumentFragment | Element {
     const frag = this.fragment || this.detached;
     return frag ? frag.detach() : super.detach();
   }
 
-  isTruthy() {
+  isTruthy(): boolean {
     if (this.subordinate && this.sibling.isTruthy()) return true;
     const value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();
-    return !!value && (this.templateSectionType === SECTION_IF_WITH || !isEmpty(value));
+    return (
+      !!value && (this.templateSectionType === TemplateItemType.SECTION_IF_WITH || !isEmpty(value))
+    );
   }
 
-  rebind(next, previous, safe) {
+  rebind(next, previous, safe): boolean {
     if (super.rebind(next, previous, safe)) {
-      if (this.fragment && this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS) {
+      if (
+        this.fragment &&
+        this.sectionType !== TemplateItemType.SECTION_IF &&
+        this.sectionType !== TemplateItemType.SECTION_UNLESS
+      ) {
         this.fragment.rebind(next);
       }
     }
+    return true;
   }
 
-  rebound(update) {
+  rebound(update): void {
     if (this.model) {
       if (this.model.rebound) this.model.rebound(update);
       else {
         super.unbind();
         super.bind();
         if (
-          this.sectionType === SECTION_WITH ||
-          this.sectionType === SECTION_IF_WITH ||
-          this.sectionType === SECTION_EACH
+          this.sectionType === TemplateItemType.SECTION_WITH ||
+          this.sectionType === TemplateItemType.SECTION_IF_WITH ||
+          this.sectionType === TemplateItemType.SECTION_EACH
         ) {
           if (this.fragment) this.fragment.rebind(this.model);
         }
@@ -118,35 +136,40 @@ export default class Section extends MustacheContainer {
     if (this.fragment) this.fragment.rebound(update);
   }
 
-  render(target, occupants) {
+  render(target, occupants): void {
     this.rendered = true;
     if (this.fragment) this.fragment.render(target, occupants);
   }
 
-  shuffle(newIndices) {
-    if (this.fragment && this.sectionType === SECTION_EACH) {
+  shuffle(newIndices): void {
+    if (this.fragment && this.sectionType === TemplateItemType.SECTION_EACH) {
       this.fragment.shuffle(newIndices);
     }
   }
 
-  unbind(view) {
-    super.unbind(view);
+  unbind(view?): void {
+    super.unbind();
     if (this.fragment) this.fragment.unbind(view);
   }
 
-  unrender(shouldDestroy) {
+  unrender(shouldDestroy): void {
     if (this.rendered && this.fragment) this.fragment.unrender(shouldDestroy);
     this.rendered = false;
   }
 
-  update() {
+  update(): void {
     if (!this.dirty) return;
 
-    if (this.fragment && this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS) {
+    if (
+      this.fragment &&
+      this.sectionType !== TemplateItemType.SECTION_IF &&
+      this.sectionType !== TemplateItemType.SECTION_UNLESS
+    ) {
       this.fragment.context = this.model;
     }
 
-    if (!this.model && this.sectionType !== SECTION_UNLESS && !this.isAlias) return;
+    if (!this.model && this.sectionType !== TemplateItemType.SECTION_UNLESS && !this.isAlias)
+      return;
 
     this.dirty = false;
 
@@ -179,10 +202,12 @@ export default class Section extends MustacheContainer {
     let newFragment;
 
     const fragmentShouldExist =
-      this.sectionType === SECTION_EACH || // each always gets a fragment, which may have no iterations
-      this.sectionType === SECTION_WITH || // with (partial context) always gets a fragment
+      this.sectionType === TemplateItemType.SECTION_EACH || // each always gets a fragment, which may have no iterations
+      this.sectionType === TemplateItemType.SECTION_WITH || // with (partial context) always gets a fragment
       (siblingFalsey &&
-        (this.sectionType === SECTION_UNLESS ? !this.isTruthy() : this.isTruthy())) || // if, unless, and if-with depend on siblings and the condition
+        (this.sectionType === TemplateItemType.SECTION_UNLESS
+          ? !this.isTruthy()
+          : this.isTruthy())) || // if, unless, and if-with depend on siblings and the condition
       this.isAlias;
 
     if (fragmentShouldExist) {
@@ -192,14 +217,14 @@ export default class Section extends MustacheContainer {
         // check for detached fragment
         if (this.detached) {
           attach(this, this.fragment);
-          this.detached = false;
+          this.detached = null;
           this.rendered = true;
         }
 
         if (!this.fragment.bound) this.fragment.bind(this.model);
         this.fragment.update();
       } else {
-        if (this.sectionType === SECTION_EACH) {
+        if (this.sectionType === TemplateItemType.SECTION_EACH) {
           newFragment = new RepeatedFragment({
             owner: this,
             template: this.template.f,
@@ -208,7 +233,8 @@ export default class Section extends MustacheContainer {
         } else {
           // only with and if-with provide context - if and unless do not
           let context =
-            this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS
+            this.sectionType !== TemplateItemType.SECTION_IF &&
+            this.sectionType !== TemplateItemType.SECTION_UNLESS
               ? this.model
               : null;
 
@@ -259,7 +285,7 @@ export default class Section extends MustacheContainer {
   }
 }
 
-function attach(section, fragment) {
+function attach(section: Section, fragment: Fragment): void {
   const anchor = (section.containerFragment || section.up).findNextNode(section);
 
   if (anchor) {

@@ -73,12 +73,14 @@ export default class Fragment {
   public lastValue: any;
   public shouldRebind: number;
 
-  public delegate: boolean;
+  public delegate: any;
   public rendered: boolean;
   public dirty: boolean;
   private dirtyValue: boolean;
-  private bound: boolean;
+  public bound: boolean;
   private updating: boolean;
+
+  public shuffle: Function;
 
   constructor(options: FragmentOpts) {
     this.owner = options.owner;

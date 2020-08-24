@@ -15,19 +15,14 @@ Item
 |
 |__ Mapping
 |
-|__ ContainerItem
-|   |
-|   |__ Element
-|
-|__ Mustache
-    |
-    |__ Interpolator
-    |
+|__ ContainerItem _________
+|   |                      |
+|   |__ Element            |
+|                          |
+|__ Mustache ______________|__ MustacheContainer
+    |                          |
+    |__ Interpolator           |__ Section
+    |                          |
+    |                          |__ Partial
     |__ Triple
-    |
-    |__ MustacheContainer
-        |
-        |__ Section
-        |
-        |__ Partial
 ```

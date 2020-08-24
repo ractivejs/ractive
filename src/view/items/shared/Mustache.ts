@@ -1,6 +1,5 @@
 import ModelBase from 'model/ModelBase';
 import { rebindMatch } from 'shared/rebind';
-import { assign } from 'utils/object';
 import resolve from 'view/resolvers/resolve';
 
 import Item, { ContainerItem, ItemOpts } from './Item';
@@ -12,7 +11,7 @@ export interface MustacheOpts extends ItemOpts {
 export default class Mustache extends Item {
   public parent: any;
   private isStatic: boolean;
-  private containerFragment: any;
+  public containerFragment: any;
 
   constructor(options: MustacheOpts) {
     super(options);
@@ -25,7 +24,7 @@ export default class Mustache extends Item {
     this.dirty = false;
   }
 
-  bind(pre): void {
+  bind(pre?): void {
     // yield mustaches and inner contexts should resolve in container context
     const start = this.template.y
       ? this.template.y.containerFragment
@@ -96,11 +95,30 @@ export default class Mustache extends Item {
   }
 }
 
-// TODO implement an interface to define MustacheContainer behaviuor
-export function MustacheContainer(options): void {
-  Mustache.call(this, options);
+// TSRCHANGE
+// TODO - Maybe this can be done using mixins or something more "elegant"
+// export function MustacheContainer(options): void {
+//   Mustache.call(this, options);
+// }
+
+// const proto = (MustacheContainer.prototype = Object.create(ContainerItem.prototype));
+
+// assign(proto, Mustache.prototype, { constructor: MustacheContainer });
+
+export class MustacheContainer extends Mustache {
+  constructor(options: MustacheOpts) {
+    super(options);
+  }
+
+  // This function is called using super by child classes so we can't declare it as a property
+  detach(): DocumentFragment | Element {
+    return ContainerItem.prototype.detach.call(this);
+  }
+
+  find = ContainerItem.prototype.find;
+  findAll = ContainerItem.prototype.findAll;
+  findComponent = ContainerItem.prototype.findComponent;
+  findAllComponents = ContainerItem.prototype.findAllComponents;
+  firstNode = ContainerItem.prototype.firstNode;
+  toString = ContainerItem.prototype.toString;
 }
-
-const proto = (MustacheContainer.prototype = Object.create(ContainerItem.prototype));
-
-assign(proto, Mustache.prototype, { constructor: MustacheContainer });
