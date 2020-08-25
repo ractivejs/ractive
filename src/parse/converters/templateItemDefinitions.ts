@@ -32,9 +32,13 @@ export interface PartialRegistryTemplateItem {
  * x -> expression
  */
 
-/** */
+/**
+ * @see {@link ParsedTemplate}
+ */
 export interface TemplateModel {
-  v: number;
+  /** version of template */
+  v?: number;
+
   t: (
     | MustachePrimaryItem
     | AttributesOrDirectiveTemplateItem

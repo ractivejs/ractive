@@ -58,7 +58,7 @@ export function addCSS(styleDefinition: string): void {
   isDirty = true;
 }
 
-export function applyCSS(force: boolean): void {
+export function applyCSS(force?: boolean): void {
   const styleElement = style();
 
   // Apply only seems to make sense when we're in the DOM. Server-side renders

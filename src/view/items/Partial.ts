@@ -1,43 +1,67 @@
-import { ELEMENT, PARTIAL, SECTION, SECTION_WITH, YIELDER } from 'config/types';
+import TemplateItemType from 'config/types';
+import { TemplateModel } from 'parse/converters/templateItemDefinitions';
+import Context from 'shared/Context';
 import { splitKeypath } from 'shared/keypaths';
 import { applyCSS } from 'src/global/css';
 import runloop from 'src/global/runloop';
 import parser from 'src/Ractive/config/runtime-parser';
+import { MacroHandle, MacroFn } from 'types/Macro';
+import { RactiveFake } from 'types/RactiveFake';
 import { isArray, isFunction, isObjectType, isString } from 'utils/is';
 import { warnOnceIfDebug, warnIfDebug } from 'utils/log';
-import noop from 'utils/noop';
-import { assign, create, hasOwn, keys } from 'utils/object';
+import { assign, hasOwn, keys } from 'utils/object';
 
-import Fragment from '../Fragment';
+import Fragment, { FragmentOpts } from '../Fragment';
 
+import Component from './Component';
+import { BindingFlagOwner } from './element/BindingFlag';
+import { DecoratorOwner } from './element/Decorator';
 import getPartialTemplate from './partial/getPartialTemplate';
-import { MustacheContainer } from './shared/Mustache';
+import { EventDirectiveOwner } from './shared/EventDirective';
+import { MustacheContainer, MustacheOpts } from './shared/Mustache';
 
-// TODO implements DecoratorOwner
-// TODO implements EventDirectiveOwner
-// TODO implements BindingFlagOwner
-export default function Partial(options) {
-  MustacheContainer.call(this, options);
-
-  const tpl = options.template;
-
-  // yielder is a special form of partial that will later require special handling
-  if (tpl.t === YIELDER) {
-    this.yielder = 1;
-  } else if (tpl.t === ELEMENT) {
-    // this is a macro partial, complete with macro constructor
-    // leaving this as an element will confuse up-template searches
-    this.type = PARTIAL;
-    this.macro = options.macro;
-  }
+interface PartialOpts extends MustacheOpts {
+  macro: Partial['macro'];
 }
 
-const proto = (Partial.prototype = create(MustacheContainer.prototype));
+export default class Partial extends MustacheContainer
+  implements DecoratorOwner, EventDirectiveOwner, BindingFlagOwner {
+  public yielder: number;
+  private macro: MacroFn;
+  public container: RactiveFake;
+  private component: Component;
+  private refName: string;
+  public fn: any;
+  public fnTemplate: any;
+  public last: any[];
+  public _attrs: Record<string, Fragment>;
+  public partial: any[];
+  public name: string;
+  public proxy: MacroHandle;
+  public handle: Context;
+  public dirtyTemplate: boolean;
+  private externalChange: boolean;
+  public updating: number;
+  public dirtyAttrs: boolean;
+  public initing: 0 | 1;
 
-assign(proto, {
-  constructor: Partial,
+  constructor(options: PartialOpts) {
+    super(options);
 
-  bind() {
+    const { template } = options;
+
+    // yielder is a special form of partial that will later require special handling
+    if (template.t === TemplateItemType.YIELDER) {
+      this.yielder = 1;
+    } else if (template.t === TemplateItemType.ELEMENT) {
+      // this is a macro partial, complete with macro constructor
+      // leaving this as an element will confuse up-template searches
+      this.type = TemplateItemType.PARTIAL;
+      this.macro = options.macro;
+    }
+  }
+
+  bind(): void {
     const template = this.template;
 
     if (this.yielder) {
@@ -78,7 +102,7 @@ assign(proto, {
 
       // this is a dynamic/inline partial
       if (!this.partial && !this.fn) {
-        MustacheContainer.prototype.bind.call(this);
+        super.bind();
         if (this.model) partialFromValue(this, this.model.get());
       }
     }
@@ -93,9 +117,9 @@ assign(proto, {
     if (this.fn) initMacro(this);
 
     this.fragment.bind();
-  },
+  }
 
-  bubble() {
+  bubble(): void {
     if (!this.dirty) {
       this.dirty = true;
 
@@ -105,34 +129,35 @@ assign(proto, {
         this.up.bubble();
       }
     }
-  },
+  }
 
-  findNextNode() {
+  findNextNode(): HTMLElement {
     return (this.containerFragment || this.up).findNextNode(this);
-  },
+  }
 
-  handleChange() {
+  handleChange(): void {
     this.dirtyTemplate = true;
     this.externalChange = true;
     this.bubble();
-  },
+  }
 
-  rebound(update) {
+  rebound(update): void {
     if (this._attrs) {
       keys(this._attrs).forEach(k => this._attrs[k].rebound(update));
     }
-    MustacheContainer.prototype.rebound.call(this, update);
-  },
+    super.rebound(update);
+  }
 
-  refreshAttrs() {
+  refreshAttrs(): void {
     keys(this._attrs).forEach(k => {
       this.handle.attributes[k] = !this._attrs[k].items.length || this._attrs[k].valueOf();
     });
-  },
+  }
 
-  resetTemplate() {
+  resetTemplate(): boolean {
     if (this.fn && this.proxy) {
-      this.last = 0;
+      // TSRChange - change 0 to null to avoid type conflict
+      this.last = null;
       if (this.externalChange) {
         if (isFunction(this.proxy.teardown)) this.proxy.teardown();
         this.fn = this.proxy = null;
@@ -170,39 +195,39 @@ assign(proto, {
     }
 
     return true;
-  },
+  }
 
-  render(target, occupants) {
+  render(target, occupants): void {
     if (this.fn && this.fn._cssDef && !this.fn._cssDef.applied) applyCSS();
 
     this.fragment.render(target, occupants);
 
     if (this.proxy && isFunction(this.proxy.render)) this.proxy.render();
-  },
+  }
 
-  unbind(view) {
+  unbind(view?): void {
     this.fragment.unbind(view);
 
     this.unbindAttrs(view);
 
-    MustacheContainer.prototype.unbind.call(this, view);
-  },
+    super.unbind();
+  }
 
-  unbindAttrs(view) {
+  unbindAttrs(view?): void {
     if (this._attrs) {
       keys(this._attrs).forEach(k => {
         this._attrs[k].unbind(view);
       });
     }
-  },
+  }
 
-  unrender(shouldDestroy) {
+  unrender(shouldDestroy: boolean): void {
     if (this.proxy && isFunction(this.proxy.teardown)) this.proxy.teardown();
 
     this.fragment.unrender(shouldDestroy);
-  },
+  }
 
-  update() {
+  update(): void {
     const proxy = this.proxy;
     this.updating = 1;
 
@@ -227,13 +252,13 @@ assign(proto, {
     this.externalChange = false;
     this.updating = 0;
   }
-});
+}
 
-function createFragment(self, partial) {
+function createFragment(self: Partial, partial): void {
   self.partial = self.last = partial;
   contextifyTemplate(self);
 
-  const options = {
+  const options: FragmentOpts = {
     owner: self,
     template: self.partial
   };
@@ -245,21 +270,23 @@ function createFragment(self, partial) {
   self.fragment = new Fragment(options);
 }
 
-function contextifyTemplate(self) {
+function contextifyTemplate(self: Partial): void {
   if (self.template.c) {
-    self.partial = [{ t: SECTION, n: SECTION_WITH, f: self.partial }];
+    self.partial = [
+      { t: TemplateItemType.SECTION, n: TemplateItemType.SECTION_WITH, f: self.partial }
+    ];
     assign(self.partial[0], self.template.c);
     if (self.yielder) self.partial[0].y = self;
     else self.partial[0].z = self.template.z;
   }
 }
 
-function partialFromValue(self, value, okToParse) {
+function partialFromValue(self, value, okToParse?) {
   let tpl = value;
 
   if (isArray(tpl)) {
     self.partial = tpl;
-  } else if (tpl && isObjectType(tpl)) {
+  } else if (tpl && isObjectType<any>(tpl)) {
     if (isArray(tpl.t)) self.partial = tpl.t;
     else if (isString(tpl.template))
       self.partial = parsePartial(tpl.template, tpl.template, self.ractive).t;
@@ -284,7 +311,7 @@ function partialFromValue(self, value, okToParse) {
   return self.partial;
 }
 
-function setTemplate(template) {
+function setTemplate(this: Partial, template): Promise<void> {
   partialFromValue(this, template, true);
 
   if (!this.initing) {
@@ -305,7 +332,7 @@ function setTemplate(template) {
   }
 }
 
-function aliasLocal(ref, name) {
+function aliasLocal(this: Context, ref: string, name: string): void {
   const aliases = this.fragment.aliases || (this.fragment.aliases = {});
   if (!name) {
     aliases[ref] = this._data;
@@ -316,7 +343,7 @@ function aliasLocal(ref, name) {
 
 const extras = 'extra-attributes';
 
-function initMacro(self) {
+function initMacro(self: Partial): void {
   const fn = self.fn;
   const fragment = self.fragment;
 
@@ -339,7 +366,7 @@ function initMacro(self) {
   if (isArray(fn.attributes)) {
     self._attrs = {};
 
-    const invalidate = function() {
+    const invalidate = function(): void {
       this.dirty = true;
       self.dirtyAttrs = true;
       self.bubble();
@@ -356,7 +383,8 @@ function initMacro(self) {
             owner: self
           });
           fragment.bubble = invalidate;
-          fragment.findFirstNode = noop;
+          // TSRChange - removed since findFirstNode is not defined on fragment
+          // fragment.findFirstNode = noop;
           self._attrs[a.n] = fragment;
         });
     } else {
@@ -383,11 +411,11 @@ function initMacro(self) {
   fragment.resetTemplate(self.partial);
 }
 
-function parsePartial(name, partial, ractive) {
-  let parsed;
+function parsePartial(name: string, partial: string, ractive: RactiveFake): TemplateModel {
+  let parsed: TemplateModel;
 
   try {
-    parsed = parser.parse(partial, parser.getParseOptions(ractive));
+    parsed = parser.parse<TemplateModel>(partial, parser.getParseOptions(ractive));
   } catch (e) {
     warnIfDebug(`Could not parse partial from expression '${name}'\n${e.message}`);
   }

@@ -8,10 +8,10 @@ export interface ParsedTemplate {
   t: any[];
 
   /** If csp mode was used to parse, the map of expression string -> expression functions. */
-  e?: { [key: string]: Function };
+  e?: Record<string, Function>;
 
   /** If the template includes any partials, the map of partial name -> template nodes. */
-  p?: { [key: string]: any[] };
+  p?: Record<string, any>;
 }
 
 export interface ParseHelper {

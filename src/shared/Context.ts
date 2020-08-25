@@ -65,6 +65,8 @@ export default class Context {
   public root: this;
   public refire: any;
   public model: ContextData;
+  public partials: any;
+  public attributes: any;
 
   static forRactive: (ractive: RactiveFake, ...assigns: unknown[]) => Context;
 

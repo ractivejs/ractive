@@ -87,7 +87,7 @@ const parser = {
     return !isString(template);
   },
 
-  getParseOptions(ractive: RactiveFake) {
+  getParseOptions(ractive: RactiveFake): ParseOpts {
     // Could be Ractive or a Component
     if (ractive.defaults) {
       ractive = ractive.defaults;

@@ -95,7 +95,7 @@ export default class Mustache extends Item {
   }
 }
 
-// TSRCHANGE
+// TSRChange
 // TODO - Maybe this can be done using mixins or something more "elegant"
 // export function MustacheContainer(options): void {
 //   Mustache.call(this, options);
