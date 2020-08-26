@@ -20,7 +20,7 @@ import getPartialTemplate from './partial/getPartialTemplate';
 import { EventDirectiveOwner } from './shared/EventDirective';
 import { MustacheContainer, MustacheOpts } from './shared/Mustache';
 
-interface PartialOpts extends MustacheOpts {
+export interface PartialOpts extends MustacheOpts {
   macro: Partial['macro'];
 }
 

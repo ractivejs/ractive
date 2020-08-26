@@ -1,5 +1,7 @@
 export type ParseDelimiters = [string, string];
 
+export type Template = ParsedTemplate | string | any[] | ParseFn;
+
 export interface ParsedTemplate {
   /** The version of the template spec that produced this template. */
   v: number;

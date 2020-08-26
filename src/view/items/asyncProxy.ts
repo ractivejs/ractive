@@ -1,15 +1,25 @@
-import { ELEMENT } from 'config/types';
-import { assign } from 'utils/object';
+import TemplateItemType from 'config/types';
+import { ElementTemplateItem } from 'parse/converters/templateItemDefinitions';
+import { MacroHelper } from 'types/Macro';
+import { RactiveFake } from 'types/RactiveFake';
 
-import Partial from './Partial';
+import Partial, { PartialOpts } from './Partial';
 
-export default function asyncProxy(promise, options) {
+interface AsyncProxyOpts extends PartialOpts {
+  template: ElementTemplateItem;
+}
+
+export default function asyncProxy(
+  promise: Promise<RactiveFake>,
+  options: AsyncProxyOpts
+): Partial {
   const partials = options.template.p || {};
   const name = options.template.e;
 
-  const opts = assign({}, options, {
-    template: { t: ELEMENT, e: name },
-    macro(handle) {
+  const opts: PartialOpts = {
+    ...options,
+    template: { t: TemplateItemType.ELEMENT, e: name },
+    macro(handle: MacroHelper) {
       handle.setTemplate(partials['async-loading'] || []);
       promise.then(
         cmp => {
@@ -32,6 +42,7 @@ export default function asyncProxy(promise, options) {
         }
       );
     }
-  });
+  };
+
   return new Partial(opts);
 }
