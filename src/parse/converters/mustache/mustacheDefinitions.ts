@@ -10,7 +10,7 @@ import {
   TextTemplateItem
 } from '../templateItemDefinitions';
 
-/**  @see {@link readSection} */
+/** @see {@link readSection} */
 export type FragmentTemplateItem =
   | SectionMustacheTemplateItem
   | InterpolatorTemplateItem
@@ -109,7 +109,7 @@ export interface SectionMustacheTemplateItem extends ExpressionRefinementTemplat
   z?: AliasDefinitionRefinedTemplateItem[];
 }
 
-export interface AwaitMustacheTemplateItem {
+export interface AwaitMustacheTemplateItem extends ExpressionRefinementTemplateItem {
   t: TemplateItemType.AWAIT;
 
   /** Fragments */
