@@ -2,11 +2,18 @@ import { doc } from 'config/environment';
 import hooks from 'src/events/Hook';
 import { applyCSS } from 'src/global/css';
 import runloop from 'src/global/runloop';
+import { RactiveFake } from 'types/RactiveFake';
+import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { getElement } from 'utils/dom';
 
 import { createFragment } from './initialise';
 
-export default function render(ractive, target, anchor, occupants) {
+export default function render(
+  ractive: RactiveFake,
+  target: RactiveHTMLElement,
+  anchor: boolean | string | HTMLElement,
+  occupants: HTMLElement[]
+): Promise<void> {
   // set a flag to let any transitions know that this instance is currently rendering
   ractive.rendering = true;
 
@@ -24,21 +31,22 @@ export default function render(ractive, target, anchor, occupants) {
     ractive.fragment = createFragment(ractive).bind(ractive.viewmodel);
   }
 
-  anchor = getElement(anchor) || ractive.anchor;
+  const anchorNode = getElement(anchor) || ractive.anchor;
 
   ractive.el = ractive.target = target;
-  ractive.anchor = anchor;
+  ractive.anchor = anchorNode;
 
   // ensure encapsulated CSS is up-to-date
   if (ractive.cssId) applyCSS();
 
   if (target) {
+    // eslint-disable-next-line @typescript-eslint/camelcase
     (target.__ractive_instances__ || (target.__ractive_instances__ = [])).push(ractive);
 
-    if (anchor) {
+    if (anchorNode) {
       const docFrag = doc.createDocumentFragment();
       ractive.fragment.render(docFrag);
-      target.insertBefore(docFrag, anchor);
+      target.insertBefore(docFrag, anchorNode);
     } else {
       ractive.fragment.render(target, occupants);
     }

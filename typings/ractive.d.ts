@@ -3,8 +3,7 @@
 // Definitions By: Chris Reeves <https://github.com/evs-chris>
 // Version: 1.3
 
-// no need to run eslint on this file since we are converting the source to ts so
-// we will
+// no need to run eslint on this file since we are converting the source to ts
 /* eslint-disable */
 
 export interface ValueMap {

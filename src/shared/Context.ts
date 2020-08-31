@@ -67,6 +67,9 @@ export default class Context {
   public model: ContextData;
   public partials: any;
   public attributes: any;
+  public name: string;
+  public component: RactiveFake;
+  public event: Event;
 
   static forRactive: (ractive: RactiveFake, ...assigns: unknown[]) => Context;
 

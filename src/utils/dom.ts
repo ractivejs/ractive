@@ -38,7 +38,7 @@ export function createDocumentFragment(): DocumentFragment {
   return doc.createDocumentFragment();
 }
 
-function getElement(input: HTMLElement): HTMLElement {
+function getElement(input: boolean | string | HTMLElement): HTMLElement | undefined {
   let output: HTMLElement;
 
   if (!input || typeof input === 'boolean') {
@@ -51,7 +51,7 @@ function getElement(input: HTMLElement): HTMLElement {
   }
 
   // We already have a DOM node - no work to do. (Duck typing alert!)
-  if (input.nodeType) {
+  if (input instanceof Element && input.nodeType) {
     return input;
   }
 

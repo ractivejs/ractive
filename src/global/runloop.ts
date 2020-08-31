@@ -94,7 +94,7 @@ class Runloop {
     batch.transitionManager.detachQueue.push(thing);
   }
 
-  public scheduleTask(task, postRender?: boolean): void {
+  public scheduleTask(task: Function, postRender?: boolean): void {
     let _batch: Batch;
 
     if (!batch) {

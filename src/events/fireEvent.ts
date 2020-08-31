@@ -1,11 +1,16 @@
+import Context from 'shared/Context';
+import { RactiveFake } from 'types/RactiveFake';
+
 import { enqueue, dequeue } from './eventStack';
 
-const initStars = {};
-const bubbleStars = {};
+const initStars: Record<string, string[]> = {};
+const bubbleStars: Record<string, string[]> = {};
 
-// cartesian product of name parts and stars
-// adjusted appropriately for special cases
-function variants(name, initial) {
+/**
+ * cartesian product of name parts and stars
+ * adjusted appropriately for special cases
+ */
+function variants(name: string, initial: boolean): string[] {
   const map = initial ? initStars : bubbleStars;
   if (map[name]) return map[name];
 
@@ -23,7 +28,7 @@ function variants(name, initial) {
   // need to skip the full star case if the namespace is synthetic
   const max = Math.pow(2, parts.length) - (initial ? 1 : 0);
   for (let i = 0; i < max; i++) {
-    const join = [];
+    const join: string[] = [];
     for (let j = 0; j < parts.length; j++) {
       join.push(1 & (i >> j) ? '*' : parts[j]);
     }
@@ -44,7 +49,12 @@ function variants(name, initial) {
   return result;
 }
 
-export default function fireEvent(ractive, eventName, context, args = []) {
+export default function fireEvent(
+  ractive: RactiveFake,
+  eventName: string,
+  context: Context,
+  args: unknown[] = []
+): boolean {
   if (!eventName) {
     return;
   }
@@ -57,7 +67,13 @@ export default function fireEvent(ractive, eventName, context, args = []) {
   return fireEventAs(ractive, eventNames, context, args, true);
 }
 
-function fireEventAs(ractive, eventNames, context, args, initialFire = false) {
+function fireEventAs(
+  ractive: RactiveFake,
+  eventNames: string[],
+  context: Context,
+  args: unknown[],
+  initialFire = false
+): boolean {
   let bubble = true;
 
   if (initialFire || ractive._nsSubs) {
@@ -89,8 +105,20 @@ function fireEventAs(ractive, eventNames, context, args, initialFire = false) {
   return bubble;
 }
 
-function notifySubscribers(ractive, subscribers, context, args) {
-  let originalEvent = null;
+/** Used to handle event callback events internally */
+export interface EventSubscriber {
+  off: boolean;
+  callback: Function;
+  handler: Function;
+}
+
+function notifySubscribers(
+  ractive: RactiveFake,
+  subscribers: EventSubscriber[],
+  context: Context,
+  args: unknown[]
+): boolean {
+  let originalEvent: Context['event'] = null;
   let stopEvent = false;
 
   // subscribers can be modified inflight, e.g. "once" functionality
