@@ -1,18 +1,4 @@
-import {
-  ALIAS,
-  ANCHOR,
-  AWAIT,
-  COMMENT,
-  COMPONENT,
-  DOCTYPE,
-  ELEMENT,
-  INTERPOLATOR,
-  PARTIAL,
-  SECTION,
-  TRIPLE,
-  YIELDER
-} from 'config/types';
-import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from 'config/types';
+import TemplateItemType from 'config/types';
 import { findInstance } from 'shared/registry';
 import { isString, isFunction } from 'utils/is';
 
@@ -41,23 +27,24 @@ import findElement from './shared/findElement';
 import Text from './Text';
 import Triple from './Triple';
 
-const constructors = {};
-constructors[ALIAS] = Section;
-constructors[ANCHOR] = Component;
-constructors[AWAIT] = Await;
-constructors[DOCTYPE] = Doctype;
-constructors[INTERPOLATOR] = Interpolator;
-constructors[PARTIAL] = Partial;
-constructors[SECTION] = Section;
-constructors[TRIPLE] = Triple;
-constructors[YIELDER] = Partial;
+const constructors = {
+  [TemplateItemType.ALIAS]: Section,
+  [TemplateItemType.ANCHOR]: Component,
+  [TemplateItemType.AWAIT]: Await,
+  [TemplateItemType.DOCTYPE]: Doctype,
+  [TemplateItemType.INTERPOLATOR]: Interpolator,
+  [TemplateItemType.PARTIAL]: Partial,
+  [TemplateItemType.SECTION]: Section,
+  [TemplateItemType.TRIPLE]: Triple,
+  [TemplateItemType.YIELDER]: Partial,
 
-constructors[ATTRIBUTE] = Attribute;
-constructors[BINDING_FLAG] = BindingFlag;
-constructors[DECORATOR] = Decorator;
-constructors[EVENT] = EventDirective;
-constructors[TRANSITION] = Transition;
-constructors[COMMENT] = Comment;
+  [TemplateItemType.ATTRIBUTE]: Attribute,
+  [TemplateItemType.BINDING_FLAG]: BindingFlag,
+  [TemplateItemType.DECORATOR]: Decorator,
+  [TemplateItemType.EVENT]: EventDirective,
+  [TemplateItemType.TRANSITION]: Transition,
+  [TemplateItemType.COMMENT]: Comment
+};
 
 const specialElements = {
   doctype: Doctype,
@@ -68,16 +55,19 @@ const specialElements = {
   textarea: Textarea
 };
 
-export default function createItem(options) {
+// TODO refine types
+function createItem(options: { template: string }): Text;
+function createItem(options): any;
+function createItem(options): any {
   if (isString(options.template)) {
     return new Text(options);
   }
 
   let ctor;
-  let name;
+  let name: string;
   const type = options.template.t;
 
-  if (type === ELEMENT) {
+  if (type === TemplateItemType.ELEMENT) {
     name = options.template.e;
 
     // could be a macro partial
@@ -104,22 +94,32 @@ export default function createItem(options) {
     return new ctor(options);
   }
 
-  let Item;
+  let ItemConstructor;
 
   // component mappings are a special case of attribute
-  if (type === ATTRIBUTE) {
+  if (type === TemplateItemType.ATTRIBUTE) {
     let el = options.owner;
-    if (!el || (el.type !== ANCHOR && el.type !== COMPONENT && el.type !== ELEMENT)) {
+    if (
+      !el ||
+      (el.type !== TemplateItemType.ANCHOR &&
+        el.type !== TemplateItemType.COMPONENT &&
+        el.type !== TemplateItemType.ELEMENT)
+    ) {
       el = findElement(options.up);
     }
     options.element = el;
 
-    Item = el.type === COMPONENT || el.type === ANCHOR ? Mapping : Attribute;
+    ItemConstructor =
+      el.type === TemplateItemType.COMPONENT || el.type === TemplateItemType.ANCHOR
+        ? Mapping
+        : Attribute;
   } else {
-    Item = constructors[type];
+    ItemConstructor = constructors[type];
   }
 
-  if (!Item) throw new Error(`Unrecognised item type ${type}`);
+  if (!ItemConstructor) throw new Error(`Unrecognised item type ${type}`);
 
-  return new Item(options);
+  return new ItemConstructor(options);
 }
+
+export default createItem;

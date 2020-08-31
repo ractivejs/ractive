@@ -22,7 +22,6 @@ export default class Item {
   public fragment: Fragment;
 
   public model: any;
-  public newModel: any;
 
   constructor(options: ItemOpts) {
     this.up = options.up;

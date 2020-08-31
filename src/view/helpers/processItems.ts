@@ -23,7 +23,8 @@ export default function processItems(items: Item[], values, guid: string, counte
       }
 
       const placeholderId = `${guid}-${counter++}`;
-      const model = item.model || item.newModel;
+      // TSRChange - it seems that `item.newModel` is never set
+      const model = item.model;
 
       values[placeholderId] = model
         ? model.wrapper
