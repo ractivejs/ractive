@@ -24,7 +24,7 @@ export interface TransitionHelper {
   animateStyle(
     prop: string,
     value: any,
-    opts: TransitionOpts & {},
+    opts: TransitionOpts,
     complete?: () => void
   ): Promise<void>;
 
@@ -35,7 +35,7 @@ export interface TransitionHelper {
    * @param complete an optional callback to call when the animation is complete
    * @returns a Promise that resolves when the animation is complete
    */
-  animateStyle(map: ValueMap, opts: TransitionOpts & {}, complete?: () => void): Promise<void>;
+  animateStyle(map: ValueMap, opts: TransitionOpts, complete?: () => void): Promise<void>;
 
   /**
    * The function to call when the transition is complete. This is used to control the Promises returned by mutation methods.j

@@ -31,7 +31,7 @@ export function isObject(thing: unknown): boolean {
   return thing && toString.call(thing) === '[object Object]';
 }
 
-export function isObjectType<T extends object>(thing: unknown): thing is T {
+export function isObjectType<T>(thing: unknown): thing is T {
   return typeof thing === 'object';
 }
 

@@ -33,7 +33,9 @@ export interface ParseHelper {
   parse(template: string, opts?: ParseOpts): ParsedTemplate;
 }
 
-export type ParseFn = (helper: ParseHelper) => string | Array<{} | string> | ParsedTemplate;
+export type ParseFn = (
+  helper: ParseHelper
+) => string | Array<Record<string, unknown> | string> | ParsedTemplate;
 
 export interface SanitizeOpts {
   /** A list of element names to remove from the template. */

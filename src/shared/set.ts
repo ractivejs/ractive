@@ -70,7 +70,7 @@ export function set<M extends Model, V>(
 }
 
 const star = /\*/;
-export function gather(ractive, keypath, base, isolated) {
+export function gather(ractive, keypath, base, isolated): any[] {
   if (!base && (keypath[0] === '.' || keypath[1] === '^')) {
     warnIfDebug(
       `Attempted to set a relative keypath from a non-relative context. You can use a context object to set relative keypaths.`
@@ -127,7 +127,7 @@ function deepSet(model, value) {
   const dest = model.get(false, deepOpts);
 
   // if dest doesn't exist, just set it
-  if (dest == null || !isObjectType(value)) return model.set(value);
+  if (dest == null || !isObjectType<Record<string, unknown>>(value)) return model.set(value);
   if (!isObjectType(dest)) return model.set(value);
 
   for (const k in value) {

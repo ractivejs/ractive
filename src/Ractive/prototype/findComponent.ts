@@ -1,7 +1,7 @@
 import { FindOpts } from 'src/types/Options';
 import { isObjectType } from 'utils/is';
 
-// TODO replace unkown with Ractive after we create ractive file
+// TODO replace unknown with Ractive after we create ractive file
 
 /**
  * Find the first component belonging to this instance.
@@ -40,7 +40,7 @@ export default function Ractive$findComponent(
   name: string | FindOpts,
   options: FindOpts = {}
 ): unknown {
-  if (isObjectType(name)) {
+  if (isObjectType<FindOpts>(name)) {
     options = name;
     name = '';
   }

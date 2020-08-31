@@ -71,7 +71,7 @@ export default class BindingFlag extends Item {
     if (this.fragment) return this.fragment.valueOf();
     else if ('value' in this) return this.value;
     // TODO find a way to not trigger this compilation error
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     else if ('f' in this.template) return this.template.f;
     else return true;

@@ -40,7 +40,6 @@ export default function render(
   if (ractive.cssId) applyCSS();
 
   if (target) {
-    // eslint-disable-next-line @typescript-eslint/camelcase
     (target.__ractive_instances__ || (target.__ractive_instances__ = [])).push(ractive);
 
     if (anchorNode) {

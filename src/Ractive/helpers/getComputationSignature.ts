@@ -39,7 +39,7 @@ export default function getComputationSignature(
     getterString = signature;
   }
 
-  if (isObjectType<ComputationDescriptor<RactiveFake>>(signature)) {
+  if (isObjectType<ComputationDescriptor>(signature)) {
     if (isString(signature.get)) {
       getter = createFunctionFromString(signature.get, ractive);
       getterString = signature.get;

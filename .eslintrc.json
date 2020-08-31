@@ -27,7 +27,7 @@
     "import/resolver": {
       "typescript": {
         "alwaysTryTypes": true,
-        "directory": "./tsconfig.json"
+        "project": "./tsconfig.json"
       }
     }
   },
@@ -140,6 +140,15 @@
       "warn",
       {
         "allowExpressions": true
+      }
+    ],
+    "@typescript-eslint/ban-types": [
+      "error",
+      {
+        "types": {
+          "Function": false
+        },
+        "extendDefaults": true
       }
     ]
   },

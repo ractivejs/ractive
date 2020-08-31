@@ -128,7 +128,7 @@ export default function resolveReference(
     } else if (base === '@style') {
       // @style shared model
       // todo fix _cssModel type error
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       return fragment.ractive.constructor._cssModel.joinAll(keys);
     } else if (base === '@helpers') {
