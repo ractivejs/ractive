@@ -5,7 +5,7 @@ import { escapeHtml } from 'utils/html';
 
 import { inAttributes } from './element/ConditionalAttribute';
 import Item, { ItemOpts, ItemBasicInterface } from './shared/Item';
-import progressiveText from './shared/progressiveText';
+import progressiveText, { TextOccupant } from './shared/progressiveText';
 
 export default class Text extends Item implements ItemBasicInterface {
   public node: globalThis.Text;
@@ -27,7 +27,7 @@ export default class Text extends Item implements ItemBasicInterface {
   }
 
   // todo add types
-  render(target: HTMLElement, occupants): void {
+  render(target: HTMLElement, occupants: TextOccupant[]): void {
     if (inAttributes()) return;
     this.rendered = true;
 

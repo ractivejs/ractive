@@ -6,7 +6,7 @@ import Attribute from './element/Attribute';
 import Binding from './element/binding/Binding';
 import { inAttributes } from './element/ConditionalAttribute';
 import Mustache, { MustacheOpts } from './shared/Mustache';
-import progressiveText from './shared/progressiveText';
+import progressiveText, { TextOccupant } from './shared/progressiveText';
 
 export default class Interpolator extends Mustache {
   public owner: Attribute;
@@ -15,7 +15,7 @@ export default class Interpolator extends Mustache {
   public pathChanged: () => void;
   private value: string;
   private rendered: boolean;
-  private node: HTMLElement & { data: string };
+  public node: HTMLElement & { data?: string };
 
   constructor(options: MustacheOpts) {
     super(options);
@@ -38,8 +38,9 @@ export default class Interpolator extends Mustache {
     return this.model ? safeToStringValue(this.model.get()) : '';
   }
 
-  render(target, occupants): void {
+  render(target: HTMLElement, occupants: TextOccupant[]): void {
     if (inAttributes()) return;
+
     const value = (this.value = this.getString());
 
     this.rendered = true;
