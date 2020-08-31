@@ -1,3 +1,4 @@
+import ModelBase from 'model/ModelBase';
 import { create } from 'utils/object';
 
 import LinkModel, { Missing } from '../LinkModel';
@@ -10,7 +11,7 @@ export default class RactiveModel extends SharedModel {
     this.ractive = ractive;
   }
 
-  joinKey(key: string): this | LinkModel {
+  joinKey(key: string): ModelBase {
     const model = super.joinKey(key);
 
     // TSRChange - `model instanceof LinkModel` -> was `!model.isLink`

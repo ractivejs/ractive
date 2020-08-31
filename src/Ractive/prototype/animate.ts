@@ -89,45 +89,13 @@ export function animate<T>(
   return model.animate(from, to, options, interpolator);
 }
 
-/**
- * Similar to `ractive.set()`, this will update the data and re-render any affected mustaches and
- * notify observers.
- * All animations are handled by a global timer that is shared between Ractive instances (and which
- * only runs if there are one or more animations still in progress), so you can trigger as many
- * separate animations as you like without worrying about timer congestion.
- * Where possible, requestAnimationFrame is used rather than setTimeout.
- *
- * Numeric values and strings that can be parsed as numeric values can be interpolated. Objects and
- * arrays containing numeric values (or other objects and arrays which themselves contain numeric
- * values, and so on recursively) are also interpolated.
- * Note that there is currently no mechanism for detecting cyclical structures! Animating to a value
- * that indirectly references itself will cause an infinite loop.
- *
- * Future versions of Ractive may include string interpolators -
- *  e.g. for SVG paths, colours, transformations and so on, a la D3 -
- * and the ability to pass in your own interpolator.
- *
- * If an animation is started on a keypath which is already being animated, the first animation
- * is cancelled.
- * (Currently, there is no mechanism in place to prevent collisions between
- * e.g. `ractive.animate('foo', { bar: 1 })` and `ractive.animate('foo.bar', 0)`.)
- *
- * @example ractive.animate(keypath, value[, options])
- *
- * @param keypath The keypath to animate.
- * @param value The value to animate to.
- * @param options
- *
- * @returns Returns a Promise which resolves with the target value and has an additional stop method,
- * which cancels the animation.
- */
 export default function Ractive$animate<T>(
   this: Ractive,
   keypath: string,
   to: T,
   options: AnimateOpts
 ): AnimatePromise<T> {
-  if (isObjectType(keypath)) {
+  if (isObjectType<Record<string, unknown>>(keypath)) {
     const keys = objectKeys(keypath);
 
     throw new Error(`ractive.animate(...) no longer supports objects. Instead of ractive.animate({

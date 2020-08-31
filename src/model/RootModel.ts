@@ -78,7 +78,7 @@ export default class RootModel extends Model {
     detachImplicits(this);
   }
 
-  get(shouldCapture: boolean, options: ModelGetOpts) {
+  get(shouldCapture: boolean, options?: ModelGetOpts) {
     if (shouldCapture) capture(this);
 
     if (!options || options.virtual !== false) {

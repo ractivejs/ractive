@@ -1,45 +1,16 @@
 import { FindOpts } from 'src/types/Options';
 import { isObjectType } from 'utils/is';
 
-// TODO replace unknown with Ractive after we create ractive file
+import { Ractive } from '../Ractive';
 
-/**
- * Find the first component belonging to this instance.
- */
-export function Ractive$findComponent(opts?: FindOpts): unknown;
-
-export function Ractive$findComponent(name: string, opts?: FindOpts): unknown;
-
-/**
- * Returns the first component inside a given Ractive instance with the given `name` (or the first component of any kind if no name is given).
- *
- * @example
- * ```
- * var Component = Ractive.extend({
- *   template: 'Component {{number}}'
- * })
- *
- * var r = Ractive({
- *   el: '#main',
- *   template: '#tpl',
- *   components: {
- *     Component: Component
- *   }
- * })
- *
- * setTimeout(() => {
- *   var c = r.findComponent('Component')
- *   console.log(c.toHTML())
- * }, 1000)
- * ```
- *
- * @param name The name of the component to find.
- * @param options
- */
-export default function Ractive$findComponent(
+// TODO add this as Ractive
+function Ractive$findComponent(this: Ractive, opts?: FindOpts): Ractive;
+function Ractive$findComponent(this: Ractive, name: string, opts?: FindOpts): Ractive;
+function Ractive$findComponent(
+  this: Ractive,
   name: string | FindOpts,
   options: FindOpts = {}
-): unknown {
+): Ractive {
   if (isObjectType<FindOpts>(name)) {
     options = name;
     name = '';
@@ -59,3 +30,5 @@ export default function Ractive$findComponent(
     }
   }
 }
+
+export default Ractive$findComponent;

@@ -1,26 +1,6 @@
 import { FindOpts } from 'src/types/Options';
 
-/**
- * Returns the first element inside a given Ractive instance matching a CSS selector.
- * This is similar to doing `this.el.querySelector(selector)` (though it doesn't actually use `querySelector()`).
- *
- * @example
- *
- * ```
- * var r = Ractive({
- *   el: '#main',
- *   template: '#tpl'
- * })
- *
- * setTimeout(() => {
- *   var p = r.find('p.target')
- *   console.log(p.outerHTML)
- * }, 1000)
- * ```
- *
- * @param selector A CSS selector representing the element to find.
- * @param options
- */
+// TODO add this as Ractive
 export default function Ractive$find(selector: string, options: FindOpts = {}): HTMLElement {
   if (!this.rendered)
     throw new Error(

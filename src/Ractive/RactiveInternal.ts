@@ -1,6 +1,9 @@
+import RootModel from 'model/RootModel';
 import Context from 'shared/Context';
 import { EventSubscriber } from 'src/events/fireEvent';
 import Fragment from 'view/Fragment';
+
+import { Ractive } from './Ractive';
 
 /**
  * Internal properties of Ractive
@@ -36,4 +39,10 @@ export class RactiveInternal {
 
   /** @internal */
   public _subs: Record<string, EventSubscriber[]>;
+
+  /** @internal*/
+  public _children: Ractive[];
+
+  /** @internal */
+  public viewmodel: RootModel;
 }
