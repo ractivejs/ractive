@@ -1,5 +1,5 @@
 import Context from 'shared/Context';
-import { RactiveFake } from 'types/RactiveFake';
+import { Ractive } from 'src/Ractive/Ractive';
 
 import { enqueue, dequeue } from './eventStack';
 
@@ -50,7 +50,7 @@ function variants(name: string, initial: boolean): string[] {
 }
 
 export default function fireEvent(
-  ractive: RactiveFake,
+  ractive: Ractive,
   eventName: string,
   context: Context,
   args: unknown[] = []
@@ -68,7 +68,7 @@ export default function fireEvent(
 }
 
 function fireEventAs(
-  ractive: RactiveFake,
+  ractive: Ractive,
   eventNames: string[],
   context: Context,
   args: unknown[],
@@ -113,7 +113,7 @@ export interface EventSubscriber {
 }
 
 function notifySubscribers(
-  ractive: RactiveFake,
+  ractive: Ractive,
   subscribers: EventSubscriber[],
   context: Context,
   args: unknown[]

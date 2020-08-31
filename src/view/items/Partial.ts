@@ -5,8 +5,8 @@ import { splitKeypath } from 'shared/keypaths';
 import { applyCSS } from 'src/global/css';
 import runloop from 'src/global/runloop';
 import parser from 'src/Ractive/config/runtime-parser';
+import { Ractive } from 'src/Ractive/Ractive';
 import { MacroHandle, MacroFn } from 'types/Macro';
-import { RactiveFake } from 'types/RactiveFake';
 import { isArray, isFunction, isObjectType, isString } from 'utils/is';
 import { warnOnceIfDebug, warnIfDebug } from 'utils/log';
 import { assign, hasOwn, keys } from 'utils/object';
@@ -28,7 +28,7 @@ export default class Partial extends MustacheContainer
   implements DecoratorOwner, EventDirectiveOwner, BindingFlagOwner {
   public yielder: number;
   private macro: MacroFn;
-  public container: RactiveFake;
+  public container: Ractive;
   private component: Component;
   private refName: string;
   public fn: any;
@@ -411,7 +411,7 @@ function initMacro(self: Partial): void {
   fragment.resetTemplate(self.partial);
 }
 
-function parsePartial(name: string, partial: string, ractive: RactiveFake): TemplateModel {
+function parsePartial(name: string, partial: string, ractive: Ractive): TemplateModel {
   let parsed: TemplateModel;
 
   try {

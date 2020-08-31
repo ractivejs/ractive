@@ -1,7 +1,7 @@
 import TemplateItemType from 'config/types';
 import { ElementTemplateItem } from 'parse/converters/templateItemDefinitions';
+import { Ractive } from 'src/Ractive/Ractive';
 import { MacroHelper } from 'types/Macro';
-import { RactiveFake } from 'types/RactiveFake';
 
 import Partial, { PartialOpts } from './Partial';
 
@@ -9,10 +9,7 @@ interface AsyncProxyOpts extends PartialOpts {
   template: ElementTemplateItem;
 }
 
-export default function asyncProxy(
-  promise: Promise<RactiveFake>,
-  options: AsyncProxyOpts
-): Partial {
+export default function asyncProxy(promise: Promise<Ractive>, options: AsyncProxyOpts): Partial {
   const partials = options.template.p || {};
   const name = options.template.e;
 

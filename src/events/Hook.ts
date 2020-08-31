@@ -1,4 +1,4 @@
-import { RactiveFake } from 'types/RactiveFake';
+import { Ractive } from 'src/Ractive/Ractive';
 
 import getRactiveContext from '../shared/getRactiveContext';
 
@@ -13,7 +13,7 @@ export class Hook {
     this.method = 'on' + event;
   }
 
-  fire(ractive: RactiveFake, arg?: unknown): void {
+  fire(ractive: Ractive, arg?: unknown): void {
     const context = getRactiveContext(ractive);
     const method = this.method;
 
@@ -25,11 +25,11 @@ export class Hook {
   }
 }
 
-function getChildQueue(queue: HookQueue['queue'], ractive: RactiveFake): RactiveFake[] {
+function getChildQueue(queue: HookQueue['queue'], ractive: Ractive): Ractive[] {
   return queue[ractive._guid] || (queue[ractive._guid] = []);
 }
 
-function fire(hookQueue: HookQueue, ractive: RactiveFake): void {
+function fire(hookQueue: HookQueue, ractive: Ractive): void {
   const childQueue = getChildQueue(hookQueue.queue, ractive);
 
   hookQueue.hook.fire(ractive);
@@ -46,7 +46,7 @@ function fire(hookQueue: HookQueue, ractive: RactiveFake): void {
 export class HookQueue {
   public hook: Hook;
   public inProcess: Record<string, boolean>;
-  public queue: Record<string, RactiveFake[]>;
+  public queue: Record<string, Ractive[]>;
 
   constructor(event: Hook['event']) {
     this.hook = new Hook(event);
@@ -54,11 +54,11 @@ export class HookQueue {
     this.queue = {};
   }
 
-  begin(ractive: RactiveFake): void {
+  begin(ractive: Ractive): void {
     this.inProcess[ractive._guid] = true;
   }
 
-  end(ractive: RactiveFake): void {
+  end(ractive: Ractive): void {
     const parent = ractive.parent;
 
     // If this is *isn't* a child of a component that's in process,

@@ -1,5 +1,5 @@
 import { missingPlugin } from 'config/errors';
-import { RactiveFake } from 'types/RactiveFake';
+import { Ractive } from 'src/Ractive/Ractive';
 import { fatal } from 'utils/log';
 
 import interpolators, { InterpolatorFunction } from '../Ractive/static/interpolators';
@@ -10,13 +10,13 @@ export function interpolate<T>(from: T, to: T): ReturnType<InterpolatorFunction<
 export function interpolate<T>(
   from: T,
   to: T,
-  ractive: RactiveFake,
+  ractive: Ractive,
   type: string
 ): ReturnType<InterpolatorFunction<T>> | null;
 export function interpolate<T>(
   from: T,
   to: T,
-  ractive?: RactiveFake,
+  ractive?: Ractive,
   type?: string
 ): ReturnType<InterpolatorFunction<T>> | null {
   if (from === to) return null;

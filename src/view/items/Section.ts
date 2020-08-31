@@ -1,8 +1,8 @@
 import TemplateItemType from 'config/types';
 import { keep } from 'shared/set';
 import runloop from 'src/global/runloop';
+import { Ractive } from 'src/Ractive/Ractive';
 import Context from 'src/shared/Context';
-import { RactiveFake } from 'types/RactiveFake';
 import { createDocumentFragment } from 'utils/dom';
 import { isArray, isObject, isObjectLike, isUndefined } from 'utils/is';
 import { keys } from 'utils/object';
@@ -45,7 +45,7 @@ export default class Section extends MustacheContainer
   public yield: Context;
   public detached: Fragment;
   public rendered: boolean;
-  public container: RactiveFake;
+  public container: Ractive;
   public nextSibling: this;
 
   constructor(options: SectionOpts) {

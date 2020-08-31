@@ -1,5 +1,6 @@
+import { PartialMap } from '../Ractive/Ractive';
+
 import { Template } from './Parse';
-import { PartialMap } from './RactiveFake';
 import { ValueMap } from './ValueMap';
 
 export type MacroFn = (MacroHelper: MacroHelper, attrs?: Record<string, any>) => MacroHandle | void;

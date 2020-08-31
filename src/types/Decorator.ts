@@ -1,4 +1,4 @@
-import { RactiveFake } from './RactiveFake';
+import { Ractive } from '../Ractive/Ractive';
 
 export interface DecoratorHandle {
   /**
@@ -20,7 +20,7 @@ export interface DecoratorHandle {
   shuffled?: () => void;
 }
 
-export type Decorator<T extends RactiveFake> = (
+export type Decorator<T extends Ractive> = (
   this: T,
   node: HTMLElement,
   ...args: any[]

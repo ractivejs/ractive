@@ -1,9 +1,9 @@
 import { splitKeypath, unescapeKey } from 'shared/keypaths';
 import { handleChange, mark } from 'shared/methodCallers';
 import { capture } from 'src/global/capture';
+import { Ractive } from 'src/Ractive/Ractive';
 import { Adaptor } from 'types/Adaptor';
 import { Keypath } from 'types/Keypath';
-import { RactiveFake } from 'types/RactiveFake';
 import noop from 'utils/noop';
 import Fragment from 'view/Fragment';
 import resolveReference from 'view/resolvers/resolveReference';
@@ -34,7 +34,7 @@ const specialModels = {
 specialModels['@'] = specialModels['@this'];
 
 export interface RootModelOpts {
-  ractive: RactiveFake;
+  ractive: Ractive;
   data: any;
   adapt: Adaptor[];
 }

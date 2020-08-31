@@ -4,9 +4,9 @@ import Ticker from 'shared/Ticker';
 import { capture } from 'src/global/capture';
 import getComputationSignature from 'src/Ractive/helpers/getComputationSignature';
 import { AnimateOpts } from 'src/Ractive/prototype/animate';
+import { Ractive } from 'src/Ractive/Ractive';
 import { AdaptorHandle } from 'types/Adaptor';
 import { Computation as ComputationType } from 'types/Computation';
-import { RactiveFake } from 'types/RactiveFake';
 import { ValueMap } from 'types/ValueMap';
 import { buildNewIndices } from 'utils/array';
 import { isArray, isEqual, isNumeric, isObjectLike, isUndefined } from 'utils/is';
@@ -206,7 +206,7 @@ export default class Model extends ModelBase implements ModelWithShuffle {
     }
   }
 
-  compute(key: string, computed: ComputationType<RactiveFake>): Computation {
+  compute(key: string, computed: ComputationType<Ractive>): Computation {
     const registry = this.computed || (this.computed = {});
 
     if (registry[key]) {

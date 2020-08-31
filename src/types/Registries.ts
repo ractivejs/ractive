@@ -1,11 +1,12 @@
 import { InterpolatorFunction } from 'src/Ractive/static/interpolators';
 import Partial from 'view/items/Partial';
 
+import { Ractive } from '../Ractive/Ractive';
+
 import { Adaptor } from './Adaptor';
 import { Decorator } from './Decorator';
 import { EasingFunction } from './Easings';
 import { EventPlugin } from './Events';
-import { RactiveFake } from './RactiveFake';
 import { Transition } from './Transition';
 
 export type Registry<T> = Record<string, T>;
@@ -14,9 +15,9 @@ export type Registry<T> = Record<string, T>;
 export interface Registries {
   adaptors: Registry<Adaptor>;
   components: Registry<any>; // Component
-  decorators: Registry<Decorator<RactiveFake>>;
+  decorators: Registry<Decorator<Ractive>>;
   easings: Registry<EasingFunction>;
-  events: Registry<EventPlugin<RactiveFake>>;
+  events: Registry<EventPlugin<Ractive>>;
   interpolators: Registry<InterpolatorFunction<any>>;
   helpers: Registry<any>; // Helper
   partials: Registry<Partial>;

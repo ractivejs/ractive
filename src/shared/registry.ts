@@ -1,11 +1,11 @@
-import { RactiveFake } from 'types/RactiveFake';
+import { Ractive } from 'src/Ractive/Ractive';
 import { Registries } from 'types/Registries';
 
 type RegistryName = keyof Registries;
 
 export function findInViewHierarchy<K extends RegistryName>(
   registryName: K,
-  ractive: RactiveFake,
+  ractive: Ractive,
   name: string
 ): Registries[K]['value'] | null {
   const instance = findInstance(registryName, ractive, name);
@@ -14,9 +14,9 @@ export function findInViewHierarchy<K extends RegistryName>(
 
 export function findInstance<K extends RegistryName>(
   registryName: K,
-  ractive: RactiveFake,
+  ractive: Ractive,
   name: string
-): RactiveFake | null {
+): Ractive | null {
   while (ractive) {
     if (name in ractive[registryName]) {
       return ractive;

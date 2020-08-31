@@ -1,7 +1,7 @@
 import { handleChange, marked, markedAll, teardown } from 'shared/methodCallers';
 import { rebindMatch } from 'shared/rebind';
+import { Ractive } from 'src/Ractive/Ractive';
 import { Keypath } from 'types/Keypath';
-import { RactiveFake } from 'types/RactiveFake';
 import { Indexes } from 'utils/array';
 import { isUndefined } from 'utils/is';
 import noop from 'utils/noop';
@@ -113,7 +113,7 @@ export default class LinkModel extends ModelBase implements ModelWithShuffle {
     return maybeBind(this, this.target.get(false, opts), bind);
   }
 
-  getKeypath(ractive?: RactiveFake): Keypath {
+  getKeypath(ractive?: Ractive): Keypath {
     if (ractive && ractive !== this.root.ractive) return this.target.getKeypath(ractive);
 
     return super.getKeypath(ractive);

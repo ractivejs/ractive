@@ -1,9 +1,9 @@
 import TemplateItemType from 'config/types';
 import Model, { AnimatePromise } from 'model/Model';
 import runloop from 'src/global/runloop';
+import { Ractive } from 'src/Ractive/Ractive';
 import { Keypath } from 'types/Keypath';
 import { SetOpts } from 'types/Options';
-import { RactiveFake } from 'types/RactiveFake';
 import { isNumeric, isObject, isNumber, isObjectType, isString } from 'utils/is';
 import { hasOwn } from 'utils/object';
 import Fragment from 'view/Fragment';
@@ -61,17 +61,17 @@ export default class Context {
   public fragment: Fragment;
   public element: Element;
   public node: HTMLElement;
-  public ractive: RactiveFake;
+  public ractive: Ractive;
   public root: this;
   public refire: any;
   public model: ContextData;
   public partials: any;
   public attributes: any;
   public name: string;
-  public component: RactiveFake;
+  public component: Ractive;
   public event: Event;
 
-  static forRactive: (ractive: RactiveFake, ...assigns: unknown[]) => Context;
+  static forRactive: (ractive: Ractive, ...assigns: unknown[]) => Context;
 
   constructor(fragment: Context['fragment'], element?: Context['element']) {
     this.fragment = fragment;

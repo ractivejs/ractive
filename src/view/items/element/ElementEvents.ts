@@ -1,7 +1,7 @@
 import runloop from 'src/global/runloop';
+import { Ractive } from 'src/Ractive/Ractive';
 import { localFragment } from 'src/shared/Context';
 import { EventPlugin, EventPluginHandle } from 'types/Events';
-import { RactiveFake } from 'types/RactiveFake';
 import { fatal } from 'utils/log';
 
 import Element from '../Element';
@@ -61,7 +61,7 @@ class DOMEvent implements RactiveEventInterface {
 }
 
 class CustomEvent implements RactiveEventInterface {
-  private eventPlugin: EventPlugin<RactiveFake>;
+  private eventPlugin: EventPlugin<Ractive>;
   private owner: Element;
   private name: string;
   private handler: EventPluginHandle;

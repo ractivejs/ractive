@@ -1,12 +1,12 @@
-import { RactiveFake } from './RactiveFake';
+import { Ractive } from '../Ractive/Ractive';
 
-export type ComputationFn<T extends RactiveFake = RactiveFake> = (
+export type ComputationFn<T extends Ractive = Ractive> = (
   this: T,
   context: any,
   keypath: string
 ) => any;
 
-export interface ComputationDescriptor<T extends RactiveFake = RactiveFake> {
+export interface ComputationDescriptor<T extends Ractive = Ractive> {
   /**
    * Called when Ractive needs to get the computed value.
    * Computations are lazy, so this is only called when a dependency asks for a value.
@@ -19,7 +19,4 @@ export interface ComputationDescriptor<T extends RactiveFake = RactiveFake> {
   set?: (this: T, value: any, context: any, keypath: string) => void;
 }
 
-export type Computation<T extends RactiveFake> =
-  | string
-  | ComputationFn<T>
-  | ComputationDescriptor<T>;
+export type Computation<T extends Ractive> = string | ComputationFn<T> | ComputationDescriptor<T>;

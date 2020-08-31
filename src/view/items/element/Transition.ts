@@ -7,7 +7,7 @@ import {
 } from 'parse/converters/element/elementDefinitions';
 import { findInViewHierarchy } from 'shared/registry';
 import TransitionManager from 'src/global/TransitionManager';
-import { RactiveFake } from 'types/RactiveFake';
+import { Ractive } from 'src/Ractive/Ractive';
 import { Transition as TransitionFunction } from 'types/Transition';
 import { ValueMap } from 'types/ValueMap';
 import { addToArray, removeFromArray } from 'utils/array';
@@ -45,13 +45,13 @@ interface TransitionOpts {
 
 /** Section | Element */
 export interface TransitionOwner extends Item {
-  ractive: RactiveFake;
+  ractive: Ractive;
 }
 
 export default class Transition {
   private owner: TransitionOwner;
   public element: Element;
-  public ractive: RactiveFake;
+  public ractive: Ractive;
   private template: TransitionDirectiveTemplateItem;
   private up: Fragment;
   private options: TransitionOpts;
@@ -376,9 +376,9 @@ export default class Transition {
 
 function nearestProp<P extends 'noIntro' | 'noOutro' | 'nestedTransitions'>(
   prop: P,
-  ractive: RactiveFake,
+  ractive: Ractive,
   rendering?: boolean
-): RactiveFake[P] {
+): Ractive[P] {
   let instance = ractive;
   while (instance) {
     if (

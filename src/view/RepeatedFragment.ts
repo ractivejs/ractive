@@ -3,7 +3,7 @@ import Model from 'model/Model';
 import KeyModel from 'model/specials/KeyModel';
 import { getContext } from 'shared/getRactiveContext';
 import { toEscapedString, toString, shuffled, update } from 'shared/methodCallers';
-import { RactiveFake } from 'types/RactiveFake';
+import { Ractive } from 'src/Ractive/Ractive';
 import { findMap, buildNewIndices } from 'utils/array';
 import { createDocumentFragment } from 'utils/dom';
 import { isArray, isObject, isObjectType, isUndefined } from 'utils/is';
@@ -25,7 +25,7 @@ export interface RepeatedFragmentOpts extends FragmentOpts {
 export default class RepeatedFragment {
   private owner: any;
   public parent: any;
-  public ractive: RactiveFake;
+  public ractive: Ractive;
   public template: any;
 
   // boolean | number | Element

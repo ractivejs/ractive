@@ -1,4 +1,4 @@
-import { RactiveFake } from 'types/RactiveFake';
+import { Ractive } from 'src/Ractive/Ractive';
 import noop from 'utils/noop';
 import { assign, create } from 'utils/object';
 import Fragment from 'view/Fragment';
@@ -23,7 +23,7 @@ export function getContext(...assigns: unknown[]): Context {
 }
 
 export class FakeFragment {
-  public ractive: RactiveFake;
+  public ractive: Ractive;
 
   constructor(ractive: FakeFragment['ractive']) {
     this.ractive = ractive;

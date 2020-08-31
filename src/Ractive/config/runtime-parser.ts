@@ -3,8 +3,8 @@ import parse from 'parse/_parse';
 import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { fromExpression } from 'parse/utils/createFunction';
 import { addFunctions } from 'shared/getFunction';
+import { Ractive } from 'src/Ractive/Ractive';
 import { ParseOpts } from 'types/Parse';
-import { RactiveFake } from 'types/RactiveFake';
 import { isString } from 'utils/is';
 import { fatal } from 'utils/log';
 
@@ -40,7 +40,7 @@ export function createFunction(body: string, length: number): Function {
 
 export function createFunctionFromString(
   str: string,
-  bindTo: RactiveFake
+  bindTo: Ractive
 ): () => (this: typeof bindTo) => any {
   throwNoParse(parse, 'compution string "${str}"', COMPUTATION_INSTRUCTIONS);
   const template = parse<ExpressionFunctionTemplateItem>(str, { expression: true });
@@ -87,7 +87,7 @@ const parser = {
     return !isString(template);
   },
 
-  getParseOptions(ractive: RactiveFake): ParseOpts {
+  getParseOptions(ractive: Ractive): ParseOpts {
     // Could be Ractive or a Component
     if (ractive.defaults) {
       ractive = ractive.defaults;
@@ -106,7 +106,7 @@ const parser = {
     return parsed;
   },
 
-  parseFor(template, ractive: RactiveFake) {
+  parseFor(template, ractive: Ractive) {
     return this.parse(template, this.getParseOptions(ractive));
   }
 };

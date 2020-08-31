@@ -1,6 +1,6 @@
 import { escapeKey, unescapeKey } from 'shared/keypaths';
+import { Ractive } from 'src/Ractive/Ractive';
 import { Keypath } from 'types/Keypath';
-import { RactiveFake } from 'types/RactiveFake';
 import { addToArray, removeFromArray, Indexes } from 'utils/array';
 import bind from 'utils/bind';
 import { isArray, isObject, isObjectLike, isFunction } from 'utils/is';
@@ -73,7 +73,7 @@ export default abstract class ModelBase {
   public parent: ModelBase;
   protected root: RootModel | RactiveModel;
 
-  public ractive: RactiveFake;
+  public ractive: Ractive;
 
   public deps: ModelDependency[];
 
@@ -166,7 +166,7 @@ export default abstract class ModelBase {
     return matches;
   }
 
-  getKeypath(ractive?: RactiveFake): Keypath {
+  getKeypath(ractive?: Ractive): Keypath {
     if (ractive !== this.ractive && this._link) return this._link.target.getKeypath(ractive);
 
     if (!this.keypath) {

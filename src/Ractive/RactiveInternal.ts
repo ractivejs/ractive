@@ -2,16 +2,11 @@ import Context from 'shared/Context';
 import { EventSubscriber } from 'src/events/fireEvent';
 import Fragment from 'view/Fragment';
 
-import { Macro } from './Macro';
-import { ParseFn } from './Parse';
-
-export type Partial = string | any[] | ParseFn | Macro;
-
-export type PartialMap = Record<string, Partial>;
-
-// This will be replaced with something more valid :D
-// TODO replace will "real" ractive class
-export class RactiveFake {
+/**
+ * Internal properties of Ractive
+ * @internal
+ */
+export class RactiveInternal {
   /** @internal */
   public fragment: Fragment;
 
@@ -41,6 +36,4 @@ export class RactiveFake {
 
   /** @internal */
   public _subs: Record<string, EventSubscriber[]>;
-
-  [key: string]: any;
 }

@@ -6,7 +6,7 @@ import getFunction from 'shared/getFunction';
 import { splitKeypath } from 'shared/keypaths';
 import { findInViewHierarchy } from 'shared/registry';
 import fireEvent from 'src/events/fireEvent';
-import { RactiveFake } from 'types/RactiveFake';
+import { Ractive } from 'src/Ractive/Ractive';
 import { addToArray, removeFromArray } from 'utils/array';
 import { isArray, isString } from 'utils/is';
 import { warnIfDebug, warnOnceIfDebug } from 'utils/log';
@@ -51,7 +51,7 @@ export default class EventDirective {
   private element: Element | Component;
   public template: EventDirectiveTemplateItem;
   public up: Fragment;
-  private ractive: RactiveFake;
+  private ractive: Ractive;
   private events: RactiveEventInterface[];
 
   public model: ExpressionProxy;

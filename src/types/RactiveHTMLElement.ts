@@ -1,10 +1,10 @@
-import { RactiveFake } from './RactiveFake';
+import { Ractive } from '../Ractive/Ractive';
 
 export class RactiveHTMLElement extends HTMLElement {
-  public _ractive: RactiveFake;
-  public __ractive_instances__: RactiveFake[];
+  public _ractive: Ractive;
+  public __ractive_instances__: Ractive[];
 }
 
 export interface RactiveHTMLOptionElement extends HTMLOptionElement {
-  _ractive?: RactiveFake;
+  _ractive?: Ractive;
 }

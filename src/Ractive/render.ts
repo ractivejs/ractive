@@ -2,14 +2,14 @@ import { doc } from 'config/environment';
 import hooks from 'src/events/Hook';
 import { applyCSS } from 'src/global/css';
 import runloop from 'src/global/runloop';
-import { RactiveFake } from 'types/RactiveFake';
+import { Ractive } from 'src/Ractive/Ractive';
 import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { getElement } from 'utils/dom';
 
 import { createFragment } from './initialise';
 
 export default function render(
-  ractive: RactiveFake,
+  ractive: Ractive,
   target: RactiveHTMLElement,
   anchor: boolean | string | HTMLElement,
   occupants: HTMLElement[]

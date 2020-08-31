@@ -2,9 +2,9 @@ import Model, { AnimatePromise } from 'model/Model';
 import { interpolate } from 'shared/interpolate';
 import { splitKeypath } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
+import { Ractive } from 'src/Ractive/Ractive';
 import easing from 'src/Ractive/static/easing';
 import { EasingFunction } from 'types/Easings';
-import { RactiveFake } from 'types/RactiveFake';
 import { isEqual, isFunction, isObjectType } from 'utils/is';
 import noop from 'utils/noop';
 import { defineProperty, keys as objectKeys } from 'utils/object';
@@ -42,7 +42,7 @@ function immediate<T>(value: T): AnimatePromise<T> {
   return result;
 }
 
-function getOptions(options: AnimateOpts, instance: RactiveFake): AnimateOpts {
+function getOptions(options: AnimateOpts, instance: Ractive): AnimateOpts {
   options = options || {};
 
   let easing: EasingFunction;
@@ -60,7 +60,7 @@ function getOptions(options: AnimateOpts, instance: RactiveFake): AnimateOpts {
 }
 
 export function animate<T>(
-  ractive: RactiveFake,
+  ractive: Ractive,
   model: Model,
   to: T,
   _options: AnimateOpts
@@ -122,7 +122,7 @@ export function animate<T>(
  * which cancels the animation.
  */
 export default function Ractive$animate<T>(
-  this: RactiveFake,
+  this: Ractive,
   keypath: string,
   to: T,
   options: AnimateOpts

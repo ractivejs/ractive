@@ -1,7 +1,7 @@
 import { unescapeKey } from 'shared/keypaths';
 import { handleChange } from 'shared/methodCallers';
 import { capture } from 'src/global/capture';
-import { RactiveFake } from 'types/RactiveFake';
+import { Ractive } from 'src/Ractive/Ractive';
 import { addToArray, removeFromArray } from 'utils/array';
 import noop from 'utils/noop';
 import Interpolator from 'view/items/Interpolator';
@@ -24,7 +24,7 @@ export default class KeyModel {
    * - LinkModel
    */
   public context: ModelBase;
-  public instance: RactiveFake;
+  public instance: Ractive;
 
   public deps: KeyModelDependency[] = [];
   public links: LinkModel[] = [];
