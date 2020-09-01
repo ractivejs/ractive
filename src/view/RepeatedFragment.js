@@ -186,9 +186,11 @@ export default class RepeatedFragment {
   rebind(next) {
     this.context = next;
     if (this.source) return;
-    this.iterations.forEach(fragment => {
-      swizzleFragment(this, fragment, fragment.key, fragment.index);
-    });
+    if (next) {
+      this.iterations.forEach(fragment => {
+        swizzleFragment(this, fragment, fragment.key, fragment.index);
+      });
+    }
   }
 
   rebound(update) {
