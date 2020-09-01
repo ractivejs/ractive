@@ -867,4 +867,29 @@ export default function() {
     r.update('@.child');
     t.htmlEqual(fixture.innerHTML, '42');
   });
+
+  test(`a @keypath reference in a nested iteration that is being shuffled out doesn't blow up the world`, t => {
+    t.expect(0);
+    const r = new Ractive({
+      template: '{{>items}}',
+      data: {
+        items: [
+          {
+            i: 1,
+            items: [{ i: 2 }]
+          },
+          {
+            i: 3,
+            items: [{ i: 4 }, { i: 5 }]
+          }
+        ]
+      },
+      partials: {
+        items: `{{#each .items}}<div>{{.i}} {{@keypath}}{{>items}}</div>{{/each}}`
+      },
+      target: fixture
+    });
+
+    r.splice('items', 1, 1);
+  });
 }
