@@ -1,14 +1,23 @@
 import Ractive$animate from './prototype/animate';
 import Ractive$find from './prototype/find';
+import Ractive$findAllComponents from './prototype/findAllComponents';
 import Ractive$findComponent from './prototype/findComponent';
 import Ractive$toHTML from './prototype/toHTML';
+import Ractive$toText from './prototype/toText';
 import { RactiveInternal } from './RactiveInternal';
 
+// TODO add documentation on all fields
 export class Ractive extends RactiveInternal {
-  static readonly VERSION = '';
+  public static readonly VERSION = '';
 
   /** When true, causes Ractive to emit warnings. Defaults to true. */
-  static DEBUG: boolean;
+  public static DEBUG: boolean;
+
+  public name: string;
+
+  public target: HTMLElement | string;
+
+  public cssId: string;
 
   /**
    * Similar to `ractive.set()`, this will update the data and re-render any affected mustaches and
@@ -95,12 +104,16 @@ export class Ractive extends RactiveInternal {
    */
   findComponent = Ractive$findComponent;
 
+  findAllComponents = Ractive$findAllComponents;
+
   /**
    * Returns a chunk of HTML representing the current state of the instance.
    * This is most useful when you're using Ractive in node.js, as it allows
    * you to serve fully-rendered pages (good for SEO and initial pageload performance) to the client.
    */
   toHTML = Ractive$toHTML;
+
+  toText = Ractive$toText;
 
   [key: string]: any;
 }

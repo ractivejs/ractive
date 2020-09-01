@@ -1,3 +1,5 @@
+import { Ractive } from 'src/Ractive/Ractive';
+
 export interface SetOpts {
   /** Whether or not to merge the given value into the existing data or replace the existing data. Defaults to replacing the existing data (false). */
   deep?: boolean;
@@ -21,6 +23,11 @@ export interface FindOpts {
    * Include attached children that are not rendered in anchors when looking for matching elements
    */
   remote?: boolean;
+
+  /**
+   * @internal
+   */
+  result?: Ractive[];
 }
 
 export interface UpdateOpts {

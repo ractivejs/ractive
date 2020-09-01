@@ -1,7 +1,16 @@
+import { FindOpts } from 'types/Options';
 import { isArray, isObjectType } from 'utils/is';
 
-export default function Ractive$findAllComponents(selector, options) {
-  if (!options && isObjectType(selector)) {
+import { Ractive } from '../Ractive';
+
+function Ractive$findAllComponents(this: Ractive, options?: FindOpts): Ractive[];
+function Ractive$findAllComponents(this: Ractive, selector?: string, options?: FindOpts): Ractive[];
+function Ractive$findAllComponents(
+  this: Ractive,
+  selector?: string | FindOpts,
+  options?: FindOpts
+): Ractive[] {
+  if (!options && isObjectType<FindOpts>(selector)) {
     options = selector;
     selector = '';
   }
@@ -20,10 +29,12 @@ export default function Ractive$findAllComponents(selector, options) {
           options.result.push(c.instance);
         }
 
-        c.instance.findAllComponents(selector, options);
+        c.instance.findAllComponents(selector as string, options);
       }
     });
   }
 
   return options.result;
 }
+
+export default Ractive$findAllComponents;

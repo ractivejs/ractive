@@ -45,4 +45,7 @@ export class RactiveInternal {
 
   /** @internal */
   public viewmodel: RootModel;
+
+  /** @internal*/
+  public instance: this;
 }
