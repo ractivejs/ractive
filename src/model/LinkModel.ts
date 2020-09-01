@@ -1,7 +1,7 @@
 import { handleChange, marked, markedAll, teardown } from 'shared/methodCallers';
 import { rebindMatch } from 'shared/rebind';
 import { Ractive } from 'src/Ractive/Ractive';
-import { Keypath } from 'types/Keypath';
+import { Keypath } from 'types/Generic';
 import { Indexes } from 'utils/array';
 import { isUndefined } from 'utils/is';
 import noop from 'utils/noop';

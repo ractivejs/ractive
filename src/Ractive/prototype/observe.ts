@@ -1,12 +1,27 @@
 import { splitKeypath } from 'shared/keypaths';
-import { isObject, isFunction } from 'utils/is';
+import { Keypath } from 'types/Generic';
+import {
+  ObserverCallback,
+  ObserverOpts,
+  ObserverHandle,
+  ObserverArrayOpts,
+  ObserverArrayCallback
+} from 'types/Observer';
+import { isFunction, isObjectType } from 'utils/is';
 import { warnOnceIfDebug } from 'utils/log';
 import { keys } from 'utils/object';
 import resolveReference from 'view/resolvers/resolveReference';
 
+import { Ractive } from '../Ractive';
+
 import ArrayObserver from './observe/Array';
 import Observer from './observe/Observer';
 import PatternObserver from './observe/Pattern';
+
+export type ObserverCallbackMap<
+  T extends ObserverCallback | ObserverArrayCallback = ObserverCallback
+> = Record<Keypath, T>;
+export type InternalObserver = ArrayObserver | Observer | PatternObserver;
 
 /**
  * Observes the data at a particular keypath.
@@ -28,31 +43,55 @@ import PatternObserver from './observe/Pattern';
  *                 By default the function will be called with ractive as this. Any wildcards in the keypath will have their
  *                 matches passed to the callback at the end of the arguments list as well.
  *
- * @param options A map of keypath-observer pairs.
+ * @param options
  */
-export default function observe(keypath, callback, options) {
-  const observers = [];
-  let map;
-  let opts;
+function Ractive$observe(
+  keypath: Keypath,
+  callback: ObserverCallback,
+  opts?: ObserverOpts
+): ObserverHandle;
+function Ractive$observe(
+  keypath: Keypath,
+  callback: ObserverArrayCallback,
+  opts?: ObserverArrayOpts
+): ObserverHandle;
+function Ractive$observe(map: ObserverCallbackMap, opts?: ObserverOpts): ObserverHandle;
+function Ractive$observe(
+  map: ObserverCallbackMap<ObserverArrayCallback>,
+  opts?: ObserverArrayOpts
+): ObserverHandle;
 
-  if (isObject(keypath)) {
+function Ractive$observe(
+  this: Ractive,
+  keypath:
+    | Keypath
+    | ObserverCallbackMap
+    | ObserverCallbackMap<ObserverArrayCallback>
+    | ObserverCallback
+    | ObserverArrayCallback,
+  callback?: ObserverCallback | ObserverArrayCallback | ObserverOpts | ObserverArrayOpts,
+  options?: ObserverOpts | ObserverArrayOpts
+): ObserverHandle {
+  const observers: InternalObserver[] = [];
+  let map: ObserverCallbackMap;
+  let opts: ObserverOpts | ObserverArrayOpts;
+
+  if (isObjectType<ObserverCallbackMap>(keypath)) {
     map = keypath;
-    opts = callback || {};
-  } else {
-    if (isFunction(keypath)) {
-      map = { '': keypath };
-      opts = callback || {};
-    } else {
-      map = {};
-      map[keypath] = callback;
-      opts = options || {};
-    }
+    opts = (callback as ObserverOpts) || {};
+  } else if (isFunction(keypath)) {
+    map = { '': keypath };
+    opts = (callback as ObserverOpts) || {};
+  } else if (isFunction(callback)) {
+    map = {};
+    map[keypath] = callback;
+    opts = options || {};
   }
 
   let silent = false;
   keys(map).forEach(keypath => {
     const callback = map[keypath];
-    const caller = function(...args) {
+    const caller = function(...args): ReturnType<ObserverCallback> {
       if (silent) return;
       return callback.apply(this, args);
     };
@@ -79,7 +118,14 @@ export default function observe(keypath, callback, options) {
   };
 }
 
-function createObserver(ractive, keypath, callback, options) {
+export default Ractive$observe;
+
+function createObserver(
+  ractive: Ractive,
+  keypath: Keypath,
+  callback: ObserverCallback | ObserverArrayCallback,
+  options: ObserverOpts | ObserverArrayOpts
+): InternalObserver {
   const keys = splitKeypath(keypath);
   let wildcardIndex = keys.indexOf('*');
   if (!~wildcardIndex) wildcardIndex = keys.indexOf('**');
@@ -108,8 +154,8 @@ function createObserver(ractive, keypath, callback, options) {
 
   if (!~wildcardIndex) {
     model = model.joinAll(keys.slice(1));
-    if (options.array) {
-      return new ArrayObserver(ractive, model, callback, options);
+    if ('array' in options && options.array) {
+      return new ArrayObserver(ractive, model, callback as ObserverArrayCallback, options);
     } else {
       return new Observer(ractive, model, callback, options);
     }

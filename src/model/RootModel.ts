@@ -3,7 +3,7 @@ import { handleChange, mark } from 'shared/methodCallers';
 import { capture } from 'src/global/capture';
 import { Ractive } from 'src/Ractive/Ractive';
 import { Adaptor } from 'types/Adaptor';
-import { Keypath } from 'types/Keypath';
+import { Keypath } from 'types/Generic';
 import noop from 'utils/noop';
 import Fragment from 'view/Fragment';
 import resolveReference from 'view/resolvers/resolveReference';

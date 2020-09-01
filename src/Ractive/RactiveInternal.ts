@@ -3,6 +3,7 @@ import Context from 'shared/Context';
 import { EventSubscriber } from 'src/events/fireEvent';
 import Fragment from 'view/Fragment';
 
+import { InternalObserver } from './prototype/observe';
 import { Ractive } from './Ractive';
 
 /**
@@ -48,4 +49,7 @@ export class RactiveInternal {
 
   /** @internal*/
   public instance: this;
+
+  /** @internal */
+  public _observers: InternalObserver[];
 }

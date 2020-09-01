@@ -6,7 +6,7 @@ import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDef
 import getFunction from 'shared/getFunction';
 import { rebindMatch } from 'shared/rebind';
 import { startCapturing, stopCapturing } from 'src/global/capture';
-import { Keypath } from 'types/Keypath';
+import { Keypath } from 'types/Generic';
 import { removeFromArray } from 'utils/array';
 import { warnIfDebug } from 'utils/log';
 import noop from 'utils/noop';

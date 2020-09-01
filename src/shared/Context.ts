@@ -2,7 +2,7 @@ import TemplateItemType from 'config/types';
 import Model, { AnimatePromise } from 'model/Model';
 import runloop from 'src/global/runloop';
 import { Ractive } from 'src/Ractive/Ractive';
-import { Keypath } from 'types/Keypath';
+import { Keypath } from 'types/Generic';
 import { SetOpts } from 'types/Options';
 import { isNumeric, isObject, isNumber, isObjectType, isString } from 'utils/is';
 import { hasOwn } from 'utils/object';

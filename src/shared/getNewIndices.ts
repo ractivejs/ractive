@@ -25,8 +25,15 @@ import { isNumber, isUndefined } from 'utils/is';
 // This information is used to enable fast, non-destructive shuffling of list
 // sections when you do e.g. `ractive.splice( 'items', 2, 2 );
 
-export default function getNewIndices(length, methodName, args) {
-  const newIndices = [];
+// TODO finish TS conversion
+
+export type NewIndexes = (number | string)[] & {
+  startIndex?: number;
+  touchedFrom?: number;
+};
+
+export default function getNewIndices(length, methodName, args): NewIndexes {
+  const newIndices: NewIndexes = [];
 
   const spliceArguments = getSpliceEquivalent(length, methodName, args);
 

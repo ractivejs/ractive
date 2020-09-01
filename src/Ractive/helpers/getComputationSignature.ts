@@ -1,6 +1,6 @@
 import { Ractive } from 'src/Ractive/Ractive';
 import { Computation as ComputationType, ComputationDescriptor } from 'types/Computation';
-import { Keypath } from 'types/Keypath';
+import { Keypath } from 'types/Generic';
 import bind from 'utils/bind';
 import { isFunction, isString, isObjectType } from 'utils/is';
 import { fatal } from 'utils/log';

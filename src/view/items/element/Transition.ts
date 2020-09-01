@@ -8,8 +8,8 @@ import {
 import { findInViewHierarchy } from 'shared/registry';
 import TransitionManager from 'src/global/TransitionManager';
 import { Ractive } from 'src/Ractive/Ractive';
+import { ValueMap } from 'types/Generic';
 import { Transition as TransitionFunction } from 'types/Transition';
-import { ValueMap } from 'types/ValueMap';
 import { addToArray, removeFromArray } from 'utils/array';
 import { isArray, isObject, isFunction, isNumber, isString, isUndefined } from 'utils/is';
 import { warnOnceIfDebug } from 'utils/log';

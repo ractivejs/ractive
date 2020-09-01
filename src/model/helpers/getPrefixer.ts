@@ -1,6 +1,5 @@
 import { AdaptorPrefixer } from 'types/Adaptor';
-import { Keypath } from 'types/Keypath';
-import { ValueMap } from 'types/ValueMap';
+import { ValueMap, Keypath } from 'types/Generic';
 import { isString, isObjectType } from 'utils/is';
 import { hasOwn } from 'utils/object';
 

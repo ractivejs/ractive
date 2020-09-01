@@ -7,7 +7,7 @@ import { AnimateOpts } from 'src/Ractive/prototype/animate';
 import { Ractive } from 'src/Ractive/Ractive';
 import { AdaptorHandle } from 'types/Adaptor';
 import { Computation as ComputationType } from 'types/Computation';
-import { ValueMap } from 'types/ValueMap';
+import { ValueMap } from 'types/Generic';
 import { buildNewIndices } from 'utils/array';
 import { isArray, isEqual, isNumeric, isObjectLike, isUndefined } from 'utils/is';
 import { warnIfDebug } from 'utils/log';

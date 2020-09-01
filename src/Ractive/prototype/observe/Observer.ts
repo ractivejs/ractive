@@ -1,12 +1,39 @@
+import ModelBase from 'model/ModelBase';
 import { rebindMatch } from 'shared/rebind';
 import runloop from 'src/global/runloop';
+import { Ractive } from 'src/Ractive/Ractive';
+import { Keypath } from 'types/Generic';
+import { ObserverCallback, ObserverOpts } from 'types/Observer';
 import { removeFromArray } from 'utils/array';
 import { isEqual, isFunction } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import { create } from 'utils/object';
 
 export default class Observer {
-  constructor(ractive, model, callback, options) {
+  public keypath: Keypath;
+  private context: unknown;
+  private callback: ObserverCallback;
+  public newValue: unknown;
+  public oldContext: unknown;
+  public oldValue: unknown;
+  public oldFn: ObserverCallback;
+  private ractive: Ractive;
+  private options: ObserverOpts;
+
+  /** {@link Model} | {@link LinkModel} */
+  public model: ModelBase;
+  // TSRChange - it's never set so we are removing it
+  // private resolver: any;
+
+  private dirty: boolean;
+  private cancelled: boolean;
+
+  constructor(
+    ractive: Observer['ractive'],
+    model: Observer['model'],
+    callback: Observer['callback'],
+    options: Observer['options']
+  ) {
     this.context = options.context || ractive;
     this.callback = callback;
     this.ractive = ractive;
@@ -30,17 +57,19 @@ export default class Observer {
     this.dirty = false;
   }
 
-  cancel() {
+  cancel(): void {
     this.cancelled = true;
-    if (this.model) {
-      this.model.unregister(this);
-    } else {
-      this.resolver.unbind();
-    }
+    this.model.unregister(this);
+    // TSRChange - see comment in resolver prop
+    // if (this.model) {
+    //   this.model.unregister(this);
+    // } else {
+    //   this.resolver.unbind();
+    // }
     removeFromArray(this.ractive._observers, this);
   }
 
-  dispatch() {
+  dispatch(): void {
     if (!this.cancelled) {
       try {
         this.callback.call(this.context, this.newValue, this.oldValue, this.keypath);
@@ -54,7 +83,7 @@ export default class Observer {
     }
   }
 
-  handleChange() {
+  handleChange(): void {
     if (!this.dirty) {
       const newValue = this.model.get();
       if (isEqual(newValue, this.oldValue)) return;
@@ -73,7 +102,7 @@ export default class Observer {
     }
   }
 
-  rebind(next, previous) {
+  rebind(next: this['model'], previous: this['model']): boolean {
     next = rebindMatch(this.keypath, next, previous);
     if (next === this.model) return false;
 
@@ -81,7 +110,7 @@ export default class Observer {
     if (next) next.addShuffleTask(() => this.resolved(next));
   }
 
-  resolved(model) {
+  resolved(model: this['model']): void {
     this.model = model;
 
     this.oldValue = undefined;
@@ -91,7 +120,7 @@ export default class Observer {
   }
 }
 
-function updateOld(observer, fresh) {
+function updateOld(observer: Observer, fresh?: boolean): void {
   const next = fresh
     ? observer.model
       ? observer.model.get()

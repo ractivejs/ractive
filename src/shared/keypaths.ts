@@ -1,4 +1,4 @@
-import { Keypath } from 'types/Keypath';
+import { Keypath } from 'types/Generic';
 import { isString } from 'utils/is';
 
 const refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;

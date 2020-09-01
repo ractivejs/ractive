@@ -8,7 +8,7 @@ import {
 import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { escapeKey } from 'shared/keypaths';
 import { rebindMatch } from 'shared/rebind';
-import { Keypath } from 'types/Keypath';
+import { Keypath } from 'types/Generic';
 import { isArray, isString } from 'utils/is';
 import Fragment from 'view/Fragment';
 import RepeatedFragment from 'view/RepeatedFragment';

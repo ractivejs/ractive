@@ -1,5 +1,5 @@
 import Model from 'model/Model';
-import { Keypath } from 'types/Keypath';
+import { Keypath } from 'types/Generic';
 import { SetOpts } from 'types/Options';
 import { isArray, isObject, isObjectType, isFunction, isString, isUndefined } from 'utils/is';
 import { warnIfDebug } from 'utils/log';

@@ -2,6 +2,8 @@ import Ractive$animate from './prototype/animate';
 import Ractive$find from './prototype/find';
 import Ractive$findAllComponents from './prototype/findAllComponents';
 import Ractive$findComponent from './prototype/findComponent';
+import Ractive$observe from './prototype/observe';
+import Ractive$observeOnce from './prototype/observeOnce';
 import Ractive$toHTML from './prototype/toHTML';
 import Ractive$toText from './prototype/toText';
 import { RactiveInternal } from './RactiveInternal';
@@ -105,6 +107,10 @@ export class Ractive extends RactiveInternal {
   findComponent = Ractive$findComponent;
 
   findAllComponents = Ractive$findAllComponents;
+
+  observe = Ractive$observe;
+
+  observeOnce = Ractive$observeOnce;
 
   /**
    * Returns a chunk of HTML representing the current state of the instance.

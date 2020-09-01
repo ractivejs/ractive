@@ -1,3 +1,4 @@
+import { InternalObserver } from 'src/Ractive/prototype/observe';
 import { addToArray } from 'utils/array';
 import Transition from 'view/items/element/Transition';
 
@@ -9,8 +10,8 @@ interface Batch {
   transitionManager: TransitionManager;
   fragments: any[];
   tasks: any[];
-  immediateObservers: any[];
-  deferredObservers: any[];
+  immediateObservers: InternalObserver[];
+  deferredObservers: InternalObserver[];
   promise: Promise<any>;
 }
 
@@ -76,7 +77,7 @@ class Runloop {
     addToArray(b.fragments, fragment);
   }
 
-  public addObserver(observer, defer): void {
+  public addObserver(observer: InternalObserver, defer: boolean): void {
     if (!batch) {
       observer.dispatch();
     } else {

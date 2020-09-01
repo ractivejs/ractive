@@ -1,6 +1,11 @@
+import ModelBase from 'model/ModelBase';
+import { NewIndexes } from 'shared/getNewIndices';
 import { escapeKey } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
+import { Ractive } from 'src/Ractive/Ractive';
 import { joinKeys } from 'src/Ractive/static/keypaths';
+import { Keypath } from 'types/Generic';
+import { ObserverOpts, ObserverCallback } from 'types/Observer';
 import { removeFromArray } from 'utils/array';
 import { isArray, isEqual } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
@@ -9,7 +14,37 @@ import { create, keys } from 'utils/object';
 const star = /\*+/g;
 
 export default class PatternObserver {
-  constructor(ractive, baseModel, keys, callback, options) {
+  private keypath: Keypath;
+
+  private callback: ObserverCallback;
+  private context: unknown;
+  private ractive: Ractive;
+  public oldContext: unknown;
+  public oldFn: ObserverCallback;
+
+  public oldValues: Record<string, unknown>;
+  private newValues: Record<string, unknown>;
+  private baseModel: ModelBase;
+  private keys: string[];
+  private baseKeypath: Keypath;
+  public pattern: RegExp;
+  private defer: boolean;
+  private once: boolean;
+  private strict: boolean;
+  private dirty: boolean;
+  private changed: (string | number)[][];
+  private cache: string[];
+  private links: boolean;
+  private recursive: boolean;
+  private partial: boolean;
+
+  constructor(
+    ractive: PatternObserver['ractive'],
+    baseModel: PatternObserver['baseModel'],
+    keys: PatternObserver['keys'],
+    callback: PatternObserver['callback'],
+    options: ObserverOpts
+  ) {
     this.context = options.context || ractive;
     this.ractive = ractive;
     this.baseModel = baseModel;
@@ -54,12 +89,12 @@ export default class PatternObserver {
     baseModel.registerPatternObserver(this);
   }
 
-  cancel() {
+  cancel(): void {
     this.baseModel.unregisterPatternObserver(this);
     removeFromArray(this.ractive._observers, this);
   }
 
-  dispatch() {
+  dispatch(): void {
     const newValues = this.newValues;
     this.newValues = {};
     keys(newValues).forEach(keypath => {
@@ -91,7 +126,7 @@ export default class PatternObserver {
     this.dirty = false;
   }
 
-  notify(keys) {
+  notify(keys: (string | number)[]): void {
     const path = joinKeys(keys);
     if (!~this.cache.indexOf(path)) {
       this.cache.push(path);
@@ -99,7 +134,7 @@ export default class PatternObserver {
     }
   }
 
-  shuffle(newIndices) {
+  shuffle(newIndices: NewIndexes): void {
     if (!isArray(this.baseModel.value)) return;
 
     const max = this.baseModel.value.length;
@@ -114,7 +149,7 @@ export default class PatternObserver {
     }
   }
 
-  handleChange() {
+  handleChange(): void {
     if (!this.dirty || this.changed.length) {
       if (!this.dirty) this.newValues = {};
 
@@ -139,13 +174,15 @@ export default class PatternObserver {
           });
           this.dirty = false;
         } else {
-          const ok = this.baseModel.isRoot
-            ? this.changed.map(keys => keys.map(escapeKey).join('.'))
-            : this.changed.map(keys => this.baseKeypath + '.' + keys.map(escapeKey).join('.'));
+          const ok =
+            // TSRChange - changed to `in` guard
+            'isRoot' in this.baseModel
+              ? this.changed.map(keys => keys.map(escapeKey).join('.'))
+              : this.changed.map(keys => this.baseKeypath + '.' + keys.map(escapeKey).join('.'));
 
           this.baseModel.findMatches(this.keys).forEach(model => {
             const keypath = model.getKeypath(this.ractive);
-            const check = k => {
+            const check = (k: string): boolean => {
               return (
                 (k.indexOf(keypath) === 0 &&
                   (k.length === keypath.length || k[keypath.length] === '.')) ||
@@ -178,7 +215,7 @@ export default class PatternObserver {
   }
 }
 
-function updateOld(observer, vals, partial) {
+function updateOld(observer: PatternObserver, vals, partial?: boolean): void {
   const olds = observer.oldValues;
 
   if (observer.oldFn) {

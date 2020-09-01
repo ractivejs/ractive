@@ -1,6 +1,6 @@
 import { escapeKey, unescapeKey } from 'shared/keypaths';
 import { Ractive } from 'src/Ractive/Ractive';
-import { Keypath } from 'types/Keypath';
+import { Keypath } from 'types/Generic';
 import { addToArray, removeFromArray, Indexes } from 'utils/array';
 import bind from 'utils/bind';
 import { isArray, isObject, isObjectLike, isFunction } from 'utils/is';
@@ -142,7 +142,7 @@ export default abstract class ModelBase {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   downstreamChanged(_path: string[], _depth?: number): void {}
 
-  findMatches(keys: string[]): string[] {
+  findMatches(keys: string[]): this[] {
     const len = keys.length;
 
     let existingMatches = [this];
@@ -262,7 +262,7 @@ export default abstract class ModelBase {
     return false;
   }
 
-  joinAll(keys: string[], opts?: ModelJoinOpts): this {
+  joinAll(keys: (string | number)[], opts?: ModelJoinOpts): this {
     // add any to avoid warning on below reassign. Maybe we can find a more clean solution?
     let model: any = this; // eslint-disable-line @typescript-eslint/no-this-alias
     for (let i = 0; i < keys.length; i += 1) {

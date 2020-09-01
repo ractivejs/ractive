@@ -1,14 +1,32 @@
+import ModelBase from 'model/ModelBase';
+import { NewIndexes } from 'shared/getNewIndices';
 import runloop from 'src/global/runloop';
+import { Ractive } from 'src/Ractive/Ractive';
+import { Keypath } from 'types/Generic';
+import { ObserverArrayCallback, ObserverArrayOpts } from 'types/Observer';
 import { removeFromArray } from 'utils/array';
 import { isArray, isUndefined } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 
-function negativeOne() {
+function negativeOne(): number {
   return -1;
 }
 
 export default class ArrayObserver {
-  constructor(ractive, model, callback, options) {
+  private ractive: Ractive;
+  private model: ModelBase;
+  private keypath: Keypath;
+  private callback: ObserverArrayCallback;
+  private options: ObserverArrayOpts;
+  private pending: { inserted: unknown[]; deleted: unknown[]; start: number };
+  private sliced: unknown[];
+
+  constructor(
+    ractive: ArrayObserver['ractive'],
+    model: ArrayObserver['model'],
+    callback: ArrayObserver['callback'],
+    options: ArrayObserver['options']
+  ) {
     this.ractive = ractive;
     this.model = model;
     this.keypath = model.getKeypath();
@@ -28,12 +46,12 @@ export default class ArrayObserver {
     }
   }
 
-  cancel() {
+  cancel(): void {
     this.model.unregister(this);
     removeFromArray(this.ractive._observers, this);
   }
 
-  dispatch() {
+  dispatch(): void {
     try {
       this.callback(this.pending);
     } catch (err) {
@@ -45,7 +63,7 @@ export default class ArrayObserver {
     if (this.options.once) this.cancel();
   }
 
-  handleChange(path) {
+  handleChange(path?: boolean): void {
     if (this.pending) {
       // post-shuffle
       runloop.addObserver(this, this.options.defer);
@@ -56,7 +74,7 @@ export default class ArrayObserver {
     }
   }
 
-  shuffle(newIndices) {
+  shuffle(newIndices: NewIndexes): void {
     const newValue = this.slice();
 
     const inserted = [];
@@ -88,7 +106,7 @@ export default class ArrayObserver {
     this.sliced = newValue;
   }
 
-  slice() {
+  slice(): unknown[] {
     const value = this.model.get();
     return isArray(value) ? value.slice() : [];
   }
