@@ -1,7 +1,6 @@
 import { Ractive } from '../Ractive/Ractive';
 
-import { Keypath } from './Keypath';
-import { ValueMap } from './ValueMap';
+import { Keypath, ValueMap } from './Generic';
 
 export interface Adaptor {
   /** Called when Ractive gets a new value to see if the adaptor should be applied.
