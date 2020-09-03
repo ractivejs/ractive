@@ -53,7 +53,7 @@ export default class ArrayObserver {
 
   dispatch(): void {
     try {
-      this.callback(this.pending);
+      this.callback.call(this.ractive, this.pending);
     } catch (err) {
       warnIfDebug(
         `Failed to execute array observer callback for '${this.keypath}': ${err.message || err}`

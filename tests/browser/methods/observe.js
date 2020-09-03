@@ -1805,6 +1805,29 @@ export default function() {
     r.push('list', 1);
   });
 
+  test('array observers callback must have ractive instance as this (#3343)', t => {
+    t.expect(2);
+    let thisInsideObserveInitProperty;
+
+    const r = new Ractive({
+      data: { list: [] },
+      observe: {
+        list: {
+          handler() {
+            thisInsideObserveInitProperty = this;
+          },
+          array: true
+        }
+      }
+    });
+
+    r.observe('list', function() {
+      t.equal(this, r);
+    });
+
+    t.equal(r, thisInsideObserveInitProperty);
+  });
+
   test(`plain observers allow a hook to set the 'old' value`, t => {
     t.expect(4);
 
