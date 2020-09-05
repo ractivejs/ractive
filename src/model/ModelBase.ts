@@ -389,7 +389,7 @@ export default abstract class ModelBase {
     }
   }
 
-  link(model: ModelBase, keypath: Keypath, options?: ModelLinkOpts): LinkModel {
+  link(model: ModelBase, keypath?: Keypath, options?: ModelLinkOpts): LinkModel {
     const lnk = this._link || new LinkModel(this.parent, this, model, this.key);
     lnk.implicit = options?.implicit;
     lnk.mapping = options?.mapping;

@@ -1,5 +1,7 @@
 import Ractive$add from './prototype/add';
 import Ractive$animate from './prototype/animate';
+import Ractive$attachChild from './prototype/attachChild';
+import Ractive$detachChild from './prototype/detachChild';
 import Ractive$find from './prototype/find';
 import Ractive$findAllComponents from './prototype/findAllComponents';
 import Ractive$findComponent from './prototype/findComponent';
@@ -26,7 +28,11 @@ export class Ractive extends RactiveInternal {
 
   public cssId: string;
 
+  public parent: this;
+
   add = Ractive$add;
+
+  attachChild = Ractive$attachChild;
 
   /**
    * Similar to `ractive.set()`, this will update the data and re-render any affected mustaches and
@@ -61,6 +67,8 @@ export class Ractive extends RactiveInternal {
    * which cancels the animation.
    */
   animate = Ractive$animate;
+
+  detachChild = Ractive$detachChild;
 
   /**
    * Returns the first element inside a given Ractive instance matching a CSS selector.

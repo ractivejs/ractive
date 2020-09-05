@@ -1,3 +1,7 @@
+import { Ractive } from 'src/Ractive/Ractive';
+import Fragment from 'view/Fragment';
+import Component from 'view/items/Component';
+
 import { Macro } from './Macro';
 import { ParseFn } from './Parse';
 
@@ -18,3 +22,16 @@ export type ValueMap = Record<string, any>;
 export type Partial = string | unknown[] | ParseFn | Macro;
 
 export type PartialMap = Record<string, Partial>;
+
+export interface Meta {
+  ractive: Ractive;
+  instance: Ractive;
+  name: string;
+  nameOption?: string;
+  target: string | false;
+  up?: Fragment;
+  external?: boolean;
+  anchor?: Component;
+  bubble: () => void;
+  findNextNode: () => any;
+}

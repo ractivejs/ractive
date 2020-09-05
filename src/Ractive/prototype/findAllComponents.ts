@@ -8,7 +8,7 @@ function Ractive$findAllComponents(this: Ractive, selector?: string, options?: F
 function Ractive$findAllComponents(
   this: Ractive,
   selector?: string | FindOpts,
-  options?: FindOpts
+  options?: FindOpts & { result?: Ractive[] }
 ): Ractive[] {
   if (!options && isObjectType<FindOpts>(selector)) {
     options = selector;

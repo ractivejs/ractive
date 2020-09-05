@@ -1,5 +1,3 @@
-import { Ractive } from 'src/Ractive/Ractive';
-
 export interface SetOpts {
   /** Whether or not to merge the given value into the existing data or replace the existing data. Defaults to replacing the existing data (false). */
   deep?: boolean;
@@ -9,9 +7,6 @@ export interface SetOpts {
 
   /** When applied to an array keypath, whether or not to move the existing elements and their associated template around or simply replace them. Defaults to replacement (false). */
   shuffle?: Shuffler;
-
-  /** @internal */
-  isolated?: boolean;
 }
 export type Shuffler = boolean | string | ShuffleFn;
 export type ShuffleFn = (left: any, right: any) => 1 | 0 | -1;
@@ -26,11 +21,6 @@ export interface FindOpts {
    * Include attached children that are not rendered in anchors when looking for matching elements
    */
   remote?: boolean;
-
-  /**
-   * @internal
-   */
-  result?: Ractive[];
 }
 
 export interface UpdateOpts {
@@ -47,6 +37,8 @@ export interface AttachOpts {
   prepend?: boolean;
   /** The index of the position in the queue for the target anchor at which to insert this instance. 0 is equivalent to prepend: true. */
   insertAt?: number;
+  /** TODO documentation */
+  name?: string;
 }
 
 export interface GetOpts {

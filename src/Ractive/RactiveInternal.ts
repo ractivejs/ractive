@@ -1,5 +1,6 @@
 import RootModel from 'model/RootModel';
 import Context from 'shared/Context';
+import { Meta } from 'types/Generic';
 import { EventListenerEntry } from 'types/Listener';
 import Fragment from 'view/Fragment';
 
@@ -42,7 +43,7 @@ export class RactiveInternal {
   public _subs: Record<string, EventListenerEntry[]>;
 
   /** @internal*/
-  public _children: Ractive[];
+  public _children: (Ractive | Meta)[] & { byName: Record<string, Meta[]> };
 
   /** @internal */
   public viewmodel: RootModel;

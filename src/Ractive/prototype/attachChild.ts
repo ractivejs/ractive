@@ -1,10 +1,18 @@
 import { unrenderChild, updateAnchors } from 'shared/anchors';
 import hooks from 'src/events/Hook';
 import runloop from 'src/global/runloop';
+import { Meta } from 'types/Generic';
+import { AttachOpts } from 'types/Options';
 
-export default function attachChild(child, options = {}) {
+import { Ractive } from '../Ractive';
+
+export default function Ractive$attachChild(
+  this: Ractive,
+  child: Ractive,
+  options: AttachOpts = {}
+): Promise<void | Ractive> {
   const children = this._children;
-  let idx;
+  let idx: number;
 
   if (child.parent && child.parent !== this)
     throw new Error(
@@ -13,7 +21,7 @@ export default function attachChild(child, options = {}) {
   else if (child.parent)
     throw new Error(`Instance ${child._guid} is already attached to this instance.`);
 
-  const meta = {
+  const meta: Meta = {
     instance: child,
     ractive: this,
     name: options.name || child.constructor.name || 'Ractive',
@@ -28,8 +36,8 @@ export default function attachChild(child, options = {}) {
     meta.up = this.fragment;
     meta.external = true;
   } else {
-    let list;
-    if (!(list = children.byName[meta.target])) {
+    let list = children.byName[meta.target];
+    if (!list) {
       list = [];
       this.set(`@this.children.byName.${meta.target}`, list);
     }
@@ -41,11 +49,11 @@ export default function attachChild(child, options = {}) {
   child.component = meta;
   children.push(meta);
 
-  const promise = runloop.start();
+  const promise: Promise<void> & { ractive?: Ractive } = runloop.start();
 
   const rm = child.viewmodel.getRactiveModel();
-  rm.joinKey('parent', { lastLink: false }).link(this.viewmodel.getRactiveModel());
-  rm.joinKey('root', { lastLink: false }).link(this.root.viewmodel.getRactiveModel());
+  rm.joinKey('parent').link(this.viewmodel.getRactiveModel());
+  rm.joinKey('root').link(this.root.viewmodel.getRactiveModel());
 
   hooks.attachchild.fire(child);
 
@@ -63,10 +71,10 @@ export default function attachChild(child, options = {}) {
   return promise.then(() => child);
 }
 
-function bubble() {
+function bubble(this: Meta): void {
   runloop.addFragment(this.instance.fragment);
 }
 
-function findNextNode() {
+function findNextNode(this: Meta): ReturnType<Meta['anchor']['findNextNode']> {
   if (this.anchor) return this.anchor.findNextNode();
 }

@@ -10,7 +10,7 @@ export default function add(
   ractive: Ractive,
   keypath: Keypath,
   d: number,
-  options: SetOpts
+  options: SetOpts & { isolated?: boolean }
 ): Promise<void> {
   if (!isString(keypath) || !isNumeric(d)) {
     throw new Error('Bad arguments');

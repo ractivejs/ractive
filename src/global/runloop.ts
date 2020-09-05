@@ -1,18 +1,18 @@
 import { InternalObserver } from 'src/Ractive/prototype/observe';
 import { addToArray } from 'utils/array';
+import Fragment from 'view/Fragment';
 import Transition from 'view/items/element/Transition';
 
 import TransitionManager from './TransitionManager';
 
-// TODO add correct typings
 interface Batch {
   previousBatch: Batch;
   transitionManager: TransitionManager;
-  fragments: any[];
-  tasks: any[];
+  fragments: Fragment[];
+  tasks: Function[];
   immediateObservers: InternalObserver[];
   deferredObservers: InternalObserver[];
-  promise: Promise<any>;
+  promise: Promise<void>;
 }
 
 export let batch: Batch;
@@ -35,9 +35,9 @@ class Runloop {
     return !!batch;
   }
 
-  public start(): Promise<any> {
-    let fulfilPromise;
-    const promise = new Promise(f => (fulfilPromise = f));
+  public start(): Promise<void> {
+    let fulfilPromise: Function;
+    const promise = new Promise<void>(f => (fulfilPromise = f));
 
     batch = {
       previousBatch: batch,
@@ -61,12 +61,12 @@ class Runloop {
     batch = batch.previousBatch;
   }
 
-  public addFragment(fragment): void {
+  public addFragment(fragment: Fragment): void {
     addToArray(batch.fragments, fragment);
   }
 
   // TODO: come up with a better way to handle fragments that trigger their own update
-  public addFragmentToRoot(fragment): void {
+  public addFragmentToRoot(fragment: Fragment): void {
     if (!batch) return;
 
     let b = batch;
@@ -113,7 +113,7 @@ class Runloop {
     }
   }
 
-  public promise(): Promise<any> {
+  public promise(): Promise<void> {
     if (!batch) return Promise.resolve();
 
     let target = batch;
@@ -127,38 +127,38 @@ class Runloop {
 
 export default Runloop.getInstance();
 
-function dispatch(observer): void {
+function dispatch(observer: InternalObserver): void {
   observer.dispatch();
 }
 
 function flushChanges(): void {
-  let which = batch.immediateObservers;
+  const which = batch.immediateObservers;
   batch.immediateObservers = [];
   which.forEach(dispatch);
 
   // Now that changes have been fully propagated, we can update the DOM
   // and complete other tasks
   let i = batch.fragments.length;
-  let fragment;
+  let fragment: Fragment;
 
-  which = batch.fragments;
+  const fragments = batch.fragments;
   batch.fragments = [];
 
   while (i--) {
-    fragment = which[i];
+    fragment = fragments[i];
     fragment.update();
   }
 
   batch.transitionManager.ready();
 
-  which = batch.deferredObservers;
+  const deferredObservers = batch.deferredObservers;
   batch.deferredObservers = [];
-  which.forEach(dispatch);
+  deferredObservers.forEach(dispatch);
 
   const tasks = batch.tasks;
   batch.tasks = [];
 
-  for (i = 0; i < tasks.length; i += 1) {
+  for (let i = 0; i < tasks.length; i += 1) {
     tasks[i]();
   }
 
