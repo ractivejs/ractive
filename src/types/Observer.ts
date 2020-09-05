@@ -1,7 +1,7 @@
 import { Ractive } from 'src/Ractive/Ractive';
 import Fragment from 'view/Fragment';
 
-import { Keypath } from './Keypath';
+import { Keypath } from './Generic';
 
 export interface ArrayChanges {
   /**

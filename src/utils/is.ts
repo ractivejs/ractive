@@ -21,13 +21,13 @@ export function isNumber(thing: unknown): thing is number {
 /**
  * @see http://stackoverflow.com/questions/18082/validate-numbers-in-javascript-isnumeric
  */
-export function isNumeric(thing: string | number): boolean {
+export function isNumeric(thing: unknown): thing is number {
   return !isNaN(parseFloat(thing as string)) && isFinite(thing as number);
 }
 
 /* Object */
 
-export function isObject(thing: unknown): boolean {
+export function isObject(thing: unknown): thing is Record<string, unknown> {
   return thing && toString.call(thing) === '[object Object]';
 }
 

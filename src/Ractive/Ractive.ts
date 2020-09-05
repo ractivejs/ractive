@@ -1,3 +1,4 @@
+import Ractive$add from './prototype/add';
 import Ractive$animate from './prototype/animate';
 import Ractive$find from './prototype/find';
 import Ractive$findAllComponents from './prototype/findAllComponents';
@@ -7,6 +8,7 @@ import Ractive$observeOnce from './prototype/observeOnce';
 import Ractive$off from './prototype/off';
 import Ractive$on from './prototype/on';
 import Ractive$once from './prototype/once';
+import Ractive$subtract from './prototype/subtract';
 import Ractive$toHTML from './prototype/toHTML';
 import Ractive$toText from './prototype/toText';
 import { RactiveInternal } from './RactiveInternal';
@@ -23,6 +25,8 @@ export class Ractive extends RactiveInternal {
   public target: HTMLElement | string;
 
   public cssId: string;
+
+  add = Ractive$add;
 
   /**
    * Similar to `ractive.set()`, this will update the data and re-render any affected mustaches and
@@ -120,6 +124,8 @@ export class Ractive extends RactiveInternal {
   once = Ractive$once;
 
   off = Ractive$off;
+
+  subtract = Ractive$subtract;
 
   /**
    * Returns a chunk of HTML representing the current state of the instance.

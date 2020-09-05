@@ -1,4 +1,5 @@
 import Model from 'model/Model';
+import { Ractive } from 'src/Ractive/Ractive';
 import { Keypath } from 'types/Generic';
 import { SetOpts } from 'types/Options';
 import { isArray, isObject, isObjectType, isFunction, isString, isUndefined } from 'utils/is';
@@ -13,7 +14,7 @@ import { splitKeypath } from './keypaths';
 
 export let keep = false;
 
-type SetPair<M extends Model, V> = [M, V, Keypath?];
+type SetPair<M extends Model = Model, V = unknown> = [M, V, Keypath?];
 export function set<M extends Model, V>(pairs: [SetPair<M, V>], options?: SetOpts): Promise<V>;
 export function set<M extends Model, V>(pairs: SetPair<M, V>[], options?: SetOpts): Promise<void>;
 export function set<M extends Model, V>(
@@ -104,7 +105,12 @@ export function gather(ractive, keypath, base, isolated): any[] {
   }
 }
 
-export function build(ractive, keypath, value, isolated) {
+export function build(
+  ractive: Ractive,
+  keypath: Keypath,
+  value: unknown,
+  isolated: boolean
+): SetPair[] {
   const sets = [];
 
   // set multiple keypaths in one go

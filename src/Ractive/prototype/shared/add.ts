@@ -1,14 +1,22 @@
 import { build, set } from 'shared/set';
+import { Ractive } from 'src/Ractive/Ractive';
+import { Keypath } from 'types/Generic';
+import { SetOpts } from 'types/Options';
 import { isNumeric, isString } from 'utils/is';
 
 const errorMessage = 'Cannot add to a non-numeric value';
 
-export default function add(ractive, keypath, d, options) {
+export default function add(
+  ractive: Ractive,
+  keypath: Keypath,
+  d: number,
+  options: SetOpts
+): Promise<void> {
   if (!isString(keypath) || !isNumeric(d)) {
     throw new Error('Bad arguments');
   }
 
-  const sets = build(ractive, keypath, d, options && options.isolated);
+  const sets = build(ractive, keypath, d, options?.isolated);
 
   return set(
     sets.map(pair => {
