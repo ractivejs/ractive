@@ -1,5 +1,6 @@
 import Context from 'shared/Context';
 import { Ractive } from 'src/Ractive/Ractive';
+import { EventListenerEntry } from 'types/Listener';
 
 import { enqueue, dequeue } from './eventStack';
 
@@ -105,16 +106,9 @@ function fireEventAs(
   return bubble;
 }
 
-/** Used to handle event callback events internally */
-export interface EventSubscriber {
-  off: boolean;
-  callback: Function;
-  handler: Function;
-}
-
 function notifySubscribers(
   ractive: Ractive,
-  subscribers: EventSubscriber[],
+  subscribers: EventListenerEntry[],
   context: Context,
   args: unknown[]
 ): boolean {

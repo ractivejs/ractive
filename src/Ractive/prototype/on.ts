@@ -1,26 +1,34 @@
+import { EventListenerEntry, ListenerCallback, ListenerHandle } from 'types/Listener';
 import { isObjectType, isString } from 'utils/is';
 import { hasOwn } from 'utils/object';
+
+import { Ractive } from '../Ractive';
 
 import notEmptyString from './shared/notEmptyString';
 import trim from './shared/trim';
 
-export default function Ractive$on(eventName, callback) {
+function Ractive$on(this: Ractive, map: Record<string, ListenerCallback>): ListenerHandle;
+function Ractive$on(this: Ractive, eventName: string, callback: ListenerCallback): ListenerHandle;
+function Ractive$on(
+  this: Ractive,
+  eventName: string | Record<string, ListenerCallback>,
+  callback?: ListenerCallback
+): ListenerHandle {
   // eventName may already be a map
-  const map = isObjectType(eventName) ? eventName : {};
+  const map = isObjectType<Record<string, ListenerCallback>>(eventName) ? eventName : {};
   // or it may be a string along with a callback
   if (isString(eventName)) map[eventName] = callback;
 
   let silent = false;
-  const events = [];
+  const events: [string, EventListenerEntry][] = [];
 
   for (const k in map) {
     const callback = map[k];
-    const caller = function(...args) {
-      if (!silent) return callback.apply(this, args);
-    };
-    const entry = {
+    const entry: EventListenerEntry = {
       callback,
-      handler: caller
+      handler(...args) {
+        if (!silent) return callback.apply(this, args);
+      }
     };
 
     if (hasOwn(map, k)) {
@@ -43,3 +51,5 @@ export default function Ractive$on(eventName, callback) {
     resume: () => (silent = false)
   };
 }
+
+export default Ractive$on;

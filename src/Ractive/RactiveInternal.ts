@@ -1,6 +1,6 @@
 import RootModel from 'model/RootModel';
 import Context from 'shared/Context';
-import { EventSubscriber } from 'src/events/fireEvent';
+import { EventListenerEntry } from 'types/Listener';
 import Fragment from 'view/Fragment';
 
 import { InternalObserver } from './prototype/observe';
@@ -33,13 +33,13 @@ export class RactiveInternal {
   public _eventQueue: Context[];
 
   /** @internal */
-  public _nsSubs: string[];
-
-  /** @internal */
   public event: Context;
 
   /** @internal */
-  public _subs: Record<string, EventSubscriber[]>;
+  public _nsSubs: number;
+
+  /** @internal */
+  public _subs: Record<string, EventListenerEntry[]>;
 
   /** @internal*/
   public _children: Ractive[];

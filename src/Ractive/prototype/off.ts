@@ -1,9 +1,16 @@
+import { ListenerCallback } from 'types/Listener';
 import { removeFromArray } from 'utils/array';
+
+import { Ractive } from '../Ractive';
 
 import notEmptyString from './shared/notEmptyString';
 import trim from './shared/trim';
 
-export default function Ractive$off(eventName, callback) {
+export default function Ractive$off(
+  this: Ractive,
+  eventName: string,
+  callback: ListenerCallback
+): Ractive {
   // if no event is specified, remove _all_ event listeners
   if (!eventName) {
     this._subs = {};

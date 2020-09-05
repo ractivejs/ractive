@@ -509,7 +509,7 @@ export interface ListenerHandle {
 
 export interface ObserverHandle {
   /**
-   * Removes the listener or observer.j
+   * Removes the listener or observer.
    */
   cancel(): void;
 
