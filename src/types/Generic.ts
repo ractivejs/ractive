@@ -23,6 +23,8 @@ export type Partial = string | unknown[] | ParseFn | Macro;
 
 export type PartialMap = Record<string, Partial>;
 
+export type Target = string | HTMLElement | ArrayLike<any>;
+
 export interface Meta {
   ractive: Ractive;
   instance: Ractive;

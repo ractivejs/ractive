@@ -1,10 +1,14 @@
+import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
+
 import Ractive$add from './prototype/add';
 import Ractive$animate from './prototype/animate';
 import Ractive$attachChild from './prototype/attachChild';
+import Ractive$detach from './prototype/detach';
 import Ractive$detachChild from './prototype/detachChild';
 import Ractive$find from './prototype/find';
 import Ractive$findAllComponents from './prototype/findAllComponents';
 import Ractive$findComponent from './prototype/findComponent';
+import Ractive$insert from './prototype/insert';
 import Ractive$observe from './prototype/observe';
 import Ractive$observeOnce from './prototype/observeOnce';
 import Ractive$off from './prototype/off';
@@ -29,6 +33,9 @@ export class Ractive extends RactiveInternal {
   public cssId: string;
 
   public parent: this;
+
+  /** if instance is detached it will be a DocumentFragment otherwise an HTML element */
+  public el: RactiveHTMLElement | DocumentFragment;
 
   add = Ractive$add;
 
@@ -67,6 +74,8 @@ export class Ractive extends RactiveInternal {
    * which cancels the animation.
    */
   animate = Ractive$animate;
+
+  detach = Ractive$detach;
 
   detachChild = Ractive$detachChild;
 
@@ -122,6 +131,8 @@ export class Ractive extends RactiveInternal {
   findComponent = Ractive$findComponent;
 
   findAllComponents = Ractive$findAllComponents;
+
+  insert = Ractive$insert;
 
   observe = Ractive$observe;
 

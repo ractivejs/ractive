@@ -53,4 +53,7 @@ export class RactiveInternal {
 
   /** @internal */
   public _observers: InternalObserver[];
+
+  /** @internal */
+  public isDetached: boolean;
 }

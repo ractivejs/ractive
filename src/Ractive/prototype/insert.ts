@@ -1,7 +1,11 @@
 import hooks from 'src/events/Hook';
+import { Target } from 'types/Generic';
+import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { getElement } from 'utils/dom';
 
-export default function Ractive$insert(target, anchor) {
+import { Ractive } from '../Ractive';
+
+export default function Ractive$insert(this: Ractive, target: Target, anchor: Target): void {
   if (!this.fragment.rendered) {
     // TODO create, and link to, documentation explaining this
     throw new Error(
@@ -9,23 +13,23 @@ export default function Ractive$insert(target, anchor) {
     );
   }
 
-  target = getElement(target);
-  anchor = getElement(anchor) || null;
+  const _target: RactiveHTMLElement = getElement(target);
+  const _anchor: RactiveHTMLElement = getElement(anchor) || null;
 
-  if (!target) {
+  if (!_target) {
     throw new Error('You must specify a valid target to insert into');
   }
 
-  target.insertBefore(this.detach(), anchor);
-  this.el = target;
+  _target.insertBefore(this.detach(), _anchor);
+  this.el = _target;
 
-  (target.__ractive_instances__ || (target.__ractive_instances__ = [])).push(this);
+  (_target.__ractive_instances__ || (_target.__ractive_instances__ = [])).push(this);
   this.isDetached = false;
 
   fireInsertHook(this);
 }
 
-function fireInsertHook(ractive) {
+function fireInsertHook(ractive: Ractive): void {
   hooks.insert.fire(ractive);
 
   ractive.findAllComponents('*').forEach(child => {

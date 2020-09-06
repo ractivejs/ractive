@@ -38,7 +38,9 @@ export function createDocumentFragment(): DocumentFragment {
   return doc.createDocumentFragment();
 }
 
-function getElement(input: boolean | string | HTMLElement): HTMLElement | undefined {
+function getElement(
+  input: boolean | string | HTMLElement | ArrayLike<unknown>
+): HTMLElement | undefined {
   let output: HTMLElement;
 
   if (!input || typeof input === 'boolean') {
