@@ -92,7 +92,7 @@ export default abstract class ModelBase {
   public length: number;
   public refs: number;
 
-  public computed: { [key: string]: Computation };
+  public computed: Record<string, Computation>;
 
   public dataModel: any;
 

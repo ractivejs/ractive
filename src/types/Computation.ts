@@ -2,8 +2,8 @@ import { Ractive } from '../Ractive/Ractive';
 
 export type ComputationFn<T extends Ractive = Ractive> = (
   this: T,
-  context: any,
-  keypath: string
+  context?: any,
+  keypath?: string
 ) => any;
 
 export interface ComputationDescriptor<T extends Ractive = Ractive> {
@@ -19,4 +19,16 @@ export interface ComputationDescriptor<T extends Ractive = Ractive> {
   set?: (this: T, value: any, context: any, keypath: string) => void;
 }
 
-export type Computation<T extends Ractive> = string | ComputationFn<T> | ComputationDescriptor<T>;
+export type Computation<T extends Ractive = Ractive> =
+  | string
+  | ComputationFn<T>
+  | ComputationDescriptor<T>;
+
+/** Describe a computation which is passed to  */
+export interface InternalComputationDescription {
+  get: ComputationFn | string;
+
+  set?: ComputationDescriptor['set'];
+
+  pattern?: RegExp;
+}

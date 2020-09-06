@@ -1,19 +1,29 @@
+import ComputationModel from 'model/Computation';
 import { fireShuffleTasks } from 'model/ModelBase';
 import { splitKeypath } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
+import { InternalComputationDescription, Computation } from 'types/Computation';
 import { isString, isFunction } from 'utils/is';
 
-export function compute(path, computed) {
-  this.computed[path] = computed;
-  if (isString(computed) || isFunction(computed))
-    computed = this.computed[path] = { get: computed };
+import { Ractive } from '../Ractive';
+
+export function compute(this: Ractive, path: string, computed: Computation): ComputationModel {
+  let _computed: InternalComputationDescription;
+  if (isString(computed) || isFunction(computed)) {
+    _computed = { get: computed };
+  } else {
+    _computed = computed;
+  }
+
+  // This is a hack to avoid type error since these registry should store computation model
+  this.computed[path] = _computed as ComputationModel;
 
   const keys = splitKeypath(path);
   if (!~path.indexOf('*')) {
     const last = keys.pop();
-    return this.viewmodel.joinAll(keys).compute(last, computed);
+    return this.viewmodel.joinAll(keys).compute(last, _computed);
   } else {
-    computed.pattern = new RegExp(
+    _computed.pattern = new RegExp(
       '^' +
         keys
           .map(k => k.replace(/\*\*/g, '(.+)').replace(/\*/g, '((?:\\\\.|[^\\.])+)'))
@@ -23,7 +33,11 @@ export function compute(path, computed) {
   }
 }
 
-export default function Ractive$compute(path, computed) {
+export default function Ractive$compute(
+  this: Ractive,
+  path: string,
+  computed: Computation
+): Promise<void> {
   const promise = runloop.start();
   const comp = compute.call(this, path, computed);
 

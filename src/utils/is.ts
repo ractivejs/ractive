@@ -35,7 +35,7 @@ export function isObjectType<T>(thing: unknown): thing is T {
   return typeof thing === 'object';
 }
 
-export function isObjectLike(thing: unknown): boolean {
+export function isObjectLike(thing: unknown): thing is Function | Record<string, unknown> {
   return !!(thing && (isObjectType(thing) || isFunction(thing)));
 }
 

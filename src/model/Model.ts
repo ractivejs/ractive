@@ -4,9 +4,8 @@ import Ticker from 'shared/Ticker';
 import { capture } from 'src/global/capture';
 import getComputationSignature from 'src/Ractive/helpers/getComputationSignature';
 import { AnimateOpts } from 'src/Ractive/prototype/animate';
-import { Ractive } from 'src/Ractive/Ractive';
 import { AdaptorHandle } from 'types/Adaptor';
-import { Computation as ComputationType } from 'types/Computation';
+import { InternalComputationDescription } from 'types/Computation';
 import { ValueMap } from 'types/Generic';
 import { buildNewIndices } from 'utils/array';
 import { isArray, isEqual, isNumeric, isObjectLike, isUndefined } from 'utils/is';
@@ -181,7 +180,7 @@ export default class Model extends ModelBase implements ModelWithShuffle {
       this.adapt();
     }
 
-    if (this.dataModel || (value && value.viewmodel && value.viewmodel.isRoot)) {
+    if (this.dataModel || value?.viewmodel?.isRoot) {
       checkDataLink(this, value);
     }
 
@@ -206,7 +205,7 @@ export default class Model extends ModelBase implements ModelWithShuffle {
     }
   }
 
-  compute(key: string, computed: ComputationType<Ractive>): Computation {
+  compute(key: string, computed: InternalComputationDescription): Computation {
     const registry = this.computed || (this.computed = {});
 
     if (registry[key]) {

@@ -1,3 +1,4 @@
+import Computation from 'model/Computation';
 import RootModel from 'model/RootModel';
 import Context from 'shared/Context';
 import { Meta } from 'types/Generic';
@@ -23,6 +24,9 @@ export class RactiveInternal {
 
   /** @internal */
   public destroyed: boolean;
+
+  /** @internal */
+  public isDetached: boolean;
 
   /** @internal */
   public anchor: HTMLElement;
@@ -54,6 +58,9 @@ export class RactiveInternal {
   /** @internal */
   public _observers: InternalObserver[];
 
-  /** @internal */
-  public isDetached: boolean;
+  /**
+   * Store computation information. Item can also be a {@link InternalComputationDescription}
+   * @internal
+   */
+  public computed: Record<string, Computation>;
 }

@@ -3,9 +3,11 @@ import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import Ractive$add from './prototype/add';
 import Ractive$animate from './prototype/animate';
 import Ractive$attachChild from './prototype/attachChild';
+import Ractive$compute from './prototype/compute';
 import Ractive$detach from './prototype/detach';
 import Ractive$detachChild from './prototype/detachChild';
 import Ractive$find from './prototype/find';
+import Ractive$findAll from './prototype/findAll';
 import Ractive$findAllComponents from './prototype/findAllComponents';
 import Ractive$findComponent from './prototype/findComponent';
 import Ractive$insert from './prototype/insert';
@@ -75,6 +77,8 @@ export class Ractive extends RactiveInternal {
    */
   animate = Ractive$animate;
 
+  compute = Ractive$compute;
+
   detach = Ractive$detach;
 
   detachChild = Ractive$detachChild;
@@ -101,6 +105,8 @@ export class Ractive extends RactiveInternal {
    * @param options
    */
   find = Ractive$find;
+
+  findAll = Ractive$findAll;
 
   /**
    * Returns the first component inside a given Ractive instance with the given `name` (or the first component of any kind if no name is given).

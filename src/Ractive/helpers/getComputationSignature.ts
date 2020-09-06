@@ -1,5 +1,5 @@
 import { Ractive } from 'src/Ractive/Ractive';
-import { Computation as ComputationType, ComputationDescriptor } from 'types/Computation';
+import { ComputationDescriptor, InternalComputationDescription } from 'types/Computation';
 import { Keypath } from 'types/Generic';
 import bind from 'utils/bind';
 import { isFunction, isString, isObjectType } from 'utils/is';
@@ -18,7 +18,7 @@ export interface ComputationSignature {
 export default function getComputationSignature(
   ractive: Ractive,
   key: string,
-  signature: ComputationType<Ractive>
+  signature: InternalComputationDescription
 ): ComputationSignature {
   let getter;
   let setter;

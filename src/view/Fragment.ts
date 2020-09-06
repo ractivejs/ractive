@@ -6,6 +6,7 @@ import { getContext, findParentWithContext } from 'shared/getRactiveContext';
 import { shuffled, toEscapedString, toString } from 'shared/methodCallers';
 import runloop from 'src/global/runloop';
 import { Ractive } from 'src/Ractive/Ractive';
+import { FindOpts } from 'types/Options';
 import { findMap } from 'utils/array';
 import { createDocumentFragment } from 'utils/dom';
 import parseJSON from 'utils/parseJSON';
@@ -212,7 +213,7 @@ export default class Fragment {
     return findMap(this.items, i => i.find(selector, options));
   }
 
-  findAll(selector, options): void {
+  findAll(selector: string, options: FindOpts): void {
     if (this.items) {
       this.items.forEach(i => i.findAll && i.findAll(selector, options));
     }
