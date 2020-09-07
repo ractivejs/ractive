@@ -1,4 +1,6 @@
-export default function Ractive$findParent(selector) {
+import { Ractive } from '../Ractive';
+
+export default function Ractive$findParent(this: Ractive, selector: string): Ractive {
   if (this.parent) {
     if (this.parent.component && this.parent.component.name === selector) {
       return this.parent;

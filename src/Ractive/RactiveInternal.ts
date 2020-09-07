@@ -63,4 +63,7 @@ export class RactiveInternal {
    * @internal
    */
   public computed: Record<string, Computation>;
+
+  /** @internal */
+  public container: this;
 }

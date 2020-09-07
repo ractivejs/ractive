@@ -10,6 +10,9 @@ import Ractive$find from './prototype/find';
 import Ractive$findAll from './prototype/findAll';
 import Ractive$findAllComponents from './prototype/findAllComponents';
 import Ractive$findComponent from './prototype/findComponent';
+import Ractive$findContainer from './prototype/findContainer';
+import Ractive$findParent from './prototype/findParent';
+import Ractive$fire from './prototype/fire';
 import Ractive$insert from './prototype/insert';
 import Ractive$observe from './prototype/observe';
 import Ractive$observeOnce from './prototype/observeOnce';
@@ -108,6 +111,8 @@ export class Ractive extends RactiveInternal {
 
   findAll = Ractive$findAll;
 
+  findContainer = Ractive$findContainer;
+
   /**
    * Returns the first component inside a given Ractive instance with the given `name` (or the first component of any kind if no name is given).
    *
@@ -137,6 +142,10 @@ export class Ractive extends RactiveInternal {
   findComponent = Ractive$findComponent;
 
   findAllComponents = Ractive$findAllComponents;
+
+  findParent = Ractive$findParent;
+
+  fire = Ractive$fire;
 
   insert = Ractive$insert;
 

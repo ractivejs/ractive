@@ -1,4 +1,6 @@
-export default function Ractive$findContainer(selector) {
+import { Ractive } from '../Ractive';
+
+export default function Ractive$findContainer(this: Ractive, selector: string): Ractive {
   if (this.container) {
     if (this.container.component && this.container.component.name === selector) {
       return this.container;
