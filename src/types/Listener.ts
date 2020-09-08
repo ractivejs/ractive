@@ -27,17 +27,17 @@ export interface ListenerHandle {
   /**
    * Stops further firings of the callback.
    */
-  silence(): void;
+  silence?(): void;
 
   /**
    * @returns true if the callback is not going to be called
    */
-  isSilenced(): boolean;
+  isSilenced?(): boolean;
 
   /**
    * Resume calling the callback with changes or events.
    */
-  resume(): void;
+  resume?(): void;
 }
 
 /** Used to handle event callback events internally */

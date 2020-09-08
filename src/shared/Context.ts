@@ -2,13 +2,14 @@ import TemplateItemType from 'config/types';
 import Model, { AnimatePromise } from 'model/Model';
 import runloop from 'src/global/runloop';
 import { Ractive } from 'src/Ractive/Ractive';
+import { ContextHelper } from 'types/Context';
+import { DecoratorHandle } from 'types/Decorator';
 import { Keypath } from 'types/Generic';
 import { SetOpts } from 'types/Options';
 import { isNumeric, isObject, isNumber, isObjectType, isString } from 'utils/is';
 import { hasOwn } from 'utils/object';
 import Fragment from 'view/Fragment';
 import Element from 'view/items/Element';
-import Decorator from 'view/items/element/Decorator';
 import EventDirective from 'view/items/shared/EventDirective';
 import findElement from 'view/items/shared/findElement';
 import resolveReference from 'view/resolvers/resolveReference';
@@ -28,7 +29,7 @@ const modelSort = makeArrayMethod('sort').model;
 const modelSplice = makeArrayMethod('splice').model;
 const modelReverse = makeArrayMethod('reverse').model;
 
-export const localFragment: { f?: any } = {};
+export const localFragment: { f?: Fragment } = {};
 
 interface ContextDataOpts {
   ractive: ContextData['ractive'];
@@ -57,7 +58,8 @@ class ContextData extends Model {
   rebound(): void {}
 }
 
-export default class Context {
+// TODO check that params between this class and `ContextHelper` are the same
+export default class Context implements ContextHelper {
   public fragment: Fragment;
   public element: Element;
   public node: HTMLElement;
@@ -81,7 +83,7 @@ export default class Context {
     this.root = this;
   }
 
-  get decorators(): Record<string, Decorator> {
+  get decorators(): Record<string, DecoratorHandle> {
     const items = {};
     if (!this.element) return items;
     this.element.decorators.forEach(d => (items[d.name] = d.handle));
@@ -99,7 +101,7 @@ export default class Context {
   }
 
   // the usual mutation suspects
-  add(keypath: Keypath, d: unknown, options?: SetOpts): Promise<void> {
+  add(keypath: Keypath, d: number, options?: SetOpts): Promise<void> {
     const num = isNumber(d) ? +d : 1;
     const opts = isObjectType<SetOpts>(d) ? d : options;
     return sharedSet(
@@ -147,7 +149,7 @@ export default class Context {
     return model ? model.get(true) : undefined;
   }
 
-  getParent(component) {
+  getParent(component: boolean): this {
     let fragment = this.fragment;
 
     if (!fragment.parent && component) fragment = fragment.componentParent;
@@ -163,7 +165,8 @@ export default class Context {
     }
 
     if (!fragment || fragment === this.fragment) return;
-    else return fragment.getContext();
+
+    return fragment.getContext() as this;
   }
 
   hasListener(name, bubble) {
@@ -257,7 +260,7 @@ export default class Context {
     return modelReverse(findModel(this, keypath).model, []);
   }
 
-  set(keypath, value, options) {
+  set(keypath, value, options?) {
     return sharedSet(build(this, keypath, value), options);
   }
 
@@ -274,7 +277,7 @@ export default class Context {
     return modelSort(findModel(this, keypath).model, []);
   }
 
-  subtract(keypath, d, options) {
+  subtract(keypath, d, options?) {
     const num = isNumber(d) ? d : 1;
     const opts = isObjectType(d) ? d : options;
     return sharedSet(
@@ -288,9 +291,9 @@ export default class Context {
     );
   }
 
-  toggle(keypath, options) {
+  toggle(keypath) {
     const { model } = findModel(this, keypath);
-    return sharedSet([[model, !model.get()]], options);
+    return sharedSet([[model, !model.get()]]);
   }
 
   unlink(dest) {
@@ -309,11 +312,11 @@ export default class Context {
     return modelUnshift(findModel(this, keypath).model, add);
   }
 
-  update(keypath, options) {
+  update(keypath, options?) {
     return protoUpdate(this.ractive, findModel(this, keypath).model, options);
   }
 
-  updateModel(keypath, cascade) {
+  updateModel(keypath, cascade?) {
     const { model } = findModel(this, keypath);
     const promise = runloop.start();
     model.updateFromBindings(cascade);

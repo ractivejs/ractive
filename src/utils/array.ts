@@ -93,7 +93,7 @@ export function findMap<T, X>(array: T[], fn: (item: T) => X): X {
   }
 }
 
-export interface Indexes extends Array<number> {
+export interface Indexes extends Array<number | string> {
   oldLen?: number;
   newLen?: number;
   same?: boolean;

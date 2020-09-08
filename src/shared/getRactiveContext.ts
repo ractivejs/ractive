@@ -7,8 +7,8 @@ import Context from './Context';
 
 export const extern: { Context?: typeof Context } = {};
 
-export default function getRactiveContext(ractive, ...assigns): Context {
-  const fragment: Fragment =
+export default function getRactiveContext(ractive: Ractive, ...assigns: unknown[]): Context {
+  const fragment =
     ractive.fragment ||
     ractive._fakeFragment ||
     (ractive._fakeFragment = new FakeFragment(ractive));

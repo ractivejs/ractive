@@ -1,3 +1,5 @@
+import { Ractive } from 'src/Ractive/Ractive';
+
 export interface SetOpts {
   /** Whether or not to merge the given value into the existing data or replace the existing data. Defaults to replacing the existing data (false). */
   deep?: boolean;
@@ -51,4 +53,33 @@ export interface GetOpts {
    * Whether or not to unwrap the value if it happens to be wrapped, returning the original value. Defaults to true.
    */
   unwrap?: boolean;
+}
+
+export interface ReadLinkOpts {
+  /** Whether or not to follow through any upstream links when resolving the source. */
+  canonical?: boolean;
+}
+export interface ReadLinkResult {
+  /** The Ractive instance that hosts the source keypath. */
+  ractive: Ractive;
+
+  /** The keypath of the source in the host instance. */
+  keypath: string;
+}
+
+export interface LinkOpts {
+  /**
+   * The ractive instance in which to find the source keypath.
+   */
+  ractive?: Ractive;
+
+  /**
+   * The ractive instance in which to find the source keypath.
+   */
+  instance?: Ractive;
+
+  /**
+   * The keypath to use for the link when handling a shuffle. For instance foo.1.bar will not shuffle with foo, but .bar will.
+   */
+  keypath?: string;
 }

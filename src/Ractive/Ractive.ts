@@ -14,6 +14,8 @@ import Ractive$findContainer from './prototype/findContainer';
 import Ractive$findParent from './prototype/findParent';
 import Ractive$fire from './prototype/fire';
 import Ractive$get from './prototype/get';
+import Ractive$getContext from './prototype/getContext';
+import Ractive$getLocalContext from './prototype/getLocalContext';
 import Ractive$insert from './prototype/insert';
 import Ractive$observe from './prototype/observe';
 import Ractive$observeOnce from './prototype/observeOnce';
@@ -149,6 +151,10 @@ export class Ractive extends RactiveInternal {
   fire = Ractive$fire;
 
   get = Ractive$get;
+
+  getContext = Ractive$getContext;
+
+  getLocalContext = Ractive$getLocalContext;
 
   insert = Ractive$insert;
 

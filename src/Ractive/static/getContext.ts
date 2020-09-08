@@ -1,4 +1,5 @@
 import { doc } from 'config/environment';
+import Context from 'shared/Context';
 import getRactiveContext from 'shared/getRactiveContext';
 import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { isString } from 'utils/is';
@@ -6,7 +7,7 @@ import { isString } from 'utils/is';
 const query = doc?.querySelector;
 
 // todo add ContextHelper as return value
-export default function getContext(startNode: HTMLElement | string) {
+export default function getContext(startNode: HTMLElement | string): Context {
   if (isString(startNode) && query) {
     startNode = query.call(document, startNode);
   }

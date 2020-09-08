@@ -37,3 +37,17 @@ export interface Meta {
   bubble: () => void;
   findNextNode: () => any;
 }
+
+export interface ArrayPushPromise extends Promise<number> {
+  /** The new length of the target array. */
+  result: number;
+}
+
+export interface ArrayPopPromise extends Promise<any> {
+  /** The value removed for the target array. */
+  result: any;
+}
+
+export interface ArraySplicePromise extends Promise<any[]> {
+  result: any[];
+}

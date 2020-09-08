@@ -26,7 +26,7 @@ import ModelBase, {
 
 export const shared: { Computation?: typeof Computation } = {};
 
-export type AnimatePromise<T> = Promise<T> & { stop?: Function };
+export type AnimatePromise<T = unknown> = Promise<T> & { stop?: Function };
 
 export default class Model extends ModelBase implements ModelWithShuffle {
   /** @override */
@@ -346,7 +346,7 @@ export default class Model extends ModelBase implements ModelWithShuffle {
     this.applyValue(value);
   }
 
-  shuffle(newIndices: number[], unsafe?: boolean): void {
+  shuffle(newIndices: (number | string)[], unsafe?: boolean): void {
     shuffle(this, newIndices, false, unsafe);
   }
 
