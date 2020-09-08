@@ -1,5 +1,6 @@
 import ModelBase from 'model/ModelBase';
 import SharedModel, { GlobalModel, SharedModel as ContextModel } from 'model/specials/SharedModel';
+import { FakeFragment } from 'shared/getRactiveContext';
 import { splitKeypath } from 'shared/keypaths';
 import { isFunction } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
@@ -16,7 +17,7 @@ function findContext(fragment) {
 }
 
 export default function resolveReference(
-  fragment: Fragment | RepeatedFragment,
+  fragment: Fragment | RepeatedFragment | FakeFragment,
   ref: string
 ): ModelBase {
   const initialFragment = fragment;
@@ -127,7 +128,7 @@ export default function resolveReference(
       return fragment.getContext()._data.joinAll(keys);
     } else if (base === '@style') {
       // @style shared model
-      // todo fix _cssModel type error
+      // TODO fix _cssModel type error
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       return fragment.ractive.constructor._cssModel.joinAll(keys);

@@ -213,7 +213,7 @@ export default class Fragment {
     return findMap(this.items, i => i.find(selector, options));
   }
 
-  findAll(selector: string, options: FindOpts): void {
+  findAll(selector: string, options: FindOpts & { result?: HTMLElement[] }): void {
     if (this.items) {
       this.items.forEach(i => i.findAll && i.findAll(selector, options));
     }

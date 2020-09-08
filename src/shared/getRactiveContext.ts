@@ -23,7 +23,13 @@ export function getContext(...assigns: unknown[]): Context {
 }
 
 export class FakeFragment {
-  public ractive: Ractive;
+  public ractive: Fragment['ractive'];
+
+  // Below properties have been added to make fake fragment compatible with fragment and
+  // repeated fragment in resolve reference
+  public context: Fragment['context'];
+  public aliases: Fragment['aliases'];
+  public parent: Fragment['parent'];
 
   constructor(ractive: FakeFragment['ractive']) {
     this.ractive = ractive;
@@ -34,7 +40,7 @@ export class FakeFragment {
   findAll = noop;
   findAllComponents = noop;
 
-  findContext() {
+  findContext(): Ractive['viewmodel'] {
     return this.ractive.viewmodel;
   }
 }

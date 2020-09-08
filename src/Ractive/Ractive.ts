@@ -13,6 +13,7 @@ import Ractive$findComponent from './prototype/findComponent';
 import Ractive$findContainer from './prototype/findContainer';
 import Ractive$findParent from './prototype/findParent';
 import Ractive$fire from './prototype/fire';
+import Ractive$get from './prototype/get';
 import Ractive$insert from './prototype/insert';
 import Ractive$observe from './prototype/observe';
 import Ractive$observeOnce from './prototype/observeOnce';
@@ -146,6 +147,8 @@ export class Ractive extends RactiveInternal {
   findParent = Ractive$findParent;
 
   fire = Ractive$fire;
+
+  get = Ractive$get;
 
   insert = Ractive$insert;
 
