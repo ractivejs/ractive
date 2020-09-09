@@ -9,9 +9,8 @@ import { isArray, isUndefined } from 'utils/is';
 const arrayProto = Array.prototype;
 
 type PathFunction<ReturnType = Promise<void>> = (
-  this: Ractive,
   keypath: Keypath,
-  args: unknown[]
+  ...args: unknown[]
 ) => ReturnType;
 type ModelFunction<ReturnType = Promise<void>> = (mdl: Model, args: unknown[]) => ReturnType;
 
@@ -40,7 +39,7 @@ function makeArrayMethod(
   model: ModelFunction<Promise<void>>;
 };
 function makeArrayMethod(methodName: string): { path: unknown; model: unknown } {
-  const path: PathFunction<Promise<unknown>> = function(keypath, ...args) {
+  const path: PathFunction<Promise<unknown>> = function(this: Ractive, keypath, ...args) {
     return model(this.viewmodel.joinAll(splitKeypath(keypath)), args);
   };
 

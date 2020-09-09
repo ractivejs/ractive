@@ -17,14 +17,21 @@ import Ractive$get from './prototype/get';
 import Ractive$getContext from './prototype/getContext';
 import Ractive$getLocalContext from './prototype/getLocalContext';
 import Ractive$insert from './prototype/insert';
+import Ractive$link from './prototype/link';
 import Ractive$observe from './prototype/observe';
 import Ractive$observeOnce from './prototype/observeOnce';
 import Ractive$off from './prototype/off';
 import Ractive$on from './prototype/on';
 import Ractive$once from './prototype/once';
+import Ractive$pop from './prototype/pop';
+import Ractive$push from './prototype/push';
+import Ractive$reverse from './prototype/reverse';
+import Ractive$sort from './prototype/sort';
+import Ractive$splice from './prototype/splice';
 import Ractive$subtract from './prototype/subtract';
 import Ractive$toHTML from './prototype/toHTML';
 import Ractive$toText from './prototype/toText';
+import Ractive$unshift from './prototype/unshift';
 import { RactiveInternal } from './RactiveInternal';
 
 // TODO add documentation on all fields
@@ -158,6 +165,8 @@ export class Ractive extends RactiveInternal {
 
   insert = Ractive$insert;
 
+  link = Ractive$link;
+
   observe = Ractive$observe;
 
   observeOnce = Ractive$observeOnce;
@@ -167,6 +176,18 @@ export class Ractive extends RactiveInternal {
   once = Ractive$once;
 
   off = Ractive$off;
+
+  pop = Ractive$pop;
+
+  push = Ractive$push;
+
+  reverse = Ractive$reverse;
+
+  shift = Ractive$unshift;
+
+  sort = Ractive$sort;
+
+  splice = Ractive$splice;
 
   subtract = Ractive$subtract;
 
@@ -178,6 +199,8 @@ export class Ractive extends RactiveInternal {
   toHTML = Ractive$toHTML;
 
   toText = Ractive$toText;
+
+  unshift = Ractive$unshift;
 
   [key: string]: any;
 }
