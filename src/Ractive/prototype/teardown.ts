@@ -1,12 +1,15 @@
 import { cancel } from 'shared/methodCallers';
 import hooks from 'src/events/Hook';
+import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { removeFromArray } from 'utils/array';
 import { warnIfDebug } from 'utils/log';
+
+import { Ractive } from '../Ractive';
 
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself
 
-export default function Ractive$teardown() {
+export default function Ractive$teardown(this: Ractive): Promise<void> {
   if (this.torndown) {
     warnIfDebug('ractive.teardown() was called on a Ractive instance that was already torn down');
     return Promise.resolve();
@@ -16,13 +19,15 @@ export default function Ractive$teardown() {
   return teardown(this, () => (this.fragment.rendered ? this.unrender() : Promise.resolve()));
 }
 
-export function teardown(instance, getPromise) {
+export function teardown(instance: Ractive, getPromise: () => Promise<void>): Promise<void> {
   instance.torndown = true;
   instance.fragment.unbind();
   instance._observers.slice().forEach(cancel);
 
-  if (instance.el && instance.el.__ractive_instances__) {
-    removeFromArray(instance.el.__ractive_instances__, instance);
+  const el = <RactiveHTMLElement>instance.el;
+
+  if (el?.__ractive_instances__) {
+    removeFromArray(el.__ractive_instances__, instance);
   }
 
   const promise = getPromise();

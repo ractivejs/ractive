@@ -1,5 +1,6 @@
 import { isClient, svg, vendors, win, doc } from 'config/environment';
 import Namespace from 'config/namespace';
+import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { isString, isNumber } from 'utils/is';
 
 let createElement, matches;
@@ -40,7 +41,7 @@ export function createDocumentFragment(): DocumentFragment {
 
 function getElement(
   input: boolean | string | HTMLElement | ArrayLike<unknown>
-): HTMLElement | undefined {
+): RactiveHTMLElement {
   let output: HTMLElement;
 
   if (!input || typeof input === 'boolean') {

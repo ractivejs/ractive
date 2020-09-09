@@ -5,6 +5,7 @@ import { FakeFragment } from 'shared/getRactiveContext';
 import { Meta } from 'types/Generic';
 import { EventListenerEntry } from 'types/Listener';
 import Fragment from 'view/Fragment';
+import Component from 'view/items/Component';
 
 import { InternalObserver } from './prototype/observe';
 import { Ractive } from './Ractive';
@@ -25,6 +26,12 @@ export class RactiveInternal {
 
   /** @internal */
   public rendering: boolean;
+
+  /** @internal */
+  public unrendering: boolean;
+
+  /** @internal */
+  public shouldDestroy: boolean;
 
   /** @internal */
   public destroyed: boolean;

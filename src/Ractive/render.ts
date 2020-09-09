@@ -12,7 +12,7 @@ export default function render(
   ractive: Ractive,
   target: RactiveHTMLElement,
   anchor: boolean | string | HTMLElement,
-  occupants: HTMLElement[]
+  occupants: HTMLElement[] | ChildNode[]
 ): Promise<void> {
   // set a flag to let any transitions know that this instance is currently rendering
   ractive.rendering = true;

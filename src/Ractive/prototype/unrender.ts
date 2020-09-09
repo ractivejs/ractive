@@ -1,9 +1,12 @@
 import hooks from 'src/events/Hook';
 import runloop from 'src/global/runloop';
+import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { removeFromArray } from 'utils/array';
 import { warnIfDebug } from 'utils/log';
 
-export default function Ractive$unrender() {
+import { Ractive } from '../Ractive';
+
+export default function Ractive$unrender(this: Ractive): Promise<void> {
   if (!this.fragment.rendered) {
     warnIfDebug('ractive.unrender() was called on a Ractive instance that was not rendered');
     return Promise.resolve();
@@ -18,13 +21,13 @@ export default function Ractive$unrender() {
   // don't detach nodes from the DOM unnecessarily
   const shouldDestroy =
     !this.component ||
-    (this.component.anchor || {}).shouldDestroy ||
+    this.component.anchor?.shouldDestroy ||
     this.component.shouldDestroy ||
     this.shouldDestroy;
   this.fragment.unrender(shouldDestroy);
   if (shouldDestroy) this.destroyed = true;
 
-  removeFromArray(this.el.__ractive_instances__, this);
+  removeFromArray((this.el as RactiveHTMLElement).__ractive_instances__, this);
 
   hooks.unrender.fire(this);
 

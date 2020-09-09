@@ -26,12 +26,15 @@ import Ractive$once from './prototype/once';
 import Ractive$pop from './prototype/pop';
 import Ractive$push from './prototype/push';
 import Ractive$readLink from './prototype/readLink';
+import Ractive$render from './prototype/render';
 import Ractive$reverse from './prototype/reverse';
 import Ractive$sort from './prototype/sort';
 import Ractive$splice from './prototype/splice';
 import Ractive$subtract from './prototype/subtract';
+import Ractive$teardown from './prototype/teardown';
 import Ractive$toHTML from './prototype/toHTML';
 import Ractive$toText from './prototype/toText';
+import Ractive$unrender from './prototype/unrender';
 import Ractive$unshift from './prototype/unshift';
 import { RactiveInternal } from './RactiveInternal';
 
@@ -52,6 +55,10 @@ export class Ractive extends RactiveInternal {
 
   /** if instance is detached it will be a DocumentFragment otherwise an HTML element */
   public el: RactiveHTMLElement | DocumentFragment;
+
+  public append: boolean;
+
+  public enhance: boolean;
 
   add = Ractive$add;
 
@@ -182,6 +189,8 @@ export class Ractive extends RactiveInternal {
 
   push = Ractive$push;
 
+  render = Ractive$render;
+
   readLink = Ractive$readLink;
 
   reverse = Ractive$reverse;
@@ -194,6 +203,8 @@ export class Ractive extends RactiveInternal {
 
   subtract = Ractive$subtract;
 
+  teardown = Ractive$teardown;
+
   /**
    * Returns a chunk of HTML representing the current state of the instance.
    * This is most useful when you're using Ractive in node.js, as it allows
@@ -202,6 +213,8 @@ export class Ractive extends RactiveInternal {
   toHTML = Ractive$toHTML;
 
   toText = Ractive$toText;
+
+  unrender = Ractive$unrender;
 
   unshift = Ractive$unshift;
 
