@@ -36,10 +36,12 @@ export interface AnimateOpts {
   complete?: () => void;
 }
 
-function immediate<T>(value: T): AnimatePromise<T> {
-  const result: AnimatePromise<T> = Promise.resolve(value);
+function immediate<T>(value: T): AnimatePromise {
+  const result = Promise.resolve(value);
   defineProperty(result, 'stop', { value: noop });
-  return result;
+  // In these scenario the promise doesn't respect types of animate promise so force casting
+  // we can consider to change promise return type in animate promise in the future
+  return (result as unknown) as AnimatePromise;
 }
 
 function getOptions(options: AnimateOpts, instance: Ractive): AnimateOpts {
@@ -64,7 +66,7 @@ export function animate<T>(
   model: Model,
   to: T,
   _options: AnimateOpts
-): AnimatePromise<T> {
+): AnimatePromise {
   const options = getOptions(_options, ractive);
   const from = model.get();
 
@@ -94,7 +96,7 @@ export default function Ractive$animate<T>(
   keypath: string,
   to: T,
   options: AnimateOpts
-): AnimatePromise<T> {
+): AnimatePromise {
   if (isObjectType<Record<string, unknown>>(keypath)) {
     const keys = objectKeys(keypath);
 

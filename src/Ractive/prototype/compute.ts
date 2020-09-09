@@ -1,5 +1,6 @@
 import ComputationModel from 'model/Computation';
 import { fireShuffleTasks } from 'model/ModelBase';
+import RootModel from 'model/RootModel';
 import { splitKeypath } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
 import { InternalComputationDescription, Computation } from 'types/Computation';
@@ -21,7 +22,7 @@ export function compute(this: Ractive, path: string, computed: Computation): Com
   const keys = splitKeypath(path);
   if (!~path.indexOf('*')) {
     const last = keys.pop();
-    return this.viewmodel.joinAll(keys).compute(last, _computed);
+    return this.viewmodel.joinAll<RootModel>(keys).compute(last, _computed);
   } else {
     _computed.pattern = new RegExp(
       '^' +

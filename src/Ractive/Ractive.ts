@@ -25,6 +25,7 @@ import Ractive$on from './prototype/on';
 import Ractive$once from './prototype/once';
 import Ractive$pop from './prototype/pop';
 import Ractive$push from './prototype/push';
+import Ractive$readLink from './prototype/readLink';
 import Ractive$reverse from './prototype/reverse';
 import Ractive$sort from './prototype/sort';
 import Ractive$splice from './prototype/splice';
@@ -180,6 +181,8 @@ export class Ractive extends RactiveInternal {
   pop = Ractive$pop;
 
   push = Ractive$push;
+
+  readLink = Ractive$readLink;
 
   reverse = Ractive$reverse;
 

@@ -26,7 +26,7 @@ import ModelBase, {
 
 export const shared: { Computation?: typeof Computation } = {};
 
-export type AnimatePromise<T = unknown> = Promise<T> & { stop?: Function };
+export type AnimatePromise = Promise<void> & { stop?: Function };
 
 export default class Model extends ModelBase implements ModelWithShuffle {
   /** @override */
@@ -125,11 +125,11 @@ export default class Model extends ModelBase implements ModelWithShuffle {
     }
   }
 
-  animate<T>(_from, to: T, options: AnimateOpts, interpolator): AnimatePromise<T> {
+  animate<T>(_from, to: T, options: AnimateOpts, interpolator): AnimatePromise {
     if (this.ticker) this.ticker.stop();
 
     let fulfilPromise;
-    const promise: AnimatePromise<T> = new Promise(fulfil => (fulfilPromise = fulfil));
+    const promise: AnimatePromise = new Promise(fulfil => (fulfilPromise = fulfil));
 
     this.ticker = new Ticker({
       duration: options.duration,

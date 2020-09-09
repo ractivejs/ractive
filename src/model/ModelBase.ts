@@ -8,6 +8,7 @@ import { create, keys as objectKeys } from 'utils/object';
 
 import Computation from './Computation';
 import LinkModel from './LinkModel';
+import Model from './Model';
 import RootModel from './RootModel';
 import RactiveModel from './specials/RactiveModel';
 
@@ -71,7 +72,7 @@ export interface ModelLinkOpts {
 // TODO add correct types
 export default abstract class ModelBase {
   public parent: ModelBase;
-  protected root: RootModel | RactiveModel;
+  public root: RootModel | RactiveModel;
 
   public ractive: Ractive;
 
@@ -262,7 +263,7 @@ export default abstract class ModelBase {
     return false;
   }
 
-  joinAll(keys: (string | number)[], opts?: ModelJoinOpts): this {
+  joinAll<T extends ModelBase>(keys: (string | number)[], opts?: ModelJoinOpts): T {
     // add any to avoid warning on below reassign. Maybe we can find a more clean solution?
     let model: any = this; // eslint-disable-line @typescript-eslint/no-this-alias
     for (let i = 0; i < keys.length; i += 1) {
@@ -389,7 +390,7 @@ export default abstract class ModelBase {
     }
   }
 
-  link(model: ModelBase, keypath?: Keypath, options?: ModelLinkOpts): LinkModel {
+  link(model: Model | LinkModel, keypath?: Keypath, options?: ModelLinkOpts): LinkModel {
     const lnk = this._link || new LinkModel(this.parent, this, model, this.key);
     lnk.implicit = options?.implicit;
     lnk.mapping = options?.mapping;

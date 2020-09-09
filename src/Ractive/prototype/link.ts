@@ -1,5 +1,3 @@
-import ModelBase from 'model/ModelBase';
-import RootModel from 'model/RootModel';
 import { splitKeypath } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
 import { LinkOpts } from 'types/Options';
@@ -15,7 +13,7 @@ export default function Ractive$link(
 ): Promise<void> {
   const target = options?.ractive || options?.instance || this;
 
-  let model: RootModel | ModelBase;
+  let model;
   // may need to allow a mapping to resolve implicitly
   const sourcePath = splitKeypath(source);
   if (!target.viewmodel.has(sourcePath[0]) && target.component) {

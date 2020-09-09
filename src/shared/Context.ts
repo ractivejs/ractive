@@ -115,7 +115,7 @@ export default class Context implements ContextHelper {
     );
   }
 
-  animate<T>(keypath: Keypath, value: T, options: AnimateOpts): AnimatePromise<T> {
+  animate<T>(keypath: Keypath, value: T, options: AnimateOpts): AnimatePromise {
     const model: Model = findModel(this, keypath).model;
     return protoAnimate(this.ractive, model, value, options);
   }

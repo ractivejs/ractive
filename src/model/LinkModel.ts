@@ -45,7 +45,7 @@ export default class LinkModel extends ModelBase implements ModelWithShuffle {
   private boundValue: any;
 
   public owner: ModelBase;
-  public target: Model;
+  public target: LinkModel | Model;
   public sourcePath: Keypath;
   public rootLink: boolean;
 
@@ -61,7 +61,12 @@ export default class LinkModel extends ModelBase implements ModelWithShuffle {
   /** @override */
   public childByKey: { [key: string]: LinkModel };
 
-  constructor(parent, owner: ModelBase, target, key?: string) {
+  constructor(
+    parent: LinkModel['parent'],
+    owner: LinkModel['owner'],
+    target: LinkModel['target'],
+    key?: LinkModel['key']
+  ) {
     super(parent);
 
     this.owner = owner;
@@ -108,7 +113,12 @@ export default class LinkModel extends ModelBase implements ModelWithShuffle {
     }
 
     const bind = 'shouldBind' in opts ? opts.shouldBind : true;
-    opts.shouldBind = this.mapping && this.target.parent && this.target.parent.isRoot;
+
+    opts.shouldBind =
+      this.mapping &&
+      this.target.parent &&
+      'isRoot' in this.target.parent &&
+      this.target.parent.isRoot;
 
     return maybeBind(this, this.target.get(false, opts), bind);
   }
