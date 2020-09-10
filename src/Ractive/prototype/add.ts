@@ -1,5 +1,5 @@
 import { Keypath } from 'types/Generic';
-import { SetOpts } from 'types/Options';
+import { SetOpts } from 'types/MethodOptions';
 import { isNumber, isObjectType } from 'utils/is';
 
 import { Ractive } from '../Ractive';

@@ -1,31 +1,27 @@
+import { Ractive } from 'src/Ractive/Ractive';
+import { Data, DataFn } from 'types/Generic';
+import { InitOpts } from 'types/InitOptions';
 import bind from 'utils/bind';
 import { isArray, isObject, isFunction, isObjectType } from 'utils/is';
 import { fatal, warnIfDebug, warnOnceIfDebug } from 'utils/log';
 
-function validate(data) {
-  // Warn if userOptions.data is a non-POJO
-  if (data && data.constructor !== Object) {
-    if (isFunction(data)) {
-      // TODO do we need to support this in the new Ractive() case?
-    } else if (!isObjectType(data)) {
-      fatal(`data option must be an object or a function, \`${data}\` is not valid`);
-    } else {
-      warnIfDebug(
-        'If supplied, options.data should be a plain JavaScript object - using a non-POJO as the root object may work, but is discouraged'
-      );
-    }
-  }
+interface DataConfigurator {
+  name: 'data';
+  extend: (parent: Ractive['constructor'], proto: Ractive, options: InitOpts) => void;
+  init: (parent: Ractive['constructor'], proto: Ractive, options: { data: Data }) => Data;
+  // Read comment in function implementation
+  // reset: (ractive: Ractive) => void;
 }
 
-export default {
+const dataConfigurator: DataConfigurator = {
   name: 'data',
 
-  extend: (Parent, proto, options) => {
-    let key;
-    let value;
+  extend: (_Parent, proto, options): void => {
+    let key: string | number;
+    let value: unknown;
 
     // check for non-primitives, which could cause mutation-related bugs
-    if (options.data && isObject(options.data)) {
+    if (isObject(options?.data)) {
       for (key in options.data) {
         value = options.data[key];
 
@@ -70,49 +66,63 @@ export default {
     }
 
     return result || {};
-  },
-
-  reset(ractive) {
-    const result = this.init(ractive.constructor, ractive, ractive.viewmodel);
-    ractive.viewmodel.root.set(result);
-    return true;
   }
+
+  // TSRChange - it's seems that this method is not used
+  // reset(this: DataManager, ractive): true {
+  //   const result = this.init(ractive.constructor, ractive, ractive.viewmodel);
+  //   ractive.viewmodel.root.set(result);
+  //   return true;
+  // }
 };
 
-function emptyData() {
+export default dataConfigurator;
+
+function emptyData(): Record<string, unknown> {
   return {};
 }
 
-function combine(parentValue, childValue) {
-  validate(childValue);
+function validate(data: unknown): void {
+  // Warn if userOptions.data is a non-POJO
+  if (data && data.constructor !== Object) {
+    if (isFunction(data)) {
+      // TODO do we need to support this in the new Ractive() case?
+    } else if (!isObjectType(data)) {
+      fatal(`data option must be an object or a function, \`${data}\` is not valid`);
+    } else {
+      warnIfDebug(
+        'If supplied, options.data should be a plain JavaScript object - using a non-POJO as the root object may work, but is discouraged'
+      );
+    }
+  }
+}
 
-  const parentIsFn = isFunction(parentValue);
+function combine(parentValue: Data | DataFn, childValue: Data | DataFn): Data {
+  validate(childValue);
 
   // Very important, otherwise child instance can become
   // the default data object on Ractive or a component.
   // then ractive.set() ends up setting on the prototype!
-  if (!childValue && !parentIsFn) {
+  if (!childValue && !isFunction(parentValue)) {
     // this needs to be a function so that it can still inherit parent defaults
     childValue = emptyData;
   }
 
-  const childIsFn = isFunction(childValue);
-
   // Fast path, where we just need to copy properties from
   // parent to child
-  if (!parentIsFn && !childIsFn) {
+  if (!isFunction(childValue) && !isFunction(parentValue)) {
     return fromProperties(childValue, parentValue);
   }
 
   return function() {
-    const child = childIsFn ? callDataFunction(childValue, this) : childValue;
-    const parent = parentIsFn ? callDataFunction(parentValue, this) : parentValue;
+    const child = isFunction(childValue) ? callDataFunction(childValue, this) : childValue;
+    const parent = isFunction(parentValue) ? callDataFunction(parentValue, this) : parentValue;
 
     return fromProperties(child, parent);
   };
 }
 
-function callDataFunction(fn, context) {
+function callDataFunction(fn: DataFn, context: Ractive): Data {
   const data = fn.call(context);
 
   if (!data) return;
@@ -130,7 +140,10 @@ function callDataFunction(fn, context) {
   return data;
 }
 
-function fromProperties(primary, secondary) {
+function fromProperties(
+  primary: Record<string, unknown>,
+  secondary: Record<string, unknown>
+): Record<string, unknown> {
   if (primary && secondary) {
     for (const key in secondary) {
       if (!(key in primary)) {

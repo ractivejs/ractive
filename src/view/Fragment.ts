@@ -6,7 +6,7 @@ import { getContext, findParentWithContext } from 'shared/getRactiveContext';
 import { shuffled, toEscapedString, toString } from 'shared/methodCallers';
 import runloop from 'src/global/runloop';
 import { Ractive } from 'src/Ractive/Ractive';
-import { FindOpts } from 'types/Options';
+import { FindOpts } from 'types/MethodOptions';
 import { findMap } from 'utils/array';
 import { createDocumentFragment } from 'utils/dom';
 import parseJSON from 'utils/parseJSON';

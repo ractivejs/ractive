@@ -1,4 +1,4 @@
-import { FindOpts } from 'src/types/Options';
+import { FindOpts } from 'types/MethodOptions';
 import { isObjectType } from 'utils/is';
 
 import { Ractive } from '../Ractive';

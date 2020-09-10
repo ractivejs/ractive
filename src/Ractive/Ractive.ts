@@ -27,6 +27,7 @@ import Ractive$pop from './prototype/pop';
 import Ractive$push from './prototype/push';
 import Ractive$readLink from './prototype/readLink';
 import Ractive$render from './prototype/render';
+import Ractive$reset from './prototype/reset';
 import Ractive$reverse from './prototype/reverse';
 import Ractive$sort from './prototype/sort';
 import Ractive$splice from './prototype/splice';
@@ -39,7 +40,7 @@ import Ractive$unshift from './prototype/unshift';
 import { RactiveInternal } from './RactiveInternal';
 
 // TODO add documentation on all fields
-export class Ractive extends RactiveInternal {
+export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInternal {
   public static readonly VERSION = '';
 
   /** When true, causes Ractive to emit warnings. Defaults to true. */
@@ -194,6 +195,8 @@ export class Ractive extends RactiveInternal {
   readLink = Ractive$readLink;
 
   reverse = Ractive$reverse;
+
+  reset = Ractive$reset;
 
   shift = Ractive$unshift;
 

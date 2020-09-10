@@ -1,6 +1,6 @@
 import { splitKeypath } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
-import { LinkOpts } from 'types/Options';
+import { LinkOpts } from 'types/MethodOptions';
 import resolveReference from 'view/resolvers/resolveReference';
 
 import { Ractive } from '../Ractive';

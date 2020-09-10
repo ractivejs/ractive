@@ -1,13 +1,15 @@
 import runloop from 'src/global/runloop';
+import { ValueMap } from 'types/Generic';
 import { isObjectType } from 'utils/is';
 
 import hooks from '../../events/Hook';
 import config from '../config/config';
 import dataConfigurator from '../config/custom/data';
+import { Ractive } from '../Ractive';
 
 const shouldRerender = ['template', 'partials', 'components', 'decorators', 'events'];
 
-export default function Ractive$reset(data) {
+export default function Ractive$reset(this: Ractive, data: ValueMap): Promise<void> {
   data = data || {};
 
   if (!isObjectType(data)) {

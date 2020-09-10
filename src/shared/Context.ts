@@ -5,7 +5,7 @@ import { Ractive } from 'src/Ractive/Ractive';
 import { ContextHelper } from 'types/Context';
 import { DecoratorHandle } from 'types/Decorator';
 import { Keypath } from 'types/Generic';
-import { SetOpts } from 'types/Options';
+import { SetOpts } from 'types/MethodOptions';
 import { isNumeric, isObject, isNumber, isObjectType, isString } from 'utils/is';
 import { hasOwn } from 'utils/object';
 import Fragment from 'view/Fragment';

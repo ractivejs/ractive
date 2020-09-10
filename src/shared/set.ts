@@ -1,7 +1,7 @@
 import Model from 'model/Model';
 import { Ractive } from 'src/Ractive/Ractive';
 import { Keypath } from 'types/Generic';
-import { SetOpts } from 'types/Options';
+import { SetOpts } from 'types/MethodOptions';
 import { isArray, isObject, isObjectType, isFunction, isString, isUndefined } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn } from 'utils/object';

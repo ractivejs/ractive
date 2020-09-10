@@ -111,3 +111,29 @@ export interface ObserverHandle {
    */
   resume(): void;
 }
+
+export interface ObserverBaseDescriptor<T extends Ractive<T> = Ractive> extends ObserverOpts {
+  /**
+   * The observer callback.
+   */
+  handler: ObserverCallback<T>;
+
+  /**
+   * Whether or not to use observeOnce when subscribing the observer. Defaults to false.
+   */
+  once?: boolean;
+}
+export interface ObserverArrayDescriptor<T extends Ractive<T> = Ractive> extends ObserverArrayOpts {
+  /**
+   * The observer callback.j
+   */
+  handler: ObserverArrayCallback<T>;
+
+  /**
+   * Whether or not to use observeOnce when subscribing the observer. Defaults to false.
+   */
+  once?: boolean;
+}
+export type ObserverDescriptor<T extends Ractive<T> = Ractive> =
+  | ObserverBaseDescriptor<T>
+  | ObserverArrayDescriptor<T>;

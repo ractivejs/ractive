@@ -6,13 +6,20 @@ import { DecoratorHandle } from './Decorator';
 import { ArrayPopPromise, ArrayPushPromise, ArraySplicePromise, ValueMap } from './Generic';
 import { ListenerHandle } from './Listener';
 import {
+  GetOpts,
+  LinkOpts,
+  ReadLinkOpts,
+  ReadLinkResult,
+  SetOpts,
+  UpdateOpts
+} from './MethodOptions';
+import {
   ObserverCallback,
   ObserverOpts,
   ObserverHandle,
   ObserverArrayCallback,
   ObserverArrayOpts
 } from './Observer';
-import { GetOpts, LinkOpts, ReadLinkOpts, ReadLinkResult, SetOpts, UpdateOpts } from './Options';
 import { Registry } from './Registries';
 
 export interface ContextHelper {

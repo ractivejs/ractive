@@ -16,8 +16,13 @@ import { ParseFn } from './Parse';
  */
 export type Keypath = string;
 
+// TODO convert in unknown?
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ValueMap = Record<string, any>;
+
+export type Data = ValueMap;
+export type DataFn<T extends Ractive = Ractive> = (this: T) => ValueMap;
+export type DataGetFn = (keypath: string) => any;
 
 export type Partial = string | unknown[] | ParseFn | Macro;
 
@@ -44,10 +49,15 @@ export interface ArrayPushPromise extends Promise<number> {
 }
 
 export interface ArrayPopPromise extends Promise<any> {
-  /** The value removed for the target array. */
+  /** The value removed from the target array. */
   result: any;
 }
 
 export interface ArraySplicePromise extends Promise<any[]> {
   result: any[];
 }
+
+export type CssFn = (data: DataGetFn) => string;
+
+export type PluginExtend = (PluginArgsExtend) => void;
+export type PluginInstance = (PluginArgsInstance) => void;

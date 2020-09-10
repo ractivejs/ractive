@@ -2,7 +2,7 @@ import ModelBase from 'model/ModelBase';
 import RootModel from 'model/RootModel';
 import { FakeFragment } from 'shared/getRactiveContext';
 import { splitKeypath } from 'shared/keypaths';
-import { GetOpts } from 'types/Options';
+import { GetOpts } from 'types/MethodOptions';
 import { isString } from 'utils/is';
 import resolveReference from 'view/resolvers/resolveReference';
 

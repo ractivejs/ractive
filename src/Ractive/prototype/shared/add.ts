@@ -1,7 +1,7 @@
 import { build, set } from 'shared/set';
 import { Ractive } from 'src/Ractive/Ractive';
 import { Keypath } from 'types/Generic';
-import { SetOpts } from 'types/Options';
+import { SetOpts } from 'types/MethodOptions';
 import { isNumeric, isString } from 'utils/is';
 
 const errorMessage = 'Cannot add to a non-numeric value';

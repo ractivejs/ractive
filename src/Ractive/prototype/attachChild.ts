@@ -2,7 +2,7 @@ import { unrenderChild, updateAnchors } from 'shared/anchors';
 import hooks from 'src/events/Hook';
 import runloop from 'src/global/runloop';
 import { Meta } from 'types/Generic';
-import { AttachOpts } from 'types/Options';
+import { AttachOpts } from 'types/MethodOptions';
 
 import { Ractive } from '../Ractive';
 
