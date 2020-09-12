@@ -18,15 +18,14 @@ export default class Text extends Item implements ItemBasicInterface {
     this.type = TemplateItemType.TEXT;
   }
 
-  detach(): globalThis.Text {
+  detach(): Text['node'] {
     return detachNode(this.node);
   }
 
-  firstNode(): globalThis.Text {
+  firstNode(): Text['node'] {
     return this.node;
   }
 
-  // todo add types
   render(target: HTMLElement, occupants: TextOccupant[]): void {
     if (inAttributes()) return;
     this.rendered = true;

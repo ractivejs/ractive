@@ -5,10 +5,11 @@ import { escapeHtml } from 'utils/html';
 import Attribute from './element/Attribute';
 import Binding from './element/binding/Binding';
 import { inAttributes } from './element/ConditionalAttribute';
+import { ItemBasicInterface } from './shared/Item';
 import Mustache, { MustacheOpts } from './shared/Mustache';
 import progressiveText, { TextOccupant } from './shared/progressiveText';
 
-export default class Interpolator extends Mustache {
+export default class Interpolator extends Mustache implements ItemBasicInterface {
   public owner: Attribute;
   public twowayBinding: Binding;
   public bound: boolean;

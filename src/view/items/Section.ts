@@ -14,6 +14,7 @@ import { BindingFlagOwner } from './element/BindingFlag';
 import { DecoratorOwner } from './element/Decorator';
 import { TransitionOwner } from './element/Transition';
 import { EventDirectiveOwner } from './shared/EventDirective';
+import { ItemBasicInterface } from './shared/Item';
 import { MustacheContainer, MustacheOpts } from './shared/Mustache';
 
 function isEmpty(value: unknown): boolean {
@@ -63,7 +64,7 @@ export default class Section extends MustacheContainer
     super.bind();
 
     if (this.subordinate) {
-      this.sibling = this.up.items[this.up.items.indexOf(this) - 1];
+      this.sibling = <this>this.up.items[this.up.items.indexOf(<ItemBasicInterface>this) - 1];
       this.sibling.nextSibling = this;
     }
 

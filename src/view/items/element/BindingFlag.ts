@@ -5,7 +5,7 @@ import { isArray } from 'utils/is';
 import Fragment from '../../Fragment';
 import Interpolator from '../Interpolator';
 import findElement from '../shared/findElement';
-import Item, { ItemOpts } from '../shared/Item';
+import Item, { isItemType, ItemOpts } from '../shared/Item';
 
 import Input from './specials/Input';
 import Select from './specials/Select';
@@ -47,11 +47,10 @@ export default class BindingFlag extends Item {
         });
       }
 
+      const firstAndOnlyFragment = this.fragment?.items.length === 1 && this.fragment.items[0];
       this.interpolator =
-        this.fragment &&
-        this.fragment.items.length === 1 &&
-        this.fragment.items[0].type === TemplateItemType.INTERPOLATOR &&
-        this.fragment.items[0];
+        isItemType<Interpolator>(firstAndOnlyFragment, TemplateItemType.INTERPOLATOR) &&
+        firstAndOnlyFragment;
     }
   }
 

@@ -9,7 +9,7 @@ import Fragment from '../../Fragment';
 import Element from '../Element';
 import Interpolator from '../Interpolator';
 import findElement from '../shared/findElement';
-import Item, { ItemOpts } from '../shared/Item';
+import Item, { isItemType, ItemOpts } from '../shared/Item';
 
 import getUpdateDelegate, { UpdateDelegate } from './attribute/getUpdateDelegate';
 import propertyNames from './attribute/propertyNames';
@@ -91,11 +91,10 @@ export default class Attribute extends Item {
       });
     }
 
+    const firstAndOnlyFragment = this.fragment?.items.length === 1 && this.fragment.items[0];
     this.interpolator =
-      this.fragment &&
-      this.fragment.items.length === 1 &&
-      this.fragment.items[0].type === TemplateItemType.INTERPOLATOR &&
-      this.fragment.items[0];
+      isItemType<Interpolator>(firstAndOnlyFragment, TemplateItemType.INTERPOLATOR) &&
+      firstAndOnlyFragment;
 
     if (this.interpolator) this.interpolator.owner = this;
 

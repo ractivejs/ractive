@@ -1,5 +1,6 @@
 import TemplateItemType from 'config/types';
 import { createDocumentFragment } from 'utils/dom';
+import { isObject } from 'utils/is';
 import Fragment from 'view/Fragment';
 
 export interface ItemOpts {
@@ -123,15 +124,24 @@ export class ContainerItem extends Item {
 }
 
 /**
- * basic function that needs to be implemented when extenidng an Item.
+ * basic function that needs to be implemented when extending an Item.
  * Might worth to give a more semantic name
  */
 export interface ItemBasicFunctions {
   bind: () => void;
   render: (target: HTMLElement, ...args) => void;
   update: () => void;
-  unbind: () => void;
+  unbind: (view: boolean) => void;
   unrender: (shouldDestroy?: boolean) => void;
+  detach?: () => DocumentFragment | HTMLElement | globalThis.Text;
+  firstNode?: (skip?: boolean) => any;
 }
 
 export interface ItemBasicInterface extends Item, ItemBasicFunctions {}
+
+/**
+ * From a given item check if it match the given TemplateItemType
+ */
+export function isItemType<T extends Item>(item: unknown, type: TemplateItemType): item is T {
+  return isObject(item) && item.type === type;
+}

@@ -28,6 +28,7 @@ import Ractive$push from './prototype/push';
 import Ractive$readLink from './prototype/readLink';
 import Ractive$render from './prototype/render';
 import Ractive$reset from './prototype/reset';
+import Ractive$resetPartial from './prototype/resetPartial';
 import Ractive$reverse from './prototype/reverse';
 import Ractive$sort from './prototype/sort';
 import Ractive$splice from './prototype/splice';
@@ -197,6 +198,8 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
   reverse = Ractive$reverse;
 
   reset = Ractive$reset;
+
+  resetPartial = Ractive$resetPartial;
 
   shift = Ractive$unshift;
 

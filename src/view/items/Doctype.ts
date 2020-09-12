@@ -3,6 +3,7 @@ import { DoctypeTemplateItem } from 'parse/converters/templateItemDefinitions';
 import Item, { ItemBasicInterface } from './shared/Item';
 
 export default class Doctype extends Item implements ItemBasicInterface {
+  /** @override */
   public template: DoctypeTemplateItem;
 
   toString(): string {

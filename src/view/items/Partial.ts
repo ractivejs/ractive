@@ -30,7 +30,7 @@ export default class Partial extends MustacheContainer
   private macro: MacroFn;
   public container: Ractive;
   private component: Component;
-  private refName: string;
+  public refName: string;
   public fn: any;
   public fnTemplate: any;
   public last: any[];

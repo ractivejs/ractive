@@ -13,6 +13,7 @@ import parseJSON from 'utils/parseJSON';
 
 import processItems from './helpers/processItems';
 import createItem from './items/createItem';
+import { ItemBasicInterface } from './items/shared/Item';
 import resolve from './resolvers/resolve';
 
 /**
@@ -62,7 +63,7 @@ export default class Fragment {
   public cssIds: string[];
   public isIteration: boolean;
   public iterations: any;
-  public items: any[];
+  public items: ItemBasicInterface[];
   public aliases: ViewAliases;
   public pathModel: KeyModel;
   public rootModel: KeyModel;
@@ -465,4 +466,8 @@ export function getKeypath(this: Fragment, root?: boolean): KeyModel {
   if (base && base.context) base.getKeypath(root).registerChild(model);
 
   return model;
+}
+
+export function isFragment(item: unknown): item is Fragment {
+  return item instanceof Fragment;
 }
