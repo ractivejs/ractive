@@ -1,6 +1,7 @@
 import Model from 'model/Model';
+import ModelBase from 'model/ModelBase';
 import { Ractive } from 'src/Ractive/Ractive';
-import { Keypath } from 'types/Generic';
+import { Keypath, ValueMap } from 'types/Generic';
 import { SetOpts } from 'types/MethodOptions';
 import { isArray, isObject, isObjectType, isFunction, isString, isUndefined } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
@@ -71,7 +72,15 @@ export function set<M extends Model, V>(
 }
 
 const star = /\*/;
-export function gather(ractive, keypath, base, isolated): any[] {
+/**
+ * @param base SharedModel | CSSModel | RootModel
+ */
+export function gather(
+  ractive: Ractive,
+  keypath: Keypath,
+  base: Model,
+  isolated: boolean
+): ModelBase[] {
   if (!base && (keypath[0] === '.' || keypath[1] === '^')) {
     warnIfDebug(
       `Attempted to set a relative keypath from a non-relative context. You can use a context object to set relative keypaths.`
@@ -80,6 +89,7 @@ export function gather(ractive, keypath, base, isolated): any[] {
   }
 
   const keys = splitKeypath(keypath);
+
   const model = base || ractive.viewmodel;
 
   if (star.test(keypath)) {
@@ -107,7 +117,7 @@ export function gather(ractive, keypath, base, isolated): any[] {
 
 export function build(
   ractive: Ractive,
-  keypath: Keypath,
+  keypath: Keypath | ValueMap,
   value: unknown,
   isolated: boolean
 ): SetPair[] {
@@ -129,7 +139,7 @@ export function build(
 }
 
 const deepOpts = { virtual: false };
-function deepSet(model, value) {
+function deepSet(model: Model, value: unknown): void {
   const dest = model.get(false, deepOpts);
 
   // if dest doesn't exist, just set it
@@ -144,7 +154,9 @@ function deepSet(model, value) {
 }
 
 const comparators = {};
-function getComparator(option) {
+
+// TODO define a decent return type
+function getComparator(option: SetOpts['shuffle']): any {
   if (option === true) return null; // use existing arrays
   if (isFunction(option)) return option;
 

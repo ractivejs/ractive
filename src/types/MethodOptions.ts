@@ -9,9 +9,13 @@ export interface SetOpts {
 
   /** When applied to an array keypath, whether or not to move the existing elements and their associated template around or simply replace them. Defaults to replacement (false). */
   shuffle?: Shuffler;
+
+  /** TODO add documentation */
+  isolated?: boolean;
 }
-export type Shuffler = boolean | string | ShuffleFn;
-export type ShuffleFn = (left: any, right: any) => 1 | 0 | -1;
+
+export type Shuffler = true | string | ShuffleFn;
+export type ShuffleFn<T = unknown> = (left: T, right: T) => 1 | 0 | -1;
 
 export interface StyleSetOpts extends SetOpts {
   /** Whether or not to apply the new styles immediately. Defaults to updating the Ractive-managed style tag (true) */

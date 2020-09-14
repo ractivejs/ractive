@@ -31,6 +31,7 @@ import Ractive$reset from './prototype/reset';
 import Ractive$resetPartial from './prototype/resetPartial';
 import Ractive$resetTemplate from './prototype/resetTemplate';
 import Ractive$reverse from './prototype/reverse';
+import Ractive$set from './prototype/set';
 import Ractive$sort from './prototype/sort';
 import Ractive$splice from './prototype/splice';
 import Ractive$subtract from './prototype/subtract';
@@ -205,6 +206,8 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
   resetPartial = Ractive$resetPartial;
 
   resetTemplate = Ractive$resetTemplate;
+
+  set = Ractive$set;
 
   shift = Ractive$unshift;
 
