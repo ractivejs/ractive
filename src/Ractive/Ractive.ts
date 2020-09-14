@@ -40,8 +40,12 @@ import Ractive$toggle from './prototype/toggle';
 import Ractive$toHTML from './prototype/toHTML';
 import Ractive$toText from './prototype/toText';
 import Ractive$transition from './prototype/transition';
+import Ractive$unlink from './prototype/unlink';
 import Ractive$unrender from './prototype/unrender';
 import Ractive$unshift from './prototype/unshift';
+import Ractive$update from './prototype/update';
+import Ractive$updateModel from './prototype/updateModel';
+import Ractive$use from './prototype/use';
 import { RactiveInternal } from './RactiveInternal';
 
 // TODO add documentation on all fields
@@ -234,9 +238,17 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
 
   transition = Ractive$transition;
 
+  unlink = Ractive$unlink;
+
   unrender = Ractive$unrender;
 
   unshift = Ractive$unshift;
+
+  update = Ractive$update;
+
+  updateModel = Ractive$updateModel;
+
+  use = Ractive$use;
 
   [key: string]: any;
 }
