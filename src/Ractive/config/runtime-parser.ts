@@ -4,7 +4,7 @@ import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDef
 import { fromExpression } from 'parse/utils/createFunction';
 import { addFunctions } from 'shared/getFunction';
 import { Ractive } from 'src/Ractive/Ractive';
-import { ParseOpts } from 'types/Parse';
+import { ParsedTemplate, ParseOpts, Template } from 'types/Parse';
 import { isString } from 'utils/is';
 import { fatal } from 'utils/log';
 
@@ -42,7 +42,7 @@ export function createFunctionFromString(
   str: string,
   bindTo: Ractive
 ): () => (this: typeof bindTo) => any {
-  throwNoParse(parse, 'compution string "${str}"', COMPUTATION_INSTRUCTIONS);
+  throwNoParse(parse, 'computation string "${str}"', COMPUTATION_INSTRUCTIONS);
   const template = parse<ExpressionFunctionTemplateItem>(str, { expression: true });
   return function() {
     return template.e.apply(
@@ -53,7 +53,7 @@ export function createFunctionFromString(
 }
 
 const parser = {
-  fromId(id: string, options: { noThrow?: boolean } = {}) {
+  fromId(id: string, options: { noThrow?: boolean } = {}): string {
     if (!doc) {
       if (options?.noThrow) {
         return;
@@ -83,7 +83,7 @@ const parser = {
     return template?.textContent || template.innerHTML;
   },
 
-  isParsed(template: unknown) {
+  isParsed(template: unknown): boolean {
     return !isString(template);
   },
 
@@ -106,7 +106,7 @@ const parser = {
     return parsed;
   },
 
-  parseFor(template, ractive: Ractive) {
+  parseFor(template: Template, ractive: Ractive): ParsedTemplate {
     return this.parse(template, this.getParseOptions(ractive));
   }
 };

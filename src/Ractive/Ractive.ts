@@ -29,6 +29,7 @@ import Ractive$readLink from './prototype/readLink';
 import Ractive$render from './prototype/render';
 import Ractive$reset from './prototype/reset';
 import Ractive$resetPartial from './prototype/resetPartial';
+import Ractive$resetTemplate from './prototype/resetTemplate';
 import Ractive$reverse from './prototype/reverse';
 import Ractive$sort from './prototype/sort';
 import Ractive$splice from './prototype/splice';
@@ -61,6 +62,8 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
   public append: boolean;
 
   public enhance: boolean;
+
+  public transitionsEnabled: boolean;
 
   add = Ractive$add;
 
@@ -200,6 +203,8 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
   reset = Ractive$reset;
 
   resetPartial = Ractive$resetPartial;
+
+  resetTemplate = Ractive$resetTemplate;
 
   shift = Ractive$unshift;
 

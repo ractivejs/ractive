@@ -1,6 +1,7 @@
 import TemplateItemType from 'config/types';
 import { handleChange } from 'shared/methodCallers';
 import runloop from 'src/global/runloop';
+import { Partial as PartialParam } from 'types/Generic';
 import { isArray } from 'utils/is';
 import Fragment, { isFragment } from 'view/Fragment';
 import Component from 'view/items/Component';
@@ -54,7 +55,7 @@ function collect(
 export default function Ractive$resetPartial(
   this: Ractive,
   name: string,
-  partial: Partial
+  partial: PartialParam
 ): Promise<void> {
   const collection: ItemBasicInterface[] = [];
   collect(this.fragment.items, name, false, collection);

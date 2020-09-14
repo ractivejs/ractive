@@ -56,7 +56,7 @@ export default class Fragment {
   public isRoot: boolean;
   public parent: any;
   public ractive: Ractive;
-  private template: any[];
+  private template: any;
 
   public componentParent: any;
   public context: ModelBase;

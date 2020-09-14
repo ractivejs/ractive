@@ -1,15 +1,17 @@
 import runloop from 'src/global/runloop';
+import { Template } from 'types/Parse';
 import { createDocumentFragment } from 'utils/dom';
 import Fragment from 'view/Fragment';
 
-import { default as templateConfigurator } from '../config/custom/template';
+import templateConfigurator from '../config/custom/template';
+import { Ractive } from '../Ractive';
 
 // TODO should resetTemplate be asynchronous? i.e. should it be a case
 // of outro, update template, intro? I reckon probably not, since that
 // could be achieved with unrender-resetTemplate-render. Also, it should
 // conceptually be similar to resetPartial, which couldn't be async
 
-export default function Ractive$resetTemplate(template) {
+export default function Ractive$resetTemplate(this: Ractive, template: Template): Promise<void> {
   templateConfigurator.init(null, this, { template });
 
   const transitionsEnabled = this.transitionsEnabled;
@@ -31,7 +33,8 @@ export default function Ractive$resetTemplate(template) {
 
   this.fragment = new Fragment({
     template: this.template,
-    root: this,
+    // TSRChange - it seems that `root` prop do not exists on fragment
+    // root: this,
     owner: this
   });
 

@@ -3,12 +3,17 @@ import RootModel from 'model/RootModel';
 import Context from 'shared/Context';
 import { FakeFragment } from 'shared/getRactiveContext';
 import { Meta } from 'types/Generic';
+import { Partial } from 'types/Generic';
 import { EventListenerEntry } from 'types/Listener';
 import Fragment from 'view/Fragment';
-import Component from 'view/items/Component';
 
+import { RactiveDynamicTemplate } from './config/custom/template';
 import { InternalObserver } from './prototype/observe';
 import { Ractive } from './Ractive';
+
+interface RactiveInternalConfig {
+  template: RactiveDynamicTemplate;
+}
 
 /**
  * Internal properties of Ractive
@@ -77,4 +82,13 @@ export class RactiveInternal {
 
   /** @internal */
   public container: this;
+
+  /** @internal */
+  public template: any;
+
+  /** @internal */
+  public _config: RactiveInternalConfig;
+
+  /** @internal */
+  public partials: Record<string, Partial>;
 }

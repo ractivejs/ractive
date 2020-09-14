@@ -10,8 +10,7 @@ interface AsyncProxyOpts extends PartialOpts {
 }
 
 export default function asyncProxy(promise: Promise<Ractive>, options: AsyncProxyOpts): Partial {
-  const partials = options.template.p || {};
-  const name = options.template.e;
+  const { p: partials = {}, e: name } = options.template;
 
   const opts: PartialOpts = {
     ...options,

@@ -1,14 +1,31 @@
 import { TEMPLATE_VERSION } from 'config/template';
 import { addFunctions } from 'shared/getFunction';
-import { isFunction, isNumber, isString } from 'utils/is';
+import { Ractive } from 'src/Ractive/Ractive';
+import { InitOpts } from 'types/InitOptions';
+import { ParsedTemplate, ParseFn, Template } from 'types/Parse';
+import { isFunction, isNumber, isObject, isString } from 'utils/is';
 import { hasOwn } from 'utils/object';
 
 import parser from '../runtime-parser';
 
-export default {
+export interface RactiveDynamicTemplate {
+  /** If not set it means that is not dynamic */
+  fn?: ParseFn;
+  /** Mix between Parsed template and template */
+  result: any;
+}
+
+interface TemplateConfigurator {
+  name: 'template';
+  extend: (parent: Ractive['constructor'], proto: Ractive, options: InitOpts) => void;
+  init: (parent: Ractive['constructor'], proto: Ractive, options: InitOpts) => void;
+  reset: (ractive: Ractive) => void;
+}
+
+const templateConfigurator: TemplateConfigurator = {
   name: 'template',
 
-  extend(Parent, proto, options) {
+  extend(_Parent, proto, options) {
     // only assign if exists
     if ('template' in options) {
       const template = options.template;
@@ -65,7 +82,9 @@ export default {
   }
 };
 
-function resetValue(ractive) {
+export default templateConfigurator;
+
+function resetValue(ractive: Ractive): RactiveDynamicTemplate['result'] {
   const initial = ractive._config.template;
 
   // If this isn't a dynamic template, there's nothing to do
@@ -83,7 +102,7 @@ function resetValue(ractive) {
   }
 }
 
-function getDynamicTemplate(ractive, fn) {
+function getDynamicTemplate(ractive: Ractive, fn: ParseFn): ReturnType<ParseFn> {
   return fn.call(ractive, {
     fromId: parser.fromId,
     isParsed: parser.isParsed,
@@ -93,46 +112,57 @@ function getDynamicTemplate(ractive, fn) {
   });
 }
 
-function parseTemplate(template, ractive) {
+function parseTemplate(template: string | Template, ractive: Ractive): ParsedTemplate {
+  let parsed: ParsedTemplate;
   if (isString(template)) {
     // parse will validate and add expression functions
-    template = parseAsString(template, ractive);
+    parsed = parseAsString(template, ractive);
   } else {
     // need to validate and add exp for already parsed template
     validate(template);
-    addFunctions(template);
+
+    parsed = <ParsedTemplate>template;
+    addFunctions(parsed);
   }
 
-  return template;
+  return parsed;
 }
 
-function parseAsString(template, ractive) {
+function parseAsString(template: string, ractive: Ractive): ParsedTemplate {
   // ID of an element containing the template?
-  if (template[0] === '#') {
+  if (typeof template === 'string' && template[0] === '#') {
     template = parser.fromId(template);
   }
 
   return parser.parseFor(template, ractive);
 }
 
-function validate(template) {
+function validate(template: unknown): void {
   // Check that the template even exists
   if (template == undefined) {
     throw new Error(`The template cannot be ${template}.`);
-  } else if (!isNumber(template.v)) {
-    // Check the parsed template has a version at all
+  }
+
+  // Check the parsed template has a version at all
+  if (isObject(template) && !isNumber(template.v)) {
     throw new Error(
       "The template parser was passed a non-string template, but the template doesn't have a version.  Make sure you're passing in the template you think you are."
     );
-  } else if (template.v !== TEMPLATE_VERSION) {
-    // Check we're using the correct version
+  }
+
+  // Check we're using the correct version
+  if (isObject(template) && template.v !== TEMPLATE_VERSION) {
     throw new Error(
       `Mismatched template version (expected ${TEMPLATE_VERSION}, got ${template.v}) Please ensure you are using the latest version of Ractive.js in your build process as well as in your app`
     );
   }
 }
 
-function extendPartials(existingPartials, newPartials, overwrite) {
+function extendPartials(
+  existingPartials: Ractive['partials'],
+  newPartials: Ractive['partials'],
+  overwrite?: boolean
+): void {
   if (!newPartials) return;
 
   // TODO there's an ambiguity here - we need to overwrite in the `reset()`
