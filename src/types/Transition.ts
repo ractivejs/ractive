@@ -60,7 +60,7 @@ export interface TransitionHelper {
    *  if slow, 600ms
    *  if fast, 200ms
    *  if any other string, 400ms
-   *  if a map, it is applied over defaultsj
+   *  if a map, it is applied over defaults
    */
   processParams(
     params: number | 'slow' | 'fast' | string | ValueMap,

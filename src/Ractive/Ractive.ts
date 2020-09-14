@@ -39,6 +39,7 @@ import Ractive$teardown from './prototype/teardown';
 import Ractive$toggle from './prototype/toggle';
 import Ractive$toHTML from './prototype/toHTML';
 import Ractive$toText from './prototype/toText';
+import Ractive$transition from './prototype/transition';
 import Ractive$unrender from './prototype/unrender';
 import Ractive$unshift from './prototype/unshift';
 import { RactiveInternal } from './RactiveInternal';
@@ -230,6 +231,8 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
   toggle = Ractive$toggle;
 
   toText = Ractive$toText;
+
+  transition = Ractive$transition;
 
   unrender = Ractive$unrender;
 

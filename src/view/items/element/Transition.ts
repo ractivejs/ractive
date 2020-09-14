@@ -37,7 +37,7 @@ const names = {
 interface TransitionOpts {
   owner: Transition['owner'];
   up: Transition['up'];
-  template: Transition['template'];
+  template?: Transition['template'];
 
   name?: Transition['name'];
   params?: Transition['params'];
