@@ -36,6 +36,7 @@ import Ractive$sort from './prototype/sort';
 import Ractive$splice from './prototype/splice';
 import Ractive$subtract from './prototype/subtract';
 import Ractive$teardown from './prototype/teardown';
+import Ractive$toggle from './prototype/toggle';
 import Ractive$toHTML from './prototype/toHTML';
 import Ractive$toText from './prototype/toText';
 import Ractive$unrender from './prototype/unrender';
@@ -225,6 +226,8 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
    * you to serve fully-rendered pages (good for SEO and initial pageload performance) to the client.
    */
   toHTML = Ractive$toHTML;
+
+  toggle = Ractive$toggle;
 
   toText = Ractive$toText;
 

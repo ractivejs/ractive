@@ -15,10 +15,13 @@ import { splitKeypath } from './keypaths';
 
 export let keep = false;
 
-type SetPair<M extends Model = Model, V = unknown> = [M, V, Keypath?];
-export function set<M extends Model, V>(pairs: [SetPair<M, V>], options?: SetOpts): Promise<V>;
-export function set<M extends Model, V>(pairs: SetPair<M, V>[], options?: SetOpts): Promise<void>;
-export function set<M extends Model, V>(
+type SetPair<M extends ModelBase = ModelBase, V = unknown> = [M, V, Keypath?];
+export function set<M extends ModelBase, V>(pairs: [SetPair<M, V>], options?: SetOpts): Promise<V>;
+export function set<M extends ModelBase, V>(
+  pairs: SetPair<M, V>[],
+  options?: SetOpts
+): Promise<void>;
+export function set<M extends ModelBase, V>(
   pairs: SetPair<M, V>[],
   options?: SetOpts
 ): Promise<void | V> {
@@ -55,7 +58,7 @@ export function set<M extends Model, V>(
         }
 
         const comparator = getComparator(shuffle);
-        model.merge(array, comparator);
+        ((model as unknown) as Model).merge(array, comparator);
       }
     } else model.set(value);
   }
@@ -139,7 +142,7 @@ export function build(
 }
 
 const deepOpts = { virtual: false };
-function deepSet(model: Model, value: unknown): void {
+function deepSet(model: ModelBase, value: unknown): void {
   const dest = model.get(false, deepOpts);
 
   // if dest doesn't exist, just set it
