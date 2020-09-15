@@ -120,7 +120,7 @@ export default function resolveReference(
       }
 
       // TODO remove casting
-      return (f.getKeypath(root) as unknown) as ModelBase;
+      return (f.getKeypath(!!root) as unknown) as ModelBase;
     } else if (base === '@context') {
       return new ContextModel(fragment.getContext(), 'context').joinAll(keys);
     } else if (base === '@local') {

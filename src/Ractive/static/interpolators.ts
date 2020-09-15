@@ -2,7 +2,7 @@ import { interpolate } from 'shared/interpolate';
 import { isArray, isObject, isNumeric } from 'utils/is';
 import { hasOwn } from 'utils/object';
 
-export type InterpolatorFunction<T> = (from: T, to: T) => (t: number) => T;
+export type InterpolatorFunction<T = unknown> = (from: T, to: T) => (t: number) => T;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const interpolators: Record<string, InterpolatorFunction<any>> = {

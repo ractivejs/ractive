@@ -2,10 +2,11 @@ import Computation from 'model/Computation';
 import RootModel from 'model/RootModel';
 import Context from 'shared/Context';
 import { FakeFragment } from 'shared/getRactiveContext';
-import { Meta } from 'types/Generic';
+import { Data, Meta } from 'types/Generic';
 import { Partial } from 'types/Generic';
 import { EventListenerEntry } from 'types/Listener';
 import Fragment from 'view/Fragment';
+import Element from 'view/items/Element';
 
 import { RactiveDynamicTemplate } from './config/custom/template';
 import { InternalObserver } from './prototype/observe';
@@ -31,6 +32,9 @@ export class RactiveInternal {
 
   /** @internal */
   public rendering: boolean;
+
+  /** @internal*/
+  public rendered: boolean;
 
   /** @internal */
   public unrendering: boolean;
@@ -91,4 +95,19 @@ export class RactiveInternal {
 
   /** @internal */
   public partials: Record<string, Partial>;
+
+  /** @internal */
+  public component: any;
+
+  /** @internal */
+  public proxy: Element;
+
+  /** @internal */
+  public delegate: any;
+
+  /** @internal */
+  public data: Data;
+
+  /** @internal */
+  public value: any;
 }

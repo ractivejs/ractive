@@ -14,7 +14,7 @@ let styleElement = null;
 
 // flag to use multiple style tags
 let _splitTag = false;
-export function splitTag(v: boolean): boolean {
+export function splitTag(v?: boolean): boolean {
   return v === undefined ? _splitTag : (_splitTag = v);
 }
 

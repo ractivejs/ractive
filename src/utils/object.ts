@@ -31,7 +31,8 @@ export function fillGaps(target: ValueMap, ...sources: ValueMap[]): ValueMap {
   return target;
 }
 
-export function toPairs(obj: ValueMap = {}): ValueMap[] {
+/** Same behavior of `Object.entries` */
+export function toPairs<T>(obj: ValueMap<T> = {}): [string, T][] {
   const pairs = [];
   for (const key in obj) {
     // Source can be a prototype-less object.

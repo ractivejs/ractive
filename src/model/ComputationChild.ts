@@ -7,11 +7,11 @@ import Model from './Model';
 import { ModelGetOpts } from './ModelBase';
 
 export default class ComputationChild extends Model {
-  public parent;
+  public parent: any;
 
   private dirty: boolean;
 
-  constructor(parent, key: string) {
+  constructor(parent: ComputationChild['parent'], key: ComputationChild['key']) {
     super(parent, key);
 
     this.isReadonly = !this.root.ractive.syncComputedChildren;

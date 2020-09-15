@@ -382,7 +382,7 @@ function nearestProp<P extends 'noIntro' | 'noOutro' | 'nestedTransitions'>(
   let instance = ractive;
   while (instance) {
     if (
-      hasOwn(instance, prop) &&
+      hasOwn((instance as unknown) as Record<string, unknown>, prop) &&
       (isUndefined(rendering) || rendering ? instance.rendering : instance.unrendering)
     )
       return instance[prop];

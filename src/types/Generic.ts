@@ -18,7 +18,7 @@ export type Keypath = string;
 
 // TODO convert in unknown?
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ValueMap = Record<string, any>;
+export type ValueMap<T = any> = Record<string, T>;
 
 export type Data = ValueMap;
 export type DataFn<T extends Ractive = Ractive> = (this: T) => ValueMap;
@@ -61,3 +61,5 @@ export type CssFn = (data: DataGetFn) => string;
 
 export type PluginExtend = (PluginArgsExtend) => void;
 export type PluginInstance = (PluginArgsInstance) => void;
+
+export type Helper = (this: Ractive, ...args: any[]) => any;

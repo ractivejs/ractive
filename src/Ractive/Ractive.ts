@@ -1,4 +1,11 @@
+import { Adaptor } from 'types/Adaptor';
+import { Decorator } from 'types/Decorator';
+import { EasingFunction } from 'types/Easings';
+import { EventPlugin } from 'types/Events';
+import { Helper, Partial } from 'types/Generic';
 import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
+import { Registry } from 'types/Registries';
+import { Transition } from 'types/Transition';
 
 import Ractive$add from './prototype/add';
 import Ractive$animate from './prototype/animate';
@@ -47,6 +54,7 @@ import Ractive$update from './prototype/update';
 import Ractive$updateModel from './prototype/updateModel';
 import Ractive$use from './prototype/use';
 import { RactiveInternal } from './RactiveInternal';
+import { InterpolatorFunction } from './static/interpolators';
 
 // TODO add documentation on all fields
 export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInternal {
@@ -71,6 +79,36 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
   public enhance: boolean;
 
   public transitionsEnabled: boolean;
+
+  public isolated: boolean;
+
+  public warnAboutAmbiguity: boolean;
+
+  public resolveInstanceMembers: boolean;
+
+  public root: this;
+
+  public defaults: any;
+
+  public easing: Record<string, EasingFunction>;
+
+  public allowExpressions: boolean;
+
+  public syncComputedChildren: boolean;
+
+  public noIntro: boolean;
+  public noOutro: boolean;
+  public nestedTransitions: boolean;
+
+  adaptors: Registry<Adaptor>;
+  components: Registry<any>;
+  decorators: Registry<Decorator<T>>;
+  easings: Registry<EasingFunction>;
+  events: Registry<EventPlugin<T>>;
+  interpolators: Registry<InterpolatorFunction>;
+  helpers: Registry<Helper>;
+  partials: Registry<Partial>;
+  transitions: Registry<Transition>;
 
   add = Ractive$add;
 
@@ -249,6 +287,4 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
   updateModel = Ractive$updateModel;
 
   use = Ractive$use;
-
-  [key: string]: any;
 }
