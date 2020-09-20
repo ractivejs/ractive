@@ -1,19 +1,22 @@
 import { missingPlugin } from 'config/errors';
-import { ATTRIBUTE, BINDING_FLAG, DECORATOR, INTERPOLATOR, TRANSITION } from 'config/types';
+import TemplateItemType from 'config/types';
 import RootModel from 'model/RootModel';
 import { findInViewHierarchy } from 'shared/registry';
 import hooks from 'src/events/Hook';
+import Ractive from 'src/Ractive';
 import { compute } from 'src/Ractive/prototype/compute';
+import { Adaptor } from 'types/Adaptor';
+import { InitOpts } from 'types/InitOptions';
 import { ensureArray, combine } from 'utils/array';
 import { isArray, isString } from 'utils/is';
 import { fatal, warnIfDebug, welcome } from 'utils/log';
 import { assign, create, hasOwn } from 'utils/object';
 
-import Ractive from '../Ractive';
 import getRactiveContext from '../shared/getRactiveContext';
 
 import dataConfigurator from './config/custom/data';
 import subscribe from './helpers/subscribe';
+import { Ractive as RactiveDefinition, RactiveConstructor } from './Ractive';
 
 const registryNames = [
   'adaptors',
@@ -30,8 +33,8 @@ const protoRegistries = ['computed', 'helpers'];
 
 let uid = 0;
 
-export default function construct(ractive, options) {
-  if (Ractive.DEBUG) welcome();
+export default function construct(ractive: RactiveDefinition, options: InitOpts): void {
+  if ((<any>Ractive).DEBUG) welcome();
 
   initialiseProperties(ractive);
   handleAttributes(ractive);
@@ -50,7 +53,8 @@ export default function construct(ractive, options) {
 
   // plugins that need to run at construct
   if (isArray(options.use)) {
-    ractive.use(...options.use.filter(p => p.construct));
+    // TODO refine plugin to handle construct prop
+    ractive.use(...options.use.filter((p: any) => p.construct));
   }
 
   hooks.construct.fire(ractive, options);
@@ -91,7 +95,11 @@ export default function construct(ractive, options) {
   }
 }
 
-function getAdaptors(ractive, protoAdapt, options) {
+function getAdaptors(
+  ractive: RactiveDefinition,
+  protoAdapt: RactiveDefinition['adapt'],
+  options: InitOpts
+): Adaptor[] {
   protoAdapt = protoAdapt.map(lookup);
   const adapt = ensureArray(options.adapt).map(lookup);
 
@@ -102,12 +110,13 @@ function getAdaptors(ractive, protoAdapt, options) {
 
   return combine(...srcs);
 
-  function lookup(adaptor) {
+  function lookup(adaptor: string | Adaptor): Adaptor {
     if (isString(adaptor)) {
-      adaptor = findInViewHierarchy('adaptors', ractive, adaptor);
+      const adaptorName = adaptor;
+      adaptor = findInViewHierarchy('adaptors', ractive, adaptorName);
 
       if (!adaptor) {
-        fatal(missingPlugin(adaptor, 'adaptor'));
+        fatal(missingPlugin(adaptorName, 'adaptor'));
       }
     }
 
@@ -115,7 +124,7 @@ function getAdaptors(ractive, protoAdapt, options) {
   }
 }
 
-function initialiseProperties(ractive) {
+function initialiseProperties(ractive: RactiveDefinition): void {
   // Generate a unique identifier, for places where you'd use a weak map if it
   // existed
   ractive._guid = 'r-' + uid++;
@@ -146,16 +155,16 @@ function initialiseProperties(ractive) {
   }
 }
 
-function handleAttributes(ractive) {
+function handleAttributes(ractive: RactiveDefinition): void {
   const component = ractive.component;
-  const attributes = ractive.constructor.attributes;
+  const attributes = (<RactiveConstructor>ractive.constructor).attributes;
 
   if (attributes && component) {
     const tpl = component.template;
     const attrs = tpl.m ? tpl.m.slice() : [];
 
     // grab all of the passed attribute names
-    const props = attrs.filter(a => a.t === ATTRIBUTE).map(a => a.n);
+    const props = attrs.filter(a => a.t === TemplateItemType.ATTRIBUTE).map(a => a.n);
 
     // warn about missing requireds
     attributes.required.forEach(p => {
@@ -170,21 +179,23 @@ function handleAttributes(ractive) {
     let i = attrs.length;
     while (i--) {
       const a = attrs[i];
-      if (a.t === ATTRIBUTE && !~all.indexOf(a.n)) {
+      if (a.t === TemplateItemType.ATTRIBUTE && !~all.indexOf(a.n)) {
         if (attributes.mapAll) {
           // map the attribute if requested and make the extra attribute in the partial refer to the mapping
           partial.unshift({
-            t: ATTRIBUTE,
+            t: TemplateItemType.ATTRIBUTE,
             n: a.n,
-            f: [{ t: INTERPOLATOR, r: `~/${a.n}` }]
+            f: [{ t: TemplateItemType.INTERPOLATOR, r: `~/${a.n}` }]
           });
         } else {
-          // transfer the attribute to the extra attributes partal
+          // transfer the attribute to the extra attributes partial
           partial.unshift(attrs.splice(i, 1)[0]);
         }
       } else if (
         !attributes.mapAll &&
-        (a.t === DECORATOR || a.t === TRANSITION || a.t === BINDING_FLAG)
+        (a.t === TemplateItemType.DECORATOR ||
+          a.t === TemplateItemType.TRANSITION ||
+          a.t === TemplateItemType.BINDING_FLAG)
       ) {
         partial.unshift(attrs.splice(i, 1)[0]);
       }

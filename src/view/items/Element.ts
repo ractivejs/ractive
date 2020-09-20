@@ -622,7 +622,7 @@ function delegateHandler(ev): boolean {
   return bubble;
 }
 
-const UIEvent = win !== null ? globalThis.UIEvent : null;
+const UIEvent = win !== null ? win.UIEvent : null;
 function shouldFire(event: UIEvent, start, end): boolean {
   if (UIEvent && event instanceof UIEvent) {
     let node = start;

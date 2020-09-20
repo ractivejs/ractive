@@ -2,6 +2,7 @@ import Computation from 'model/Computation';
 import RootModel from 'model/RootModel';
 import Context from 'shared/Context';
 import { FakeFragment } from 'shared/getRactiveContext';
+import { Adaptor } from 'types/Adaptor';
 import { Data, Meta } from 'types/Generic';
 import { Partial } from 'types/Generic';
 import { EventListenerEntry } from 'types/Listener';
@@ -13,7 +14,7 @@ import { InternalObserver } from './prototype/observe';
 import { Ractive } from './Ractive';
 
 interface RactiveInternalConfig {
-  template: RactiveDynamicTemplate;
+  template?: RactiveDynamicTemplate;
 }
 
 /**
@@ -52,7 +53,7 @@ export class RactiveInternal {
   public anchor: HTMLElement;
 
   /** @internal */
-  public _guid: number;
+  public _guid: string;
 
   /** @internal */
   public _eventQueue: Context[];
@@ -67,7 +68,9 @@ export class RactiveInternal {
   public _subs: Record<string, EventListenerEntry[]>;
 
   /** @internal*/
-  public _children: (Ractive | Meta)[] & { byName: Record<string, Meta[]> };
+  public _children: (Ractive | Meta)[] & { byName?: Record<string, Meta[]> };
+  /** @internal*/
+  public children: this['_children'];
 
   /** @internal */
   public viewmodel: RootModel;
@@ -97,6 +100,9 @@ export class RactiveInternal {
   public partials: Record<string, Partial>;
 
   /** @internal */
+  public _attributePartial: any;
+
+  /** @internal */
   public component: any;
 
   /** @internal */
@@ -110,4 +116,7 @@ export class RactiveInternal {
 
   /** @internal */
   public value: any;
+
+  /** @internal */
+  public adapt: Adaptor[];
 }

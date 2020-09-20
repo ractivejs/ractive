@@ -14,7 +14,7 @@ export const defineProperties = obj.defineProperties;
 
 export const keys = obj.keys;
 
-export function hasOwn(obj: Record<string, unknown>, prop: string): boolean {
+export function hasOwn(obj: unknown, prop: string): boolean {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 

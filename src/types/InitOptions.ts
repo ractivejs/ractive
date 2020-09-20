@@ -147,4 +147,6 @@ export interface InitOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T
 
   /** If true, this instance will try to reuse DOM nodes found in its target rather than discarding and replacing them. Cannot be used with append. */
   enhance?: true;
+
+  onconstruct?: () => void;
 }

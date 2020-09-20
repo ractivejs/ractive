@@ -3,6 +3,7 @@ import { Decorator } from 'types/Decorator';
 import { EasingFunction } from 'types/Easings';
 import { EventPlugin } from 'types/Events';
 import { Helper, Partial } from 'types/Generic';
+import { InitOpts } from 'types/InitOptions';
 import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { Registry } from 'types/Registries';
 import { Transition } from 'types/Transition';
@@ -55,6 +56,14 @@ import Ractive$updateModel from './prototype/updateModel';
 import Ractive$use from './prototype/use';
 import { RactiveInternal } from './RactiveInternal';
 import { InterpolatorFunction } from './static/interpolators';
+
+export interface RactiveConstructor extends Function {
+  attributes: {
+    required: any;
+    optional: any;
+    mapAll: boolean;
+  };
+}
 
 // TODO add documentation on all fields
 export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInternal {

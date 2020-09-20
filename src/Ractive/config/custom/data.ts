@@ -8,7 +8,7 @@ import { fatal, warnIfDebug, warnOnceIfDebug } from 'utils/log';
 interface DataConfigurator {
   name: 'data';
   extend: (parent: Ractive['constructor'], proto: Ractive, options: InitOpts) => void;
-  init: (parent: Ractive['constructor'], proto: Ractive, options: { data: Data }) => Data;
+  init: (parent: Ractive['constructor'], proto: Ractive, options: InitOpts) => Data;
   // Read comment in function implementation
   // reset: (ractive: Ractive) => void;
 }

@@ -64,7 +64,7 @@ export function removeFromArray<T>(array: T[], member: T): void {
   }
 }
 
-export function combine<T>(...arrays: T[]): T[] {
+export function combine<T>(...arrays: (T | T[])[]): T[] {
   const res = arrays.concat.apply([], arrays);
   let i = res.length;
   while (i--) {
