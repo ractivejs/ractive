@@ -1,5 +1,6 @@
 import Computation from 'model/Computation';
 import RootModel from 'model/RootModel';
+import CSSModel from 'model/specials/CSSModel';
 import Context from 'shared/Context';
 import { FakeFragment } from 'shared/getRactiveContext';
 import { Adaptor } from 'types/Adaptor';
@@ -119,4 +120,13 @@ export class RactiveInternal {
 
   /** @internal */
   public adapt: Adaptor[];
+
+  public _cssModel: CSSModel;
+
+  public _cssDef:
+    | string
+    | {
+        transform: false;
+        id: 'Ractive.addStyle';
+      };
 }

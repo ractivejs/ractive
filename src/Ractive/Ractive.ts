@@ -77,6 +77,8 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
 
   public target: HTMLElement | string;
 
+  public css: string;
+
   public cssId: string;
 
   public parent: this;

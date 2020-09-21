@@ -1,3 +1,5 @@
+import { Keypath, ValueMap } from 'types/Generic';
+import { SetOpts } from 'types/MethodOptions';
 import { isObjectType, isFunction } from 'utils/is';
 
 import { applyCSS } from '../../global/css';
@@ -5,13 +7,25 @@ import runloop from '../../global/runloop';
 import { build, set } from '../../shared/set';
 import { evalCSS } from '../config/custom/css/css';
 import transformCSS from '../config/custom/css/transform';
+import { Ractive } from '../Ractive';
 
-export default function setCSSData(keypath, value, options) {
-  const opts = isObjectType(keypath) ? value : options;
+type SetCSSDataOpts = SetOpts & { apply: boolean };
+
+function setCSSData(keypath: Keypath, value: unknown, options?: SetCSSDataOpts): Promise<void>;
+function setCSSData(map: ValueMap, options?: SetCSSDataOpts): Promise<void>;
+function setCSSData(
+  keypath: Keypath | ValueMap,
+  value: unknown | (SetOpts & { apply: boolean }),
+  options?: SetOpts & { apply: boolean }
+): Promise<void> {
+  const opts = isObjectType(keypath) ? <SetCSSDataOpts>value : options;
   const model = this._cssModel;
 
   model.locked = true;
-  const promise = set(build({ viewmodel: model }, keypath, value, true), opts);
+  const promise = set(
+    build(({ viewmodel: model } as unknown) as Ractive, keypath, value, true),
+    opts
+  );
   model.locked = false;
 
   const cascade = runloop.start();
@@ -27,7 +41,9 @@ export default function setCSSData(keypath, value, options) {
   return promise.then(() => cascade);
 }
 
-export function applyChanges(component, apply) {
+export default setCSSData;
+
+export function applyChanges(component, apply: boolean) {
   const local = recomputeCSS(component);
   const child = component.extensions
     .map(e => applyChanges(e, false))
@@ -41,7 +57,7 @@ export function applyChanges(component, apply) {
   return local || child;
 }
 
-export function recomputeCSS(component) {
+export function recomputeCSS(component): true | undefined {
   const css = component.css;
 
   if (!isFunction(css)) return;
