@@ -1,7 +1,7 @@
 import { InterpolatorFunction } from 'src/Ractive/static/interpolators';
 import Partial from 'view/items/Partial';
 
-import { Ractive } from '../Ractive/Ractive';
+import { Ractive } from '../Ractive/RactiveDefinition';
 
 import { Adaptor } from './Adaptor';
 import { Decorator } from './Decorator';

@@ -1,6 +1,6 @@
 import Model from 'model/Model';
 import ModelBase from 'model/ModelBase';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import { Keypath, ValueMap } from 'types/Generic';
 import { SetOpts } from 'types/MethodOptions';
 import { isArray, isObject, isObjectType, isFunction, isString, isUndefined } from 'utils/is';

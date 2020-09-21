@@ -5,7 +5,7 @@ import { splitKeypath } from 'shared/keypaths';
 import { applyCSS } from 'src/global/css';
 import runloop from 'src/global/runloop';
 import parser from 'src/Ractive/config/runtime-parser';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import { MacroHandle, MacroFn } from 'types/Macro';
 import { isArray, isFunction, isObjectType, isString } from 'utils/is';
 import { warnOnceIfDebug, warnIfDebug } from 'utils/log';

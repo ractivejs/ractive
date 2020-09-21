@@ -4,7 +4,7 @@ import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { removeFromArray } from 'utils/array';
 import { warnIfDebug } from 'utils/log';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$unrender(this: Ractive): Promise<void> {
   if (!this.fragment.rendered) {

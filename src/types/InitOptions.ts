@@ -1,4 +1,4 @@
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import Component from 'view/items/Component';
 import Interpolator from 'view/items/Interpolator';
 

@@ -1,5 +1,5 @@
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import { localFragment } from 'src/shared/Context';
 import { EventPlugin, EventPluginHandle } from 'types/Events';
 import { fatal } from 'utils/log';

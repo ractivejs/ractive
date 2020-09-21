@@ -1,7 +1,7 @@
 import ModelBase from 'model/ModelBase';
 import { rebindMatch } from 'shared/rebind';
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import { Keypath } from 'types/Generic';
 import { ObserverCallback, ObserverOpts } from 'types/Observer';
 import { removeFromArray } from 'utils/array';

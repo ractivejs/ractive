@@ -9,7 +9,7 @@ import {
 import { isFunction, isString, isObjectType } from 'utils/is';
 import { assign } from 'utils/object';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 import { ObserverCallbackMap } from './observe';
 

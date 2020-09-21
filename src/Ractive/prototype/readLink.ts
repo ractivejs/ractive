@@ -3,7 +3,7 @@ import Model from 'model/Model';
 import { splitKeypath } from 'shared/keypaths';
 import { ReadLinkOpts, ReadLinkResult } from 'types/MethodOptions';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$readLink(
   this: Ractive,

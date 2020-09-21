@@ -1,7 +1,7 @@
 import { FindOpts } from 'types/MethodOptions';
 import { isArray, isObjectType } from 'utils/is';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 function Ractive$findAllComponents(this: Ractive, options?: FindOpts): Ractive[];
 function Ractive$findAllComponents(this: Ractive, selector?: string, options?: FindOpts): Ractive[];

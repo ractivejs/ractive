@@ -3,7 +3,7 @@ import hooks from 'src/events/Hook';
 import runloop from 'src/global/runloop';
 import { Meta } from 'types/Generic';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$detachChild(this: Ractive, child: Ractive): Promise<Ractive> {
   const children = this._children;

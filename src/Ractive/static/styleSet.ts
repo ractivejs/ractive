@@ -7,7 +7,7 @@ import runloop from '../../global/runloop';
 import { build, set } from '../../shared/set';
 import { evalCSS } from '../config/custom/css/css';
 import transformCSS from '../config/custom/css/transform';
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 type SetCSSDataOpts = SetOpts & { apply: boolean };
 

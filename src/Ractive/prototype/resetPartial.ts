@@ -9,7 +9,7 @@ import Element from 'view/items/Element';
 import Partial from 'view/items/Partial';
 import { isItemType, ItemBasicInterface } from 'view/items/shared/Item';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 function collect(
   source: (ItemBasicInterface | Fragment)[],

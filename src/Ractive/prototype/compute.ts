@@ -6,7 +6,7 @@ import runloop from 'src/global/runloop';
 import { InternalComputationDescription, Computation } from 'types/Computation';
 import { isString, isFunction } from 'utils/is';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 export function compute(this: Ractive, path: string, computed: Computation): ComputationModel {
   let _computed: InternalComputationDescription;

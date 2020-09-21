@@ -6,7 +6,7 @@ import { GetOpts } from 'types/MethodOptions';
 import { isString } from 'utils/is';
 import resolveReference from 'view/resolvers/resolveReference';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 function Ractive$get(this: Ractive, opts?: GetOpts): any;
 function Ractive$get(this: Ractive, keypath: string, opts?: GetOpts): any;

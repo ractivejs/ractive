@@ -1,13 +1,21 @@
+import Computation from 'model/Computation';
+import RootModel from 'model/RootModel';
+import CSSModel from 'model/specials/CSSModel';
+import Context from 'shared/Context';
+import { FakeFragment } from 'shared/getRactiveContext';
 import { Adaptor } from 'types/Adaptor';
 import { Decorator } from 'types/Decorator';
 import { EasingFunction } from 'types/Easings';
 import { EventPlugin } from 'types/Events';
-import { Helper, Partial } from 'types/Generic';
-import { InitOpts } from 'types/InitOptions';
+import { Data, Helper, Meta, Partial } from 'types/Generic';
+import { EventListenerEntry } from 'types/Listener';
 import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { Registry } from 'types/Registries';
 import { Transition } from 'types/Transition';
+import Fragment from 'view/Fragment';
+import Element from 'view/items/Element';
 
+import { RactiveDynamicTemplate } from './config/custom/template';
 import Ractive$add from './prototype/add';
 import Ractive$animate from './prototype/animate';
 import Ractive$attachChild from './prototype/attachChild';
@@ -26,7 +34,7 @@ import Ractive$getContext from './prototype/getContext';
 import Ractive$getLocalContext from './prototype/getLocalContext';
 import Ractive$insert from './prototype/insert';
 import Ractive$link from './prototype/link';
-import Ractive$observe from './prototype/observe';
+import Ractive$observe, { InternalObserver } from './prototype/observe';
 import Ractive$observeOnce from './prototype/observeOnce';
 import Ractive$off from './prototype/off';
 import Ractive$on from './prototype/on';
@@ -54,7 +62,6 @@ import Ractive$unshift from './prototype/unshift';
 import Ractive$update from './prototype/update';
 import Ractive$updateModel from './prototype/updateModel';
 import Ractive$use from './prototype/use';
-import { RactiveInternal } from './RactiveInternal';
 import { InterpolatorFunction } from './static/interpolators';
 
 export interface RactiveConstructor extends Function {
@@ -64,6 +71,118 @@ export interface RactiveConstructor extends Function {
     optional: any;
     mapAll: boolean;
   };
+}
+
+interface RactiveInternalConfig {
+  template?: RactiveDynamicTemplate;
+}
+
+/**
+ * Internal properties of Ractive
+ * @internal
+ */
+class RactiveInternal {
+  /** @internal */
+  fragment: Fragment;
+
+  /** @internal */
+  _fakeFragment: FakeFragment;
+
+  /** @internal */
+  torndown: boolean;
+
+  /** @internal */
+  rendering: boolean;
+
+  /** @internal*/
+  rendered: boolean;
+
+  /** @internal */
+  unrendering: boolean;
+
+  /** @internal */
+  shouldDestroy: boolean;
+
+  /** @internal */
+  destroyed: boolean;
+
+  /** @internal */
+  isDetached: boolean;
+
+  /** @internal */
+  anchor: HTMLElement;
+
+  /** @internal */
+  _guid: string;
+
+  /** @internal */
+  _eventQueue: Context[];
+
+  /** @internal */
+  event: Context;
+
+  /** @internal */
+  _nsSubs: number;
+
+  /** @internal */
+  _subs: Record<string, EventListenerEntry[]>;
+
+  /** @internal*/
+  _children: (Ractive | Meta)[] & { byName?: Record<string, Meta[]> };
+  /** @internal*/
+  children: this['_children'];
+
+  /** @internal */
+  viewmodel: RootModel;
+
+  /** @internal*/
+  instance: this;
+
+  /** @internal */
+  _observers: InternalObserver[];
+
+  /**
+   * Store computation information. Item can also be a {@link InternalComputationDescription}
+   * @internal
+   */
+  computed: Record<string, Computation>;
+
+  /** @internal */
+  container: this;
+
+  /** @internal */
+  template: any;
+
+  /** @internal */
+  _config: RactiveInternalConfig;
+
+  /** @internal */
+  partials: Record<string, Partial>;
+
+  /** @internal */
+  _attributePartial: any;
+
+  /** @internal */
+  component: any;
+
+  /** @internal */
+  proxy: Element;
+
+  /** @internal */
+  delegate: any;
+
+  /** @internal */
+  data: Data;
+
+  /** @internal */
+  value: any;
+
+  /** @internal */
+  adapt: Adaptor[];
+
+  _cssModel: CSSModel;
+
+  _cssDef: any;
 }
 
 // TODO add documentation on all fields

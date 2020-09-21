@@ -7,7 +7,7 @@ import { Keypath } from 'types/Generic';
 import { UpdateOpts } from 'types/MethodOptions';
 import { isString } from 'utils/is';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 export function update(
   ractive: Ractive,

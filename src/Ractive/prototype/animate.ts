@@ -2,7 +2,7 @@ import Model, { AnimatePromise } from 'model/Model';
 import { interpolate } from 'shared/interpolate';
 import { splitKeypath } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import easing from 'src/Ractive/static/easing';
 import { EasingFunction } from 'types/Easings';
 import { isEqual, isFunction, isObjectType } from 'utils/is';

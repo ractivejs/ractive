@@ -3,7 +3,7 @@ import runloop from 'src/global/runloop';
 import { LinkOpts } from 'types/MethodOptions';
 import resolveReference from 'view/resolvers/resolveReference';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$link(
   this: Ractive,

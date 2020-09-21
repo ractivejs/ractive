@@ -3,7 +3,7 @@ import { Target } from 'types/Generic';
 import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { getElement } from 'utils/dom';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$insert(this: Ractive, target: Target, anchor: Target): void {
   if (!this.fragment.rendered) {

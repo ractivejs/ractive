@@ -1,5 +1,5 @@
 import Context from 'shared/Context';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import { EventListenerEntry } from 'types/Listener';
 
 import { enqueue, dequeue } from './eventStack';

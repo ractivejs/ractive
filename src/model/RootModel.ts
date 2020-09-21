@@ -1,7 +1,7 @@
 import { splitKeypath, unescapeKey } from 'shared/keypaths';
 import { handleChange, mark } from 'shared/methodCallers';
 import { capture } from 'src/global/capture';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import { Adaptor } from 'types/Adaptor';
 import { Keypath } from 'types/Generic';
 import noop from 'utils/noop';

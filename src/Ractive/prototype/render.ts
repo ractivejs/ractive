@@ -5,7 +5,7 @@ import { toArray } from 'utils/array';
 import { getElement } from 'utils/dom';
 import { warnIfDebug } from 'utils/log';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 import render from '../render';
 
 // TODO anchor is not documented so it's required?

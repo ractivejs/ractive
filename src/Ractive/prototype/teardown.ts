@@ -4,7 +4,7 @@ import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { removeFromArray } from 'utils/array';
 import { warnIfDebug } from 'utils/log';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself

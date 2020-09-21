@@ -1,4 +1,4 @@
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import Fragment from 'view/Fragment';
 
 import { Keypath } from './Generic';

@@ -9,7 +9,7 @@ import Ractive from '../Ractive';
 
 import config from './config/config';
 import subscribe from './helpers/subscribe';
-import { Ractive as RactiveDefinition, RactiveConstructor } from './Ractive';
+import { Ractive as RactiveDefinition, RactiveConstructor } from './RactiveDefinition';
 
 interface InitializeOpts {
   cssIds?: string[];

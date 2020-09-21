@@ -1,7 +1,7 @@
 import TemplateItemType from 'config/types';
 import { keep } from 'shared/set';
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import Context from 'src/shared/Context';
 import { createDocumentFragment } from 'utils/dom';
 import { isArray, isObject, isObjectLike, isUndefined } from 'utils/is';

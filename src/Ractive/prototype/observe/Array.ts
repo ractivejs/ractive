@@ -1,7 +1,7 @@
 import ModelBase from 'model/ModelBase';
 import { NewIndexes } from 'shared/getNewIndices';
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import { Keypath } from 'types/Generic';
 import { ObserverArrayCallback, ObserverArrayOpts } from 'types/Observer';
 import { removeFromArray } from 'utils/array';

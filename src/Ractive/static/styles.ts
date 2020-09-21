@@ -2,7 +2,7 @@ import { addCSS, applyCSS } from 'src/global/css';
 import { ValueMap } from 'types/Generic';
 import { isFunction } from 'utils/is';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 import { recomputeCSS } from './styleSet';
 

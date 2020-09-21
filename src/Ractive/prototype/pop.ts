@@ -1,6 +1,6 @@
 import { ArrayPopPromise, Keypath } from 'types/Generic';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 import makeArrayMethod from './shared/makeArrayMethod';
 

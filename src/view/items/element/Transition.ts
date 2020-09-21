@@ -7,7 +7,7 @@ import {
 } from 'parse/converters/element/elementDefinitions';
 import { findInViewHierarchy } from 'shared/registry';
 import TransitionManager from 'src/global/TransitionManager';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import { ValueMap } from 'types/Generic';
 import { Transition as TransitionFunction } from 'types/Transition';
 import { addToArray, removeFromArray } from 'utils/array';

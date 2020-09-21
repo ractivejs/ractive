@@ -16,7 +16,7 @@ import getRactiveContext from '../shared/getRactiveContext';
 
 import dataConfigurator from './config/custom/data';
 import subscribe from './helpers/subscribe';
-import { Ractive as RactiveDefinition, RactiveConstructor } from './Ractive';
+import { Ractive as RactiveDefinition, RactiveConstructor } from './RactiveDefinition';
 
 const registryNames = [
   'adaptors',

@@ -1,4 +1,4 @@
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$findParent(this: Ractive, selector: string): Ractive {
   if (this.parent) {

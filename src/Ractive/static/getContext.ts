@@ -4,7 +4,7 @@ import { ContextHelper } from 'types/Context';
 import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { isString } from 'utils/is';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 const query = doc?.querySelector;
 

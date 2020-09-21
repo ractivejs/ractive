@@ -1,6 +1,6 @@
 import { AnimatePromise } from 'model/Model';
 import { AnimateOpts } from 'src/Ractive/prototype/animate';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 
 import { DecoratorHandle } from './Decorator';
 import { ArrayPopPromise, ArrayPushPromise, ArraySplicePromise, ValueMap } from './Generic';

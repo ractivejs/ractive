@@ -1,5 +1,5 @@
 import { escapeKey, unescapeKey } from 'shared/keypaths';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import { Keypath } from 'types/Generic';
 import { addToArray, removeFromArray, Indexes } from 'utils/array';
 import bind from 'utils/bind';

@@ -1,4 +1,4 @@
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 
 export type ListenerCallback<T extends Ractive = Ractive> = (
   this: T,

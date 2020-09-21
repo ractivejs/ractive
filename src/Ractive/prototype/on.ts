@@ -2,7 +2,7 @@ import { EventListenerEntry, ListenerCallback, ListenerHandle } from 'types/List
 import { isObjectType, isString } from 'utils/is';
 import { hasOwn } from 'utils/object';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 import notEmptyString from './shared/notEmptyString';
 import trim from './shared/trim';

@@ -1,7 +1,7 @@
 import { unescapeKey } from 'shared/keypaths';
 import { handleChange } from 'shared/methodCallers';
 import { capture } from 'src/global/capture';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import { addToArray, removeFromArray } from 'utils/array';
 import noop from 'utils/noop';
 import Interpolator from 'view/items/Interpolator';

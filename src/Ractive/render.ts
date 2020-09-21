@@ -2,7 +2,7 @@ import { doc } from 'config/environment';
 import hooks from 'src/events/Hook';
 import { applyCSS } from 'src/global/css';
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { getElement } from 'utils/dom';
 

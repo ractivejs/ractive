@@ -6,7 +6,7 @@ import getFunction from 'shared/getFunction';
 import { splitKeypath } from 'shared/keypaths';
 import { findInViewHierarchy } from 'shared/registry';
 import fireEvent from 'src/events/fireEvent';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import { addToArray, removeFromArray } from 'utils/array';
 import { isArray, isString } from 'utils/is';
 import { warnIfDebug, warnOnceIfDebug } from 'utils/log';

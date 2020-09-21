@@ -1,4 +1,4 @@
-import { Ractive } from '../Ractive/Ractive';
+import { Ractive } from '../Ractive/RactiveDefinition';
 
 import { Keypath, ValueMap } from './Generic';
 

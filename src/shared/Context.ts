@@ -1,7 +1,7 @@
 import TemplateItemType from 'config/types';
 import Model, { AnimatePromise } from 'model/Model';
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import { ContextHelper } from 'types/Context';
 import { DecoratorHandle } from 'types/Decorator';
 import { Keypath } from 'types/Generic';

@@ -1,5 +1,5 @@
 import { build, set } from 'shared/set';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import { Keypath } from 'types/Generic';
 import { SetOpts } from 'types/MethodOptions';
 import { isNumeric, isString } from 'utils/is';

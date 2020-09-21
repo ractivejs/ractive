@@ -1,4 +1,4 @@
-import { Ractive } from './Ractive';
+import { Ractive } from './RactiveDefinition';
 
 interface Shared {
   defaults?: Record<string, unknown>;

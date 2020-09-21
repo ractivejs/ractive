@@ -1,6 +1,6 @@
 import { TEMPLATE_VERSION } from 'config/template';
 import { addFunctions } from 'shared/getFunction';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import { InitOpts } from 'types/InitOptions';
 import { ParsedTemplate, ParseFn, Template } from 'types/Parse';
 import { isFunction, isNumber, isObject, isString } from 'utils/is';

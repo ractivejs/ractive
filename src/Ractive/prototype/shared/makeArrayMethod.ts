@@ -2,7 +2,7 @@ import Model from 'model/Model';
 import getNewIndices from 'shared/getNewIndices';
 import { splitKeypath } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/Ractive';
+import { Ractive } from 'src/Ractive/RactiveDefinition';
 import { ArrayPopPromise, ArrayPushPromise, ArraySplicePromise, Keypath } from 'types/Generic';
 import { isArray, isUndefined } from 'utils/is';
 

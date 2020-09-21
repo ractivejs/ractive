@@ -1,7 +1,7 @@
 import { ListenerCallback } from 'types/Listener';
 import { removeFromArray } from 'utils/array';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 import notEmptyString from './shared/notEmptyString';
 import trim from './shared/trim';

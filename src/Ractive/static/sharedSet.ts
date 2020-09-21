@@ -4,7 +4,7 @@ import { isObjectType } from 'utils/is';
 
 import SharedModel from '../../model/specials/SharedModel';
 import { build, set } from '../../shared/set';
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 export default function sharedSet(
   keypath: Keypath,

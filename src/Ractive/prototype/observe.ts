@@ -12,7 +12,7 @@ import { warnOnceIfDebug } from 'utils/log';
 import { keys } from 'utils/object';
 import resolveReference from 'view/resolvers/resolveReference';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 import ArrayObserver from './observe/Array';
 import Observer from './observe/Observer';

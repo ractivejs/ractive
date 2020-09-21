@@ -5,7 +5,7 @@ import { isObjectType } from 'utils/is';
 import hooks from '../../events/Hook';
 import config from '../config/config';
 import dataConfigurator from '../config/custom/data';
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 const shouldRerender = ['template', 'partials', 'components', 'decorators', 'events'];
 

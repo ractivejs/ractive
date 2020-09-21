@@ -5,7 +5,7 @@ import { isObject } from 'utils/is';
 import { fatal } from 'utils/log';
 import Transition from 'view/items/element/Transition';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 interface TransitionFunctionOpts extends TransitionOpts {
   [key: string]: unknown;

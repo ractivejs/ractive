@@ -2,7 +2,7 @@ import hooks from 'src/events/Hook';
 import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { removeFromArray } from 'utils/array';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$detach(this: Ractive): DocumentFragment {
   if (this.isDetached) {

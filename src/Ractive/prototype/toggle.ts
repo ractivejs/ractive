@@ -3,7 +3,7 @@ import { gather, set } from 'shared/set';
 import { SetOpts } from 'types/MethodOptions';
 import { isString } from 'utils/is';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 // TODO add options to documentation
 export default function Ractive$toggle(

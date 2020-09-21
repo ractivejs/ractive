@@ -1,7 +1,7 @@
 import { getCSS } from 'src/global/css';
 import { keys } from 'utils/object';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$toCSS(this: Ractive): string {
   const cssIds = [this.cssId, ...this.findAllComponents().map(c => c.cssId)];

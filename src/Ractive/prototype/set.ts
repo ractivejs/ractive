@@ -3,7 +3,7 @@ import { ValueMap } from 'types/Generic';
 import { SetOpts } from 'types/MethodOptions';
 import { isObjectType } from 'utils/is';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 function Ractive$set(keypath: string, value: unknown, options?: SetOpts): Promise<void>;
 function Ractive$set(keypath: ValueMap, options?: SetOpts): Promise<void>;

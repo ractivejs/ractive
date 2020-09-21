@@ -4,7 +4,7 @@ import runloop from 'src/global/runloop';
 import { Meta } from 'types/Generic';
 import { AttachOpts } from 'types/MethodOptions';
 
-import { Ractive } from '../Ractive';
+import { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$attachChild(
   this: Ractive,
