@@ -1,4 +1,5 @@
 import hooks from 'src/events/Hook';
+import { InitOpts } from 'types/InitOptions';
 import { getElement } from 'utils/dom';
 import { isArray } from 'utils/is';
 import { logIfDebug, warnIfDebug, warnOnceIfDebug } from 'utils/log';
@@ -8,8 +9,17 @@ import Ractive from '../Ractive';
 
 import config from './config/config';
 import subscribe from './helpers/subscribe';
+import { Ractive as RactiveDefinition, RactiveConstructor } from './Ractive';
 
-export default function initialise(ractive, userOptions, options) {
+interface InitializeOpts {
+  cssIds?: string[];
+}
+
+export default function initialise(
+  ractive: RactiveDefinition,
+  userOptions: InitOpts,
+  options: InitializeOpts
+): void {
   // initialize settable computeds
   const computed = ractive.viewmodel.computed;
   if (computed) {
@@ -24,7 +34,7 @@ export default function initialise(ractive, userOptions, options) {
   config.init(ractive.constructor, ractive, userOptions);
 
   // call any passed in plugins
-  if (isArray(userOptions.use)) ractive.use(...userOptions.use.filter(p => !p.construct));
+  if (isArray(userOptions.use)) ractive.use(...userOptions.use.filter((p: any) => !p.construct));
 
   hooks.config.fire(ractive);
 
@@ -44,7 +54,7 @@ export default function initialise(ractive, userOptions, options) {
     if (el && !ractive.component) {
       const promise = ractive.render(el, ractive.append);
 
-      if (Ractive.DEBUG_PROMISES) {
+      if ((<any>Ractive).DEBUG_PROMISES) {
         promise.catch(err => {
           warnOnceIfDebug(
             'Promise debugging is enabled, to help solve errors that happen asynchronously. Some browsers will log unhandled promise rejections, in which case you can safely disable promise debugging:\n  Ractive.DEBUG_PROMISES = false;'
@@ -59,9 +69,12 @@ export default function initialise(ractive, userOptions, options) {
   }
 }
 
-export function createFragment(ractive, options = {}) {
+export function createFragment(ractive: RactiveDefinition, options: InitializeOpts = {}): Fragment {
   if (ractive.template) {
-    const cssIds = [].concat(ractive.constructor._cssIds || [], options.cssIds || []);
+    const cssIds = [
+      ...((<RactiveConstructor>ractive.constructor)._cssIds || []),
+      ...(options.cssIds || [])
+    ];
 
     return new Fragment({
       owner: ractive,

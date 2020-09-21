@@ -58,6 +58,7 @@ import { RactiveInternal } from './RactiveInternal';
 import { InterpolatorFunction } from './static/interpolators';
 
 export interface RactiveConstructor extends Function {
+  _cssIds: string[];
   attributes: {
     required: any;
     optional: any;

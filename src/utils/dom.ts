@@ -40,7 +40,7 @@ export function createDocumentFragment(): DocumentFragment {
 }
 
 function getElement(
-  input: boolean | string | HTMLElement | ArrayLike<unknown>
+  input: boolean | string | HTMLElement | ArrayLike<unknown> | DocumentFragment
 ): RactiveHTMLElement {
   let output: HTMLElement;
 
