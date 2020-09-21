@@ -1,4 +1,4 @@
-import { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
 
 export interface SetOpts {
   /** Whether or not to merge the given value into the existing data or replace the existing data. Defaults to replacing the existing data (false). */

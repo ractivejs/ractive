@@ -1,8 +1,8 @@
 import getRactiveContext from 'src/shared/getRactiveContext';
-import { ContextHelper } from 'types/Context';
+import type { ContextHelper } from 'types/Context';
 import { isString } from 'utils/is';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 import staticContext from '../static/getContext';
 
 export default function Ractive$getContext(

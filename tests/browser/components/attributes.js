@@ -2,7 +2,7 @@ import { test } from 'qunit';
 
 import { onWarn, initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('components/attributes.js');
 
   test(`by default all attributes are mapped`, t => {

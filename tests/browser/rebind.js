@@ -2,7 +2,7 @@ import { test } from 'qunit';
 
 import { onWarn, initModule } from '../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('rebind.js');
 
   test('Section with item that has expression only called once when created', t => {

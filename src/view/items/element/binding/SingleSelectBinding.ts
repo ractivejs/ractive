@@ -1,12 +1,13 @@
 import runloop from 'src/global/runloop';
 import getSelectedOptions from 'utils/getSelectedOptions';
 
-import Select from '../specials/Select';
+import type Select from '../specials/Select';
 
 import Binding, { BindingWithInitialValue, BasicBindingInterface, BindingValue } from './Binding';
 import handleDomEvent from './handleDomEvent';
 
-export default class SingleSelectBinding extends Binding
+export default class SingleSelectBinding
+  extends Binding
   implements BindingWithInitialValue, BasicBindingInterface {
   /**
    * Add check to avoid compatibility error  on Input element

@@ -1,11 +1,11 @@
-import ModelBase from 'model/ModelBase';
-import { NewIndexes } from 'shared/getNewIndices';
+import type ModelBase from 'model/ModelBase';
+import type { NewIndexes } from 'shared/getNewIndices';
 import { escapeKey } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import { joinKeys } from 'src/Ractive/static/keypaths';
-import { Keypath } from 'types/Generic';
-import { ObserverOpts, ObserverCallback } from 'types/Observer';
+import type { Keypath } from 'types/Generic';
+import type { ObserverOpts, ObserverCallback } from 'types/Observer';
 import { removeFromArray } from 'utils/array';
 import { isArray, isEqual } from 'utils/is';
 import { warnIfDebug } from 'utils/log';

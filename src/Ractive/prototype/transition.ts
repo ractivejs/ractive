@@ -1,11 +1,11 @@
 import runloop from 'src/global/runloop';
-import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
-import { Transition as TransitionFunction, TransitionOpts } from 'types/Transition';
+import type { RactiveHTMLElement } from 'types/RactiveHTMLElement';
+import type { Transition as TransitionFunction, TransitionOpts } from 'types/Transition';
 import { isObject } from 'utils/is';
 import { fatal } from 'utils/log';
 import Transition from 'view/items/element/Transition';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 interface TransitionFunctionOpts extends TransitionOpts {
   [key: string]: unknown;

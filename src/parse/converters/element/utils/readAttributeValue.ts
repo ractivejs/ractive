@@ -1,10 +1,10 @@
-import { StandardParser } from 'parse/_parse';
+import type { StandardParser } from 'parse/_parse';
 import readMustache from 'parse/converters/readMustache';
 import getLowestIndex from 'parse/converters/utils/getLowestIndex';
 import { decodeCharacterReferences } from 'utils/html';
 import { isString } from 'utils/is';
 
-import { GenericAttributeTemplateValue } from '../elementDefinitions';
+import type { GenericAttributeTemplateValue } from '../elementDefinitions';
 
 const unquotedAttributeValueTextPattern = /^[^\s"'=<>\/`]+/;
 type QuoteMark = `'` | `"`;

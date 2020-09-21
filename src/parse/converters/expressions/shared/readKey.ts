@@ -1,5 +1,5 @@
-import { StandardParser } from 'parse/_parse';
-import { ValueTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+import type { StandardParser } from 'parse/_parse';
+import type { ValueTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 
 import readNumberLiteral from '../primary/literal/readNumberLiteral';
 import readStringLiteral from '../primary/literal/readStringLiteral';

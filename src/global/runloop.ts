@@ -1,7 +1,7 @@
-import { InternalObserver } from 'src/Ractive/prototype/observe';
+import type { InternalObserver } from 'src/Ractive/prototype/observe';
 import { addToArray } from 'utils/array';
-import Fragment from 'view/Fragment';
-import Transition from 'view/items/element/Transition';
+import type Fragment from 'view/Fragment';
+import type Transition from 'view/items/element/Transition';
 
 import TransitionManager from './TransitionManager';
 

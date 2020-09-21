@@ -1,10 +1,10 @@
 import { doc } from 'config/environment';
 import parse from 'parse/_parse';
-import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
+import type { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { fromExpression } from 'parse/utils/createFunction';
 import { addFunctions } from 'shared/getFunction';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { ParsedTemplate, ParseOpts, Template } from 'types/Parse';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { ParsedTemplate, ParseOpts, Template } from 'types/Parse';
 import { isString } from 'utils/is';
 import { fatal } from 'utils/log';
 
@@ -44,7 +44,7 @@ export function createFunctionFromString(
 ): () => (this: typeof bindTo) => any {
   throwNoParse(parse, 'computation string "${str}"', COMPUTATION_INSTRUCTIONS);
   const template = parse<ExpressionFunctionTemplateItem>(str, { expression: true });
-  return function() {
+  return function () {
     return template.e.apply(
       bindTo,
       template.r.map(r => bindTo.get(r))

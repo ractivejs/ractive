@@ -3,7 +3,7 @@ import { fire } from 'simulant';
 
 import { initModule } from '../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('eachSource');
 
   test(`each can be told to map each iteration back to a source array for computed values`, t => {

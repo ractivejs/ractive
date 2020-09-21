@@ -1,5 +1,5 @@
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { Registries } from 'types/Registries';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Registries } from 'types/Registries';
 
 type RegistryName = keyof Registries;
 

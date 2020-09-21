@@ -1,10 +1,10 @@
 import { cancel } from 'shared/methodCallers';
 import hooks from 'src/events/Hook';
-import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
+import type { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { removeFromArray } from 'utils/array';
 import { warnIfDebug } from 'utils/log';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself

@@ -17,12 +17,12 @@ const interpolators: Record<string, InterpolatorFunction<any>> = {
     const delta = to - from;
 
     if (!delta) {
-      return function() {
+      return function () {
         return from;
       };
     }
 
-    return function(t) {
+    return function (t) {
       return from + t * delta;
     };
   },
@@ -51,7 +51,7 @@ const interpolators: Record<string, InterpolatorFunction<any>> = {
       intermediate[i] = to[i];
     }
 
-    return function(t) {
+    return function (t) {
       let i = len;
 
       while (i--) {
@@ -92,7 +92,7 @@ const interpolators: Record<string, InterpolatorFunction<any>> = {
 
     const len = properties.length;
 
-    return function(t) {
+    return function (t) {
       let i = len;
 
       while (i--) {

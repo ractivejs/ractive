@@ -1,10 +1,10 @@
-import { StandardParser } from 'parse/_parse';
+import type { StandardParser } from 'parse/_parse';
 import { refineExpression } from 'parse/utils/refineExpression';
 
-import { ExpressionTemplateItem } from '../expressions/expressionDefinitions';
+import type { ExpressionTemplateItem } from '../expressions/expressionDefinitions';
 import readExpression from '../readExpression';
 
-import {
+import type {
   AliasDefinitionTemplateItem,
   AliasDefinitionRefinedTemplateItem
 } from './mustacheDefinitions';

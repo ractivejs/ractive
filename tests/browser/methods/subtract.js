@@ -2,7 +2,7 @@ import { test } from 'qunit';
 
 import { initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('methods/subtract.js');
 
   test('ractive.subtract("foo") subtracts 1 from the value of foo', t => {

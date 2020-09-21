@@ -1,7 +1,7 @@
-import { FindOpts } from 'types/MethodOptions';
+import type { FindOpts } from 'types/MethodOptions';
 import { isArray } from 'utils/is';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$findAll(
   this: Ractive,

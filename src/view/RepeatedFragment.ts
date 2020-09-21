@@ -1,9 +1,9 @@
 import { ELEMENT } from 'config/types';
-import Model from 'model/Model';
+import type Model from 'model/Model';
 import KeyModel from 'model/specials/KeyModel';
 import { getContext } from 'shared/getRactiveContext';
 import { toEscapedString, toString, shuffled, update } from 'shared/methodCallers';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import { findMap, buildNewIndices } from 'utils/array';
 import { createDocumentFragment } from 'utils/dom';
 import { isArray, isObject, isObjectType, isUndefined } from 'utils/is';
@@ -12,7 +12,7 @@ import { keys } from 'utils/object';
 import { splitKeypath } from '../shared/keypaths';
 
 import Fragment, { getKeypath, FragmentOpts } from './Fragment';
-import Element from './items/Element';
+import type Element from './items/Element';
 import resolve from './resolvers/resolve';
 
 const keypathString = /^"(\\"|[^"])+"$/;

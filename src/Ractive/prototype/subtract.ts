@@ -1,7 +1,7 @@
-import { SetOpts } from 'types/MethodOptions';
+import type { SetOpts } from 'types/MethodOptions';
 import { isNumber, isObjectType } from 'utils/is';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 import add from './shared/add';
 

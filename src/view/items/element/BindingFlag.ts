@@ -1,14 +1,14 @@
 import TemplateItemType from 'config/types';
-import { BindingFlagDirectiveTemplateItem } from 'parse/converters/element/elementDefinitions';
+import type { BindingFlagDirectiveTemplateItem } from 'parse/converters/element/elementDefinitions';
 import { isArray } from 'utils/is';
 
 import Fragment from '../../Fragment';
-import Interpolator from '../Interpolator';
+import type Interpolator from '../Interpolator';
 import findElement from '../shared/findElement';
 import Item, { isItemType, ItemOpts } from '../shared/Item';
 
-import Input from './specials/Input';
-import Select from './specials/Select';
+import type Input from './specials/Input';
+import type Select from './specials/Select';
 
 interface BindingFlagOpts extends ItemOpts {
   owner: BindingFlag['owner'];

@@ -1,5 +1,5 @@
 import TemplateItemType from 'config/types';
-import { WhitespaceElements } from 'types/Parse';
+import type { WhitespaceElements } from 'types/Parse';
 import { isString } from 'utils/is';
 
 import stripStandalones from './stripStandalones';

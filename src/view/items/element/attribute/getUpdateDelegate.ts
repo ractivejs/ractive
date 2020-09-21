@@ -7,7 +7,7 @@ import noop from 'utils/noop';
 import { keys as objectKeys } from 'utils/object';
 import { readStyle, readClass } from 'view/helpers/specialAttrs';
 
-import Attribute from '../Attribute';
+import type Attribute from '../Attribute';
 
 const textTypes = [
   undefined,
@@ -89,7 +89,7 @@ export default function getUpdateDelegate(attribute: Attribute): UpdateDelegate 
   return updateAttribute;
 }
 
-const updateMultipleSelectValue: UpdateDelegate = function(reset) {
+const updateMultipleSelectValue: UpdateDelegate = function (reset) {
   let value = this.getValue();
 
   if (!isArray(value)) value = [value];
@@ -109,7 +109,7 @@ const updateMultipleSelectValue: UpdateDelegate = function(reset) {
   }
 };
 
-const updateSelectValue: UpdateDelegate = function(reset) {
+const updateSelectValue: UpdateDelegate = function (reset) {
   const value = this.getValue();
 
   if (!this.locked) {
@@ -140,7 +140,7 @@ const updateSelectValue: UpdateDelegate = function(reset) {
   }
 };
 
-const updateContentEditableValue: UpdateDelegate = function(reset) {
+const updateContentEditableValue: UpdateDelegate = function (reset) {
   const value = this.getValue();
 
   if (!this.locked) {
@@ -149,7 +149,7 @@ const updateContentEditableValue: UpdateDelegate = function(reset) {
   }
 };
 
-const updateRadioValue: UpdateDelegate = function(reset) {
+const updateRadioValue: UpdateDelegate = function (reset) {
   const node = this.node;
   const wasChecked = node.checked;
 
@@ -170,7 +170,7 @@ const updateRadioValue: UpdateDelegate = function(reset) {
   }
 };
 
-const updateValue: UpdateDelegate = function(reset) {
+const updateValue: UpdateDelegate = function (reset) {
   if (!this.locked) {
     if (reset) {
       this.node.removeAttribute('value');
@@ -184,7 +184,7 @@ const updateValue: UpdateDelegate = function(reset) {
   }
 };
 
-const updateStringValue: UpdateDelegate = function(reset) {
+const updateStringValue: UpdateDelegate = function (reset) {
   if (!this.locked) {
     if (reset) {
       this.node._ractive.value = '';
@@ -206,12 +206,12 @@ const updateStringValue: UpdateDelegate = function(reset) {
   }
 };
 
-const updateRadioName: UpdateDelegate = function(reset) {
+const updateRadioName: UpdateDelegate = function (reset) {
   if (reset) this.node.checked = false;
   else this.node.checked = this.element.compare(this.getValue(), this.element.binding.getValue());
 };
 
-const updateCheckboxName: UpdateDelegate = function(reset) {
+const updateCheckboxName: UpdateDelegate = function (reset) {
   const { element, node } = this;
   const binding = element.binding;
 
@@ -236,7 +236,7 @@ const updateCheckboxName: UpdateDelegate = function(reset) {
   }
 };
 
-const updateStyleAttribute: UpdateDelegate = function(reset) {
+const updateStyleAttribute: UpdateDelegate = function (reset) {
   const props = reset ? {} : readStyle(this.getValue() || '');
   const style = this.node.style;
   const keys = objectKeys(props);
@@ -260,7 +260,7 @@ const updateStyleAttribute: UpdateDelegate = function(reset) {
   this.previous = keys;
 };
 
-const updateInlineStyle: UpdateDelegate = function(reset) {
+const updateInlineStyle: UpdateDelegate = function (reset) {
   if (!this.style) {
     this.style = hyphenateCamel(this.name.substr(6));
   }
@@ -273,7 +273,7 @@ const updateInlineStyle: UpdateDelegate = function(reset) {
   this.last = this.node.style.getPropertyValue(this.style);
 };
 
-const updateClassName: UpdateDelegate = function(reset) {
+const updateClassName: UpdateDelegate = function (reset) {
   const value = reset ? [] : readClass(safeToStringValue(this.getValue()));
 
   // watch out for weirdo svg elements
@@ -296,7 +296,7 @@ const updateClassName: UpdateDelegate = function(reset) {
   this.previous = value;
 };
 
-const updateInlineClass: UpdateDelegate = function(reset) {
+const updateInlineClass: UpdateDelegate = function (reset) {
   const name = this.name.substr(6);
 
   // watch out for weirdo svg elements
@@ -318,7 +318,7 @@ const updateInlineClass: UpdateDelegate = function(reset) {
   }
 };
 
-const updateBoolean: UpdateDelegate = function(reset) {
+const updateBoolean: UpdateDelegate = function (reset) {
   // with two-way binding, only update if the change wasn't initiated by the user
   // otherwise the cursor will often be sent to the wrong place
   if (!this.locked) {
@@ -340,7 +340,7 @@ const updateBoolean: UpdateDelegate = function(reset) {
   }
 };
 
-export const updateAttribute: UpdateDelegate = function(reset) {
+export const updateAttribute: UpdateDelegate = function (reset) {
   if (reset) {
     if (this.node.getAttribute(this.name) === this.value) {
       this.node.removeAttribute(this.name);
@@ -351,7 +351,7 @@ export const updateAttribute: UpdateDelegate = function(reset) {
   }
 };
 
-export const updateNamespacedAttribute: UpdateDelegate = function(reset) {
+export const updateNamespacedAttribute: UpdateDelegate = function (reset) {
   if (reset) {
     if (
       this.value ===

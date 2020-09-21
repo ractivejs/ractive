@@ -5,6 +5,7 @@ import './polyfills/performance.now';
 import './polyfills/Promise';
 import './polyfills/requestAnimationFrame';
 
+import type { InitOpts } from 'types/InitOptions';
 import { warn } from 'utils/log';
 import { assign, defineProperty, defineProperties } from 'utils/object';
 
@@ -20,6 +21,7 @@ import defaults from './Ractive/config/defaults';
 import construct from './Ractive/construct';
 import initialise from './Ractive/initialise';
 import proto from './Ractive/prototype';
+import type { Ractive as RactiveDef } from './Ractive/RactiveDefinition';
 import shared from './Ractive/shared';
 import easing from './Ractive/static/easing';
 import { findPlugin } from './Ractive/static/findPlugin';
@@ -32,7 +34,7 @@ import { extern } from './shared/getRactiveContext';
 import { escapeKey, unescapeKey, normalise } from './shared/keypaths';
 import parseJSON from './utils/parseJSON';
 
-export default function Ractive(options) {
+export default function Ractive(options: InitOpts): void {
   if (!(this instanceof Ractive)) return new Ractive(options);
 
   construct(this, options || {});
@@ -49,7 +51,7 @@ if (win && !win.Ractive) {
   if (script) opts = script.getAttribute('data-ractive-options') || '';
 
   /* istanbul ignore next */
-  if (~opts.indexOf('ForceGlobal')) win.Ractive = Ractive;
+  if (~opts.indexOf('ForceGlobal')) win.Ractive = (Ractive as unknown) as RactiveDef;
 } else if (win) {
   warn(`Ractive already appears to be loaded while loading BUILD_PLACEHOLDER_VERSION.`);
 }
@@ -62,7 +64,7 @@ Ractive.defaults = Ractive.prototype;
 
 // share defaults with the parser
 shared.defaults = Ractive.defaults;
-shared.Ractive = Ractive;
+shared.Ractive = (Ractive as unknown) as RactiveDef;
 
 // static properties
 defineProperties(Ractive, {

@@ -1,13 +1,13 @@
 import TemplateItemType from 'config/types';
-import { ValueTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
-import Parser from 'parse/Parser';
+import type { ValueTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+import type Parser from 'parse/Parser';
 
 import makeQuotedStringMatcher from './stringLiteral/makeQuotedStringMatcher';
 
 const singleMatcher = makeQuotedStringMatcher(`"`);
 const doubleMatcher = makeQuotedStringMatcher(`'`);
 
-export default function(parser: Parser): ValueTemplateItem {
+export default function (parser: Parser): ValueTemplateItem {
   const start = parser.pos;
   const quote = parser.matchString(`'`) || parser.matchString(`"`);
 

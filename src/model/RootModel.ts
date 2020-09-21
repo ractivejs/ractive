@@ -1,16 +1,16 @@
 import { splitKeypath, unescapeKey } from 'shared/keypaths';
 import { handleChange, mark } from 'shared/methodCallers';
 import { capture } from 'src/global/capture';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { Adaptor } from 'types/Adaptor';
-import { Keypath } from 'types/Generic';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Adaptor } from 'types/Adaptor';
+import type { Keypath } from 'types/Generic';
 import noop from 'utils/noop';
-import Fragment from 'view/Fragment';
+import type Fragment from 'view/Fragment';
 import resolveReference from 'view/resolvers/resolveReference';
 
-import LinkModel from './LinkModel';
+import type LinkModel from './LinkModel';
 import Model from './Model';
-import { ModelGetOpts, ModelLinkOpts, ModelJoinOpts } from './ModelBase';
+import type { ModelGetOpts, ModelLinkOpts, ModelJoinOpts } from './ModelBase';
 import RactiveModel from './specials/RactiveModel';
 import SharedModel, { GlobalModel, SharedModel as SharedBase } from './specials/SharedModel';
 

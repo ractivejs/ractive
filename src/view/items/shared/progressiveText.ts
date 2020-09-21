@@ -1,7 +1,7 @@
 import { doc } from 'config/environment';
-import Text from 'view/items/Text';
+import type Text from 'view/items/Text';
 
-import Interpolator from '../Interpolator';
+import type Interpolator from '../Interpolator';
 
 export type TextOccupant = globalThis.Text | HTMLParagraphElement;
 

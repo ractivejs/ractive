@@ -1,13 +1,13 @@
-import LinkModel from 'model/LinkModel';
-import Model from 'model/Model';
+import type LinkModel from 'model/LinkModel';
+import type Model from 'model/Model';
 import { splitKeypath } from 'shared/keypaths';
 import hooks from 'src/events/Hook';
 import runloop from 'src/global/runloop';
-import { Keypath } from 'types/Generic';
-import { UpdateOpts } from 'types/MethodOptions';
+import type { Keypath } from 'types/Generic';
+import type { UpdateOpts } from 'types/MethodOptions';
 import { isString } from 'utils/is';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 export function update(
   ractive: Ractive,

@@ -1,10 +1,10 @@
 import TemplateItemType from 'config/types';
-import {
+import type {
   GenericAttributeTemplateItem,
   GenericAttributeTemplateValue
 } from 'parse/converters/element/elementDefinitions';
 import { splitKeypath } from 'shared/keypaths';
-import { Filter } from 'types/utils';
+import type { Filter } from 'types/utils';
 import { isArray, isObjectType, isString, isUndefined } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 
@@ -12,8 +12,8 @@ import runloop from '../../../global/runloop';
 import parseJSON from '../../../utils/parseJSON';
 import Fragment from '../../Fragment';
 import resolve from '../../resolvers/resolve';
-import Component from '../Component';
-import Section from '../Section';
+import type Component from '../Component';
+import type Section from '../Section';
 import findElement from '../shared/findElement';
 import Item, { ItemOpts } from '../shared/Item';
 

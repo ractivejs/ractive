@@ -1,4 +1,4 @@
-import { DoctypeTemplateItem } from 'parse/converters/templateItemDefinitions';
+import type { DoctypeTemplateItem } from 'parse/converters/templateItemDefinitions';
 
 import Item, { ItemBasicInterface } from './shared/Item';
 

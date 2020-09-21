@@ -1,7 +1,7 @@
 import { hasConsole } from 'config/environment';
 import { capture, startCapturing, stopCapturing } from 'src/global/capture';
 import runloop from 'src/global/runloop';
-import { ComputationSignature } from 'src/Ractive/helpers/getComputationSignature';
+import type { ComputationSignature } from 'src/Ractive/helpers/getComputationSignature';
 import { isEqual } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 

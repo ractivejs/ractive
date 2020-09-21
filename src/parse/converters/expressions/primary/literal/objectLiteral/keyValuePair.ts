@@ -1,6 +1,6 @@
 import TemplateItemType from 'config/types';
-import { StandardParser } from 'parse/_parse';
-import { KeyValuePairTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+import type { StandardParser } from 'parse/_parse';
+import type { KeyValuePairTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 import readExpression from 'parse/converters/readExpression';
 
 import { name as namePattern, spreadPattern } from '../../../shared/patterns';

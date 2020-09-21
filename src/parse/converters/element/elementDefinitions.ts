@@ -1,13 +1,13 @@
-import TemplateItemType from 'config/types';
+import type TemplateItemType from 'config/types';
 
-import { ExpressionRefinementTemplateItem } from '../expressions/expressionDefinitions';
-import {
+import type { ExpressionRefinementTemplateItem } from '../expressions/expressionDefinitions';
+import type {
   SectionMustacheTemplateItem,
   InterpolatorTemplateItem,
   TripleMustacheTemplateItem,
   PartialMustacheTemplateItem
 } from '../mustache/mustacheDefinitions';
-import { ExpressionFunctionTemplateItem } from '../templateItemDefinitions';
+import type { ExpressionFunctionTemplateItem } from '../templateItemDefinitions';
 
 export interface ClosingTagTemplateItem {
   t: TemplateItemType.CLOSING_TAG;

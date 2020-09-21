@@ -1,16 +1,16 @@
 import { escapeKey, unescapeKey } from 'shared/keypaths';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { Keypath } from 'types/Generic';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Keypath } from 'types/Generic';
 import { addToArray, removeFromArray, Indexes } from 'utils/array';
 import bind from 'utils/bind';
 import { isArray, isObject, isObjectLike, isFunction } from 'utils/is';
 import { create, keys as objectKeys } from 'utils/object';
 
-import Computation from './Computation';
+import type Computation from './Computation';
 import LinkModel from './LinkModel';
-import Model from './Model';
-import RootModel from './RootModel';
-import RactiveModel from './specials/RactiveModel';
+import type Model from './Model';
+import type RootModel from './RootModel';
+import type RactiveModel from './specials/RactiveModel';
 
 interface ShuffleTaskRegistry<T> {
   early: T[];

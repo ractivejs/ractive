@@ -1,5 +1,5 @@
-import ModelBase from 'model/ModelBase';
-import KeyModel from 'model/specials/KeyModel';
+import type ModelBase from 'model/ModelBase';
+import type KeyModel from 'model/specials/KeyModel';
 import { addToArray } from 'utils/array';
 
 // TODO refine types on this two variables and in stopCapturing function

@@ -1,6 +1,6 @@
 import { isArray } from 'utils/is';
 
-import Input from '../specials/Input';
+import type Input from '../specials/Input';
 
 import Binding, { BindingWithInitialValue, BasicBindingInterface, BindingValue } from './Binding';
 import getBindingGroup, { BindingGroup } from './getBindingGroup';
@@ -20,7 +20,8 @@ function getValue(): BindingValue[] {
   return res;
 }
 
-export default class CheckboxNameBinding extends Binding
+export default class CheckboxNameBinding
+  extends Binding
   implements BindingWithInitialValue, BasicBindingInterface {
   public checkboxName: boolean;
   public group: BindingGroup<BindingValue[], CheckboxNameBinding>;

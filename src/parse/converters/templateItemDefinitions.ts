@@ -1,14 +1,14 @@
-import TemplateItemType from 'config/types';
-import { LinePosition } from 'parse/Parser';
+import type TemplateItemType from 'config/types';
+import type { LinePosition } from 'parse/Parser';
 
-import {
+import type {
   GenericAttributeTemplateItem,
   TransitionDirectiveTemplateItem,
   DecoratorDirectiveTemplateItem,
   EventDirectiveTemplateItem,
   AttributesOrDirectiveTemplateItem
 } from './element/elementDefinitions';
-import { FragmentTemplateItem, MustachePrimaryItem } from './mustache/mustacheDefinitions';
+import type { FragmentTemplateItem, MustachePrimaryItem } from './mustache/mustacheDefinitions';
 
 // todo replace occurrences of string where it makes sense
 export type TextTemplateItem = string;

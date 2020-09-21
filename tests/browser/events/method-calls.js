@@ -3,7 +3,7 @@ import { fire } from 'simulant';
 
 import { initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('events/method-calls.js');
 
   test('Calling a builtin method', t => {
@@ -50,7 +50,7 @@ export default function() {
     // Catching errors inside handlers for programmatically-fired events
     // is a world of facepalm http://jsfiddle.net/geoz2tks/
     const onerror = window.onerror;
-    window.onerror = function(err) {
+    window.onerror = function (err) {
       // since expression events, the exception varies based on browser
       // so we'll say that if it throws, it was good
       t.ok(true, `${err.message} - ${err.toString()}`);

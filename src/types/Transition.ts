@@ -1,4 +1,4 @@
-import { ValueMap } from './Generic';
+import type { ValueMap } from './Generic';
 
 export interface TransitionHelper {
   /** true if this transition is an intro */

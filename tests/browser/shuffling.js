@@ -3,7 +3,7 @@ import { fire } from 'simulant';
 
 import { initModule } from '../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('shuffling.js');
 
   test('Pattern observers on arrays fire correctly after mutations (mirror of test in observe.js)', t => {
@@ -883,7 +883,7 @@ export default function() {
   });
 
   test(`observers with non-shuffling args in a decorator that is shuffled resets correctly (#3228)`, t => {
-    const dec = function(node, path) {
+    const dec = function (node, path) {
       const observer = this.observe(
         path,
         (v, o, k) => {

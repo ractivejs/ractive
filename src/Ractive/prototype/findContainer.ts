@@ -1,4 +1,4 @@
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$findContainer(this: Ractive, selector: string): Ractive {
   if (this.container) {

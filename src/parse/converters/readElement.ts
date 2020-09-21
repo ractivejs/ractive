@@ -7,11 +7,14 @@ import { create } from 'utils/object';
 
 import { READERS, PARTIAL_READERS, StandardParser, StandardParserTag } from '../_parse';
 
-import { ClosingTagTemplateItem, ExcludedElementTemplateItem } from './element/elementDefinitions';
+import type {
+  ClosingTagTemplateItem,
+  ExcludedElementTemplateItem
+} from './element/elementDefinitions';
 import readClosingTag from './element/readClosingTag';
 import readClosing from './mustache/section/readClosing';
 import readMustache from './readMustache';
-import {
+import type {
   DoctypeTemplateItem,
   ElementTemplateItem,
   AnchorTemplateItem,

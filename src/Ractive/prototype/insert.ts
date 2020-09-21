@@ -1,9 +1,9 @@
 import hooks from 'src/events/Hook';
-import { Target } from 'types/Generic';
-import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
+import type { Target } from 'types/Generic';
+import type { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { getElement } from 'utils/dom';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$insert(this: Ractive, target: Target, anchor: Target): void {
   if (!this.fragment.rendered) {

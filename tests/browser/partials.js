@@ -3,7 +3,7 @@ import { fire } from 'simulant';
 
 import { initModule, hasUsableConsole, onWarn } from '../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('partials.js');
 
   const partialsFn = {
@@ -1252,7 +1252,7 @@ export default function() {
     const a = Ractive.parse(`{{1 + 2}}`, { csp: true });
 
     // after Ractive.extend, 1+2 should still return 5, rather than being re-evaluated to 3
-    a.e['1+2'] = function() {
+    a.e['1+2'] = function () {
       return ['5'];
     };
 
@@ -1275,7 +1275,7 @@ export default function() {
     const a = Ractive.parse(`{{1 + 2}}`, { csp: true });
 
     // after Ractive.extend, 1+2 should still return 5, rather than being re-evaluated to 3
-    a.e['1+2'] = function() {
+    a.e['1+2'] = function () {
       return ['5'];
     };
 

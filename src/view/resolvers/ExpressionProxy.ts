@@ -1,17 +1,18 @@
 import Computation from 'model/Computation';
-import LinkModel from 'model/LinkModel';
+import type LinkModel from 'model/LinkModel';
 import Model from 'model/Model';
-import ModelBase, { ModelWithRebound } from 'model/ModelBase';
-import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
+import type ModelBase from 'model/ModelBase';
+import type { ModelWithRebound } from 'model/ModelBase';
+import type { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 import getFunction from 'shared/getFunction';
 import { rebindMatch } from 'shared/rebind';
 import { startCapturing, stopCapturing } from 'src/global/capture';
-import { Keypath } from 'types/Generic';
+import type { Keypath } from 'types/Generic';
 import { removeFromArray } from 'utils/array';
 import { warnIfDebug } from 'utils/log';
 import noop from 'utils/noop';
-import Fragment from 'view/Fragment';
-import RepeatedFragment from 'view/RepeatedFragment';
+import type Fragment from 'view/Fragment';
+import type RepeatedFragment from 'view/RepeatedFragment';
 
 import resolveReference from './resolveReference';
 

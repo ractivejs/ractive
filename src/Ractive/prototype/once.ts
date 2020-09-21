@@ -1,6 +1,6 @@
-import { ListenerCallback, ListenerHandle } from 'types/Listener';
+import type { ListenerCallback, ListenerHandle } from 'types/Listener';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 function Ractive$once(
   this: Ractive,

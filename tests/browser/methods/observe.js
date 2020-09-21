@@ -3,7 +3,7 @@ import { fire } from 'simulant';
 
 import { initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('methods/observe.js');
 
   test('Observers fire before the DOM updates', t => {
@@ -57,7 +57,7 @@ export default function() {
 
     ractive.observe(
       'items',
-      function() {
+      function () {
         t.equal(this.findAll('li').length, this.el.querySelectorAll('li').length);
       },
       { init: false, defer: true }
@@ -513,7 +513,7 @@ export default function() {
 
     ractive.observe(
       'foo.*',
-      function() {
+      function () {
         t.ok(this === window);
       },
       { context: window }
@@ -521,7 +521,7 @@ export default function() {
 
     ractive.observe(
       'foo',
-      function() {
+      function () {
         t.ok(this === window);
       },
       { context: window }
@@ -881,7 +881,7 @@ export default function() {
       }
     });
 
-    ractive.observe('items.*.value', function(n, o, k, i) {
+    ractive.observe('items.*.value', function (n, o, k, i) {
       const min = this.get('items[' + i + '].min');
       const max = this.get('items[' + i + '].max');
 
@@ -1312,7 +1312,7 @@ export default function() {
       }
     });
 
-    r.observe('int', function() {
+    r.observe('int', function () {
       this.add('observerCalledTimes', 1);
     });
 
@@ -1371,7 +1371,7 @@ export default function() {
 
     r.observe(
       'foo',
-      function(v, o, k) {
+      function (v, o, k) {
         count++;
         this.set(k, v + '1');
       },
@@ -1536,7 +1536,7 @@ export default function() {
     const r = new Ractive();
     const handle = r.observe(
       'foo',
-      function() {
+      function () {
         t.ok(this === r);
         count++;
       },
@@ -1821,7 +1821,7 @@ export default function() {
       }
     });
 
-    r.observe('list', function() {
+    r.observe('list', function () {
       t.equal(this, r);
     });
 

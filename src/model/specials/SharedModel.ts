@@ -1,6 +1,6 @@
 import { base } from 'config/environment';
-import { Adaptor } from 'types/Adaptor';
-import { Keypath } from 'types/Generic';
+import type { Adaptor } from 'types/Adaptor';
+import type { Keypath } from 'types/Generic';
 
 import Model from '../Model';
 

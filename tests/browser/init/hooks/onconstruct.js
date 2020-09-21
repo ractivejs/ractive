@@ -2,7 +2,7 @@ import { test } from 'qunit';
 
 import { initModule } from '../../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('init/hooks/onconstruct.js');
 
   test('has access to options', t => {

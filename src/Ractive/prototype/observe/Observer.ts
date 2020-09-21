@@ -1,9 +1,9 @@
-import ModelBase from 'model/ModelBase';
+import type ModelBase from 'model/ModelBase';
 import { rebindMatch } from 'shared/rebind';
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { Keypath } from 'types/Generic';
-import { ObserverCallback, ObserverOpts } from 'types/Observer';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Keypath } from 'types/Generic';
+import type { ObserverCallback, ObserverOpts } from 'types/Observer';
 import { removeFromArray } from 'utils/array';
 import { isEqual, isFunction } from 'utils/is';
 import { warnIfDebug } from 'utils/log';

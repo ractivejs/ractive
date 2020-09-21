@@ -1,5 +1,5 @@
-import { StandardParser } from 'parse/_parse';
-import { KeyValuePairTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+import type { StandardParser } from 'parse/_parse';
+import type { KeyValuePairTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 
 import getKeyValuePair from './keyValuePair';
 

@@ -1,11 +1,12 @@
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import { localFragment } from 'src/shared/Context';
-import { EventPlugin, EventPluginHandle } from 'types/Events';
+import type { EventPlugin, EventPluginHandle } from 'types/Events';
 import { fatal } from 'utils/log';
 
-import Element from '../Element';
-import EventDirective, { RactiveEventInterface } from '../shared/EventDirective';
+import type Element from '../Element';
+import type EventDirective from '../shared/EventDirective';
+import type { RactiveEventInterface } from '../shared/EventDirective';
 
 class DOMEvent implements RactiveEventInterface {
   private name: string;

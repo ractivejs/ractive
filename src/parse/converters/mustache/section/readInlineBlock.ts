@@ -1,9 +1,9 @@
 import TemplateItemType from 'config/types';
-import { StandardParser, StandardParserTag } from 'parse/_parse';
+import type { StandardParser, StandardParserTag } from 'parse/_parse';
 
 import { name } from '../../expressions/shared/patterns';
 import readExpression from '../../readExpression';
-import {
+import type {
   ElseMustacheTemplateItem,
   ElseIfMustacheTemplateItem,
   ThenMustacheTemplateItem,

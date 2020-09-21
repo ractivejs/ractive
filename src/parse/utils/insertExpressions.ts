@@ -1,4 +1,4 @@
-import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
+import type { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { isArray, isObject } from 'utils/is';
 import { keys } from 'utils/object';
 

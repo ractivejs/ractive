@@ -87,7 +87,7 @@ Found a bug? Raise an issue:
     );
   };
 
-  log = function(...args) {
+  log = function (...args) {
     console.log(...args);
   };
 } else {

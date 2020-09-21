@@ -1,16 +1,16 @@
 import TemplateItemType from 'config/types';
 import Model, { AnimatePromise } from 'model/Model';
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { ContextHelper } from 'types/Context';
-import { DecoratorHandle } from 'types/Decorator';
-import { Keypath } from 'types/Generic';
-import { SetOpts } from 'types/MethodOptions';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { ContextHelper } from 'types/Context';
+import type { DecoratorHandle } from 'types/Decorator';
+import type { Keypath } from 'types/Generic';
+import type { SetOpts } from 'types/MethodOptions';
 import { isNumeric, isObject, isNumber, isObjectType, isString } from 'utils/is';
 import { hasOwn } from 'utils/object';
-import Fragment from 'view/Fragment';
-import Element from 'view/items/Element';
-import EventDirective from 'view/items/shared/EventDirective';
+import type Fragment from 'view/Fragment';
+import type Element from 'view/items/Element';
+import type EventDirective from 'view/items/shared/EventDirective';
 import findElement from 'view/items/shared/findElement';
 import resolveReference from 'view/resolvers/resolveReference';
 

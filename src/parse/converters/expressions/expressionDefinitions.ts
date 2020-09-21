@@ -1,6 +1,6 @@
-import TemplateItemType from 'config/types';
+import type TemplateItemType from 'config/types';
 
-import { ExpressionFunctionTemplateItem } from '../templateItemDefinitions';
+import type { ExpressionFunctionTemplateItem } from '../templateItemDefinitions';
 
 export interface SimpleTemplateItem {
   v: string | any;

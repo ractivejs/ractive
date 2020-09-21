@@ -1,10 +1,10 @@
 import TemplateItemType from 'config/types';
-import {
+import type {
   ExpressionRefinementTemplateItem,
   ReferenceExpressionTemplateItem,
   ExpressionTemplateItem
 } from 'parse/converters/expressions/expressionDefinitions';
-import {
+import type {
   TripleMustacheTemplateItem,
   InterpolatorTemplateItem
 } from 'parse/converters/mustache/mustacheDefinitions';

@@ -4,12 +4,7 @@ import cheerio from 'cheerio';
 import renderTests from '../helpers/samples/render';
 
 function normaliseHTML(html) {
-  return cheerio
-    .load(html)
-    .html()
-    .trim()
-    .replace(/^\s+/gm, '')
-    .replace(/\n/g, ' ');
+  return cheerio.load(html).html().trim().replace(/^\s+/gm, '').replace(/\n/g, ' ');
 }
 
 function getData(data) {
@@ -36,7 +31,7 @@ function deepClone(source) {
   return target;
 }
 
-export default function() {
+export default function () {
   module('ractive.toHTML()');
 
   renderTests.forEach(theTest => {

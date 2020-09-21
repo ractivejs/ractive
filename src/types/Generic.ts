@@ -1,9 +1,9 @@
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import Fragment from 'view/Fragment';
-import Component from 'view/items/Component';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type Fragment from 'view/Fragment';
+import type Component from 'view/items/Component';
 
-import { Macro } from './Macro';
-import { ParseFn } from './Parse';
+import type { Macro } from './Macro';
+import type { ParseFn } from './Parse';
 
 /**
  * A Ractive keypath string which contains a navigable set of keys divided by dots.

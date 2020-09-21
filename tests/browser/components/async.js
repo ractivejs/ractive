@@ -2,7 +2,7 @@ import { test } from 'qunit';
 
 import { initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('components/async.js');
 
   test(`loading a components from a promise`, t => {

@@ -1,5 +1,5 @@
 import { missingPlugin } from 'config/errors';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import { fatal } from 'utils/log';
 
 import interpolators, { InterpolatorFunction } from '../Ractive/static/interpolators';

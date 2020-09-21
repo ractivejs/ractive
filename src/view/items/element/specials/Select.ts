@@ -1,11 +1,11 @@
-import { RactiveHTMLOptionElement } from 'types/RactiveHTMLElement';
+import type { RactiveHTMLOptionElement } from 'types/RactiveHTMLElement';
 import { toArray } from 'utils/array';
 import getSelectedOptions from 'utils/getSelectedOptions';
 import { isArray, isFunction } from 'utils/is';
 
 import Element, { ElementOpts } from '../../Element';
-import SingleSelectBinding from '../binding/SingleSelectBinding';
-import { BindingFlagOwner } from '../BindingFlag';
+import type SingleSelectBinding from '../binding/SingleSelectBinding';
+import type { BindingFlagOwner } from '../BindingFlag';
 
 export default class Select extends Element implements BindingFlagOwner {
   public options: any[];

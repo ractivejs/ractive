@@ -1,5 +1,5 @@
-import { PartialMap, ValueMap } from './Generic';
-import { Template } from './Parse';
+import type { PartialMap, ValueMap } from './Generic';
+import type { Template } from './Parse';
 
 export type MacroFn = (MacroHelper: MacroHelper, attrs?: Record<string, any>) => MacroHandle | void;
 

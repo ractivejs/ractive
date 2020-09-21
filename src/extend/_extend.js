@@ -48,7 +48,7 @@ function extendOne(Parent, options = {}, Target) {
 
     proto = Child.prototype;
   } else {
-    Child = function(options) {
+    Child = function (options) {
       if (!(this instanceof Child)) return new Child(options);
 
       construct(this, options || {});

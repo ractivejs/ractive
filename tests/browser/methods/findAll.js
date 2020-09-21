@@ -2,7 +2,7 @@ import { test } from 'qunit';
 
 import { initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('methods/findAll.js');
 
   test('findAll() gets an array of all nodes matching a selector', t => {

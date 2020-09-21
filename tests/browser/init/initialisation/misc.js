@@ -2,7 +2,7 @@ import { test } from 'qunit';
 
 import { hasUsableConsole, onWarn, initModule } from '../../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('init/initialisation/misc.js');
 
   test('initialize with no options ok', t => {

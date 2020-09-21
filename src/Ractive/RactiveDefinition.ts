@@ -1,21 +1,21 @@
-import Computation from 'model/Computation';
-import RootModel from 'model/RootModel';
-import CSSModel from 'model/specials/CSSModel';
-import Context from 'shared/Context';
-import { FakeFragment } from 'shared/getRactiveContext';
-import { Adaptor } from 'types/Adaptor';
-import { Decorator } from 'types/Decorator';
-import { EasingFunction } from 'types/Easings';
-import { EventPlugin } from 'types/Events';
-import { Data, Helper, Meta, Partial } from 'types/Generic';
-import { EventListenerEntry } from 'types/Listener';
-import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
-import { Registry } from 'types/Registries';
-import { Transition } from 'types/Transition';
-import Fragment from 'view/Fragment';
-import Element from 'view/items/Element';
+import type Computation from 'model/Computation';
+import type RootModel from 'model/RootModel';
+import type CSSModel from 'model/specials/CSSModel';
+import type Context from 'shared/Context';
+import type { FakeFragment } from 'shared/getRactiveContext';
+import type { Adaptor } from 'types/Adaptor';
+import type { Decorator } from 'types/Decorator';
+import type { EasingFunction } from 'types/Easings';
+import type { EventPlugin } from 'types/Events';
+import type { Data, Helper, Meta, Partial } from 'types/Generic';
+import type { EventListenerEntry } from 'types/Listener';
+import type { RactiveHTMLElement } from 'types/RactiveHTMLElement';
+import type { Registry } from 'types/Registries';
+import type { Transition } from 'types/Transition';
+import type Fragment from 'view/Fragment';
+import type Element from 'view/items/Element';
 
-import { RactiveDynamicTemplate } from './config/custom/template';
+import type { RactiveDynamicTemplate } from './config/custom/template';
 import Ractive$add from './prototype/add';
 import Ractive$animate from './prototype/animate';
 import Ractive$attachChild from './prototype/attachChild';
@@ -62,7 +62,7 @@ import Ractive$unshift from './prototype/unshift';
 import Ractive$update from './prototype/update';
 import Ractive$updateModel from './prototype/updateModel';
 import Ractive$use from './prototype/use';
-import { InterpolatorFunction } from './static/interpolators';
+import type { InterpolatorFunction } from './static/interpolators';
 
 export interface RactiveConstructor extends Function {
   _cssIds: string[];

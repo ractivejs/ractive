@@ -3,7 +3,7 @@ import { fire } from 'simulant';
 
 import { initModule } from '../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('autoshuffle');
 
   test(`iterative sections can be told to always automatically shuffle themselves`, t => {

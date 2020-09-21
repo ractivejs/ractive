@@ -1,9 +1,9 @@
-import { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import noop from 'utils/noop';
 import { assign, create } from 'utils/object';
-import Fragment from 'view/Fragment';
+import type Fragment from 'view/Fragment';
 
-import Context from './Context';
+import type Context from './Context';
 
 export const extern: { Context?: typeof Context } = {};
 

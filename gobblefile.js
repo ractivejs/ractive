@@ -3,20 +3,18 @@
 const fs = require('fs');
 const path = require('path');
 
+const buble = require('@evs-chris/buble');
 const fsPlus = require('fs-plus');
 const gobble = require('gobble');
-const buble = require('@evs-chris/buble');
+const MagicString = require('magic-string');
 const rollupLib = require('rollup');
-
+const istanbul = require('rollup-plugin-istanbul');
 /**
  * with rollup-plugin-typescript2 we can import js files in ts files
  * with @rollup/plugin-typescript that will break the compilation process
  */
 // const rollupTypescript = require('@rollup/plugin-typescript');
 const rollupTypescript = require('rollup-plugin-typescript2');
-
-const istanbul = require('rollup-plugin-istanbul');
-const MagicString = require('magic-string');
 
 const time = new Date();
 const commitHash = process.env.COMMIT_HASH || 'unknown';
@@ -103,7 +101,7 @@ function buildUmdLib(dest, plugins = []) {
   return src
     .transform(rollup, {
       plugins: plugins,
-      input: 'Ractive.js',
+      input: 'Ractive.ts',
       output: {
         name: 'Ractive',
         format: 'umd',
@@ -123,7 +121,7 @@ function buildESLib(dest, plugins = []) {
   return src
     .transform(rollup, {
       plugins: plugins,
-      input: 'Ractive.js',
+      input: 'Ractive.ts',
       output: {
         format: 'es',
         file: dest,
@@ -179,7 +177,7 @@ function buildNodeTests() {
 function skipModule(excludedModules) {
   return {
     name: 'skipModule',
-    transform: function(src, modulePath) {
+    transform: function (src, modulePath) {
       const moduleRelativePath = path
         .relative(path.join(__dirname, 'src'), modulePath)
         .split(path.sep)
@@ -258,7 +256,7 @@ function rollup(indir, outdir, options) {
     file: path.join(outdir, options.output.file)
   });
 
-  inputOptions.onwarn = function(msg, warn) {
+  inputOptions.onwarn = function (msg, warn) {
     if (msg.code === 'CIRCULAR_DEPENDENCY') return;
     warn(msg);
   };

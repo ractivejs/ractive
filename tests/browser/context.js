@@ -3,7 +3,7 @@ import { fire } from 'simulant';
 
 import { initModule, onWarn } from '../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('context.js');
 
   test('node info relative data get', t => {
@@ -787,7 +787,7 @@ export default function() {
     const ctx = r.getContext('button');
 
     const add = Element.prototype.addEventListener;
-    Element.prototype.addEventListener = function(event, handler, capture) {
+    Element.prototype.addEventListener = function (event, handler, capture) {
       t.ok(capture);
       t.ok(this.tagName === 'DIV');
       t.ok(event === 'click');
@@ -808,7 +808,7 @@ export default function() {
     let count = 0;
 
     const add = Element.prototype.addEventListener;
-    Element.prototype.addEventListener = function(event, handler, capture) {
+    Element.prototype.addEventListener = function (event, handler, capture) {
       count++;
       t.ok(!capture);
       return add.call(this, event, handler, capture);
@@ -839,7 +839,7 @@ export default function() {
     let count = 0;
 
     const add = Element.prototype.addEventListener;
-    Element.prototype.addEventListener = function(event, handler, capture) {
+    Element.prototype.addEventListener = function (event, handler, capture) {
       count++;
       t.ok(capture);
       t.ok(this.tagName === 'DIV');
@@ -875,14 +875,14 @@ export default function() {
 
     const rem = Element.prototype.removeEventListener;
     const add = Element.prototype.addEventListener;
-    Element.prototype.addEventListener = function(event, handler, capture) {
+    Element.prototype.addEventListener = function (event, handler, capture) {
       count++;
       t.equal(capture, delegate);
       t.ok(this.tagName === 'DIV');
       t.ok(event === 'click');
       return add.call(this, event, handler, capture);
     };
-    Element.prototype.removeEventListener = function(event, handler, capture) {
+    Element.prototype.removeEventListener = function (event, handler, capture) {
       rcount++;
       t.equal(capture, !delegate);
       return rem.call(this, event, handler, capture);
@@ -1094,12 +1094,7 @@ export default function() {
       components: { cmp }
     });
 
-    t.ok(
-      r
-        .findComponent('cmp')
-        .getContext()
-        .hasListener('foo')
-    );
+    t.ok(r.findComponent('cmp').getContext().hasListener('foo'));
   });
 
   test(`raise with no matching event listener should not explode (#3226)`, t => {

@@ -1,7 +1,7 @@
 import TemplateItemType from 'config/types';
-import { StandardParser, StandardParserTag } from 'parse/_parse';
+import type { StandardParser, StandardParserTag } from 'parse/_parse';
 
-import { CommentTemplateItem } from '../templateItemDefinitions';
+import type { CommentTemplateItem } from '../templateItemDefinitions';
 
 export default function readComment(
   parser: StandardParser,

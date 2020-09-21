@@ -13,7 +13,7 @@ function handleBlur(): void {
 function handleDelay(delay: number): () => void {
   let timeout;
 
-  return function(): void {
+  return function (): void {
     if (timeout) clearTimeout(timeout);
 
     timeout = setTimeout(() => {
@@ -24,7 +24,8 @@ function handleDelay(delay: number): () => void {
   };
 }
 
-export default class GenericBinding extends Binding
+export default class GenericBinding
+  extends Binding
   implements BindingWithInitialValue, BasicBindingInterface {
   public handler: () => void;
 

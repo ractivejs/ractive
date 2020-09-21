@@ -1,9 +1,9 @@
 import { badArguments } from 'config/errors';
 import { gather, set } from 'shared/set';
-import { SetOpts } from 'types/MethodOptions';
+import type { SetOpts } from 'types/MethodOptions';
 import { isString } from 'utils/is';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 // TODO add options to documentation
 export default function Ractive$toggle(

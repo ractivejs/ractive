@@ -1,6 +1,6 @@
 import { removeFromArray } from 'utils/array';
 import { isFunction } from 'utils/is';
-import Transition from 'view/items/element/Transition';
+import type Transition from 'view/items/element/Transition';
 
 let id = 0;
 

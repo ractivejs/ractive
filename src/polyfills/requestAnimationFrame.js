@@ -4,7 +4,7 @@ if (
   !(window.requestAnimationFrame && window.cancelAnimationFrame)
 ) {
   let lastTime = 0;
-  window.requestAnimationFrame = function(callback) {
+  window.requestAnimationFrame = function (callback) {
     const currentTime = Date.now();
     const timeToNextCall = Math.max(0, 16 - (currentTime - lastTime));
     const id = window.setTimeout(() => {
@@ -13,7 +13,7 @@ if (
     lastTime = currentTime + timeToNextCall;
     return id;
   };
-  window.cancelAnimationFrame = function(id) {
+  window.cancelAnimationFrame = function (id) {
     clearTimeout(id);
   };
 }

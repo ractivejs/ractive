@@ -1,10 +1,10 @@
 import TemplateItemType from 'config/types';
-import { StandardParser } from 'parse/_parse';
+import type { StandardParser } from 'parse/_parse';
 
-import { ArrayLiteralTemplateItem } from '../../expressionDefinitions';
+import type { ArrayLiteralTemplateItem } from '../../expressionDefinitions';
 import readExpressionList from '../../shared/readExpressionList';
 
-export default function(parser: StandardParser): ArrayLiteralTemplateItem {
+export default function (parser: StandardParser): ArrayLiteralTemplateItem {
   const start = parser.pos;
 
   // allow whitespace before '['

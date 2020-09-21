@@ -1,12 +1,12 @@
-import ModelBase from 'model/ModelBase';
+import type ModelBase from 'model/ModelBase';
 import SharedModel, { GlobalModel, SharedModel as ContextModel } from 'model/specials/SharedModel';
-import { FakeFragment } from 'shared/getRactiveContext';
+import type { FakeFragment } from 'shared/getRactiveContext';
 import { splitKeypath } from 'shared/keypaths';
 import { isFunction } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn } from 'utils/object';
-import Fragment from 'view/Fragment';
-import RepeatedFragment from 'view/RepeatedFragment';
+import type Fragment from 'view/Fragment';
+import type RepeatedFragment from 'view/RepeatedFragment';
 
 // TODO refine types
 
@@ -233,10 +233,7 @@ export default function resolveReference(
   // if enabled, check the instance for a match
   const instance = initialFragment.ractive;
   if (instance.resolveInstanceMembers && base !== 'data' && base in instance) {
-    return instance.viewmodel
-      .getRactiveModel()
-      .joinKey(base)
-      .joinAll(keys);
+    return instance.viewmodel.getRactiveModel().joinKey(base).joinAll(keys);
   }
 
   if (shouldWarn) {

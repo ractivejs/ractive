@@ -1,6 +1,6 @@
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { Data, DataFn } from 'types/Generic';
-import { InitOpts } from 'types/InitOptions';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Data, DataFn } from 'types/Generic';
+import type { InitOpts } from 'types/InitOptions';
 import bind from 'utils/bind';
 import { isArray, isObject, isFunction, isObjectType } from 'utils/is';
 import { fatal, warnIfDebug, warnOnceIfDebug } from 'utils/log';
@@ -114,7 +114,7 @@ function combine(parentValue: Data | DataFn, childValue: Data | DataFn): Data {
     return fromProperties(childValue, parentValue);
   }
 
-  return function() {
+  return function () {
     const child = isFunction(childValue) ? callDataFunction(childValue, this) : childValue;
     const parent = isFunction(parentValue) ? callDataFunction(parentValue, this) : parentValue;
 

@@ -1,8 +1,8 @@
-import { EventListenerEntry, ListenerCallback, ListenerHandle } from 'types/Listener';
+import type { EventListenerEntry, ListenerCallback, ListenerHandle } from 'types/Listener';
 import { isObjectType, isString } from 'utils/is';
 import { hasOwn } from 'utils/object';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 import notEmptyString from './shared/notEmptyString';
 import trim from './shared/trim';
@@ -32,10 +32,7 @@ function Ractive$on(
     };
 
     if (hasOwn(map, k)) {
-      const names = k
-        .split(' ')
-        .map(trim)
-        .filter(notEmptyString);
+      const names = k.split(' ').map(trim).filter(notEmptyString);
       names.forEach(n => {
         (this._subs[n] || (this._subs[n] = [])).push(entry);
         if (n.indexOf('.')) this._nsSubs++;

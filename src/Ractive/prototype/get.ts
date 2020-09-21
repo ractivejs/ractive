@@ -1,12 +1,12 @@
-import ModelBase from 'model/ModelBase';
-import RootModel from 'model/RootModel';
+import type ModelBase from 'model/ModelBase';
+import type RootModel from 'model/RootModel';
 import { FakeFragment } from 'shared/getRactiveContext';
 import { splitKeypath } from 'shared/keypaths';
-import { GetOpts } from 'types/MethodOptions';
+import type { GetOpts } from 'types/MethodOptions';
 import { isString } from 'utils/is';
 import resolveReference from 'view/resolvers/resolveReference';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 function Ractive$get(this: Ractive, opts?: GetOpts): any;
 function Ractive$get(this: Ractive, keypath: string, opts?: GetOpts): any;

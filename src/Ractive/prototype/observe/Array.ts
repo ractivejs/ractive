@@ -1,9 +1,9 @@
-import ModelBase from 'model/ModelBase';
-import { NewIndexes } from 'shared/getNewIndices';
+import type ModelBase from 'model/ModelBase';
+import type { NewIndexes } from 'shared/getNewIndices';
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { Keypath } from 'types/Generic';
-import { ObserverArrayCallback, ObserverArrayOpts } from 'types/Observer';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Keypath } from 'types/Generic';
+import type { ObserverArrayCallback, ObserverArrayOpts } from 'types/Observer';
 import { removeFromArray } from 'utils/array';
 import { isArray, isUndefined } from 'utils/is';
 import { warnIfDebug } from 'utils/log';

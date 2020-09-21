@@ -1,6 +1,6 @@
 const { module, test } = QUnit;
 
-export default function() {
+export default function () {
   module('Components');
 
   test('should render in a non-DOM environment', t => {

@@ -3,17 +3,17 @@ import { handleChange, mark, markForce, marked, teardown } from 'shared/methodCa
 import Ticker from 'shared/Ticker';
 import { capture } from 'src/global/capture';
 import getComputationSignature from 'src/Ractive/helpers/getComputationSignature';
-import { AnimateOpts } from 'src/Ractive/prototype/animate';
-import { AdaptorHandle } from 'types/Adaptor';
-import { InternalComputationDescription } from 'types/Computation';
-import { ValueMap } from 'types/Generic';
+import type { AnimateOpts } from 'src/Ractive/prototype/animate';
+import type { AdaptorHandle } from 'types/Adaptor';
+import type { InternalComputationDescription } from 'types/Computation';
+import type { ValueMap } from 'types/Generic';
 import { buildNewIndices } from 'utils/array';
 import { isArray, isEqual, isNumeric, isObjectLike, isUndefined } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn, keys } from 'utils/object';
 
 import './LinkModel';
-import Computation from './Computation';
+import type Computation from './Computation';
 import getPrefixer from './helpers/getPrefixer';
 import ModelBase, {
   checkDataLink,

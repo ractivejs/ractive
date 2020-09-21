@@ -1,7 +1,7 @@
 const { module, test } = QUnit;
 import parseTests from '../helpers/samples/parse';
 
-export default function() {
+export default function () {
   module('Ractive.parse()');
 
   parseTests.forEach(parseTest => {

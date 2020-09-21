@@ -1,9 +1,9 @@
 import TemplateItemType from 'config/types';
-import {
+import type {
   SectionMustacheTemplateItem,
   DelimiterChangeToken
 } from 'parse/converters/mustache/mustacheDefinitions';
-import { CommentTemplateItem } from 'parse/converters/templateItemDefinitions';
+import type { CommentTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { lastItem } from 'utils/array';
 import { isString } from 'utils/is';
 

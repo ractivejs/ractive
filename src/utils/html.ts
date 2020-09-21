@@ -369,10 +369,7 @@ const amp = /&/g;
 const invalid = 65533;
 
 export function escapeHtml(str: string): string {
-  return str
-    .replace(amp, '&amp;')
-    .replace(lessThan, '&lt;')
-    .replace(greaterThan, '&gt;');
+  return str.replace(amp, '&amp;').replace(lessThan, '&lt;').replace(greaterThan, '&gt;');
 }
 
 // some code points are verboten. If we were inserting HTML, the browser would replace the illegal

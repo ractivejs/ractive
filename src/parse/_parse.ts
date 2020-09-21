@@ -1,5 +1,5 @@
 import { TEMPLATE_VERSION } from 'config/template';
-import { ParseOpts, ParseDelimiters, InterpolateOpts, WhitespaceElements } from 'types/Parse';
+import type { ParseOpts, ParseDelimiters, InterpolateOpts, WhitespaceElements } from 'types/Parse';
 import { isObjectType } from 'utils/is';
 import { assign, keys } from 'utils/object';
 
@@ -18,7 +18,7 @@ import readMustache from './converters/readMustache';
 import readPartialDefinitionSection from './converters/readPartialDefinitionSection';
 import readTemplate from './converters/readTemplate';
 import readText from './converters/readText';
-import {
+import type {
   TemplateModel,
   ExpressionFunctionTemplateItem
 } from './converters/templateItemDefinitions';

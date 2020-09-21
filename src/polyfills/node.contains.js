@@ -6,7 +6,7 @@ if (
   window.Node.prototype &&
   !window.Node.prototype.contains
 ) {
-  Node.prototype.contains = function(node) {
+  Node.prototype.contains = function (node) {
     if (!node) throw new TypeError('node required');
 
     do {

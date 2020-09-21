@@ -1,7 +1,7 @@
-import { FindOpts } from 'types/MethodOptions';
+import type { FindOpts } from 'types/MethodOptions';
 import { isObjectType } from 'utils/is';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 // TODO add this as Ractive
 function Ractive$findComponent(this: Ractive, opts?: FindOpts): Ractive;

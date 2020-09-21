@@ -1,10 +1,10 @@
-import TemplateItemType from 'config/types';
+import type TemplateItemType from 'config/types';
 
-import {
+import type {
   ExpressionTemplateItem,
   ExpressionRefinementTemplateItem
 } from '../expressions/expressionDefinitions';
-import {
+import type {
   CommentTemplateItem,
   ElementTemplateItem,
   TextTemplateItem

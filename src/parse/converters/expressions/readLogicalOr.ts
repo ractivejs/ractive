@@ -1,6 +1,6 @@
 import TemplateItemType from 'config/types';
-import { StandardParser } from 'parse/_parse';
-import { InfixOperatorTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+import type { StandardParser } from 'parse/_parse';
+import type { InfixOperatorTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 
 import readTypeof, { TypeofOrMemberOrInvocationOrPrimary } from './readTypeof';
 
@@ -10,8 +10,8 @@ export type LogicalOrTypeofOrMemberOrInvocationOrPrimary =
 
 let readLogicalOr;
 
-const makeInfixSequenceMatcher = function(symbol: string, fallthrough: Function) {
-  return function(parser: StandardParser): LogicalOrTypeofOrMemberOrInvocationOrPrimary {
+const makeInfixSequenceMatcher = function (symbol: string, fallthrough: Function) {
+  return function (parser: StandardParser): LogicalOrTypeofOrMemberOrInvocationOrPrimary {
     // > and / have to be quoted
     if (parser.inUnquotedAttribute && (symbol === '>' || symbol === '/'))
       return fallthrough(parser);

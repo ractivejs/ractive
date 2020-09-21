@@ -1,8 +1,8 @@
-import { Ractive } from './RactiveDefinition';
+import type { Ractive } from './RactiveDefinition';
 
 interface Shared {
   defaults?: Record<string, unknown>;
-  Ractive?: typeof Ractive;
+  Ractive?: Ractive;
 }
 
 const shared: Shared = {};

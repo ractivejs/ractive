@@ -3,7 +3,7 @@ import { fire } from 'simulant';
 
 import { initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('events/conditional.js');
 
   test('event is added and removed with conditional', t => {

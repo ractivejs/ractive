@@ -3,12 +3,12 @@ import { READERS, StandardParser, StandardParserTag } from 'parse/_parse';
 import { refineExpression } from 'parse/utils/refineExpression';
 import { keys } from 'utils/object';
 
-import { ExpressionTemplateItem } from '../expressions/expressionDefinitions';
+import type { ExpressionTemplateItem } from '../expressions/expressionDefinitions';
 import { name } from '../expressions/shared/patterns';
 import readExpression from '../readExpression';
 
 import handlebarsBlockCodes from './handlebarsBlockCodes';
-import {
+import type {
   AliasTemplateItem,
   AwaitMustacheTemplateItem,
   ElseMustacheTemplateItem,

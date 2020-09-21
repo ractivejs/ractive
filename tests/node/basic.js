@@ -1,6 +1,6 @@
 const { module, test } = QUnit;
 
-export default function() {
+export default function () {
   module('Ractive');
 
   test('should be a function', t => {

@@ -5,8 +5,8 @@ import { findInViewHierarchy } from 'shared/registry';
 import hooks from 'src/events/Hook';
 import Ractive from 'src/Ractive';
 import { compute } from 'src/Ractive/prototype/compute';
-import { Adaptor } from 'types/Adaptor';
-import { InitOpts } from 'types/InitOptions';
+import type { Adaptor } from 'types/Adaptor';
+import type { InitOpts } from 'types/InitOptions';
 import { ensureArray, combine } from 'utils/array';
 import { isArray, isString } from 'utils/is';
 import { fatal, warnIfDebug, welcome } from 'utils/log';
@@ -16,7 +16,7 @@ import getRactiveContext from '../shared/getRactiveContext';
 
 import dataConfigurator from './config/custom/data';
 import subscribe from './helpers/subscribe';
-import { Ractive as RactiveDefinition, RactiveConstructor } from './RactiveDefinition';
+import type { Ractive as RactiveDefinition, RactiveConstructor } from './RactiveDefinition';
 
 const registryNames = [
   'adaptors',

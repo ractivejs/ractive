@@ -1,9 +1,9 @@
-import LinkModel from 'model/LinkModel';
-import Model from 'model/Model';
+import type LinkModel from 'model/LinkModel';
+import type Model from 'model/Model';
 import { splitKeypath } from 'shared/keypaths';
-import { ReadLinkOpts, ReadLinkResult } from 'types/MethodOptions';
+import type { ReadLinkOpts, ReadLinkResult } from 'types/MethodOptions';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$readLink(
   this: Ractive,

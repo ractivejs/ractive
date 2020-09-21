@@ -1,5 +1,5 @@
-import { AdaptorPrefixer } from 'types/Adaptor';
-import { ValueMap, Keypath } from 'types/Generic';
+import type { AdaptorPrefixer } from 'types/Adaptor';
+import type { ValueMap, Keypath } from 'types/Generic';
 import { isString, isObjectType } from 'utils/is';
 import { hasOwn } from 'utils/object';
 
@@ -35,7 +35,7 @@ export default function getPrefixer(rootKeypath: Keypath): AdaptorPrefixer {
     rootDot = rootKeypath ? rootKeypath + '.' : '';
 
     /* istanbul ignore next */
-    prefixers[rootKeypath] = function(relativeKeypath, value) {
+    prefixers[rootKeypath] = function (relativeKeypath, value) {
       let obj: ValueMap;
 
       if (isString(relativeKeypath)) {

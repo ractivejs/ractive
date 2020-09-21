@@ -2,7 +2,7 @@ import { test } from 'qunit';
 
 import { initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('super.js');
 
   test('_super can call parent method', t => {
@@ -95,7 +95,7 @@ export default function() {
   });
 
   test('_super wrapping is not applied when not used', t => {
-    const fn = function() {};
+    const fn = function () {};
 
     const Parent = Ractive.extend({ foo() {} });
     const Child = Parent.extend({ foo: fn });
@@ -105,7 +105,7 @@ export default function() {
   });
 
   test('_super wrapping is applied when used', t => {
-    const fn = function() {
+    const fn = function () {
       this._super();
     };
 
@@ -117,7 +117,7 @@ export default function() {
   });
 
   test('_super gives access to unwrapped version of method', t => {
-    const fn = function() {
+    const fn = function () {
       this._super();
     };
 

@@ -1,6 +1,6 @@
 import { splitKeypath } from 'shared/keypaths';
-import { Keypath } from 'types/Generic';
-import {
+import type { Keypath } from 'types/Generic';
+import type {
   ObserverCallback,
   ObserverOpts,
   ObserverHandle,
@@ -12,7 +12,7 @@ import { warnOnceIfDebug } from 'utils/log';
 import { keys } from 'utils/object';
 import resolveReference from 'view/resolvers/resolveReference';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 import ArrayObserver from './observe/Array';
 import Observer from './observe/Observer';
@@ -91,7 +91,7 @@ function Ractive$observe(
   let silent = false;
   keys(map).forEach(keypath => {
     const callback = map[keypath];
-    const caller = function(...args): ReturnType<ObserverCallback> {
+    const caller = function (...args): ReturnType<ObserverCallback> {
       if (silent) return;
       return callback.apply(this, args);
     };

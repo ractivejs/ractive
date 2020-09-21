@@ -2,7 +2,7 @@ import { test } from 'qunit';
 
 import { initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('render/elements.js');
 
   test('option element with custom selected logic works without error and correctly', t => {

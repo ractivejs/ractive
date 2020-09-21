@@ -1,5 +1,5 @@
 import TemplateItemType from 'config/types';
-import { TextTemplateItem } from 'parse/converters/templateItemDefinitions';
+import type { TextTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { detachNode } from 'utils/dom';
 import { escapeHtml } from 'utils/html';
 

@@ -1,6 +1,6 @@
 import { isClient, svg, vendors, win, doc } from 'config/environment';
 import Namespace from 'config/namespace';
-import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
+import type { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { isString, isNumber } from 'utils/is';
 
 let createElement, matches;
@@ -92,10 +92,10 @@ if (!isClient) {
   const div = createElement('div');
   const methodNames = ['matches', 'matchesSelector'];
 
-  const makeFunction = function(
+  const makeFunction = function (
     methodName: string
   ): (node: HTMLElement, selector: string) => boolean {
-    return function(node: HTMLElement, selector: string): boolean {
+    return function (node: HTMLElement, selector: string): boolean {
       return node[methodName](selector);
     };
   };

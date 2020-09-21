@@ -1,7 +1,7 @@
 import TemplateItemType from 'config/types';
-import Parser from 'parse/Parser';
+import type Parser from 'parse/Parser';
 
-import { ValueTemplateItem } from '../../expressionDefinitions';
+import type { ValueTemplateItem } from '../../expressionDefinitions';
 
 // bulletproof number regex from https://gist.github.com/Rich-Harris/7544330
 const numberPattern = /^(?:[+-]?)0*(?:(?:(?:[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;

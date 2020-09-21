@@ -1,5 +1,5 @@
-import { StandardParser } from 'parse/_parse';
-import { TextTemplateItem } from 'parse/converters/templateItemDefinitions';
+import type { StandardParser } from 'parse/_parse';
+import type { TextTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { decodeCharacterReferences } from 'utils/html';
 
 import getLowestIndex from './utils/getLowestIndex';

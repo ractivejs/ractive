@@ -1,10 +1,10 @@
 import TemplateItemType from 'config/types';
-import { StandardParser, StandardParserTag, Reader } from 'parse/_parse';
+import type { StandardParser, StandardParserTag, Reader } from 'parse/_parse';
 
-import { AttributesOrDirectiveTemplateItem } from './element/elementDefinitions';
+import type { AttributesOrDirectiveTemplateItem } from './element/elementDefinitions';
 import { readAttributeOrDirective } from './element/readAttribute';
 import readRegexpLiteral from './expressions/primary/literal/readRegexpLiteral';
-import { MustachePrimaryItem, DelimiterChangeToken } from './mustache/mustacheDefinitions';
+import type { MustachePrimaryItem, DelimiterChangeToken } from './mustache/mustacheDefinitions';
 import readDelimiterChange from './mustache/readDelimiterChange';
 
 const delimiterChangeToken: DelimiterChangeToken = {

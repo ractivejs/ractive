@@ -1,19 +1,19 @@
-import ModelBase from 'model/ModelBase';
-import {
+import type ModelBase from 'model/ModelBase';
+import type {
   EventDirectiveTemplateItem,
   TransitionDirectiveTemplateItem,
   DecoratorDirectiveTemplateItem
 } from 'parse/converters/element/elementDefinitions';
-import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
+import type { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 import getFunction from 'shared/getFunction';
-import Fragment from 'view/Fragment';
+import type Fragment from 'view/Fragment';
 import ExpressionProxy from 'view/resolvers/ExpressionProxy';
 
 import resolveReference from '../../resolvers/resolveReference';
-import Decorator from '../element/Decorator';
-import Transition from '../element/Transition';
+import type Decorator from '../element/Decorator';
+import type Transition from '../element/Transition';
 
-import EventDirective from './EventDirective';
+import type EventDirective from './EventDirective';
 
 export function setupArgsFn(item: Transition, template: TransitionDirectiveTemplateItem): void;
 export function setupArgsFn(item: EventDirective, template: EventDirectiveTemplateItem): void;

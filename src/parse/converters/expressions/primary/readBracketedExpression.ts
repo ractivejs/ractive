@@ -1,6 +1,6 @@
 import TemplateItemType from 'config/types';
-import { StandardParser } from 'parse/_parse';
-import { BrackedTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+import type { StandardParser } from 'parse/_parse';
+import type { BrackedTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 import readExpression from 'parse/converters/readExpression';
 
 import { expectedExpression, expectedParen } from '../shared/errors';

@@ -1,4 +1,4 @@
-import { FindOpts } from 'types/MethodOptions';
+import type { FindOpts } from 'types/MethodOptions';
 
 // TODO add this as Ractive
 export default function Ractive$find(selector: string, options: FindOpts = {}): HTMLElement {

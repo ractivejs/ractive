@@ -1,9 +1,9 @@
 import { updateAnchors } from 'shared/anchors';
 import hooks from 'src/events/Hook';
 import runloop from 'src/global/runloop';
-import { Meta } from 'types/Generic';
+import type { Meta } from 'types/Generic';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$detachChild(this: Ractive, child: Ractive): Promise<Ractive> {
   const children = this._children;

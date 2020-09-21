@@ -1,8 +1,9 @@
 import Context from 'shared/Context';
-import { ObserverHandle } from 'types/Observer';
+import type { ObserverHandle } from 'types/Observer';
 
-import Component from '../Component';
-import EventDirective, { RactiveEventInterface } from '../shared/EventDirective';
+import type Component from '../Component';
+import type EventDirective from '../shared/EventDirective';
+import type { RactiveEventInterface } from '../shared/EventDirective';
 
 export default class RactiveEvent implements RactiveEventInterface {
   private component: Component;

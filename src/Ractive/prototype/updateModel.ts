@@ -1,6 +1,6 @@
 import { splitKeypath } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
-import { Keypath } from 'types/Generic';
+import type { Keypath } from 'types/Generic';
 
 function Ractive$updateModel(cascade: boolean): Promise<void>;
 function Ractive$updateModel(keypath: Keypath, cascade: boolean): Promise<void>;

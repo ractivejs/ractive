@@ -1,12 +1,12 @@
-import ComputationModel from 'model/Computation';
+import type ComputationModel from 'model/Computation';
 import { fireShuffleTasks } from 'model/ModelBase';
-import RootModel from 'model/RootModel';
+import type RootModel from 'model/RootModel';
 import { splitKeypath } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
-import { InternalComputationDescription, Computation } from 'types/Computation';
+import type { InternalComputationDescription, Computation } from 'types/Computation';
 import { isString, isFunction } from 'utils/is';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 export function compute(this: Ractive, path: string, computed: Computation): ComputationModel {
   let _computed: InternalComputationDescription;

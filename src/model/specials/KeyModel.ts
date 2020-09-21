@@ -1,15 +1,15 @@
 import { unescapeKey } from 'shared/keypaths';
 import { handleChange } from 'shared/methodCallers';
 import { capture } from 'src/global/capture';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import { addToArray, removeFromArray } from 'utils/array';
 import noop from 'utils/noop';
-import Interpolator from 'view/items/Interpolator';
-import Section from 'view/items/Section';
-import ExpressionProxy from 'view/resolvers/ExpressionProxy';
+import type Interpolator from 'view/items/Interpolator';
+import type Section from 'view/items/Section';
+import type ExpressionProxy from 'view/resolvers/ExpressionProxy';
 
-import LinkModel from '../LinkModel';
-import ModelBase from '../ModelBase';
+import type LinkModel from '../LinkModel';
+import type ModelBase from '../ModelBase';
 
 type KeyModelValue = string | number;
 type KeyModelDependency = Section | ExpressionProxy | Interpolator;

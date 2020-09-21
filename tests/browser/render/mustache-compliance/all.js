@@ -17,7 +17,7 @@ import { onWarn, initModule } from '../../../helpers/test-config';
 //
 // TODO update tests from source
 
-export default function() {
+export default function () {
   initModule('render/mustache-compliance/all.js');
 
   const testModules = [

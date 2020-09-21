@@ -1,8 +1,8 @@
 import TemplateItemType from 'config/types';
 import { warnIfDebug } from 'utils/log';
 
-import Element from '../../Element';
-import Attribute from '../Attribute';
+import type Element from '../../Element';
+import type Attribute from '../Attribute';
 
 import CheckboxBinding from './CheckboxBinding';
 import CheckboxNameBinding from './CheckboxNameBinding';

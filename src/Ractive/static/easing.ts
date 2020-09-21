@@ -1,4 +1,4 @@
-import { EasingFunction } from 'types/Easings';
+import type { EasingFunction } from 'types/Easings';
 
 // These are a subset of the easing equations found at
 // https://raw.github.com/danro/easing-js - license info

@@ -1,4 +1,4 @@
-import { Ractive } from '../Ractive/RactiveDefinition';
+import type { Ractive } from '../Ractive/RactiveDefinition';
 
 export type ComputationFn<T extends Ractive = Ractive> = (
   this: T,

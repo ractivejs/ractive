@@ -3,7 +3,7 @@ import { test } from 'qunit';
 import tests from '../../helpers/samples/render';
 import { onWarn, initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('render/output.js');
 
   function getData(data) {

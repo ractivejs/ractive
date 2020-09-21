@@ -3,7 +3,7 @@ import { fire } from 'simulant';
 
 import { hasUsableConsole, onWarn, initModule } from '../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('twoway.js');
 
   test('Two-way bindings work with index references', t => {
@@ -80,7 +80,7 @@ export default function() {
       data: { foo: 'bar' }
     });
 
-    ractive.observe('foo', function(foo) {
+    ractive.observe('foo', function (foo) {
       this.set('foo', foo.toUpperCase());
     });
 
@@ -658,7 +658,7 @@ export default function() {
       template: '<input value="{{foo}}">{{foo}}'
     });
 
-    ractive.observe('foo', function(foo) {
+    ractive.observe('foo', function (foo) {
       this.set('foo', foo.toUpperCase());
     });
 

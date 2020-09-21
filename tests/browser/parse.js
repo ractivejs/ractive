@@ -3,7 +3,7 @@ import { test } from 'qunit';
 import tests from '../helpers/samples/parse';
 import { initModule } from '../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('parse.js');
 
   test('Mismatched template version causes error', t => {

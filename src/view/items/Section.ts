@@ -1,7 +1,7 @@
 import TemplateItemType from 'config/types';
 import { keep } from 'shared/set';
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import Context from 'src/shared/Context';
 import { createDocumentFragment } from 'utils/dom';
 import { isArray, isObject, isObjectLike, isUndefined } from 'utils/is';
@@ -10,11 +10,11 @@ import { keys } from 'utils/object';
 import Fragment from '../Fragment';
 import RepeatedFragment from '../RepeatedFragment';
 
-import { BindingFlagOwner } from './element/BindingFlag';
-import { DecoratorOwner } from './element/Decorator';
-import { TransitionOwner } from './element/Transition';
-import { EventDirectiveOwner } from './shared/EventDirective';
-import { ItemBasicInterface } from './shared/Item';
+import type { BindingFlagOwner } from './element/BindingFlag';
+import type { DecoratorOwner } from './element/Decorator';
+import type { TransitionOwner } from './element/Transition';
+import type { EventDirectiveOwner } from './shared/EventDirective';
+import type { ItemBasicInterface } from './shared/Item';
 import { MustacheContainer, MustacheOpts } from './shared/Mustache';
 
 function isEmpty(value: unknown): boolean {
@@ -36,7 +36,8 @@ interface SectionOpts extends MustacheOpts {
   template: Section['template'];
 }
 
-export default class Section extends MustacheContainer
+export default class Section
+  extends MustacheContainer
   implements DecoratorOwner, TransitionOwner, EventDirectiveOwner, BindingFlagOwner {
   public isAlias: boolean;
   public sectionType: TemplateItemType;

@@ -3,7 +3,7 @@ import { fire } from 'simulant';
 
 import { initModule, onWarn } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('events/misc.js');
 
   // TODO finish moving these into more sensible locations
@@ -52,7 +52,7 @@ export default function() {
     const ractive = new Ractive({
       el: fixture,
       template: `{{#foo}}<button on-click="@this.test(event.keypath + '.foo')">Click</button>{{/}}`,
-      test: function() {} // eslint-disable-line object-shorthand
+      test: function () {} // eslint-disable-line object-shorthand
     });
 
     ractive.set('foo', true);

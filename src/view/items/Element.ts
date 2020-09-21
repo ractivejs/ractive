@@ -13,14 +13,17 @@ import { assign, create, defineProperty, keys } from 'utils/object';
 import Fragment from '../Fragment';
 
 import createItem from './createItem';
-import Attribute from './element/Attribute';
-import Binding from './element/binding/Binding';
+import type Attribute from './element/Attribute';
+import type Binding from './element/binding/Binding';
 import selectBinding from './element/binding/selectBinding';
 import ConditionalAttribute, { ConditionalAttributeOwner } from './element/ConditionalAttribute';
-import Decorator, { DecoratorOwner } from './element/Decorator';
-import Input from './element/specials/Input';
-import Transition, { TransitionOwner } from './element/Transition';
-import EventDirective, { EventDirectiveOwner } from './shared/EventDirective';
+import type Decorator from './element/Decorator';
+import type { DecoratorOwner } from './element/Decorator';
+import type Input from './element/specials/Input';
+import type Transition from './element/Transition';
+import type { TransitionOwner } from './element/Transition';
+import type EventDirective from './shared/EventDirective';
+import type { EventDirectiveOwner } from './shared/EventDirective';
 import findElement from './shared/findElement';
 import { ContainerItem, ItemOpts } from './shared/Item';
 
@@ -30,7 +33,8 @@ export interface ElementOpts extends ItemOpts {
   deferContent: boolean;
 }
 
-export default class Element extends ContainerItem
+export default class Element
+  extends ContainerItem
   implements DecoratorOwner, TransitionOwner, EventDirectiveOwner, ConditionalAttributeOwner {
   public name: string;
   private namespace: string;
@@ -622,7 +626,7 @@ function delegateHandler(ev): boolean {
   return bubble;
 }
 
-const UIEvent = win !== null ? win.UIEvent : null;
+const UIEvent = win !== null ? window.UIEvent : null;
 function shouldFire(event: UIEvent, start, end): boolean {
   if (UIEvent && event instanceof UIEvent) {
     let node = start;

@@ -4,7 +4,7 @@ import { fire } from 'simulant';
 import { hasUsableConsole, onWarn } from '../../helpers/test-config';
 import { initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('events/basic.js');
 
   test("sharing names with array mutator functions doesn't break events", t => {
@@ -177,7 +177,7 @@ export default function() {
 
     const fired = [];
 
-    ractive.on('foo.* fuzzy *.bop', function() {
+    ractive.on('foo.* fuzzy *.bop', function () {
       fired.push(this.event.name);
     });
 
@@ -226,7 +226,7 @@ export default function() {
   test(`events can be silenced and resumed`, t => {
     let count = 0;
     const r = new Ractive();
-    const handle = r.on('foo', function(ctx, num) {
+    const handle = r.on('foo', function (ctx, num) {
       t.equal(num, 1);
       t.ok(this === r);
       count++;

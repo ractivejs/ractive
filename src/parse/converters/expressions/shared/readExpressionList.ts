@@ -1,7 +1,7 @@
-import { StandardParser } from 'parse/_parse';
+import type { StandardParser } from 'parse/_parse';
 
 import readExpression from '../../readExpression';
-import { ExpressionTemplateItem, ExpressionWithSpread } from '../expressionDefinitions';
+import type { ExpressionTemplateItem, ExpressionWithSpread } from '../expressionDefinitions';
 
 import { expectedExpression } from './errors';
 import { spreadPattern } from './patterns';

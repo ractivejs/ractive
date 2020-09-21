@@ -1,10 +1,10 @@
 import TemplateItemType from 'config/types';
-import { StandardParser, StandardParserTag } from 'parse/_parse';
+import type { StandardParser, StandardParserTag } from 'parse/_parse';
 import { refineExpression } from 'parse/utils/refineExpression';
 
 import readExpression from '../readExpression';
 
-import { TripleMustacheTemplateItem } from './mustacheDefinitions';
+import type { TripleMustacheTemplateItem } from './mustacheDefinitions';
 
 export default function readUnescaped(
   parser: StandardParser,

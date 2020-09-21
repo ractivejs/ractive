@@ -1,11 +1,11 @@
-import { ElementTemplateItem } from 'parse/converters/templateItemDefinitions';
+import type { ElementTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { removeFromArray } from 'utils/array';
 import { isArray, isUndefined } from 'utils/is';
 
 import Element, { ElementOpts } from '../../Element';
 import findElement from '../../shared/findElement';
 
-import Select from './Select';
+import type Select from './Select';
 
 interface ElementTemplateItemRuntime extends ElementTemplateItem {
   a: any; // todo understand what is this

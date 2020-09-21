@@ -1,7 +1,7 @@
 import TemplateItemType from 'config/types';
-import { StandardParser } from 'parse/_parse';
+import type { StandardParser } from 'parse/_parse';
 
-import { CommentTemplateItem } from './templateItemDefinitions';
+import type { CommentTemplateItem } from './templateItemDefinitions';
 
 const OPEN_COMMENT = '<!--';
 const CLOSE_COMMENT = '-->';

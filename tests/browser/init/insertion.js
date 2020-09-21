@@ -2,7 +2,7 @@ import { test } from 'qunit';
 
 import { beforeEach, initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   let target;
   let child;
 

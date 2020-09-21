@@ -1,4 +1,4 @@
-import { BindingWithInitialValue } from './Binding';
+import type { BindingWithInitialValue } from './Binding';
 import GenericBinding from './GenericBinding';
 
 export default class FileBinding extends GenericBinding implements BindingWithInitialValue {

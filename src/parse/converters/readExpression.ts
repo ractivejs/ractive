@@ -1,6 +1,6 @@
-import { StandardParser } from 'parse/_parse';
+import type { StandardParser } from 'parse/_parse';
 
-import { ExpressionTemplateItem } from './expressions/expressionDefinitions';
+import type { ExpressionTemplateItem } from './expressions/expressionDefinitions';
 import readReference from './expressions/primary/readReference';
 import readConditional from './expressions/readConditional';
 

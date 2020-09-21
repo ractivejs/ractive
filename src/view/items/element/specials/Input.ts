@@ -1,8 +1,8 @@
 import { isFunction } from 'utils/is';
 
 import Element from '../../Element';
-import { BindingFlagOwner } from '../BindingFlag';
-import { ConditionalAttributeOwner } from '../ConditionalAttribute';
+import type { BindingFlagOwner } from '../BindingFlag';
+import type { ConditionalAttributeOwner } from '../ConditionalAttribute';
 
 export default class Input extends Element implements BindingFlagOwner, ConditionalAttributeOwner {
   public checked: boolean;

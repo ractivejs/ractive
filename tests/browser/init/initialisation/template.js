@@ -2,7 +2,7 @@ import { test } from 'qunit';
 
 import { afterEach, initModule } from '../../../helpers/test-config';
 
-export default function() {
+export default function () {
   const defaultData = Ractive.defaults.data;
   const defaultTemplate = Ractive.defaults.template;
 

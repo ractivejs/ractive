@@ -2,7 +2,7 @@ import { test } from 'qunit';
 
 import { initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('methods/readLink.js');
 
   test(`readLink returns the immediately linked path by default`, t => {

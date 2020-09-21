@@ -1,19 +1,20 @@
 import TemplateItemType from 'config/types';
-import ModelBase, { ModelWithRebound } from 'model/ModelBase';
+import type ModelBase from 'model/ModelBase';
+import type { ModelWithRebound } from 'model/ModelBase';
 import KeyModel from 'model/specials/KeyModel';
-import { AliasDefinitionRefinedTemplateItem } from 'parse/converters/mustache/mustacheDefinitions';
+import type { AliasDefinitionRefinedTemplateItem } from 'parse/converters/mustache/mustacheDefinitions';
 import { getContext, findParentWithContext } from 'shared/getRactiveContext';
 import { shuffled, toEscapedString, toString } from 'shared/methodCallers';
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { FindOpts } from 'types/MethodOptions';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { FindOpts } from 'types/MethodOptions';
 import { findMap } from 'utils/array';
 import { createDocumentFragment } from 'utils/dom';
 import parseJSON from 'utils/parseJSON';
 
 import processItems from './helpers/processItems';
 import createItem from './items/createItem';
-import { ItemBasicInterface } from './items/shared/Item';
+import type { ItemBasicInterface } from './items/shared/Item';
 import resolve from './resolvers/resolve';
 
 /**

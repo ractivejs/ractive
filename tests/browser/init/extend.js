@@ -2,7 +2,7 @@ import { test } from 'qunit';
 
 import { hasUsableConsole, onWarn, initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('init/extend.js');
 
   test('multiple options arguments applied left to right', t => {
@@ -118,7 +118,7 @@ export default function() {
 
   test('extend template replaces Ractive defaults.template', t => {
     const defaultTemplate = Ractive.defaults.template;
-    Ractive.defaults.template = function() {
+    Ractive.defaults.template = function () {
       return '{{fizz}}';
     };
 

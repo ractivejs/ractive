@@ -3,7 +3,7 @@ import { READERS, PARTIAL_READERS, StandardParser } from 'parse/_parse';
 import cleanup from 'parse/utils/cleanup';
 import { create } from 'utils/object';
 
-import {
+import type {
   TemplateModel,
   InlinePartialDefinitionTemplateItem,
   PartialRegistryTemplateItem

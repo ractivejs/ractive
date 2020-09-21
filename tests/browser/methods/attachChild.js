@@ -3,7 +3,7 @@ import { fire } from 'simulant';
 
 import { initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('methods/attachChild.js');
 
   test('child instances can be attached to an anchor', t => {

@@ -2,7 +2,7 @@ import { test } from 'qunit';
 
 import { initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('methods/get.js');
 
   test('getting and adapted keypath should return the adaptee (#2513)', t => {

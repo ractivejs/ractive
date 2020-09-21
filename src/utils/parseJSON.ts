@@ -1,8 +1,8 @@
-import { SimpleTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+import type { SimpleTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 import readStringLiteral from 'parse/converters/expressions/primary/literal/readStringLiteral';
 import readKey from 'parse/converters/expressions/shared/readKey';
 import Parser, { CustomParser } from 'parse/Parser';
-import { BaseParseOpts } from 'types/Parse';
+import type { BaseParseOpts } from 'types/Parse';
 import { hasOwn, keys } from 'utils/object';
 
 /**

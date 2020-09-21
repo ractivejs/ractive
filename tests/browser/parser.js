@@ -2,7 +2,7 @@ import { test } from 'qunit';
 
 import { initModule, onWarn } from '../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('parser');
 
   test(`global defaults apply to parsing even with no instance`, t => {

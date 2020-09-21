@@ -1,6 +1,6 @@
-import Context from 'shared/Context';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { EventListenerEntry } from 'types/Listener';
+import type Context from 'shared/Context';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { EventListenerEntry } from 'types/Listener';
 
 import { enqueue, dequeue } from './eventStack';
 

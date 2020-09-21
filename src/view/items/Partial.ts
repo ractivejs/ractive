@@ -1,30 +1,31 @@
 import TemplateItemType from 'config/types';
-import { TemplateModel } from 'parse/converters/templateItemDefinitions';
-import Context from 'shared/Context';
+import type { TemplateModel } from 'parse/converters/templateItemDefinitions';
+import type Context from 'shared/Context';
 import { splitKeypath } from 'shared/keypaths';
 import { applyCSS } from 'src/global/css';
 import runloop from 'src/global/runloop';
 import parser from 'src/Ractive/config/runtime-parser';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { MacroHandle, MacroFn } from 'types/Macro';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { MacroHandle, MacroFn } from 'types/Macro';
 import { isArray, isFunction, isObjectType, isString } from 'utils/is';
 import { warnOnceIfDebug, warnIfDebug } from 'utils/log';
 import { assign, hasOwn, keys } from 'utils/object';
 
 import Fragment, { FragmentOpts } from '../Fragment';
 
-import Component from './Component';
-import { BindingFlagOwner } from './element/BindingFlag';
-import { DecoratorOwner } from './element/Decorator';
+import type Component from './Component';
+import type { BindingFlagOwner } from './element/BindingFlag';
+import type { DecoratorOwner } from './element/Decorator';
 import getPartialTemplate from './partial/getPartialTemplate';
-import { EventDirectiveOwner } from './shared/EventDirective';
+import type { EventDirectiveOwner } from './shared/EventDirective';
 import { MustacheContainer, MustacheOpts } from './shared/Mustache';
 
 export interface PartialOpts extends MustacheOpts {
   macro: Partial['macro'];
 }
 
-export default class Partial extends MustacheContainer
+export default class Partial
+  extends MustacheContainer
   implements DecoratorOwner, EventDirectiveOwner, BindingFlagOwner {
   public yielder: number;
   private macro: MacroFn;
@@ -366,7 +367,7 @@ function initMacro(self: Partial): void {
   if (isArray(fn.attributes)) {
     self._attrs = {};
 
-    const invalidate = function(): void {
+    const invalidate = function (): void {
       this.dirty = true;
       self.dirtyAttrs = true;
       self.bubble();

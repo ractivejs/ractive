@@ -1,27 +1,27 @@
 import TemplateItemType from 'config/types';
 import Model from 'model/Model';
-import { EventDirectiveTemplateItem } from 'parse/converters/element/elementDefinitions';
+import type { EventDirectiveTemplateItem } from 'parse/converters/element/elementDefinitions';
 import Context from 'shared/Context';
 import getFunction from 'shared/getFunction';
 import { splitKeypath } from 'shared/keypaths';
 import { findInViewHierarchy } from 'shared/registry';
 import fireEvent from 'src/events/fireEvent';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import { addToArray, removeFromArray } from 'utils/array';
 import { isArray, isString } from 'utils/is';
 import { warnIfDebug, warnOnceIfDebug } from 'utils/log';
-import Fragment from 'view/Fragment';
-import ExpressionProxy from 'view/resolvers/ExpressionProxy';
+import type Fragment from 'view/Fragment';
+import type ExpressionProxy from 'view/resolvers/ExpressionProxy';
 
 import resolveReference from '../../resolvers/resolveReference';
-import Component from '../Component';
+import type Component from '../Component';
 import RactiveEvent from '../component/RactiveEvent';
-import Element from '../Element';
+import type Element from '../Element';
 import { DOMEvent, CustomEvent } from '../element/ElementEvents';
 import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
 
 import findElement from './findElement';
-import Item from './Item';
+import type Item from './Item';
 
 const specialPattern = /^(event|arguments|@node|@event|@context)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
@@ -96,8 +96,9 @@ export default class EventDirective {
         } catch (err) {
           args = null;
           warnIfDebug(
-            `Failed to compute args for event on-${this.template.n.join('- ')}: ${err.message ||
-              err}`
+            `Failed to compute args for event on-${this.template.n.join('- ')}: ${
+              err.message || err
+            }`
           );
         }
       }

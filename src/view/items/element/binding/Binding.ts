@@ -1,12 +1,12 @@
-import Model from 'model/Model';
+import type Model from 'model/Model';
 import runloop from 'src/global/runloop';
 import { isUndefined } from 'utils/is';
 import { warnOnceIfDebug } from 'utils/log';
 
 import findElement from '../../shared/findElement';
-import Attribute from '../Attribute';
-import Input from '../specials/Input';
-import Select from '../specials/Select';
+import type Attribute from '../Attribute';
+import type Input from '../specials/Input';
+import type Select from '../specials/Select';
 
 export type BindingValue = unknown;
 

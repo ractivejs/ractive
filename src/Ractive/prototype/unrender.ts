@@ -1,10 +1,10 @@
 import hooks from 'src/events/Hook';
 import runloop from 'src/global/runloop';
-import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
+import type { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { removeFromArray } from 'utils/array';
 import { warnIfDebug } from 'utils/log';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$unrender(this: Ractive): Promise<void> {
   if (!this.fragment.rendered) {

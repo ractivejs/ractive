@@ -1,5 +1,5 @@
-import { StandardParser } from 'parse/_parse';
-import { PrimaryExpressionTemplateDefinition } from 'parse/converters/expressions/expressionDefinitions';
+import type { StandardParser } from 'parse/_parse';
+import type { PrimaryExpressionTemplateDefinition } from 'parse/converters/expressions/expressionDefinitions';
 
 import readBracketedExpression from './primary/readBracketedExpression';
 import readLiteral from './primary/readLiteral';

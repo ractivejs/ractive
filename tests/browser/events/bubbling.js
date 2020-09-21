@@ -3,7 +3,7 @@ import { fire } from 'simulant';
 
 import { initModule, beforeEach } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   let Component;
   let Middle;
   let Subclass;

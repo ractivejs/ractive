@@ -1,5 +1,5 @@
 import hooks from 'src/events/Hook';
-import { InitOpts } from 'types/InitOptions';
+import type { InitOpts } from 'types/InitOptions';
 import { getElement } from 'utils/dom';
 import { isArray } from 'utils/is';
 import { logIfDebug, warnIfDebug, warnOnceIfDebug } from 'utils/log';
@@ -9,7 +9,7 @@ import Ractive from '../Ractive';
 
 import config from './config/config';
 import subscribe from './helpers/subscribe';
-import { Ractive as RactiveDefinition, RactiveConstructor } from './RactiveDefinition';
+import type { Ractive as RactiveDefinition, RactiveConstructor } from './RactiveDefinition';
 
 interface InitializeOpts {
   cssIds?: string[];

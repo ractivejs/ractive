@@ -3,7 +3,7 @@ import fireEvent from 'src/events/fireEvent';
 import { isObjectType } from 'utils/is';
 import { assign, create } from 'utils/object';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 function Ractive$fire(this: Ractive, eventName: string, ...args: [Context, ...unknown[]]): boolean;
 function Ractive$fire(this: Ractive, eventName: string, ...args: unknown[]): boolean;

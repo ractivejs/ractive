@@ -1,4 +1,4 @@
-import { ArraySplicePromise } from 'types/Generic';
+import type { ArraySplicePromise } from 'types/Generic';
 
 import makeArrayMethod from './shared/makeArrayMethod';
 

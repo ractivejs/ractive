@@ -1,5 +1,5 @@
 import TemplateItemType from 'config/types';
-import { AwaitMustacheTemplateItem } from 'parse/converters/mustache/mustacheDefinitions';
+import type { AwaitMustacheTemplateItem } from 'parse/converters/mustache/mustacheDefinitions';
 import { isFunction, isUndefined } from 'utils/is';
 
 import Partial, { PartialOpts } from './Partial';

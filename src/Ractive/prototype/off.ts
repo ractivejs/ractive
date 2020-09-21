@@ -1,7 +1,7 @@
-import { ListenerCallback } from 'types/Listener';
+import type { ListenerCallback } from 'types/Listener';
 import { removeFromArray } from 'utils/array';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 import notEmptyString from './shared/notEmptyString';
 import trim from './shared/trim';
@@ -16,10 +16,7 @@ export default function Ractive$off(
     this._subs = {};
   } else {
     // Handle multiple space-separated event names
-    const eventNames = eventName
-      .split(' ')
-      .map(trim)
-      .filter(notEmptyString);
+    const eventNames = eventName.split(' ').map(trim).filter(notEmptyString);
 
     eventNames.forEach(event => {
       const subs = this._subs[event];

@@ -1,10 +1,10 @@
 import runloop from 'src/global/runloop';
-import { Template } from 'types/Parse';
+import type { Template } from 'types/Parse';
 import { createDocumentFragment } from 'utils/dom';
 import Fragment from 'view/Fragment';
 
 import templateConfigurator from '../config/custom/template';
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 // TODO should resetTemplate be asynchronous? i.e. should it be a case
 // of outro, update template, intro? I reckon probably not, since that

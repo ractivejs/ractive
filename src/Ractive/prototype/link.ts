@@ -1,9 +1,9 @@
 import { splitKeypath } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
-import { LinkOpts } from 'types/MethodOptions';
+import type { LinkOpts } from 'types/MethodOptions';
 import resolveReference from 'view/resolvers/resolveReference';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$link(
   this: Ractive,

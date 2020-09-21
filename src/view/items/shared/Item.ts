@@ -1,7 +1,7 @@
-import TemplateItemType from 'config/types';
+import type TemplateItemType from 'config/types';
 import { createDocumentFragment } from 'utils/dom';
 import { isObject } from 'utils/is';
-import Fragment from 'view/Fragment';
+import type Fragment from 'view/Fragment';
 
 export interface ItemOpts {
   up: Item['up'];

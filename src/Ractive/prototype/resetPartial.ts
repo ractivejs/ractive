@@ -1,15 +1,15 @@
 import TemplateItemType from 'config/types';
 import { handleChange } from 'shared/methodCallers';
 import runloop from 'src/global/runloop';
-import { Partial as PartialParam } from 'types/Generic';
+import type { Partial as PartialParam } from 'types/Generic';
 import { isArray } from 'utils/is';
 import Fragment, { isFragment } from 'view/Fragment';
-import Component from 'view/items/Component';
-import Element from 'view/items/Element';
-import Partial from 'view/items/Partial';
+import type Component from 'view/items/Component';
+import type Element from 'view/items/Element';
+import type Partial from 'view/items/Partial';
 import { isItemType, ItemBasicInterface } from 'view/items/shared/Item';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 function collect(
   source: (ItemBasicInterface | Fragment)[],

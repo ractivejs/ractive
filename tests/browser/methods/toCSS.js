@@ -3,7 +3,7 @@ import QUnit, { test } from 'qunit';
 import { createIsolatedEnv } from '../../helpers/Environment';
 import { initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('methods/toCSS.js');
 
   function createComponentDefinition(Ractive) {

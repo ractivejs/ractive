@@ -1,6 +1,6 @@
 import TemplateItemType from 'config/types';
-import { StandardParser } from 'parse/_parse';
-import { PrefixOperatorTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+import type { StandardParser } from 'parse/_parse';
+import type { PrefixOperatorTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 
 import readExpression from '../readExpression';
 
@@ -18,11 +18,11 @@ type ReadTypeOfConverter = (parser: StandardParser) => TypeofOrMemberOrInvocatio
 
 let readTypeOf: ReadTypeOfConverter;
 
-const makePrefixSequenceMatcher = function(
+const makePrefixSequenceMatcher = function (
   symbol: string,
   fallthrough: ReadTypeOfConverter
 ): ReadTypeOfConverter {
-  return function(parser: StandardParser): TypeofOrMemberOrInvocationOrPrimary {
+  return function (parser: StandardParser): TypeofOrMemberOrInvocationOrPrimary {
     let expression;
 
     if ((expression = fallthrough(parser))) {

@@ -3,7 +3,7 @@ import { fire } from 'simulant';
 
 import { initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('events/dom-proxy-events.js');
 
   test('on-click="someEvent" fires an event when user clicks the element', t => {
@@ -205,11 +205,11 @@ export default function() {
       components: { cmp, cmp2 }
     });
 
-    ractive.on('cmp.someEvent', function(event) {
+    ractive.on('cmp.someEvent', function (event) {
       t.equal(event.resolve(this), 'foo');
       t.equal(event.get('.bar'), 'test');
     });
-    ractive.on('cmp2.someEvent', function(event) {
+    ractive.on('cmp2.someEvent', function (event) {
       t.equal(event.resolve(this), 'foo');
       t.equal(event.get('.bar'), 'test');
     });
@@ -487,7 +487,7 @@ export default function() {
     ractive.on('bar-reproxy', (ctx, arg1) => {
       t.equal(arg1, 'qux');
     });
-    ractive.on('bizz-reproxy', function(...args) {
+    ractive.on('bizz-reproxy', function (...args) {
       // original args are implicitly included...
       t.equal(args.length, 2);
       t.equal(args[1], 'buzz');
@@ -516,12 +516,12 @@ export default function() {
       t.equal(e.original.type, 'click');
       t.equal(args.length, 1);
     });
-    ractive.on('bar-reproxy', function() {
+    ractive.on('bar-reproxy', function () {
       t.equal(arguments.length, 2);
       // implicitly included
       t.equal(arguments[1], 'bar');
     });
-    ractive.on('bizz-reproxy', function() {
+    ractive.on('bizz-reproxy', function () {
       t.equal(arguments.length, 1);
     });
 

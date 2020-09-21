@@ -1,4 +1,4 @@
-import { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
 
 import getRactiveContext from '../shared/getRactiveContext';
 

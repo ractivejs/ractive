@@ -175,9 +175,7 @@ loadConfig();
 if (cmd === 'help') {
   console.error(`Usage: ractive [command] [options] [file]
 
-  Available commands: ${Object.keys(commands)
-    .sort()
-    .join(', ')}
+  Available commands: ${Object.keys(commands).sort().join(', ')}
   ${Object.keys(commands)
     .filter(c => commands[c].help)
     .map(c => commands[c].help)
@@ -189,9 +187,7 @@ if (cmd === 'help') {
 if (args[0] === 'help' || !cmd || !commands[cmd]) {
   console.error(`Usage: ractive [command] [options] [file]
 
-  Available commands: ${Object.keys(commands)
-    .sort()
-    .join(', ')}`);
+  Available commands: ${Object.keys(commands).sort().join(', ')}`);
 
   if (!cmd)
     console.error(`\n  Find out more about a particular command with ractive [command] help`);

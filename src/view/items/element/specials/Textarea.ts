@@ -1,11 +1,11 @@
 import TemplateItemType from 'config/types';
-import { ElementTemplateItem } from 'parse/converters/templateItemDefinitions';
+import type { ElementTemplateItem } from 'parse/converters/templateItemDefinitions';
 import runloop from 'src/global/runloop';
 
 import Fragment from '../../../Fragment';
 import createItem from '../../createItem';
-import { ElementOpts } from '../../Element';
-import Attribute from '../Attribute';
+import type { ElementOpts } from '../../Element';
+import type Attribute from '../Attribute';
 import { isBindable } from '../binding/selectBinding';
 
 import Input from './Input';

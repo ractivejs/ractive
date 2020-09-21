@@ -1,5 +1,5 @@
 import TemplateItemType from 'config/types';
-import {
+import type {
   ExpressionTemplateItem,
   ArrayLiteralTemplateItem,
   ObjectLiteralTemplateItem,
@@ -12,7 +12,7 @@ import {
   ExpressionWithSpread,
   ExpressionWithValue
 } from 'parse/converters/expressions/expressionDefinitions';
-import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
+import type { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { isString, isArray } from 'utils/is';
 
 export default function flattenExpression(

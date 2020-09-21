@@ -1,8 +1,8 @@
-import Model from 'model/Model';
-import ModelBase from 'model/ModelBase';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { Keypath, ValueMap } from 'types/Generic';
-import { SetOpts } from 'types/MethodOptions';
+import type Model from 'model/Model';
+import type ModelBase from 'model/ModelBase';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Keypath, ValueMap } from 'types/Generic';
+import type { SetOpts } from 'types/MethodOptions';
 import { isArray, isObject, isObjectType, isFunction, isString, isUndefined } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn } from 'utils/object';

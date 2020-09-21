@@ -1,9 +1,9 @@
 import { build, set } from 'shared/set';
-import { ValueMap } from 'types/Generic';
-import { SetOpts } from 'types/MethodOptions';
+import type { ValueMap } from 'types/Generic';
+import type { SetOpts } from 'types/MethodOptions';
 import { isObjectType } from 'utils/is';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 function Ractive$set(keypath: string, value: unknown, options?: SetOpts): Promise<void>;
 function Ractive$set(keypath: ValueMap, options?: SetOpts): Promise<void>;

@@ -1,6 +1,6 @@
 import TemplateItemType from 'config/types';
-import { StandardParser } from 'parse/_parse';
-import {
+import type { StandardParser } from 'parse/_parse';
+import type {
   MemberTemplateItem,
   InvocationTemplateItem,
   PrimaryExpressionTemplateDefinition

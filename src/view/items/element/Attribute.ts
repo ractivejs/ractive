@@ -6,8 +6,8 @@ import hyphenateCamel from 'utils/hyphenateCamel';
 import { isArray, isString, isUndefined } from 'utils/is';
 
 import Fragment from '../../Fragment';
-import Element from '../Element';
-import Interpolator from '../Interpolator';
+import type Element from '../Element';
+import type Interpolator from '../Interpolator';
 import findElement from '../shared/findElement';
 import Item, { isItemType, ItemOpts } from '../shared/Item';
 

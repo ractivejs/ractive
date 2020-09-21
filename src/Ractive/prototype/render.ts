@@ -1,11 +1,11 @@
 import { teardown } from 'shared/methodCallers';
-import { Target } from 'types/Generic';
-import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
+import type { Target } from 'types/Generic';
+import type { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { toArray } from 'utils/array';
 import { getElement } from 'utils/dom';
 import { warnIfDebug } from 'utils/log';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 import render from '../render';
 
 // TODO anchor is not documented so it's required?

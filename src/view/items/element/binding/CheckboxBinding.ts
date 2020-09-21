@@ -1,9 +1,10 @@
-import Input from '../specials/Input';
+import type Input from '../specials/Input';
 
 import Binding, { BindingWithInitialValue, BasicBindingInterface, BindingValue } from './Binding';
 import handleDomEvent from './handleDomEvent';
 
-export default class CheckboxBinding extends Binding
+export default class CheckboxBinding
+  extends Binding
   implements BindingWithInitialValue, BasicBindingInterface {
   constructor(element: Input) {
     super(element, 'checked');

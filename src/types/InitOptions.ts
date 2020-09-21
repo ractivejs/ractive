@@ -1,13 +1,13 @@
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import Component from 'view/items/Component';
-import Interpolator from 'view/items/Interpolator';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type Component from 'view/items/Component';
+import type Interpolator from 'view/items/Interpolator';
 
-import { Adaptor } from './Adaptor';
-import { Computation } from './Computation';
-import { Decorator } from './Decorator';
-import { EasingFunction } from './Easings';
-import { EventPlugin } from './Events';
-import {
+import type { Adaptor } from './Adaptor';
+import type { Computation } from './Computation';
+import type { Decorator } from './Decorator';
+import type { EasingFunction } from './Easings';
+import type { EventPlugin } from './Events';
+import type {
   CssFn,
   Data,
   DataFn,
@@ -17,11 +17,11 @@ import {
   ValueMap,
   Partial
 } from './Generic';
-import { ListenerCallback, ListenerDescriptor } from './Listener';
-import { ObserverCallback, ObserverDescriptor } from './Observer';
-import { BaseParseOpts, Template } from './Parse';
-import { Registry } from './Registries';
-import { Transition } from './Transition';
+import type { ListenerCallback, ListenerDescriptor } from './Listener';
+import type { ObserverCallback, ObserverDescriptor } from './Observer';
+import type { BaseParseOpts, Template } from './Parse';
+import type { Registry } from './Registries';
+import type { Transition } from './Transition';
 
 export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseOpts {
   /** Adaptors to be applied. */

@@ -2,10 +2,10 @@ import { safeToStringValue } from 'utils/dom';
 import { detachNode } from 'utils/dom';
 import { escapeHtml } from 'utils/html';
 
-import Attribute from './element/Attribute';
-import Binding from './element/binding/Binding';
+import type Attribute from './element/Attribute';
+import type Binding from './element/binding/Binding';
 import { inAttributes } from './element/ConditionalAttribute';
-import { ItemBasicInterface } from './shared/Item';
+import type { ItemBasicInterface } from './shared/Item';
 import Mustache, { MustacheOpts } from './shared/Mustache';
 import progressiveText, { TextOccupant } from './shared/progressiveText';
 

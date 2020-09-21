@@ -6,21 +6,21 @@ import {
   TransitionTrigger
 } from 'parse/converters/element/elementDefinitions';
 import { findInViewHierarchy } from 'shared/registry';
-import TransitionManager from 'src/global/TransitionManager';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { ValueMap } from 'types/Generic';
-import { Transition as TransitionFunction } from 'types/Transition';
+import type TransitionManager from 'src/global/TransitionManager';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { ValueMap } from 'types/Generic';
+import type { Transition as TransitionFunction } from 'types/Transition';
 import { addToArray, removeFromArray } from 'utils/array';
 import { isArray, isObject, isFunction, isNumber, isString, isUndefined } from 'utils/is';
 import { warnOnceIfDebug } from 'utils/log';
 import noop from 'utils/noop';
 import { assign, hasOwn, keys } from 'utils/object';
-import Fragment from 'view/Fragment';
+import type Fragment from 'view/Fragment';
 
-import Element from '../Element';
+import type Element from '../Element';
 import { resolveArgs, setupArgsFn } from '../shared/directiveArgs';
 import findElement from '../shared/findElement';
-import Item from '../shared/Item';
+import type Item from '../shared/Item';
 
 import createTransitions from './transitions/createTransitions';
 import prefix from './transitions/prefix';

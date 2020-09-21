@@ -14,7 +14,8 @@
     "target": "es5",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noEmit": true
+    "noEmit": true,
+    "importsNotUsedAsValues": "error"
   },
   "include": [
     "./src/**/*"

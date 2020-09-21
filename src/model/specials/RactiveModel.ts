@@ -1,4 +1,4 @@
-import ModelBase from 'model/ModelBase';
+import type ModelBase from 'model/ModelBase';
 import { create } from 'utils/object';
 
 import LinkModel, { Missing } from '../LinkModel';
@@ -25,7 +25,7 @@ export default class RactiveModel extends SharedModel {
 }
 
 function initLink(model: RactiveModel, key: string): LinkModel {
-  model.applyValue = function(value) {
+  model.applyValue = function (value) {
     this.parent.value[key] = value;
     if (value && value.viewmodel) {
       this.link(value.viewmodel.getRactiveModel(), key);
@@ -38,7 +38,7 @@ function initLink(model: RactiveModel, key: string): LinkModel {
 
   if (key === 'root') {
     const mark = model.mark;
-    model.mark = function(force) {
+    model.mark = function (force) {
       if (this._marking) return;
       this._marking = true;
       mark.apply(this, force);

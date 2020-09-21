@@ -1,6 +1,6 @@
 import TemplateItemType from 'config/types';
-import { StandardParser } from 'parse/_parse';
-import { ConditionalOperatorTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+import type { StandardParser } from 'parse/_parse';
+import type { ConditionalOperatorTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 
 import readExpression from '../readExpression';
 

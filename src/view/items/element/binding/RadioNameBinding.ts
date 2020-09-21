@@ -1,6 +1,6 @@
-import Model from 'model/Model';
+import type Model from 'model/Model';
 
-import Input from '../specials/Input';
+import type Input from '../specials/Input';
 
 import Binding, { BindingValue, BindingWithInitialValue, BasicBindingInterface } from './Binding';
 import getBindingGroup, { BindingGroup } from './getBindingGroup';
@@ -13,7 +13,8 @@ function getValue(): BindingValue {
   }
 }
 
-export default class RadioNameBinding extends Binding
+export default class RadioNameBinding
+  extends Binding
   implements BindingWithInitialValue, BasicBindingInterface {
   private group: BindingGroup<BindingValue, RadioNameBinding>;
 

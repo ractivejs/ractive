@@ -1,4 +1,4 @@
-import ModelBase from 'model/ModelBase';
+import type ModelBase from 'model/ModelBase';
 import { rebindMatch } from 'shared/rebind';
 import resolve from 'view/resolvers/resolve';
 

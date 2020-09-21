@@ -1,11 +1,11 @@
-import { AnimatePromise } from 'model/Model';
-import { AnimateOpts } from 'src/Ractive/prototype/animate';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { AnimatePromise } from 'model/Model';
+import type { AnimateOpts } from 'src/Ractive/prototype/animate';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
 
-import { DecoratorHandle } from './Decorator';
-import { ArrayPopPromise, ArrayPushPromise, ArraySplicePromise, ValueMap } from './Generic';
-import { ListenerHandle } from './Listener';
-import {
+import type { DecoratorHandle } from './Decorator';
+import type { ArrayPopPromise, ArrayPushPromise, ArraySplicePromise, ValueMap } from './Generic';
+import type { ListenerHandle } from './Listener';
+import type {
   GetOpts,
   LinkOpts,
   ReadLinkOpts,
@@ -13,14 +13,14 @@ import {
   SetOpts,
   UpdateOpts
 } from './MethodOptions';
-import {
+import type {
   ObserverCallback,
   ObserverOpts,
   ObserverHandle,
   ObserverArrayCallback,
   ObserverArrayOpts
 } from './Observer';
-import { Registry } from './Registries';
+import type { Registry } from './Registries';
 
 export interface ContextHelper {
   /** The Ractive instance associated with this Context. */

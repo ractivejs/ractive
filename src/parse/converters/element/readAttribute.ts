@@ -1,13 +1,13 @@
 import TemplateItemType from 'config/types';
-import { StandardParser } from 'parse/_parse';
+import type { StandardParser } from 'parse/_parse';
 import flattenExpression from 'parse/utils/flattenExpression';
 import { refineExpression } from 'parse/utils/refineExpression';
 
-import { ExpressionTemplateItem } from '../expressions/expressionDefinitions';
+import type { ExpressionTemplateItem } from '../expressions/expressionDefinitions';
 import readExpressionList from '../expressions/shared/readExpressionList';
-import { InterpolatorTemplateItem } from '../mustache/mustacheDefinitions';
+import type { InterpolatorTemplateItem } from '../mustache/mustacheDefinitions';
 import readExpressionOrReference from '../readExpressionOrReference';
-import { ExpressionFunctionTemplateItem } from '../templateItemDefinitions';
+import type { ExpressionFunctionTemplateItem } from '../templateItemDefinitions';
 
 import {
   BindingFlagDirectiveTemplateItem,

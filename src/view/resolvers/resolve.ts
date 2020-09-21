@@ -1,8 +1,8 @@
-import ModelBase from 'model/ModelBase';
-import { ExpressionRefinementTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
-import RepeatedFragment from 'view/RepeatedFragment';
+import type ModelBase from 'model/ModelBase';
+import type { ExpressionRefinementTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+import type RepeatedFragment from 'view/RepeatedFragment';
 
-import Fragment from '../Fragment';
+import type Fragment from '../Fragment';
 
 import ExpressionProxy from './ExpressionProxy';
 import ReferenceExpressionProxy from './ReferenceExpressionProxy';

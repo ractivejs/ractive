@@ -3,7 +3,7 @@ import TemplateItemType from 'config/types';
 import { READERS, StandardParser, StandardParserTag } from '../_parse';
 
 import readClosing from './mustache/section/readClosing';
-import { InlinePartialDefinitionTemplateItem } from './templateItemDefinitions';
+import type { InlinePartialDefinitionTemplateItem } from './templateItemDefinitions';
 
 const partialDefinitionSectionPattern = /^\s*#\s*partial\s+/;
 

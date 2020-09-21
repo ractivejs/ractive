@@ -1,9 +1,9 @@
-import Model from 'model/Model';
+import type Model from 'model/Model';
 import getNewIndices from 'shared/getNewIndices';
 import { splitKeypath } from 'shared/keypaths';
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { ArrayPopPromise, ArrayPushPromise, ArraySplicePromise, Keypath } from 'types/Generic';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { ArrayPopPromise, ArrayPushPromise, ArraySplicePromise, Keypath } from 'types/Generic';
 import { isArray, isUndefined } from 'utils/is';
 
 const arrayProto = Array.prototype;
@@ -39,11 +39,11 @@ function makeArrayMethod(
   model: ModelFunction<Promise<void>>;
 };
 function makeArrayMethod(methodName: string): { path: unknown; model: unknown } {
-  const path: PathFunction<Promise<unknown>> = function(this: Ractive, keypath, ...args) {
+  const path: PathFunction<Promise<unknown>> = function (this: Ractive, keypath, ...args) {
     return model(this.viewmodel.joinAll(splitKeypath(keypath)), args);
   };
 
-  const model: ModelFunction<Promise<unknown>> = function(mdl, args) {
+  const model: ModelFunction<Promise<unknown>> = function (mdl, args) {
     let array = mdl.get();
 
     if (!isArray(array)) {

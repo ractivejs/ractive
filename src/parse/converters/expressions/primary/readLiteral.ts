@@ -1,5 +1,5 @@
-import { StandardParser } from 'parse/_parse';
-import {
+import type { StandardParser } from 'parse/_parse';
+import type {
   ValueTemplateItem,
   BrackedTemplateItem,
   ObjectLiteralTemplateItem,

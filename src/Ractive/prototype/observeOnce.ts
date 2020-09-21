@@ -1,5 +1,5 @@
-import { Keypath } from 'types/Generic';
-import {
+import type { Keypath } from 'types/Generic';
+import type {
   ObserverArrayCallback,
   ObserverArrayOpts,
   ObserverCallback,
@@ -9,9 +9,9 @@ import {
 import { isFunction, isString, isObjectType } from 'utils/is';
 import { assign } from 'utils/object';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
-import { ObserverCallbackMap } from './observe';
+import type { ObserverCallbackMap } from './observe';
 
 const onceOptions = { init: false, once: true };
 

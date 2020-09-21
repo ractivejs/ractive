@@ -1,7 +1,7 @@
 import TemplateItemType from 'config/types';
-import { GenericAttributeTemplateItem } from 'parse/converters/element/elementDefinitions';
+import type { GenericAttributeTemplateItem } from 'parse/converters/element/elementDefinitions';
 import { updateAnchors } from 'shared/anchors';
-import Context from 'shared/Context';
+import type Context from 'shared/Context';
 import getRactiveContext from 'shared/getRactiveContext';
 import { bind, render as callRender, unbind, unrender, update } from 'shared/methodCallers';
 import runloop from 'src/global/runloop';
@@ -17,10 +17,12 @@ import { assign, create } from 'utils/object';
 
 import createItem from './createItem';
 import ConditionalAttribute, { ConditionalAttributeOwner } from './element/ConditionalAttribute';
-import EventDirective, { EventDirectiveOwner } from './shared/EventDirective';
+import type EventDirective from './shared/EventDirective';
+import type { EventDirectiveOwner } from './shared/EventDirective';
 import Item, { ItemOpts } from './shared/Item';
 
-export default class Component extends Item
+export default class Component
+  extends Item
   implements EventDirectiveOwner, ConditionalAttributeOwner {
   private isAnchor: boolean;
   private name: string;

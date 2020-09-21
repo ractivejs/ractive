@@ -1,4 +1,4 @@
-import { ArrayPushPromise } from 'types/Generic';
+import type { ArrayPushPromise } from 'types/Generic';
 
 import makeArrayMethod from './shared/makeArrayMethod';
 

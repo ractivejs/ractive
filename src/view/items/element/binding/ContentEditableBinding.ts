@@ -1,7 +1,8 @@
 import Binding, { BindingWithInitialValue, BasicBindingInterface } from './Binding';
 import handleDomEvent from './handleDomEvent';
 
-export default class ContentEditableBinding extends Binding
+export default class ContentEditableBinding
+  extends Binding
   implements BindingWithInitialValue, BasicBindingInterface {
   getInitialValue(): string {
     return this.element.fragment ? this.element.fragment.toString() : '';

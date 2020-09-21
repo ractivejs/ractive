@@ -2,8 +2,8 @@ import { doc } from 'config/environment';
 import hooks from 'src/events/Hook';
 import { applyCSS } from 'src/global/css';
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { RactiveHTMLElement } from 'types/RactiveHTMLElement';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { getElement } from 'utils/dom';
 
 import { createFragment } from './initialise';

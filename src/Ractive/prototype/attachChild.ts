@@ -1,10 +1,10 @@
 import { unrenderChild, updateAnchors } from 'shared/anchors';
 import hooks from 'src/events/Hook';
 import runloop from 'src/global/runloop';
-import { Meta } from 'types/Generic';
-import { AttachOpts } from 'types/MethodOptions';
+import type { Meta } from 'types/Generic';
+import type { AttachOpts } from 'types/MethodOptions';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$attachChild(
   this: Ractive,

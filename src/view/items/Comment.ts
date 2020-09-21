@@ -1,5 +1,5 @@
 import { doc } from 'config/environment';
-import { CommentTemplateItem } from 'parse/converters/templateItemDefinitions';
+import type { CommentTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { detachNode } from 'utils/dom';
 
 import Item, { ItemOpts } from './shared/Item';

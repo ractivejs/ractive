@@ -1,7 +1,8 @@
-/* eslint no-console:"off" */
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import { isFunction } from 'utils/is';
 
-const win = typeof window !== 'undefined' ? window : null;
+/* eslint no-console:"off" */
+const win: Window & { Ractive?: Ractive } = typeof window !== 'undefined' ? window : null;
 const doc = win ? document : null;
 const isClient = !!doc;
 const base = typeof global !== 'undefined' ? global : win;

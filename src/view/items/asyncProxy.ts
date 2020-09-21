@@ -1,7 +1,7 @@
 import TemplateItemType from 'config/types';
-import { ElementTemplateItem } from 'parse/converters/templateItemDefinitions';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { MacroHelper } from 'types/Macro';
+import type { ElementTemplateItem } from 'parse/converters/templateItemDefinitions';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { MacroHelper } from 'types/Macro';
 
 import Partial, { PartialOpts } from './Partial';
 

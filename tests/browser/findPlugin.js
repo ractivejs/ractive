@@ -2,7 +2,7 @@ import { test } from 'qunit';
 
 import { initModule } from '../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('findPlugin.js');
 
   test('find registry in hierarchy', t => {

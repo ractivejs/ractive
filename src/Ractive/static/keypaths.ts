@@ -1,5 +1,5 @@
 import { escapeKey, splitKeypath as splitKeypathI, unescapeKey } from 'shared/keypaths';
-import { Keypath } from 'types/Generic';
+import type { Keypath } from 'types/Generic';
 
 export function joinKeys(...keys: (string | number | (string | number)[])[]): Keypath {
   return keys.map(escapeKey).join('.');

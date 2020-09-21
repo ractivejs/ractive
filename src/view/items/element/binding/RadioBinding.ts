@@ -1,7 +1,7 @@
 import runloop from 'src/global/runloop';
 import { removeFromArray } from 'utils/array';
 
-import Input from '../specials/Input';
+import type Input from '../specials/Input';
 
 import Binding, { BasicBindingInterface, BindingWithInitialValue } from './Binding';
 import handleDomEvent from './handleDomEvent';

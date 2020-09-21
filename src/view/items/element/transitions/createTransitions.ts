@@ -2,12 +2,12 @@ import { isClient } from 'config/environment';
 import { missingPlugin } from 'config/errors';
 import { interpolate } from 'shared/interpolate';
 import Ticker from 'shared/Ticker';
-import { TransitionOpts } from 'types/Transition';
+import type { TransitionOpts } from 'types/Transition';
 import { createElement } from 'utils/dom';
 import { isFunction, isString } from 'utils/is';
 import { warnIfDebug, warnOnceIfDebug } from 'utils/log';
 
-import Transition from '../Transition';
+import type Transition from '../Transition';
 
 import hyphenate from './hyphenate';
 
@@ -54,7 +54,7 @@ if (!isClient) {
     TRANSITION_TIMING_FUNCTION = TRANSITION + 'TimingFunction';
   }
 
-  createTransitions = function(t, to, options, changedProperties, resolve) {
+  createTransitions = function (t, to, options, changedProperties, resolve) {
     // Wait a beat (otherwise the target styles will be applied immediately)
     // TODO use a fastdom-style mechanism?
     setTimeout(() => {

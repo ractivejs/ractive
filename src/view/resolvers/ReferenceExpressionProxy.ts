@@ -1,17 +1,17 @@
 import TemplateItemType from 'config/types';
 import LinkModel, { Missing } from 'model/LinkModel';
 import ModelBase, { fireShuffleTasks, ModelWithRebound } from 'model/ModelBase';
-import {
+import type {
   ReferenceExpressionTemplateItem,
   ReferenceTemplateItem
 } from 'parse/converters/expressions/expressionDefinitions';
-import { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
+import type { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { escapeKey } from 'shared/keypaths';
 import { rebindMatch } from 'shared/rebind';
-import { Keypath } from 'types/Generic';
+import type { Keypath } from 'types/Generic';
 import { isArray, isString } from 'utils/is';
-import Fragment from 'view/Fragment';
-import RepeatedFragment from 'view/RepeatedFragment';
+import type Fragment from 'view/Fragment';
+import type RepeatedFragment from 'view/RepeatedFragment';
 
 import ExpressionProxy from './ExpressionProxy';
 import resolve from './resolve';

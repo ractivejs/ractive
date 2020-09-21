@@ -1,4 +1,4 @@
-import { ValueMap } from 'types/Generic';
+import type { ValueMap } from 'types/Generic';
 
 const obj = Object;
 

@@ -1,4 +1,4 @@
-import { ArrayPopPromise } from 'types/Generic';
+import type { ArrayPopPromise } from 'types/Generic';
 
 import makeArrayMethod from './shared/makeArrayMethod';
 

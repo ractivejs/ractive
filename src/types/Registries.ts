@@ -1,13 +1,14 @@
-import { InterpolatorFunction } from 'src/Ractive/static/interpolators';
-import Partial from 'view/items/Partial';
+import type { InterpolatorFunction } from 'src/Ractive/static/interpolators';
+import type Partial from 'view/items/Partial';
 
-import { Ractive } from '../Ractive/RactiveDefinition';
+import type { Ractive } from '../Ractive/RactiveDefinition';
 
-import { Adaptor } from './Adaptor';
-import { Decorator } from './Decorator';
-import { EasingFunction } from './Easings';
-import { EventPlugin } from './Events';
-import { Transition } from './Transition';
+import type { Adaptor } from './Adaptor';
+import type { Decorator } from './Decorator';
+import type { EasingFunction } from './Easings';
+import type { EventPlugin } from './Events';
+import type { Helper } from './Generic';
+import type { Transition } from './Transition';
 
 export type Registry<T> = Record<string, T>;
 
@@ -19,7 +20,7 @@ export interface Registries {
   easings: Registry<EasingFunction>;
   events: Registry<EventPlugin<Ractive>>;
   interpolators: Registry<InterpolatorFunction<any>>;
-  helpers: Registry<any>; // Helper
+  helpers: Registry<Helper>; // Helper
   partials: Registry<Partial>;
   transitions: Registry<Transition>;
 }

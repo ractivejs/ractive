@@ -1,10 +1,10 @@
-import { Keypath } from 'types/Generic';
-import { SetOpts } from 'types/MethodOptions';
+import type { Keypath } from 'types/Generic';
+import type { SetOpts } from 'types/MethodOptions';
 import { isObjectType } from 'utils/is';
 
 import SharedModel from '../../model/specials/SharedModel';
 import { build, set } from '../../shared/set';
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 export default function sharedSet(
   keypath: Keypath,

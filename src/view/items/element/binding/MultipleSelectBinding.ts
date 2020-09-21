@@ -1,14 +1,15 @@
-import { RactiveHTMLOptionElement } from 'types/RactiveHTMLElement';
+import type { RactiveHTMLOptionElement } from 'types/RactiveHTMLElement';
 import { arrayContentsMatch } from 'utils/array';
 import getSelectedOptions from 'utils/getSelectedOptions';
 import { isUndefined } from 'utils/is';
 
-import Select from '../specials/Select';
+import type Select from '../specials/Select';
 
 import Binding, { BindingWithInitialValue, BindingValue } from './Binding';
 import handleDomEvent from './handleDomEvent';
 
-export default class MultipleSelectBinding extends Binding
+export default class MultipleSelectBinding
+  extends Binding
   implements BindingWithInitialValue, BindingWithInitialValue {
   /**
    * Add check to avoid compatibility error  on Input element

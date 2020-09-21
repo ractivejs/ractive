@@ -4,7 +4,7 @@ import { isUndefined } from 'utils/is';
 import { hasOwn } from 'utils/object';
 
 import Model from './Model';
-import { ModelGetOpts } from './ModelBase';
+import type { ModelGetOpts } from './ModelBase';
 
 export default class ComputationChild extends Model {
   public parent: any;

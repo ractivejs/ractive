@@ -1,4 +1,4 @@
-import { Ractive } from '../Ractive/RactiveDefinition';
+import type { Ractive } from '../Ractive/RactiveDefinition';
 
 export interface RactiveHTMLElement extends HTMLElement {
   _ractive?: Ractive;

@@ -1,11 +1,11 @@
 import runloop from 'src/global/runloop';
-import { ValueMap } from 'types/Generic';
+import type { ValueMap } from 'types/Generic';
 import { isObjectType } from 'utils/is';
 
 import hooks from '../../events/Hook';
 import config from '../config/config';
 import dataConfigurator from '../config/custom/data';
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 const shouldRerender = ['template', 'partials', 'components', 'decorators', 'events'];
 

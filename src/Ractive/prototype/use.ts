@@ -1,6 +1,6 @@
-import { PluginExtend } from 'types/Generic';
+import type { PluginExtend } from 'types/Generic';
 
-import { Ractive } from '../RactiveDefinition';
+import type { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$use(this: Ractive, ...plugins: PluginExtend[]): typeof this {
   plugins.forEach(p => {

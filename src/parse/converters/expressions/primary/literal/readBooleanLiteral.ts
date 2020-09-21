@@ -1,7 +1,7 @@
 import TemplateItemType from 'config/types';
-import Parser from 'parse/Parser';
+import type Parser from 'parse/Parser';
 
-import { ValueTemplateItem } from '../../expressionDefinitions';
+import type { ValueTemplateItem } from '../../expressionDefinitions';
 
 export default function readBooleanLiteral(parser: Parser): ValueTemplateItem {
   const remaining = parser.remaining();

@@ -1,19 +1,19 @@
 import { missingPlugin } from 'config/errors';
-import { DecoratorDirectiveTemplateItem } from 'parse/converters/element/elementDefinitions';
+import type { DecoratorDirectiveTemplateItem } from 'parse/converters/element/elementDefinitions';
 import { findInViewHierarchy } from 'shared/registry';
 import runloop from 'src/global/runloop';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import { localFragment } from 'src/shared/Context';
-import { DecoratorHandle } from 'types/Decorator';
+import type { DecoratorHandle } from 'types/Decorator';
 import { warnOnce } from 'utils/log';
 import noop from 'utils/noop';
-import ExpressionProxy from 'view/resolvers/ExpressionProxy';
+import type ExpressionProxy from 'view/resolvers/ExpressionProxy';
 
 import Fragment from '../../Fragment';
-import Element from '../Element';
+import type Element from '../Element';
 import { teardownArgsFn, setupArgsFnWithRegister } from '../shared/directiveArgs';
 import findElement from '../shared/findElement';
-import Item from '../shared/Item';
+import type Item from '../shared/Item';
 
 const missingDecorator: DecoratorHandle = {
   update: noop,

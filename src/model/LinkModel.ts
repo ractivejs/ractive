@@ -1,8 +1,8 @@
 import { handleChange, marked, markedAll, teardown } from 'shared/methodCallers';
 import { rebindMatch } from 'shared/rebind';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { Keypath } from 'types/Generic';
-import { Indexes } from 'utils/array';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Keypath } from 'types/Generic';
+import type { Indexes } from 'utils/array';
 import { isUndefined } from 'utils/is';
 import noop from 'utils/noop';
 import { hasOwn } from 'utils/object';
@@ -10,7 +10,7 @@ import resolveReference from 'view/resolvers/resolveReference';
 
 import { capture } from '../global/capture';
 
-import Model from './Model';
+import type Model from './Model';
 import ModelBase, { maybeBind, shuffle, ModelWithShuffle, ModelGetOpts } from './ModelBase';
 
 /**

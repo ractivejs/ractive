@@ -1,6 +1,6 @@
 import { findInViewHierarchy } from 'shared/registry';
-import { Ractive } from 'src/Ractive/RactiveDefinition';
-import { Registries } from 'types/Registries';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Registries } from 'types/Registries';
 
 /** This function is exposed but it seems not documented */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

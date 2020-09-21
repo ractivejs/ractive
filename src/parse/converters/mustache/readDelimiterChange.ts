@@ -1,4 +1,4 @@
-import { StandardParser } from 'parse/_parse';
+import type { StandardParser } from 'parse/_parse';
 
 const delimiterChangePattern = /^[^\s=]+/;
 const whitespacePattern = /^\s+/;

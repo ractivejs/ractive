@@ -3,7 +3,7 @@ import { fire } from 'simulant';
 
 import { initModule } from '../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('forms.js');
 
   test('Resetting a form resets an input with two-way binding', t => {
