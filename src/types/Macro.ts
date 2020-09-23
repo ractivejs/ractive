@@ -1,9 +1,19 @@
-import type { PartialMap, ValueMap } from './Generic';
+import type { CssFn, PartialMap, ValueMap } from './Generic';
 import type { Template } from './Parse';
+
+export interface MacroOpts {
+  attributes?: string[];
+  cssId?: string;
+  noCssTransform?: boolean;
+  css?: string | CssFn;
+  cssData?: ValueMap;
+  template?: Template;
+  partials?: PartialMap;
+}
 
 export type MacroFn = (MacroHelper: MacroHelper, attrs?: Record<string, any>) => MacroHandle | void;
 
-export interface Macro extends MacroFn {
+export interface Macro extends MacroFn, MacroOpts {
   /** Get the css data for this macro at the given keypath. */
   styleGet(keypath: string): any;
   /** Set the css data for this macro at the given keypath to the given value. */

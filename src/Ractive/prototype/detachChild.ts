@@ -1,19 +1,19 @@
 import { updateAnchors } from 'shared/anchors';
 import hooks from 'src/events/Hook';
 import runloop from 'src/global/runloop';
-import type { Meta } from 'types/Generic';
 
 import type { Ractive } from '../RactiveDefinition';
 
 export default function Ractive$detachChild(this: Ractive, child: Ractive): Promise<Ractive> {
   const children = this._children;
-  let meta: Meta, index: number;
+  // TODO define meta type
+  let meta, index: number;
 
   let i = children.length;
   while (i--) {
     if (children[i].instance === child) {
       index = i;
-      meta = children[i] as Meta;
+      meta = children[i];
       break;
     }
   }

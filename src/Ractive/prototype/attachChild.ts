@@ -47,7 +47,7 @@ export default function Ractive$attachChild(
   child.parent = this;
   child.root = this.root;
   child.component = meta;
-  children.push(meta);
+  children.push((meta as unknown) as Ractive);
 
   const promise: Promise<void> & { ractive?: Ractive } = runloop.start();
 

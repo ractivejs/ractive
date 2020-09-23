@@ -1,13 +1,13 @@
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import type { Data, DataFn } from 'types/Generic';
-import type { InitOpts } from 'types/InitOptions';
+import type { ExtendOpts, InitOpts } from 'types/InitOptions';
 import bind from 'utils/bind';
 import { isArray, isObject, isFunction, isObjectType } from 'utils/is';
 import { fatal, warnIfDebug, warnOnceIfDebug } from 'utils/log';
 
 interface DataConfigurator {
   name: 'data';
-  extend: (parent: Ractive['constructor'], proto: Ractive, options: InitOpts) => void;
+  extend: (parent: Ractive['constructor'], proto: Ractive, options: ExtendOpts) => void;
   init: (parent: Ractive['constructor'], proto: Ractive, options: InitOpts) => Data;
   // Read comment in function implementation
   // reset: (ractive: Ractive) => void;

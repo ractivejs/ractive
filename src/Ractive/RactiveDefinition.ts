@@ -4,13 +4,17 @@ import type CSSModel from 'model/specials/CSSModel';
 import type Context from 'shared/Context';
 import type { FakeFragment } from 'shared/getRactiveContext';
 import type { Adaptor } from 'types/Adaptor';
+import type { ContextHelper } from 'types/Context';
 import type { Decorator } from 'types/Decorator';
 import type { EasingFunction } from 'types/Easings';
 import type { EventPlugin } from 'types/Events';
-import type { Data, Helper, Meta, Partial } from 'types/Generic';
+import type { Children, CssFn, Data, Helper, Partial, PluginExtend, ValueMap } from 'types/Generic';
+import type { ExtendOpts, InitOpts } from 'types/InitOptions';
 import type { EventListenerEntry } from 'types/Listener';
+import type { Macro } from 'types/Macro';
+import type { GetOpts, SetOpts, StyleSetOpts } from 'types/MethodOptions';
 import type { RactiveHTMLElement } from 'types/RactiveHTMLElement';
-import type { Registry } from 'types/Registries';
+import type { Registries, Registry } from 'types/Registries';
 import type { Transition } from 'types/Transition';
 import type Fragment from 'view/Fragment';
 import type Element from 'view/items/Element';
@@ -128,9 +132,7 @@ class RactiveInternal {
   _subs: Record<string, EventListenerEntry[]>;
 
   /** @internal*/
-  _children: (Ractive | Meta)[] & { byName?: Record<string, Meta[]> };
-  /** @internal*/
-  children: this['_children'];
+  _children: Children;
 
   /** @internal */
   viewmodel: RootModel;
@@ -146,9 +148,6 @@ class RactiveInternal {
    * @internal
    */
   computed: Record<string, Computation>;
-
-  /** @internal */
-  container: this;
 
   /** @internal */
   template: any;
@@ -180,9 +179,14 @@ class RactiveInternal {
   /** @internal */
   adapt: Adaptor[];
 
+  /** @internal */
   _cssModel: CSSModel;
 
+  /** @internal */
   _cssDef: any;
+
+  /** @internal */
+  extensions: Macro[];
 }
 
 // TODO add documentation on all fields
@@ -192,9 +196,17 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
   /** When true, causes Ractive to emit warnings. Defaults to true. */
   public static DEBUG: boolean;
 
+  constructor() {
+    super();
+  }
+
   public name: string;
 
   public target: HTMLElement | string;
+
+  public container: this;
+
+  public children: Children;
 
   public css: string;
 
@@ -227,6 +239,8 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
 
   public syncComputedChildren: boolean;
 
+  public cssData: ValueMap;
+
   public noIntro: boolean;
   public noOutro: boolean;
   public nestedTransitions: boolean;
@@ -245,38 +259,6 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
 
   attachChild = Ractive$attachChild;
 
-  /**
-   * Similar to `ractive.set()`, this will update the data and re-render any affected mustaches and
-   * notify observers.
-   * All animations are handled by a global timer that is shared between Ractive instances (and which
-   * only runs if there are one or more animations still in progress), so you can trigger as many
-   * separate animations as you like without worrying about timer congestion.
-   * Where possible, requestAnimationFrame is used rather than setTimeout.
-   *
-   * Numeric values and strings that can be parsed as numeric values can be interpolated. Objects and
-   * arrays containing numeric values (or other objects and arrays which themselves contain numeric
-   * values, and so on recursively) are also interpolated.
-   * Note that there is currently no mechanism for detecting cyclical structures! Animating to a value
-   * that indirectly references itself will cause an infinite loop.
-   *
-   * Future versions of Ractive may include string interpolators -
-   *  e.g. for SVG paths, colours, transformations and so on, a la D3 -
-   * and the ability to pass in your own interpolator.
-   *
-   * If an animation is started on a keypath which is already being animated, the first animation
-   * is cancelled.
-   * (Currently, there is no mechanism in place to prevent collisions between
-   * e.g. `ractive.animate('foo', { bar: 1 })` and `ractive.animate('foo.bar', 0)`.)
-   *
-   * @example ractive.animate(keypath, value[, options])
-   *
-   * @param keypath The keypath to animate.
-   * @param value The value to animate to.
-   * @param options
-   *
-   * @returns Returns a Promise which resolves with the target value and has an additional stop method,
-   * which cancels the animation.
-   */
   animate = Ractive$animate;
 
   compute = Ractive$compute;
@@ -285,59 +267,12 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
 
   detachChild = Ractive$detachChild;
 
-  /**
-   * Returns the first element inside a given Ractive instance matching a CSS selector.
-   * This is similar to doing `this.el.querySelector(selector)` (though it doesn't actually use `querySelector()`).
-   *
-   * @example
-   *
-   * ```
-   * var r = Ractive({
-   *   el: '#main',
-   *   template: '#tpl'
-   * })
-   *
-   * setTimeout(() => {
-   *   var p = r.find('p.target')
-   *   console.log(p.outerHTML)
-   * }, 1000)
-   * ```
-   *
-   * @param selector A CSS selector representing the element to find.
-   * @param options
-   */
   find = Ractive$find;
 
   findAll = Ractive$findAll;
 
   findContainer = Ractive$findContainer;
 
-  /**
-   * Returns the first component inside a given Ractive instance with the given `name` (or the first component of any kind if no name is given).
-   *
-   * @example
-   * ```
-   * var Component = Ractive.extend({
-   *   template: 'Component {{number}}'
-   * })
-   *
-   * var r = Ractive({
-   *   el: '#main',
-   *   template: '#tpl',
-   *   components: {
-   *     Component: Component
-   *   }
-   * })
-   *
-   * setTimeout(() => {
-   *   var c = r.findComponent('Component')
-   *   console.log(c.toHTML())
-   * }, 1000)
-   * ```
-   *
-   * @param name The name of the component to find.
-   * @param options
-   */
   findComponent = Ractive$findComponent;
 
   findAllComponents = Ractive$findAllComponents;
@@ -394,11 +329,6 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
 
   teardown = Ractive$teardown;
 
-  /**
-   * Returns a chunk of HTML representing the current state of the instance.
-   * This is most useful when you're using Ractive in node.js, as it allows
-   * you to serve fully-rendered pages (good for SEO and initial pageload performance) to the client.
-   */
   toHTML = Ractive$toHTML;
 
   toggle = Ractive$toggle;
@@ -418,4 +348,68 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
   updateModel = Ractive$updateModel;
 
   use = Ractive$use;
+}
+
+export interface Constructor<T extends Ractive<T>, U extends InitOpts<T> = InitOpts<T>> {
+  new (opts?: U): T;
+}
+
+export type Component = Static | Promise<Static>;
+
+export interface Static<T extends Ractive<T> = Ractive> {
+  new <V extends InitOpts<T> = InitOpts<T>>(opts?: V): T;
+
+  /** The registries that are inherited by all instance. */
+  defaults: Registries;
+
+  adaptors: Registry<Adaptor>;
+  components: Registry<Component>;
+  css?: string | CssFn;
+  decorators: Registry<Decorator<T>>;
+  easings: Registry<EasingFunction>;
+  events: Registry<EventPlugin<T>>;
+  interpolators: Registry<InterpolatorFunction>;
+  helpers: Registry<Helper>;
+  partials: Registry<Partial>;
+
+  /** Create a new component with this constructor as a starting point. */
+  extend<U, V extends ExtendOpts<T> = ExtendOpts<T>>(opts?: V): Static<Ractive<T & U>>;
+
+  /** Create a new component with this constuuctor as a starting point using the given constructor. */
+  extendWith<
+    U extends Ractive<U>,
+    V extends InitOpts<U> = InitOpts<U>,
+    W extends ExtendOpts<U> = ExtendOpts<U>
+  >(
+    c: Constructor<U, V>,
+    opts?: W
+  ): Static<Ractive<T & U>>;
+
+  /** Get a Context for the given node or selector. */
+  getContext(nodeOrQuery: HTMLElement | string): ContextHelper;
+
+  /** @returns true if the given object is an instance of this constructor */
+  isInstance(obj: any): boolean;
+
+  /** Get the value at the given keypath from the Ractive shared store. */
+  sharedGet(keypath: string, opts?: GetOpts): any;
+  /** Set the given keypath in the Ractive shared store to the given value. */
+  sharedSet(keypath: string, value: any, opts?: SetOpts): Promise<void>;
+  /** Set the given map of values in the Ractive shared store. */
+  sharedSet(map: ValueMap, opts?: SetOpts): Promise<void>;
+
+  /** Get the css data for this constructor at the given keypath. */
+  styleGet(keypath: string, opts?: GetOpts): any;
+  /** Set the css data for this constructor at the given keypath to the given value. */
+  styleSet(keypath: string, value: any, opts?: StyleSetOpts): Promise<void>;
+  /** Set the given map of values in the css data for this constructor. */
+  styleSet(map: ValueMap, opts?: StyleSetOpts): Promise<void>;
+
+  /** Install one or more plugins on the component.  */
+  use(...plugins: PluginExtend[]): Static;
+
+  /** The Ractive constructor used to create this constructor. */
+  Ractive: typeof Ractive;
+  /** The parent constructor used to create this constructor. */
+  Parent: Static;
 }

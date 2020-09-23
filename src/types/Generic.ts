@@ -63,3 +63,8 @@ export type PluginExtend = (PluginArgsExtend) => void;
 export type PluginInstance = (PluginArgsInstance) => void;
 
 export type Helper = (this: Ractive, ...args: any[]) => any;
+
+export interface Children extends Array<Ractive> {
+  /** Lists of instances targeting anchors by name. */
+  byName?: Record<string, Ractive[]>;
+}

@@ -972,7 +972,7 @@ export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseO
   /** A map of partials */
   partials?: Registry<Partial>;
 
-  /** Whether or not to consider instance memners like set when resolving values in the template. */
+  /** Whether or not to consider instance members like set when resolving values in the template. */
   resolveInstanceMembers?: boolean;
 
   /** Whether or not to invalidate computation dependencies when a computed value or one of its children is set. */
@@ -1074,7 +1074,7 @@ export interface Static<T extends Ractive<T> = Ractive> {
   /** Create a new component with this constructor as a starting point. */
   extend<U, V extends ExtendOpts<T> = ExtendOpts<T>>(opts?: V): Static<Ractive<T & U>>;
 
-  /** Create a new component with this constuuctor as a starting point using the given constructor. */
+  /** Create a new component with this constructor as a starting point using the given constructor. */
   extendWith<
     U extends Ractive<U>,
     V extends InitOpts<U> = InitOpts<U>,
@@ -1585,7 +1585,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
   /** Create a new component with this constructor as a starting point. */
   static extend<U>(opts?: ExtendOpts<Ractive & U>): Static<Ractive<Ractive & U>>;
 
-  /** Create a new component with this constuuctor as a starting point using the given constructor. */
+  /** Create a new component with this constructor as a starting point using the given constructor. */
   static extendWith<
     U extends Ractive<U>,
     V extends InitOpts<U> = InitOpts<U>,
