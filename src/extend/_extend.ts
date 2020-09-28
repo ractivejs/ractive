@@ -1,3 +1,9 @@
+import type {
+  Static,
+  Ractive as RactiveDefinition,
+  Constructor
+} from 'src/Ractive/RactiveDefinition';
+import type { ExtendOpts, InitOpts } from 'types/InitOptions';
 import { isArray, isFunction } from 'utils/is';
 import { create, defineProperties, toPairs, defineProperty } from 'utils/object';
 
@@ -16,23 +22,34 @@ import use from '../Ractive/static/use';
 
 const callsSuper = /super\s*\(|\.call\s*\(\s*this/;
 
-export function extend(...options) {
+export function extend(...options: ExtendOpts[]): ReturnType<typeof extendOne> {
   if (!options.length) {
     return extendOne(this);
   } else {
-    return options.reduce(extendOne, this);
+    return options.reduce((acc, option) => {
+      return extendOne(acc, option);
+    }, this);
   }
 }
 
-export function extendWith(Class, options = {}) {
+export function extendWith<
+  U extends RactiveDefinition<U>,
+  V extends InitOpts<U> = InitOpts<U>,
+  W extends ExtendOpts<U> = ExtendOpts<U>
+>(Class: Constructor<U, V>, options?: W): ReturnType<typeof extendOne> {
   return extendOne(this, options, Class);
 }
 
-function extendOne(Parent, options = {}, Target) {
-  let proto;
-  let Child = isFunction(Target) && Target;
+function extendOne<
+  T extends typeof Static,
+  U extends RactiveDefinition<U> = RactiveDefinition,
+  V extends InitOpts<U> = InitOpts<U>
+>(Parent: T, options: ExtendOpts<U> = {}, Target?: Constructor<U, V>): typeof Static {
+  let proto: RactiveDefinition;
+  let Child: typeof Static = isFunction(Target) && ((Target as unknown) as typeof Static);
 
-  if (options.prototype instanceof Ractive) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ((<any>options).prototype instanceof Ractive) {
     throw new Error(`Ractive no longer supports multiple inheritance.`);
   }
 
@@ -48,12 +65,12 @@ function extendOne(Parent, options = {}, Target) {
 
     proto = Child.prototype;
   } else {
-    Child = function (options) {
+    Child = (function (options) {
       if (!(this instanceof Child)) return new Child(options);
 
       construct(this, options || {});
       initialise(this, options || {}, {});
-    };
+    } as unknown) as typeof Static;
 
     proto = create(Parent.prototype);
     proto.constructor = Child;
@@ -91,7 +108,7 @@ function extendOne(Parent, options = {}, Target) {
 
   // attribute defs are not inherited, but they need to be stored
   if (options.attributes) {
-    let attrs;
+    let attrs: ExtendOpts['attributes'];
 
     // allow an array of optional props or an object with arrays for optional and required props
     if (isArray(options.attributes)) {
@@ -107,7 +124,7 @@ function extendOne(Parent, options = {}, Target) {
     Child.attributes = attrs;
   }
 
-  dataConfigurator.extend(Parent, proto, options, Child);
+  dataConfigurator.extend(Parent, proto, options);
 
   defineProperty(Child, 'helpers', { writable: true, value: proto.helpers });
 

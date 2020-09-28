@@ -1,4 +1,4 @@
-import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Ractive, Static } from 'src/Ractive/RactiveDefinition';
 import type { Data, DataFn } from 'types/Generic';
 import type { ExtendOpts, InitOpts } from 'types/InitOptions';
 import bind from 'utils/bind';
@@ -7,7 +7,7 @@ import { fatal, warnIfDebug, warnOnceIfDebug } from 'utils/log';
 
 interface DataConfigurator {
   name: 'data';
-  extend: (parent: Ractive['constructor'], proto: Ractive, options: ExtendOpts) => void;
+  extend: (parent: typeof Static, proto: Ractive, options: ExtendOpts) => void;
   init: (parent: Ractive['constructor'], proto: Ractive, options: InitOpts) => Data;
   // Read comment in function implementation
   // reset: (ractive: Ractive) => void;

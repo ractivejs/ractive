@@ -4,15 +4,14 @@ import type CSSModel from 'model/specials/CSSModel';
 import type Context from 'shared/Context';
 import type { FakeFragment } from 'shared/getRactiveContext';
 import type { Adaptor } from 'types/Adaptor';
-import type { ContextHelper } from 'types/Context';
 import type { Decorator } from 'types/Decorator';
 import type { EasingFunction } from 'types/Easings';
 import type { EventPlugin } from 'types/Events';
-import type { Children, CssFn, Data, Helper, Partial, PluginExtend, ValueMap } from 'types/Generic';
+import type { Children, CssFn, Data, Helper, Partial, ValueMap } from 'types/Generic';
 import type { ExtendOpts, InitOpts } from 'types/InitOptions';
-import type { EventListenerEntry } from 'types/Listener';
+import type { EventListenerEntry, ListenerCallback, ListenerDescriptor } from 'types/Listener';
 import type { Macro } from 'types/Macro';
-import type { GetOpts, SetOpts, StyleSetOpts } from 'types/MethodOptions';
+import type { ObserverCallback, ObserverDescriptor } from 'types/Observer';
 import type { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import type { Registries, Registry } from 'types/Registries';
 import type { Transition } from 'types/Transition';
@@ -66,7 +65,14 @@ import Ractive$unshift from './prototype/unshift';
 import Ractive$update from './prototype/update';
 import Ractive$updateModel from './prototype/updateModel';
 import Ractive$use from './prototype/use';
+import getContext from './static/getContext';
 import type { InterpolatorFunction } from './static/interpolators';
+import isInstance from './static/isInstance';
+import sharedGet from './static/sharedGet';
+import sharedSet from './static/sharedSet';
+import styleGet from './static/styleGet';
+import setCSSData from './static/styleSet';
+import use from './static/use';
 
 export interface RactiveConstructor extends Function {
   _cssIds: string[];
@@ -196,8 +202,11 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
   /** When true, causes Ractive to emit warnings. Defaults to true. */
   public static DEBUG: boolean;
 
-  constructor() {
+  constructor(options: InitOpts) {
     super();
+
+    // TODO implement constructor
+    options;
   }
 
   public name: string;
@@ -208,7 +217,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
 
   public children: Children;
 
-  public css: string;
+  public css: string | CssFn;
 
   public cssId: string;
 
@@ -356,60 +365,48 @@ export interface Constructor<T extends Ractive<T>, U extends InitOpts<T> = InitO
 
 export type Component = Static | Promise<Static>;
 
-export interface Static<T extends Ractive<T> = Ractive> {
-  new <V extends InitOpts<T> = InitOpts<T>>(opts?: V): T;
-
-  /** The registries that are inherited by all instance. */
-  defaults: Registries;
-
-  adaptors: Registry<Adaptor>;
-  components: Registry<Component>;
-  css?: string | CssFn;
-  decorators: Registry<Decorator<T>>;
-  easings: Registry<EasingFunction>;
-  events: Registry<EventPlugin<T>>;
-  interpolators: Registry<InterpolatorFunction>;
-  helpers: Registry<Helper>;
-  partials: Registry<Partial>;
-
+export class Static<T extends Ractive<T> = Ractive> extends Ractive<T> {
   /** Create a new component with this constructor as a starting point. */
-  extend<U, V extends ExtendOpts<T> = ExtendOpts<T>>(opts?: V): Static<Ractive<T & U>>;
+  // static extend<U, V extends ExtendOpts<T> = ExtendOpts<T>>(opts?: V): Static<Ractive<T & U>>;
 
-  /** Create a new component with this constuuctor as a starting point using the given constructor. */
-  extendWith<
-    U extends Ractive<U>,
-    V extends InitOpts<U> = InitOpts<U>,
-    W extends ExtendOpts<U> = ExtendOpts<U>
-  >(
-    c: Constructor<U, V>,
-    opts?: W
-  ): Static<Ractive<T & U>>;
+  /** Create a new component with this constructor as a starting point using the given constructor. */
+  // static extendWith<
+  //   U extends Ractive<U>,
+  //   V extends InitOpts<U> = InitOpts<U>,
+  //   W extends ExtendOpts<U> = ExtendOpts<U>
+  // >(c: Constructor<U, V>, opts?: W): Static<Ractive<T & U>>;
 
   /** Get a Context for the given node or selector. */
-  getContext(nodeOrQuery: HTMLElement | string): ContextHelper;
+  static getContext = getContext;
 
   /** @returns true if the given object is an instance of this constructor */
-  isInstance(obj: any): boolean;
+  static isInstance = isInstance;
 
   /** Get the value at the given keypath from the Ractive shared store. */
-  sharedGet(keypath: string, opts?: GetOpts): any;
+  static sharedGet = sharedGet;
   /** Set the given keypath in the Ractive shared store to the given value. */
-  sharedSet(keypath: string, value: any, opts?: SetOpts): Promise<void>;
-  /** Set the given map of values in the Ractive shared store. */
-  sharedSet(map: ValueMap, opts?: SetOpts): Promise<void>;
+  static sharedSet = sharedSet;
 
   /** Get the css data for this constructor at the given keypath. */
-  styleGet(keypath: string, opts?: GetOpts): any;
+  static styleGet = styleGet;
   /** Set the css data for this constructor at the given keypath to the given value. */
-  styleSet(keypath: string, value: any, opts?: StyleSetOpts): Promise<void>;
-  /** Set the given map of values in the css data for this constructor. */
-  styleSet(map: ValueMap, opts?: StyleSetOpts): Promise<void>;
+  static styleSet = setCSSData;
 
   /** Install one or more plugins on the component.  */
-  use(...plugins: PluginExtend[]): Static;
+  static use = use;
 
   /** The Ractive constructor used to create this constructor. */
-  Ractive: typeof Ractive;
+  static Ractive: typeof Ractive;
   /** The parent constructor used to create this constructor. */
-  Parent: Static;
+  static Parent: Static;
+
+  /** @internal */
+  static _on: [string, ListenerCallback | ListenerDescriptor][];
+
+  /** @internal */
+  static _observe: [string, ObserverCallback | ObserverDescriptor][];
+
+  static extensions: typeof Static[];
+
+  static attributes: { optional?: string[]; required?: string[] };
 }
