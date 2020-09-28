@@ -1,11 +1,9 @@
 import type { EventListenerEntry, ListenerCallback, ListenerHandle } from 'types/Listener';
 import { isObjectType, isString } from 'utils/is';
 import { hasOwn } from 'utils/object';
+import { trim, notEmptyString } from 'utils/string';
 
 import type { Ractive } from '../RactiveDefinition';
-
-import notEmptyString from './shared/notEmptyString';
-import trim from './shared/trim';
 
 function Ractive$on(this: Ractive, map: Record<string, ListenerCallback>): ListenerHandle;
 function Ractive$on(this: Ractive, eventName: string, callback: ListenerCallback): ListenerHandle;

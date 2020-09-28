@@ -16,11 +16,11 @@ type ReconstructCSSFunction = (css: string) => string;
  * @param callback receives the cleaned CSS and a {@link ReconstructCSSFunction}
  * @param additionalReplaceRules
  */
-export default function cleanCss(
+export default function cleanCss<T>(
   css: string,
-  callback: (css: string, reconstruct: ReconstructCSSFunction) => unknown,
+  callback: (css: string, reconstruct: ReconstructCSSFunction) => T,
   additionalReplaceRules: RegExp[] = []
-): unknown {
+): ReturnType<typeof callback> {
   const values: string[] = [];
   css = css.replace(escape, match => `\0${values.push(match) - 1}`).replace(remove, '');
 

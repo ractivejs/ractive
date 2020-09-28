@@ -1,10 +1,8 @@
 import type { ListenerCallback } from 'types/Listener';
 import { removeFromArray } from 'utils/array';
+import { notEmptyString, trim } from 'utils/string';
 
 import type { Ractive } from '../RactiveDefinition';
-
-import notEmptyString from './shared/notEmptyString';
-import trim from './shared/trim';
 
 export default function Ractive$off(
   this: Ractive,

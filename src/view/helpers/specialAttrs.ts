@@ -3,14 +3,12 @@ import { isString } from 'utils/is';
 
 const space = /\s+/;
 
-export type CSSPropertiesValueMap = {
-  [key: string]: string;
-};
+export type CSSPropertiesValueMap = Record<string, string>;
 
 export function readStyle(css: string): CSSPropertiesValueMap {
   if (!isString(css)) return {};
 
-  return cleanCss(css, (css, reconstruct) => {
+  return cleanCss<CSSPropertiesValueMap>(css, (css, reconstruct) => {
     return css
       .split(';')
       .filter(rule => !!rule.trim())
@@ -21,7 +19,7 @@ export function readStyle(css: string): CSSPropertiesValueMap {
         rules[name] = rule.substr(separatorIndex + 1).trim();
         return rules;
       }, {});
-  }) as CSSPropertiesValueMap;
+  });
 }
 
 export function readClass(str: string): string[] {

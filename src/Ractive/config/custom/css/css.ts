@@ -9,7 +9,10 @@ import { assign, create, defineProperty } from 'utils/object';
 
 import transformCss from './transform';
 
+// TODO complete refactor
+
 const hasCurly = /\{/;
+
 export default {
   name: 'css',
 
@@ -31,7 +34,7 @@ export default {
   },
 
   // Called when creating a new component instance
-  init: (Parent, target, options) => {
+  init: (_Parent, _target, options): void => {
     if (!options.css) return;
 
     warnIfDebug(`
@@ -48,9 +51,9 @@ const componentInstance = new Component({ ... })
   }
 };
 
-function gatherIds(start) {
+function gatherIds(start): string[] {
   let cmp = start;
-  const ids = [];
+  const ids: string[] = [];
 
   while (cmp) {
     if (cmp.prototype.cssId) ids.push(cmp.prototype.cssId);
@@ -85,15 +88,22 @@ export function initCSS(options, target, proto) {
 
   const id = options.cssId || uuid();
 
-  if (isObjectType(css)) {
-    css = 'textContent' in css ? css.textContent : css.innerHTML;
+  if (isObjectType<HTMLElement>(css)) {
+    css = 'textContent' in css ? css.textContent : (<HTMLElement>css).innerHTML;
     cssProp = css;
   } else if (isFunction(css)) {
     cssProp = css;
     css = evalCSS(target, css);
   }
 
-  const def = {
+  interface Definition {
+    transform: boolean;
+    styles?: any;
+    applied?: boolean;
+    id?: string;
+  }
+
+  const def: Definition = {
     transform: 'noCSSTransform' in options ? !options.noCSSTransform : !options.noCssTransform
   };
 
