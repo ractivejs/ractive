@@ -78,10 +78,10 @@ function Ractive$observe(
 
   if (isObjectType<ObserverCallbackMap>(keypath)) {
     map = keypath;
-    opts = (callback as ObserverOpts) || {};
+    opts = <ObserverOpts>callback || {};
   } else if (isFunction(keypath)) {
     map = { '': keypath };
-    opts = (callback as ObserverOpts) || {};
+    opts = <ObserverOpts>callback || {};
   } else if (isFunction(callback)) {
     map = {};
     map[keypath] = callback;
