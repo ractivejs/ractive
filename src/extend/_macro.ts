@@ -1,6 +1,6 @@
 import CSSModel from 'model/specials/CSSModel';
 import { initCSS } from 'src/Ractive/config/custom/css/css';
-import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Ractive, Static } from 'src/Ractive/RactiveDefinition';
 import type { Macro, MacroFn, MacroOpts } from 'types/Macro';
 import { isFunction } from 'utils/is';
 import { assign, create, defineProperties, defineProperty } from 'utils/object';
@@ -26,7 +26,9 @@ export default function macro(this: Ractive, fn: MacroFn, opts: MacroOpts): Macr
 
   defineProperty(macro, '_cssModel', { value: new CSSModel(macro) });
 
-  if (macro.css) initCSS(macro, macro, macro);
+  // TODO make the function support macro
+  if (macro.css)
+    initCSS(macro, (macro as unknown) as typeof Static, (macro as unknown) as typeof Static);
 
   this.extensions.push(macro);
 

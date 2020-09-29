@@ -1,4 +1,5 @@
 import { doc } from 'config/environment';
+import type { CSSDefinition } from 'src/Ractive/config/custom/css/css';
 import { isArray } from 'utils/is';
 
 const PREFIX = '/* Ractive.js component styles */';
@@ -53,7 +54,7 @@ export function getCSS(cssIds: string[]): string {
   );
 }
 
-export function addCSS(styleDefinition: string): void {
+export function addCSS(styleDefinition: CSSDefinition): void {
   styleDefinitions.push(styleDefinition);
   isDirty = true;
 }

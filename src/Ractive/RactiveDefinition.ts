@@ -18,6 +18,7 @@ import type { Transition } from 'types/Transition';
 import type Fragment from 'view/Fragment';
 import type Element from 'view/items/Element';
 
+import type { CSSDefinition } from './config/custom/css/css';
 import type { RactiveDynamicTemplate } from './config/custom/template';
 import Ractive$add from './prototype/add';
 import Ractive$animate from './prototype/animate';
@@ -398,7 +399,7 @@ export class Static<T extends Ractive<T> = Ractive> extends Ractive<T> {
   /** The Ractive constructor used to create this constructor. */
   static Ractive: typeof Ractive;
   /** The parent constructor used to create this constructor. */
-  static Parent: Static;
+  static Parent: typeof Static;
 
   /** @internal */
   static _on: [string, ListenerCallback | ListenerDescriptor][];
@@ -409,4 +410,12 @@ export class Static<T extends Ractive<T> = Ractive> extends Ractive<T> {
   static extensions: typeof Static[];
 
   static attributes: { optional?: string[]; required?: string[] };
+
+  static cssData: ValueMap;
+  static cssId: string;
+  static _cssIds: string[];
+  static _cssModel: CSSModel;
+  static _cssDef: CSSDefinition;
+
+  static adapt: (Adaptor | string)[];
 }

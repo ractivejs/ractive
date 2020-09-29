@@ -1,6 +1,9 @@
 import CSSModel from 'model/specials/CSSModel';
 import { splitKeypath } from 'shared/keypaths';
 import { addCSS, applyCSS } from 'src/global/css';
+import type { Static } from 'src/Ractive/RactiveDefinition';
+import type { CssFn } from 'types/Generic';
+import type { ExtendOpts, InitOpts } from 'types/InitOptions';
 import { getElement } from 'utils/dom';
 import { uuid } from 'utils/id';
 import { isString, isFunction, isObjectType } from 'utils/is';
@@ -13,11 +16,23 @@ import transformCss from './transform';
 
 const hasCurly = /\{/;
 
+export interface CSSDefinition {
+  transform: boolean;
+  styles?: string;
+  applied?: boolean;
+  id?: string;
+}
+
 export default {
   name: 'css',
 
   // Called when creating a new component definition
-  extend: (Parent, proto, options, Child) => {
+  extend: (
+    Parent: typeof Static,
+    proto: typeof Static,
+    options: ExtendOpts,
+    Child: typeof Static
+  ): void => {
     Child._cssIds = gatherIds(Parent);
 
     defineProperty(Child, 'cssData', {
@@ -34,7 +49,11 @@ export default {
   },
 
   // Called when creating a new component instance
-  init: (_Parent, _target, options): void => {
+  init: (
+    _Parent: typeof Static,
+    _target: typeof Static,
+    options: InitOpts & { css?: string }
+  ): void => {
     if (!options.css) return;
 
     warnIfDebug(`
@@ -51,7 +70,7 @@ const componentInstance = new Component({ ... })
   }
 };
 
-function gatherIds(start): string[] {
+function gatherIds(start: typeof Static): string[] {
   let cmp = start;
   const ids: string[] = [];
 
@@ -63,12 +82,12 @@ function gatherIds(start): string[] {
   return ids;
 }
 
-export function evalCSS(component, css) {
+export function evalCSS(component: typeof Static, css: string | CssFn): string {
   if (isString(css)) return css;
 
   const cssData = component.cssData;
   const model = component._cssModel;
-  const data = function data(path) {
+  const data = function data(path): string {
     return model.joinAll(splitKeypath(path)).get();
   };
   data.__proto__ = cssData;
@@ -77,14 +96,18 @@ export function evalCSS(component, css) {
   return isString(result) ? result : '';
 }
 
-export function initCSS(options, target, proto) {
+export function initCSS(
+  options: ExtendOpts & { css?: ExtendOpts['css'] | boolean },
+  target: typeof Static,
+  proto: typeof Static
+): void {
   let css =
     options.css === true
       ? ''
       : isString(options.css) && !hasCurly.test(options.css)
       ? getElement(options.css) || options.css
       : options.css;
-  let cssProp = css;
+  let cssProp: string | CssFn;
 
   const id = options.cssId || uuid();
 
@@ -94,16 +117,12 @@ export function initCSS(options, target, proto) {
   } else if (isFunction(css)) {
     cssProp = css;
     css = evalCSS(target, css);
+  } else {
+    cssProp = css;
   }
 
-  interface Definition {
-    transform: boolean;
-    styles?: any;
-    applied?: boolean;
-    id?: string;
-  }
-
-  const def: Definition = {
+  const def: CSSDefinition = {
+    // TODO remove `noCssTransform` code?
     transform: 'noCSSTransform' in options ? !options.noCSSTransform : !options.noCssTransform
   };
 

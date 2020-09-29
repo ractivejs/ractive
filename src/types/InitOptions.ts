@@ -124,6 +124,7 @@ export interface ExtendOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts
 
   /** If true, css selectors will not be scoped using the cssId of this component. */
   noCssTransform?: boolean;
+  noCSSTransform?: boolean;
 
   /** An array of plugins to apply to the component. */
   use?: PluginExtend[];
