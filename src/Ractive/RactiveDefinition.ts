@@ -8,12 +8,12 @@ import type { Decorator } from 'types/Decorator';
 import type { EasingFunction } from 'types/Easings';
 import type { EventPlugin } from 'types/Events';
 import type { Children, CssFn, Data, Helper, Partial, ValueMap } from 'types/Generic';
-import type { ExtendOpts, InitOpts } from 'types/InitOptions';
+import type { InitOpts } from 'types/InitOptions';
 import type { EventListenerEntry, ListenerCallback, ListenerDescriptor } from 'types/Listener';
 import type { Macro } from 'types/Macro';
 import type { ObserverCallback, ObserverDescriptor } from 'types/Observer';
 import type { RactiveHTMLElement } from 'types/RactiveHTMLElement';
-import type { Registries, Registry } from 'types/Registries';
+import type { Registry } from 'types/Registries';
 import type { Transition } from 'types/Transition';
 import type Fragment from 'view/Fragment';
 import type Element from 'view/items/Element';
@@ -364,7 +364,7 @@ export interface Constructor<T extends Ractive<T>, U extends InitOpts<T> = InitO
   new (opts?: U): T;
 }
 
-export type Component = Static | Promise<Static>;
+export type Component = typeof Static | Promise<typeof Static>;
 
 export class Static<T extends Ractive<T> = Ractive> extends Ractive<T> {
   /** Create a new component with this constructor as a starting point. */
@@ -418,4 +418,8 @@ export class Static<T extends Ractive<T> = Ractive> extends Ractive<T> {
   static _cssDef: CSSDefinition;
 
   static adapt: (Adaptor | string)[];
+
+  static default: any;
+
+  static _fn: Function;
 }

@@ -1,6 +1,6 @@
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import type Fragment from 'view/Fragment';
-import type Component from 'view/items/Component';
+import type ComponentItem from 'view/items/Component';
 
 import type { Macro } from './Macro';
 import type { ParseFn } from './Parse';
@@ -38,7 +38,7 @@ export interface Meta {
   target: string | false;
   up?: Fragment;
   external?: boolean;
-  anchor?: Component;
+  anchor?: ComponentItem;
   bubble: () => void;
   findNextNode: () => any;
 }
