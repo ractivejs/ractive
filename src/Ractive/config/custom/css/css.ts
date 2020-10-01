@@ -10,6 +10,8 @@ import { isString, isFunction, isObjectType } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import { assign, create, defineProperty } from 'utils/object';
 
+import type { Configurator } from '../../config';
+
 import transformCss from './transform';
 
 // TODO complete refactor
@@ -23,16 +25,11 @@ export interface CSSDefinition {
   id?: string;
 }
 
-export default {
+const cssConfigurator: Configurator = {
   name: 'css',
 
   // Called when creating a new component definition
-  extend: (
-    Parent: typeof Static,
-    proto: typeof Static,
-    options: ExtendOpts,
-    Child: typeof Static
-  ): void => {
+  extend: (Parent, proto, options, Child) => {
     Child._cssIds = gatherIds(Parent);
 
     defineProperty(Child, 'cssData', {
@@ -49,11 +46,7 @@ export default {
   },
 
   // Called when creating a new component instance
-  init: (
-    _Parent: typeof Static,
-    _target: typeof Static,
-    options: InitOpts & { css?: string }
-  ): void => {
+  init: (_Parent, _target, options: InitOpts & { css?: string }): void => {
     if (!options.css) return;
 
     warnIfDebug(`
@@ -69,6 +62,7 @@ const componentInstance = new Component({ ... })
 		`);
   }
 };
+export default cssConfigurator;
 
 function gatherIds(start: typeof Static): string[] {
   let cmp = start;
@@ -99,7 +93,7 @@ export function evalCSS(component: typeof Static, css: string | CssFn): string {
 export function initCSS(
   options: ExtendOpts & { css?: ExtendOpts['css'] | boolean },
   target: typeof Static,
-  proto: typeof Static
+  proto: Static
 ): void {
   let css =
     options.css === true

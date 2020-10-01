@@ -1,11 +1,11 @@
 import { TEMPLATE_VERSION } from 'config/template';
 import { addFunctions } from 'shared/getFunction';
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
-import type { InitOpts } from 'types/InitOptions';
 import type { ParsedTemplate, ParseFn, Template } from 'types/Parse';
 import { isFunction, isNumber, isObject, isString } from 'utils/is';
 import { hasOwn } from 'utils/object';
 
+import type { Configurator } from '../config';
 import parser from '../runtime-parser';
 
 export interface RactiveDynamicTemplate {
@@ -15,14 +15,7 @@ export interface RactiveDynamicTemplate {
   result: any;
 }
 
-interface TemplateConfigurator {
-  name: 'template';
-  extend: (parent: Ractive['constructor'], proto: Ractive, options: InitOpts) => void;
-  init: (parent: Ractive['constructor'], proto: Ractive, options: InitOpts) => void;
-  reset: (ractive: Ractive) => void;
-}
-
-const templateConfigurator: TemplateConfigurator = {
+const templateConfigurator: Configurator<void, boolean> = {
   name: 'template',
 
   extend(_Parent, proto, options) {

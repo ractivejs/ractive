@@ -1,5 +1,8 @@
 import { addFunctions } from 'shared/getFunction';
+import type { ExtendOpts } from 'types/InitOptions';
 import { assign, create, keys } from 'utils/object';
+
+import type { Ractive, Static } from '../RactiveDefinition';
 
 const registryNames = [
   'adaptors',
@@ -17,22 +20,25 @@ const registryNames = [
 const registriesOnDefaults = ['computed', 'helpers'];
 
 class Registry {
-  constructor(name, useDefaults) {
+  public name: string;
+  private useDefaults: boolean;
+
+  constructor(name: Registry['name'], useDefaults: Registry['useDefaults']) {
     this.name = name;
     this.useDefaults = useDefaults;
   }
 
-  extend(Parent, proto, options) {
+  extend(Parent: typeof Static, proto: Static, options: ExtendOpts): void {
     const parent = this.useDefaults ? Parent.defaults : Parent;
     const target = this.useDefaults ? proto : proto.constructor;
-    this.configure(parent, target, options);
+    this.configure(parent, <Static>(<unknown>target), options);
   }
 
-  init() {
+  init(): void {
     // noop
   }
 
-  configure(Parent, target, options) {
+  configure(Parent: typeof Static, target: Static, options: ExtendOpts): void {
     const name = this.name;
     const option = options[name];
 
@@ -49,7 +55,7 @@ class Registry {
     }
   }
 
-  reset(ractive) {
+  reset(ractive: Ractive): boolean {
     const registry = ractive[this.name];
     let changed = false;
 

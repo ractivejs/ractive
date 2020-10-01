@@ -9,7 +9,7 @@ import Ractive from '../Ractive';
 
 import config from './config/config';
 import subscribe from './helpers/subscribe';
-import type { Ractive as RactiveDefinition, RactiveConstructor } from './RactiveDefinition';
+import type { Ractive as RactiveDefinition, RactiveConstructor, Static } from './RactiveDefinition';
 
 interface InitializeOpts {
   cssIds?: string[];
@@ -31,7 +31,7 @@ export default function initialise(
   }
 
   // init config from Parent and options
-  config.init(ractive.constructor, ractive, userOptions);
+  config.init(<typeof Static>ractive.constructor, ractive, userOptions);
 
   // call any passed in plugins
   if (isArray(userOptions.use)) ractive.use(...userOptions.use.filter((p: any) => !p.construct));

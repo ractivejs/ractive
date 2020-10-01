@@ -5,7 +5,7 @@ import { isObjectType } from 'utils/is';
 import hooks from '../../events/Hook';
 import config from '../config/config';
 import dataConfigurator from '../config/custom/data';
-import type { Ractive } from '../RactiveDefinition';
+import type { Ractive, Static } from '../RactiveDefinition';
 
 const shouldRerender = ['template', 'partials', 'components', 'decorators', 'events'];
 
@@ -17,7 +17,7 @@ export default function Ractive$reset(this: Ractive, data: ValueMap): Promise<vo
   }
 
   // TEMP need to tidy this up
-  data = dataConfigurator.init(this.constructor, this, { data });
+  data = dataConfigurator.init(<typeof Static>this.constructor, this, { data });
 
   const promise = runloop.start();
 
@@ -34,7 +34,7 @@ export default function Ractive$reset(this: Ractive, data: ValueMap): Promise<vo
 
   // reset config items and track if need to rerender
   const changes = config.reset(this);
-  let rerender;
+  let rerender: boolean;
 
   let i = changes.length;
   while (i--) {

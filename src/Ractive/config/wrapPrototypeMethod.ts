@@ -1,10 +1,17 @@
 import { isFunction } from 'utils/is';
 import noop from 'utils/noop';
 
-export default function wrap(parent, name, method) {
-  if (!/_super/.test(method)) return method;
+import type { Static } from '../RactiveDefinition';
 
-  function wrapper(...args) {
+export default function wrap<T extends Function>(
+  parent: Static,
+  name: string,
+  method: T
+): Function {
+  // TSRChange - add `toString` to method
+  if (!/_super/.test(method.toString())) return method;
+
+  function wrapper(...args: unknown[]): unknown {
     const superMethod = getSuperMethod(wrapper._parent, name);
     const hasSuper = '_super' in this;
     const oldSuper = this._super;
@@ -28,7 +35,7 @@ export default function wrap(parent, name, method) {
   return wrapper;
 }
 
-function getSuperMethod(parent, name) {
+function getSuperMethod(parent: Static, name: string): Function {
   if (name in parent) {
     const value = parent[name];
 

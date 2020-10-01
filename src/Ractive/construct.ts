@@ -16,7 +16,7 @@ import getRactiveContext from '../shared/getRactiveContext';
 
 import dataConfigurator from './config/custom/data';
 import subscribe from './helpers/subscribe';
-import type { Ractive as RactiveDefinition, RactiveConstructor } from './RactiveDefinition';
+import type { Ractive as RactiveDefinition, RactiveConstructor, Static } from './RactiveDefinition';
 
 const registryNames = [
   'adaptors',
@@ -81,7 +81,7 @@ export default function construct(ractive: RactiveDefinition, options: InitOpts)
   // Create a viewmodel
   const viewmodel = new RootModel({
     adapt: getAdaptors(ractive, ractive.adapt, options),
-    data: dataConfigurator.init(ractive.constructor, ractive, options),
+    data: dataConfigurator.init(<typeof Static>ractive.constructor, ractive, options),
     ractive
   });
 
@@ -100,10 +100,10 @@ function getAdaptors(
   protoAdapt: RactiveDefinition['adapt'],
   options: InitOpts
 ): Adaptor[] {
-  protoAdapt = protoAdapt.map(lookup);
+  const instanceAdaptor = protoAdapt.map(lookup);
   const adapt = ensureArray(options.adapt).map(lookup);
 
-  const srcs = [protoAdapt, adapt];
+  const srcs = [instanceAdaptor, adapt];
   if (ractive.parent && !ractive.isolated) {
     srcs.push(ractive.parent.viewmodel.adaptors);
   }

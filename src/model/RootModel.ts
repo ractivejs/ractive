@@ -174,7 +174,7 @@ export default class RootModel extends Model {
 }
 
 function attachImplicits(model: RootModel, fragment: Fragment): void {
-  // TSRChange - attach function doesn't exists on RootModel maybe this code is not longer valid?
+  // TSRChange - attach function doesn't exists on RootModel maybe this code is no longer valid?
   // if (model._link && model._link.implicit && model._link.isDetached()) {
   //   model.attach(fragment);
   // }

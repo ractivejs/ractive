@@ -27,8 +27,7 @@ export default function macro(this: Ractive, fn: MacroFn, opts: MacroOpts): Macr
   defineProperty(macro, '_cssModel', { value: new CSSModel(macro) });
 
   // TODO make the function support macro
-  if (macro.css)
-    initCSS(macro, (macro as unknown) as typeof Static, (macro as unknown) as typeof Static);
+  if (macro.css) initCSS(macro, (macro as unknown) as typeof Static, (macro as unknown) as Static);
 
   this.extensions.push(macro);
 

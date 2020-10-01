@@ -1,22 +1,15 @@
-import type { Ractive, Static } from 'src/Ractive/RactiveDefinition';
-import type { Data, DataFn } from 'types/Generic';
-import type { ExtendOpts, InitOpts } from 'types/InitOptions';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Data, DataFn, ValueMap } from 'types/Generic';
 import bind from 'utils/bind';
 import { isArray, isObject, isFunction, isObjectType } from 'utils/is';
 import { fatal, warnIfDebug, warnOnceIfDebug } from 'utils/log';
 
-interface DataConfigurator {
-  name: 'data';
-  extend: (parent: typeof Static, proto: Ractive, options: ExtendOpts) => void;
-  init: (parent: Ractive['constructor'], proto: Ractive, options: InitOpts) => Data;
-  // Read comment in function implementation
-  // reset: (ractive: Ractive) => void;
-}
+import type { Configurator } from '../config';
 
-const dataConfigurator: DataConfigurator = {
+const dataConfigurator: Configurator<ValueMap> = {
   name: 'data',
 
-  extend: (_Parent, proto, options): void => {
+  extend: (_Parent, proto, options) => {
     let key: string | number;
     let value: unknown;
 

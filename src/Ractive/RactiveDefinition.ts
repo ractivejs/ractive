@@ -184,7 +184,7 @@ class RactiveInternal {
   value: any;
 
   /** @internal */
-  adapt: Adaptor[];
+  adapt: (Adaptor | string)[];
 
   /** @internal */
   _cssModel: CSSModel;
@@ -202,6 +202,8 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
 
   /** When true, causes Ractive to emit warnings. Defaults to true. */
   public static DEBUG: boolean;
+
+  public static defaults: any;
 
   constructor(options: InitOpts) {
     super();
@@ -416,8 +418,6 @@ export class Static<T extends Ractive<T> = Ractive> extends Ractive<T> {
   static _cssIds: string[];
   static _cssModel: CSSModel;
   static _cssDef: CSSDefinition;
-
-  static adapt: (Adaptor | string)[];
 
   static default: any;
 

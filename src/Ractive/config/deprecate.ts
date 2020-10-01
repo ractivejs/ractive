@@ -1,14 +1,19 @@
+import type { ExtendOpts, InitOpts } from 'types/InitOptions';
 import { isArray } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 
-function getMessage(deprecated, correct, isError) {
+function getMessage(deprecated: string, correct: string, isError?: boolean): string {
   return (
     `options.${deprecated} has been deprecated in favour of options.${correct}.` +
     (isError ? ` You cannot specify both options, please use options.${correct}.` : '')
   );
 }
 
-function deprecateOption(options, deprecatedOption, correct) {
+function deprecateOption(
+  options: InitOpts | ExtendOpts,
+  deprecatedOption: string,
+  correct: string
+): void {
   if (deprecatedOption in options) {
     if (!(correct in options)) {
       warnIfDebug(getMessage(deprecatedOption, correct));
@@ -19,7 +24,7 @@ function deprecateOption(options, deprecatedOption, correct) {
   }
 }
 
-export default function deprecate(options) {
+export default function deprecate(options: InitOpts | ExtendOpts): void {
   deprecateOption(options, 'beforeInit', 'onconstruct');
   deprecateOption(options, 'init', 'onrender');
   deprecateOption(options, 'complete', 'oncomplete');

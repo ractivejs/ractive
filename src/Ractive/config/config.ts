@@ -1,9 +1,11 @@
 import hooks from 'src/events/Hook';
+import type { ExtendOpts, InitOpts } from 'types/InitOptions';
 import { isFunction } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn, keys } from 'utils/object';
 
 import RactiveProto from '../prototype';
+import type { Ractive, Static } from '../RactiveDefinition';
 
 import adaptConfigurator from './custom/adapt';
 import cssConfigurator from './custom/css/css';
@@ -14,11 +16,25 @@ import deprecate from './deprecate';
 import registries from './registries';
 import wrapPrototype from './wrapPrototypeMethod';
 
-const config = {
+export interface Configurator<InitReturn = void, ResetReturn = void> {
+  name?: string;
+  init: (Parent: typeof Static, proto: Static, options: InitOpts) => InitReturn;
+  extend: (
+    Parent: typeof Static,
+    proto: Static,
+    options: ExtendOpts,
+    Child?: typeof Static
+  ) => void;
+  reset?: (ractive: Ractive) => ResetReturn;
+}
+
+const config: Configurator<void, string[]> = {
   extend: (Parent, proto, options, Child) => configure('extend', Parent, proto, options, Child),
   init: (Parent, ractive, options) => configure('init', Parent, ractive, options),
-  reset: ractive => order.filter(c => c.reset && c.reset(ractive)).map(c => c.name)
+  reset: ractive => order.filter((c: any) => c.reset && c.reset(ractive)).map((c: any) => c.name)
 };
+
+export default config;
 
 const custom = {
   adapt: adaptConfigurator,
@@ -34,22 +50,31 @@ const defaultKeys = keys(defaults);
 const isStandardKey = makeObj(defaultKeys.filter(key => !custom[key]));
 
 // blacklisted keys that we don't double extend
-const isBlacklisted = makeObj(
-  defaultKeys.concat(
-    registries.map(r => r.name),
-    ['on', 'observe', 'attributes', 'cssData', 'use']
-  )
-);
+const isBlacklisted = makeObj([
+  ...defaultKeys,
+  ...registries.map(r => r.name),
+  'on',
+  'observe',
+  'attributes',
+  'cssData',
+  'use'
+]);
 
-const order = [].concat(
-  defaultKeys.filter(key => !registries[key] && !custom[key]),
-  registries,
+const order = [
+  ...defaultKeys.filter(key => !registries[key] && !custom[key]),
+  ...registries,
   //custom.data,
   custom.template,
   custom.css
-);
+];
 
-function configure(method, Parent, target, options, Child) {
+function configure(
+  method: 'init' | 'extend',
+  Parent: typeof Static,
+  target: Static,
+  options: any, // Probably both init and extend options
+  Child?: typeof Static
+): void {
   deprecate(options);
 
   for (const key in options) {
@@ -78,18 +103,18 @@ function configure(method, Parent, target, options, Child) {
   }
 
   registries.forEach(registry => {
-    registry[method](Parent, target, options, Child);
+    registry[method](Parent, target, options);
   });
 
-  adaptConfigurator[method](Parent, target, options, Child);
-  templateConfigurator[method](Parent, target, options, Child);
+  adaptConfigurator[method](Parent, target, options);
+  templateConfigurator[method](Parent, target, options);
   cssConfigurator[method](Parent, target, options, Child);
 
   extendOtherMethods(Parent.prototype, target, options);
 }
 
 const _super = /\b_super\b/;
-function extendOtherMethods(parent, target, options) {
+function extendOtherMethods(parent: Static, target: Static, options: ExtendOpts): void {
   for (const key in options) {
     if (!isBlacklisted[key] && hasOwn(options, key)) {
       let member = options[key];
@@ -113,10 +138,8 @@ function extendOtherMethods(parent, target, options) {
   }
 }
 
-function makeObj(array) {
-  const obj = {};
+function makeObj(array: string[]): Record<string, true> {
+  const obj: ReturnType<typeof makeObj> = {};
   array.forEach(x => (obj[x] = true));
   return obj;
 }
-
-export default config;
