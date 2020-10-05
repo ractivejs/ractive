@@ -1,5 +1,6 @@
 /* eslint no-console:"off" */
 
+import type { Ractive as RactiveDef } from 'src/Ractive/RactiveDefinition';
 import { isObjectType } from 'utils/is';
 
 import { hasConsole } from '../config/environment';
@@ -7,8 +8,15 @@ import Ractive from '../Ractive';
 
 import noop from './noop';
 
+interface DebugOptions {
+  ractive?: RactiveDef;
+  node?: HTMLElement;
+}
+
 const alreadyWarned = {};
-let log, printWarning, welcome;
+let log: (...args: unknown[]) => void;
+let printWarning: (message: string, args: (unknown | DebugOptions)[]) => void;
+let welcome: () => void;
 
 if (hasConsole) {
   const welcomeIntro = [
@@ -37,7 +45,7 @@ Found a bug? Raise an issue:
 
 `;
 
-  welcome = () => {
+  welcome = (): void => {
     if (Ractive.WELCOME_MESSAGE === false) {
       welcome = noop;
       return;
@@ -47,7 +55,7 @@ Found a bug? Raise an issue:
     if (hasGroup) console.groupCollapsed(...welcomeIntro);
     console.log(message);
     if (hasGroup) {
-      console.groupEnd(welcomeIntro);
+      console.groupEnd();
     }
 
     welcome = noop;
@@ -58,13 +66,13 @@ Found a bug? Raise an issue:
 
     // extract information about the instance this message pertains to, if applicable
     if (isObjectType(args[args.length - 1])) {
-      const options = args.pop();
+      const options: DebugOptions = args.pop();
       const ractive = options ? options.ractive : null;
 
       if (ractive) {
         // if this is an instance of a component that we know the name of, add
         // it to the message
-        let name;
+        let name: string;
         if (ractive.component && (name = ractive.component.name)) {
           message = `<${name}> ${message}`;
         }
@@ -87,34 +95,34 @@ Found a bug? Raise an issue:
     );
   };
 
-  log = function (...args) {
+  log = function (...args: unknown[]): void {
     console.log(...args);
   };
 } else {
   printWarning = log = welcome = noop;
 }
 
-function format(message, args) {
-  return message.replace(/%s/g, () => args.shift());
+function format(message: string, args: unknown[]): string {
+  return message.replace(/%s/g, () => <string>args.shift());
 }
 
-function fatal(message, ...args) {
+function fatal(message: string, ...args: string[]): void {
   message = format(message, args);
   throw new Error(message);
 }
 
-function logIfDebug(...args) {
+function logIfDebug(...args: unknown[]): void {
   if (Ractive.DEBUG) {
     log(...args);
   }
 }
 
-function warn(message, ...args) {
+function warn(message: string, ...args: unknown[]): void {
   message = format(message, args);
   printWarning(message, args);
 }
 
-function warnOnce(message, ...args) {
+function warnOnce(message: string, ...args: unknown[]): void {
   message = format(message, args);
 
   if (alreadyWarned[message]) {
@@ -125,15 +133,15 @@ function warnOnce(message, ...args) {
   printWarning(message, args);
 }
 
-function warnIfDebug(...args) {
+function warnIfDebug(message: string, ...args: unknown[]): void {
   if (Ractive.DEBUG) {
-    warn(...args);
+    warn(message, ...args);
   }
 }
 
-function warnOnceIfDebug(...args) {
+function warnOnceIfDebug(message: string, ...args: unknown[]): void {
   if (Ractive.DEBUG) {
-    warnOnce(...args);
+    warnOnce(message, ...args);
   }
 }
 

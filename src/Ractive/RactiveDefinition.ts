@@ -201,7 +201,9 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
   public static readonly VERSION = '';
 
   /** When true, causes Ractive to emit warnings. Defaults to true. */
-  public static DEBUG: boolean;
+  public static DEBUG = true;
+  public static DEBUG_PROMISES = true;
+  public static WELCOME_MESSAGE: false | string;
 
   public static defaults: any;
 

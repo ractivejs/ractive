@@ -31,7 +31,8 @@ export interface Configurator<InitReturn = void, ResetReturn = void> {
 const config: Configurator<void, string[]> = {
   extend: (Parent, proto, options, Child) => configure('extend', Parent, proto, options, Child),
   init: (Parent, ractive, options) => configure('init', Parent, ractive, options),
-  reset: ractive => order.filter((c: any) => c.reset && c.reset(ractive)).map((c: any) => c.name)
+  reset: ractive =>
+    order.filter((c: Configurator) => c.reset && c.reset(ractive)).map((c: Configurator) => c.name)
 };
 
 export default config;

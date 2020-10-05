@@ -34,12 +34,14 @@ import { extern } from './shared/getRactiveContext';
 import { escapeKey, unescapeKey, normalise } from './shared/keypaths';
 import parseJSON from './utils/parseJSON';
 
-export default function Ractive(options: InitOpts): void {
+function Ractive(options: InitOpts): void {
   if (!(this instanceof Ractive)) return new Ractive(options);
 
   construct(this, options || {});
   initialise(this, options || {}, {});
 }
+
+export default (Ractive as unknown) as typeof RactiveDef;
 
 // check to see if we're being asked to force Ractive as a global for some weird environments
 if (win && !win.Ractive) {
@@ -64,7 +66,7 @@ Ractive.defaults = Ractive.prototype;
 
 // share defaults with the parser
 shared.defaults = Ractive.defaults;
-shared.Ractive = (Ractive as unknown) as RactiveDef;
+shared.Ractive = Ractive as any;
 
 // static properties
 defineProperties(Ractive, {
