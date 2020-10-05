@@ -47,7 +47,7 @@ export interface EventDirectiveOwner extends Item {
 }
 
 export default class EventDirective {
-  private owner: EventDirectiveOwner;
+  private owner: Element | Component;
   private element: Element | Component;
   public template: EventDirectiveTemplateItem;
   public up: Fragment;
@@ -80,7 +80,7 @@ export default class EventDirective {
       this.element.type === TemplateItemType.ANCHOR
     ) {
       this.template.n.forEach(n => {
-        this.events.push(new RactiveEvent(this.element as Component, n));
+        this.events.push(new RactiveEvent(<Component>this.element, n));
       });
     } else {
       let args;

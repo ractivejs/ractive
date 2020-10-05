@@ -1,14 +1,12 @@
 import TemplateItemType from 'config/types';
 import type { BindingFlagDirectiveTemplateItem } from 'parse/converters/element/elementDefinitions';
 import { isArray } from 'utils/is';
+import type Element from 'view/items/Element';
 
 import Fragment from '../../Fragment';
 import type Interpolator from '../Interpolator';
 import findElement from '../shared/findElement';
 import Item, { isItemType, ItemOpts } from '../shared/Item';
-
-import type Input from './specials/Input';
-import type Select from './specials/Select';
 
 interface BindingFlagOpts extends ItemOpts {
   owner: BindingFlag['owner'];
@@ -16,16 +14,16 @@ interface BindingFlagOpts extends ItemOpts {
   template: BindingFlag['template'];
 }
 
-/** Select | Section | Input| Partial */
+/** Select | Section | Input | Partial */
 export interface BindingFlagOwner extends Item {
   attributeByName?: any;
 }
 
 export default class BindingFlag extends Item {
-  private owner: BindingFlagOwner;
-  public element: Input | Select;
+  private owner: Element;
+  public element: Element;
   public flag: 'lazy' | 'twoway';
-  private bubbler: Select | Input | Fragment;
+  private bubbler: Element | Fragment;
   public interpolator: Interpolator;
   public value: boolean | number;
   /** @override */
@@ -35,7 +33,8 @@ export default class BindingFlag extends Item {
     super(options);
 
     this.owner = options.owner || options.up.owner || findElement(options.up);
-    this.element = this.owner.attributeByName ? this.owner : findElement(options.up);
+
+    this.element = 'attributeByName' in this.owner ? this.owner : findElement(options.up);
     this.flag = options.template.v === 'l' ? 'lazy' : 'twoway';
     this.bubbler = this.owner === this.element ? this.element : this.up;
 

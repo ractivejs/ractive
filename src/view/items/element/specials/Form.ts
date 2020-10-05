@@ -1,9 +1,10 @@
 import runloop from 'src/global/runloop';
 
 import Element, { ElementOpts } from '../../Element';
+import type Binding from '../binding/Binding';
 
 export default class Form extends Element {
-  public formBindings: any[];
+  public formBindings: Binding[];
 
   constructor(options: ElementOpts) {
     super(options);

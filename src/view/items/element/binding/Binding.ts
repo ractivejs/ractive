@@ -5,6 +5,7 @@ import { warnOnceIfDebug } from 'utils/log';
 
 import findElement from '../../shared/findElement';
 import type Attribute from '../Attribute';
+import type Form from '../specials/Form';
 import type Input from '../specials/Input';
 import type Select from '../specials/Select';
 
@@ -59,7 +60,7 @@ export default abstract class Binding {
     }
     this.lastVal(true, value);
 
-    const parentForm = findElement(this.element, false, 'form');
+    const parentForm = findElement<Form>(this.element, false, 'form');
     if (parentForm) {
       this.resetValue = value;
       parentForm.formBindings.push(this);
