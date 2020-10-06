@@ -59,8 +59,20 @@ export interface ArraySplicePromise extends Promise<any[]> {
 
 export type CssFn = (data: DataGetFn) => string;
 
-export type PluginExtend = (PluginArgsExtend) => void;
-export type PluginInstance = (PluginArgsInstance) => void;
+interface PluginArgsExtend {
+  proto: Ractive;
+  Ractive: typeof Ractive;
+  instance: typeof Ractive;
+}
+
+interface PluginArgsInstance {
+  proto: Ractive;
+  Ractive: Ractive['constructor'];
+  instance: Ractive;
+}
+
+export type PluginExtend = (pluginArgsExtend: PluginArgsExtend) => void;
+export type PluginInstance = (pluginArgsInstance: PluginArgsInstance) => void;
 
 export type Helper = (this: Ractive, ...args: any[]) => any;
 

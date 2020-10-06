@@ -5,8 +5,7 @@ import type {
   GenericAttributeTemplateItem,
   TransitionDirectiveTemplateItem,
   DecoratorDirectiveTemplateItem,
-  EventDirectiveTemplateItem,
-  AttributesOrDirectiveTemplateItem
+  EventDirectiveTemplateItem
 } from './element/elementDefinitions';
 import type { FragmentTemplateItem } from './mustache/mustacheDefinitions';
 

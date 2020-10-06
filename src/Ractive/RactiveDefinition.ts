@@ -206,6 +206,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
   public static WELCOME_MESSAGE: false | string;
 
   public static Parent: typeof Ractive;
+  public static Ractive: typeof Ractive;
 
   public static defaults: any;
 

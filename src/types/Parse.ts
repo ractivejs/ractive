@@ -1,5 +1,4 @@
 import type { TemplateModel } from 'parse/converters/templateItemDefinitions';
-import type { Ractive } from 'src/Ractive/RactiveDefinition';
 
 export type ParseDelimiters = [string, string];
 
