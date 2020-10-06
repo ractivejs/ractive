@@ -8,14 +8,14 @@ import type {
   EventDirectiveTemplateItem,
   AttributesOrDirectiveTemplateItem
 } from './element/elementDefinitions';
-import type { FragmentTemplateItem, MustachePrimaryItem } from './mustache/mustacheDefinitions';
+import type { FragmentTemplateItem } from './mustache/mustacheDefinitions';
 
 // todo replace occurrences of string where it makes sense
 export type TextTemplateItem = string;
 
-export interface PartialRegistryTemplateItem {
-  [key: string]: FragmentTemplateItem[];
-}
+export type PartialTemplateItem = FragmentTemplateItem[];
+
+export type PartialRegistryTemplateItem = Record<string, PartialTemplateItem>;
 
 /**
  * This file contains all definition of abstract syntax for ractive template returned
@@ -39,20 +39,17 @@ export interface TemplateModel {
   /** version of template */
   v?: number;
 
-  t: (
-    | MustachePrimaryItem
-    | AttributesOrDirectiveTemplateItem
-    | ElementTemplateItem
-    | CommentTemplateItem
-    | string
-  )[]; // add correct type after readTemplate conversion is complete
+  // | MustachePrimaryItem
+  // | AttributesOrDirectiveTemplateItem
+  // | ElementTemplateItem
+  // | CommentTemplateItem
+  // | string
+  t: any[]; // add correct type after readTemplate conversion is complete
 
   p?: PartialRegistryTemplateItem;
 
   // expression storage
-  e?: {
-    [key: string]: ExpressionFunctionTemplateItem;
-  };
+  e?: Record<string, ExpressionFunctionTemplateItem>;
 }
 
 /**

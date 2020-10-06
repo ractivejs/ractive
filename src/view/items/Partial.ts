@@ -16,7 +16,7 @@ import Fragment, { FragmentOpts } from '../Fragment';
 import type Component from './Component';
 import type { BindingFlagOwner } from './element/BindingFlag';
 import type { DecoratorOwner } from './element/Decorator';
-import getPartialTemplate from './partial/getPartialTemplate';
+import getPartialTemplate, { PartialRuntime } from './partial/getPartialTemplate';
 import type { EventDirectiveOwner } from './shared/EventDirective';
 import { MustacheContainer, MustacheOpts } from './shared/Mustache';
 
@@ -36,7 +36,7 @@ export default class Partial
   public fnTemplate: any;
   public last: any[];
   public _attrs: Record<string, Fragment>;
-  public partial: any[];
+  public partial: any;
   public name: string;
   public proxy: MacroHandle;
   public handle: Context;
@@ -142,7 +142,7 @@ export default class Partial
     this.bubble();
   }
 
-  rebound(update): void {
+  rebound(update: boolean): void {
     if (this._attrs) {
       keys(this._attrs).forEach(k => this._attrs[k].rebound(update));
     }
@@ -206,7 +206,7 @@ export default class Partial
     if (this.proxy && isFunction(this.proxy.render)) this.proxy.render();
   }
 
-  unbind(view?): void {
+  unbind(view?: boolean): void {
     this.fragment.unbind(view);
 
     this.unbindAttrs(view);
@@ -214,7 +214,7 @@ export default class Partial
     super.unbind();
   }
 
-  unbindAttrs(view?): void {
+  unbindAttrs(view?: boolean): void {
     if (this._attrs) {
       keys(this._attrs).forEach(k => {
         this._attrs[k].unbind(view);
@@ -282,7 +282,7 @@ function contextifyTemplate(self: Partial): void {
   }
 }
 
-function partialFromValue(self, value, okToParse?) {
+function partialFromValue(self: Partial, value, okToParse?: boolean): PartialRuntime {
   let tpl = value;
 
   if (isArray(tpl)) {

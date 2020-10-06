@@ -52,6 +52,7 @@ export function createFunctionFromString(
   };
 }
 
+// TODO use type ParserHelper
 const parser = {
   fromId(id: string, options: { noThrow?: boolean } = {}): string {
     if (!doc) {

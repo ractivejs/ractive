@@ -1,20 +1,11 @@
+import type { TemplateModel } from 'parse/converters/templateItemDefinitions';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+
 export type ParseDelimiters = [string, string];
 
 export type Template = ParsedTemplate | string | any[] | ParseFn;
 
-export interface ParsedTemplate {
-  /** The version of the template spec that produced this template. */
-  v: number;
-
-  /** The array of template nodes. */
-  t: any[];
-
-  /** If csp mode was used to parse, the map of expression string -> expression functions. */
-  e?: Record<string, Function>;
-
-  /** If the template includes any partials, the map of partial name -> template nodes. */
-  p?: Record<string, any>;
-}
+export type ParsedTemplate = TemplateModel;
 
 export interface ParseHelper {
   /**

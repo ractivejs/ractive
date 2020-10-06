@@ -104,6 +104,7 @@ export interface SectionMustacheTemplateItem extends ExpressionRefinementTemplat
     | TemplateItemType.SECTION_IF
     | TemplateItemType.SECTION_UNLESS
     | TemplateItemType.SECTION_EACH
+    | TemplateItemType.SECTION_WITH
     | TemplateItemType.SECTION_IF_WITH;
 
   z?: AliasDefinitionRefinedTemplateItem[];

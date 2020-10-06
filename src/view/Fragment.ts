@@ -73,7 +73,7 @@ export default class Fragment {
   public index: number;
   public idxModel: KeyModel;
   public value: unknown;
-  public lastValue: any;
+  public lastValue: unknown;
   public shouldRebind: number;
 
   public delegate: any;
@@ -386,7 +386,7 @@ export default class Fragment {
     return this.items.map(escape ? toEscapedString : toString).join('');
   }
 
-  unbind(view?): this {
+  unbind(view?: boolean): this {
     if (this.owner.template.z && !this.owner.yielder) {
       for (const k in this.aliases) {
         this.aliases[k].unreference();

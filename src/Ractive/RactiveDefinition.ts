@@ -205,6 +205,8 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
   public static DEBUG_PROMISES = true;
   public static WELCOME_MESSAGE: false | string;
 
+  public static Parent: typeof Ractive;
+
   public static defaults: any;
 
   constructor(options: InitOpts) {

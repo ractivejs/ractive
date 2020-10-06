@@ -15,12 +15,12 @@ const registryNames = [
   'interpolators',
   'partials',
   'transitions'
-];
+] as const;
 
 const registriesOnDefaults = ['computed', 'helpers'];
 
 class Registry {
-  public name: string;
+  public name: typeof registryNames[number];
   private useDefaults: boolean;
 
   constructor(name: Registry['name'], useDefaults: Registry['useDefaults']) {
