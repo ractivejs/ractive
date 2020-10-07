@@ -51,14 +51,12 @@ module.exports = {
     return gobble([lib, tests, sandbox, qunit]);
   },
   'bundle:test'() {
-    const lib = buildUmdLib(
-      'ractive.js',
-      ractiveRollupPlugins.concat(
-        istanbul({
-          exclude: ['src/polyfills/*.js']
-        })
-      )
-    );
+    const lib = buildUmdLib('ractive.js', [
+      ...ractiveRollupPlugins,
+      istanbul({
+        exclude: ['src/polyfills/*.js']
+      })
+    ]);
     const browserTests = buildBrowserTests();
     const nodeTests = buildNodeTests();
     return gobble([lib, qunit, browserTests, nodeTests]);
@@ -67,16 +65,16 @@ module.exports = {
     const runtimeModulesToIgnore = ['parse/_parse.js'];
 
     const esRegular = buildESLib('ractive.mjs', ractiveRollupPlugins);
-    const esRuntime = buildESLib(
-      'runtime.mjs',
-      ractiveRollupPlugins.concat(skipModule(runtimeModulesToIgnore))
-    );
+    const esRuntime = buildESLib('runtime.mjs', [
+      ...ractiveRollupPlugins,
+      skipModule(runtimeModulesToIgnore)
+    ]);
 
     const umdRegular = buildUmdLib('ractive.js', ractiveRollupPlugins);
-    const umdRuntime = buildUmdLib(
-      'runtime.js',
-      ractiveRollupPlugins.concat(skipModule(runtimeModulesToIgnore))
-    );
+    const umdRuntime = buildUmdLib('runtime.js', [
+      ...ractiveRollupPlugins,
+      skipModule(runtimeModulesToIgnore)
+    ]);
 
     const libEs = gobble([esRegular, esRuntime]);
     const libUmd = gobble([umdRegular, umdRuntime]);

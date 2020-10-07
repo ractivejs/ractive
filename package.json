@@ -4,8 +4,8 @@
   "license": "MIT",
   "private": true,
   "engines": {
-    "node": ">=4.0.0",
-    "npm": ">=2.14.2"
+    "node": ">=12.19.0",
+    "npm": ">=6.14.8"
   },
   "typings": "typings/ractive.d.ts",
   "devDependencies": {
@@ -52,7 +52,7 @@
     "lint:src": "eslint src --ext .js,.ts",
     "lint:tests:browser": "eslint tests/browser",
     "lint:tests:node": "eslint tests/node",
-    "lint:all": "eslint src tests/browser tests/node bin lib --ext .js,.ts",
+    "lint:all": "eslint src tests/browser tests/node bin lib --ext .js,.ts --quiet",
     "lint:fix:src": "eslint --fix src --ext .js,.ts",
     "lint:fix:tests:browser": "eslint --fix tests/browser",
     "lint:fix:tests:node": "eslint --fix tests/node",
