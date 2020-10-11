@@ -19,14 +19,8 @@ export type LinePosition = [number, number, number];
 
 export type Converter = (parser: Parser) => any;
 
-export interface CustomParser {
-  init: (str: string, options: BaseParseOpts) => void;
-  postProcess: (str: string, options?: BaseParseOpts) => any;
-}
-
 // todo add correct return types on props and methods
-// todo need to add parser type <T> and use it in result and postProcess function
-class Parser {
+abstract class Parser<Opts = unknown, Result = unknown> {
   public str: string;
   public options: BaseParseOpts;
   public pos: number;
@@ -39,7 +33,7 @@ class Parser {
 
   protected converters: Converter[];
 
-  constructor(str: string, options: BaseParseOpts) {
+  constructor(str: string, options: Opts) {
     this.str = str;
     this.options = options || {};
     this.pos = 0;
@@ -68,13 +62,9 @@ class Parser {
     this.result = this.postProcess(items, options);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  init(_str, _options): void {}
+  abstract init(str: string, _options: Opts): void;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  postProcess(items, _options): any {
-    return items;
-  }
+  abstract postProcess(items: unknown, _options: Opts): Result;
 
   read(converters?: Converter[]): any {
     let i: number;

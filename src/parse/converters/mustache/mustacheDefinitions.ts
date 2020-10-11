@@ -1,4 +1,5 @@
 import type TemplateItemType from 'config/types';
+import type { LinePosition } from 'parse/Parser';
 
 import type {
   ExpressionTemplateItem,
@@ -152,11 +153,16 @@ export interface DelimiterChangeToken {
 }
 
 /** Used in {@link readMustache} */
-export type MustachePrimaryItem =
+export type MustachePrimaryItem = (
   | string
   | AliasDefinitionTemplateItem
   | TripleMustacheTemplateItem
   | SectionMustacheTemplateItem
   | PartialMustacheTemplateItem
   | CommentTemplateItem
-  | DelimiterChangeToken;
+  | DelimiterChangeToken
+) & {
+  /** Is a static element */
+  s?: 1;
+  q?: LinePosition;
+};

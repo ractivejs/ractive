@@ -1,9 +1,12 @@
-import type { SimpleTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 import readStringLiteral from 'parse/converters/expressions/primary/literal/readStringLiteral';
 import readKey from 'parse/converters/expressions/shared/readKey';
-import Parser, { CustomParser } from 'parse/Parser';
-import type { BaseParseOpts } from 'types/Parse';
+import Parser from 'parse/Parser';
 import { hasOwn, keys } from 'utils/object';
+
+interface KeyValuePair {
+  key: string;
+  value?: string;
+}
 
 /**
  * simple JSON parser, without the restrictions of JSON parse
@@ -12,7 +15,6 @@ import { hasOwn, keys } from 'utils/object';
  * If passed a hash of values as the second argument, ${placeholders}
  * will be replaced with those values
  */
-
 const specials = {
   true: true,
   false: false,
@@ -26,14 +28,24 @@ const placeholderPattern = /\$\{([^\}]+)\}/g;
 const placeholderAtStartPattern = /^\$\{([^\}]+)\}/;
 const onlyWhitespace = /^\s*$/;
 
-class JsonParser extends Parser implements CustomParser {
-  private values;
+export interface JsonParserOpts {
+  values: JsonParser['values'];
+}
 
-  init(_str, options): void {
+export type JsonParserResult = { value: Record<string, unknown> };
+
+interface JsonParserItem<T = unknown> {
+  v: T;
+}
+
+class JsonParser extends Parser<JsonParserOpts, JsonParserResult> {
+  values: Record<string, unknown>;
+
+  init(_str: string, options: JsonParserOpts): void {
     this.values = options.values;
 
     this.converters = [
-      function getPlaceholder(parser: JsonParser): SimpleTemplateItem {
+      function getPlaceholder(parser: JsonParser): JsonParserItem {
         if (!parser.values) return null;
 
         const placeholder = parser.matchPattern(placeholderAtStartPattern);
@@ -43,17 +55,17 @@ class JsonParser extends Parser implements CustomParser {
         }
       },
 
-      function getSpecial(parser: JsonParser): SimpleTemplateItem {
+      function getSpecial(parser: JsonParser): JsonParserItem {
         const special = parser.matchPattern(specialsPattern);
         if (special) return { v: specials[special] };
       },
 
-      function getNumber(parser: JsonParser): SimpleTemplateItem {
+      function getNumber(parser: JsonParser): JsonParserItem {
         const number = parser.matchPattern(numberPattern);
         if (number) return { v: +number };
       },
 
-      function getString(parser: JsonParser): SimpleTemplateItem {
+      function getString(parser: JsonParser): JsonParserItem {
         const stringLiteral = readStringLiteral(parser);
         const values = parser.values;
 
@@ -68,7 +80,7 @@ class JsonParser extends Parser implements CustomParser {
         return stringLiteral;
       },
 
-      function getObject(parser: JsonParser): SimpleTemplateItem {
+      function getObject(parser: JsonParser): JsonParserItem {
         if (!parser.matchString('{')) return null;
 
         const result = {};
@@ -79,7 +91,7 @@ class JsonParser extends Parser implements CustomParser {
           return { v: result };
         }
 
-        let pair;
+        let pair: KeyValuePair;
         while ((pair = getKeyValuePair(parser))) {
           result[pair.key] = pair.value;
 
@@ -97,7 +109,7 @@ class JsonParser extends Parser implements CustomParser {
         return null;
       },
 
-      function getArray(parser: JsonParser): SimpleTemplateItem {
+      function getArray(parser: JsonParser): JsonParserItem {
         if (!parser.matchString('[')) return null;
 
         const result = [];
@@ -132,7 +144,7 @@ class JsonParser extends Parser implements CustomParser {
     this.sp();
   }
 
-  postProcess(result): any {
+  postProcess(result: JsonParserItem<Record<string, unknown>>[]): JsonParserResult {
     if (result.length !== 1 || !onlyWhitespace.test(this.leftover)) {
       return null;
     }
@@ -141,14 +153,14 @@ class JsonParser extends Parser implements CustomParser {
   }
 }
 
-function getKeyValuePair(parser) {
+function getKeyValuePair(parser: JsonParser): KeyValuePair {
   parser.sp();
 
   const key = readKey(parser);
 
   if (!key) return null;
 
-  const pair: { [key: string]: any } = { key };
+  const pair: KeyValuePair = { key };
 
   parser.sp();
   if (!parser.matchString(':')) {
@@ -164,7 +176,10 @@ function getKeyValuePair(parser) {
   return pair;
 }
 
-export default function parseJSON(str: string, values?: Record<string, unknown>): any {
-  const parser = new JsonParser(str, { values } as BaseParseOpts);
+export default function parseJSON(
+  str: string,
+  values?: JsonParserOpts['values']
+): ReturnType<JsonParser['postProcess']> {
+  const parser = new JsonParser(str, { values });
   return parser.result;
 }

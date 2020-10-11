@@ -1,5 +1,5 @@
 import { doc } from 'config/environment';
-import parse from 'parse/_parse';
+import parse, { StandardParserResult } from 'parse/_parse';
 import type { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { fromExpression } from 'parse/utils/createFunction';
 import { addFunctions } from 'shared/getFunction';
@@ -100,7 +100,7 @@ const parser = {
     }, {});
   },
 
-  parse<T>(template: string, options: ParseOpts): T {
+  parse<T extends StandardParserResult>(template: string, options: ParseOpts): T {
     throwNoParse(parse, 'template', TEMPLATE_INSTRUCTIONS);
     const parsed = parse<T>(template, options);
     addFunctions(parsed);

@@ -85,17 +85,17 @@ function readMustacheOfType(parser: StandardParser, tag: StandardParserTag): Mus
   }
 
   // todo integrate MustachePrimaryItem with the s and q properties
-  let mustacheItem: MustachePrimaryItem, reader: Reader, i: number;
+  let mustacheItem: MustachePrimaryItem, reader: Reader<MustachePrimaryItem>, i: number;
   for (i = 0; i < tag.readers.length; i += 1) {
     reader = tag.readers[i];
 
     if ((mustacheItem = reader(parser, tag))) {
       if (tag.isStatic) {
-        (mustacheItem as any).s = 1;
+        mustacheItem.s = 1;
       }
 
       if (parser.includeLinePositions) {
-        (mustacheItem as any).q = parser.getLinePos(start);
+        mustacheItem.q = parser.getLinePos(start);
       }
 
       return mustacheItem;

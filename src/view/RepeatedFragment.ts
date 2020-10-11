@@ -1,4 +1,4 @@
-import { ELEMENT } from 'config/types';
+import TemplateItemType from 'config/types';
 import type Model from 'model/Model';
 import KeyModel from 'model/specials/KeyModel';
 import { getContext } from 'shared/getRactiveContext';
@@ -572,7 +572,7 @@ function findDelegate(start): Element {
     // find next element
     el = 0;
     while (!el && frag) {
-      if (frag.owner.type === ELEMENT) el = frag.owner;
+      if (frag.owner.type === TemplateItemType.ELEMENT) el = frag.owner;
       if (frag.owner.ractive && frag.owner.ractive.delegate === false) break out;
       frag = frag.parent || frag.componentParent;
     }

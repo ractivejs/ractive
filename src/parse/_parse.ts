@@ -22,7 +22,7 @@ import type {
   TemplateModel,
   ExpressionFunctionTemplateItem
 } from './converters/templateItemDefinitions';
-import Parser, { CustomParser } from './Parser';
+import Parser from './Parser';
 import cleanup from './utils/cleanup';
 import { fromExpression } from './utils/createFunction';
 import flattenExpression from './utils/flattenExpression';
@@ -39,7 +39,9 @@ export interface StandardParserTag {
   readers: Reader[];
 }
 
-export type Reader = (parser: StandardParser, tag?: StandardParserTag) => any;
+export type StandardParserResult = TemplateModel | ExpressionFunctionTemplateItem;
+
+export type Reader<R = any> = (parser: StandardParser, tag?: StandardParserTag) => R;
 
 const STANDARD_READERS: Reader[] = [
   readPartial,
@@ -67,8 +69,7 @@ const defaultInterpolate: InterpolateOpts = {
   template: true
 };
 
-// todo replace (shared as any) with correct type
-export class StandardParser extends Parser implements CustomParser {
+export class StandardParser<R = StandardParserResult> extends Parser<ParseOpts, R> {
   // options
   public standardDelimiters: ParseDelimiters;
   public stripComments: boolean;
@@ -86,9 +87,9 @@ export class StandardParser extends Parser implements CustomParser {
   public strictRefinement: boolean;
 
   public tags: StandardParserTag[];
-  public contextLines: any;
+  public contextLines: number;
   public sectionDepth: number;
-  public elementStack: any[];
+  public elementStack: string[];
   public spreadArgs: boolean;
   public whiteSpaceElements: WhitespaceElements;
 
@@ -107,12 +108,12 @@ export class StandardParser extends Parser implements CustomParser {
   public inside: string;
 
   init(_str: string, options: ParseOpts): void {
-    const tripleDelimiters = options.tripleDelimiters || (shared as any).defaults.tripleDelimiters;
-    const staticDelimiters = options.staticDelimiters || (shared as any).defaults.staticDelimiters;
+    const tripleDelimiters = options.tripleDelimiters || shared.defaults.tripleDelimiters;
+    const staticDelimiters = options.staticDelimiters || shared.defaults.staticDelimiters;
     const staticTripleDelimiters =
-      options.staticTripleDelimiters || (shared as any).defaults.staticTripleDelimiters;
+      options.staticTripleDelimiters || shared.defaults.staticTripleDelimiters;
 
-    this.standardDelimiters = options.delimiters || (shared as any).defaults.delimiters;
+    this.standardDelimiters = options.delimiters || shared.defaults.delimiters;
 
     this.tags = [
       {
@@ -145,7 +146,7 @@ export class StandardParser extends Parser implements CustomParser {
       }
     ];
 
-    this.contextLines = options.contextLines || (shared as any).defaults.contextLines;
+    this.contextLines = options.contextLines || shared.defaults.contextLines;
 
     this.sortMustacheTags();
 
@@ -155,7 +156,7 @@ export class StandardParser extends Parser implements CustomParser {
     this.interpolate = assign(
       {},
       defaultInterpolate,
-      (shared as any).defaults.interpolate,
+      shared.defaults.interpolate,
       options.interpolate
     );
 
@@ -189,17 +190,17 @@ export class StandardParser extends Parser implements CustomParser {
     this.whiteSpaceElements = assign({}, options.preserveWhitespace, preserveWhitespaceElements);
   }
 
-  postProcess(result, options: ParseOpts): TemplateModel | ExpressionFunctionTemplateItem {
+  postProcess(result: any[], options: ParseOpts): R {
     const [parserResult] = result;
 
     if (options.expression) {
       const expr = flattenExpression(parserResult);
       expr.e = fromExpression(expr.s, expr.r.length);
-      return expr;
+      return (expr as unknown) as R;
     } else {
       // special case - empty string
       if (!result.length) {
-        return { t: [], v: TEMPLATE_VERSION };
+        return ({ t: [], v: TEMPLATE_VERSION } as unknown) as R;
       }
 
       if (this.sectionDepth > 0) {
@@ -239,6 +240,9 @@ export class StandardParser extends Parser implements CustomParser {
   }
 }
 
-export default function parse<T>(template: string, options: ParseOpts): T {
+export default function parse<T extends StandardParserResult = StandardParserResult>(
+  template: string,
+  options: ParseOpts
+): T {
   return new StandardParser(template, options || {}).result;
 }

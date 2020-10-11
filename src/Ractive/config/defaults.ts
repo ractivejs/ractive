@@ -1,6 +1,7 @@
+import type { ParseDelimiters } from 'types/Parse';
 import { create } from 'utils/object';
 
-export default {
+const defaults = {
   // render placement:
   el: void 0,
   append: false,
@@ -12,10 +13,10 @@ export default {
 
   // parse:
   allowExpressions: true,
-  delimiters: ['{{', '}}'],
-  tripleDelimiters: ['{{{', '}}}'],
-  staticDelimiters: ['[[', ']]'],
-  staticTripleDelimiters: ['[[[', ']]]'],
+  delimiters: ['{{', '}}'] as ParseDelimiters,
+  tripleDelimiters: ['{{{', '}}}'] as ParseDelimiters,
+  staticDelimiters: ['[[', ']]'] as ParseDelimiters,
+  staticTripleDelimiters: ['[[[', ']]]'] as ParseDelimiters,
   csp: true,
   interpolate: false,
   preserveWhitespace: false,
@@ -46,3 +47,5 @@ export default {
   css: null,
   noCSSTransform: false
 };
+
+export default defaults;

@@ -1,5 +1,5 @@
-import type { StandardParser } from 'parse/_parse';
 import type { ValueTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+import type Parser from 'parse/Parser';
 
 import readNumberLiteral from '../primary/literal/readNumberLiteral';
 import readStringLiteral from '../primary/literal/readStringLiteral';
@@ -13,7 +13,7 @@ const identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
  *
  * @see http://mathiasbynens.be/notes/javascript-properties
  */
-export default function readKey(parser: StandardParser): string {
+export default function readKey(parser: Parser): string {
   let token: ValueTemplateItem | string;
 
   if ((token = readStringLiteral(parser))) {

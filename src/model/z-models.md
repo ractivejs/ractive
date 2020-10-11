@@ -6,6 +6,8 @@ KeyModel
 ModelBase
 |
 |__ LinkModel
+|   |
+|   |__ ReferenceExpressionProxy
 |
 |__ Model
    |

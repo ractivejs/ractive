@@ -1,4 +1,4 @@
-import { TEXT } from 'config/types';
+import TemplateItemType from 'config/types';
 
 import type Item from '../items/shared/Item';
 
@@ -6,7 +6,7 @@ import type Item from '../items/shared/Item';
 export default function processItems(items: Item[], values, guid: string, counter = 0): string {
   return items
     .map(item => {
-      if (item.type === TEXT) {
+      if (item.type === TemplateItemType.TEXT) {
         return item.template;
       }
 

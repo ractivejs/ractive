@@ -1,7 +1,8 @@
+import type defaults from './config/defaults';
 import type { Ractive } from './RactiveDefinition';
 
 interface Shared {
-  defaults?: Record<string, unknown>;
+  defaults?: typeof defaults;
   Ractive?: Ractive;
 }
 

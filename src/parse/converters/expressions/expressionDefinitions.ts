@@ -2,10 +2,6 @@ import type TemplateItemType from 'config/types';
 
 import type { ExpressionFunctionTemplateItem } from '../templateItemDefinitions';
 
-export interface SimpleTemplateItem {
-  v: string | any;
-}
-
 export interface ValueTemplateItem {
   t:
     | TemplateItemType.STRING_LITERAL
