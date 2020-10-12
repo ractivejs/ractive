@@ -22,7 +22,7 @@ export default class Triple extends Mustache {
     return docFrag;
   }
 
-  find(selector?: string): Element {
+  find(selector?: string): HTMLElement {
     const len = this.nodes.length;
 
     for (let i = 0; i < len; i += 1) {
@@ -30,16 +30,16 @@ export default class Triple extends Mustache {
 
       if (node.nodeType !== 1) continue;
 
-      if (matches(node, selector)) return node;
+      if (matches(node, selector)) return <HTMLElement>node;
 
       const queryResult = node.querySelector(selector);
-      if (queryResult) return queryResult;
+      if (queryResult) return <HTMLElement>queryResult;
     }
 
     return null;
   }
 
-  findAll(selector: string, options): void {
+  findAll(selector: string, options: { result: Element[] }): void {
     const { result } = options;
     const len = this.nodes.length;
 
@@ -81,17 +81,17 @@ export default class Triple extends Mustache {
 
       // start with the first node that should be rendered
       while (occupants.length && (next = this.nodes[i + 1])) {
-        let n;
+        let n: Node;
         // look through the occupants until a matching node is found
         while ((n = occupants.shift())) {
           const t = n.nodeType;
 
           if (
             t === next.nodeType &&
-            ((t === 1 && n.outerHTML === next.outerHTML) ||
+            ((t === 1 && (<Element>n).outerHTML === next.outerHTML) ||
               ((t === 3 || t === 8) && n.nodeValue === next.nodeValue))
           ) {
-            this.nodes.splice(++i, 1, n); // replace the generated node with the existing one
+            this.nodes.splice(++i, 1, <Element>n); // replace the generated node with the existing one
             break;
           } else {
             target.removeChild(n); // remove the non-matching existing node

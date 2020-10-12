@@ -25,7 +25,7 @@ export default abstract class Binding {
   public rendered: boolean;
   public resetValue: BindingValue;
 
-  constructor(element: Input, name: BindingAttributeName = 'value') {
+  constructor(element: Binding['element'], name: BindingAttributeName = 'value') {
     this.element = element;
     this.ractive = element.ractive;
     this.attribute = element.attributeByName[name];

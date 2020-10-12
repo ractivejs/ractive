@@ -1,15 +1,19 @@
 import TemplateItemType from 'config/types';
 import Model, { AnimatePromise } from 'model/Model';
+import type { PartialTemplateItem } from 'parse/converters/templateItemDefinitions';
 import runloop from 'src/global/runloop';
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Adaptor } from 'types/Adaptor';
 import type { ContextHelper } from 'types/Context';
 import type { DecoratorHandle } from 'types/Decorator';
 import type { Keypath } from 'types/Generic';
+import type { ListenerHandle } from 'types/Listener';
 import type { SetOpts } from 'types/MethodOptions';
 import { isNumeric, isObject, isNumber, isObjectType, isString } from 'utils/is';
 import { hasOwn } from 'utils/object';
 import type Fragment from 'view/Fragment';
 import type Element from 'view/items/Element';
+import type Attribute from 'view/items/element/Attribute';
 import type EventDirective from 'view/items/shared/EventDirective';
 import findElement from 'view/items/shared/findElement';
 import resolveReference from 'view/resolvers/resolveReference';
@@ -37,7 +41,7 @@ interface ContextDataOpts {
 }
 
 class ContextData extends Model {
-  public adaptors: any[];
+  public adaptors: Adaptor[];
   public context: Context;
 
   constructor(options: ContextDataOpts) {
@@ -60,24 +64,24 @@ class ContextData extends Model {
 
 // TODO check that params between this class and `ContextHelper` are the same
 export default class Context implements ContextHelper {
+  static forRactive: (ractive: Ractive, ...assigns: unknown[]) => Context;
+
   public fragment: Fragment;
   public element: Element;
   public node: HTMLElement;
   public ractive: Ractive;
   public root: this;
-  public refire: any;
+  public refire: boolean;
   public model: ContextData;
-  public partials: any;
-  public attributes: any;
+  public partials: Record<string, PartialTemplateItem[]>;
+  public attributes: Attribute[];
   public name: string;
   public component: Ractive;
   public event: Event;
 
-  static forRactive: (ractive: Ractive, ...assigns: unknown[]) => Context;
-
   constructor(fragment: Context['fragment'], element?: Context['element']) {
     this.fragment = fragment;
-    this.element = element || findElement(fragment);
+    this.element = element || findElement<Element>(fragment);
     this.node = this.element && this.element.node;
     this.ractive = fragment.ractive;
     this.root = this;
@@ -120,11 +124,11 @@ export default class Context implements ContextHelper {
     return protoAnimate(this.ractive, model, value, options);
   }
 
-  find(selector) {
+  find(selector: string): ReturnType<Fragment['find']> {
     return this.fragment.find(selector);
   }
 
-  findAll(selector) {
+  findAll(selector: string): Element[] {
     const result = [];
     this.fragment.findAll(selector, { result });
     return result;
@@ -169,7 +173,7 @@ export default class Context implements ContextHelper {
     return fragment.getContext() as this;
   }
 
-  hasListener(name, bubble) {
+  hasListener(name: string, bubble: boolean): boolean {
     // if the owner is a component, start there because the nearest element
     // may exist outside of the immediate context (yield)
     let el = this.fragment.owner.component
@@ -196,7 +200,7 @@ export default class Context implements ContextHelper {
     return promise;
   }
 
-  listen(event, handler) {
+  listen(event: string, handler: Function): ListenerHandle {
     const el = this.element;
     el.on(event, handler);
     return {
@@ -385,5 +389,5 @@ function findModel(ctx, path) {
 }
 
 function findEvent(el: Element, name: string): EventDirective {
-  return el.events && el.events.find && el.events.find(e => ~e.template.n.indexOf(name));
+  return el?.events?.find && el.events.find(e => ~e.template.n.indexOf(name));
 }

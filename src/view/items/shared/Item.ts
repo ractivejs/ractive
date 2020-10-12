@@ -1,4 +1,5 @@
 import type TemplateItemType from 'config/types';
+import type { FindOpts } from 'types/MethodOptions';
 import { createDocumentFragment } from 'utils/dom';
 import { isObject } from 'utils/is';
 import type Fragment from 'view/Fragment';
@@ -45,11 +46,14 @@ export default class Item {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  find(_selector, _options) {
+  find(_selector: string, _options: FindOpts): HTMLElement {
     return null;
   }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  findAll(_selector, _options): void {}
+  findAll(_selector, _options) {
+    return null;
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   findComponent(_name, _options) {

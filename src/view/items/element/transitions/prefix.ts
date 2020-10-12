@@ -12,7 +12,7 @@ if (!isClient) {
   const testStyle = createElement('div').style;
 
   // technically this also normalizes on hyphenated styles as well
-  prefix = function (prop: string) {
+  prefix = function (prop: string): string {
     if (!prefixCache[prop]) {
       const name = hyphenateCamel(prop);
 

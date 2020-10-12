@@ -4,6 +4,11 @@ import type Transition from 'view/items/element/Transition';
 
 let id = 0;
 
+export interface DetachQueueItem<T = unknown> {
+  node: T;
+  detach: Function;
+}
+
 export default class TransitionManager {
   public callback: Function;
   public parent: TransitionManager;
@@ -15,7 +20,7 @@ export default class TransitionManager {
   public totalChildren = 0;
   public outroChildren = 0;
 
-  public detachQueue: any[];
+  public detachQueue: DetachQueueItem[];
   public outrosComplete = false;
 
   public id: number;
@@ -54,7 +59,7 @@ export default class TransitionManager {
   }
 
   checkStart(): void {
-    if (this.parent && this.parent.started) this.start();
+    if (this.parent?.started) this.start();
   }
 
   decrementOutros(): void {

@@ -1,5 +1,6 @@
 import TemplateItemType from 'config/types';
 import Namespace from 'src/config/namespace';
+import type { ValueMap } from 'types/Generic';
 import { safeAttributeString } from 'utils/dom';
 import { booleanAttributes } from 'utils/html';
 import hyphenateCamel from 'utils/hyphenateCamel';
@@ -35,6 +36,9 @@ interface AttributeOptions extends ItemOpts {
   owner: Element;
   element: Element;
 }
+
+/** Maybe is better `any`? */
+export type AttributeItemValue = string | number | unknown[] | ValueMap;
 
 export default class Attribute extends Item {
   public name: string;

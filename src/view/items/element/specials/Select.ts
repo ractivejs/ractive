@@ -4,16 +4,17 @@ import getSelectedOptions from 'utils/getSelectedOptions';
 import { isArray, isFunction } from 'utils/is';
 
 import Element, { ElementOpts } from '../../Element';
+import type { AttributeItemValue } from '../Attribute';
 import type SingleSelectBinding from '../binding/SingleSelectBinding';
 import type { BindingFlagOwner } from '../BindingFlag';
 
-export default class Select extends Element implements BindingFlagOwner {
-  public options: any[];
-  private selectedOptions: any[];
+import type Option from './Option';
 
-  /**
-   * @override
-   */
+export default class Select extends Element implements BindingFlagOwner {
+  public options: Option[];
+  private selectedOptions: HTMLOptionElement[];
+
+  /** @override */
   public node: HTMLSelectElement;
 
   constructor(options: ElementOpts) {
@@ -31,7 +32,7 @@ export default class Select extends Element implements BindingFlagOwner {
     };
   }
 
-  render(target, occupants): void {
+  render(target: HTMLElement, occupants: HTMLElement[]): void {
     super.render(target, occupants);
     this.sync();
 
@@ -75,7 +76,7 @@ export default class Select extends Element implements BindingFlagOwner {
       options.forEach((o: RactiveHTMLOptionElement) => {
         const optionValue = o._ractive ? o._ractive.value : o.value;
         const shouldSelect = isMultiple
-          ? array && this.valueContains(selectValue, optionValue)
+          ? array && this.valueContains(<unknown[]>selectValue, optionValue)
           : this.compare(selectValue, optionValue);
 
         if (shouldSelect) {
@@ -97,14 +98,14 @@ export default class Select extends Element implements BindingFlagOwner {
     }
   }
 
-  valueContains(selectValue: unknown[], optionValue: unknown): boolean {
+  valueContains(selectValue: AttributeItemValue[], optionValue: AttributeItemValue): boolean {
     let i = selectValue.length;
     while (i--) {
       if (this.compare(optionValue, selectValue[i])) return true;
     }
   }
 
-  compare(optionValue: unknown, selectValue: unknown): boolean {
+  compare(optionValue: AttributeItemValue, selectValue: AttributeItemValue): boolean {
     const comparator = this.getAttribute('value-comparator');
     if (comparator) {
       if (isFunction(comparator)) {

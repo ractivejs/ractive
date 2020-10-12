@@ -3,7 +3,7 @@ import { addToArray } from 'utils/array';
 import type Fragment from 'view/Fragment';
 import type Transition from 'view/items/element/Transition';
 
-import TransitionManager from './TransitionManager';
+import TransitionManager, { DetachQueueItem } from './TransitionManager';
 
 interface Batch {
   previousBatch: Batch;
@@ -91,7 +91,7 @@ class Runloop {
   }
 
   // synchronise node detachments with transition ends
-  public detachWhenReady(thing): void {
+  public detachWhenReady(thing: DetachQueueItem): void {
     batch.transitionManager.detachQueue.push(thing);
   }
 

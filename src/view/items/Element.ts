@@ -4,6 +4,8 @@ import Context from 'shared/Context';
 import { destroyed, shuffled } from 'shared/methodCallers';
 import Namespace from 'src/config/namespace';
 import runloop from 'src/global/runloop';
+import type { DetachQueueItem } from 'src/global/TransitionManager';
+import type { FindOpts } from 'types/MethodOptions';
 import { toArray, addToArray, removeFromArray } from 'utils/array';
 import { createElement, detachNode, matches, safeAttributeString } from 'utils/dom';
 import { escapeHtml, voidElements } from 'utils/html';
@@ -14,6 +16,7 @@ import Fragment from '../Fragment';
 
 import createItem from './createItem';
 import type Attribute from './element/Attribute';
+import type { AttributeItemValue } from './element/Attribute';
 import type Binding from './element/binding/Binding';
 import selectBinding from './element/binding/selectBinding';
 import ConditionalAttribute, { ConditionalAttributeOwner } from './element/ConditionalAttribute';
@@ -35,7 +38,12 @@ export interface ElementOpts extends ItemOpts {
 
 export default class Element
   extends ContainerItem
-  implements DecoratorOwner, TransitionOwner, EventDirectiveOwner, ConditionalAttributeOwner {
+  implements
+    DecoratorOwner,
+    TransitionOwner,
+    EventDirectiveOwner,
+    ConditionalAttributeOwner,
+    DetachQueueItem<Element> {
   public name: string;
   private namespace: string;
   public parent: Element;
@@ -46,7 +54,7 @@ export default class Element
   public decorators: Decorator[];
   private statics: Record<string, string>;
   public attributeByName: Record<string, Attribute>;
-  public attributes: any[] & { binding?: boolean; unbinding?: boolean };
+  public attributes: Attribute[] & { binding?: boolean; unbinding?: boolean };
   public binding: Binding;
   private ctx: Context;
   private listeners: { [key: string]: Function[] & { refs?: number } };
@@ -178,13 +186,13 @@ export default class Element
     else this.binding.bind();
   }
 
-  createTwowayBinding() {
+  createTwowayBinding(): Binding {
     const hasTwoWay = 'twoway' in this;
     if (hasTwoWay ? this.twoway : this.ractive.twoway) {
       const Binding = selectBinding(this);
       if (Binding) {
         const binding = new Binding((this as unknown) as Input);
-        if (binding && binding.model) return binding;
+        if (binding?.model) return binding;
       }
     }
   }
@@ -201,14 +209,14 @@ export default class Element
     return detachNode(this.node);
   }
 
-  find(selector?, options?) {
+  find(selector?: string, options?: FindOpts): HTMLElement {
     if (this.node && matches(this.node, selector)) return this.node;
     if (this.fragment) {
       return this.fragment.find(selector, options);
     }
   }
 
-  findAll(selector, options) {
+  findAll(selector: string, options: FindOpts & { result?: HTMLElement[] }): void {
     const { result } = options;
 
     if (matches(this.node, selector)) {
@@ -220,15 +228,18 @@ export default class Element
     }
   }
 
-  findNextNode() {
+  findNextNode(): Element['node'] {
     return null;
   }
 
-  firstNode() {
+  firstNode(): Element['node'] {
     return this.node;
   }
 
-  getAttribute(name: string) {
+  getAttribute(name: 'type'): string;
+  getAttribute(name: 'value-comparator'): string | Function;
+  getAttribute(name: string): AttributeItemValue;
+  getAttribute(name: string): AttributeItemValue {
     if (this.statics && name in this.statics) return this.statics[name];
     const attribute = this.attributeByName[name];
     return attribute ? attribute.getValue() : undefined;
@@ -317,7 +328,7 @@ export default class Element
     if (this.binding) this.binding.rebound();
   }
 
-  render(target, occupants): void {
+  render(target: HTMLElement, occupants: HTMLElement[]): void {
     // TODO determine correct namespace
     this.namespace = getNamespace(this);
 
@@ -490,7 +501,7 @@ export default class Element
 
     // Special case - textarea
     if (this.name === 'textarea' && this.getAttribute('value') !== undefined) {
-      str += escapeHtml(this.getAttribute('value'));
+      str += escapeHtml(<string>this.getAttribute('value'));
     } else if (this.getAttribute('contenteditable') !== undefined) {
       // Special case - contenteditable
       str += this.getAttribute('value') || '';
@@ -580,7 +591,7 @@ function stringifyAttribute(attribute: Attribute): string {
 
 function getNamespace(element: Element): string {
   // Use specified namespace...
-  const xmlns = element.getAttribute('xmlns');
+  const xmlns = <string>element.getAttribute('xmlns');
   if (xmlns) return xmlns;
 
   // ...or SVG namespace, if this is an <svg> element

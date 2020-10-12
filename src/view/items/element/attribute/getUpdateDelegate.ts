@@ -43,7 +43,7 @@ export default function getUpdateDelegate(attribute: Attribute): UpdateDelegate 
 
     // special case - <input>
     if (element.name === 'input') {
-      const type = element.getAttribute('type');
+      const type = <string>element.getAttribute('type');
 
       // type='file' value='{{fileList}}'>
       if (type === 'file') return noop; // read-only

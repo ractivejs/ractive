@@ -59,7 +59,7 @@ export default class Fragment {
   public ractive: Ractive;
   private template: any;
 
-  public componentParent: any;
+  public componentParent: Fragment;
   public context: ModelBase;
   public cssIds: string[];
   public isIteration: boolean;
@@ -211,11 +211,11 @@ export default class Fragment {
     return docFrag;
   }
 
-  find(selector, options?) {
+  find(selector: string, options?: FindOpts): HTMLElement {
     return findMap(this.items, i => i.find(selector, options));
   }
 
-  findAll(selector: string, options: FindOpts & { result?: HTMLElement[] }): void {
+  findAll(selector: string, options: FindOpts & { result?: Element[] }): void {
     if (this.items) {
       this.items.forEach(i => i.findAll && i.findAll(selector, options));
     }
