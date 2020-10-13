@@ -20,7 +20,7 @@ export default function Ractive$findAll(
   if (options.remote) {
     // search non-fragment children
     this._children.forEach(c => {
-      if (!c.target && c.instance.fragment && c.instance.fragment.rendered) {
+      if (!c.target && c.instance.fragment?.rendered) {
         c.instance.findAll(selector, options);
       }
     });

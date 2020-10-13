@@ -7,12 +7,12 @@ import type { ConditionalAttributeOwner } from '../ConditionalAttribute';
 export default class Input extends Element implements BindingFlagOwner, ConditionalAttributeOwner {
   public checked: boolean;
 
-  render(target, occupants): void {
+  render(target: HTMLElement, occupants: HTMLElement[]): void {
     super.render(target, occupants);
     this.node.defaultValue = this.node.value;
   }
 
-  compare(value, attrValue): boolean {
+  compare(value: unknown, attrValue: unknown): boolean {
     const comparator = this.getAttribute('value-comparator');
     if (comparator) {
       if (isFunction(comparator)) {

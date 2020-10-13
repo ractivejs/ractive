@@ -1,4 +1,5 @@
 import TemplateItemType from 'config/types';
+import type { ModelWithRebound } from 'model/ModelBase';
 import { keep } from 'shared/set';
 import runloop from 'src/global/runloop';
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
@@ -120,7 +121,7 @@ export default class Section
 
   rebound(update): void {
     if (this.model) {
-      if (this.model.rebound) this.model.rebound(update);
+      if ('rebound' in this.model) (<ModelWithRebound>this.model).rebound(update);
       else {
         super.unbind();
         super.bind();

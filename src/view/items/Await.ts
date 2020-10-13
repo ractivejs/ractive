@@ -16,7 +16,7 @@ function extract(tpl: AwaitMustacheTemplateItem, type: TemplateItemType, name?: 
           z: [{ n: p.n, x: { r: `__await.${name}` } }]
         }
       ];
-    else return p.f || [];
+    else return <unknown[]>p.f || [];
   } else return [];
 }
 

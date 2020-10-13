@@ -1,5 +1,5 @@
 import TemplateItemType from 'config/types';
-import type Model from 'model/Model';
+import type ModelBase from 'model/ModelBase';
 import KeyModel from 'model/specials/KeyModel';
 import { getContext } from 'shared/getRactiveContext';
 import { toEscapedString, toString, shuffled, update } from 'shared/methodCallers';
@@ -31,7 +31,7 @@ export default class RepeatedFragment {
   // boolean | number | Element
   private delegate: any;
 
-  public context: Model;
+  public context: ModelBase;
   private iterations: Fragment[];
   private indexRef: string;
   public keyRef: string;
@@ -91,7 +91,7 @@ export default class RepeatedFragment {
     this.isArray = false;
   }
 
-  bind(context: Model): this {
+  bind(context: ModelBase): this {
     this.context = context;
     this.bound = true;
     const value = context.get();

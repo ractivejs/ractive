@@ -1,6 +1,6 @@
 import TemplateItemType from 'config/types';
 import LinkModel, { Missing } from 'model/LinkModel';
-import ModelBase, { fireShuffleTasks, ModelWithRebound } from 'model/ModelBase';
+import ModelBase, { fireShuffleTasks, ModelDependency, ModelWithRebound } from 'model/ModelBase';
 import type {
   ReferenceExpressionTemplateItem,
   ReferenceTemplateItem
@@ -20,11 +20,11 @@ import resolveReference from './resolveReference';
 // todo add ModelWithRebound interface
 export default class ReferenceExpressionProxy extends LinkModel implements ModelWithRebound {
   private fragment: Fragment | RepeatedFragment;
-  private model: any;
+  private model: ModelBase;
   private template: ReferenceExpressionTemplateItem;
   public base: ModelBase;
-  private proxy: any;
-  public members: any;
+  private proxy: { rebind: ModelBase['rebind']; handleChange: () => void };
+  public members: ModelBase[];
 
   constructor(
     fragment: ReferenceExpressionProxy['fragment'],
@@ -136,7 +136,7 @@ export default class ReferenceExpressionProxy extends LinkModel implements Model
     if (!this.deps.length && !this.refs) this.teardown();
   }
 
-  unregister(dep): void {
+  unregister(dep: ModelDependency): void {
     super.unregister(dep);
     if (!this.deps.length && !this.refs) this.teardown();
   }

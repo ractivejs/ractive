@@ -43,7 +43,7 @@ export interface TemplateModel {
   // | ElementTemplateItem
   // | CommentTemplateItem
   // | string
-  t: any[]; // add correct type after readTemplate conversion is complete
+  t?: any[]; // add correct type after readTemplate conversion is complete
 
   p?: PartialRegistryTemplateItem;
 

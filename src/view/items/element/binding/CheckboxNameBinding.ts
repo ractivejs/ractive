@@ -11,7 +11,7 @@ const push = [].push;
 /** `this` must be a {@link BindingGroup} instance */
 function getValue(): BindingValue[] {
   const all: BindingValue[] = this.bindings
-    .filter((b: CheckboxNameBinding) => b.node && b.node.checked)
+    .filter((b: CheckboxNameBinding) => (<HTMLInputElement>b.node)?.checked)
     .map((b: CheckboxNameBinding) => b.element.getAttribute('value'));
   const res = [];
   all.forEach(v => {
@@ -27,6 +27,7 @@ export default class CheckboxNameBinding
   public group: BindingGroup<BindingValue[], CheckboxNameBinding>;
   public noInitialValue: boolean;
   public isChecked: boolean;
+  public node: HTMLInputElement;
 
   constructor(element: Input) {
     super(element, 'name');
@@ -110,7 +111,8 @@ export default class CheckboxNameBinding
     this.element.on('change', handleDomEvent);
 
     // in case of IE emergency, bind to click event as well
-    if (this.node.attachEvent) {
+    // TSRChange - change guard using `in`
+    if ('attachEvent' in this.node) {
       this.element.on('click', handleDomEvent);
     }
   }
@@ -135,7 +137,8 @@ export default class CheckboxNameBinding
 
     el.off('change', handleDomEvent);
 
-    if (this.node.attachEvent) {
+    // TSRChange - change guard using `in`
+    if ('attachEvent' in this.node) {
       el.off('click', handleDomEvent);
     }
   }

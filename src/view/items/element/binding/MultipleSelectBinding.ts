@@ -45,7 +45,7 @@ export default class MultipleSelectBinding
 
   handleChange(): this {
     const attribute = this.attribute;
-    const previousValue = attribute.getValue();
+    const previousValue = <unknown[]>attribute.getValue();
 
     const value = this.getValue();
 

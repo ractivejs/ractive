@@ -1,6 +1,7 @@
 import type TemplateItemType from 'config/types';
 import type { LinePosition } from 'parse/Parser';
 
+import type { GenericAttributeTemplateItem } from '../element/elementDefinitions';
 import type {
   ExpressionTemplateItem,
   ExpressionRefinementTemplateItem
@@ -13,6 +14,7 @@ import type {
 
 /** @see {@link readSection} */
 export type FragmentTemplateItem =
+  | GenericAttributeTemplateItem
   | SectionMustacheTemplateItem
   | InterpolatorTemplateItem
   | ElementTemplateItem

@@ -43,7 +43,7 @@ export interface RactiveEventInterface {
 
 /** Section | Partial | Component | Select | Input | Element  */
 export interface EventDirectiveOwner extends Item {
-  attributeByName?: any;
+  attributeByName?: Record<string, Item>;
 }
 
 export default class EventDirective {
@@ -131,7 +131,9 @@ export default class EventDirective {
     this.events.forEach(e => e.unrender());
   }
 
-  fire(event: Context | any, args = []): any {
+  // Unable to find a good way to better define return type of this function
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  fire(event: Context | (Record<string, unknown> & { original?: Event }), args = []): any {
     const context =
       event instanceof Context && event.refire ? event : this.element.getContext(event);
 
@@ -215,8 +217,8 @@ export default class EventDirective {
       if (result === false) {
         const original = event ? event.original : undefined;
         if (original) {
-          original.preventDefault && original.preventDefault();
-          original.stopPropagation && original.stopPropagation();
+          original && original.preventDefault();
+          original && original.stopPropagation();
         } else {
           warnOnceIfDebug(
             `handler '${this.template.n.join(

@@ -1,4 +1,6 @@
 import type ModelBase from 'model/ModelBase';
+import type { ModelWithRebound } from 'model/ModelBase';
+import type { ExpressionRefinementTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 import { rebindMatch } from 'shared/rebind';
 import resolve from 'view/resolvers/resolve';
 
@@ -24,13 +26,13 @@ export default class Mustache extends Item {
     this.dirty = false;
   }
 
-  bind(pre?): void {
+  bind(pre?: ModelBase): void {
     // yield mustaches and inner contexts should resolve in container context
     const start = this.template.y
       ? this.template.y.containerFragment
       : this.containerFragment || this.up;
     // try to find a model for this view
-    const model = pre || resolve(start, this.template);
+    const model = pre || resolve(start, <ExpressionRefinementTemplateItem>this.template);
 
     if (model) {
       const value = model.get();
@@ -67,7 +69,7 @@ export default class Mustache extends Item {
 
   rebound(update: boolean): void {
     if (this.model) {
-      if (this.model.rebound) this.model.rebound(update);
+      if ('rebound' in this.model) (<ModelWithRebound>this.model).rebound(update);
       else {
         // check to see if the model actually changed...
         // yield mustaches and inner contexts should resolve in container context
@@ -75,7 +77,7 @@ export default class Mustache extends Item {
           ? this.template.y.containerFragment
           : this.containerFragment || this.up;
         // try to find a model for this view
-        const model = resolve(start, this.template);
+        const model = resolve(start, <ExpressionRefinementTemplateItem>this.template);
         if (model !== this.model) {
           this.model.unregister(this);
           this.bind(model);

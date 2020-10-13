@@ -2,6 +2,7 @@ import Computation from 'model/Computation';
 import type LinkModel from 'model/LinkModel';
 import Model from 'model/Model';
 import type ModelBase from 'model/ModelBase';
+import type { ModelDependency } from 'model/ModelBase';
 import type { ModelWithRebound } from 'model/ModelBase';
 import type { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 import getFunction from 'shared/getFunction';
@@ -76,9 +77,9 @@ export default class ExpressionProxy extends Model implements ModelWithRebound {
     return this.keypath;
   }
 
-  getValue() {
+  getValue(): unknown {
     startCapturing();
-    let result;
+    let result: unknown;
 
     try {
       const params = this.models.map(m => (m ? m.get(true) : undefined));
@@ -108,7 +109,7 @@ export default class ExpressionProxy extends Model implements ModelWithRebound {
 
   notifyUpstream(): void {}
 
-  rebind(next, previous, safe: boolean): void {
+  rebind(next: Model | LinkModel, previous: Model | LinkModel, safe: boolean): void {
     const idx = this.models.indexOf(previous);
 
     if (~idx) {
@@ -127,7 +128,7 @@ export default class ExpressionProxy extends Model implements ModelWithRebound {
     if (update) this.bubble(true);
   }
 
-  retrieve() {
+  retrieve(): unknown {
     return this.get();
   }
 
@@ -142,7 +143,7 @@ export default class ExpressionProxy extends Model implements ModelWithRebound {
     collect(this);
   }
 
-  unregister(dep): void {
+  unregister(dep: ModelDependency): void {
     super.unregister(dep);
     collect(this);
   }

@@ -1,6 +1,7 @@
 import { missingPlugin } from 'config/errors';
 import TemplateItemType from 'config/types';
 import RootModel from 'model/RootModel';
+import type { PartialTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { findInViewHierarchy } from 'shared/registry';
 import hooks from 'src/events/Hook';
 import Ractive from 'src/Ractive';
@@ -34,7 +35,7 @@ const protoRegistries = ['computed', 'helpers'];
 let uid = 0;
 
 export default function construct(ractive: RactiveDefinition, options: InitOpts): void {
-  if ((<any>Ractive).DEBUG) welcome();
+  if (Ractive.DEBUG) welcome();
 
   initialiseProperties(ractive);
   handleAttributes(ractive);
@@ -54,7 +55,7 @@ export default function construct(ractive: RactiveDefinition, options: InitOpts)
   // plugins that need to run at construct
   if (isArray(options.use)) {
     // TODO refine plugin to handle construct prop
-    ractive.use(...options.use.filter((p: any) => p.construct));
+    ractive.use(...options.use.filter(p => p.construct));
   }
 
   hooks.construct.fire(ractive, options);
@@ -174,8 +175,8 @@ function handleAttributes(ractive: RactiveDefinition): void {
     });
 
     // set up a partial containing non-property attributes
-    const all = attributes.optional.concat(attributes.required);
-    const partial = [];
+    const all = [...attributes.optional, ...attributes.required];
+    const partial: PartialTemplateItem = [];
     let i = attrs.length;
     while (i--) {
       const a = attrs[i];

@@ -37,7 +37,7 @@ export type ModelRebindFunction<T extends ModelBase> = (prev: T, next: T, safe?:
  * - Interpolator
  */
 export interface ModelDependency {
-  handleChange(path?: unknown): void;
+  handleChange?(path?: unknown): void;
   rebind?: ModelRebindFunction<ModelBase>;
   shuffle?: ShuffleFunction;
 }
@@ -102,6 +102,9 @@ export default abstract class ModelBase {
   public value: any;
 
   public abstract isReadonly: boolean;
+
+  public isRoot: boolean;
+  public isComputed: boolean;
 
   /**
    * isModel a LinkModel?
@@ -353,7 +356,7 @@ export default abstract class ModelBase {
     if ('refs' in this) this.refs--;
   }
 
-  unregister(dep: ModelDependency): void {
+  unregister(dep): void {
     removeFromArray(this.deps, dep);
   }
 

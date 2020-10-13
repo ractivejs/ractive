@@ -1,11 +1,11 @@
-import type Model from 'model/Model';
+import type ModelBase from 'model/ModelBase';
 import { removeFromArray } from 'utils/array';
 
 import Binding from './Binding';
 
 export default function getBindingGroup<Value, BindingType extends Binding>(
   group: string,
-  model: Model,
+  model: ModelBase,
   getValue: Function
 ): BindingGroup<Value, BindingType> {
   const hash = `${group}-bindingGroup`;
@@ -20,7 +20,7 @@ export default function getBindingGroup<Value, BindingType extends Binding>(
 export class BindingGroup<Value, BindingType extends Binding> {
   private hash: string;
 
-  public model: Model;
+  public model: ModelBase;
   public bindings: BindingType[];
   public bound: boolean;
 
@@ -29,7 +29,7 @@ export class BindingGroup<Value, BindingType extends Binding> {
   public lastValue: Value;
   public noInitialValue: boolean;
 
-  constructor(hash: string, model: Model, getValue: Function) {
+  constructor(hash: string, model: ModelBase, getValue: Function) {
     this.model = model;
     this.hash = hash;
     this.getValue = (): Value => {

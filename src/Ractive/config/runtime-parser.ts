@@ -41,7 +41,7 @@ export function createFunction(body: string, length: number): Function {
 export function createFunctionFromString(
   str: string,
   bindTo: Ractive
-): () => (this: typeof bindTo) => any {
+): () => (this: typeof bindTo) => unknown {
   throwNoParse(parse, 'computation string "${str}"', COMPUTATION_INSTRUCTIONS);
   const template = parse<ExpressionFunctionTemplateItem>(str, { expression: true });
   return function () {

@@ -15,7 +15,8 @@ export default class CheckboxBinding
 
     this.element.on('change', handleDomEvent);
 
-    if (this.node.attachEvent) {
+    // TSRChange - change guard using `in`
+    if ('attachEvent' in this.node) {
       this.element.on('click', handleDomEvent);
     }
   }
@@ -23,7 +24,8 @@ export default class CheckboxBinding
   unrender(): void {
     this.element.off('change', handleDomEvent);
 
-    if (this.node.attachEvent) {
+    // TSRChange - change guard using `in`
+    if ('attachEvent' in this.node) {
       this.element.off('click', handleDomEvent);
     }
   }
@@ -33,7 +35,7 @@ export default class CheckboxBinding
   }
 
   getValue(): BindingValue {
-    return this.node.checked;
+    return (<HTMLInputElement>this.node).checked;
   }
 
   setFromNode(node: HTMLInputElement): void {

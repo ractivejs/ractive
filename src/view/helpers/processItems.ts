@@ -1,4 +1,5 @@
 import TemplateItemType from 'config/types';
+import type Model from 'model/Model';
 
 import type Item from '../items/shared/Item';
 
@@ -24,7 +25,7 @@ export default function processItems(items: Item[], values, guid: string, counte
 
       const placeholderId = `${guid}-${counter++}`;
       // TSRChange - it seems that `item.newModel` is never set
-      const model = item.model;
+      const model = <Model>item.model;
 
       values[placeholderId] = model
         ? model.wrapper

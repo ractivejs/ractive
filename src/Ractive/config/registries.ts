@@ -60,8 +60,9 @@ class Registry {
     let changed = false;
 
     keys(registry).forEach(key => {
-      const item = registry[key];
+      const item: any = registry[key];
 
+      // component and partials
       if (item._fn) {
         if (item._fn.isOwner) {
           registry[key] = item._fn;

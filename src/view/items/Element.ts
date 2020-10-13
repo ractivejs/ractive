@@ -515,7 +515,7 @@ export default class Element
     return str;
   }
 
-  unbind(view): void {
+  unbind(view: boolean): void {
     const attrs = this.attributes;
     if (attrs) {
       attrs.unbinding = true;

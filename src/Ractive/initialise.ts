@@ -34,7 +34,7 @@ export default function initialise(
   config.init(<typeof Static>ractive.constructor, ractive, userOptions);
 
   // call any passed in plugins
-  if (isArray(userOptions.use)) ractive.use(...userOptions.use.filter((p: any) => !p.construct));
+  if (isArray(userOptions.use)) ractive.use(...userOptions.use.filter(p => !p.construct));
 
   hooks.config.fire(ractive);
 
@@ -54,7 +54,7 @@ export default function initialise(
     if (el && !ractive.component) {
       const promise = ractive.render(el, ractive.append);
 
-      if ((<any>Ractive).DEBUG_PROMISES) {
+      if (Ractive.DEBUG_PROMISES) {
         promise.catch(err => {
           warnOnceIfDebug(
             'Promise debugging is enabled, to help solve errors that happen asynchronously. Some browsers will log unhandled promise rejections, in which case you can safely disable promise debugging:\n  Ractive.DEBUG_PROMISES = false;'

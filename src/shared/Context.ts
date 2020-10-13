@@ -78,6 +78,7 @@ export default class Context implements ContextHelper {
   public name: string;
   public component: Ractive;
   public event: Event;
+  public original: Event;
 
   constructor(fragment: Context['fragment'], element?: Context['element']) {
     this.fragment = fragment;

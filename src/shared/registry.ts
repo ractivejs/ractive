@@ -9,7 +9,7 @@ export function findInViewHierarchy<K extends RegistryName>(
   name: string
 ): Registries[K]['value'] | null {
   const instance = findInstance(registryName, ractive, name);
-  return instance ? instance[registryName][name] : null;
+  return instance ? <never>instance[registryName][name] : null;
 }
 
 export function findInstance<K extends RegistryName>(

@@ -20,7 +20,7 @@ export interface DecoratorHandle {
   shuffled?: () => void;
 }
 
-export type Decorator<T extends Ractive> = (
+export type Decorator<T extends Ractive = Ractive> = (
   this: T,
   node: HTMLElement,
   ...args: any[]

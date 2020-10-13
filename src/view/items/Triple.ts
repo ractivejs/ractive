@@ -1,4 +1,5 @@
 import runloop from 'src/global/runloop';
+import type { FindOpts } from 'types/MethodOptions';
 import { toArray } from 'utils/array';
 import { createDocumentFragment, matches } from 'utils/dom';
 import { detachNode } from 'utils/dom';
@@ -39,7 +40,7 @@ export default class Triple extends Mustache {
     return null;
   }
 
-  findAll(selector: string, options: { result: Element[] }): void {
+  findAll(selector: string, options: FindOpts & { result: Element[] }): void {
     const { result } = options;
     const len = this.nodes.length;
 

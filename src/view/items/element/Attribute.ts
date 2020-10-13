@@ -37,8 +37,8 @@ interface AttributeOptions extends ItemOpts {
   element: Element;
 }
 
-/** Maybe is better `any`? */
-export type AttributeItemValue = string | number | unknown[] | ValueMap;
+/** Maybe `any` is better? */
+export type AttributeItemValue = string | number | boolean | unknown[] | ValueMap;
 
 export default class Attribute extends Item {
   public name: string;
@@ -49,7 +49,7 @@ export default class Attribute extends Item {
   public template: any; // maybe GenericAttributeTemplateItem
 
   public updateDelegate: UpdateDelegate;
-  public value: any;
+  public value: AttributeItemValue;
   public interpolator: Interpolator;
   public style: string;
   public inlineClass: string;
@@ -244,7 +244,7 @@ export default class Attribute extends Item {
     return str ? `${this.name}="${str}"` : this.name;
   }
 
-  unbind(view): void {
+  unbind(view: boolean): void {
     if (this.fragment) this.fragment.unbind(view);
   }
 

@@ -12,7 +12,7 @@ export interface RactiveDynamicTemplate {
   /** If not set it means that is not dynamic */
   fn?: ParseFn;
   /** Mix between Parsed template and template */
-  result: any;
+  result: ReturnType<ParseFn>;
 }
 
 const templateConfigurator: Configurator<void, boolean> = {
@@ -85,7 +85,7 @@ function resetValue(ractive: Ractive): RactiveDynamicTemplate['result'] {
     return;
   }
 
-  const result = getDynamicTemplate(ractive, initial.fn);
+  const result = <string>getDynamicTemplate(ractive, initial.fn);
 
   // TODO deep equality check to prevent unnecessary re-rendering
   // in the case of already-parsed templates

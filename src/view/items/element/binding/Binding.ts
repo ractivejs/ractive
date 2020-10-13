@@ -1,5 +1,7 @@
 import type Model from 'model/Model';
+import type ModelBase from 'model/ModelBase';
 import runloop from 'src/global/runloop';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import { isUndefined } from 'utils/is';
 import { warnOnceIfDebug } from 'utils/log';
 
@@ -15,13 +17,14 @@ type BindingAttributeName = 'value' | 'name' | 'checked';
 
 export default abstract class Binding {
   public element: Input | Select;
-  public ractive: any;
+  public ractive: Ractive;
   public attribute: Attribute;
-  public model: Model;
+  public model: ModelBase;
   public node: any;
   public lastValue: BindingValue;
 
   public wasUndefined: boolean;
+  // TODO is this used anywhere?
   public rendered: boolean;
   public resetValue: BindingValue;
 
@@ -35,7 +38,7 @@ export default abstract class Binding {
 
     const model = interpolator.model;
 
-    if (model.isReadonly && !model.setRoot) {
+    if (model.isReadonly && !('setRoot' in model)) {
       const keypath = model.getKeypath().replace(/^@/, '');
       warnOnceIfDebug(
         `Cannot use two-way binding on <${element.name}> element: ${keypath} is read-only. To suppress this warning use <${element.name} twoway='false'...>`,
@@ -45,7 +48,7 @@ export default abstract class Binding {
     }
 
     this.attribute.isTwoway = true;
-    this.model = model;
+    this.model = <Model>model;
 
     // initialise value, if it's undefined
     let value = model.get();
@@ -112,9 +115,8 @@ export default abstract class Binding {
 
   render(): void {
     this.node = this.element.node;
-    // todo remove any casting
-    (this.node as any)._ractive.binding = this;
-    this.rendered = true; // TODO is this used anywhere?
+    this.node._ractive.binding = this;
+    this.rendered = true;
   }
 
   setFromNode(node: HTMLSelectElement | HTMLInputElement): void {

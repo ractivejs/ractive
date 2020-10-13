@@ -22,7 +22,7 @@ import use from '../Ractive/static/use';
 
 const callsSuper = /super\s*\(|\.call\s*\(\s*this/;
 
-export function extend(...options: ExtendOpts[]): ReturnType<typeof extendOne> {
+export function extend(...options: ExtendOpts[]): typeof Static {
   if (!options.length) {
     return extendOne(this);
   } else {
@@ -36,7 +36,7 @@ export function extendWith<
   U extends RactiveDefinition<U>,
   V extends InitOpts<U> = InitOpts<U>,
   W extends ExtendOpts<U> = ExtendOpts<U>
->(Class: Constructor<U, V>, options?: W): ReturnType<typeof extendOne> {
+>(Class: Constructor<U, V>, options?: W): typeof Static {
   return extendOne(this, options, Class);
 }
 

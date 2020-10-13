@@ -267,7 +267,7 @@ export default class Fragment {
 
   findParentNode() {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
-    let fragment = this;
+    let fragment: Fragment = this;
 
     do {
       if (fragment.owner.type === TemplateItemType.ELEMENT) {
@@ -297,21 +297,21 @@ export default class Fragment {
     return this.parent.findNextNode(this.owner);
   }
 
-  getKey(): KeyModel {
+  getKey(): Fragment['keyModel'] {
     return this.keyModel || (this.keyModel = new KeyModel(this.key));
   }
 
-  getIndex(): KeyModel {
+  getIndex(): Fragment['idxModel'] {
     return this.idxModel || (this.idxModel = new KeyModel(this.index));
   }
 
-  rebind(next): void {
+  rebind(next: Fragment['context']): void {
     this.context = next;
     if (this.rootModel) this.rootModel.context = this.context;
     if (this.pathModel) this.pathModel.context = this.context;
   }
 
-  rebound(update): void {
+  rebound(update: boolean): void {
     if (this.owner.template.z) {
       const aliases = this.aliases;
       for (const k in aliases) {

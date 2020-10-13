@@ -72,7 +72,9 @@ interface PluginArgsInstance {
 }
 
 export type PluginExtend = (pluginArgsExtend: PluginArgsExtend) => void;
-export type PluginInstance = (pluginArgsInstance: PluginArgsInstance) => void;
+export type PluginInstance = ((pluginArgsInstance: PluginArgsInstance) => void) & {
+  construct?: boolean;
+};
 
 export type Helper = (this: Ractive, ...args: any[]) => any;
 

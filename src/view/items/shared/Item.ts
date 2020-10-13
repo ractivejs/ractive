@@ -1,4 +1,6 @@
 import type TemplateItemType from 'config/types';
+import type ModelBase from 'model/ModelBase';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import type { FindOpts } from 'types/MethodOptions';
 import { createDocumentFragment } from 'utils/dom';
 import { isObject } from 'utils/is';
@@ -10,11 +12,11 @@ export interface ItemOpts {
   index?: Item['index'];
 }
 
-export default class Item {
-  // TODO add correct types
+export default abstract class Item {
   public up: Fragment;
-  public ractive: any;
+  public ractive: Ractive;
 
+  // TODO maybe add it as generic type?
   public template: any;
   public type: TemplateItemType;
   public index: number;
@@ -23,7 +25,7 @@ export default class Item {
 
   public fragment: Fragment;
 
-  public model: any;
+  public model: ModelBase;
 
   constructor(options: ItemOpts) {
     this.up = options.up;
@@ -51,14 +53,15 @@ export default class Item {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  findAll(_selector, _options) {
+  findAll(_selector: string, _options: FindOpts): void {
     return null;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  findComponent(_name, _options) {
+  findComponent(_name: string, _options: FindOpts) {
     return null;
   }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   findAllComponents(_name, _options) {}
 
@@ -92,14 +95,14 @@ export class ContainerItem extends Item {
     return this.fragment ? this.fragment.detach() : createDocumentFragment();
   }
 
-  find(selector?) {
+  find(selector?: string): HTMLElement {
     if (this.fragment) {
       return this.fragment.find(selector);
     }
   }
 
   // todo use findOptions?
-  findAll(selector?, options?): void {
+  findAll(selector?: string, options?: FindOpts): void {
     if (this.fragment) {
       this.fragment.findAll(selector, options);
     }

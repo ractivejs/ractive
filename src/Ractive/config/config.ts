@@ -70,10 +70,25 @@ const order = [
 ];
 
 function configure(
+  method: 'init',
+  Parent: typeof Static,
+  target: Static,
+  options: InitOpts,
+  Child?: typeof Static
+): void;
+function configure(
+  method: 'extend',
+  Parent: typeof Static,
+  target: Static,
+  options: ExtendOpts,
+  Child?: typeof Static
+): void;
+function configure(
   method: 'init' | 'extend',
   Parent: typeof Static,
   target: Static,
-  options: any, // Probably both init and extend options
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  options: any,
   Child?: typeof Static
 ): void {
   deprecate(options);

@@ -1,8 +1,10 @@
 import type Computation from 'model/Computation';
 import type RootModel from 'model/RootModel';
 import type CSSModel from 'model/specials/CSSModel';
+import type { PartialTemplateItem } from 'parse/converters/templateItemDefinitions';
 import type Context from 'shared/Context';
 import type { FakeFragment } from 'shared/getRactiveContext';
+import { extend, extendWith } from 'src/extend/_extend';
 import type { Adaptor } from 'types/Adaptor';
 import type { Decorator } from 'types/Decorator';
 import type { EasingFunction } from 'types/Easings';
@@ -12,11 +14,13 @@ import type { InitOpts } from 'types/InitOptions';
 import type { EventListenerEntry, ListenerCallback, ListenerDescriptor } from 'types/Listener';
 import type { Macro } from 'types/Macro';
 import type { ObserverCallback, ObserverDescriptor } from 'types/Observer';
+import type { Template } from 'types/Parse';
 import type { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import type { Registry } from 'types/Registries';
 import type { Transition } from 'types/Transition';
 import type Fragment from 'view/Fragment';
 import type Element from 'view/items/Element';
+import type Binding from 'view/items/element/binding/Binding';
 
 import type { CSSDefinition } from './config/custom/css/css';
 import type { RactiveDynamicTemplate } from './config/custom/template';
@@ -78,8 +82,8 @@ import use from './static/use';
 export interface RactiveConstructor extends Function {
   _cssIds: string[];
   attributes: {
-    required: any;
-    optional: any;
+    required: string[];
+    optional: string[];
     mapAll: boolean;
   };
 }
@@ -157,7 +161,7 @@ class RactiveInternal {
   computed: Record<string, Computation>;
 
   /** @internal */
-  template: any;
+  template: Template;
 
   /** @internal */
   _config: RactiveInternalConfig;
@@ -166,7 +170,7 @@ class RactiveInternal {
   partials: Record<string, Partial>;
 
   /** @internal */
-  _attributePartial: any;
+  _attributePartial: PartialTemplateItem;
 
   /** @internal */
   component: any;
@@ -175,7 +179,7 @@ class RactiveInternal {
   proxy: Element;
 
   /** @internal */
-  delegate: any;
+  delegate: boolean;
 
   /** @internal */
   data: Data;
@@ -190,10 +194,13 @@ class RactiveInternal {
   _cssModel: CSSModel;
 
   /** @internal */
-  _cssDef: any;
+  _cssDef: CSSDefinition;
 
   /** @internal */
   extensions: Macro[];
+
+  /** @internal */
+  binding: Binding;
 }
 
 // TODO add documentation on all fields
@@ -262,8 +269,12 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> extends RactiveInterna
   public noOutro: boolean;
   public nestedTransitions: boolean;
 
+  public lazy: boolean | number;
+
+  public twoway: boolean;
+
   adaptors: Registry<Adaptor>;
-  components: Registry<any>;
+  components: Registry<Component>;
   decorators: Registry<Decorator<T>>;
   easings: Registry<EasingFunction>;
   events: Registry<EventPlugin<T>>;
@@ -375,14 +386,10 @@ export type Component = typeof Static | Promise<typeof Static>;
 
 export class Static<T extends Ractive<T> = Ractive> extends Ractive<T> {
   /** Create a new component with this constructor as a starting point. */
-  // static extend<U, V extends ExtendOpts<T> = ExtendOpts<T>>(opts?: V): Static<Ractive<T & U>>;
+  static extend = extend;
 
   /** Create a new component with this constructor as a starting point using the given constructor. */
-  // static extendWith<
-  //   U extends Ractive<U>,
-  //   V extends InitOpts<U> = InitOpts<U>,
-  //   W extends ExtendOpts<U> = ExtendOpts<U>
-  // >(c: Constructor<U, V>, opts?: W): Static<Ractive<T & U>>;
+  static extendWith = extendWith;
 
   /** Get a Context for the given node or selector. */
   static getContext = getContext;

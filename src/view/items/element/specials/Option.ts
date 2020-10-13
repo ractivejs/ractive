@@ -81,7 +81,9 @@ export default class Option extends Element {
     super.bubble();
   }
 
-  getAttribute(name: string) {
+  // added any to avoid conflict with element function declaration
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getAttribute(name: string): any {
     const attribute = this.attributeByName[name];
     return attribute
       ? attribute.getValue()
@@ -98,7 +100,7 @@ export default class Option extends Element {
     }
   }
 
-  unbind(view): void {
+  unbind(view: boolean): void {
     super.unbind(view);
 
     if (this.select) {

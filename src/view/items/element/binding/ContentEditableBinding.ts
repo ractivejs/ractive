@@ -23,7 +23,8 @@ export default class ContentEditableBinding
     if (!this.ractive.lazy) {
       el.on('input', handleDomEvent);
 
-      if (this.node.attachEvent) {
+      // TSRChange - change guard using `in`
+      if ('attachEvent' in this.node) {
         el.on('keyup', handleDomEvent);
       }
     }
