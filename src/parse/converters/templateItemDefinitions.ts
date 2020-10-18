@@ -56,7 +56,7 @@ export interface TemplateModel {
  * this in code is referred as expression but these word seems to include more than function
  */
 export interface ExpressionFunctionTemplateItem {
-  /** function name and if there are ny param dinamic names  */
+  /** function name and if there are parameters dynamic names  */
   r: string[];
 
   /**

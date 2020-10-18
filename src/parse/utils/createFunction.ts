@@ -5,7 +5,7 @@ export function fromExpression(body: string, length = 0): Function {
     args[length] = `_${length}`;
   }
 
-  /**
+  /*
    * Functions created directly with new Function() look like this:
    * `function anonymous (_0 /*\*\/) { return _0 * 2 }`
    *

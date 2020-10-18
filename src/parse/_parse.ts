@@ -26,7 +26,7 @@ import Parser from './Parser';
 import cleanup from './utils/cleanup';
 import { fromExpression } from './utils/createFunction';
 import flattenExpression from './utils/flattenExpression';
-import insertExpressions from './utils/insertExpressions';
+import insertExpressions, { ExpressionRegistry } from './utils/insertExpressions';
 
 // See https://github.com/ractivejs/template-spec for information
 // about the Ractive template specification
@@ -217,7 +217,7 @@ export class StandardParser<R = StandardParserResult> extends Parser<ParseOpts, 
       );
 
       if (this.csp !== false) {
-        const expr = {};
+        const expr: ExpressionRegistry = {};
 
         insertExpressions(parserResult.t, expr);
         insertExpressions(parserResult.p || {}, expr);

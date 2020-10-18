@@ -31,7 +31,7 @@ export interface AnimateOpts {
    * @param value To be documented
    * @returns The value at t with interpolator function already applied.
    */
-  step?: (x: number, value: any) => number;
+  step?: (x: number, value: unknown) => number;
 
   /** A function to be called when the animation completes, with the value passed to animate. */
   complete?: () => void;

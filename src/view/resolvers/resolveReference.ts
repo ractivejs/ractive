@@ -2,18 +2,17 @@ import type ModelBase from 'model/ModelBase';
 import SharedModel, { GlobalModel, SharedModel as ContextModel } from 'model/specials/SharedModel';
 import type { FakeFragment } from 'shared/getRactiveContext';
 import { splitKeypath } from 'shared/keypaths';
+import type { MacroHelper } from 'types/Macro';
 import { isFunction } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn } from 'utils/object';
 import type Fragment from 'view/Fragment';
 import type RepeatedFragment from 'view/RepeatedFragment';
 
-// TODO refine types
-
-function findContext(fragment) {
+function findContext(fragment: Fragment | RepeatedFragment | FakeFragment): Fragment {
   let frag = fragment;
   while (frag && !frag.context && !frag.aliases) frag = frag.parent;
-  return frag;
+  return <Fragment>frag;
 }
 
 export default function resolveReference(
@@ -31,15 +30,15 @@ export default function resolveReference(
 
   // scoped references
   if (ref[0] === '.' || ref[0] === '^') {
-    let frag = fragment;
     const parts = ref.split('/');
     const explicitContext = parts[0] === '^^';
 
     // find nearest context node
+    let frag = fragment;
     while (frag && !frag.context) {
-      frag = up(frag);
+      frag = up(<Fragment>frag);
     }
-    let context = frag && frag.context;
+    let context = frag?.context;
 
     // walk up the context chain
     while (frag && parts[0] === '^^') {
@@ -51,12 +50,12 @@ export default function resolveReference(
         frag = frag.parent.parent;
       } else {
         // otherwise jump above the current fragment
-        frag = up(frag);
+        frag = up(<Fragment>frag);
       }
 
       // walk to the next contexted fragment
       while (frag && !frag.context) {
-        frag = up(frag);
+        frag = up(<Fragment>frag);
       }
       context = frag && frag.context;
     }
@@ -96,10 +95,10 @@ export default function resolveReference(
     } else if (base === '@index' || base === '@key') {
       // @index or @key referring to the nearest repeating index or key
       if (keys.length) badReference(base);
-      const repeater = findIter(fragment);
+      const repeater = findIter(<Fragment>fragment);
       return repeater && repeater[`get${base[1] === 'i' ? 'Index' : 'Key'}`]();
     } else if (base === '@last') {
-      const repeater = findIter(fragment);
+      const repeater = findIter(<Fragment>fragment);
       return repeater && repeater.parent.getLast();
     } else if (base === '@global') {
       // @global referring to window or global
@@ -136,7 +135,7 @@ export default function resolveReference(
       // @helpers instance model
       return fragment.ractive.viewmodel.getHelpers().joinAll(keys);
     } else if (base === '@macro') {
-      const handle = findMacro(fragment);
+      const handle = findMacro(<Fragment>fragment);
       if (handle) return new ContextModel(handle, 'macro').joinAll(keys);
       else return;
     } else {
@@ -151,17 +150,15 @@ export default function resolveReference(
     if (helpers.has(base)) return helpers.joinKey(base);
   }
 
-  let context = findContext(fragment);
+  const asd = findContext(fragment);
+  let context: ModelBase;
 
+  // TSRChange - use optional chain to simply if { if else } else
   // check immediate context for a match
-  if (context) {
-    if (context.context) {
-      context = context.context;
-    } else {
-      // alias block, so get next full context for later
-      context = fragment.findContext();
-    }
+  if (asd?.context) {
+    context = asd.context;
   } else {
+    // If there is no context or if is an alias block, get next full context for later
     context = fragment.findContext();
   }
 
@@ -244,11 +241,11 @@ export default function resolveReference(
   return context.joinKey(base).joinAll(keys);
 }
 
-function up(fragment) {
+function up(fragment: Fragment): Fragment | RepeatedFragment {
   return fragment && ((!fragment.ractive.isolated && fragment.componentParent) || fragment.parent);
 }
 
-function findIter(start) {
+function findIter(start: Fragment): Fragment {
   let fragment = start;
   let next;
   while (!fragment.isIteration && (next = up(fragment))) {
@@ -258,11 +255,13 @@ function findIter(start) {
   return fragment.isIteration && fragment;
 }
 
-function findMacro(start) {
+function findMacro(start: Fragment): MacroHelper {
   let fragment = start;
   while (fragment) {
-    if (fragment.owner.handle) return fragment.owner.handle;
-    fragment = up(fragment);
+    if (fragment.owner.handle) {
+      return fragment.owner.handle;
+    }
+    fragment = <Fragment>up(fragment);
   }
 }
 

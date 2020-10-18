@@ -4,12 +4,15 @@ import { keys } from 'utils/object';
 
 import { fromExpression } from './createFunction';
 
-type ExpressionRegistry = {
-  [key: string]: Function;
-};
+export type ExpressionRegistry = Record<string, Function>;
 
-// todo set obj correct type
-export default function insertExpressions(obj, expr: ExpressionRegistry): void {
+/**
+ * @param obj Template definition with expressions
+ */
+export default function insertExpressions(
+  obj: unknown[] | Record<string, unknown>,
+  expr: ExpressionRegistry
+): void {
   keys(obj).forEach(key => {
     if (isExpression(key, obj)) return addTo(obj, expr);
 
@@ -18,8 +21,8 @@ export default function insertExpressions(obj, expr: ExpressionRegistry): void {
   });
 }
 
-function isExpression(key: string, obj: any): obj is ExpressionFunctionTemplateItem {
-  return key === 's' && isArray(obj.r);
+function isExpression(key: string, obj: unknown): obj is ExpressionFunctionTemplateItem {
+  return key === 's' && isArray(obj['r']);
 }
 
 function addTo(obj: ExpressionFunctionTemplateItem, expr: ExpressionRegistry): void {
