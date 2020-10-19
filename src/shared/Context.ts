@@ -1,12 +1,13 @@
 import TemplateItemType from 'config/types';
 import Model, { AnimatePromise } from 'model/Model';
+import type ModelBase from 'model/ModelBase';
 import type { PartialTemplateItem } from 'parse/converters/templateItemDefinitions';
 import runloop from 'src/global/runloop';
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import type { Adaptor } from 'types/Adaptor';
 import type { ContextHelper } from 'types/Context';
 import type { DecoratorHandle } from 'types/Decorator';
-import type { Keypath } from 'types/Generic';
+import type { Keypath, ValueMap } from 'types/Generic';
 import type { ListenerHandle } from 'types/Listener';
 import type { SetOpts } from 'types/MethodOptions';
 import { isNumeric, isObject, isNumber, isObjectType, isString } from 'utils/is';
@@ -121,7 +122,7 @@ export default class Context implements ContextHelper {
   }
 
   animate<T>(keypath: Keypath, value: T, options: AnimateOpts): AnimatePromise {
-    const model: Model = findModel(this, keypath).model;
+    const model = <Model>findModel(this, keypath).model;
     return protoAnimate(this.ractive, model, value, options);
   }
 
@@ -135,13 +136,13 @@ export default class Context implements ContextHelper {
     return result;
   }
 
-  findAllComponents(selector) {
-    const result = [];
+  findAllComponents(selector: string): Ractive[] {
+    const result: Ractive[] = [];
     this.fragment.findAllComponents(selector, { result });
     return result;
   }
 
-  findComponent(selector) {
+  findComponent(selector: string): Ractive {
     return this.fragment.findComponent(selector);
   }
 
@@ -252,7 +253,7 @@ export default class Context implements ContextHelper {
     }
   }
 
-  readLink(keypath, options) {
+  readLink(keypath: Keypath, options): ReturnType<Ractive['readLink']> {
     return this.ractive.readLink(this.resolve(keypath), options);
   }
 
@@ -261,11 +262,11 @@ export default class Context implements ContextHelper {
     return model ? model.getKeypath(ractive || instance) : path;
   }
 
-  reverse(keypath) {
+  reverse(keypath: Keypath): ReturnType<typeof modelReverse> {
     return modelReverse(findModel(this, keypath).model, []);
   }
 
-  set(keypath, value, options?) {
+  set(keypath: Keypath | ValueMap, value: ValueMap | any, options?: SetOpts): Promise<void> {
     return sharedSet(build(this, keypath, value), options);
   }
 
@@ -278,7 +279,7 @@ export default class Context implements ContextHelper {
     return modelSplice(findModel(this, keypath).model, add);
   }
 
-  sort(keypath) {
+  sort(keypath: Keypath) {
     return modelSort(findModel(this, keypath).model, []);
   }
 
@@ -296,20 +297,21 @@ export default class Context implements ContextHelper {
     );
   }
 
-  toggle(keypath) {
+  toggle(keypath: Keypath): Promise<boolean> {
     const { model } = findModel(this, keypath);
     return sharedSet([[model, !model.get()]]);
   }
 
-  unlink(dest) {
+  unlink(dest: string | Ractive): Promise<void> {
     const here = findModel(this, dest).model;
     const promise = runloop.start();
-    if (here.owner && here.owner._link) here.owner.unlink();
+    // TSRChange- add in guard
+    if ('owner' in here && here.owner?._link) here.owner.unlink();
     runloop.end();
     return promise;
   }
 
-  unlisten(event, handler) {
+  unlisten(event: string, handler: Function): void {
     this.element.off(event, handler);
   }
 
@@ -345,9 +347,9 @@ export default class Context implements ContextHelper {
     if (model) return model.get(true);
   }
 
-  getBindingModel(ctx) {
+  getBindingModel(ctx: this) {
     const el = ctx.element;
-    return { model: el.binding && el.binding.model, instance: el.up.ractive };
+    return { model: el.binding?.model, instance: el.up.ractive };
   }
 
   setBinding(value) {
@@ -379,7 +381,10 @@ function build(ctx: Context, keypath, value) {
   return sets;
 }
 
-function findModel(ctx, path) {
+function findModel(
+  ctx: Context,
+  path: Ractive | string
+): { model: ModelBase | any; instance: Ractive } {
   const frag = ctx.fragment;
 
   if (!isString(path)) {

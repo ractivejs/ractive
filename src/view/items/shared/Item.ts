@@ -48,7 +48,7 @@ export default abstract class Item {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  find(_selector: string, _options: FindOpts): HTMLElement {
+  find(_selector: string, _options: FindOpts): Element {
     return null;
   }
 
@@ -69,7 +69,7 @@ export default abstract class Item {
     return this.up.findNextNode(this);
   }
 
-  rebound(update): void {
+  rebound(update: boolean): void {
     if (this.fragment) this.fragment.rebound(update);
   }
 
@@ -95,7 +95,7 @@ export class ContainerItem extends Item {
     return this.fragment ? this.fragment.detach() : createDocumentFragment();
   }
 
-  find(selector?: string): HTMLElement {
+  find(selector?: string): Element {
     if (this.fragment) {
       return this.fragment.find(selector);
     }
@@ -121,7 +121,7 @@ export class ContainerItem extends Item {
     }
   }
 
-  firstNode(skipParent) {
+  firstNode(skipParent: boolean) {
     return this.fragment && this.fragment.firstNode(skipParent);
   }
 
@@ -136,7 +136,7 @@ export class ContainerItem extends Item {
  */
 export interface ItemBasicFunctions {
   bind: () => void;
-  render: (target: HTMLElement, ...args) => void;
+  render: (target: Element | DocumentFragment, occupants: Element[] | ChildNode[]) => void;
   update: () => void;
   unbind: (view: boolean) => void;
   unrender: (shouldDestroy?: boolean) => void;

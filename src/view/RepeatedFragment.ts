@@ -29,7 +29,7 @@ export default class RepeatedFragment {
   public template: any;
 
   // boolean | number | Element
-  private delegate: any;
+  private delegate: boolean | Element;
 
   public context: ModelBase;
   private iterations: Fragment[];
@@ -67,10 +67,11 @@ export default class RepeatedFragment {
     this.ractive = this.parent.ractive;
     this.delegate =
       this.ractive.delegate !== false && (this.parent.delegate || findDelegate(this.parent));
+
     // delegation disabled by directive
-    if (this.delegate && this.delegate.delegate === false) this.delegate = false;
+    if (this.delegate && (<Element>this.delegate).delegate === false) this.delegate = false;
     // let the element know it's a delegate handler
-    if (this.delegate) this.delegate.delegate = this.delegate;
+    if (this.delegate) (<Element>this.delegate).delegate = this.delegate;
 
     // encapsulated styles should be inherited until they get applied by an element
     this.cssIds = 'cssIds' in options ? options.cssIds : this.parent ? this.parent.cssIds : null;

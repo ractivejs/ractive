@@ -17,7 +17,6 @@ import ExpressionProxy from './ExpressionProxy';
 import resolve from './resolve';
 import resolveReference from './resolveReference';
 
-// todo add ModelWithRebound interface
 export default class ReferenceExpressionProxy extends LinkModel implements ModelWithRebound {
   private fragment: Fragment | RepeatedFragment;
   private model: ModelBase;

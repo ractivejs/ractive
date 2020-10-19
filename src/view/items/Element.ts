@@ -50,21 +50,21 @@ export default class Element
   public node: any;
   public root: any;
 
-  public component: any;
+  public component: Element;
   public decorators: Decorator[];
   private statics: Record<string, string>;
   public attributeByName: Record<string, Attribute>;
   public attributes: Attribute[] & { binding?: boolean; unbinding?: boolean };
   public binding: Binding;
   private ctx: Context;
-  private listeners: { [key: string]: Function[] & { refs?: number } };
+  public listeners: { [key: string]: Function[] & { refs?: number } };
   protected foundNode: Function;
   protected isSelected: Function;
   public intro: Transition;
   public outro: Transition;
 
   public rendered: boolean;
-  public delegate: boolean;
+  public delegate: boolean | Element;
   public lazy: boolean | number;
   public twoway: boolean;
 
@@ -164,10 +164,6 @@ export default class Element
     }
 
     this.binding = null; // filled in later
-
-    // added to avoid typescript errors
-    this.root = undefined;
-    this.lazy = undefined;
   }
 
   bind(): void {
@@ -209,7 +205,7 @@ export default class Element
     return detachNode(this.node);
   }
 
-  find(selector?: string, options?: FindOpts): HTMLElement {
+  find(selector?: string, options?: FindOpts): globalThis.Element {
     if (this.node && matches(this.node, selector)) return this.node;
     if (this.fragment) {
       return this.fragment.find(selector, options);
@@ -254,7 +250,7 @@ export default class Element
   }
 
   off(event: string, callback: Function, capture = false): void {
-    const delegate = this.up.delegate;
+    const delegate = <Element>this.up.delegate;
     const ref = this.listeners && this.listeners[event];
 
     if (!ref) return;
@@ -262,7 +258,7 @@ export default class Element
 
     if (delegate) {
       const listeners =
-        (delegate.listeners || (delegate.listeners = [])) &&
+        (delegate.listeners || (delegate.listeners = {})) &&
         (delegate.listeners[event] || (delegate.listeners[event] = []));
       if (listeners.refs && !--listeners.refs) delegate.off(event, delegateHandler, true);
     } else if (this.rendered) {
@@ -280,12 +276,12 @@ export default class Element
   }
 
   on(event: string, callback: Function, capture = false): void {
-    const delegate = this.up.delegate;
+    const delegate = <Element>this.up.delegate;
     const ref = (this.listeners || (this.listeners = {}))[event] || (this.listeners[event] = []);
 
     if (delegate) {
       const listeners =
-        ((delegate.listeners || (delegate.listeners = [])) && delegate.listeners[event]) ||
+        ((delegate.listeners || (delegate.listeners = {})) && delegate.listeners[event]) ||
         (delegate.listeners[event] = []);
       if (!listeners.refs) {
         listeners.refs = 0;
@@ -322,7 +318,7 @@ export default class Element
     }
   }
 
-  rebound(update): void {
+  rebound(update: boolean): void {
     super.rebound(update);
     if (this.attributes) this.attributes.forEach(x => x.rebound(update));
     if (this.binding) this.binding.rebound();
@@ -392,7 +388,7 @@ export default class Element
     }
 
     if (this.fragment) {
-      const children = existing ? toArray(node.childNodes) : undefined;
+      const children = existing ? toArray((<HTMLElement>node).childNodes) : undefined;
 
       this.fragment.render(node, children);
 

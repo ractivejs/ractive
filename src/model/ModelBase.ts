@@ -42,7 +42,7 @@ export interface ModelDependency {
   shuffle?: ShuffleFunction;
 }
 
-/** When adding a pattern to the model is also tracked as a depency */
+/** When adding a pattern to the model is also tracked as a dependency */
 export interface ModelPattern extends ModelDependency {
   notify: (path: string[]) => void;
 }

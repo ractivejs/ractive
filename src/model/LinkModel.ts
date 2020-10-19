@@ -104,7 +104,7 @@ export default class LinkModel extends ModelBase implements ModelWithShuffle {
     this.relinking(Missing, false);
   }
 
-  get(shouldCapture: boolean, opts: ModelGetOpts = {}) {
+  get(shouldCapture?: boolean, opts: ModelGetOpts = {}) {
     if (shouldCapture) {
       capture(this);
 

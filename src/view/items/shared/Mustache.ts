@@ -2,23 +2,23 @@ import type ModelBase from 'model/ModelBase';
 import type { ModelWithRebound } from 'model/ModelBase';
 import type { ExpressionRefinementTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 import { rebindMatch } from 'shared/rebind';
+import type Fragment from 'view/Fragment';
 import resolve from 'view/resolvers/resolve';
 
 import Item, { ContainerItem, ItemOpts } from './Item';
 
-export interface MustacheOpts extends ItemOpts {
-  owner: any;
-}
+export type MustacheOpts = ItemOpts;
 
 export default class Mustache extends Item {
-  public parent: any;
+  // TSRChange - remove since it seems not used
+  // public parent: any;
   private isStatic: boolean;
-  public containerFragment: any;
+  public containerFragment: Fragment;
 
   constructor(options: MustacheOpts) {
     super(options);
 
-    if (options.owner) this.parent = options.owner;
+    // if (options.owner) this.parent = options.owner;
 
     this.isStatic = !!options.template.s;
 
@@ -52,7 +52,7 @@ export default class Mustache extends Item {
     this.bubble();
   }
 
-  rebind(next, previous, safe): boolean {
+  rebind(next: ModelBase, previous: ModelBase, safe: boolean): boolean {
     if (this.isStatic) return;
 
     next = rebindMatch(this.template, next, previous, this.up);

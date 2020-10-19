@@ -14,6 +14,7 @@ import parseJSON from 'utils/parseJSON';
 
 import processItems from './helpers/processItems';
 import createItem from './items/createItem';
+import type Element from './items/Element';
 import type { ItemBasicInterface } from './items/shared/Item';
 import resolve from './resolvers/resolve';
 
@@ -63,7 +64,7 @@ export default class Fragment {
   public context: ModelBase;
   public cssIds: string[];
   public isIteration: boolean;
-  public iterations: any;
+  public iterations: Fragment[];
   public items: ItemBasicInterface[];
   public aliases: ViewAliases;
   public pathModel: KeyModel;
@@ -76,7 +77,7 @@ export default class Fragment {
   public lastValue: unknown;
   public shouldRebind: number;
 
-  public delegate: any;
+  public delegate: boolean | Element;
   public rendered: boolean;
   public dirty: boolean;
   private dirtyValue: boolean;
@@ -107,7 +108,7 @@ export default class Fragment {
 
     // encapsulated styles should be inherited until they get applied by an element
     if ('cssIds' in options) {
-      this.cssIds = options.cssIds && options.cssIds.length && options.cssIds;
+      this.cssIds = options.cssIds?.length && options.cssIds;
     } else {
       this.cssIds = this.parent ? this.parent.cssIds : null;
     }
@@ -211,21 +212,21 @@ export default class Fragment {
     return docFrag;
   }
 
-  find(selector: string, options?: FindOpts): HTMLElement {
+  find(selector: string, options?: FindOpts): globalThis.Element {
     return findMap(this.items, i => i.find(selector, options));
   }
 
-  findAll(selector: string, options: FindOpts & { result?: Element[] }): void {
+  findAll(selector: string, options: FindOpts & { result?: globalThis.Element[] }): void {
     if (this.items) {
       this.items.forEach(i => i.findAll && i.findAll(selector, options));
     }
   }
 
-  findComponent(name, options?) {
+  findComponent(name: string, options?: FindOpts): Ractive {
     return findMap(this.items, i => i.findComponent(name, options));
   }
 
-  findAllComponents(name, options): void {
+  findAllComponents(name: string | FindOpts, options: FindOpts & { result?: Ractive[] }): void {
     if (this.items) {
       this.items.forEach(i => i.findAllComponents && i.findAllComponents(name, options));
     }
@@ -333,7 +334,10 @@ export default class Fragment {
     }
   }
 
-  render(target?, occupants?): void {
+  render(
+    target?: globalThis.Element | DocumentFragment,
+    occupants?: globalThis.Element[] | ChildNode[]
+  ): void {
     if (this.rendered) throw new Error('Fragment is already rendered!');
     this.rendered = true;
 
