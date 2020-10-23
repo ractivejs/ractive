@@ -11,7 +11,7 @@ export default class Form extends Element {
     this.formBindings = [];
   }
 
-  render(target, occupants): void {
+  render(target: HTMLElement, occupants: HTMLElement[]): void {
     super.render(target, occupants);
     this.on('reset', handleReset);
   }

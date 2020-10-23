@@ -69,7 +69,7 @@ export default class Interpolator extends Mustache implements ItemBasicInterface
     }
   }
 
-  valueOf() {
+  valueOf(): unknown {
     return this.model ? this.model.get() : undefined;
   }
 }

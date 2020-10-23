@@ -1,11 +1,11 @@
 import TemplateItemType from 'config/types';
 import type { StandardParser } from 'parse/_parse';
-import type { BrackedTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
+import type { BracketTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
 import readExpression from 'parse/converters/readExpression';
 
 import { expectedExpression, expectedParen } from '../shared/errors';
 
-export default function readBracketedExpression(parser: StandardParser): BrackedTemplateItem {
+export default function readBracketedExpression(parser: StandardParser): BracketTemplateItem {
   if (!parser.matchString('(')) return null;
 
   parser.sp();

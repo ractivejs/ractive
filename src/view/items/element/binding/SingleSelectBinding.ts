@@ -1,4 +1,5 @@
 import runloop from 'src/global/runloop';
+import type { RactiveHTMLOptionElement } from 'types/RactiveHTMLElement';
 import getSelectedOptions from 'utils/getSelectedOptions';
 
 import type Select from '../specials/Select';
@@ -96,7 +97,7 @@ export default class SingleSelectBinding
 
   setFromNode(node: HTMLSelectElement): void {
     // todo add correct type when we will have an inrerface for augmented HTML elements
-    const option: any = getSelectedOptions(node)[0];
+    const option = <RactiveHTMLOptionElement>getSelectedOptions(node)[0];
     this.model.set(option._ractive ? option._ractive.value : option.value);
   }
 

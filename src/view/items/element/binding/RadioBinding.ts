@@ -46,7 +46,7 @@ export default class RadioBinding extends Binding implements BasicBindingInterfa
     }
   }
 
-  setFromNode(node): void {
+  setFromNode(node: HTMLInputElement): void {
     this.model.set(node.checked);
   }
 

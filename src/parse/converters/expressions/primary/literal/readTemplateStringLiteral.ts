@@ -1,7 +1,7 @@
 import TemplateItemType from 'config/types';
 import type { StandardParser } from 'parse/_parse';
 import type {
-  BrackedTemplateItem,
+  BracketTemplateItem,
   ValueTemplateItem
 } from 'parse/converters/expressions/expressionDefinitions';
 import readExpression from 'parse/converters/readExpression';
@@ -36,7 +36,7 @@ function escapeChar(c: string): string {
 
 export default function readTemplateStringLiteral(
   parser: StandardParser
-): BrackedTemplateItem | ValueTemplateItem {
+): BracketTemplateItem | ValueTemplateItem {
   if (!parser.matchString('`')) return null;
 
   let literal = '';

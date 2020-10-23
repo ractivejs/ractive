@@ -1,7 +1,7 @@
 import type { StandardParser } from 'parse/_parse';
 import type {
   ValueTemplateItem,
-  BrackedTemplateItem,
+  BracketTemplateItem,
   ObjectLiteralTemplateItem,
   ArrayLiteralTemplateItem
 } from 'parse/converters/expressions/expressionDefinitions';
@@ -17,7 +17,7 @@ import readTemplateStringLiteral from './literal/readTemplateStringLiteral';
 // define output of readLiteral
 export type LiteralTemplateDefinition =
   | ValueTemplateItem
-  | BrackedTemplateItem
+  | BracketTemplateItem
   | ObjectLiteralTemplateItem
   | ArrayLiteralTemplateItem;
 

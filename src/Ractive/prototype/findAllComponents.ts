@@ -19,7 +19,7 @@ function Ractive$findAllComponents(
 
   if (!isArray(options.result)) options.result = [];
 
-  this.fragment.findAllComponents(selector, options);
+  this.fragment.findAllComponents(<string>selector, options);
 
   if (options.remote) {
     // search non-fragment children

@@ -226,7 +226,7 @@ export default class Fragment {
     return findMap(this.items, i => i.findComponent(name, options));
   }
 
-  findAllComponents(name: string | FindOpts, options: FindOpts & { result?: Ractive[] }): void {
+  findAllComponents(name: string, options: FindOpts & { result?: Ractive[] }): void {
     if (this.items) {
       this.items.forEach(i => i.findAllComponents && i.findAllComponents(name, options));
     }

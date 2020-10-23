@@ -2,6 +2,7 @@ import { isClient } from 'config/environment';
 import { missingPlugin } from 'config/errors';
 import { interpolate } from 'shared/interpolate';
 import Ticker from 'shared/Ticker';
+import type { EasingFunction } from 'types/Easings';
 import type { TransitionOpts } from 'types/Transition';
 import { createElement } from 'utils/dom';
 import { isFunction, isString } from 'utils/is';
@@ -11,13 +12,15 @@ import type Transition from '../Transition';
 
 import hyphenate from './hyphenate';
 
-let createTransitions: (
+type CreateTransitions = (
   t: Transition,
   to: Record<string, string>,
   options: TransitionOpts,
   changedProperties: string[],
   resolve: Function
 ) => void;
+
+let createTransitions: CreateTransitions;
 
 if (!isClient) {
   createTransitions = null;
@@ -54,7 +57,7 @@ if (!isClient) {
     TRANSITION_TIMING_FUNCTION = TRANSITION + 'TimingFunction';
   }
 
-  createTransitions = function (t, to, options, changedProperties, resolve) {
+  createTransitions = <CreateTransitions>function (t, to, options, changedProperties, resolve) {
     // Wait a beat (otherwise the target styles will be applied immediately)
     // TODO use a fastdom-style mechanism?
     setTimeout(() => {
@@ -203,7 +206,7 @@ if (!isClient) {
 
         // javascript transitions
         if (propertiesToTransitionInJs.length) {
-          let easing;
+          let easing: EasingFunction;
 
           if (isString(options.easing)) {
             easing = t.ractive.easing[options.easing];

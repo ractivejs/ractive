@@ -58,12 +58,12 @@ export default abstract class Item {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  findComponent(_name: string, _options: FindOpts) {
+  findComponent(_name: string, _options: FindOpts): Ractive {
     return null;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  findAllComponents(_name, _options) {}
+  findAllComponents(_name: string, _options: FindOpts): void {}
 
   findNextNode() {
     return this.up.findNextNode(this);
@@ -77,7 +77,7 @@ export default abstract class Item {
     if (this.fragment) this.fragment.shuffled();
   }
 
-  valueOf(): string {
+  valueOf(): unknown {
     return this.toString();
   }
 }
@@ -101,21 +101,19 @@ export class ContainerItem extends Item {
     }
   }
 
-  // todo use findOptions?
   findAll(selector?: string, options?: FindOpts): void {
     if (this.fragment) {
       this.fragment.findAll(selector, options);
     }
   }
 
-  findComponent(name?) {
+  findComponent(name?: string): ReturnType<Fragment['findComponent']> {
     if (this.fragment) {
       return this.fragment.findComponent(name);
     }
   }
 
-  // todo use findOptions?
-  findAllComponents(name?, options?) {
+  findAllComponents(name?: string, options?: FindOpts): ReturnType<Fragment['findAllComponents']> {
     if (this.fragment) {
       this.fragment.findAllComponents(name, options);
     }
@@ -125,7 +123,7 @@ export class ContainerItem extends Item {
     return this.fragment && this.fragment.firstNode(skipParent);
   }
 
-  toString(escape?: boolean): string {
+  toString(escape?: boolean): ReturnType<Fragment['toString']> {
     return this.fragment ? this.fragment.toString(escape) : '';
   }
 }

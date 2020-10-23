@@ -35,7 +35,7 @@ export interface InvocationTemplateItem {
   p?: boolean;
 }
 
-export interface BrackedTemplateItem {
+export interface BracketTemplateItem {
   t: TemplateItemType.BRACKETED;
   x: ExpressionTemplateItem;
 }
@@ -110,7 +110,7 @@ export interface ExpressionRefinementTemplateItem {
 // output of readExpression
 export type ExpressionTemplateItem =
   | ValueTemplateItem
-  | BrackedTemplateItem
+  | BracketTemplateItem
   | ObjectLiteralTemplateItem
   | ArrayLiteralTemplateItem
   | ReferenceTemplateItem
@@ -133,10 +133,10 @@ export type ExpressionWithSpread =
 // define output of readPrimary
 export type PrimaryExpressionTemplateDefinition =
   | ValueTemplateItem
-  | BrackedTemplateItem
+  | BracketTemplateItem
   | ObjectLiteralTemplateItem
   | ArrayLiteralTemplateItem
   | ReferenceTemplateItem
   | GlobalValueTemplateItem;
 
-export type ExpressionWithValue = SimpleTemplateItem | ValueTemplateItem | GlobalValueTemplateItem;
+export type ExpressionWithValue = ValueTemplateItem | GlobalValueTemplateItem;

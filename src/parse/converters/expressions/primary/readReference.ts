@@ -2,7 +2,7 @@ import TemplateItemType from 'config/types';
 import type { StandardParser } from 'parse/_parse';
 import type {
   ReferenceTemplateItem,
-  BrackedTemplateItem,
+  BracketTemplateItem,
   GlobalValueTemplateItem
 } from 'parse/converters/expressions/expressionDefinitions';
 import { normalise } from 'src/shared/keypaths';
@@ -20,7 +20,7 @@ const specials = /^(key|index|keypath|rootpath|this|global|shared|context|event|
 
 export default function readReference(
   parser: StandardParser
-): ReferenceTemplateItem | GlobalValueTemplateItem | BrackedTemplateItem {
+): ReferenceTemplateItem | GlobalValueTemplateItem | BracketTemplateItem {
   let prefix: string, name: string, global: string, reference: string;
 
   const startPos = parser.pos;

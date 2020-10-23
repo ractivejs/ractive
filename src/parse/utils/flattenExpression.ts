@@ -7,7 +7,7 @@ import type {
   ConditionalOperatorTemplateItem,
   InvocationTemplateItem,
   MemberTemplateItem,
-  BrackedTemplateItem,
+  BracketTemplateItem,
   KeyValuePairTemplateItem,
   ExpressionWithSpread,
   ExpressionWithValue
@@ -143,6 +143,7 @@ function hasSpread(list): list is ExpressionWithSpread {
 }
 
 // TODO maybe refactor this?
+function extractRefs(node: ExpressionTemplateItem | string, refs: string[]): void;
 function extractRefs(node: ExpressionTemplateItem, refs: string[]): void {
   if (node.t === TemplateItemType.REFERENCE && isString(node.n)) {
     if (!~refs.indexOf(node.n)) {
@@ -179,7 +180,7 @@ function extractRefs(node: ExpressionTemplateItem, refs: string[]): void {
   const nodeWithExpression = node as
     | InvocationTemplateItem
     | MemberTemplateItem
-    | BrackedTemplateItem;
+    | BracketTemplateItem;
   if (nodeWithExpression.x) {
     extractRefs(nodeWithExpression.x, refs);
   }
