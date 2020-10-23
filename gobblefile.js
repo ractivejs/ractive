@@ -1,5 +1,4 @@
-/*eslint-env node */
-/*eslint object-shorthand: 0 quote-props: 0 */
+/* eslint-env node */
 const fs = require('fs');
 const path = require('path');
 
@@ -62,7 +61,7 @@ module.exports = {
     return gobble([lib, qunit, browserTests, nodeTests]);
   },
   'bundle:release'() {
-    const runtimeModulesToIgnore = ['parse/_parse.js'];
+    const runtimeModulesToIgnore = ['parse/_parse.ts'];
 
     const esRegular = buildESLib('ractive.mjs', ractiveRollupPlugins);
     const esRuntime = buildESLib('runtime.mjs', [
@@ -98,17 +97,17 @@ module.exports = {
 function buildUmdLib(dest, plugins = []) {
   return src
     .transform(rollup, {
-      plugins: plugins,
       input: 'Ractive.ts',
       output: {
         name: 'Ractive',
         format: 'umd',
         file: dest,
         sourcemap: true,
-        banner: banner,
+        banner,
         noConflict: true
       },
-      cache: false
+      cache: false,
+      plugins
     })
     .transform(transpile, { accept: ['.js'] })
     .transform(replacePlaceholders);
@@ -118,15 +117,15 @@ function buildUmdLib(dest, plugins = []) {
 function buildESLib(dest, plugins = []) {
   return src
     .transform(rollup, {
-      plugins: plugins,
       input: 'Ractive.ts',
       output: {
         format: 'es',
         file: dest,
         sourcemap: true,
-        banner: banner
+        banner
       },
-      cache: false
+      cache: false,
+      plugins
     })
     .transform(transpile, { accept: ['.js', '.mjs'] })
     .transform(replacePlaceholders);
@@ -175,7 +174,7 @@ function buildNodeTests() {
 function skipModule(excludedModules) {
   return {
     name: 'skipModule',
-    transform: function (src, modulePath) {
+    transform(src, modulePath) {
       const moduleRelativePath = path
         .relative(path.join(__dirname, 'src'), modulePath)
         .split(path.sep)
