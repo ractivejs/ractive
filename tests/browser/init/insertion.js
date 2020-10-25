@@ -1,7 +1,8 @@
-import { beforeEach, initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
-export default function() {
+import { beforeEach, initModule } from '../../helpers/test-config';
+
+export default function () {
   let target;
   let child;
 

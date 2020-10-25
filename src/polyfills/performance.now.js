@@ -4,7 +4,7 @@ if (typeof window !== 'undefined' && window.performance && !window.performance.n
 
   const nowOffset = Date.now();
 
-  window.performance.now = function() {
+  window.performance.now = function () {
     return Date.now() - nowOffset;
   };
 }

@@ -21,7 +21,7 @@ npm install -g gobble-cli
 
 Inside this folder (`perf`), start building the app:
 
-```
+```bash
 cd perf
 gobble
 ```
@@ -52,7 +52,6 @@ cp ../build/* control
 ## Viewing profiles
 
 If you're in a browser that supports `console.profile()` (i.e. Chrome) you can see profiles by opening your devtools.
-
 
 
 ## Writing more tests
@@ -87,8 +86,8 @@ tests = [
       });
 
       doSomethingAsync().then( function () {
-      	// if there's an error, pass it
-      	done( null );
+        // if there's an error, pass it
+        done( null );
       });
     },
     test: () => {

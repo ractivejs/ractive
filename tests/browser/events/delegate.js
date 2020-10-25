@@ -1,8 +1,9 @@
-import { initModule } from '../../helpers/test-config';
-import { fire } from 'simulant';
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
-export default function() {
+import { initModule } from '../../helpers/test-config';
+
+export default function () {
   initModule('events/delegate.js');
 
   test(`basic delegation`, t => {
@@ -10,7 +11,7 @@ export default function() {
 
     const addEventListener = Element.prototype.addEventListener;
     let count = 0;
-    Element.prototype.addEventListener = function() {
+    Element.prototype.addEventListener = function () {
       count++;
       return addEventListener.apply(this, arguments);
     };
@@ -135,7 +136,7 @@ export default function() {
   test(`dom events within components can also be delegated`, t => {
     const addEventListener = Element.prototype.addEventListener;
     let count = 0;
-    Element.prototype.addEventListener = function() {
+    Element.prototype.addEventListener = function () {
       count++;
       return addEventListener.apply(this, arguments);
     };
@@ -174,7 +175,7 @@ export default function() {
   test(`delegation can be turned off`, t => {
     const addEventListener = Element.prototype.addEventListener;
     let count = 0;
-    Element.prototype.addEventListener = function() {
+    Element.prototype.addEventListener = function () {
       count++;
       return addEventListener.apply(this, arguments);
     };
@@ -197,7 +198,7 @@ export default function() {
   test(`delegation can be turned off for specific elements with no-delegation`, t => {
     const addEventListener = Element.prototype.addEventListener;
     let count = 0;
-    Element.prototype.addEventListener = function() {
+    Element.prototype.addEventListener = function () {
       count++;
       return addEventListener.apply(this, arguments);
     };
@@ -431,7 +432,7 @@ export default function() {
   test(`delegation setting in yield is inherited correctly`, t => {
     const addEventListener = Element.prototype.addEventListener;
     let count = 0;
-    Element.prototype.addEventListener = function() {
+    Element.prototype.addEventListener = function () {
       count++;
       return addEventListener.apply(this, arguments);
     };

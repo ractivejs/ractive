@@ -1,10 +1,9 @@
-import tests from '../helpers/samples/parse';
-import { initModule } from '../helpers/test-config';
 import { test } from 'qunit';
 
-/* global navigator */
+import tests from '../helpers/samples/parse';
+import { initModule } from '../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('parse.js');
 
   test('Mismatched template version causes error', t => {
@@ -20,7 +19,7 @@ export default function() {
       // disable for tests unless explicitly specified
       // we can just test the signatures, so set false
       theTest.options = theTest.options || { csp: false };
-      if (!theTest.options.hasOwnProperty('csp')) {
+      if (!Object.prototype.hasOwnProperty.call(theTest.options, 'csp')) {
         theTest.options.csp = false;
       }
       if (theTest.error) {

@@ -1,6 +1,6 @@
 const { module, test } = QUnit;
 
-export default function() {
+export default function () {
   module('ractive.toCSS()');
 
   test('should render CSS with a single component instance', t => {

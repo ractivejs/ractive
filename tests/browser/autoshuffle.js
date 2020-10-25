@@ -1,8 +1,9 @@
-import { initModule } from '../helpers/test-config';
 import { test } from 'qunit';
 import { fire } from 'simulant';
 
-export default function() {
+import { initModule } from '../helpers/test-config';
+
+export default function () {
   initModule('autoshuffle');
 
   test(`iterative sections can be told to always automatically shuffle themselves`, t => {

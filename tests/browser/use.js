@@ -1,7 +1,8 @@
-import { initModule } from '../helpers/test-config';
 import { test } from 'qunit';
 
-export default function() {
+import { initModule } from '../helpers/test-config';
+
+export default function () {
   initModule('use.js');
 
   test(`Ractive.use gets access to appropriate args`, t => {
@@ -114,7 +115,7 @@ export default function() {
   test(`use plugin can adjust component styles at extension time`, t => {
     function go({ instance }) {
       const css = instance.css;
-      instance.css = function(data) {
+      instance.css = function (data) {
         return typeof css === 'function' ? css(data) : (css || '') + '.foo { width: 10px; }';
       };
     }
@@ -139,7 +140,7 @@ export default function() {
       target: fixture,
       template: '{{>test}}',
       use: [
-        function({ instance }) {
+        function ({ instance }) {
           instance.partials.test = ['yep'];
         }
       ]

@@ -1,5 +1,5 @@
-import { hasOwn, defineProperty } from 'utils/object';
 import { isFunction, isUndefined } from 'utils/is';
+import { hasOwn, defineProperty } from 'utils/object';
 
 /* istanbul ignore if */
 if (!Array.prototype.find) {

@@ -1,9 +1,9 @@
-/* global document */
-import { fire } from 'simulant';
-import { hasUsableConsole, onWarn, initModule } from '../helpers/test-config';
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
-export default function() {
+import { hasUsableConsole, onWarn, initModule } from '../helpers/test-config';
+
+export default function () {
   initModule('twoway.js');
 
   test('Two-way bindings work with index references', t => {
@@ -80,7 +80,7 @@ export default function() {
       data: { foo: 'bar' }
     });
 
-    ractive.observe('foo', function(foo) {
+    ractive.observe('foo', function (foo) {
       this.set('foo', foo.toUpperCase());
     });
 
@@ -627,7 +627,12 @@ export default function() {
     const r = new Ractive({
       el: fixture,
       data: {
-        list: [{ v: 'a', o: 0 }, { v: 'a', o: 1 }, { v: 'b', o: 2 }, { v: 'c', o: 3 }]
+        list: [
+          { v: 'a', o: 0 },
+          { v: 'a', o: 1 },
+          { v: 'b', o: 2 },
+          { v: 'c', o: 3 }
+        ]
       },
       computed: {
         rows() {
@@ -653,7 +658,7 @@ export default function() {
       template: '<input value="{{foo}}">{{foo}}'
     });
 
-    ractive.observe('foo', function(foo) {
+    ractive.observe('foo', function (foo) {
       this.set('foo', foo.toUpperCase());
     });
 
@@ -679,7 +684,10 @@ export default function() {
       template:
         '{{#with steps[current] }}<input type="radio" name="{{~/selected[name]}}" value="{{value}}">{{/with}}',
       data: {
-        steps: [{ name: 'one', value: 'a' }, { name: 'two', value: 'b' }],
+        steps: [
+          { name: 'one', value: 'a' },
+          { name: 'two', value: 'b' }
+        ],
         current: 0
       }
     });
@@ -1612,7 +1620,10 @@ export default function() {
     r.set('list', undefined);
 
     // all unchecked
-    t.equal(opts.reduce((a, c) => c.selected || a, false), false);
+    t.equal(
+      opts.reduce((a, c) => c.selected || a, false),
+      false
+    );
 
     r.push('list', 1);
 

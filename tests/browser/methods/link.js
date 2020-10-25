@@ -1,7 +1,8 @@
-import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
-export default function() {
+import { initModule } from '../../helpers/test-config';
+
+export default function () {
   initModule('methods/link.js');
 
   test('Keypaths can be linked', t => {
@@ -25,7 +26,10 @@ export default function() {
       el: fixture,
       template: '{{ person.name }} is {{ person.status }}',
       data: {
-        people: [{ name: 'Rich', status: 'The Man' }, { name: 'Marty', status: 'Awesome&tm;' }]
+        people: [
+          { name: 'Rich', status: 'The Man' },
+          { name: 'Marty', status: 'Awesome&tm;' }
+        ]
       }
     });
 

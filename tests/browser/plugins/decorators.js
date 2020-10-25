@@ -1,7 +1,8 @@
-import { hasUsableConsole, onWarn, initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
-export default function() {
+import { hasUsableConsole, onWarn, initModule } from '../../helpers/test-config';
+
+export default function () {
   initModule('plugins/decorators.js');
 
   test('Basic decorator', t => {
@@ -597,7 +598,7 @@ export default function() {
     let setup = 0;
     let teardown = 0;
 
-    const foo = function() {
+    const foo = function () {
       setup++;
 
       if (go) {

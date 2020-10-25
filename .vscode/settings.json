@@ -14,5 +14,10 @@
     "statusBarItem.hoverBackground": "#00919b",
     "statusBar.foreground": "#15202b"
   },
-  "peacock.color": "#00c1ce"
+  "editor.rulers": [100],
+  "peacock.color": "#00c1ce",
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  }
 }

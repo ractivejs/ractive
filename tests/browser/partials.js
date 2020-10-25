@@ -1,9 +1,9 @@
-/* global document */
-import { initModule, hasUsableConsole, onWarn } from '../helpers/test-config';
-import { fire } from 'simulant';
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
-export default function() {
+import { initModule, hasUsableConsole, onWarn } from '../helpers/test-config';
+
+export default function () {
   initModule('partials.js');
 
   const partialsFn = {
@@ -254,7 +254,7 @@ export default function() {
       el: fixture
     });
 
-    t.ok(!ractive.partials.hasOwnProperty('foo'));
+    t.ok(!Object.prototype.hasOwnProperty.call(ractive.partials, 'foo'));
     t.deepEqual(Component.partials.foo, [{ t: 7, e: 'p', f: [{ t: 2, r: 'foo' }] }]);
   });
 
@@ -370,7 +370,10 @@ export default function() {
   });
 
   test('Dynamic partial works with shuffle set (#1313)', t => {
-    let fields = [{ type: 'text', value: 'hello' }, { type: 'number', value: 123 }];
+    let fields = [
+      { type: 'text', value: 'hello' },
+      { type: 'number', value: 123 }
+    ];
 
     const ractive = new Ractive({
       el: fixture,
@@ -1125,7 +1128,11 @@ export default function() {
       partials: { bar: '{{ baz }}', qux: '{{ qux }}' }
     });
 
-    t.deepEqual(instance.template, [{ r: 'foo', t: 2 }, { r: 'bar', t: 8 }, { r: 'qux', t: 8 }]);
+    t.deepEqual(instance.template, [
+      { r: 'foo', t: 2 },
+      { r: 'bar', t: 8 },
+      { r: 'qux', t: 8 }
+    ]);
     t.deepEqual(instance.partials.bar, [{ r: 'baz', t: 2 }]);
     t.deepEqual(instance.partials.qux, [{ r: 'qux', t: 2 }]);
   });
@@ -1245,7 +1252,7 @@ export default function() {
     const a = Ractive.parse(`{{1 + 2}}`, { csp: true });
 
     // after Ractive.extend, 1+2 should still return 5, rather than being re-evaluated to 3
-    a.e['1+2'] = function() {
+    a.e['1+2'] = function () {
       return ['5'];
     };
 
@@ -1268,7 +1275,7 @@ export default function() {
     const a = Ractive.parse(`{{1 + 2}}`, { csp: true });
 
     // after Ractive.extend, 1+2 should still return 5, rather than being re-evaluated to 3
-    a.e['1+2'] = function() {
+    a.e['1+2'] = function () {
       return ['5'];
     };
 

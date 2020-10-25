@@ -1,8 +1,9 @@
-import { initModule, onWarn } from '../helpers/test-config';
-import { fire } from 'simulant';
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
-export default function() {
+import { initModule, onWarn } from '../helpers/test-config';
+
+export default function () {
   initModule('references.js');
 
   test('@index special ref finds the nearest index', t => {
@@ -90,7 +91,7 @@ export default function() {
   });
 
   test('@global special ref gives access to the vm global object', t => {
-    /* global global, window */
+    /* global global */
     const target = typeof global !== 'undefined' ? global : window;
     const r = new Ractive({
       el: fixture,
@@ -734,7 +735,7 @@ export default function() {
     t.expect(4);
 
     const macro = Ractive.macro(h => {
-      h.foo = function() {
+      h.foo = function () {
         t.ok(true, 'macro handle found');
       };
       h.setTemplate('<div class-foo><div class-bar /></div><div class-baz />');
@@ -748,17 +749,11 @@ export default function() {
       }
     });
 
-    r.getContext('.foo')
-      .get('@macro')
-      .foo();
+    r.getContext('.foo').get('@macro').foo();
 
-    r.getContext('.baz')
-      .get('@macro')
-      .foo();
+    r.getContext('.baz').get('@macro').foo();
 
-    r.getContext('.bar')
-      .get('@macro')
-      .foo();
+    r.getContext('.bar').get('@macro').foo();
 
     t.strictEqual(r.getContext('div').get('@macro'), undefined);
   });

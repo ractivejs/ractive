@@ -1,7 +1,8 @@
-import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
-export default function() {
+import { initModule } from '../../helpers/test-config';
+
+export default function () {
   initModule('methods/animate.js');
 
   test('Values that cannot be interpolated change to their final value immediately', t => {

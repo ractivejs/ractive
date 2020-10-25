@@ -1,7 +1,8 @@
-import { onWarn, initModule } from '../helpers/test-config';
 import { test } from 'qunit';
 
-export default function() {
+import { onWarn, initModule } from '../helpers/test-config';
+
+export default function () {
   initModule('rebind.js');
 
   test('Section with item that has expression only called once when created', t => {
@@ -347,7 +348,10 @@ export default function() {
 		{{/}}
 	{{/}}`,
       data: {
-        items: [{ name: 'foo', disabled: true }, { name: 'bar', disabled: true }]
+        items: [
+          { name: 'foo', disabled: true },
+          { name: 'bar', disabled: true }
+        ]
       }
     });
 
@@ -371,7 +375,10 @@ export default function() {
 		{{/}}
 	{{/}}`,
       data: {
-        items: [{ name: 'foo', disabled: false }, { name: 'bar', disabled: false }]
+        items: [
+          { name: 'foo', disabled: false },
+          { name: 'bar', disabled: false }
+        ]
       }
     });
 
@@ -393,7 +400,10 @@ export default function() {
 		{{/}}
 	{{/}}`,
       data: {
-        items: [{ name: 'foo', disabled: false }, { name: 'bar', disabled: false }]
+        items: [
+          { name: 'foo', disabled: false },
+          { name: 'bar', disabled: false }
+        ]
       }
     });
 

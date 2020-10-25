@@ -1,14 +1,14 @@
 const { module, test } = QUnit;
 import parseTests from '../helpers/samples/parse';
 
-export default function() {
+export default function () {
   module('Ractive.parse()');
 
   parseTests.forEach(parseTest => {
     // disable for tests unless explicitly specified
     // we can just test the signatures, so set csp false
     parseTest.options = parseTest.options || { csp: false };
-    if (!parseTest.options.hasOwnProperty('csp')) {
+    if (!Object.prototype.hasOwnProperty.call(parseTest.options, 'csp')) {
       parseTest.options.csp = false;
     }
 

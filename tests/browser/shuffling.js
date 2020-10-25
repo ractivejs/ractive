@@ -1,8 +1,9 @@
-import { fire } from 'simulant';
-import { initModule } from '../helpers/test-config';
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
-export default function() {
+import { initModule } from '../helpers/test-config';
+
+export default function () {
   initModule('shuffling.js');
 
   test('Pattern observers on arrays fire correctly after mutations (mirror of test in observe.js)', t => {
@@ -708,7 +709,12 @@ export default function() {
     const r = new Ractive({
       el: fixture,
       template: '{{#each list}}{{#if .show}}<span foo-out=".num" />{{/if}}{{/each}}',
-      data: { list: [{ num: 1, show: true }, { num: 2, show: true }] },
+      data: {
+        list: [
+          { num: 1, show: true },
+          { num: 2, show: true }
+        ]
+      },
       transitions: {
         foo(trans, num) {
           map[num]++;
@@ -811,7 +817,10 @@ export default function() {
 
   test(`reference expression children invalidate correctly on shuffle (#3045)`, t => {
     const one = [{ bat: 42, bop: 43, bip: 44 }];
-    const two = [{ bat: 99, bop: 98, bip: 97 }, { bat: 98, bop: 10, bip: 9 }];
+    const two = [
+      { bat: 99, bop: 98, bip: 97 },
+      { bat: 98, bop: 10, bip: 9 }
+    ];
     const r = new Ractive({
       target: fixture,
       template: `<select>{{#each foo[bar]}}<option title="{{.bop}}" value="{{.bat}}" label="{{.bip}}">{{.bop}}</option>{{/each}}</select>`,
@@ -874,7 +883,7 @@ export default function() {
   });
 
   test(`observers with non-shuffling args in a decorator that is shuffled resets correctly (#3228)`, t => {
-    const dec = function(node, path) {
+    const dec = function (node, path) {
       const observer = this.observe(
         path,
         (v, o, k) => {

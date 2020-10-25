@@ -1,7 +1,8 @@
-import { hasUsableConsole, onWarn, onLog, initModule } from '../../../helpers/test-config';
 import { test } from 'qunit';
 
-export default function() {
+import { hasUsableConsole, onWarn, onLog, initModule } from '../../../helpers/test-config';
+
+export default function () {
   initModule('init/hooks/misc.js');
 
   test('detach and insert hooks fire', t => {

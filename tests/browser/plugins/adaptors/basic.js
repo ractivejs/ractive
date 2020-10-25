@@ -1,9 +1,10 @@
+import { test } from 'qunit';
 import { fire } from 'simulant';
+
 import Model from '../../../helpers/Model';
 import { onWarn, initModule } from '../../../helpers/test-config';
-import { test } from 'qunit';
 
-export default function() {
+export default function () {
   initModule('plugins/adaptors/basic.js');
 
   const adaptor = Model.adaptor;
@@ -244,10 +245,7 @@ export default function() {
       components: { Widget }
     });
 
-    ractive
-      .findComponent('Widget')
-      .get('items')
-      .push('d');
+    ractive.findComponent('Widget').get('items').push('d');
     t.htmlEqual(fixture.innerHTML, 'abc');
   });
 
@@ -780,16 +778,16 @@ export default function() {
       let _width = width;
       let _height = height;
 
-      this.getWidth = function() {
+      this.getWidth = function () {
         return _width;
       };
-      this.setWidth = function(width) {
+      this.setWidth = function (width) {
         _width = width;
       };
-      this.getHeight = function() {
+      this.getHeight = function () {
         return _height;
       };
-      this.setHeight = function(height) {
+      this.setHeight = function (height) {
         _height = height;
       };
     }
@@ -803,11 +801,11 @@ export default function() {
         const setWidth = box.setWidth;
         const setHeight = box.setHeight;
 
-        box.setWidth = function(width) {
+        box.setWidth = function (width) {
           ractive.set(prefixer({ width }));
         };
 
-        box.setHeight = function(height) {
+        box.setHeight = function (height) {
           ractive.set(prefixer({ height }));
         };
 

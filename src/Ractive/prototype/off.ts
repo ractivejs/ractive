@@ -1,0 +1,39 @@
+import type { ListenerCallback } from 'types/Listener';
+import { removeFromArray } from 'utils/array';
+import { notEmptyString, trim } from 'utils/string';
+
+import type { Ractive } from '../RactiveDefinition';
+
+export default function Ractive$off(
+  this: Ractive,
+  eventName: string,
+  callback: ListenerCallback
+): Ractive {
+  // if no event is specified, remove _all_ event listeners
+  if (!eventName) {
+    this._subs = {};
+  } else {
+    // Handle multiple space-separated event names
+    const eventNames = eventName.split(' ').map(trim).filter(notEmptyString);
+
+    eventNames.forEach(event => {
+      const subs = this._subs[event];
+      // if given a specific callback to remove, remove only it
+      if (subs && callback) {
+        const entry = subs.find(s => s.callback === callback);
+        if (entry) {
+          removeFromArray(subs, entry);
+          entry.off = true;
+
+          if (event.indexOf('.')) this._nsSubs--;
+        }
+      } else if (subs) {
+        // otherwise, remove all listeners for this event
+        if (event.indexOf('.')) this._nsSubs -= subs.length;
+        subs.length = 0;
+      }
+    });
+  }
+
+  return this;
+}

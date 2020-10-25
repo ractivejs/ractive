@@ -1,8 +1,9 @@
-import { initModule } from '../helpers/test-config';
-import { createIsolatedEnv } from '../helpers/Environment';
 import QUnit, { test } from 'qunit';
 
-export default function() {
+import { createIsolatedEnv } from '../helpers/Environment';
+import { initModule } from '../helpers/test-config';
+
+export default function () {
   initModule('getCss.js');
 
   function createComponentDefinition(Ractive) {

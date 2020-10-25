@@ -1,9 +1,10 @@
-import { hasUsableConsole, onWarn } from '../helpers/test-config';
-import { initModule } from '../helpers/test-config';
 import { test } from 'qunit';
 import { fire } from 'simulant';
 
-export default function() {
+import { hasUsableConsole, onWarn } from '../helpers/test-config';
+import { initModule } from '../helpers/test-config';
+
+export default function () {
   initModule('computations.js');
 
   test('Computed value declared as a function', t => {

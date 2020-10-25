@@ -1,7 +1,8 @@
-import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
-export default function() {
+import { initModule } from '../../helpers/test-config';
+
+export default function () {
   initModule('methods/compute.js');
 
   test(`computations can be added on the fly using compute`, t => {

@@ -1,7 +1,8 @@
-import { hasUsableConsole, afterEach, onWarn, initModule } from '../../../helpers/test-config';
 import { test } from 'qunit';
 
-export default function() {
+import { hasUsableConsole, afterEach, onWarn, initModule } from '../../../helpers/test-config';
+
+export default function () {
   const defaultData = Ractive.defaults.data;
   const defaultTemplate = Ractive.defaults.template;
 
@@ -15,7 +16,7 @@ export default function() {
   test('default data function called on initialize', t => {
     const data = { foo: 'bar' };
 
-    Ractive.defaults.data = function() {
+    Ractive.defaults.data = function () {
       return data;
     };
     const ractive = new Ractive();

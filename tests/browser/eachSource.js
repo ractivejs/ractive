@@ -1,8 +1,9 @@
-import { initModule } from '../helpers/test-config';
 import { test } from 'qunit';
 import { fire } from 'simulant';
 
-export default function() {
+import { initModule } from '../helpers/test-config';
+
+export default function () {
   initModule('eachSource');
 
   test(`each can be told to map each iteration back to a source array for computed values`, t => {
@@ -336,7 +337,12 @@ export default function() {
       template:
         '{{#each items.slice(start, end), items source}}<foo bind-a>{{.v}}-{{@keypath}}-{{@index}}</foo>{{/each}}',
       data: {
-        items: [{ a: 'a', v: 1 }, { a: 'b', v: 2 }, { a: 'c', v: 3 }, { a: 'd', v: 4 }],
+        items: [
+          { a: 'a', v: 1 },
+          { a: 'b', v: 2 },
+          { a: 'c', v: 3 },
+          { a: 'd', v: 4 }
+        ],
         start: 0,
         end: 2
       },

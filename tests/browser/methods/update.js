@@ -1,7 +1,8 @@
-import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
-export default function() {
+import { initModule } from '../../helpers/test-config';
+
+export default function () {
   initModule('methods/update.js');
 
   test('resolves any unresolved references from parent contexts (#2141)', t => {

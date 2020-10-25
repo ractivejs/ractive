@@ -1,8 +1,9 @@
-import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 import { fire } from 'simulant';
 
-export default function() {
+import { initModule } from '../../helpers/test-config';
+
+export default function () {
   initModule('partials/macros.js');
 
   test(`basic macro`, t => {
@@ -541,7 +542,10 @@ export default function() {
       template: '{{>macro}}'
     });
 
-    r.set('macro', Ractive.macro(handle => handle.setTemplate(['hello'])));
+    r.set(
+      'macro',
+      Ractive.macro(handle => handle.setTemplate(['hello']))
+    );
 
     t.htmlEqual(fixture.innerHTML, 'hello');
   });

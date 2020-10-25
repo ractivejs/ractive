@@ -1,8 +1,9 @@
-import tests from '../../helpers/samples/render';
-import { onWarn, initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
-export default function() {
+import tests from '../../helpers/samples/render';
+import { onWarn, initModule } from '../../helpers/test-config';
+
+export default function () {
   initModule('render/output.js');
 
   function getData(data) {
@@ -91,7 +92,7 @@ export default function() {
     const target = {};
 
     for (const key in source) {
-      if (source.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
         target[key] = deepClone(source[key]);
       }
     }

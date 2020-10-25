@@ -1,7 +1,8 @@
-import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
-export default function() {
+import { initModule } from '../../helpers/test-config';
+
+export default function () {
   initModule('methods/getLocalContext.js');
 
   test('decorators get access to local context', t => {
@@ -35,7 +36,7 @@ export default function() {
   test('custom events get access to local context', t => {
     t.expect(2);
 
-    const custom = function() {
+    const custom = function () {
       const ctx = this.getLocalContext();
 
       t.ok(ctx);

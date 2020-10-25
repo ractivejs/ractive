@@ -1,8 +1,8 @@
-/* global document */
-import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
-export default function() {
+import { initModule } from '../../helpers/test-config';
+
+export default function () {
   initModule('components/async.js');
 
   test(`loading a components from a promise`, t => {

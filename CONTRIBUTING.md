@@ -19,16 +19,16 @@ When filing an issue, please follow the issue template provided. The best issues
 ### Required software
 
 - Git
-	- Ubuntu: `sudo apt-get install -y git`
-	- macOS (via [Homebrew](https://brew.sh/)): `brew install git`
-	- Windows: [Git for Windows](https://git-scm.com/download/win)
+  - Ubuntu: `sudo apt-get install -y git`
+  - macOS (via [Homebrew](https://brew.sh/)): `brew install git`
+  - Windows: [Git for Windows](https://git-scm.com/download/win)
 - An editor with the following integrations:
-    - [ESLint](http://eslint.org/)
-	- [EditorConfig](http://editorconfig.org/)
+  - [ESLint](http://eslint.org/)
+  - [EditorConfig](http://editorconfig.org/)
 - A _real_ shell
-	- Ubuntu: Use the built-in terminal.
-	- macOS: Use the built-in terminal.
-	- Windows: Git Bash (from Git for Windows) or Windows Command Prompt.
+  - Ubuntu: Use the built-in terminal.
+  - macOS: Use the built-in terminal.
+  - Windows: Git Bash (from Git for Windows) or Windows Command Prompt.
 
 When using Windows Command Prompt, the `build:*` and `release:*` npm scripts will not be available as they use bash scripts. In the case of `build:*` bash scripts, however, the scripts simply call module binaries which can be run manually.
 

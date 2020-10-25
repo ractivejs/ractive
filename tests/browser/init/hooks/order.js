@@ -1,7 +1,8 @@
-import { initModule } from '../../../helpers/test-config';
 import { test } from 'qunit';
 
-export default function() {
+import { initModule } from '../../../helpers/test-config';
+
+export default function () {
   initModule('init/hooks/order.js');
 
   const hooks = ['onconfig', 'oninit', 'onrender', 'onunrendering', 'onunrender', 'onteardown'];
@@ -13,7 +14,7 @@ export default function() {
     };
 
     function addHook(hook) {
-      options[hook] = function() {
+      options[hook] = function () {
         fired.push(hook);
       };
     }
@@ -42,7 +43,7 @@ export default function() {
     const fired = [];
 
     hooks.forEach(hook => {
-      superOptions[hook] = function() {
+      superOptions[hook] = function () {
         fired.push('super' + hook);
       };
     });
@@ -55,7 +56,7 @@ export default function() {
     };
 
     hooks.forEach(hook => {
-      options[hook] = function(arg) {
+      options[hook] = function (arg) {
         this._super(arg);
         fired.push('instance' + hook);
       };
@@ -164,7 +165,7 @@ export default function() {
 
       function getOptions(level) {
         const options = {};
-        options[hook] = function() {
+        options[hook] = function () {
           fired.push(level);
         };
         return options;
@@ -215,7 +216,7 @@ export default function() {
 
     let finish;
     let finished = false;
-    const foo = function(t) {
+    const foo = function (t) {
       finish = t.complete;
     };
     const cmp = Ractive.extend({
@@ -239,7 +240,7 @@ export default function() {
       data: { show: true }
     });
 
-    r.on('cmp.teardown', function() {
+    r.on('cmp.teardown', function () {
       t.ok(!finished);
       t.ok(this.find('*'));
     });

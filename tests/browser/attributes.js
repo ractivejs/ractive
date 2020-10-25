@@ -1,8 +1,9 @@
-import { initModule } from '../helpers/test-config';
-import { fire } from 'simulant';
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
-export default function() {
+import { initModule } from '../helpers/test-config';
+
+export default function () {
   initModule('attributes.js');
 
   test(`class attributes only update the classes in their content`, t => {

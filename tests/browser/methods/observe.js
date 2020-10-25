@@ -1,8 +1,9 @@
-import { fire } from 'simulant';
-import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
-export default function() {
+import { initModule } from '../../helpers/test-config';
+
+export default function () {
   initModule('methods/observe.js');
 
   test('Observers fire before the DOM updates', t => {
@@ -56,7 +57,7 @@ export default function() {
 
     ractive.observe(
       'items',
-      function() {
+      function () {
         t.equal(this.findAll('li').length, this.el.querySelectorAll('li').length);
       },
       { init: false, defer: true }
@@ -512,7 +513,7 @@ export default function() {
 
     ractive.observe(
       'foo.*',
-      function() {
+      function () {
         t.ok(this === window);
       },
       { context: window }
@@ -520,7 +521,7 @@ export default function() {
 
     ractive.observe(
       'foo',
-      function() {
+      function () {
         t.ok(this === window);
       },
       { context: window }
@@ -873,11 +874,14 @@ export default function() {
 					<input value='{{value}}'>{{value}}
 				{{/each}}`,
       data: {
-        items: [{ min: 10, max: 90, value: 0 }, { min: 10, max: 90, value: 100 }]
+        items: [
+          { min: 10, max: 90, value: 0 },
+          { min: 10, max: 90, value: 100 }
+        ]
       }
     });
 
-    ractive.observe('items.*.value', function(n, o, k, i) {
+    ractive.observe('items.*.value', function (n, o, k, i) {
       const min = this.get('items[' + i + '].min');
       const max = this.get('items[' + i + '].max');
 
@@ -1308,7 +1312,7 @@ export default function() {
       }
     });
 
-    r.observe('int', function() {
+    r.observe('int', function () {
       this.add('observerCalledTimes', 1);
     });
 
@@ -1367,7 +1371,7 @@ export default function() {
 
     r.observe(
       'foo',
-      function(v, o, k) {
+      function (v, o, k) {
         count++;
         this.set(k, v + '1');
       },
@@ -1532,7 +1536,7 @@ export default function() {
     const r = new Ractive();
     const handle = r.observe(
       'foo',
-      function() {
+      function () {
         t.ok(this === r);
         count++;
       },
@@ -1801,6 +1805,29 @@ export default function() {
     r.push('list', 1);
   });
 
+  test('array observers callback must have ractive instance as this (#3343)', t => {
+    t.expect(2);
+    let thisInsideObserveInitProperty;
+
+    const r = new Ractive({
+      data: { list: [] },
+      observe: {
+        list: {
+          handler() {
+            thisInsideObserveInitProperty = this;
+          },
+          array: true
+        }
+      }
+    });
+
+    r.observe('list', function () {
+      t.equal(this, r);
+    });
+
+    t.equal(r, thisInsideObserveInitProperty);
+  });
+
   test(`plain observers allow a hook to set the 'old' value`, t => {
     t.expect(4);
 
@@ -1838,7 +1865,7 @@ export default function() {
             t.ok(o === '' && v !== o, 'old value is empty string and new is ' + v);
           },
           old(o, n) {
-            if (!this.hasOwnProperty('old')) this.old = n;
+            if (!Object.prototype.hasOwnProperty.call(this, 'old')) this.old = n;
             return this.old;
           }
         },
@@ -1917,7 +1944,7 @@ export default function() {
           },
           old(o, n, k, p) {
             t.ok(k === 'foo.val' && p === 'val');
-            if (!this.hasOwnProperty('old')) this.old = n;
+            if (!Object.prototype.hasOwnProperty.call(this, 'old')) this.old = n;
             return this.old;
           }
         },

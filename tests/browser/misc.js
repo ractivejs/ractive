@@ -1,8 +1,9 @@
-import { fire } from 'simulant';
-import { hasUsableConsole, onWarn, initModule } from '../helpers/test-config';
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
-export default function() {
+import { hasUsableConsole, onWarn, initModule } from '../helpers/test-config';
+
+export default function () {
   initModule('misc.js');
 
   test('Subclass instance data extends prototype data', t => {
@@ -195,7 +196,7 @@ export default function() {
       template: '{{ foo() }}'
     });
 
-    ractive.set('foo', function() {
+    ractive.set('foo', function () {
       t.equal(this, ractive);
     });
   });
@@ -1081,17 +1082,17 @@ export default function() {
     // https://github.com/jashkenas/underscore/blob/8fc7032295d60aff3620ef85d4aa6549a55688a0/underscore.js#L42
     // It is important to the purposes of this test, as distinct from the one
     // above, that `_` be a function that uses `this`.
-    const _ = function(obj) {
+    const _ = function (obj) {
       if (obj instanceof _) return obj;
       if (!(this instanceof _)) return new _(obj);
       this._wrapped = obj;
     };
 
-    _.bind = function() {
+    _.bind = function () {
       // do nothing
     };
 
-    _.uppercase = function(str) {
+    _.uppercase = function (str) {
       return str.toUpperCase();
     };
 
@@ -1377,7 +1378,7 @@ export default function() {
     const ractive = new Ractive();
 
     const obj = { foo: 'bar' };
-    obj.constructor = obj.constructor;
+    // obj.constructor = obj.constructor;
 
     ractive.set(obj);
     t.equal(ractive.get('foo'), 'bar');

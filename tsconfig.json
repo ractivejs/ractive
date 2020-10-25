@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "config/*": ["src/config/*"],
+      "model/*": ["src/model/*"],
+      "parse/*": ["src/parse/*"],
+      "shared/*": ["src/shared/*"],
+      "types/*": ["src/types/*"],
+      "utils/*": ["src/utils/*"],
+      "view/*": ["src/view/*"]
+    },
+    "allowJs": true,
+    "target": "es5",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noEmit": true,
+    "importsNotUsedAsValues": "error"
+  },
+  "include": [
+    "./src/**/*"
+  ],
+  "typedocOptions": {
+    "inputFiles": [
+      "./src/Ractive"
+    ],
+    "mode": "modules",
+    "out": "docs",
+    "excludePrivate": true
+  }
+}

@@ -1,8 +1,9 @@
-import { fire } from 'simulant';
-import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
-export default function() {
+import { initModule } from '../../helpers/test-config';
+
+export default function () {
   initModule('events/this.event.js');
 
   test('this.event set to current event object', t => {
@@ -13,7 +14,7 @@ export default function() {
       template: '<span id="test" on-click="foo"/>'
     });
 
-    ractive.on('foo', function(event) {
+    ractive.on('foo', function (event) {
       t.equal(this.event, event);
     });
 
@@ -29,7 +30,7 @@ export default function() {
       data: { foo: 'bar' }
     });
 
-    ractive.on('foo', function() {
+    ractive.on('foo', function () {
       const e = this.event;
       t.ok(e);
       t.equal(e.name, 'foo');
@@ -53,7 +54,7 @@ export default function() {
       }
     });
 
-    ractive.on('yell', function() {
+    ractive.on('yell', function () {
       t.notEqual(this.event, methodEvent, 'handler does not have method event');
       t.equal(this.event.name, 'yell', 'handler as own event name');
     });

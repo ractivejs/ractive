@@ -1,5 +1,6 @@
-import { onWarn, initModule } from '../../../helpers/test-config';
 import { test } from 'qunit';
+
+import { onWarn, initModule } from '../../../helpers/test-config';
 
 // MUSTACHE SPEC COMPLIANCE TESTS
 // ==============================
@@ -16,7 +17,7 @@ import { test } from 'qunit';
 //
 // TODO update tests from source
 
-export default function() {
+export default function () {
   initModule('render/mustache-compliance/all.js');
 
   const testModules = [

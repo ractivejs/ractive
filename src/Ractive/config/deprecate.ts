@@ -1,0 +1,39 @@
+import type { ExtendOpts, InitOpts } from 'types/InitOptions';
+import { isArray } from 'utils/is';
+import { warnIfDebug } from 'utils/log';
+
+function getMessage(deprecated: string, correct: string, isError?: boolean): string {
+  return (
+    `options.${deprecated} has been deprecated in favour of options.${correct}.` +
+    (isError ? ` You cannot specify both options, please use options.${correct}.` : '')
+  );
+}
+
+function deprecateOption(
+  options: InitOpts | ExtendOpts,
+  deprecatedOption: string,
+  correct: string
+): void {
+  if (deprecatedOption in options) {
+    if (!(correct in options)) {
+      warnIfDebug(getMessage(deprecatedOption, correct));
+      options[correct] = options[deprecatedOption];
+    } else {
+      throw new Error(getMessage(deprecatedOption, correct, true));
+    }
+  }
+}
+
+export default function deprecate(options: InitOpts | ExtendOpts): void {
+  deprecateOption(options, 'beforeInit', 'onconstruct');
+  deprecateOption(options, 'init', 'onrender');
+  deprecateOption(options, 'complete', 'oncomplete');
+  deprecateOption(options, 'eventDefinitions', 'events');
+
+  // Using extend with Component instead of options,
+  // like Human.extend( Spider ) means adaptors as a registry
+  // gets copied to options. So we have to check if actually an array
+  if (isArray(options.adaptors)) {
+    deprecateOption(options, 'adaptors', 'adapt');
+  }
+}

@@ -1,7 +1,8 @@
-import { initModule } from '../helpers/test-config';
 import { test } from 'qunit';
 
-export default function() {
+import { initModule } from '../helpers/test-config';
+
+export default function () {
   initModule('select.js');
 
   test('Use as a string to compare', t => {
@@ -276,7 +277,10 @@ test( 'If a multiple select value with two-way binding has a selected option at 
 				</select>`,
       data: {
         value_id: 42,
-        values: [{ id: 1, name: 'Boo' }, { id: 42, name: "Here 'tis" }]
+        values: [
+          { id: 1, name: 'Boo' },
+          { id: 42, name: "Here 'tis" }
+        ]
       }
     });
 
@@ -303,7 +307,10 @@ test( 'If a multiple select value with two-way binding has a selected option at 
 				<strong>Selected: {{id || "nothing"}}</strong>`
     });
 
-    ractive.set('items', [{ id: 1, text: 'one' }, { id: 2, text: 'two' }]);
+    ractive.set('items', [
+      { id: 1, text: 'one' },
+      { id: 2, text: 'two' }
+    ]);
     t.equal(ractive.get('id'), 1);
     t.htmlEqual(
       fixture.innerHTML,
@@ -349,7 +356,10 @@ test( 'If a multiple select value with two-way binding has a selected option at 
 				</select>`
     });
 
-    ractive.set('items', [{ name: 'one', id: 1 }, { name: 'two', id: 2 }]);
+    ractive.set('items', [
+      { name: 'one', id: 1 },
+      { name: 'two', id: 2 }
+    ]);
 
     t.htmlEqual(
       fixture.innerHTML,
@@ -613,7 +623,10 @@ test( 'If a multiple select value with two-way binding has a selected option at 
 			</select>`,
       data: {
         value: null,
-        values: [{ value: 'foo', text: 'a foo' }, { value: 'bar', text: 'a bar' }]
+        values: [
+          { value: 'foo', text: 'a foo' },
+          { value: 'bar', text: 'a bar' }
+        ]
       }
     });
   });

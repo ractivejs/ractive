@@ -1,7 +1,8 @@
-import { initModule } from '../helpers/test-config';
 import { test } from 'qunit';
 
-export default function() {
+import { initModule } from '../helpers/test-config';
+
+export default function () {
   initModule('helpers.js');
 
   test(`helpers are available for use in templates`, t => {
@@ -87,11 +88,8 @@ export default function() {
     t.equal(r.get('@helpers.fmt1')('asdf'), 'ASDF');
     t.htmlEqual(fixture.innerHTML, 'BAR b a r');
 
-    cmp.prototype.helpers.fmt1 = function(v) {
-      return v
-        .split('')
-        .join(' ')
-        .toUpperCase();
+    cmp.prototype.helpers.fmt1 = function (v) {
+      return v.split('').join(' ').toUpperCase();
     };
     r.update('@helpers.fmt1');
     t.htmlEqual(fixture.innerHTML, 'B A R b a r');

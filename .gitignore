@@ -23,3 +23,6 @@ perf/control/*
 
 # Log files
 *.log
+
+# Documentation
+docs

@@ -1,9 +1,8 @@
-import { initModule } from '../../helpers/test-config';
 import { test } from 'qunit';
 
-/* globals window, document */
+import { initModule } from '../../helpers/test-config';
 
-export default function() {
+export default function () {
   initModule('render/misc');
 
   if (Ractive.svg) {
@@ -227,7 +226,11 @@ export default function() {
       el: fixture,
       template: '{{#each items}}{{#if .bool}}{{.val}}{{/if}}{{/each}}',
       data: {
-        items: [{ bool: true, val: 1 }, { bool: true, val: 2 }, { bool: true, val: 3 }]
+        items: [
+          { bool: true, val: 1 },
+          { bool: true, val: 2 },
+          { bool: true, val: 3 }
+        ]
       }
     });
 

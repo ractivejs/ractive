@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 import {
   afterEach,
   beforeEach,
@@ -5,9 +7,8 @@ import {
   onWarn,
   initModule
 } from '../../helpers/test-config';
-import { test } from 'qunit';
 
-export default function() {
+export default function () {
   let Ractive_original;
 
   beforeEach(() => {
@@ -21,7 +22,7 @@ export default function() {
       }
     });
 
-    Ractive.transitions.test = function(t, params) {
+    Ractive.transitions.test = function (t, params) {
       const delay = (params && params.delay) || 10;
 
       setTimeout(() => {

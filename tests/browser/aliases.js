@@ -1,10 +1,9 @@
-import { initModule } from '../helpers/test-config';
 import { test } from 'qunit';
 
-export default function() {
-  initModule('aliases');
+import { initModule } from '../helpers/test-config';
 
-  /* global navigator */
+export default function () {
+  initModule('aliases');
 
   test('simple template aliases', t => {
     new Ractive({

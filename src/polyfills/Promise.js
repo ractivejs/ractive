@@ -1,5 +1,5 @@
-import { isFunction, isObjectType } from 'utils/is';
 import { base } from 'config/environment';
+import { isFunction, isObjectType } from 'utils/is';
 
 /* istanbul ignore if */
 if (!base.Promise) {
@@ -7,7 +7,7 @@ if (!base.Promise) {
   const FULFILLED = {};
   const REJECTED = {};
 
-  const Promise = (base.Promise = function(callback) {
+  const Promise = (base.Promise = function (callback) {
     const fulfilledHandlers = [];
     const rejectedHandlers = [];
     let state = PENDING;
@@ -15,7 +15,7 @@ if (!base.Promise) {
     let dispatchHandlers;
 
     const makeResolver = newState => {
-      return function(value) {
+      return function (value) {
         if (state !== PENDING) return;
         result = value;
         state = newState;
@@ -81,7 +81,7 @@ if (!base.Promise) {
     };
   });
 
-  Promise.all = function(promises) {
+  Promise.all = function (promises) {
     return new Promise((fulfill, reject) => {
       const result = [];
       let pending;
@@ -112,7 +112,7 @@ if (!base.Promise) {
     });
   };
 
-  Promise.race = function(promises) {
+  Promise.race = function (promises) {
     return new Promise((fulfill, reject) => {
       let pending = true;
       function ok(v) {
@@ -133,14 +133,14 @@ if (!base.Promise) {
     });
   };
 
-  Promise.resolve = function(value) {
+  Promise.resolve = function (value) {
     if (value && isFunction(value.then)) return value;
     return new Promise(fulfill => {
       fulfill(value);
     });
   };
 
-  Promise.reject = function(reason) {
+  Promise.reject = function (reason) {
     if (reason && isFunction(reason.then)) return reason;
     return new Promise((fulfill, reject) => {
       reject(reason);
@@ -148,19 +148,19 @@ if (!base.Promise) {
   };
 
   // TODO use MutationObservers or something to simulate setImmediate
-  const wait = function(callback) {
+  const wait = function (callback) {
     setTimeout(callback, 0);
   };
 
-  const makeDispatcher = function(handlers, result) {
-    return function() {
+  const makeDispatcher = function (handlers, result) {
+    return function () {
       for (let handler; (handler = handlers.shift()); ) {
         handler(result);
       }
     };
   };
 
-  const resolve = function(promise, x, fulfil, reject) {
+  const resolve = function (promise, x, fulfil, reject) {
     let then;
     if (x === promise) {
       throw new TypeError(`A promise's fulfillment handler cannot return the same promise`);
@@ -177,12 +177,12 @@ if (!base.Promise) {
       if (isFunction(then)) {
         let called;
 
-        const resolvePromise = function(y) {
+        const resolvePromise = function (y) {
           if (called) return;
           called = true;
           resolve(promise, y, fulfil, reject);
         };
-        const rejectPromise = function(r) {
+        const rejectPromise = function (r) {
           if (called) return;
           called = true;
           reject(r);
