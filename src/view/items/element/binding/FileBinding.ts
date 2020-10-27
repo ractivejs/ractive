@@ -1,7 +1,12 @@
+import type { RactiveHTMLInputElement } from 'types/RactiveHTMLElement';
+
 import type { BindingWithInitialValue } from './Binding';
 import GenericBinding from './GenericBinding';
 
 export default class FileBinding extends GenericBinding implements BindingWithInitialValue {
+  /** @override */
+  public node: RactiveHTMLInputElement;
+
   getInitialValue(): undefined {
     /* istanbul ignore next */
     return undefined;

@@ -1,4 +1,5 @@
 import type Model from 'model/Model';
+import type { RactiveHTMLInputElement } from 'types/RactiveHTMLElement';
 
 import type Input from '../specials/Input';
 
@@ -17,6 +18,8 @@ export default class RadioNameBinding
   extends Binding
   implements BindingWithInitialValue, BasicBindingInterface {
   private group: BindingGroup<BindingValue, RadioNameBinding>;
+  /** @override */
+  public node: RactiveHTMLInputElement;
 
   constructor(element: Input) {
     super(element, 'name');
@@ -84,7 +87,8 @@ export default class RadioNameBinding
 
     this.element.on('change', handleDomEvent);
 
-    if (node.attachEvent) {
+    // TSRChange - change condition using in
+    if ('attachEvent' in node) {
       this.element.on('click', handleDomEvent);
     }
   }
@@ -104,7 +108,8 @@ export default class RadioNameBinding
 
     el.off('change', handleDomEvent);
 
-    if (this.node.attachEvent) {
+    // TSRChange - change condition using in
+    if ('attachEvent' in this.node) {
       el.off('click', handleDomEvent);
     }
   }

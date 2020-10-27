@@ -2,6 +2,7 @@ import { hasConsole } from 'config/environment';
 import { capture, startCapturing, stopCapturing } from 'src/global/capture';
 import runloop from 'src/global/runloop';
 import type { ComputationSignature } from 'src/Ractive/helpers/getComputationSignature';
+import type { Ractive, Static } from 'src/Ractive/RactiveDefinition';
 import { isEqual } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
 
@@ -67,7 +68,7 @@ export default class Computation extends Model implements ModelDependency {
     );
   }
 
-  getContext() {
+  getContext(): Ractive | Static {
     return this.parent.isRoot ? this.root.ractive : this.parent.get(false, noVirtual);
   }
 

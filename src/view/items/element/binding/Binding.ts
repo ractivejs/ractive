@@ -2,6 +2,7 @@ import type Model from 'model/Model';
 import type ModelBase from 'model/ModelBase';
 import runloop from 'src/global/runloop';
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { RactiveHTMLInputElement, RactiveHTMLSelectElement } from 'types/RactiveHTMLElement';
 import { isUndefined } from 'utils/is';
 import { warnOnceIfDebug } from 'utils/log';
 
@@ -20,7 +21,7 @@ export default abstract class Binding {
   public ractive: Ractive;
   public attribute: Attribute;
   public model: ModelBase;
-  public node: any;
+  public node: RactiveHTMLInputElement | RactiveHTMLSelectElement;
   public lastValue: BindingValue;
 
   public wasUndefined: boolean;

@@ -65,8 +65,9 @@ export default class GenericBinding
       if (!lazy) {
         el.on('input', this.handler);
 
+        // TSRChange - change condition using in
         // IE is a special snowflake
-        if (node.attachEvent) {
+        if ('attachEvent' in node) {
           el.on('keyup', this.handler);
         }
       }

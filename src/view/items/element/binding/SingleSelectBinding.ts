@@ -1,5 +1,5 @@
 import runloop from 'src/global/runloop';
-import type { RactiveHTMLOptionElement } from 'types/RactiveHTMLElement';
+import type { RactiveHTMLOptionElement, RactiveHTMLSelectElement } from 'types/RactiveHTMLElement';
 import getSelectedOptions from 'utils/getSelectedOptions';
 
 import type Select from '../specials/Select';
@@ -17,6 +17,9 @@ export default class SingleSelectBinding
    * @override
    */
   public element: Select;
+
+  /** @override */
+  public node: RactiveHTMLSelectElement;
 
   forceUpdate(): void {
     const value = this.getValue();
@@ -82,7 +85,7 @@ export default class SingleSelectBinding
 
     let i;
     for (i = 0; i < len; i += 1) {
-      const option = options[i];
+      const option = <RactiveHTMLOptionElement>options[i];
 
       if (options[i].selected && !options[i].disabled) {
         return option._ractive ? option._ractive.value : option.value;

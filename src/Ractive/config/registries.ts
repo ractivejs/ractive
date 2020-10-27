@@ -60,6 +60,7 @@ class Registry {
     let changed = false;
 
     keys(registry).forEach(key => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const item: any = registry[key];
 
       // component and partials

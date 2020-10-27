@@ -1,9 +1,10 @@
 import runloop from 'src/global/runloop';
+import type { RactiveHTMLInputElement } from 'types/RactiveHTMLElement';
 import { removeFromArray } from 'utils/array';
 
 import type Input from '../specials/Input';
 
-import Binding, { BasicBindingInterface, BindingWithInitialValue } from './Binding';
+import Binding, { BasicBindingInterface } from './Binding';
 import handleDomEvent from './handleDomEvent';
 
 const siblings: { [key: string]: RadioBinding[] } = {};
@@ -14,6 +15,8 @@ function getSiblings(hash: string): RadioBinding[] {
 
 export default class RadioBinding extends Binding implements BasicBindingInterface {
   private siblings: RadioBinding[];
+  /** @override */
+  public node: RactiveHTMLInputElement;
 
   constructor(element: Input) {
     super(element, 'checked');
@@ -22,7 +25,7 @@ export default class RadioBinding extends Binding implements BasicBindingInterfa
     this.siblings.push(this);
   }
 
-  getValue(): BindingWithInitialValue {
+  getValue(): boolean {
     return this.node.checked;
   }
 
@@ -41,7 +44,8 @@ export default class RadioBinding extends Binding implements BasicBindingInterfa
 
     this.element.on('change', handleDomEvent);
 
-    if (this.node.attachEvent) {
+    // TSRChange - change condition using in
+    if ('attachEvent' in this.node) {
       this.element.on('click', handleDomEvent);
     }
   }
@@ -57,7 +61,8 @@ export default class RadioBinding extends Binding implements BasicBindingInterfa
   unrender(): void {
     this.element.off('change', handleDomEvent);
 
-    if (this.node.attachEvent) {
+    // TSRChange - change condition using in
+    if ('attachEvent' in this.node) {
       this.element.off('click', handleDomEvent);
     }
   }

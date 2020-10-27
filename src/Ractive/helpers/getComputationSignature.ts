@@ -1,4 +1,4 @@
-import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Ractive, Static } from 'src/Ractive/RactiveDefinition';
 import type { ComputationDescriptor, InternalComputationDescription } from 'types/Computation';
 import type { Keypath } from 'types/Generic';
 import bind from 'utils/bind';
@@ -7,9 +7,9 @@ import { fatal } from 'utils/log';
 
 import { createFunctionFromString } from '../config/runtime-parser';
 
-export interface ComputationSignature {
-  getter: (this: Ractive, context: any, keypath: Keypath) => any;
-  setter: (value: any, context: any, keypath: Keypath) => void;
+export interface ComputationSignature<T = unknown> {
+  getter: (this: Ractive, context: Ractive | Static, keypath: Keypath) => T;
+  setter: (value: T, context: Ractive | Static, keypath: Keypath) => void;
   getterString: string;
   setterString: string;
   getterUseStack: boolean;

@@ -117,7 +117,7 @@ export default class CheckboxNameBinding
     }
   }
 
-  setFromNode(node): void {
+  setFromNode(node: HTMLInputElement): void {
     this.group.bindings.forEach(binding => (binding.wasUndefined = true));
 
     if (node.checked) {
