@@ -2,12 +2,19 @@ import { handleChange, mark, marked } from 'shared/methodCallers';
 import { capture } from 'src/global/capture';
 import { isUndefined } from 'utils/is';
 import { hasOwn } from 'utils/object';
+import type ExpressionProxy from 'view/resolvers/ExpressionProxy';
 
+import type Computation from './Computation';
 import Model from './Model';
 import type { ModelGetOpts } from './ModelBase';
 
 export default class ComputationChild extends Model {
-  public parent: any;
+  /**
+   * - ExpressionProxy
+   * - Computation
+   * - ComputationChild
+   */
+  public parent: Model;
 
   private dirty: boolean;
 
@@ -19,18 +26,19 @@ export default class ComputationChild extends Model {
     this.isComputed = true;
   }
 
-  get setRoot() {
-    return this.parent.setRoot;
+  get setRoot(): Computation {
+    return (<Computation>this.parent).setRoot;
   }
 
-  applyValue(value): void {
+  applyValue(value: unknown): void {
     super.applyValue(value);
 
     if (!this.isReadonly) {
-      let source: any = this.parent;
+      let source = <ExpressionProxy>this.parent;
+
       // computed models don't have a shuffle method
       while (source?.shuffle) {
-        source = source.parent;
+        source = <ExpressionProxy>source.parent;
       }
 
       if (source) {
@@ -43,7 +51,7 @@ export default class ComputationChild extends Model {
     }
   }
 
-  get(shouldCapture?: boolean, opts?: ModelGetOpts) {
+  get(shouldCapture?: boolean, opts?: ModelGetOpts): unknown {
     if (shouldCapture) capture(this);
 
     if (this.dirty) {

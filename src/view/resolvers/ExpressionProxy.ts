@@ -4,6 +4,7 @@ import Model from 'model/Model';
 import type ModelBase from 'model/ModelBase';
 import type { ModelDependency } from 'model/ModelBase';
 import type { ModelWithRebound } from 'model/ModelBase';
+import type KeyModel from 'model/specials/KeyModel';
 import type { ExpressionFunctionTemplateItem } from 'parse/converters/templateItemDefinitions';
 import getFunction from 'shared/getFunction';
 import { rebindMatch } from 'shared/rebind';
@@ -24,7 +25,8 @@ export default class ExpressionProxy extends Model implements ModelWithRebound {
   public dirty: boolean;
   private fn: Function;
   private models: ModelBase[];
-  private dependencies: ModelBase[];
+  /** Model | ExpressionProxy | KeyModel | LinkModel | RootModel | Computation | ComputationChild | ReferenceExpressionProxy | SharedModel | RactiveModel */
+  public dependencies: (ModelBase | KeyModel)[];
 
   constructor(fragment: ExpressionProxy['fragment'], template: ExpressionProxy['template']) {
     super(fragment.ractive.viewmodel, null);

@@ -15,7 +15,7 @@ export interface ParseHelper {
   /**
    * @returns true if the given value is a parsed template
    */
-  isParsed(template: any): boolean;
+  isParsed(template: unknown): boolean;
 
   /**
    * Parse the given template with Ractive.parse.
@@ -49,7 +49,7 @@ export interface BaseParseOpts {
   /** Whether or not to produce a map of expression string -> function when parsing the template. */
   csp?: boolean;
 
-  /** The regular mustach delimiters - defaults to {{ }}. */
+  /** The regular mustache delimiters - defaults to {{ }}. */
   delimiters?: ParseDelimiters;
 
   /**

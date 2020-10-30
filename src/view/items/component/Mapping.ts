@@ -1,4 +1,5 @@
 import TemplateItemType from 'config/types';
+import type { ModelDependency } from 'model/ModelBase';
 import type {
   GenericAttributeTemplateItem,
   GenericAttributeTemplateValue
@@ -67,7 +68,7 @@ export default class Mapping extends Item {
     }
   }
 
-  rebound(update): void {
+  rebound(update: boolean): void {
     if (this.boundFragment) this.boundFragment.rebound(update);
     if (this.link) {
       this.model = resolve(this.up, this.template.f[0]);
@@ -78,8 +79,9 @@ export default class Mapping extends Item {
 
   render(): void {}
 
-  unbind(view): void {
-    if (this.model) this.model.unregister(this);
+  unbind(view: boolean): void {
+    // Check casting
+    if (this.model) this.model.unregister((this as unknown) as ModelDependency);
     if (this.boundFragment) this.boundFragment.unbind(view);
 
     if (this.element.bound) {

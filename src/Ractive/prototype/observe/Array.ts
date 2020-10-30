@@ -3,7 +3,7 @@ import type { NewIndexes } from 'shared/getNewIndices';
 import runloop from 'src/global/runloop';
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import type { Keypath } from 'types/Generic';
-import type { ObserverArrayCallback, ObserverArrayOpts } from 'types/Observer';
+import type { ArrayChanges, ObserverArrayCallback, ObserverArrayOpts } from 'types/Observer';
 import { removeFromArray } from 'utils/array';
 import { isArray, isUndefined } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
@@ -18,7 +18,7 @@ export default class ArrayObserver {
   private keypath: Keypath;
   private callback: ObserverArrayCallback;
   private options: ObserverArrayOpts;
-  private pending: { inserted: unknown[]; deleted: unknown[]; start: number };
+  private pending: ArrayChanges;
   private sliced: unknown[];
 
   constructor(

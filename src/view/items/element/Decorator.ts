@@ -60,7 +60,7 @@ export default class Decorator {
   }
 
   bind(): void {
-    // if the owner is the elment, make sure the context includes the element
+    // if the owner is the element, make sure the context includes the element
     const frag = this.element === this.owner ? new Fragment({ owner: this.owner }) : this.up;
     setupArgsFnWithRegister(this, this.template, frag);
   }
@@ -86,7 +86,7 @@ export default class Decorator {
     this.bubble();
   }
 
-  rebound(update): void {
+  rebound(update: boolean): void {
     if (this.model) this.model.rebound(update);
   }
 
@@ -108,9 +108,10 @@ export default class Decorator {
 
       this.node = this.element.node;
 
-      const args = this.model ? this.model.get() : [];
+      const args = this.model ? <unknown[]>this.model.get() : [];
       localFragment.f = this.up;
-      this.handle = fn.apply(ractive, [this.node].concat(args));
+
+      this.handle = fn.apply(ractive, [this.node, ...args]);
       localFragment.f = null;
 
       if (!this.handle || !this.handle.teardown) {

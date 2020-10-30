@@ -19,7 +19,7 @@ export interface Registries {
   decorators: Registry<Decorator<Ractive>>;
   easings: Registry<EasingFunction>;
   events: Registry<EventPlugin<Ractive>>;
-  interpolators: Registry<InterpolatorFunction<any>>;
+  interpolators: Registry<InterpolatorFunction>;
   helpers: Registry<Helper>;
   partials: Registry<Partial>;
   transitions: Registry<Transition>;

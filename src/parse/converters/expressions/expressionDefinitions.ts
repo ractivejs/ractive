@@ -67,19 +67,22 @@ export interface KeyValuePairTemplateItem {
   t: TemplateItemType.KEY_VALUE_PAIR;
   k: string;
   v: ExpressionTemplateItem;
-  p?: boolean; // spread, v contains a spread syntax (...)
+  /** spread */
+  p?: boolean;
 }
 
 export interface ObjectLiteralTemplateItem {
   t: TemplateItemType.OBJECT_LITERAL;
   m: KeyValuePairTemplateItem[];
-  p?: boolean; // spread, v contains a spread syntax (...)
+  /** spread */
+  p?: boolean;
 }
 
 export interface ArrayLiteralTemplateItem {
   t: TemplateItemType.ARRAY_LITERAL;
   m: ExpressionTemplateItem[]; // todo add correct type (related to readExpression)
-  p?: boolean; // spread, v contains a spread syntax (...)
+  /** spread */
+  p?: boolean;
 }
 
 export interface RefinementTemplateItem {

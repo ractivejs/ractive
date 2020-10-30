@@ -8,9 +8,9 @@ import { warnIfDebug } from 'utils/log';
 
 import ComputationChild from './ComputationChild';
 import Model, { shared } from './Model';
-import { maybeBind, noVirtual, ModelDependency, ModelGetOpts } from './ModelBase';
+import { maybeBind, noVirtual, ModelGetOpts } from './ModelBase';
 
-export default class Computation extends Model implements ModelDependency {
+export default class Computation extends Model {
   public signature: ComputationSignature;
   public dependencies: Model[];
   public pattern: RegExp;
@@ -33,12 +33,12 @@ export default class Computation extends Model implements ModelDependency {
     this.shuffle = undefined;
   }
 
-  get setRoot() {
+  get setRoot(): this {
     if (this.signature.setter) return this;
     return undefined;
   }
 
-  get(shouldCapture?: boolean, opts?: ModelGetOpts) {
+  get(shouldCapture?: boolean, opts?: ModelGetOpts): unknown {
     if (shouldCapture) capture(this);
 
     if (this.dirty) {
@@ -72,9 +72,9 @@ export default class Computation extends Model implements ModelDependency {
     return this.parent.isRoot ? this.root.ractive : this.parent.get(false, noVirtual);
   }
 
-  getValue() {
+  getValue(): unknown {
     startCapturing();
-    let result;
+    let result: unknown;
 
     try {
       result = this.signature.getter.call(this.root.ractive, this.getContext(), this.getKeypath());
@@ -102,7 +102,7 @@ export default class Computation extends Model implements ModelDependency {
       /* eslint-enable no-console */
     }
 
-    const dependencies = stopCapturing();
+    const dependencies = <Model[]>stopCapturing();
     if (this.parent.keypath && !~dependencies.indexOf(this.parent)) dependencies.push(this.parent);
     this.setDependencies(dependencies);
 
@@ -113,12 +113,12 @@ export default class Computation extends Model implements ModelDependency {
     this.handleChange();
   }
 
-  rebind(next, previous): void {
+  rebind(next: Model, previous: Model): void {
     // computations will grab all of their deps again automagically
     if (next !== previous) this.handleChange();
   }
 
-  set(value): void {
+  set(value: unknown): void {
     if (this.isReadonly) {
       throw new Error(`Cannot set read-only computed value '${this.key}'`);
     }
@@ -160,8 +160,6 @@ export default class Computation extends Model implements ModelDependency {
 const prototype = Computation.prototype;
 const child = ComputationChild.prototype;
 prototype.handleChange = child.handleChange;
-
-// function signature do not match return types so use any
-prototype.joinKey = child.joinKey as any;
+prototype.joinKey = child.joinKey;
 
 shared.Computation = Computation;

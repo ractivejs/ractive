@@ -27,19 +27,15 @@ type ShuffleFunction = (newIndices: Indexes, unsafe?: boolean) => void;
 export type ModelRebindFunction<T extends ModelBase> = (prev: T, next: T, safe?: boolean) => void;
 
 /**
- * TODO Implement this interface in the following classes
- * - Triple
- * - PatternObserver
- * - Decorator
- * - Observer
- * - Section
- * - ExpressionProxy
- * - Interpolator
+ * For more information see z-models.md
  */
 export interface ModelDependency {
   handleChange?(path?: unknown): void;
   rebind?: ModelRebindFunction<ModelBase>;
   shuffle?: ShuffleFunction;
+
+  register?(dep: ModelDependency): void;
+  unregister?(dep: ModelDependency): void;
 }
 
 /** When adding a pattern to the model is also tracked as a dependency */
@@ -79,7 +75,7 @@ export default abstract class ModelBase {
   public deps: ModelDependency[];
 
   public children: ModelBase[];
-  public childByKey: { [key: string]: any };
+  public childByKey: Record<string, any>;
 
   public links: LinkModel[];
 
@@ -183,8 +179,8 @@ export default abstract class ModelBase {
     return this.keypath;
   }
 
-  getValueChildren(value: unknown) {
-    let children;
+  getValueChildren(value: unknown): ModelBase[] {
+    let children: ModelBase[];
 
     if (isArray(value)) {
       children = [];
@@ -297,7 +293,7 @@ export default abstract class ModelBase {
       this._link.rebind(next, previous, false);
     }
 
-    if (next === this) return;
+    if (<ModelBase>next === this) return;
 
     // tell the deps to move to the new target
     let i = this.deps.length;
@@ -308,7 +304,7 @@ export default abstract class ModelBase {
 
     i = this.links.length;
     while (i--) {
-      const link: LinkModel = this.links[i] as LinkModel;
+      const link = <LinkModel>this.links[i];
       // only relink the root of the link tree
       if (link.owner?._link) {
         link.relinking(next, safe);
@@ -335,7 +331,7 @@ export default abstract class ModelBase {
     hasRefs ? this.refs++ : (this.refs = 1);
   }
 
-  register(dep: ModelDependency): void {
+  register(dep: this['deps'][number]): void {
     this.deps.push(dep);
   }
 
@@ -356,7 +352,7 @@ export default abstract class ModelBase {
     if ('refs' in this) this.refs--;
   }
 
-  unregister(dep): void {
+  unregister(dep: this['deps'][number]): void {
     removeFromArray(this.deps, dep);
   }
 
@@ -432,7 +428,7 @@ export interface ModelWithRebound extends ModelBase {
 
 // TODO: this may be better handled by overriding `get` on models with a parent that isRoot
 export function maybeBind(model, value, shouldBind: boolean) {
-  if (shouldBind && isFunction(value) && model.parent && model.parent.isRoot) {
+  if (shouldBind && isFunction(value) && model?.parent.isRoot) {
     if (!model.boundValue) {
       model.boundValue = bind(value._r_unbound || value, model.parent.ractive);
     }

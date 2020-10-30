@@ -6,6 +6,10 @@ import Model from '../Model';
 
 export const data = {};
 
+/**
+ * ### Dependencies
+ * - ExpressionProxy
+ */
 export class SharedModel extends Model {
   public adaptors: Adaptor[];
 

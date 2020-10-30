@@ -1,23 +1,26 @@
 import { handleChange, marked, markedAll, teardown } from 'shared/methodCallers';
 import { rebindMatch } from 'shared/rebind';
+import type { AnimateOpts } from 'src/Ractive/prototype/animate';
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { InterpolatorFunction } from 'src/Ractive/static/interpolators';
 import type { Keypath } from 'types/Generic';
 import type { Indexes } from 'utils/array';
 import { isUndefined } from 'utils/is';
 import noop from 'utils/noop';
 import { hasOwn } from 'utils/object';
-import resolveReference from 'view/resolvers/resolveReference';
 
 import { capture } from '../global/capture';
 
 import type Model from './Model';
 import ModelBase, { maybeBind, shuffle, ModelWithShuffle, ModelGetOpts } from './ModelBase';
+import type RootModel from './RootModel';
+import type RactiveModel from './specials/RactiveModel';
 
 /**
  * temporary placeholder target for detached implicit links
  * so force it as Model to avoid type warning
  */
-export const Missing: Model = ({
+export const Missing = ({
   parent: undefined,
   key: '@missing',
   animate: noop,
@@ -59,7 +62,7 @@ export default class LinkModel extends ModelBase implements ModelWithShuffle {
   /** @override */
   public children: LinkModel[];
   /** @override */
-  public childByKey: { [key: string]: LinkModel };
+  public childByKey: Record<string, LinkModel>;
 
   constructor(
     parent: LinkModel['parent'],
@@ -81,30 +84,36 @@ export default class LinkModel extends ModelBase implements ModelWithShuffle {
     this.isLink = true;
   }
 
-  animate(from, to, options, interpolator) {
+  animate(
+    from: unknown,
+    to: unknown,
+    options: AnimateOpts,
+    interpolator: InterpolatorFunction
+  ): Promise<void> {
     return this.target.animate(from, to, options, interpolator);
   }
 
-  applyValue(value): void {
+  applyValue(value: unknown): void {
     if (this.boundValue) this.boundValue = null;
     this.target.applyValue(value);
   }
 
-  attach(fragment): void {
-    const model = resolveReference(fragment, this.key);
-    if (model) {
-      this.relinking(model, false);
-    } else {
-      // if there is no link available, move everything here to real models
-      this.owner.unlink();
-    }
-  }
+  // TSRChange - it seems that this function is not used
+  // attach(fragment): void {
+  //   const model = resolveReference(fragment, this.key);
+  //   if (model) {
+  //     this.relinking(model, false);
+  //   } else {
+  //     // if there is no link available, move everything here to real models
+  //     this.owner.unlink();
+  //   }
+  // }
 
   detach(): void {
     this.relinking(Missing, false);
   }
 
-  get(shouldCapture?: boolean, opts: ModelGetOpts = {}) {
+  get(shouldCapture?: boolean, opts: ModelGetOpts = {}): unknown {
     if (shouldCapture) {
       capture(this);
 
@@ -169,7 +178,7 @@ export default class LinkModel extends ModelBase implements ModelWithShuffle {
     this.marked();
   }
 
-  notifiedUpstream(startPath, root): void {
+  notifiedUpstream(startPath: string[], root: RootModel | RactiveModel): void {
     this.links.forEach(l => l.notifiedUpstream(startPath, this.root));
     this.deps.forEach(handleChange);
     if (startPath && this.rootLink && this.root !== root) {
@@ -208,7 +217,7 @@ export default class LinkModel extends ModelBase implements ModelWithShuffle {
       });
   }
 
-  set(value): void {
+  set(value: unknown): void {
     if (this.boundValue) this.boundValue = null;
     this.target.set(value);
   }

@@ -8,15 +8,16 @@ import type Interpolator from '../Interpolator';
 import findElement from '../shared/findElement';
 import Item, { isItemType, ItemOpts } from '../shared/Item';
 
+import type Attribute from './Attribute';
+
 interface BindingFlagOpts extends ItemOpts {
   owner: BindingFlag['owner'];
   /** @override */
   template: BindingFlag['template'];
 }
 
-/** Select | Section | Input | Partial */
 export interface BindingFlagOwner extends Item {
-  attributeByName?: any;
+  attributeByName?: Record<string, Attribute>;
 }
 
 export default class BindingFlag extends Item {
@@ -65,7 +66,7 @@ export default class BindingFlag extends Item {
     }
   }
 
-  getValue() {
+  getValue(): unknown {
     if (this.fragment) return this.fragment.valueOf();
     else if ('value' in this) return this.value;
     // TODO find a way to not trigger this compilation error
@@ -83,7 +84,7 @@ export default class BindingFlag extends Item {
     return '';
   }
 
-  unbind(view): void {
+  unbind(view: boolean): void {
     if (this.fragment) this.fragment.unbind(view);
 
     delete this.element[this.flag];

@@ -14,7 +14,7 @@ import type { ModelGetOpts, ModelLinkOpts, ModelJoinOpts } from './ModelBase';
 import RactiveModel from './specials/RactiveModel';
 import SharedModel, { GlobalModel, SharedModel as SharedBase } from './specials/SharedModel';
 
-const specialModels = {
+const specialModels: Record<string, (root?: RootModel) => unknown> = {
   '@this'(root) {
     return root.getRactiveModel();
   },
@@ -35,10 +35,16 @@ specialModels['@'] = specialModels['@this'];
 
 export interface RootModelOpts {
   ractive: Ractive;
-  data: any;
+  data: unknown;
   adapt: Adaptor[];
 }
 
+/**
+ * ### Dependencies
+ * - ExpressionProxy
+ * - PatternObserver
+ * - Observer
+ */
 export default class RootModel extends Model {
   private helpers: SharedBase;
   private ractiveModel: RactiveModel;
@@ -61,7 +67,12 @@ export default class RootModel extends Model {
     attachImplicits(this, fragment);
   }
 
-  createLink(keypath: Keypath, target, targetPath, options: ModelLinkOpts): LinkModel {
+  createLink(
+    keypath: Keypath,
+    target: Model | LinkModel,
+    targetPath: Keypath,
+    options: ModelLinkOpts
+  ): LinkModel {
     const keys = splitKeypath(keypath);
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -129,7 +140,7 @@ export default class RootModel extends Model {
     }
   }
 
-  joinKey(key: string, opts?: ModelJoinOpts): this | LinkModel {
+  joinKey(key: string, opts?: ModelJoinOpts) {
     if (key[0] === '~' && key[1] === '/') key = key.slice(2);
 
     if (key[0] === '@') {

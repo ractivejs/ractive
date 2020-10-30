@@ -18,7 +18,7 @@ export function capture(model: ModelBase | KeyModel): void {
   }
 }
 
-export function stopCapturing(): any[] {
+export function stopCapturing(): (KeyModel | ModelBase)[] {
   const dependencies = stack.pop();
   captureGroup = stack[stack.length - 1];
   return dependencies;

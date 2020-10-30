@@ -112,12 +112,25 @@ export default function flattenExpression(
   }
 
   function makeSpread(
+    list: ExpressionTemplateItem[],
+    open: string,
+    close: string,
+    fn: typeof stringify
+  ): string;
+  function makeSpread(
+    list: KeyValuePairTemplateItem[],
+    open: string,
+    close: string,
+    fn: typeof stringifyPair
+  ): string;
+  function makeSpread(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     list: any[],
     open: string,
     close: string,
     fn: typeof stringify | typeof stringifyPair
   ): string {
-    const out = list.reduce(
+    const out: { open: boolean; str: string } = list.reduce(
       (a, c) => {
         if (c.p) {
           a.str += `${a.open ? close + ',' : a.str.length ? ',' : ''}${fn(c)}`;

@@ -12,12 +12,12 @@ export interface ArrayChanges {
   /**
    * A list of any added items.
    */
-  inserted: any[];
+  inserted: unknown[];
 
   /**
    * A list of any removed items.
    */
-  deleted: any[];
+  deleted: unknown[];
 }
 
 /**

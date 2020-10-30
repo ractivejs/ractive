@@ -81,6 +81,7 @@ import use from './static/use';
 
 export interface RactiveConstructor extends Function {
   _cssIds: string[];
+  _cssModel: CSSModel;
   attributes: {
     required: string[];
     optional: string[];

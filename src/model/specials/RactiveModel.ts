@@ -1,4 +1,5 @@
 import type ModelBase from 'model/ModelBase';
+import type { RactiveConstructor } from 'src/Ractive/RactiveDefinition';
 import { create } from 'utils/object';
 
 import LinkModel, { Missing } from '../LinkModel';
@@ -18,7 +19,7 @@ export default class RactiveModel extends SharedModel {
     if ((key === 'root' || key === 'parent') && !(model instanceof LinkModel))
       return initLink(model, key);
     else if (key === 'data') return this.ractive.viewmodel;
-    else if (key === 'cssData') return (this.ractive.constructor as any)._cssModel; // TODO remove this "workaround"
+    else if (key === 'cssData') return (<RactiveConstructor>this.ractive.constructor)._cssModel;
 
     return model;
   }

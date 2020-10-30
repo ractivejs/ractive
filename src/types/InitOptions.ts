@@ -15,7 +15,8 @@ import type {
   PluginInstance,
   Target,
   ValueMap,
-  Partial
+  Partial,
+  Helper
 } from './Generic';
 import type { ListenerCallback, ListenerDescriptor } from './Listener';
 import type { ObserverCallback, ObserverDescriptor } from './Observer';
@@ -40,7 +41,7 @@ export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseO
   components?: Registry<Component>;
 
   /** A map of computations */
-  computed?: { [key: string]: Computation<T> };
+  computed?: Record<string, Computation<T>>;
 
   /** A map of decorators */
   decorators?: Registry<Decorator<T>>;
@@ -55,7 +56,7 @@ export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseO
   events?: Registry<EventPlugin<T>>;
 
   /** A map of helper functions */
-  helpers?: Registry<any>; // TODO replace with Helper
+  helpers?: Registry<Helper>; // TODO replace with Helper
 
   /** A map of interpolators for use with animate */
   interpolators?: Registry<Interpolator>;
@@ -66,7 +67,7 @@ export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseO
   /** Whether or not an element can transition if one of its parent elements is also transitioning. */
   nestedTransitions?: boolean;
 
-  /** Whether or not to skip element intro transitions when the instance is being renered initially. */
+  /** Whether or not to skip element intro transitions when the instance is being rendered initially. */
   noIntro?: boolean;
 
   /** Whether or not to skip outro transitions when the instance is being unrendered. */
@@ -81,7 +82,7 @@ export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseO
   /** A map of partials */
   partials?: Registry<Partial>;
 
-  /** Whether or not to consider instance memners like set when resolving values in the template. */
+  /** Whether or not to consider instance members like set when resolving values in the template. */
   resolveInstanceMembers?: boolean;
 
   /** Whether or not to invalidate computation dependencies when a computed value or one of its children is set. */
@@ -131,7 +132,7 @@ export interface ExtendOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts
 }
 
 export interface InitOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T> {
-  /** Initiial data for this instance. */
+  /** Initial data for this instance. */
   data?: Data | DataFn<T>;
 
   /** The target element into which to render this instance. */
