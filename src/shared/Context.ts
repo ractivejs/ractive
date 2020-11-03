@@ -1,4 +1,5 @@
 import TemplateItemType from 'config/types';
+import LinkModel from 'model/LinkModel';
 import Model, { AnimatePromise } from 'model/Model';
 import type ModelBase from 'model/ModelBase';
 import type { PartialTemplateItem } from 'parse/converters/templateItemDefinitions';
@@ -7,9 +8,9 @@ import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import type { Adaptor } from 'types/Adaptor';
 import type { ContextHelper } from 'types/Context';
 import type { DecoratorHandle } from 'types/Decorator';
-import type { Keypath, ValueMap } from 'types/Generic';
+import type { ArrayPushPromise, Keypath, ValueMap } from 'types/Generic';
 import type { ListenerHandle } from 'types/Listener';
-import type { SetOpts } from 'types/MethodOptions';
+import type { GetOpts, ReadLinkOpts, SetOpts, UpdateOpts } from 'types/MethodOptions';
 import { isNumeric, isObject, isNumber, isObjectType, isString } from 'utils/is';
 import { hasOwn } from 'utils/object';
 import type Fragment from 'view/Fragment';
@@ -147,10 +148,10 @@ export default class Context implements ContextHelper {
   }
 
   // get relative keypaths and values
-  get(keypath) {
+  get(keypath: Keypath | GetOpts): unknown {
     if (!keypath) return this.fragment.findContext().get(true);
 
-    const { model } = findModel(this, keypath);
+    const { model } = findModel(this, <Keypath>keypath);
 
     return model ? model.get(true) : undefined;
   }
@@ -193,11 +194,11 @@ export default class Context implements ContextHelper {
     } while (el && bubble);
   }
 
-  link(source, dest) {
+  link(source: Keypath, dest: Keypath): Promise<void> {
     const there = findModel(this, source).model;
     const here = findModel(this, dest).model;
     const promise = runloop.start();
-    here.link(there, source);
+    here.link(<Model>there, source);
     runloop.end();
     return promise;
   }
@@ -212,29 +213,33 @@ export default class Context implements ContextHelper {
     };
   }
 
+  /** @see Ractive$observe for implementation */
+  // eslint-disable-next-line
   observe(keypath, callback, options: any = {}) {
     if (isObject(keypath)) options = callback || {};
     options.fragment = this.fragment;
     return this.ractive.observe(keypath, callback, options);
   }
 
+  /** @see Ractive$observe for implementation */
+  // eslint-disable-next-line
   observeOnce(keypath, callback, options: any = {}) {
     if (isObject(keypath)) options = callback || {};
     options.fragment = this.fragment;
     return this.ractive.observeOnce(keypath, callback, options);
   }
 
-  pop(keypath) {
+  pop(keypath: Keypath): ReturnType<typeof modelPop> {
     return modelPop(findModel(this, keypath).model, []);
   }
 
-  push(keypath, ...values) {
+  push(keypath: Keypath, ...values: unknown[]): ReturnType<typeof modelPush> {
     return modelPush(findModel(this, keypath).model, values);
   }
 
-  raise(name, event, ...args) {
+  raise(name: string, event, ...args: unknown[]): any {
     let el = this.element;
-    let ev;
+    let ev: EventDirective;
 
     while (el) {
       if (el.component) el = el.component;
@@ -253,11 +258,11 @@ export default class Context implements ContextHelper {
     }
   }
 
-  readLink(keypath: Keypath, options): ReturnType<Ractive['readLink']> {
+  readLink(keypath: Keypath, options: ReadLinkOpts): ReturnType<Ractive['readLink']> {
     return this.ractive.readLink(this.resolve(keypath), options);
   }
 
-  resolve(path, ractive?) {
+  resolve(path: Keypath, ractive?: Ractive): Keypath {
     const { model, instance } = findModel(this, path);
     return model ? model.getKeypath(ractive || instance) : path;
   }
@@ -266,26 +271,31 @@ export default class Context implements ContextHelper {
     return modelReverse(findModel(this, keypath).model, []);
   }
 
-  set(keypath: Keypath | ValueMap, value: ValueMap | any, options?: SetOpts): Promise<void> {
+  set(keypath: Keypath | ValueMap, value: ValueMap | unknown, options?: SetOpts): Promise<void> {
     return sharedSet(build(this, keypath, value), options);
   }
 
-  shift(keypath) {
+  shift(keypath: Keypath): ReturnType<typeof modelShift> {
     return modelShift(findModel(this, keypath).model, []);
   }
 
-  splice(keypath, index, drop, ...add) {
+  splice(
+    keypath: Keypath,
+    index: number,
+    drop: number,
+    ...add: unknown[]
+  ): ReturnType<typeof modelSplice> {
     add.unshift(index, drop);
     return modelSplice(findModel(this, keypath).model, add);
   }
 
-  sort(keypath: Keypath) {
+  sort(keypath: Keypath): ReturnType<typeof modelSort> {
     return modelSort(findModel(this, keypath).model, []);
   }
 
-  subtract(keypath, d, options?) {
+  subtract(keypath: Keypath, d: number, options?: SetOpts): Promise<void> {
     const num = isNumber(d) ? d : 1;
-    const opts = isObjectType(d) ? d : options;
+    const opts = isObjectType<SetOpts>(d) ? d : options;
     return sharedSet(
       build(this, keypath, num).map(pair => {
         const [model, val] = pair;
@@ -302,11 +312,11 @@ export default class Context implements ContextHelper {
     return sharedSet([[model, !model.get()]]);
   }
 
-  unlink(dest: string | Ractive): Promise<void> {
+  unlink(dest: string): Promise<void> {
     const here = findModel(this, dest).model;
     const promise = runloop.start();
-    // TSRChange- add in guard
-    if ('owner' in here && here.owner?._link) here.owner.unlink();
+    // TSRChange - change guard with instanceof
+    if (here instanceof LinkModel && here.owner?._link) here.owner.unlink();
     runloop.end();
     return promise;
   }
@@ -315,16 +325,16 @@ export default class Context implements ContextHelper {
     this.element.off(event, handler);
   }
 
-  unshift(keypath, ...add) {
+  unshift(keypath: Keypath, ...add: unknown[]): ArrayPushPromise {
     return modelUnshift(findModel(this, keypath).model, add);
   }
 
-  update(keypath, options?) {
-    return protoUpdate(this.ractive, findModel(this, keypath).model, options);
+  update(keypath: Keypath | UpdateOpts, options?: UpdateOpts): ReturnType<typeof protoUpdate> {
+    return protoUpdate(this.ractive, findModel(this, <Keypath>keypath).model, options);
   }
 
-  updateModel(keypath, cascade?) {
-    const { model } = findModel(this, keypath);
+  updateModel(keypath: Keypath | boolean, cascade?: boolean): Promise<void> {
+    const { model } = findModel(this, <Keypath>keypath);
     const promise = runloop.start();
     model.updateFromBindings(cascade);
     runloop.end();
@@ -337,22 +347,22 @@ export default class Context implements ContextHelper {
     return !!model;
   }
 
-  getBindingPath(ractive) {
+  getBindingPath(ractive: Ractive): Keypath {
     const { model, instance } = this.getBindingModel(this);
     if (model) return model.getKeypath(ractive || instance);
   }
 
-  getBinding() {
+  getBinding(): unknown {
     const { model } = this.getBindingModel(this);
     if (model) return model.get(true);
   }
 
-  getBindingModel(ctx: this) {
+  getBindingModel(ctx: this): { model: ModelBase; instance: Ractive } {
     const el = ctx.element;
     return { model: el.binding?.model, instance: el.up.ractive };
   }
 
-  setBinding(value) {
+  setBinding<T>(value: T): Promise<T> {
     const { model } = this.getBindingModel(this);
     return sharedSet([[model, value]]);
   }
@@ -363,7 +373,7 @@ Context.forRactive = getRactiveContext;
 extern.Context = Context;
 
 // TODO: at some point perhaps this could support relative * keypaths?
-function build(ctx: Context, keypath, value) {
+function build(ctx: Context, keypath: ValueMap | string, value: unknown): [ModelBase, unknown][] {
   const sets = [];
 
   // set multiple keypaths in one go

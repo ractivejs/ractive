@@ -61,7 +61,7 @@ export interface ContextHelper {
    * @param keypath a Context-relative keypath to the value
    * @param opts
    */
-  get(keypath: string, opts?: GetOpts): any;
+  get(keypath?: string, opts?: GetOpts): any;
 
   /**
    * Retrieve the value associated with the twoway binding of the element e.g. .value in <input value="{{.value}}" />.
@@ -237,7 +237,7 @@ export interface ContextHelper {
    * Set the value associated with any twoway binding associated with this Context e.g. .value in <input value="{{.value}}" />.
    * @param value the target value
    */
-  setBinding(value: any): Promise<void>;
+  setBinding<T>(value: T): Promise<T>;
 
   /**
    * Shift a value off of the array at the given Context-relative keypath.
