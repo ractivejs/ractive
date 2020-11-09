@@ -3,22 +3,26 @@
 export function findAnchors(fragment, name = null) {
   const res = [];
 
-  findAnchorsIn(fragment, name, res);
+  findAnchorsIn(fragment, name, res, fragment.ractive);
 
   return res;
 }
 
-function findAnchorsIn(item, name, result) {
+function findAnchorsIn(item, name, result, instance) {
   if (item.isAnchor) {
     if (!name || item.name === name) {
       result.push(item);
     }
   } else if (item.items) {
-    item.items.forEach(i => findAnchorsIn(i, name, result));
+    item.items.forEach(i => findAnchorsIn(i, name, result, instance));
   } else if (item.iterations) {
-    item.iterations.forEach(i => findAnchorsIn(i, name, result));
-  } else if (item.fragment && !item.component) {
-    findAnchorsIn(item.fragment, name, result);
+    item.iterations.forEach(i => findAnchorsIn(i, name, result, instance));
+  } else if (item.fragment && (!item.component || item.fragment.ractive === instance)) {
+    findAnchorsIn(item.fragment, name, result, instance);
+  } else if (item.instance && item.instance.fragment) {
+    const anchors = [];
+    findAnchorsIn(item.instance.fragment, name, anchors, instance);
+    anchors.forEach(a => a.ractive === instance && result.push(a));
   }
 }
 

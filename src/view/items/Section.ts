@@ -98,6 +98,10 @@ export default class Section
     return frag ? frag.detach() : super.detach();
   }
 
+  findNextNode() {
+    return (this.containerFragment || this.up).findNextNode(this);
+  }
+
   isTruthy(): boolean {
     if (this.subordinate && this.sibling.isTruthy()) return true;
     const value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();

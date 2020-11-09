@@ -659,4 +659,44 @@ export default function () {
 
     r.attachChild(cmp, { target: 'anchor' });
   });
+
+  test(`anchors in yielded content should be considered for attachment (#3345)`, t => {
+    const cmp = Ractive.extend({
+      template: '{{yield content}}'
+    });
+
+    const r = new Ractive({
+      template: '<cmp><#anchor /></cmp>',
+      target: fixture,
+      components: { cmp }
+    });
+
+    const c = new Ractive({
+      template: 'hello'
+    });
+
+    r.attachChild(c, { target: 'anchor' });
+
+    t.htmlEqual(fixture.innerHTML, 'hello');
+  });
+
+  test(`anchors in non-yielded content should not be considered for attachment (#3345)`, t => {
+    const cmp = Ractive.extend({
+      template: '{{>content}}'
+    });
+
+    const r = new Ractive({
+      template: '<cmp><#anchor /></cmp>',
+      target: fixture,
+      components: { cmp }
+    });
+
+    const c = new Ractive({
+      template: 'hello'
+    });
+
+    r.attachChild(c, { target: 'anchor' });
+
+    t.htmlEqual(fixture.innerHTML, '');
+  });
 }

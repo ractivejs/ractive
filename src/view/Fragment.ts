@@ -93,7 +93,10 @@ export default class Fragment {
     this.parent = this.isRoot ? null : this.owner.up;
     this.ractive = options.ractive || (this.isRoot ? options.owner : this.parent.ractive);
 
-    this.componentParent = this.isRoot && this.ractive.component ? this.ractive.component.up : null;
+    this.componentParent =
+      this.isRoot && this.ractive.component
+        ? this.ractive.component.up
+        : this.owner.containerFragment || null;
     if (!this.isRoot || this.ractive.delegate) {
       this.delegate = this.owner.containerFragment
         ? this.owner.containerFragment && this.owner.containerFragment.delegate
