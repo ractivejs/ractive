@@ -1,9 +1,13 @@
 import TemplateItemType from 'config/types';
 import type ModelBase from 'model/ModelBase';
+import type { ModelDependency } from 'model/ModelBase';
 import KeyModel from 'model/specials/KeyModel';
+import type { NewIndexes } from 'shared/getNewIndices';
 import { getContext } from 'shared/getRactiveContext';
 import { toEscapedString, toString, shuffled, update } from 'shared/methodCallers';
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { ValueMap } from 'types/Generic';
+import type { FindOpts } from 'types/MethodOptions';
 import { findMap, buildNewIndices } from 'utils/array';
 import { createDocumentFragment } from 'utils/dom';
 import { isArray, isObject, isObjectType, isUndefined } from 'utils/is';
@@ -24,23 +28,23 @@ export interface RepeatedFragmentOpts extends FragmentOpts {
 
 export default class RepeatedFragment {
   private owner: any;
-  public parent: any;
+  public parent: Fragment;
   public ractive: Ractive;
-  public template: any;
+  public template: any[];
 
   // boolean | number | Element
   private delegate: boolean | Element;
 
   public context: ModelBase;
   private iterations: Fragment[];
+  private previousIterations: Fragment[];
   private indexRef: string;
   public keyRef: string;
-  private pendingNewIndices: any[];
-  private previousIterations: any;
-  public aliases: any;
-  private shuffler: any;
-  public source: any;
-  private values: any;
+  private pendingNewIndices: NewIndexes[];
+  public aliases: any[];
+  private shuffler: true | string[];
+  public source: ModelDependency & { model?: ModelBase };
+  private values: unknown[];
   private length: number;
   private bubbled: number[];
   private rebounding: number;
@@ -100,7 +104,7 @@ export default class RepeatedFragment {
     const aliases = (this.aliases = this.owner.template.z && this.owner.template.z.slice());
 
     const shuffler = aliases && aliases.find(a => a.n === 'shuffle');
-    if (shuffler && shuffler.x && shuffler.x.x) {
+    if (shuffler?.x?.x) {
       if (shuffler.x.x.s === 'true') this.shuffler = true;
       else if (keypathString.test(shuffler.x.x.s))
         this.shuffler = splitKeypath(shuffler.x.x.s.slice(1, -1));
@@ -108,7 +112,9 @@ export default class RepeatedFragment {
 
     if (this.shuffler) this.values = shuffleValues(this, this.shuffler);
 
-    if (this.source) this.source.model.unbind(this.source);
+    // TSRChange - unbind is present on an item and not on a model
+    // if (this.source) this.source.model.unbind(this.source);
+
     const source = context.isComputed && aliases && aliases.find(a => a.n === 'source');
     if (source && source.x && source.x.r) {
       const model = resolve(this, source.x);
@@ -161,7 +167,7 @@ export default class RepeatedFragment {
     if (!this.rebounding) this.owner.bubble();
   }
 
-  createIteration(key, index): Fragment {
+  createIteration(key: string | number, index: number): Fragment {
     const fragment = new Fragment({
       owner: this,
       template: this.template
@@ -189,27 +195,27 @@ export default class RepeatedFragment {
     return docFrag;
   }
 
-  find(selector, options) {
+  find(selector: string, options: FindOpts): globalThis.Element {
     return findMap(this.iterations, i => i.find(selector, options));
   }
 
-  findAll(selector, options) {
+  findAll(selector: string, options: FindOpts): void {
     return this.iterations.forEach(i => i.findAll(selector, options));
   }
 
-  findAllComponents(name, options) {
+  findAllComponents(name: string, options: FindOpts): void {
     return this.iterations.forEach(i => i.findAllComponents(name, options));
   }
 
-  findComponent(name, options) {
+  findComponent(name: string, options: FindOpts): Ractive {
     return findMap(this.iterations, i => i.findComponent(name, options));
   }
 
-  findContext() {
+  findContext(): RepeatedFragment['context'] {
     return this.context;
   }
 
-  findNextNode(iteration) {
+  findNextNode(iteration: Fragment): globalThis.Element {
     if (iteration.index < this.iterations.length - 1) {
       for (let i = iteration.index + 1; i < this.iterations.length; i++) {
         const node = this.iterations[i].firstNode(true);
@@ -220,15 +226,15 @@ export default class RepeatedFragment {
     return this.owner.findNextNode();
   }
 
-  firstNode(skipParent) {
+  firstNode(skipParent: boolean): globalThis.Element {
     return this.iterations[0] ? this.iterations[0].firstNode(skipParent) : null;
   }
 
-  getLast() {
+  getLast(): RepeatedFragment['lastModel'] {
     return this.lastModel || (this.lastModel = new KeyModel(this.length - 1));
   }
 
-  rebind(next): void {
+  rebind(next: ModelBase): void {
     this.context = next;
     if (this.source) return;
     if (next) {
@@ -241,12 +247,12 @@ export default class RepeatedFragment {
   rebound(update: boolean): void {
     this.context = this.owner.model;
     this.iterations.forEach((f, i) => {
-      f.context = contextFor(this, f, i);
+      f.context = contextFor(this, i);
       f.rebound(update);
     });
   }
 
-  render(target, occupants): void {
+  render(target: HTMLElement, occupants: HTMLElement[]): void {
     const xs = this.iterations;
     if (xs) {
       const len = xs.length;
@@ -258,7 +264,7 @@ export default class RepeatedFragment {
     this.rendered = true;
   }
 
-  shuffle(newIndices, merge) {
+  shuffle(newIndices: NewIndexes, merge: boolean): void {
     if (!this.pendingNewIndices) this.previousIterations = this.iterations.slice();
 
     if (!this.pendingNewIndices) this.pendingNewIndices = [];
@@ -293,7 +299,7 @@ export default class RepeatedFragment {
     return this.iterations ? this.iterations.map(escape ? toEscapedString : toString).join('') : '';
   }
 
-  unbind(view): this {
+  unbind(view: boolean): this {
     this.bound = false;
     if (this.source) this.source.model.unregister(this.source);
     const iterations = this.pendingNewIndices ? this.previousIterations : this.iterations;
@@ -507,7 +513,8 @@ export default class RepeatedFragment {
         if (dest === -1) {
           // if it needs to be dropped, drop it
           prev[pos] && prev[pos].unbind().unrender(true);
-          prev[pos++] = 0;
+          // TSRChange - change `0` to `null` to avoid type conflict
+          prev[pos++] = null;
         } else if (dest > idx) {
           // if it needs to move down, stash it
           stash[dest] = prev[pos];
@@ -535,11 +542,12 @@ export default class RepeatedFragment {
             }
           }
 
-          prev[pos++] = 0;
+          // TSRChange - change `0` to `null` to avoid type conflict
+          prev[pos++] = null;
           idx++;
         }
 
-        if (next && isObjectType<any>(next)) {
+        if (next && isObjectType<Fragment>(next)) {
           if (next.shouldRebind || rebound) {
             next.rebound(rebound);
             next.shouldRebind = 0;
@@ -597,7 +605,7 @@ function swizzleFragment(
   key: string | number,
   idx: number
 ): void {
-  const model = section.context ? contextFor(section, fragment, key) : undefined;
+  const model = section.context ? contextFor(section, key) : undefined;
 
   fragment.key = key;
   fragment.index = idx;
@@ -626,16 +634,20 @@ function swizzleFragment(
   });
 }
 
-function shuffleValues(section: RepeatedFragment, shuffler: true | any[]): any[] {
-  const array = section.context.get() || [];
+function shuffleValues(
+  section: RepeatedFragment,
+  shuffler: RepeatedFragment['shuffler']
+): unknown[] {
+  const array = <ValueMap[]>section.context.get() || [];
   if (shuffler === true) {
     return array.slice();
   } else {
-    return array.map(v => shuffler.reduce((a, c) => a && a[c], v));
+    return array.map(v => shuffler.reduce((a: ValueMap, c: string) => a && a[c], v));
   }
 }
 
-function contextFor(section, _fragment, key) {
+// TSRChange - removed fragment param
+function contextFor(section: RepeatedFragment, key: string | number): ModelBase {
   if (section.source) {
     let idx;
     const source = section.source.model.get();

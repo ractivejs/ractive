@@ -1,3 +1,4 @@
+import type { InterpolatorTemplateItem } from 'parse/converters/mustache/mustacheDefinitions';
 import type { ElementTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { removeFromArray } from 'utils/array';
 import { isArray, isUndefined } from 'utils/is';
@@ -8,7 +9,7 @@ import findElement from '../../shared/findElement';
 import type Select from './Select';
 
 interface ElementTemplateItemRuntime extends ElementTemplateItem {
-  a: any; // todo understand what is this
+  a: Record<string, (string | InterpolatorTemplateItem)[] | string>;
 }
 
 export default class Option extends Element {
@@ -22,7 +23,7 @@ export default class Option extends Element {
     // If the value attribute is missing, use the element's content,
     // as long as it isn't disabled
     if (isUndefined(template.a.value) && !('disabled' in template.a)) {
-      template.a.value = template.f || '';
+      template.a.value = <string[]>template.f || '';
     }
 
     super(options);
@@ -92,7 +93,7 @@ export default class Option extends Element {
       : undefined;
   }
 
-  render(target, occupants): void {
+  render(target: HTMLSelectElement, occupants: HTMLElement[]): void {
     super.render(target, occupants);
 
     if (!this.attributeByName.value) {
