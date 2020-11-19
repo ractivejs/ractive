@@ -20,7 +20,7 @@ try {
   };
 }
 
-export default function insertHtml(html: string, node: Element): Element[] {
+export default function insertHtml(html: unknown, node: Element): Element[] {
   const nodes: Element[] = [];
 
   // render 0 and false
@@ -48,13 +48,13 @@ export default function insertHtml(html: string, node: Element): Element[] {
     container = createElement('div');
 
     if (typeof container.textContent !== 'undefined') {
-      container.textContent = html;
+      container.textContent = <string>html;
     } else {
-      container.innerHTML = html;
+      container.innerHTML = <string>html;
     }
   } else {
     container = element(node.tagName);
-    container.innerHTML = html;
+    container.innerHTML = <string>html;
 
     // TSRChange - replace `container.tagName === 'SELECT'` with instanceof
     if (container instanceof HTMLSelectElement) {

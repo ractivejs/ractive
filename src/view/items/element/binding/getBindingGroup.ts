@@ -48,7 +48,7 @@ export class BindingGroup<Value, BindingType extends Binding> {
   }
 
   bind(): void {
-    this.value = this.model.get();
+    this.value = <Value>this.model.get();
     this.bindings.forEach(b => b.lastVal(true, this.value));
     this.model.registerTwowayBinding(this);
     this.bound = true;

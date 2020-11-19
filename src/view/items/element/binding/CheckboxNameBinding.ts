@@ -47,7 +47,7 @@ export default class CheckboxNameBinding
     // If no initial value was set, and this input is checked, we
     // update the model
     if (this.group.noInitialValue && this.element.getAttribute('checked')) {
-      const existingValue = this.model.get();
+      const existingValue = <unknown[]>this.model.get();
       const bindingValue = this.element.getAttribute('value');
 
       if (!this.arrayContains(existingValue, bindingValue)) {
@@ -80,7 +80,7 @@ export default class CheckboxNameBinding
 
   handleChange(): void {
     this.isChecked = this.element.node.checked;
-    this.group.value = this.model.get().slice();
+    this.group.value = (<unknown[]>this.model.get()).slice();
     const value = this.element.getAttribute('value');
     if (this.isChecked && !this.arrayContains(this.group.value, value)) {
       this.group.value.push(value);

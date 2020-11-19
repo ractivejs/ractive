@@ -125,7 +125,7 @@ export default class Triple extends Mustache {
   }
 
   toString(): string {
-    let value = this.model && this.model.get();
+    let value = this.model && <string>this.model.get();
     value = value != null ? '' + value : '';
 
     return inAttribute() ? decodeCharacterReferences(value) : value;

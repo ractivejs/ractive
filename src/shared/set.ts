@@ -43,8 +43,8 @@ export function set<M extends ModelBase, V>(
 
     if (deep) deepSet(model, value);
     else if (shuffle) {
-      let array = value;
-      const target = model.get();
+      let array = <unknown[]>(<unknown>value);
+      const target = <unknown[]>model.get();
       // shuffle target array with itself
       if (!array) array = target;
 

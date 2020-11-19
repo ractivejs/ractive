@@ -82,7 +82,7 @@ export function evalCSS(component: typeof Static, css: string | CssFn): string {
   const cssData = component.cssData;
   const model = component._cssModel;
   const data = function data(path): string {
-    return model.joinAll(splitKeypath(path)).get();
+    return <string>model.joinAll(splitKeypath(path)).get();
   };
   data.__proto__ = cssData;
 

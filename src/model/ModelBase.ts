@@ -125,7 +125,7 @@ export default abstract class ModelBase {
     }
   }
 
-  abstract get(shouldCapture?: boolean, opts?: ModelGetOpts);
+  abstract get(shouldCapture?: boolean, opts?: ModelGetOpts): unknown;
   abstract set(value: unknown): void;
 
   abstract joinKey(key: string | number, opts?: ModelJoinOpts): ModelBase;

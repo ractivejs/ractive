@@ -356,7 +356,7 @@ export default class RepeatedFragment {
         // if there's a source to map back to, make sure everything stays bound correctly
         if (this.source) {
           this.rebounding = 1;
-          const source = this.source.model.get();
+          const source = <unknown[]>this.source.model.get();
           this.iterations.forEach((f, c) => {
             if (c < value.length && f.lastValue !== value[c] && ~(i = source.indexOf(value[c]))) {
               swizzleFragment(this, f, c, c);
@@ -481,7 +481,7 @@ export default class RepeatedFragment {
       });
     });
 
-    const len = (this.length = this.context.get().length);
+    const len = (this.length = (<unknown[]>this.context.get()).length);
     const prev = this.previousIterations;
     const iters = this.iterations;
     const value = this.context.get();
@@ -650,7 +650,7 @@ function shuffleValues(
 function contextFor(section: RepeatedFragment, key: string | number): ModelBase {
   if (section.source) {
     let idx;
-    const source = section.source.model.get();
+    const source = <unknown[]>section.source.model.get();
     if (source.indexOf && ~(idx = source.indexOf(section.context.joinKey(key).get())))
       return section.source.model.joinKey(idx);
   }
