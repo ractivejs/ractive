@@ -108,6 +108,9 @@ export default abstract class ModelBase {
    */
   public isLink: boolean;
 
+  /** This property is set to true only for KeyModel */
+  public isKey: false;
+
   constructor(parent: ModelBase) {
     this.deps = [];
 

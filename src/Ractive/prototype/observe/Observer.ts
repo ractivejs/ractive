@@ -1,4 +1,5 @@
-import type ModelBase from 'model/ModelBase';
+import type LinkModel from 'model/LinkModel';
+import type Model from 'model/Model';
 import { rebindMatch } from 'shared/rebind';
 import runloop from 'src/global/runloop';
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
@@ -20,8 +21,7 @@ export default class Observer {
   private ractive: Ractive;
   private options: ObserverOpts;
 
-  /** {@link Model} | {@link LinkModel} */
-  public model: ModelBase;
+  public model: Model | LinkModel;
   // TSRChange - it's never set so we are removing it
   // private resolver: any;
 

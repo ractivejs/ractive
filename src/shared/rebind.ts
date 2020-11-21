@@ -1,4 +1,7 @@
+import type LinkModel from 'model/LinkModel';
+import type Model from 'model/Model';
 import { isString } from 'utils/is';
+import type Fragment from 'view/Fragment';
 
 import { splitKeypath } from './keypaths';
 
@@ -6,8 +9,13 @@ import { splitKeypath } from './keypaths';
 // a particular keypath because in some cases, a dep may be bound
 // directly to a particular keypath e.g. foo.bars.0.baz and need
 // to avoid getting kicked to foo.bars.1.baz if foo.bars is unshifted
-export function rebindMatch(template, next, previous, fragment?) {
-  const keypath = template.r || template;
+export function rebindMatch<T extends Model | LinkModel>(
+  template: string | { r: string },
+  next: T,
+  previous: T,
+  fragment?: Fragment
+): T {
+  const keypath = (<{ r: string }>template).r || <string>template;
 
   // no valid keypath, go with next
   if (!keypath || !isString(keypath)) return next;
@@ -16,13 +24,14 @@ export function rebindMatch(template, next, previous, fragment?) {
   if (
     keypath === '.' ||
     keypath[0] === '@' ||
-    (next || previous).isKey ||
-    (next || previous).isKeypath
+    (next || previous).isKey
+    // TSRChange isKeypath do not exists
+    // (next || previous).isKeypath
   )
     return next;
 
   const parts = keypath.split('/');
-  let keys: string[] | boolean = splitKeypath(parts[parts.length - 1]);
+  let keys = splitKeypath(parts[parts.length - 1]);
   const last = keys[keys.length - 1];
 
   // check the keypath against the model keypath to see if it matches
@@ -31,7 +40,7 @@ export function rebindMatch(template, next, previous, fragment?) {
   // check to see if this was an alias
   if (model && keys.length === 1 && last !== model.key && fragment) {
     const alias = findAlias(last, fragment);
-    keys = alias ? (alias as string[]) : keys;
+    keys = alias ? alias : keys;
   }
 
   let i = keys.length;
@@ -42,18 +51,17 @@ export function rebindMatch(template, next, previous, fragment?) {
     if (model.shuffling) shuffling = true;
     // non-strict comparison to account for indices in keypaths
     if (keys[i] != model.key) match = false;
-    model = model.parent;
+    model = <T>model.parent;
   }
 
   // next is undefined, but keypath is shuffling and previous matches
   if (!next && match && shuffling) return previous;
-  else if (next && !match && shuffling)
-    // next is defined, but doesn't match the keypath
-    return previous;
+  // next is defined, but doesn't match the keypath
+  else if (next && !match && shuffling) return previous;
   else return next;
 }
 
-function findAlias(name, fragment): string[] | boolean {
+function findAlias(name: string, fragment: Fragment): string[] | false {
   while (fragment) {
     const z = fragment.aliases;
     if (z && z[name]) {

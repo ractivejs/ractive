@@ -1,4 +1,5 @@
 import TemplateItemType from 'config/types';
+import type LinkModel from 'model/LinkModel';
 import type { ModelDependency } from 'model/ModelBase';
 import type {
   GenericAttributeTemplateItem,
@@ -33,7 +34,7 @@ export default class Mapping extends Item {
   public element: Component;
   public value: MappingValue;
   public boundFragment: Fragment;
-  public link: any;
+  public link: LinkModel;
   /** @override */
   public template: GenericAttributeTemplateItem & { f: MappingValue };
 

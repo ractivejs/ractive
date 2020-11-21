@@ -34,13 +34,15 @@ export interface Meta {
   ractive: Ractive;
   instance: Ractive;
   name: string;
+  template?: any;
+  shouldDestroy?: boolean;
   nameOption?: string;
   target: string | false;
   up?: Fragment;
   external?: boolean;
   anchor?: ComponentItem;
   bubble: () => void;
-  findNextNode: () => any;
+  findNextNode: () => HTMLElement;
 }
 
 export interface ArrayPushPromise extends Promise<number> {
@@ -48,13 +50,13 @@ export interface ArrayPushPromise extends Promise<number> {
   result: number;
 }
 
-export interface ArrayPopPromise extends Promise<any> {
+export interface ArrayPopPromise<T = unknown> extends Promise<T> {
   /** The value removed from the target array. */
-  result: any;
+  result: T;
 }
 
-export interface ArraySplicePromise extends Promise<any[]> {
-  result: any[];
+export interface ArraySplicePromise<T = unknown> extends Promise<T[]> {
+  result: T[];
 }
 
 export type CssFn = (data: DataGetFn) => string;
@@ -76,7 +78,7 @@ export type PluginInstance = ((pluginArgsInstance: PluginArgsInstance) => void) 
   construct?: boolean;
 };
 
-export type Helper = (this: Ractive, ...args: any[]) => any;
+export type Helper = (this: Ractive, ...args: unknown[]) => unknown;
 
 export interface Children extends Array<Ractive> {
   /** Lists of instances targeting anchors by name. */

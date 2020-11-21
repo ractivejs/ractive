@@ -6,6 +6,7 @@ import { applyCSS } from 'src/global/css';
 import runloop from 'src/global/runloop';
 import parser from 'src/Ractive/config/runtime-parser';
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Meta } from 'types/Generic';
 import type { MacroHandle, MacroFn } from 'types/Macro';
 import { isArray, isFunction, isObjectType, isString } from 'utils/is';
 import { warnOnceIfDebug, warnIfDebug } from 'utils/log';
@@ -13,7 +14,6 @@ import { assign, hasOwn, keys } from 'utils/object';
 
 import Fragment, { FragmentOpts } from '../Fragment';
 
-import type Component from './Component';
 import type { BindingFlagOwner } from './element/BindingFlag';
 import type { DecoratorOwner } from './element/Decorator';
 import getPartialTemplate, { PartialRuntime } from './partial/getPartialTemplate';
@@ -30,7 +30,7 @@ export default class Partial
   public yielder: number;
   private macro: MacroFn;
   public container: Ractive;
-  private component: Component;
+  private component: Meta;
   public refName: string;
   public fn: any;
   public fnTemplate: any;
@@ -198,7 +198,7 @@ export default class Partial
     return true;
   }
 
-  render(target, occupants): void {
+  render(target: HTMLElement, occupants: HTMLElement[]): void {
     if (this.fn && this.fn._cssDef && !this.fn._cssDef.applied) applyCSS();
 
     this.fragment.render(target, occupants);

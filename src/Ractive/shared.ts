@@ -3,7 +3,7 @@ import type { Ractive } from './RactiveDefinition';
 
 interface Shared {
   defaults?: typeof defaults;
-  Ractive?: Ractive;
+  Ractive?: typeof Ractive;
 }
 
 const shared: Shared = {};

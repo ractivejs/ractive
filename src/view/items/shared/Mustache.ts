@@ -1,3 +1,5 @@
+import type LinkModel from 'model/LinkModel';
+import type Model from 'model/Model';
 import type ModelBase from 'model/ModelBase';
 import type { ModelWithRebound } from 'model/ModelBase';
 import type { ExpressionRefinementTemplateItem } from 'parse/converters/expressions/expressionDefinitions';
@@ -52,7 +54,7 @@ export default class Mustache extends Item {
     this.bubble();
   }
 
-  rebind(next: ModelBase, previous: ModelBase, safe: boolean): boolean {
+  rebind(next: Model | LinkModel, previous: Model | LinkModel, safe: boolean): boolean {
     if (this.isStatic) return;
 
     next = rebindMatch(this.template, next, previous, this.up);

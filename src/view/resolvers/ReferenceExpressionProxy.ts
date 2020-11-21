@@ -22,7 +22,7 @@ export default class ReferenceExpressionProxy extends LinkModel implements Model
   private model: ModelBase;
   private template: ReferenceExpressionTemplateItem;
   public base: ModelBase;
-  private proxy: { rebind: ModelBase['rebind']; handleChange: () => void };
+  private proxy: { rebind: Function; handleChange: () => void };
   public members: ModelBase[];
 
   constructor(
