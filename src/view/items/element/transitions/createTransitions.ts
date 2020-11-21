@@ -2,8 +2,8 @@ import { isClient } from 'config/environment';
 import { missingPlugin } from 'config/errors';
 import { interpolate } from 'shared/interpolate';
 import Ticker from 'shared/Ticker';
+import type { AnimateOpts } from 'src/Ractive/prototype/animate';
 import type { EasingFunction } from 'types/Easings';
-import type { TransitionOpts } from 'types/Transition';
 import { createElement } from 'utils/dom';
 import { isFunction, isString } from 'utils/is';
 import { warnIfDebug, warnOnceIfDebug } from 'utils/log';
@@ -15,7 +15,7 @@ import hyphenate from './hyphenate';
 type CreateTransitions = (
   t: Transition,
   to: Record<string, string>,
-  options: TransitionOpts,
+  options: AnimateOpts,
   changedProperties: string[],
   resolve: Function
 ) => void;
@@ -128,7 +128,7 @@ if (!isClient) {
       t.registerCompleteHandler(transitionDone);
 
       style[TRANSITION_PROPERTY] = changedProperties.join(',');
-      const easingName = hyphenate(options.easing || 'linear');
+      const easingName = hyphenate(<string>options.easing || 'linear');
       style[TRANSITION_TIMING_FUNCTION] = easingName;
       const cssTiming = style[TRANSITION_TIMING_FUNCTION] === easingName;
       style[TRANSITION_DURATION] = Number(options.duration) / 1000 + 's';

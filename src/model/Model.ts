@@ -6,6 +6,7 @@ import getComputationSignature from 'src/Ractive/helpers/getComputationSignature
 import type { AnimateOpts } from 'src/Ractive/prototype/animate';
 import type { AdaptorHandle } from 'types/Adaptor';
 import type { InternalComputationDescription } from 'types/Computation';
+import type { EasingFunction } from 'types/Easings';
 import type { ValueMap } from 'types/Generic';
 import { buildNewIndices } from 'utils/array';
 import { isArray, isEqual, isNumeric, isObjectLike, isUndefined } from 'utils/is';
@@ -125,7 +126,7 @@ export default class Model extends ModelBase implements ModelWithShuffle {
     }
   }
 
-  animate<T>(_from, to: T, options: AnimateOpts, interpolator): AnimatePromise {
+  animate<T>(_from: T, to: T, options: AnimateOpts, interpolator): AnimatePromise {
     if (this.ticker) this.ticker.stop();
 
     let fulfilPromise;
@@ -133,7 +134,7 @@ export default class Model extends ModelBase implements ModelWithShuffle {
 
     this.ticker = new Ticker({
       duration: options.duration,
-      easing: options.easing,
+      easing: <EasingFunction>options.easing,
       step: t => {
         const value = interpolator(t);
         this.applyValue(value);

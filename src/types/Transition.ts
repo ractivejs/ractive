@@ -75,7 +75,8 @@ export interface TransitionHelper {
   /** Set inline styles for the given map of prop -> value. */
   setStyle(map: ValueMap): void;
 }
-export type Transition = (helper: TransitionHelper, ...args: any[]) => void | Promise<void>;
+export type Transition = (helper: TransitionHelper, ...args: unknown[]) => void | Promise<void>;
+
 export interface TransitionOpts {
   /** The duration for the transition in milliseconds, slow for 600ms, fast for 200ms, and any other string for 400ms. */
   duration?: number | 'slow' | 'fast' | string;

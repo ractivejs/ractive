@@ -48,25 +48,25 @@ export interface ContextHelper {
    * @param value the target value
    * @param opts
    */
-  animate(keypath: string, value: any, opts?: AnimateOpts): AnimatePromise;
+  animate(keypath: string, value: unknown, opts?: AnimateOpts): AnimatePromise;
 
   /**
    * Retrieve the value associated with the current Context.
    * @param opts
    */
-  get(opts?: GetOpts): any;
+  get(opts?: GetOpts): unknown;
 
   /**
    * Retrieve the value at the given keypath.
    * @param keypath a Context-relative keypath to the value
    * @param opts
    */
-  get(keypath?: string, opts?: GetOpts): any;
+  get(keypath?: string, opts?: GetOpts): unknown;
 
   /**
    * Retrieve the value associated with the twoway binding of the element e.g. .value in <input value="{{.value}}" />.
    */
-  getBinding(): any;
+  getBinding(): unknown;
 
   /**
    * Resolve the keypath associated with the twoway binding of the element e.g. '.value' in <input value="{{.value}}" />.
@@ -189,7 +189,7 @@ export interface ContextHelper {
    * @param keypath keypath to the target array
    * @param values
    */
-  push(keypath: string, ...values: any[]): ArrayPushPromise;
+  push(keypath: string, ...values: unknown[]): ArrayPushPromise;
 
   /**
    * Manually call a Ractive event handler on the element associated with this Context e.g. to trigger the 'event' handler <div on-event="..." />, use context.raise('event');
@@ -197,7 +197,7 @@ export interface ContextHelper {
    * @param context the optional context to supply to the event handler
    * @param args any additional args to supply to the event handler
    */
-  raise(event: string, context?: ContextHelper | Record<string, unknown>, ...args: any[]): void;
+  raise(event: string, context?: ContextHelper | Record<string, unknown>, ...args: unknown[]): void;
 
   /**
    * Get the source keypath for the given Context-relative keypath if it is a link.
@@ -225,7 +225,7 @@ export interface ContextHelper {
    * @param value the value to set
    * @param opts
    */
-  set(keypath: string, value: any, opts?: SetOpts): Promise<void>;
+  set(keypath: string, value: unknown, opts?: SetOpts): Promise<void>;
 
   /**
    * Set a set of values from the given map. All of the values will be set before any DOM changes are propagated, but the values will still be set in object order in the data, which can cause multiple invalidations on observers, bindings, and template nodes.j
@@ -258,7 +258,7 @@ export interface ContextHelper {
    * @param drop number of items to drop starting at the given index
    * @param add items to add at the given index
    */
-  splice(keypath: string, index: number, drop: number, ...add: any[]): ArraySplicePromise;
+  splice(keypath: string, index: number, drop: number, ...add: unknown[]): ArraySplicePromise;
 
   /**
    * Subtract an amount from the number at the given Context-relative keypath.
@@ -317,5 +317,5 @@ export interface ContextHelper {
    * @param keypath
    * @param value
    */
-  unshift(keypath: string, value: any): ArrayPushPromise;
+  unshift(keypath: string, value: unknown): ArrayPushPromise;
 }

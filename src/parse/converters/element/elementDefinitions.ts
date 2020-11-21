@@ -49,7 +49,7 @@ export interface DecoratorDirectiveTemplateItem {
   f?: ExpressionFunctionTemplateItem;
 }
 
-export enum TransitionTrigger {
+export const enum TransitionTrigger {
   INTRO_OUTRO = 't0',
   INTRO = 't1',
   OUTRO = 't2'

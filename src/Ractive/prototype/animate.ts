@@ -16,8 +16,10 @@ export interface AnimateOpts {
   /** How many milliseconds the animation should run for. Defaults to 400. */
   duration?: number;
 
+  delay?: number;
+
   /** The name of an easing function or the easing function itself.Defaults to linear. */
-  easing?: EasingFunction;
+  easing?: EasingFunction | string;
 
   /**
    * The name of an interpolator function.

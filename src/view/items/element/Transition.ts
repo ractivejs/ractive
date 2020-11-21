@@ -7,6 +7,7 @@ import {
 } from 'parse/converters/element/elementDefinitions';
 import { findInViewHierarchy } from 'shared/registry';
 import type TransitionManager from 'src/global/TransitionManager';
+import type { AnimateOpts } from 'src/Ractive/prototype/animate';
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import type { ValueMap } from 'types/Generic';
 import type { Transition as TransitionFunction } from 'types/Transition';
@@ -82,7 +83,7 @@ export default class Transition {
     this.onComplete = [];
   }
 
-  animateStyle(style, value, options): Promise<void> {
+  animateStyle(style: string, value: unknown, options: AnimateOpts): Promise<void> {
     if (arguments.length === 4) {
       throw new Error(
         't.animateStyle() returns a promise - use .then() instead of passing a callback'
@@ -166,8 +167,10 @@ export default class Transition {
     const options = this.options;
     const type = options.template && options.template.v;
     if (type) {
-      if (type === 't0' || type === 't1') this.element.intro = this;
-      if (type === 't0' || type === 't2') this.element.outro = this;
+      if (type === TransitionTrigger.INTRO_OUTRO || type === TransitionTrigger.INTRO)
+        this.element.intro = this;
+      if (type === TransitionTrigger.INTRO_OUTRO || type === TransitionTrigger.OUTRO)
+        this.element.outro = this;
       this.eventName = names[type];
     }
 
@@ -193,7 +196,7 @@ export default class Transition {
     setupArgsFn(this, options.template);
   }
 
-  getParams() {
+  getParams(): ValueMap | unknown[] {
     if (this.params) return this.params;
 
     // get expression args if supplied
@@ -252,11 +255,13 @@ export default class Transition {
     return assign({}, defaults, params);
   }
 
-  registerCompleteHandler(fn: Transition['onComplete'][0]): void {
+  registerCompleteHandler(fn: Transition['onComplete'][number]): void {
     addToArray(this.onComplete, fn);
   }
 
-  setStyle(style: string | ValueMap, value?): this {
+  setStyle(style: ValueMap): this;
+  setStyle(style: string, value: unknown): this;
+  setStyle(style: string | ValueMap, value?: string): this {
     if (isString(style)) {
       const name = prefix(style);
       if (!hasOwn(this.originals, name)) this.originals[name] = this.node.style[name];
@@ -341,7 +346,7 @@ export default class Transition {
       return;
     }
 
-    const promise = this._fn.apply(this.ractive, [this].concat(args));
+    const promise = this._fn.apply(this.ractive, (<unknown[]>[this]).concat(args));
     if (promise) promise.then(this.complete);
   }
 
@@ -382,7 +387,7 @@ function nearestProp<P extends 'noIntro' | 'noOutro' | 'nestedTransitions'>(
   let instance = ractive;
   while (instance) {
     if (
-      hasOwn((instance as unknown) as Record<string, unknown>, prop) &&
+      hasOwn(instance, prop) &&
       (isUndefined(rendering) || rendering ? instance.rendering : instance.unrendering)
     )
       return instance[prop];
