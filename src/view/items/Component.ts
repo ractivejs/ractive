@@ -25,7 +25,7 @@ export default class Component
   extends Item
   implements EventDirectiveOwner, ConditionalAttributeOwner {
   private isAnchor: boolean;
-  private name: string;
+  public name: string;
   private extern: boolean;
 
   public attributes: Item[];
@@ -410,5 +410,5 @@ export function checkAnchors(): void {
   const list = checking;
   checking = [];
 
-  list.forEach(updateAnchors);
+  list.forEach(it => updateAnchors(it));
 }

@@ -1,6 +1,6 @@
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import type Fragment from 'view/Fragment';
-import type ComponentItem from 'view/items/Component';
+import type Component from 'view/items/Component';
 
 import type { Macro } from './Macro';
 import type { ParseFn } from './Parse';
@@ -40,7 +40,8 @@ export interface Meta {
   target: string | false;
   up?: Fragment;
   external?: boolean;
-  anchor?: ComponentItem;
+  anchor?: Component;
+  lastBound?: Component;
   bubble: () => void;
   findNextNode: () => HTMLElement;
 }
@@ -80,7 +81,7 @@ export type PluginInstance = ((pluginArgsInstance: PluginArgsInstance) => void) 
 
 export type Helper = (this: Ractive, ...args: unknown[]) => unknown;
 
-export interface Children extends Array<Ractive> {
+export interface Children extends Array<Meta> {
   /** Lists of instances targeting anchors by name. */
-  byName?: Record<string, Ractive[]>;
+  byName?: Record<string, Meta[]>;
 }

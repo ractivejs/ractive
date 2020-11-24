@@ -1,14 +1,17 @@
-// TODO add correct typings
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
+import type { Meta } from 'types/Generic';
+import type Fragment from 'view/Fragment';
+import type Component from 'view/items/Component';
 
-export function findAnchors(fragment, name = null) {
-  const res = [];
+export function findAnchors(fragment: Fragment, name: string = null): Component[] {
+  const res: Component[] = [];
 
   findAnchorsIn(fragment, name, res, fragment.ractive);
 
   return res;
 }
 
-function findAnchorsIn(item, name, result, instance) {
+function findAnchorsIn(item, name: string, result: Component[], instance: Ractive): void {
   if (item.isAnchor) {
     if (!name || item.name === name) {
       result.push(item);
@@ -26,9 +29,9 @@ function findAnchorsIn(item, name, result, instance) {
   }
 }
 
-export function updateAnchors(instance, name = null) {
+export function updateAnchors(instance: Ractive, name: string = null): void {
   const anchors = findAnchors(instance.fragment, name);
-  const idxs = {};
+  const idxs: Record<string, number> = {};
   const children = instance._children.byName;
 
   anchors.forEach(a => {
@@ -46,7 +49,7 @@ export function updateAnchors(instance, name = null) {
   });
 }
 
-export function unrenderChild(meta) {
+export function unrenderChild(meta: Meta): void {
   if (meta.instance.fragment.rendered) {
     meta.shouldDestroy = true;
     meta.instance.unrender();
