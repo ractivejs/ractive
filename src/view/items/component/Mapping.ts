@@ -1,5 +1,6 @@
 import TemplateItemType from 'config/types';
 import type LinkModel from 'model/LinkModel';
+import type Model from 'model/Model';
 import type { ModelDependency } from 'model/ModelBase';
 import type {
   GenericAttributeTemplateItem,
@@ -74,7 +75,7 @@ export default class Mapping extends Item {
     if (this.link) {
       this.model = resolve(this.up, this.template.f[0]);
       const model = this.element.instance.viewmodel.joinAll(splitKeypath(this.name));
-      model.link(this.model, this.name, { mapping: true });
+      model.link(<Model>this.model, this.name, { mapping: true });
     }
   }
 
@@ -117,7 +118,7 @@ function createMapping(item: Mapping): void {
     // if the interpolator is not static
     if (!template[0].s) {
       item.model = model;
-      item.link = viewmodel.createLink(item.name, model, template[0].r, {
+      item.link = viewmodel.createLink(item.name, <Model>model, template[0].r, {
         mapping: true
       });
 
@@ -127,7 +128,8 @@ function createMapping(item: Mapping): void {
       }
     } else if (!isObjectType(val) || template[0].x) {
       // copy non-object, non-computed vals through
-      viewmodel.joinKey(splitKeypath(item.name)).set(val);
+      // TODO check if splitKeypath is needed since joinKey works with plain string
+      viewmodel.joinKey((splitKeypath(item.name) as unknown) as string).set(val);
     } else {
       // warn about trying to copy an object
       warnIfDebug(`Cannot copy non-computed object value from static mapping '${item.name}'`);
@@ -142,7 +144,8 @@ function createMapping(item: Mapping): void {
       template
     }).bind();
 
-    item.model = viewmodel.joinKey(splitKeypath(item.name));
+    // TODO check if splitKeypath is needed since joinKey works with plain string
+    item.model = viewmodel.joinKey((splitKeypath(item.name) as unknown) as string);
     item.model.set(item.boundFragment.valueOf());
 
     // item is a *bit* of a hack

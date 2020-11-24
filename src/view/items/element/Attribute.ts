@@ -1,6 +1,7 @@
 import TemplateItemType from 'config/types';
 import Namespace from 'src/config/namespace';
 import type { ValueMap } from 'types/Generic';
+import type { RactiveHTMLElement } from 'types/RactiveHTMLElement';
 import { safeAttributeString } from 'utils/dom';
 import { booleanAttributes } from 'utils/html';
 import hyphenateCamel from 'utils/hyphenateCamel';
@@ -146,7 +147,7 @@ export default class Attribute extends Item {
   }
 
   render(): void {
-    const node = this.element.node;
+    const node = <RactiveHTMLElement>this.element.node;
     this.node = node;
 
     // should we use direct property access, or setAttribute?

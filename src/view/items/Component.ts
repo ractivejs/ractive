@@ -1,5 +1,5 @@
 import TemplateItemType from 'config/types';
-import type { GenericAttributeTemplateItem } from 'parse/converters/element/elementDefinitions';
+import type { PartialTemplateItem } from 'parse/converters/templateItemDefinitions';
 import { updateAnchors } from 'shared/anchors';
 import type Context from 'shared/Context';
 import getRactiveContext from 'shared/getRactiveContext';
@@ -9,7 +9,11 @@ import parser from 'src/Ractive/config/runtime-parser';
 import construct from 'src/Ractive/construct';
 import initialise from 'src/Ractive/initialise';
 import { teardown } from 'src/Ractive/prototype/teardown';
+import type { Ractive, Static } from 'src/Ractive/RactiveDefinition';
 import render from 'src/Ractive/render';
+import type { Meta } from 'types/Generic';
+import type { FindOpts } from 'types/MethodOptions';
+import type { ParsedTemplate } from 'types/Parse';
 import { createDocumentFragment } from 'utils/dom';
 import { isArray, isString } from 'utils/is';
 import { warnIfDebug } from 'utils/log';
@@ -31,11 +35,13 @@ export default class Component
   public attributes: Item[];
   public attributeByName: Record<string, Item>;
 
-  public _partials: any;
-  public item: Item;
-  public instance: any;
-  public eventHandlers: any[]; // TODO this array is never edited maybe we can remove it?
-  public mappings: any[]; // TODO this array is never edited maybe we can remove it?
+  public _partials: Record<string, PartialTemplateItem>;
+  public item: Meta;
+  public instance: Ractive;
+
+  // TSRChange - remove since it's never changed
+  // public eventHandlers: any[];
+  public mappings: any[] | string;
   public rendered: boolean;
   public bound: boolean;
   public target: HTMLElement;
@@ -46,7 +52,7 @@ export default class Component
 
   public events: EventDirective[];
 
-  constructor(options: ItemOpts, ComponentConstructor) {
+  constructor(options: ItemOpts, ComponentConstructor: typeof Static) {
     super(options);
 
     let template = options.template;
@@ -107,9 +113,7 @@ export default class Component
       if (isArray(this.mappings)) {
         attrs = (attrs || []).concat(this.mappings);
       } else if (isString(this.mappings)) {
-        // TODO this function returns an array of attribute template item, Ractive or Child. We need to refine the type
-        type P = GenericAttributeTemplateItem | any;
-        const parsedMappings = parser.parse<P>(this.mappings, { attributes: true });
+        const parsedMappings = parser.parse<ParsedTemplate>(this.mappings, { attributes: true });
         attrs = (attrs || []).concat(parsedMappings.t);
       }
 
@@ -159,13 +163,13 @@ export default class Component
       }
     }
 
-    this.eventHandlers = [];
+    // this.eventHandlers = [];
   }
 
   bind(): void {
     if (!this.isAnchor) {
       this.attributes.forEach(bind);
-      this.eventHandlers.forEach(bind);
+      // this.eventHandlers.forEach(bind);
 
       initialise(
         this.instance,
@@ -203,15 +207,15 @@ export default class Component
     return this.instance.fragment.detach();
   }
 
-  find(selector, options) {
-    if (this.instance) return this.instance.fragment.find(selector, options);
+  find(selector: string, options: FindOpts): HTMLElement {
+    if (this.instance) return <HTMLElement>this.instance.fragment.find(selector, options);
   }
 
-  findAll(selector, options) {
+  findAll(selector: string, options: FindOpts & { result: HTMLElement[] }): void {
     if (this.instance) this.instance.fragment.findAll(selector, options);
   }
 
-  findComponent(name: string, options) {
+  findComponent(name: string, options: FindOpts): Ractive {
     if (!name || this.name === name) return this.instance;
 
     if (this.instance.fragment) {
@@ -219,7 +223,7 @@ export default class Component
     }
   }
 
-  findAllComponents(name: string, options) {
+  findAllComponents(name: string, options: FindOpts & { result: Ractive[] }): void {
     const { result } = options;
 
     if (this.instance && (!name || this.name === name)) {
@@ -229,11 +233,11 @@ export default class Component
     if (this.instance) this.instance.findAllComponents(name, options);
   }
 
-  firstNode(skipParent) {
+  firstNode(skipParent: boolean): HTMLElement {
     if (this.instance) return this.instance.fragment.firstNode(skipParent);
   }
 
-  getContext(...assigns): Context {
+  getContext(...assigns: unknown[]): Context {
     return getRactiveContext(this.instance, ...assigns);
   }
 
@@ -241,7 +245,7 @@ export default class Component
     this.attributes.forEach(x => x.rebound(update));
   }
 
-  render(target, occupants): void {
+  render(target: HTMLElement, occupants: HTMLElement[]): void {
     if (this.isAnchor) {
       this.rendered = true;
       this.target = target;
@@ -258,11 +262,12 @@ export default class Component
       }
     } else {
       this.attributes.forEach(callRender);
-      this.eventHandlers.forEach(callRender);
+      // this.eventHandlers.forEach(callRender);
 
       if (this.extern) {
         this.instance.delegate = false;
-        this.instance.render();
+        // TSRChange - add undefined params to avoid ts errors
+        this.instance.render(undefined, undefined);
       } else {
         render(this.instance, target, null, occupants);
       }
@@ -283,7 +288,7 @@ export default class Component
     if (this.instance) return this.instance.toHTML();
   }
 
-  unbind(view): void {
+  unbind(view: boolean): void {
     if (!this.isAnchor) {
       this.bound = false;
 
@@ -308,7 +313,7 @@ export default class Component
       this.instance.unrender();
       this.instance.el = this.instance.target = null;
       this.attributes.forEach(unrender);
-      this.eventHandlers.forEach(unrender);
+      // this.eventHandlers.forEach(unrender);
     }
 
     this.rendered = false;
@@ -319,7 +324,7 @@ export default class Component
     if (this.instance) {
       this.instance.fragment.update();
       this.attributes.forEach(update);
-      this.eventHandlers.forEach(update);
+      // this.eventHandlers.forEach(update);
     }
   }
 }
@@ -374,9 +379,9 @@ function renderItem(anchor: Component, meta): void {
   meta.instance.fragment.bind(meta.instance.viewmodel);
 
   anchor.attributes.forEach(bind);
-  anchor.eventHandlers.forEach(bind);
+  // anchor.eventHandlers.forEach(bind);
   anchor.attributes.forEach(callRender);
-  anchor.eventHandlers.forEach(callRender);
+  // anchor.eventHandlers.forEach(callRender);
 
   const target = anchor.up.findParentNode();
   render(meta.instance, target, target.contains(nextNode) ? nextNode : null, anchor.occupants);
@@ -392,9 +397,9 @@ function unrenderItem(anchor: Component, meta): void {
   meta.shouldDestroy = true;
   meta.instance.unrender();
 
-  anchor.eventHandlers.forEach(unrender);
+  // anchor.eventHandlers.forEach(unrender);
   anchor.attributes.forEach(unrender);
-  anchor.eventHandlers.forEach(unbind);
+  // anchor.eventHandlers.forEach(unbind);
   anchor.attributes.forEach(unbind);
 
   meta.instance.el = meta.instance.anchor = null;

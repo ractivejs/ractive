@@ -12,7 +12,7 @@ export function startCapturing(): void {
 
 export function capture(model: KeyModel): void;
 export function capture(model: ModelBase): void;
-export function capture(model: ModelBase | KeyModel): void {
+export function capture(model: never): void {
   if (captureGroup) {
     addToArray(captureGroup, model);
   }

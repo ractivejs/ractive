@@ -1,5 +1,5 @@
 import Context from 'shared/Context';
-import type { ObserverHandle } from 'types/Observer';
+import type { ListenerHandle } from 'types/Listener';
 
 import type Component from '../Component';
 import type EventDirective from '../shared/EventDirective';
@@ -8,7 +8,7 @@ import type { RactiveEventInterface } from '../shared/EventDirective';
 export default class RactiveEvent implements RactiveEventInterface {
   private component: Component;
   private name: string;
-  private handler: ObserverHandle;
+  private handler: ListenerHandle;
 
   constructor(component: Component, name: string) {
     this.component = component;

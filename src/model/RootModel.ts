@@ -151,7 +151,7 @@ export default class RootModel extends Model {
     }
   }
 
-  set(value): void {
+  set(value: unknown): void {
     // TODO wrapping root node is a baaaad idea. We should prevent this
     const wrapper = this.wrapper;
     if (wrapper) {

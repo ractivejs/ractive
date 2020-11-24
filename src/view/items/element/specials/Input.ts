@@ -7,6 +7,9 @@ import type { ConditionalAttributeOwner } from '../ConditionalAttribute';
 export default class Input extends Element implements BindingFlagOwner, ConditionalAttributeOwner {
   public checked: boolean;
 
+  /** @override */
+  public node: HTMLInputElement;
+
   render(target: HTMLElement, occupants: HTMLElement[]): void {
     super.render(target, occupants);
     this.node.defaultValue = this.node.value;

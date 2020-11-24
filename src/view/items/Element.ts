@@ -5,6 +5,7 @@ import { destroyed, shuffled } from 'shared/methodCallers';
 import Namespace from 'src/config/namespace';
 import runloop from 'src/global/runloop';
 import type { DetachQueueItem } from 'src/global/TransitionManager';
+import type { Ractive } from 'src/Ractive/RactiveDefinition';
 import type { FindOpts } from 'types/MethodOptions';
 import { toArray, addToArray, removeFromArray } from 'utils/array';
 import { createElement, detachNode, matches, safeAttributeString } from 'utils/dom';
@@ -43,12 +44,12 @@ export default class Element
     TransitionOwner,
     EventDirectiveOwner,
     ConditionalAttributeOwner,
-    DetachQueueItem<Element> {
+    DetachQueueItem {
   public name: string;
   private namespace: string;
   public parent: Element;
-  public node: any;
-  public root: any;
+  public node: HTMLElement;
+  public root: Ractive;
 
   public component: Element;
   public decorators: Decorator[];

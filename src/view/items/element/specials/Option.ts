@@ -1,5 +1,6 @@
 import type { InterpolatorTemplateItem } from 'parse/converters/mustache/mustacheDefinitions';
 import type { ElementTemplateItem } from 'parse/converters/templateItemDefinitions';
+import type { RactiveHTMLOptionElement } from 'types/RactiveHTMLElement';
 import { removeFromArray } from 'utils/array';
 import { isArray, isUndefined } from 'utils/is';
 
@@ -15,6 +16,7 @@ interface ElementTemplateItemRuntime extends ElementTemplateItem {
 export default class Option extends Element {
   private select: Select;
   public template: ElementTemplateItemRuntime;
+  public node: RactiveHTMLOptionElement;
 
   constructor(options: ElementOpts) {
     const template: ElementTemplateItemRuntime = options.template;

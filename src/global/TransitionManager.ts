@@ -6,7 +6,7 @@ let id = 0;
 
 export interface DetachQueueItem<T = unknown> {
   node: T;
-  detach: Function;
+  detach(): T;
 }
 
 export default class TransitionManager {

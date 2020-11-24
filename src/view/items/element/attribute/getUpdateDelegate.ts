@@ -58,7 +58,7 @@ export default function getUpdateDelegate(attribute: Attribute): UpdateDelegate 
     return updateValue;
   }
 
-  const node = element.node;
+  const node = <HTMLInputElement>element.node;
 
   // special case - <input type='radio' name='{{twoway}}' value='foo'>
   if (attribute.isTwoway && name === 'name') {

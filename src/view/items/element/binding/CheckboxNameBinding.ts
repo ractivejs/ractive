@@ -79,7 +79,7 @@ export default class CheckboxNameBinding
   }
 
   handleChange(): void {
-    this.isChecked = this.element.node.checked;
+    this.isChecked = (<HTMLInputElement>this.element.node).checked;
     this.group.value = (<unknown[]>this.model.get()).slice();
     const value = this.element.getAttribute('value');
     if (this.isChecked && !this.arrayContains(this.group.value, value)) {
