@@ -1,6 +1,6 @@
 import runloop from 'src/global/runloop';
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
-import { localFragment } from 'src/shared/Context';
+import Context, { localFragment } from 'src/shared/Context';
 import type { EventPlugin, EventPluginHandle } from 'types/Events';
 import { fatal } from 'utils/log';
 
@@ -91,7 +91,7 @@ class CustomEvent implements RactiveEventInterface {
       localFragment.f = directive.up;
       this.handler = this.eventPlugin.apply(this.owner.ractive, [
         node,
-        (event: any = {}) => {
+        (event: Context = <Context>{}) => {
           if (event.original) event.event = event.original;
           else event.original = event.event;
 

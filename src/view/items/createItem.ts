@@ -56,8 +56,6 @@ const specialElements = {
 };
 
 // TODO refine types
-function createItem(options: { template: string }): Text;
-function createItem(options): any;
 function createItem(options): any {
   if (isString(options.template)) {
     return new Text(options);

@@ -4,7 +4,12 @@ import type Model from 'model/Model';
 import type Item from '../items/shared/Item';
 
 // TODO all this code needs to die
-export default function processItems(items: Item[], values, guid: string, counter = 0): string {
+export default function processItems(
+  items: Item[],
+  values: Record<string, unknown>,
+  guid: string,
+  counter = 0
+): string {
   return items
     .map(item => {
       if (item.type === TemplateItemType.TEXT) {

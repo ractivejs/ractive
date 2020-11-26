@@ -2,6 +2,7 @@ import type { TemplateModel } from 'parse/converters/templateItemDefinitions';
 
 export type ParseDelimiters = [string, string];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Template = ParsedTemplate | string | any[] | ParseFn;
 
 export type ParsedTemplate = TemplateModel;

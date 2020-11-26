@@ -22,7 +22,7 @@ export default class RactiveEvent implements RactiveEventInterface {
     this.handler = ractive.on(this.name, (...args) => {
       // watch for reproxy
       if (args[0] instanceof Context) {
-        const ctx = args.shift();
+        const ctx = <Context>args.shift();
         ctx.component = ractive;
         directive.fire(ctx, args);
       } else {

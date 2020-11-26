@@ -10,7 +10,7 @@ export function isUndefined(thing: unknown): thing is undefined {
   return thing === undefined;
 }
 
-export function isFunction(thing: unknown): thing is Function {
+export function isFunction<T extends Function = Function>(thing: unknown): thing is T {
   return typeof thing === 'function';
 }
 

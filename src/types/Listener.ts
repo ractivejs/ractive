@@ -1,10 +1,12 @@
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
 
+import type { ContextHelper } from './Context';
+
 export type ListenerCallback<T extends Ractive = Ractive> = (
   this: T,
-  ctx: any, // TODO replace with context helper
-  ...args: any[]
-) => boolean | void | Promise<any>;
+  ctx: ContextHelper,
+  ...args: unknown[]
+) => boolean | void | Promise<unknown>;
 
 export interface ListenerDescriptor<T extends Ractive = Ractive> {
   /**

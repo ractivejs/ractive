@@ -1,6 +1,6 @@
 import type { ValueMap } from './Generic';
 
-export interface TransitionHelper {
+export interface TransitionHelper<T = unknown> {
   /** true if this transition is an intro */
   isIntro: boolean;
 
@@ -21,12 +21,7 @@ export interface TransitionHelper {
    * @param complete an optional callback to call when the animation is complete
    * @returns a Promise that resolves when the animation is complete
    */
-  animateStyle(
-    prop: string,
-    value: any,
-    opts: TransitionOpts,
-    complete?: () => void
-  ): Promise<void>;
+  animateStyle(prop: string, value: T, opts: TransitionOpts, complete?: () => void): Promise<void>;
 
   /**
    * Animate the given map of properties.
@@ -46,7 +41,7 @@ export interface TransitionHelper {
   /**
    * Use getComputedStyle to retrieve the current value of the given prop.
    */
-  getStyle(prop: string): any;
+  getStyle(prop: string): T;
 
   /**
    * Use getComputedStyle to retrieve the current values of multiple props.
@@ -70,7 +65,7 @@ export interface TransitionHelper {
   /**
    * Set an inline style for the given prop at the given value.
    */
-  setStyle(prop: string, value: any): void;
+  setStyle(prop: string, value: T): void;
 
   /** Set inline styles for the given map of prop -> value. */
   setStyle(map: ValueMap): void;

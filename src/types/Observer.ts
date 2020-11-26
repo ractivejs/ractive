@@ -3,6 +3,8 @@ import type Fragment from 'view/Fragment';
 
 import type { Keypath } from './Generic';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export interface ArrayChanges {
   /**
    * The starting index for the changes.

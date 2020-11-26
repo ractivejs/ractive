@@ -9,7 +9,8 @@ export default function findElement<Result extends Item = Element>(
   orComponent = true,
   name?: string
 ): Result {
-  // TODO find a way to use type in this function
+  // TODO: maybe we can use better type here
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let result: any = start;
   while (
     result &&

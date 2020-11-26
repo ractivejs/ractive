@@ -83,7 +83,7 @@ export default class ConditionalAttribute extends Item {
     return this.fragment.toString();
   }
 
-  unbind(view): void {
+  unbind(view: boolean): void {
     this.fragment.unbind(view);
   }
 
