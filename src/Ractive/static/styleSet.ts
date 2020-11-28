@@ -1,3 +1,4 @@
+import type CSSModel from 'model/specials/CSSModel';
 import type { Keypath, ValueMap } from 'types/Generic';
 import type { SetOpts } from 'types/MethodOptions';
 import { isObjectType, isFunction } from 'utils/is';
@@ -19,7 +20,7 @@ function setCSSData(
   options?: SetOpts & { apply: boolean }
 ): Promise<void> {
   const opts = isObjectType(keypath) ? <SetCSSDataOpts>value : options;
-  const model = this._cssModel;
+  const model = <CSSModel>this._cssModel;
 
   model.locked = true;
   const promise = set(

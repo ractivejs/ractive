@@ -9,7 +9,11 @@ import type { Ractive } from '../RactiveDefinition';
 import render from '../render';
 
 // TODO anchor is not documented so it's required?
-export default function Ractive$render(this: Ractive, target: Target, anchor): Promise<void> {
+export default function Ractive$render(
+  this: Ractive,
+  target: Target,
+  anchor: boolean | string | HTMLElement
+): Promise<void> {
   if (this.torndown) {
     warnIfDebug('ractive.render() was called on a Ractive instance that was already torn down');
     return Promise.resolve();

@@ -53,7 +53,7 @@ if (win && !win.Ractive) {
   if (script) opts = script.getAttribute('data-ractive-options') || '';
 
   /* istanbul ignore next */
-  if (~opts.indexOf('ForceGlobal')) win.Ractive = (Ractive as unknown) as RactiveDef;
+  if (~opts.indexOf('ForceGlobal')) win.Ractive = <any>Ractive;
 } else if (win) {
   warn(`Ractive already appears to be loaded while loading BUILD_PLACEHOLDER_VERSION.`);
 }
@@ -66,7 +66,7 @@ Ractive.defaults = Ractive.prototype;
 
 // share defaults with the parser
 shared.defaults = Ractive.defaults;
-shared.Ractive = Ractive as any;
+shared.Ractive = <any>Ractive;
 
 // static properties
 defineProperties(Ractive, {
@@ -133,7 +133,7 @@ defineProperties(Ractive, {
 // cssData must already be in place
 defineProperty(Ractive, '_cssModel', {
   configurable: true,
-  value: new CSSModel(Ractive)
+  value: new CSSModel(<any>Ractive)
 });
 
 defineProperty(Ractive.prototype, 'rendered', {

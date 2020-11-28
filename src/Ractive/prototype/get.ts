@@ -8,9 +8,9 @@ import resolveReference from 'view/resolvers/resolveReference';
 
 import type { Ractive } from '../RactiveDefinition';
 
-function Ractive$get(this: Ractive, opts?: GetOpts): any;
-function Ractive$get(this: Ractive, keypath: string, opts?: GetOpts): any;
-function Ractive$get(this: Ractive, keypath: string | GetOpts, opts?: GetOpts): any {
+function Ractive$get(this: Ractive, opts?: GetOpts): unknown;
+function Ractive$get(this: Ractive, keypath: string, opts?: GetOpts): unknown;
+function Ractive$get(this: Ractive, keypath: string | GetOpts, opts?: GetOpts): unknown {
   if (!isString(keypath)) return this.viewmodel.get(true, keypath);
 
   const keys = splitKeypath(keypath);

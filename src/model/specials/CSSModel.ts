@@ -1,13 +1,16 @@
+import type { Static } from 'src/Ractive/RactiveDefinition';
+import type { Macro } from 'types/Macro';
+
 import { applyChanges } from '../../Ractive/static/styleSet';
 
 import { SharedModel } from './SharedModel';
 
 export default class CSSModel extends SharedModel {
   // TODO define what is this (sometimes is Ractive)
-  private component: any;
-  private locked: boolean;
+  private component: typeof Static | Macro;
+  public locked: boolean;
 
-  constructor(component) {
+  constructor(component: CSSModel['component']) {
     super(component.cssData, '@style');
 
     this.component = component;

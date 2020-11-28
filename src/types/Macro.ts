@@ -1,3 +1,6 @@
+import type CSSModel from 'model/specials/CSSModel';
+import type { Static } from 'src/Ractive/RactiveDefinition';
+
 import type { CssFn, PartialMap, ValueMap } from './Generic';
 import type { Template } from './Parse';
 
@@ -20,6 +23,9 @@ export interface Macro extends MacroFn, MacroOpts {
   styleSet(keypath: string, value: any): Promise<void>;
   /** Set the given map of values in the css data for this macro. */
   styleSet(map: ValueMap): Promise<void>;
+
+  _cssModel: CSSModel;
+  extensions: (Macro | typeof Static)[];
 }
 
 export interface MacroHandle {
