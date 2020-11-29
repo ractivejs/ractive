@@ -44,7 +44,7 @@ export default class ConditionalAttribute extends Item {
     });
 
     // this fragment can't participate in node-y things
-    this.fragment.findNextNode = noop;
+    this.fragment.findNextNode = <Fragment['findNextNode']>noop;
 
     this.dirty = false;
   }

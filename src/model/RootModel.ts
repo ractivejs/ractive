@@ -10,6 +10,7 @@ import resolveReference from 'view/resolvers/resolveReference';
 
 import type LinkModel from './LinkModel';
 import Model from './Model';
+import type ModelBase from './ModelBase';
 import type { ModelGetOpts, ModelLinkOpts, ModelJoinOpts } from './ModelBase';
 import RactiveModel from './specials/RactiveModel';
 import SharedModel, { GlobalModel, SharedModel as SharedBase } from './specials/SharedModel';
@@ -89,11 +90,12 @@ export default class RootModel extends Model {
     detachImplicits(this);
   }
 
-  get(shouldCapture: boolean, options?: ModelGetOpts) {
+  get(shouldCapture: boolean, options?: ModelGetOpts): unknown {
     if (shouldCapture) capture(this);
 
     if (!options || options.virtual !== false) {
-      return this.getVirtual();
+      const asd = this.getVirtual();
+      return asd;
     } else {
       return this.value;
     }
@@ -112,7 +114,7 @@ export default class RootModel extends Model {
     return this.ractiveModel || (this.ractiveModel = new RactiveModel(this.ractive));
   }
 
-  getValueChildren() {
+  getValueChildren(): ModelBase[] {
     const children = super.getValueChildren(this.value);
 
     this.children.forEach(child => {
@@ -172,8 +174,9 @@ export default class RootModel extends Model {
     this.children.forEach(mark);
   }
 
-  retrieve() {
-    return this.wrapper ? this.wrapper.get() : this.value;
+  retrieve(): unknown {
+    const cose = this.wrapper ? this.wrapper.get() : this.value;
+    return cose;
   }
 
   teardown(): void {

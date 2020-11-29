@@ -16,7 +16,8 @@ export default abstract class Item {
   public up: Fragment;
   public ractive: Ractive;
 
-  // TODO maybe add it as generic type?
+  // Too generic to use a type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public template: any;
   public type: TemplateItemType;
   public index: number;
@@ -65,7 +66,7 @@ export default abstract class Item {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   findAllComponents(_name: string, _options: FindOpts): void {}
 
-  findNextNode() {
+  findNextNode(): HTMLElement {
     return this.up.findNextNode(this);
   }
 
@@ -119,7 +120,7 @@ export class ContainerItem extends Item {
     }
   }
 
-  firstNode(skipParent: boolean) {
+  firstNode(skipParent: boolean): HTMLElement {
     return this.fragment && this.fragment.firstNode(skipParent);
   }
 
@@ -139,7 +140,7 @@ export interface ItemBasicFunctions {
   unbind: (view: boolean) => void;
   unrender: (shouldDestroy?: boolean) => void;
   detach?: () => DocumentFragment | HTMLElement | globalThis.Text;
-  firstNode?: (skip?: boolean) => any;
+  firstNode?: (skip?: boolean) => HTMLElement;
 }
 
 export interface ItemBasicInterface extends Item, ItemBasicFunctions {}

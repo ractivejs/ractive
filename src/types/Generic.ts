@@ -24,6 +24,8 @@ export type Data = ValueMap;
 export type DataFn<T extends Ractive = Ractive> = (this: T) => ValueMap;
 export type DataGetFn = (keypath: string) => any;
 
+export type DataWrappedFunction = Function & { _r_unbound: Function };
+
 export type Partial = string | unknown[] | ParseFn | Macro;
 
 export type PartialMap = Record<string, Partial>;

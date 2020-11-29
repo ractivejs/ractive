@@ -1,5 +1,5 @@
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
-import type { Data, DataFn, ValueMap } from 'types/Generic';
+import type { Data, DataFn, DataWrappedFunction, ValueMap } from 'types/Generic';
 import bind from 'utils/bind';
 import { isArray, isObject, isFunction, isObjectType } from 'utils/is';
 import { fatal, warnIfDebug, warnOnceIfDebug } from 'utils/log';
@@ -52,7 +52,7 @@ const dataConfigurator: Configurator<ValueMap> = {
       for (const prop in result) {
         if (isFunction(result[prop])) {
           const value = result[prop];
-          result[prop] = bind(value, ractive);
+          result[prop] = <DataWrappedFunction>bind(value, ractive);
           result[prop]._r_unbound = value;
         }
       }

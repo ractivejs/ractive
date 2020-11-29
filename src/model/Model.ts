@@ -38,7 +38,7 @@ export default class Model extends ModelBase implements ModelWithShuffle {
   protected isArray: boolean;
   public isRoot: boolean;
   private rewrap: boolean;
-  protected boundValue: any;
+  public boundValue: Function;
 
   public wrapper: AdaptorHandle;
   public wrapperValue: any;
@@ -327,9 +327,9 @@ export default class Model extends ModelBase implements ModelWithShuffle {
     }
   }
 
-  merge<T, X>(array: T[], comparator?: (item: T) => X): void {
+  merge(array: unknown[], comparator?: (item: unknown) => unknown): void {
     const newIndices = buildNewIndices(
-      this.value === array ? recreateArray(this) : this.value,
+      <unknown[]>this.value === array ? recreateArray(this) : <unknown[]>this.value,
       array,
       comparator
     );
@@ -342,7 +342,7 @@ export default class Model extends ModelBase implements ModelWithShuffle {
     return this.parent.value?.[this.key];
   }
 
-  set(value): void {
+  set(value: unknown): void {
     if (this.ticker) this.ticker.stop();
     this.applyValue(value);
   }
@@ -366,7 +366,7 @@ export default class Model extends ModelBase implements ModelWithShuffle {
   }
 }
 
-function recreateArray(model: Model): any[] {
+function recreateArray(model: Model): unknown[] {
   const array = [];
 
   for (let i = 0; i < model.length; i++) {

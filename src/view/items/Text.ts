@@ -22,8 +22,9 @@ export default class Text extends Item implements ItemBasicInterface {
     return detachNode(this.node);
   }
 
-  firstNode(): Text['node'] {
-    return this.node;
+  firstNode(): HTMLElement {
+    // Override this to avoid clash with default return type since this is a special node
+    return <HTMLElement>(<unknown>this.node);
   }
 
   render(target: HTMLElement, occupants: TextOccupant[]): void {

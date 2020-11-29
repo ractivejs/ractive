@@ -1,10 +1,12 @@
 import { escapeKey, unescapeKey } from 'shared/keypaths';
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
-import type { Keypath } from 'types/Generic';
+import type { DataWrappedFunction, Keypath } from 'types/Generic';
 import { addToArray, removeFromArray, Indexes } from 'utils/array';
 import bind from 'utils/bind';
 import { isArray, isObject, isObjectLike, isFunction } from 'utils/is';
 import { create, keys as objectKeys } from 'utils/object';
+import type Interpolator from 'view/items/Interpolator';
+import type Item from 'view/items/shared/Item';
 
 import type Computation from './Computation';
 import LinkModel from './LinkModel';
@@ -138,7 +140,7 @@ export default abstract class ModelBase {
   addShuffleTask(task: Function, stage = 'early'): void {
     shuffleTasks[stage].push(task);
   }
-  addShuffleRegister(item, stage = 'early'): void {
+  addShuffleRegister(item: Item | ModelBase, stage = 'early'): void {
     registerQueue[stage].push({ model: this, item });
   }
 
@@ -267,7 +269,8 @@ export default abstract class ModelBase {
 
   joinAll<T extends ModelBase>(keys: (string | number)[], opts?: ModelJoinOpts): T {
     // add any to avoid warning on below reassign. Maybe we can find a more clean solution?
-    let model: any = this; // eslint-disable-line @typescript-eslint/no-this-alias
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-this-alias
+    let model: any = this;
     for (let i = 0; i < keys.length; i += 1) {
       if (opts?.lastLink === false && i + 1 === keys.length && this.childByKey[keys[i]]?._link) {
         return model.childByKey[keys[i]];
@@ -307,10 +310,10 @@ export default abstract class ModelBase {
 
     i = this.links.length;
     while (i--) {
-      const link = <LinkModel>this.links[i];
+      const link = this.links[i];
       // only relink the root of the link tree
       if (link.owner?._link) {
-        link.relinking(next, safe);
+        link.relinking(<LinkModel | Model>next, safe);
       }
     }
 
@@ -430,13 +433,13 @@ export interface ModelWithRebound extends ModelBase {
 }
 
 // TODO: this may be better handled by overriding `get` on models with a parent that isRoot
-export function maybeBind(model, value, shouldBind: boolean) {
-  if (shouldBind && isFunction(value) && model?.parent.isRoot) {
+export function maybeBind<T>(model: Model | LinkModel, value: T, shouldBind: boolean): T {
+  if (shouldBind && isFunction<DataWrappedFunction>(value) && model?.parent.isRoot) {
     if (!model.boundValue) {
       model.boundValue = bind(value._r_unbound || value, model.parent.ractive);
     }
 
-    return model.boundValue;
+    return <T>(<unknown>model.boundValue);
   }
 
   return value;
@@ -446,13 +449,16 @@ function updateFromBindings(model: ModelBase): void {
   model.updateFromBindings(true);
 }
 
-export function findBoundValue(list) {
+// TSRChange - removed export
+function findBoundValue(list: unknown[]): { value: unknown } {
   let i = list.length;
   while (i--) {
-    if (list[i].bound) {
-      const owner = list[i].owner;
+    const item = <Interpolator>list[i];
+    if (item.bound) {
+      const owner = item.owner;
       if (owner) {
-        const value = owner.name === 'checked' ? owner.node.checked : owner.node.value;
+        const ownerNode = <HTMLInputElement>owner.node;
+        const value = owner.name === 'checked' ? ownerNode.checked : ownerNode.value;
         return { value };
       }
     }

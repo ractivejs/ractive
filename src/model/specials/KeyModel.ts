@@ -1,3 +1,4 @@
+import type Model from 'model/Model';
 import { unescapeKey } from 'shared/keypaths';
 import { handleChange } from 'shared/methodCallers';
 import { capture } from 'src/global/capture';
@@ -76,7 +77,7 @@ export default class KeyModel {
     return false;
   }
 
-  rebind(next, previous): void {
+  rebind(next: Model | LinkModel, previous: Model | LinkModel): void {
     let i = this.deps.length;
     while (i--) this.deps[i].rebind(next, previous, false);
 

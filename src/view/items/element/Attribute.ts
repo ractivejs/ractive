@@ -120,7 +120,9 @@ export default class Attribute extends Item {
     }
   }
 
-  firstNode() {}
+  firstNode(): HTMLElement {
+    return undefined;
+  }
 
   getString(): string {
     attribute = true;

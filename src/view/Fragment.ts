@@ -241,7 +241,7 @@ export default class Fragment {
     else return base.context;
   }
 
-  findNextNode(item?) {
+  findNextNode(item?): HTMLElement {
     // search for the next node going forward
     if (item) {
       let it;
@@ -269,7 +269,7 @@ export default class Fragment {
     if (this.parent) return this.owner.findNextNode(this); // the argument is in case the parent is a RepeatedFragment
   }
 
-  findParentNode() {
+  findParentNode(): HTMLElement {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let fragment: Fragment = this;
 
@@ -280,7 +280,7 @@ export default class Fragment {
 
       if (fragment.isRoot && !fragment.ractive.component) {
         // TODO encapsulate check
-        return fragment.ractive.el;
+        return <HTMLElement>fragment.ractive.el;
       }
 
       if (fragment.owner.type === TemplateItemType.YIELDER) {
@@ -293,7 +293,7 @@ export default class Fragment {
     throw new Error('Could not find parent node'); // TODO link to issue tracker
   }
 
-  firstNode(skipParent: boolean) {
+  firstNode(skipParent: boolean): HTMLElement {
     const node = findMap(this.items, i => i.firstNode(true));
     if (node) return node;
     if (skipParent) return null;

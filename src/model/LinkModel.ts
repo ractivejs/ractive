@@ -45,7 +45,7 @@ Missing.parent = Missing;
 
 export default class LinkModel extends ModelBase implements ModelWithShuffle {
   private virtual: boolean;
-  private boundValue: any;
+  public boundValue: Function;
 
   public owner: ModelBase;
   public target: LinkModel | Model;
@@ -193,7 +193,7 @@ export default class LinkModel extends ModelBase implements ModelWithShuffle {
     this.children.forEach(c => c.relinked());
   }
 
-  relinking(target, safe?: boolean): void {
+  relinking(target: Model | LinkModel, safe?: boolean): void {
     if (this.rootLink && this.sourcePath)
       target = rebindMatch(this.sourcePath, target, this.target);
     if (!target || this.target === target) return;

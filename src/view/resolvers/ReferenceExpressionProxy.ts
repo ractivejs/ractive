@@ -1,5 +1,6 @@
 import TemplateItemType from 'config/types';
 import LinkModel, { Missing } from 'model/LinkModel';
+import type Model from 'model/Model';
 import ModelBase, { fireShuffleTasks, ModelDependency, ModelWithRebound } from 'model/ModelBase';
 import type {
   ReferenceExpressionTemplateItem,
@@ -19,7 +20,7 @@ import resolveReference from './resolveReference';
 
 export default class ReferenceExpressionProxy extends LinkModel implements ModelWithRebound {
   private fragment: Fragment | RepeatedFragment;
-  private model: ModelBase;
+  private model: Model | LinkModel;
   private template: ReferenceExpressionTemplateItem;
   public base: ModelBase;
   private proxy: { rebind: Function; handleChange: () => void };
@@ -102,9 +103,7 @@ export default class ReferenceExpressionProxy extends LinkModel implements Model
     }));
 
     const pathChanged = (): void => {
-      const model =
-        base &&
-        base.joinAll(
+      const model = base && <LinkModel | Model>base.joinAll(
           members.reduce((list, m) => {
             const k = m.get();
             if (isArray(k)) return list.concat(k);
