@@ -4,8 +4,7 @@
   "license": "MIT",
   "private": true,
   "engines": {
-    "node": ">=4.0.0",
-    "npm": ">=2.14.2"
+    "node": ">=12.0.0"
   },
   "typings": "typings/ractive.d.ts",
   "devDependencies": {
@@ -21,9 +20,9 @@
     "gobble-cli": "^0.8.0",
     "gobble-uglifyjs": "^0.2.1",
     "istanbul": "^0.4.5",
-    "karma": "^4.1.0",
+    "karma": "^5",
     "karma-chrome-launcher": "^2.2.0",
-    "karma-coverage": "^1.1.2",
+    "karma-coverage": "^2",
     "karma-electron": "^5.2.2",
     "karma-failed-reporter": "0.0.3",
     "karma-qunit": "^1.2.1",
@@ -53,9 +52,9 @@
     "lint:bin": "eslint bin lib",
     "lint:fix:bin": "eslint --fix bin lib",
     "lint:perf": "",
-    "bundle:dev": "gobble --env=bundle:dev build .build --force",
-    "bundle:test": "gobble --env=bundle:test build .build --force",
-    "bundle:release": "gobble --env=bundle:release build .build --force",
+    "bundle:dev": "gobble --env=bundle:dev build .build -f",
+    "bundle:test": "gobble --env=bundle:test build .build -f",
+    "bundle:release": "gobble --env=bundle:release build .build -f",
     "test:electron": "karma start karma/electron.conf.js",
     "test:chrome": "karma start karma/chrome.conf.js",
     "test:coverage": "istanbul report --root .build/coverage --dir .build/coverage/combined",
