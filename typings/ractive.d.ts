@@ -12,7 +12,7 @@ export interface Adaptor {
 	 * @param value the value to evaluate
 	 * @param keypath the keypath of the value in the Ractive data
 	 * @param ractive the Ractive instance that is applying the value to the given keypath
-	 * @returns true if the adaptor should be applied, false otherwisej
+	 * @returns true if the adaptor should be applied, false otherwise
 	 */
 	filter: (value: any, keypath: string, ractive: Ractive) => boolean;
 
@@ -218,14 +218,14 @@ export class ContextHelper {
 	/**
 	 * Create a set of observers from the given map. After the first observed value from any of the set mutates, all of the observers will be cancelled.
 	 * @param map Context-relative keypath -> callback pairs to observe
-	 * @returns an observer handle that controls all of the created observersj
+	 * @returns an observer handle that controls all of the created observers
 	 */
 	observeOnce(map: { [key: string]: ObserverCallback }, opts?: ObserverOpts): ObserverHandle;
 
 	/**
 	 * Create a set of observers from the given map. After the first observed value from any of the set mutates, all of the observers will be cancelled.
 	 * @param map Context-relative keypath -> callback pairs to observe
-	 * @returns an observer handle that controls all of the created observersj
+	 * @returns an observer handle that controls all of the created observers
 	 */
 	observeOnce(map: { [key: string]: ObserverArrayCallback }, opts?: ObserverArrayOpts): ObserverHandle;
 
@@ -266,12 +266,12 @@ export class ContextHelper {
 
 	/**
 	 * Reverse the array at the given Context-relative keypath.
-	 * @param keypath keypath to the targret array
+	 * @param keypath keypath to the target array
 	 */
 	reverse(keypath: string): ArraySplicePromise;
 
 	/**
-	 * Set a value at the given Context-relative keypath. If any intermediate levels do not exist in the data, they will be created as appriate - objects for string keys and arrays for numeric keys.
+	 * Set a value at the given Context-relative keypath. If any intermediate levels do not exist in the data, they will be created as appropriate - objects for string keys and arrays for numeric keys.
 	 * @param keypath
 	 * @param value the value to set
 	 * @param opts
@@ -314,7 +314,7 @@ export class ContextHelper {
 	/**
 	 * Subtract an amount from the number at the given Context-relative keypath.
 	 * @param keypath
-	 * @param amount the amount to subtrat from the value - defaults to 1
+	 * @param amount the amount to subtract from the value - defaults to 1
 	 */
 	subtract(keypath: string, amount?: number): Promise<void>;
 
@@ -717,7 +717,7 @@ export interface SetOpts {
 	/** Whether or not to merge the given value into the existing data or replace the existing data. Defaults to replacing the existing data (false). */
 	deep?: boolean;
 
-	/** Whether or not to keep the template sturctures removed by this set around for future reinstatement. This can be used to avoid throwing away and recreating components when hiding them. Defaults to false. */
+	/** Whether or not to keep the template structures removed by this set around for future reinstatement. This can be used to avoid throwing away and recreating components when hiding them. Defaults to false. */
 	keep?: boolean;
 
 	/** When applied to an array keypath, whether or not to move the existing elements and their associated template around or simply replace them. Defaults to replacement (false). */
@@ -791,7 +791,7 @@ export interface TransitionHelper {
 	 *  if slow, 600ms
 	 *  if fast, 200ms
 	 *  if any other string, 400ms
-	 *  if a map, it is applied over defaultsj
+	 *  if a map, it is applied over defaults
 	 */
 	processParams(params: number | 'slow' | 'fast' | string | ValueMap, defaults?: ValueMap): ValueMap;
 
@@ -829,10 +829,10 @@ export interface BaseParseOpts {
 	/** Whether or not to produce a map of expression string -> function when parsing the template. */
 	csp?: boolean;
 
-	/** The regular mustach delimiters - defaults to {{ }}. */
+	/** The regular mustache delimiters - defaults to {{ }}. */
 	delimiters?: ParseDelimiters;
 
-	/** Whether or not to collapse consective whitespace into a single space. */
+	/** Whether or not to collapse consecutive whitespace into a single space. */
 	preserveWhitespace?: boolean;
 
 	/** Whether or not to remove certain elements and event attributes from the parsed template. */
@@ -881,7 +881,7 @@ export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseO
 	/** A map of decorators */
 	decorators?: Registry<Decorator<T>>;
 
-	/** Whether or not to use event delegation around suitabe iterative sections. Defaults to true. */
+	/** Whether or not to use event delegation around suitable iterative sections. Defaults to true. */
 	delegate?: boolean;
 
 	/** A map of easings */
@@ -902,7 +902,7 @@ export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseO
 	/** Whether or not an element can transition if one of its parent elements is also transitioning. */
 	nestedTransitions?: boolean;
 
-	/** Whether or not to skip element intro transitions when the instance is being renered initially. */
+	/** Whether or not to skip element intro transitions when the instance is being rendered initially. */
 	noIntro?: boolean;
 
 	/** Whether or not to skip outro transitions when the instance is being unrendered. */
@@ -917,7 +917,7 @@ export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseO
 	/** A map of partials */
 	partials?: Registry<Partial>;
 
-	/** Whether or not to consider instance memners like set when resolving values in the template. */
+	/** Whether or not to consider instance members like set when resolving values in the template. */
 	resolveInstanceMembers?: boolean;
 
 	/** Whether or not to invalidate computation dependencies when a computed value or one of its children is set. */
@@ -937,6 +937,42 @@ export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseO
 
 	/** Whether or not to issue a warning when an ambiguous reference fails to resolve to the immediate context. */
 	warnAboutAmbiguity?: boolean;
+
+	/**
+	 * A lifecycle event that is called when an instance is constructed but before any initialization option has been processed.
+	 * Accepts the instance's initialization options as argument.
+	 */
+	onconstruct?(this: T, opts: InitOpts): void;
+
+	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
+	oninit?(this: T): void;
+
+	/** A lifecycle event that is called when an instance is constructed and all initialization options have been processed. */
+	onconfig?(this: T): void;
+
+	/** A lifecycle event that is called when the instance is rendered but before transitions start. */
+	onrender?(this: T): void;
+
+	/** A lifecycle event that is called when the instance is rendered and all the transitions have completed. */
+	oncomplete?(this: T): void;
+
+	/** A lifecycle event that is called when ractive.insert() is called. */
+	oninsert?(this: T): void;
+
+	/**
+	 * A lifecycle event that is called whenever `ractive.detach()` is called.
+	 * Note that `ractive.insert()` implicitly calls `ractive.detach()` if needed.
+	 */
+	ondetach?(this: T): void;
+
+	/** A lifecycle event that is called when ractive.update() is called. */
+	onupdate?(this: T): void;
+
+	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
+	onunrender?(this: T): void;
+
+	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
+	onteardown?(this: T): void;
 }
 
 export interface ExtendOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T> {
@@ -966,7 +1002,7 @@ export interface ExtendOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts
 }
 
 export interface InitOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T> {
-	/** Initiial data for this instance. */
+	/** Initial data for this instance. */
 	data?: Data | DataFn<T>;
 
 	/** The target element into which to render this instance. */
@@ -1017,9 +1053,9 @@ export interface Static<T extends Ractive<T> = Ractive> {
 	partials: Registry<Partial>;
 
 	/** Create a new component with this constructor as a starting point. */
-	extend<U, V extends ExtendOpts<T> = ExtendOpts<T>>(opts?: V): Static<Ractive<T & U>>;
+    extend<U, V extends ExtendOpts<T & U> & U = ExtendOpts<T & U> & U>(...opts: V[]): Static<T & U>;
 
-	/** Create a new component with this constuuctor as a starting point using the given constructor. */
+	/** Create a new component with this constructor as a starting point using the given constructor. */
 	extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive<T & U>>;
 
 	/** Get a Context for the given node or selector. */
@@ -1052,7 +1088,7 @@ export interface Static<T extends Ractive<T> = Ractive> {
 }
 
 export interface Children extends Array<Ractive> {
-	/** Lists of instances targetting anchors by name. */
+	/** Lists of instances targeting anchors by name. */
 	byName: { [key: string]: Ractive[] }
 }
 export class Ractive<T extends Ractive<T> = Ractive<any>> {
@@ -1266,14 +1302,14 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	/**
 	 * Create a set of observers from the given map. After the first observed value from any of the set mutates, all of the observers will be cancelled.
 	 * @param map keypath -> callback pairs to observe
-	 * @returns an observer handle that controls all of the created observersj
+	 * @returns an observer handle that controls all of the created observers
 	 */
 	observeOnce(map: { [key: string]: ObserverCallback<T> }, opts?: ObserverOpts): ObserverHandle;
 
 	/**
 	 * Create a set of observers from the given map. After the first observed value from any of the set mutates, all of the observers will be cancelled.
 	 * @param map keypath -> callback pairs to observe
-	 * @returns an observer handle that controls all of the created observersj
+	 * @returns an observer handle that controls all of the created observers
 	 */
 	observeOnce(map: { [key: string]: ObserverArrayCallback<T> }, opts?: ObserverArrayOpts): ObserverHandle;
 
@@ -1355,7 +1391,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 
 	/**
 	 * Reverse the array at the given keypath.
-	 * @param keypath keypath to the targret array
+	 * @param keypath keypath to the target array
 	 */
 	reverse(keypath: string): ArraySplicePromise;
 
@@ -1497,9 +1533,9 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	static partials: Registry<Partial>;
 
 	/** Create a new component with this constructor as a starting point. */
-	static extend<U>(opts?: ExtendOpts<Ractive & U>): Static<Ractive<Ractive & U>>;
+	static extend<U>(...opts: (ExtendOpts<Ractive & U> & U)[]): Static<Ractive & U>;
 
-	/** Create a new component with this constuuctor as a starting point using the given constructor. */
+	/** Create a new component with this constructor as a starting point using the given constructor. */
 	static extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive<Ractive & U>>;
 
 	/** Get a Context for the given node or selector. */
