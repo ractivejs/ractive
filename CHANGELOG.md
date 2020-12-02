@@ -8,12 +8,14 @@
   * Methods that set a single value will now return the new value as the resolution of the returned promise e.g. `r.toggle('foo')` if `foo` is falsey will return a promise that resolves to `true`. `add`/`subtract`/`set` behave similarly.
   * Decorators and custom events can now access their local context, in the case of a yielded attribute partial, with `this.getLocalContext()`.
 
-# 1.2.10, 1.3.13
+
+# 1.2.10, 1.3.13 (unreleased)
 
 * Bug fixes
   * Fix on definition file (#3348)
     * Now BaseInitOpts contains all lifecycle events
     * (Ractive|Static).extend now handle multiple params and return the correct type
+
 
 # 1.2.9, 1.3.12
 
