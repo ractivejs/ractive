@@ -190,7 +190,8 @@ export default function resolveReference(fragment, ref) {
     }
 
     if (model) {
-      if (createMapping) {
+      // create a mapping, but verify that the link is actually necessary and didn't happen across a yield
+      if (createMapping && model.root !== initialFragment.ractive.viewmodel) {
         model = initialFragment.ractive.viewmodel.createLink(base, model, base, { implicit: true });
       }
 
