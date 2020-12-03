@@ -1820,7 +1820,7 @@ export default function() {
   test(`non-isolated yields with references shouldn't blow the stack (#3351)`, t => {
     const cmp = Ractive.extend({
       template: '{{yield foo}}',
-      isolated: false,
+      isolated: false
     });
     new Ractive({
       target: fixture,
@@ -1828,7 +1828,7 @@ export default function() {
       components: { cmp },
       isolated: false,
       data: {
-        sure: true,
+        sure: true
       }
     });
 
