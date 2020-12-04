@@ -190,8 +190,7 @@ export default function resolveReference(fragment, ref) {
     }
 
     if (model) {
-      // create a mapping, but verify that the link is actually necessary and didn't happen across a yield
-      if (createMapping && model.root !== initialFragment.ractive.viewmodel) {
+      if (createMapping) {
         model = initialFragment.ractive.viewmodel.createLink(base, model, base, { implicit: true });
       }
 
@@ -206,8 +205,9 @@ export default function resolveReference(fragment, ref) {
     if (fragment.context && !fragment.aliases) crossed = 1;
 
     if (
-      (fragment.componentParent || (!fragment.parent && fragment.ractive.component)) &&
-      !fragment.ractive.isolated
+      !fragment.ractive.isolated &&
+      !(fragment.owner && fragment.owner.containerFragment) &&
+      (fragment.componentParent || (!fragment.parent && fragment.ractive.component))
     ) {
       // ascend through component boundary
       fragment = fragment.componentParent || fragment.ractive.component.up;
