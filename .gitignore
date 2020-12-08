@@ -13,6 +13,7 @@ sandbox/*
 .gobble-build
 .gobble-watch
 .build
+.buildRollup
 .publish
 build
 tmp
