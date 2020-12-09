@@ -1853,4 +1853,22 @@ export default function() {
     t.htmlEqual(fixture.innerHTML, 'sure');
     t.equal(r.findComponent('cmp').readLink('sure').keypath, 'sure');
   });
+
+  test(`non-isolated yields with relative references to yielded context resolve correctly (#3351)`, t => {
+    const cmp = Ractive.extend({
+      template: '{{yield foo}}',
+      isolated: false
+    });
+    new Ractive({
+      target: fixture,
+      template: '<cmp>{{#partial foo}}{{.foo}}{{/partial}}</cmp>',
+      components: { cmp },
+      isolated: false,
+      data: {
+        foo: 'sure'
+      }
+    });
+
+    t.htmlEqual(fixture.innerHTML, 'sure');
+  });
 }

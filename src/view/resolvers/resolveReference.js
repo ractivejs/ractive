@@ -235,7 +235,13 @@ export default function resolveReference(fragment, ref) {
 }
 
 function up(fragment) {
-  return fragment && ((!fragment.ractive.isolated && fragment.componentParent) || fragment.parent);
+  return (
+    fragment &&
+    ((!fragment.ractive.isolated &&
+      !(fragment.owner && fragment.owner.containerFragment) &&
+      (fragment.componentParent || (!fragment.parent && fragment.ractive.component))) ||
+      fragment.parent)
+  );
 }
 
 function findIter(start) {
