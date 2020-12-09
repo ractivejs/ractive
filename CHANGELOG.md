@@ -9,7 +9,7 @@
   * Decorators and custom events can now access their local context, in the case of a yielded attribute partial, with `this.getLocalContext()`.
 
 
-# 1.2.10, 1.3.13 (unreleased)
+# 1.2.10, 1.3.13
 
 * Bug fixes
   * Fix on definition file (#3348)
