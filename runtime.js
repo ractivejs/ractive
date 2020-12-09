@@ -1,7 +1,7 @@
 /*
-	Ractive.js v1.3.12
-	Build: 727e4799c1a90d52aced4ea076eedde390d54ec1
-	Date: Fri May 08 2020 15:10:10 GMT+0000 (UTC)
+	Ractive.js v1.3.13
+	Build: 384ef195d8bd54eea3f2854bc5798b630e9f2843
+	Date: Wed Dec 09 2020 11:56:48 GMT+0000 (UTC)
 	Website: https://ractive.js.org
 	License: MIT
 */
@@ -532,13 +532,13 @@ var welcome;
 
 if (hasConsole) {
   var welcomeIntro = [
-    "%cRactive.js %c1.3.12 %cin debug mode, %cmore...",
+    "%cRactive.js %c1.3.13 %cin debug mode, %cmore...",
     'color: rgb(114, 157, 52); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
-  var welcomeMessage = "You're running Ractive 1.3.12 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  var welcomeMessage = "You're running Ractive 1.3.13 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   welcome = function () {
     if (Ractive.WELCOME_MESSAGE === false) {
@@ -16178,7 +16178,7 @@ if (win && !win.Ractive) {
   /* istanbul ignore next */
   if (~opts$1.indexOf('ForceGlobal')) { win.Ractive = Ractive; }
 } else if (win) {
-  warn("Ractive already appears to be loaded while loading 1.3.12.");
+  warn("Ractive already appears to be loaded while loading 1.3.13.");
 }
 
 assign(Ractive.prototype, proto$9, defaults);
@@ -16221,7 +16221,7 @@ defineProperties(Ractive, {
   },
 
   // version
-  VERSION: { value: '1.3.12' },
+  VERSION: { value: '1.3.13' },
 
   // plugins
   adaptors: { writable: true, value: {} },
