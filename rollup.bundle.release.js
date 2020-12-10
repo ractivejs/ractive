@@ -12,6 +12,8 @@ import {
   processRollupOptions
 } from './rollup.utils';
 
+cleanBuildFolder();
+
 const runtimeModulesToIgnore = ['parse/_parse.ts'];
 
 const minify = terser({
@@ -40,7 +42,7 @@ export default processRollupOptions([
       }
     ],
     cache: false,
-    plugins: [cleanBuildFolder, ...DEFAULT_ROLLUP_BUILD_PLUGINS, ...PACKAGE_ADDITIONAL_FILES]
+    plugins: [...DEFAULT_ROLLUP_BUILD_PLUGINS, ...PACKAGE_ADDITIONAL_FILES]
   },
 
   /**
@@ -55,6 +57,7 @@ export default processRollupOptions([
       // umdRuntime
       getUMDConfiguration('runtime.js').output,
 
+      // Minify
       {
         ...getUMDConfiguration('runtime.min.js').output,
         plugins: [minify]

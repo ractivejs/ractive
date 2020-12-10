@@ -8,6 +8,8 @@ import {
   processRollupOptions
 } from './rollup.utils';
 
+cleanBuildFolder();
+
 const esOutPut = getESConfiguration('ractive.mjs').output;
 const umdOutput = getUMDConfiguration('ractive.js').output;
 
@@ -15,5 +17,5 @@ export default processRollupOptions({
   input: INPUT_FILE,
   output: [esOutPut, umdOutput],
   cache: false,
-  plugins: [cleanBuildFolder, ...DEFAULT_ROLLUP_BUILD_PLUGINS, ...PACKAGE_ADDITIONAL_FILES]
+  plugins: [...DEFAULT_ROLLUP_BUILD_PLUGINS, ...PACKAGE_ADDITIONAL_FILES]
 });

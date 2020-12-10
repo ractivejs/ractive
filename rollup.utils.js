@@ -1,11 +1,12 @@
 /* eslint-env node */
+import fs from 'fs';
 import path from 'path';
 
 import buble from '@rollup/plugin-buble';
 import replace from '@rollup/plugin-replace';
+import fsPlus from 'fs-plus';
 import MagicString from 'magic-string';
 import copy from 'rollup-plugin-copy';
-import del from 'rollup-plugin-delete';
 import typescript from 'rollup-plugin-typescript2';
 
 import pkg from './package.json';
@@ -45,8 +46,16 @@ export function processRollupOptions(options) {
   return _options;
 }
 
+export function cleanBuildFolder() {
+  // Manually create / clean build folder
+  fs.rmdirSync(BUILD_FOLDER, { recursive: true });
+  if (!fs.existsSync(BUILD_FOLDER)) {
+    fs.mkdirSync(BUILD_FOLDER);
+  }
+}
+
 /*
- * Output configurations
+ * Output configurations for Ractive bundle
  * ==============================
  */
 
@@ -112,10 +121,10 @@ export function skipModule(excludedModules) {
  * ==============================
  */
 /** Clean build folder before start any bundle operation */
-export const cleanBuildFolder = del({
-  targets: `${BUILD_FOLDER}/*`,
-  runOnce: true
-});
+// export const cleanBuildFolder = del({
+//   targets: `${BUILD_FOLDER}/*`,
+//   runOnce: true
+// });
 
 export const replacePlaceholders = replace({
   /** @see https://github.com/rollup/plugins/tree/master/packages/replace#word-boundaries */
@@ -145,7 +154,7 @@ export const manifests = copy({
   targets: [
     {
       src: 'manifests/*.json',
-      dest: `${BUILD_FOLDER}/manifests`,
+      dest: `${BUILD_FOLDER}`,
       transform(contents) {
         return Object.keys(placeholders).reduce((out, placeholder) => {
           return out.replace(new RegExp(`${placeholder}`, 'g'), placeholders[placeholder]);
@@ -157,3 +166,99 @@ export const manifests = copy({
 
 /** Includes task to copy all non compiled files to the build folder */
 export const PACKAGE_ADDITIONAL_FILES = [typings, bin, lib, manifests];
+
+/*
+ * Test utilities
+ * - Rollup configurations
+ * - Functions to build entry point
+ * ==============================
+ */
+
+/**
+ * @typedef {'BROWSER' | 'NODE'} TestGroup
+ *
+ * @typedef {Object} TestBundleConfig
+ * @property {string} folder folder where test are stored (inside `./tests`)
+ * @property {string} input the name of the file that will be used to create the bundle
+ * @property {string} bundle the name of the bundle included inside Karma configuration
+ */
+
+/**
+ * @type {Readonly<Record<TestGroup, TestBundleConfig>>}
+ *
+ * @todo consider to import these manifest inside karma config and use it inside `files` settings
+ */
+export const TestBundleManifest = {
+  BROWSER: {
+    folder: 'browser',
+    input: '_tests-browser-index.js',
+    bundle: 'tests-browser.js'
+  },
+  NODE: {
+    folder: 'node',
+    input: '_tests-node-index.js',
+    bundle: 'tests-node.js'
+  }
+};
+
+/**
+ * Build test entry point file basically look inside test folder for all js files then create a
+ * file which import and execute all test inside that folder
+ *
+ * @param {TestBundleConfig} testBundleConfig
+ */
+export function buildTestEntryPoint(testBundleConfig) {
+  const { folder: testFolder, input: entryPoint } = testBundleConfig;
+
+  const testPaths = fsPlus
+    .listTreeSync(`./tests/${testFolder}`)
+    .filter(testPath => fsPlus.isFileSync(testPath) && path.extname(testPath) === '.js');
+
+  const testImports = testPaths
+    .map(
+      (testPath, index) => `import test${index} from './${path.relative(BUILD_FOLDER, testPath)}';`
+    )
+    .join('\n');
+  const testCalls = testPaths.map((_testPath, index) => `test${index}();`).join('\n');
+
+  fs.writeFileSync(`${BUILD_FOLDER}/${entryPoint}`, `${testImports}\n${testCalls}`, 'utf8');
+}
+
+export function getTestBrowserConfiguration() {
+  return {
+    input: `${BUILD_FOLDER}/${TestBundleManifest.BROWSER.input}`,
+    output: {
+      name: 'RactiveBrowserTests',
+      format: 'iife',
+      file: `${BUILD_FOLDER}/${TestBundleManifest.BROWSER.bundle}`,
+      globals: {
+        qunit: 'QUnit',
+        simulant: 'simulant'
+      },
+      sourcemap: true
+    },
+    external: ['qunit', 'simulant'],
+    plugins: [
+      buble(),
+
+      copy({
+        targets: [{ src: 'qunit/*', dest: `${BUILD_FOLDER}/qunit` }]
+      })
+    ],
+    cache: false
+  };
+}
+
+export function getTestNodeConfiguration() {
+  return {
+    input: `${BUILD_FOLDER}/${TestBundleManifest.NODE.input}`,
+    output: {
+      format: 'cjs',
+      file: `${BUILD_FOLDER}/${TestBundleManifest.NODE.bundle}`,
+      sourcemap: true
+    },
+    external: ['cheerio'],
+    cache: false,
+    plugins: [buble()]
+  };
+}

@@ -3,21 +3,30 @@ import serve from 'rollup-plugin-serve';
 import {
   BUILD_FOLDER,
   DEFAULT_ROLLUP_BUILD_PLUGINS,
+  TestBundleManifest,
   cleanBuildFolder,
   getUMDConfiguration,
-  processRollupOptions
+  processRollupOptions,
+  getTestBrowserConfiguration,
+  buildTestEntryPoint
 } from './rollup.utils';
 
-export default processRollupOptions({
-  ...getUMDConfiguration('ractive.js'),
-  plugins: [
-    cleanBuildFolder,
+cleanBuildFolder();
 
-    ...DEFAULT_ROLLUP_BUILD_PLUGINS,
+buildTestEntryPoint(TestBundleManifest.BROWSER);
 
-    serve({
-      contentBase: [BUILD_FOLDER, 'sandbox'],
-      port: 4567
-    })
-  ]
-});
+export default processRollupOptions([
+  {
+    ...getUMDConfiguration('ractive.js'),
+    plugins: [
+      ...DEFAULT_ROLLUP_BUILD_PLUGINS,
+
+      serve({
+        contentBase: [BUILD_FOLDER, 'sandbox'],
+        port: 4567
+      })
+    ]
+  },
+
+  getTestBrowserConfiguration()
+]);
