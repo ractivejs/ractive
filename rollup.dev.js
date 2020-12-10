@@ -3,7 +3,7 @@ import serve from 'rollup-plugin-serve';
 import {
   BUILD_FOLDER,
   DEFAULT_ROLLUP_BUILD_PLUGINS,
-  clean,
+  cleanBuildFolder,
   getUMDConfiguration,
   processRollupOptions
 } from './rollup.utils';
@@ -11,7 +11,7 @@ import {
 export default processRollupOptions({
   ...getUMDConfiguration('ractive.js'),
   plugins: [
-    clean,
+    cleanBuildFolder,
 
     ...DEFAULT_ROLLUP_BUILD_PLUGINS,
 

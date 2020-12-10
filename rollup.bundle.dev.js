@@ -4,7 +4,7 @@ import {
   PACKAGE_ADDITIONAL_FILES,
   getESConfiguration,
   getUMDConfiguration,
-  clean,
+  cleanBuildFolder,
   processRollupOptions
 } from './rollup.utils';
 
@@ -15,5 +15,5 @@ export default processRollupOptions({
   input: INPUT_FILE,
   output: [esOutPut, umdOutput],
   cache: false,
-  plugins: [clean, ...DEFAULT_ROLLUP_BUILD_PLUGINS, ...PACKAGE_ADDITIONAL_FILES]
+  plugins: [cleanBuildFolder, ...DEFAULT_ROLLUP_BUILD_PLUGINS, ...PACKAGE_ADDITIONAL_FILES]
 });

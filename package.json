@@ -67,7 +67,7 @@
     "lint:fix:bin": "eslint --fix bin lib",
     "lint:perf": "",
     "bundle:dev": "rollup --config rollup.bundle.dev.js",
-    "bundle:test": "gobble --env=bundle:test build .build --f",
+    "bundle:test": "rollup --config rollup.bundle.test.js",
     "bundle:release": "rollup --config rollup.bundle.release.js",
     "test:electron": "karma start karma/electron.conf.js",
     "test:chrome": "karma start karma/chrome.conf.js",

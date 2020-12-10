@@ -20,7 +20,7 @@ const placeholders = {
 
 // File input and file destination configuration
 export const INPUT_FILE = './src/Ractive.ts';
-export const BUILD_FOLDER = './.buildRollup';
+export const BUILD_FOLDER = './.build';
 
 export const banner = `/*
 	Ractive.js v${version}
@@ -111,25 +111,24 @@ export function skipModule(excludedModules) {
  * Rollup plugins setup
  * ==============================
  */
-
-/** List of the plugins needed to compile Ractive correctly */
-export const DEFAULT_ROLLUP_BUILD_PLUGINS = [
-  replace({
-    /** @see https://github.com/rollup/plugins/tree/master/packages/replace#word-boundaries */
-    delimiters: ['', ''],
-    ...placeholders
-  }),
-
-  typescript(),
-
-  buble()
-];
-
 /** Clean build folder before start any bundle operation */
-export const clean = del({
+export const cleanBuildFolder = del({
   targets: `${BUILD_FOLDER}/*`,
   runOnce: true
 });
+
+export const replacePlaceholders = replace({
+  /** @see https://github.com/rollup/plugins/tree/master/packages/replace#word-boundaries */
+  delimiters: ['', ''],
+  ...placeholders
+});
+
+export const compileTypescript = typescript();
+
+export const transpile = buble();
+
+/** List of the plugins needed to compile Ractive correctly */
+export const DEFAULT_ROLLUP_BUILD_PLUGINS = [replacePlaceholders, compileTypescript, transpile];
 
 export const typings = copy({
   targets: [{ src: 'typings/*', dest: `${BUILD_FOLDER}/typings` }]
