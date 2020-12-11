@@ -16,6 +16,8 @@ cleanBuildFolder();
 buildTestEntryPoint(TestBundleManifest.BROWSER);
 
 export default processRollupOptions([
+  getTestBrowserConfiguration(),
+
   {
     ...getUMDConfiguration('ractive.js'),
     plugins: [
@@ -26,7 +28,5 @@ export default processRollupOptions([
         port: 4567
       })
     ]
-  },
-
-  getTestBrowserConfiguration()
+  }
 ]);
