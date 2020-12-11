@@ -53,7 +53,7 @@
     "dev:browser": "rollup --config rollup.dev.js --watch",
     "dev:node": "",
     "dev:bin": "",
-    "dev:perf": "cd perf; gobble",
+    "dev:perf": "cd perf; rollup --config rollup.perf.js --watch",
     "lint:src": "eslint src --ext .js,.ts",
     "lint:tests:browser": "eslint tests/browser",
     "lint:tests:node": "eslint tests/node",

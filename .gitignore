@@ -13,14 +13,13 @@ sandbox/*
 .gobble-build
 .gobble-watch
 .build
-.buildRollup
 .publish
 build
 tmp
 
 # Performance tests
 perf/control/*
-!perf/control/.empty
+!perf/control/empty
 
 # Log files
 *.log

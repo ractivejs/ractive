@@ -1,80 +1,79 @@
-/*global Ractive */
-var tests = [
-	{
-		name: 'update implicit mappings',
-		setup: () => {
-			Ractive.components.foo = Ractive.extend({
-				template: '<bar/>'
-			});
+const tests = [
+  {
+    name: 'update implicit mappings',
+    setup: () => {
+      Ractive.components.foo = Ractive.extend({
+        template: '<bar/>'
+      });
 
-			Ractive.components.bar = Ractive.extend({
-				template: '<baz/>'
-			});
+      Ractive.components.bar = Ractive.extend({
+        template: '<baz/>'
+      });
 
-			Ractive.components.baz = Ractive.extend({
-				template: '{{message}}'
-			});
-		},
-		beforeEach: () => {
-			window.ractive = new Ractive({
-				el: 'body',
-				template: `
+      Ractive.components.baz = Ractive.extend({
+        template: '{{message}}'
+      });
+    },
+    beforeEach: () => {
+      window.ractive = new Ractive({
+        el: 'body',
+        template: `
 					{{#each Array(50) }}
 						<foo/>
 					{{/each}}`
-			});
-		},
-		test: () => {
-			window.ractive.set( 'message', 'hello' );
-		}
-	},
+      });
+    },
+    test: () => {
+      window.ractive.set('message', 'hello');
+    }
+  },
 
-	{
-		name: 'update explicit mappings',
-		setup: () => {
-			Ractive.components.foo = Ractive.extend({
-				template: '<bar message="{{message}}"/>'
-			});
+  {
+    name: 'update explicit mappings',
+    setup: () => {
+      Ractive.components.foo = Ractive.extend({
+        template: '<bar message="{{message}}"/>'
+      });
 
-			Ractive.components.bar = Ractive.extend({
-				template: '<baz message="{{message}}"/>'
-			});
+      Ractive.components.bar = Ractive.extend({
+        template: '<baz message="{{message}}"/>'
+      });
 
-			Ractive.components.baz = Ractive.extend({
-				template: '{{message}}'
-			});
+      Ractive.components.baz = Ractive.extend({
+        template: '{{message}}'
+      });
 
-			var ractive = new Ractive({
-				el: 'body',
-				template: `
+      const ractive = new Ractive({
+        el: 'body',
+        template: `
 					{{#each Array(50) }}
 						<foo/>
 					{{/each}}`
-			});
+      });
 
-			return ractive;
-		},
-		beforeEach: () => {
-			window.ractive = new Ractive({
-				el: 'body',
-				template: `
+      return ractive;
+    },
+    beforeEach: () => {
+      window.ractive = new Ractive({
+        el: 'body',
+        template: `
 					{{#each Array(50) }}
 						<foo/>
 					{{/each}}`
-			});
-		},
-		test: () => {
-			window.ractive.set( 'message', 'hello' );
-		}
-	},
+      });
+    },
+    test: () => {
+      window.ractive.set('message', 'hello');
+    }
+  },
 
-	{
-		name: 'boxes',
-		setup: () => {
-			var i = 100, style;
+  {
+    name: 'boxes',
+    setup: () => {
+      let i = 100;
 
-			style = document.createElement( 'style' );
-			style.innerHTML = `
+      const style = document.createElement('style');
+      style.innerHTML = `
 				.box-view {
 					width: 20px; height: 20px;
 					float: left;
@@ -91,16 +90,16 @@ var tests = [
 					text-align: center;
 					position: absolute;
 				}`;
-			document.head.appendChild( style );
+      document.head.appendChild(style);
 
-			window.boxes = [];
-			while ( i-- ) {
-				window.boxes[i] = { top: 0, left: 0, color: 0, content: 0 };
-			}
+      window.boxes = [];
+      while (i--) {
+        window.boxes[i] = { top: 0, left: 0, color: 0, content: 0 };
+      }
 
-			window.ractive = new Ractive({
-				el: 'body',
-				template: `
+      window.ractive = new Ractive({
+        el: 'body',
+        template: `
 					{{#boxes:i}}
 						<div class='box-view'>
 							<div class="box" style="top: {{top}}px; left: {{left}}px; background: rgb(0,0,{{color}});">
@@ -108,114 +107,114 @@ var tests = [
 							</div>
 						</div>
 					{{/boxes}}`,
-				data: { boxes: window.boxes }
-			});
+        data: { boxes: window.boxes }
+      });
 
-			window.count = 0;
-		},
-		test: () => {
-			var i, box;
+      window.count = 0;
+    },
+    test: () => {
+      let i, box;
 
-			window.count += 1;
+      window.count += 1;
 
-			i = window.boxes.length;
-			while ( i-- ) {
-				box = window.boxes[i];
+      i = window.boxes.length;
+      while (i--) {
+        box = window.boxes[i];
 
-				box.top = Math.sin(window.count / 10) * 10;
-				box.left = Math.cos(window.count / 10) * 10;
-				box.color = (window.count) % 255;
-				box.content = window.count % 100;
-			}
+        box.top = Math.sin(window.count / 10) * 10;
+        box.left = Math.cos(window.count / 10) * 10;
+        box.color = window.count % 255;
+        box.content = window.count % 100;
+      }
 
-			window.ractive.update( 'boxes' );
-		}
-	},
+      window.ractive.update('boxes');
+    }
+  },
 
-	{
-		name: 'splice large array',
-		setup: () => {
-			var items = [];
+  {
+    name: 'splice large array',
+    setup: () => {
+      const items = [];
 
-			window.i = 0;
+      window.i = 0;
 
-			for ( window.i = 0; window.i < 500; window.i += 1 ) {
-				items[ window.i ] = { key: window.i, text: `[${Math.random()}]` };
-			}
+      for (window.i = 0; window.i < 500; window.i += 1) {
+        items[window.i] = { key: window.i, text: `[${Math.random()}]` };
+      }
 
-			window.ractive = new Ractive({
-				el: 'body',
-				template: `
+      window.ractive = new Ractive({
+        el: 'body',
+        template: `
 					<ul>
 						{{#items}}
 							<li>{{key}}: {{text}}</li>
 						{{/items}}
 					</ul>`,
-				data: { items: items }
-			});
-		},
-		beforeEach: () => {
-			window.ractive.push( 'items', { key: window.i++, text: `[${Math.random()}]` });
-		},
-		test: () => {
-			window.ractive.splice( 'items', 3, 1 );
-		}
-	},
+        data: { items }
+      });
+    },
+    beforeEach: () => {
+      window.ractive.push('items', { key: window.i++, text: `[${Math.random()}]` });
+    },
+    test: () => {
+      window.ractive.splice('items', 3, 1);
+    }
+  },
 
-	{
-		name: 'change object on object hash',
-		setup: () => {
-			var items = {};
+  {
+    name: 'change object on object hash',
+    setup: () => {
+      const items = {};
 
-			window.newItems = {};
+      window.newItems = {};
 
-			window.i = 0;
+      window.i = 0;
 
-			for ( window.i = 0; window.i < 50; window.i += 1 ) {
-				items[ 'key' + window.i ] = { text: `[${Math.random()}]` };
-				newItems[ 'key' + window.i ] = { text: `[${Math.random()}]` };
-			}
+      for (window.i = 0; window.i < 50; window.i += 1) {
+        items['key' + window.i] = { text: `[${Math.random()}]` };
+        window.newItems['key' + window.i] = { text: `[${Math.random()}]` };
+      }
 
-			window.ractive = new Ractive({
-				el: 'body',
-				template: `
+      window.ractive = new Ractive({
+        el: 'body',
+        template: `
 					<ul>
 						{{#items:key}}
 							<li>{{key}}: {{text}}</li>
 						{{/items}}
 					</ul>`,
-				data: { items: items }
-			});
-		},
-		test: () => {
-			window.ractive.set( 'items', window.newItems );
-		}
-	},
+        data: { items }
+      });
+    },
+    test: () => {
+      window.ractive.set('items', window.newItems);
+    }
+  },
 
-	{
-		name: 'add key to object hash',
-		setup: () => {
-			var items = {};
+  {
+    name: 'add key to object hash',
+    setup: () => {
+      const items = {};
 
-			window.i = 0;
+      window.i = 0;
 
-			for ( window.i = 0; window.i < 50; window.i += 1 ) {
-				items[ 'key' + window.i ] = { text: `[${Math.random()}]` };
-			}
+      for (window.i = 0; window.i < 50; window.i += 1) {
+        items['key' + window.i] = { text: `[${Math.random()}]` };
+      }
 
-			window.ractive = new Ractive({
-				el: 'body',
-				template: `
+      window.ractive = new Ractive({
+        el: 'body',
+        template: `
 					<ul>
 						{{#items:key}}
 							<li>{{key}}: {{text}}</li>
 						{{/items}}
 					</ul>`,
-				data: { items: items }
-			});
-		},
-		test: () => {
-			window.ractive.set( 'items.newKey', { text: `[${Math.random()}]` } );
-		}
-	}
+        data: { items }
+      });
+    },
+    test: () => {
+      window.ractive.set('items.newKey', { text: `[${Math.random()}]` });
+    }
+  }
 ];
