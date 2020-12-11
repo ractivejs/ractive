@@ -3,12 +3,14 @@
 ## 2.0.0 (work in progress)
 
 * All codebase has been rewritten using Typescript
+* Build system refactor: now rollup is the main build tool
+* Bugfixes
+  * Array observer callback have the correct this now [3343](https://github.com/ractivejs/ractive/issues/3343)
 
 ### TODO
 
 * Remove `any` type from source code
 * Automatic definition files generation
-* Build system refactor
 * [TBD] Remove `noCssTransform` and use only `noCssTransform` [#3273](https://github.com/ractivejs/ractive/issues/3273)
 
 ## 1.4.0 (edge, unreleased)
