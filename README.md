@@ -1,7 +1,9 @@
 <p align="center"><img src ="https://avatars1.githubusercontent.com/u/4751469?v=3&s=100"></p>
 
 # Ractive.js - Next-generation DOM manipulation
-[![Gitter](https://img.shields.io/gitter/room/ractivejs/ractive.svg?style=flat-square)](https://gitter.im/ractivejs/ractive) [![npm version](https://img.shields.io/npm/v/ractive.svg?style=flat-square)](https://www.npmjs.com/package/ractive) [![dependency Status](https://img.shields.io/david/ractivejs/ractive.svg?style=flat-square)](https://david-dm.org/RactiveJS/Ractive) [![Build Status](https://img.shields.io/travis/ractivejs/ractive/dev.svg?style=flat-square)](https://travis-ci.org/ractivejs/ractive) [![Coverage Status](https://img.shields.io/coveralls/ractivejs/ractive/dev.svg?style=flat-square)](https://coveralls.io/github/ractivejs/ractive?branch=dev) [![jsDelivr downloads](https://data.jsdelivr.com/v1/package/npm/ractive/badge)](https://www.jsdelivr.com/package/npm/ractive) [![npm downloads](https://img.shields.io/npm/dm/ractive.svg?style=flat-square)](https://www.npmjs.com/package/ractive) [![Twitter Follow](https://img.shields.io/twitter/follow/ractivejs.svg?style=flat-square)](https://twitter.com/ractivejs)
+[![npm version](https://img.shields.io/npm/v/ractive.svg?style=flat-square)](https://www.npmjs.com/package/ractive) [![Build Status](https://img.shields.io/travis/ractivejs/ractive/dev.svg?style=flat-square)](https://travis-ci.org/ractivejs/ractive) [![Coverage Status](https://img.shields.io/coveralls/ractivejs/ractive/dev.svg?style=flat-square)](https://coveralls.io/github/ractivejs/ractive?branch=dev) [![jsDelivr downloads](https://data.jsdelivr.com/v1/package/npm/ractive/badge)](https://www.jsdelivr.com/package/npm/ractive) [![npm downloads](https://img.shields.io/npm/dm/ractive.svg?style=flat-square)](https://www.npmjs.com/package/ractive) [![Twitter Follow](https://img.shields.io/twitter/follow/ractivejs.svg?style=flat-square)](https://twitter.com/ractivejs)
+
+Have any questions or just want to chat? Join us on [GitHub Discussions](https://github.com/ractivejs/ractive/discussions)!
 
 
 ## What is Ractive.js?
@@ -25,5 +27,5 @@ All forms of help are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) to
 
 ## License
 
-Copyright (c) 2012-17 Rich Harris and contributors. Released under an [MIT license](LICENSE.md).
+Copyright (c) 2012-21 Rich Harris and contributors. Released under an [MIT license](LICENSE.md).
 
