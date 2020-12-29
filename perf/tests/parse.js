@@ -1,9 +1,8 @@
-/*global Ractive */
-var tests = [
-	{
-		name: 'parse complex template',
-		setup: () => {
-			window.template = `
+const tests = [
+  {
+    name: 'parse complex template',
+    setup: () => {
+      window.template = `
 				<div class='graphic'>
 				  <div class='header'>
 				    {{#fullscreenEnabled}}
@@ -2589,10 +2588,10 @@ var tests = [
 				  <div class='detail'>
 				    <p>{{{ detail[ info ] || 'Tap on the labels for more info' }}}</p>
 				  </div>
-				</div>`
-		},
-		test: () => {
-			var parsed = Ractive.parse( window.template );
-		}
-	}
+				</div>`;
+    },
+    test: () => {
+      const parsed = Ractive.parse(window.template);
+    }
+  }
 ];

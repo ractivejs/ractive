@@ -13,17 +13,11 @@ cd ractive
 npm install
 ```
 
-You will need to have [gobble-cli](https://github.com/gobblejs/gobble-cli) installed:
-
-```bash
-npm install -g gobble-cli
-```
-
 Inside this folder (`perf`), start building the app:
 
 ```bash
 cd perf
-gobble
+npx rollup --config rollup.perf.js
 ```
 
 Navigate to [localhost:4567](http://localhost:4567). You will see a list of test pages - open one. Click the big green button.

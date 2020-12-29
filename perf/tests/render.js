@@ -1,81 +1,79 @@
-/*global Ractive */
+const tests = [
+  {
+    name: 'render implicit mappings',
+    setup: () => {
+      Ractive.components.foo = Ractive.extend({
+        template: '<bar/>'
+      });
 
-var tests = [
-	{
-		name: 'render implicit mappings',
-		setup: () => {
-			Ractive.components.foo = Ractive.extend({
-				template: '<bar/>'
-			});
+      Ractive.components.bar = Ractive.extend({
+        template: '<baz/>'
+      });
 
-			Ractive.components.bar = Ractive.extend({
-				template: '<baz/>'
-			});
+      Ractive.components.baz = Ractive.extend({
+        template: '{{message}}'
+      });
 
-			Ractive.components.baz = Ractive.extend({
-				template: '{{message}}'
-			});
-
-			window.messages = new Array( 50 );
-			for (var i = 0; i < messages.length; i++) {
-				messages[i] = { message: 'hello ' + i }
-			};
-		},
-		test: () => {
-			window.ractive = new Ractive({
-				el: 'body',
-				template: `
+      window.messages = new Array(50);
+      for (let i = 0; i < window.messages.length; i++) {
+        window.messages[i] = { message: 'hello ' + i };
+      }
+    },
+    test: () => {
+      window.ractive = new Ractive({
+        el: 'body',
+        template: `
 					{{#each messages }}
 						<foo/>
 					{{/each}}`,
-				data: {
-					messages: window.messages
-				}
-			});
-		}
-	},
+        data: {
+          messages: window.messages
+        }
+      });
+    }
+  },
 
-	{
-		name: 'render explicit mappings',
-		setup: () => {
-			Ractive.components.foo = Ractive.extend({
-				template: '<bar message="{{message}}"/>'
-			});
+  {
+    name: 'render explicit mappings',
+    setup: () => {
+      Ractive.components.foo = Ractive.extend({
+        template: '<bar message="{{message}}"/>'
+      });
 
-			Ractive.components.bar = Ractive.extend({
-				template: '<baz message="{{message}}"/>'
-			});
+      Ractive.components.bar = Ractive.extend({
+        template: '<baz message="{{message}}"/>'
+      });
 
-			Ractive.components.baz = Ractive.extend({
-				template: '{{message}}'
-			});
+      Ractive.components.baz = Ractive.extend({
+        template: '{{message}}'
+      });
 
-			window.messages = new Array( 50 );
-			for (var i = 0; i < messages.length; i++) {
-				messages[i] = { message: 'hello ' + i }
-			};
-		},
-		test: () => {
-			window.ractive = new Ractive({
-				el: 'body',
-				template: `
+      window.messages = new Array(50);
+      for (let i = 0; i < window.messages.length; i++) {
+        window.messages[i] = { message: 'hello ' + i };
+      }
+    },
+    test: () => {
+      window.ractive = new Ractive({
+        el: 'body',
+        template: `
 					{{#each messages }}
 						<foo message='{{ this }}'/>
 					{{/each}}`,
-				data: {
-					messages: window.messages
-				}
-			});
-		}
-	},
+        data: {
+          messages: window.messages
+        }
+      });
+    }
+  },
 
-	{
-		name: 'render 1000 boxes',
-		setup: () => {
-			var i = 1000, style;
+  {
+    name: 'render 1000 boxes',
+    setup: () => {
+      let i = 1000;
 
-			style = document.createElement( 'style' );
-			style.innerHTML = `
+      const style = document.createElement('style');
+      style.innerHTML = `
 				.box-view {
 					width: 20px; height: 20px;
 					float: left;
@@ -92,18 +90,17 @@ var tests = [
 					text-align: center;
 					position: absolute;
 				}`;
-			document.head.appendChild( style );
+      document.head.appendChild(style);
 
-			window.boxes = [];
-			while ( i-- ) {
-				window.boxes[i] = { top: i, left: i, color: 0, content: i };
-			}
-		},
-		test: () => {
-
-			window.ractive = new Ractive({
-				el: 'body',
-				template: `
+      window.boxes = [];
+      while (i--) {
+        window.boxes[i] = { top: i, left: i, color: 0, content: i };
+      }
+    },
+    test: () => {
+      window.ractive = new Ractive({
+        el: 'body',
+        template: `
 					{{#boxes:i}}
 						<div class='box-view'>
 							<div class="box" style="top: {{top}}px; left: {{left}}px; background: rgb(0,0,{{color}});">
@@ -111,9 +108,8 @@ var tests = [
 							</div>
 						</div>
 					{{/boxes}}`,
-				data: { boxes: window.boxes }
-			});
-
-		}
-	}
+        data: { boxes: window.boxes }
+      });
+    }
+  }
 ];
