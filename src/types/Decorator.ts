@@ -14,7 +14,7 @@ export interface DecoratorHandle {
   /**
    * Called when any arguments passed to the decorator update. If no update function is supplied, then the decorator will be torn down and recreated when the decorator arguments update.j
    */
-  update?: (...args: any[]) => void;
+  update?: (...args: unknown[]) => void;
 
   /** TODO write doc */
   shuffled?: () => void;
@@ -23,5 +23,5 @@ export interface DecoratorHandle {
 export type Decorator<T extends Ractive = Ractive> = (
   this: T,
   node: HTMLElement,
-  ...args: any[]
+  ...args: unknown[]
 ) => DecoratorHandle;

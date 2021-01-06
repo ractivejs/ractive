@@ -35,7 +35,7 @@
     * (Ractive|Static).extend now handle multiple params and return the correct type
 
 
-# 1.2.9, 1.3.12
+## 1.2.9, 1.3.12
 
 * Bug fixes
   * Track decorator args as expressions so that updates, so that they get notified when their deps change (#3329)

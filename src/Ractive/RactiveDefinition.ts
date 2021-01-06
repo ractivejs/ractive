@@ -435,4 +435,6 @@ export class Static<T extends Ractive<T> = Ractive> extends Ractive<T> {
   static default: any;
 
   static _fn: Function;
+
+  static css?: string | CssFn;
 }

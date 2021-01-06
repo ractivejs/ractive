@@ -8,7 +8,7 @@ import runloop from '../../global/runloop';
 import { build, set } from '../../shared/set';
 import { evalCSS } from '../config/custom/css/css';
 import transformCSS from '../config/custom/css/transform';
-import type { Ractive } from '../RactiveDefinition';
+import type { Ractive, Static } from '../RactiveDefinition';
 
 type SetCSSDataOpts = SetOpts & { apply: boolean };
 
@@ -44,7 +44,7 @@ function setCSSData(
 
 export default setCSSData;
 
-export function applyChanges(component, apply: boolean) {
+export function applyChanges(component: typeof Static, apply: boolean): boolean {
   const local = recomputeCSS(component);
   const child = component.extensions
     .map(e => applyChanges(e, false))
@@ -58,7 +58,7 @@ export function applyChanges(component, apply: boolean) {
   return local || child;
 }
 
-export function recomputeCSS(component): true | undefined {
+export function recomputeCSS(component: typeof Static): true | undefined {
   const css = component.css;
 
   if (!isFunction(css)) return;

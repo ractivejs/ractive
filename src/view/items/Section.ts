@@ -1,5 +1,8 @@
 import TemplateItemType from 'config/types';
+import type LinkModel from 'model/LinkModel';
+import type Model from 'model/Model';
 import type { ModelWithRebound } from 'model/ModelBase';
+import type { NewIndexes } from 'shared/getNewIndices';
 import { keep } from 'shared/set';
 import runloop from 'src/global/runloop';
 import type { Ractive } from 'src/Ractive/RactiveDefinition';
@@ -98,7 +101,7 @@ export default class Section
     return frag ? frag.detach() : super.detach();
   }
 
-  findNextNode() {
+  findNextNode(): HTMLElement {
     return (this.containerFragment || this.up).findNextNode(this);
   }
 
@@ -110,7 +113,7 @@ export default class Section
     );
   }
 
-  rebind(next, previous, safe): boolean {
+  rebind(next: Model | LinkModel, previous: Model | LinkModel, safe: boolean): boolean {
     if (super.rebind(next, previous, safe)) {
       if (
         this.fragment &&
@@ -123,7 +126,7 @@ export default class Section
     return true;
   }
 
-  rebound(update): void {
+  rebound(update: boolean): void {
     if (this.model) {
       if ('rebound' in this.model) (<ModelWithRebound>this.model).rebound(update);
       else {
@@ -143,23 +146,23 @@ export default class Section
     if (this.fragment) this.fragment.rebound(update);
   }
 
-  render(target, occupants): void {
+  render(target: HTMLElement, occupants: HTMLElement[]): void {
     this.rendered = true;
     if (this.fragment) this.fragment.render(target, occupants);
   }
 
-  shuffle(newIndices): void {
+  shuffle(newIndices: NewIndexes): void {
     if (this.fragment && this.sectionType === TemplateItemType.SECTION_EACH) {
       this.fragment.shuffle(newIndices);
     }
   }
 
-  unbind(view?): void {
+  unbind(view?: boolean): void {
     super.unbind();
     if (this.fragment) this.fragment.unbind(view);
   }
 
-  unrender(shouldDestroy): void {
+  unrender(shouldDestroy: boolean): void {
     if (this.rendered && this.fragment) this.fragment.unrender(shouldDestroy);
     this.rendered = false;
   }

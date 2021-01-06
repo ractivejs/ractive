@@ -17,6 +17,7 @@ import { splitKeypath } from '../shared/keypaths';
 
 import Fragment, { getKeypath, FragmentOpts } from './Fragment';
 import type Element from './items/Element';
+import type Section from './items/Section';
 import resolve from './resolvers/resolve';
 
 const keypathString = /^"(\\"|[^"])+"$/;
@@ -27,10 +28,10 @@ export interface RepeatedFragmentOpts extends FragmentOpts {
 }
 
 export default class RepeatedFragment {
-  private owner: any;
+  private owner: Section;
   public parent: Fragment;
   public ractive: Ractive;
-  public template: any[];
+  public template: unknown;
 
   // boolean | number | Element
   private delegate: boolean | Element;

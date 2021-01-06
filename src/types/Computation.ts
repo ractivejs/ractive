@@ -4,7 +4,7 @@ export type ComputationFn<T extends Ractive = Ractive> = (
   this: T,
   context?: any,
   keypath?: string
-) => any;
+) => unknown;
 
 export interface ComputationDescriptor<T extends Ractive = Ractive> {
   /**
@@ -16,7 +16,7 @@ export interface ComputationDescriptor<T extends Ractive = Ractive> {
   /**
    * Called when Ractive is asked to set a computed keypath.
    */
-  set?: (this: T, value: any, context: any, keypath: string) => void;
+  set?: (this: T, value: unknown, context: any, keypath: string) => void;
 }
 
 export type Computation<T extends Ractive = Ractive> =

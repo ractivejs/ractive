@@ -72,7 +72,7 @@ export default function getNewIndices(length, methodName, args): NewIndexes {
 
 // The pop, push, shift an unshift methods can all be represented
 // as an equivalent splice
-function getSpliceEquivalent(length, methodName, args) {
+function getSpliceEquivalent(length: number, methodName: string, args: [number]) {
   switch (methodName) {
     case 'splice':
       if (args[0] !== undefined && args[0] < 0) {

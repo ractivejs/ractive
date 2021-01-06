@@ -239,7 +239,7 @@ export default class LinkModel extends ModelBase implements ModelWithShuffle {
     }
   }
 
-  source() {
+  source(): Model | LinkModel {
     if (this.target.source) return this.target.source();
     else return this.target;
   }
