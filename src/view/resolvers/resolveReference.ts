@@ -216,8 +216,9 @@ export default function resolveReference(
 
     const componentParent = 'componentParent' in fragment && fragment.componentParent;
     if (
-      (componentParent || (!fragment.parent && fragment.ractive.component)) &&
-      !fragment.ractive.isolated
+      !fragment.ractive.isolated &&
+      !((<Fragment>fragment).owner && (<Fragment>fragment).owner.containerFragment) &&
+      ((<Fragment>fragment).componentParent || (!fragment.parent && fragment.ractive.component))
     ) {
       // ascend through component boundary
       fragment = componentParent || fragment.ractive.component.up;
@@ -242,7 +243,13 @@ export default function resolveReference(
 }
 
 function up(fragment: Fragment): Fragment | RepeatedFragment {
-  return fragment && ((!fragment.ractive.isolated && fragment.componentParent) || fragment.parent);
+  return (
+    fragment &&
+    ((!fragment.ractive.isolated &&
+      !(fragment.owner && fragment.owner.containerFragment) &&
+      (fragment.componentParent || (!fragment.parent && fragment.ractive.component))) ||
+      fragment.parent)
+  );
 }
 
 function findIter(start: Fragment): Fragment {

@@ -1817,4 +1817,59 @@ export default function () {
       })
       .then(done, done);
   });
+
+  test(`non-isolated yields with references shouldn't blow the stack (#3351)`, t => {
+    const cmp = Ractive.extend({
+      template: '{{yield foo}}',
+      isolated: false
+    });
+    new Ractive({
+      target: fixture,
+      template: '<cmp>{{#partial foo}}{{#if sure}}sure{{/if}}{{/partial}}</cmp>',
+      components: { cmp },
+      isolated: false,
+      data: {
+        sure: true
+      }
+    });
+
+    t.htmlEqual(fixture.innerHTML, 'sure');
+  });
+
+  test(`non-isolated partials with references should create a mapping`, t => {
+    const cmp = Ractive.extend({
+      template: '{{>foo}}',
+      isolated: false
+    });
+    const r = new Ractive({
+      target: fixture,
+      template: '<cmp>{{#partial foo}}{{#if sure}}sure{{/if}}{{/partial}}</cmp>',
+      components: { cmp },
+      isolated: false,
+      data: {
+        sure: true
+      }
+    });
+
+    t.htmlEqual(fixture.innerHTML, 'sure');
+    t.equal(r.findComponent('cmp').readLink('sure').keypath, 'sure');
+  });
+
+  test(`non-isolated yields with relative references to yielded context resolve correctly (#3351)`, t => {
+    const cmp = Ractive.extend({
+      template: '{{yield foo}}',
+      isolated: false
+    });
+    new Ractive({
+      target: fixture,
+      template: '<cmp>{{#partial foo}}{{.foo}}{{/partial}}</cmp>',
+      components: { cmp },
+      isolated: false,
+      data: {
+        foo: 'sure'
+      }
+    });
+
+    t.htmlEqual(fixture.innerHTML, 'sure');
+  });
 }

@@ -22,7 +22,20 @@
   * Decorators and custom events can now access their local context, in the case of a yielded attribute partial, with `this.getLocalContext()`.
 
 
-## 1.2.9, 1.3.12
+## 1.3.14
+
+* Bug fixes
+  * 1.3.x should be the latest version [#3357](https://github.com/ractivejs/ractive/issues/3357)
+
+## 1.2.10, 1.3.13
+
+* Bug fixes
+  * Fix on definition file (#3348)
+    * Now BaseInitOpts contains all lifecycle events
+    * (Ractive|Static).extend now handle multiple params and return the correct type
+
+
+# 1.2.9, 1.3.12
 
 * Bug fixes
   * Track decorator args as expressions so that updates, so that they get notified when their deps change (#3329)
