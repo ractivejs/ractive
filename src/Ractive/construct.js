@@ -28,7 +28,7 @@ const protoRegistries = ['computed', 'helpers'];
 
 let uid = 0;
 
-export default function construct(ractive, options) {
+export default function construct(ractive, options, Constructor) {
   if (Ractive.DEBUG) welcome();
 
   initialiseProperties(ractive);
@@ -51,6 +51,7 @@ export default function construct(ractive, options) {
     ractive.use.apply(ractive, options.use.filter(p => p.construct));
   }
 
+  if (Constructor) Constructor.call(ractive);
   hooks.construct.fire(ractive, options);
   if (options.onconstruct) options.onconstruct.call(ractive, getRactiveContext(ractive), options);
 

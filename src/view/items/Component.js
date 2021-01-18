@@ -75,7 +75,7 @@ export default class Component extends Item {
       instance.root = instance.parent.root;
       instance.component = this;
 
-      construct(this.instance, { partials });
+      construct(this.instance, { partials }, ComponentConstructor);
 
       // these can be modified during construction
       template = this.template;

@@ -49,6 +49,7 @@ function extendOne(Parent, options = {}, Target) {
   } else {
     Child = function(options) {
       if (!(this instanceof Child)) return new Child(options);
+      if (this.component) return;
 
       construct(this, options || {});
       initialise(this, options || {}, {});
