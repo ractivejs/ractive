@@ -43,7 +43,7 @@ export default class Component extends Item {
       this.addChild = addChild;
       this.removeChild = removeChild;
     } else {
-      const instance = create(ComponentConstructor.prototype);
+      const instance = new ComponentConstructor({ component: true });
 
       this.instance = instance;
       this.name = template.e;

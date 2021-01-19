@@ -35,7 +35,7 @@ import { assign, defineProperty, defineProperties } from 'utils/object';
 
 export default function Ractive(options) {
   if (!(this instanceof Ractive)) return new Ractive(options);
-  if (this.component) return;
+  if (options && options.component) return;
 
   construct(this, options || {});
   initialise(this, options || {}, {});
