@@ -455,7 +455,11 @@ export interface LinkOpts {
 	keypath?: string;
 }
 
-export type ListenerCallback<T extends Ractive<T> = Ractive> = (this: T, ctx: ContextHelper, ...args: any[]) => boolean | void | Promise<any>;
+export interface ListenerContextHelper extends ContextHelper {
+	name: string;
+}
+
+export type ListenerCallback<T extends Ractive<T> = Ractive> = (this: T, ctx: ListenerContextHelper, ...args: any[]) => boolean | void | Promise<any>;
 export interface ListenerDescriptor<T extends Ractive<T> = Ractive> {
 	/**
 	 * The callback to call when the event is fired.
@@ -1054,7 +1058,7 @@ export interface Static<T extends Ractive<T> = Ractive> {
 	partials: Registry<Partial>;
 
 	/** Create a new component with this constructor as a starting point. */
-    extend<U, V extends ExtendOpts<T & U> & U = ExtendOpts<T & U> & U>(...opts: V[]): Static<T & U>;
+	extend<U, V extends ExtendOpts<T> = ExtendOpts<T>>(opts?: V): Static<Ractive<T & U>>;
 
 	/** Create a new component with this constructor as a starting point using the given constructor. */
 	extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive<T & U>>;
@@ -1540,7 +1544,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	static partials: Registry<Partial>;
 
 	/** Create a new component with this constructor as a starting point. */
-	static extend<U>(...opts: (ExtendOpts<Ractive & U> & U)[]): Static<Ractive & U>;
+	static extend<U>(opts?: ExtendOpts<Ractive & U>): Static<Ractive<Ractive & U>>;
 
 	/** Create a new component with this constructor as a starting point using the given constructor. */
 	static extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive<Ractive & U>>;
@@ -1588,6 +1592,12 @@ export module Ractive {
 	const svg: boolean;
 
 	const VERSION: string;
+
+	/**
+	 * The current operation promise is available to things like observers and decorators using Ractive.tick,
+	 * which will return undefined if there is not currently an operation in progress.
+	 */
+	const tick: undefined | Promise<void>;
 
 	/**
 	 * Add Ractive-managed CSS to the managed style tag. This effectively global CSS managed by the Ractive constructor,
