@@ -915,6 +915,9 @@ export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseO
 	/* A map of components */
 	components?: Registry<Component>;
 
+	/** True if this instance is being constructed as a component, which also means it will be initialized after the constructor. */
+	component?: true;
+
 	/** A map of computations */
 	computed?: { [key: string]: Computation<T> };
 
