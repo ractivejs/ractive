@@ -509,7 +509,7 @@ export interface Macro extends MacroFn {
 	styleSet(map: ValueMap): Promise<void>;
 }
 
-export type MacroFn = (MacroHelper) => MacroHandle;
+export type MacroFn = (helper: MacroHelper) => MacroHandle;
 
 export interface MacroHandle {
 	render?: () => void;
@@ -681,22 +681,12 @@ export interface PartialMap {
 	[key: string]: Partial;
 }
 
-export type PluginExtend = (PluginArgsExtend) => void;
-export type PluginInstance = (PluginArgsInstance) => void;
-
-export interface PluginArgsBase {
+export interface PluginArgs {
 	Ractive: typeof Ractive;
+	proto: Ractive|Static;
+	instance: Ractive|Static;
 }
-export interface PluginArgsInstance {
-	proto: Ractive;
-	instance: Ractive;
-}
-export interface PluginArgsExtend {
-	proto: Static;
-	instance: Static;
-}
-
-export type Plugin = (PluginArgsBase) => void;
+export type Plugin = (args: PluginArgs) => void;
 
 export interface ReadLinkOpts {
 	/** Whether or not to follow through any upstream links when resolving the source. */
@@ -1003,7 +993,7 @@ export interface ExtendOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts
 	noCssTransform?: boolean;
 
 	/** An array of plugins to apply to the component. */
-	use?: PluginExtend[];
+	use?: Plugin[];
 }
 
 export interface InitOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T> {
@@ -1017,7 +1007,7 @@ export interface InitOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T
 	target?: Target;
 
 	/** An array of plugins to apply to the instance. */
-	use?: PluginInstance[];
+	use?: Plugin[];
 
 	/** If true, this instance can occupy the target element with other existing instances rather than cause them to unrender. Cannot be used with enhance. */
 	append?: true;
@@ -1084,7 +1074,7 @@ export interface Static<T extends Ractive<T> = Ractive> {
 	styleSet(map: ValueMap, opts?: StyleSetOpts): Promise<void>;
 
 	/** Install one or more plugins on the component.  */
-	use(...plugins: PluginExtend[]): Static;
+	use(...plugins: Plugin[]): Static;
 
 	/** The Ractive constructor used to create this constructor. */
 	Ractive: typeof Ractive;
@@ -1529,7 +1519,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	unshift(keypath: string, value: any): ArrayPushPromise;
 
 	/** Install one or more plugins on the instance.  */
-	use(...plugins: PluginInstance[]): Ractive;
+	use(...plugins: Plugin[]): Ractive;
 
 	/** The registries that are inherited by all instance. */
 	static defaults: Registries<Ractive>;
@@ -1569,7 +1559,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	/** Set the given map of values in the css data for this constructor. */
 	static styleSet(map: ValueMap): Promise<void>;
 
-	static use(...args: PluginExtend[]): Static;
+	static use(...args: Plugin[]): Static;
 
 	/** The Ractive constructor used to create this constructor. */
 	static Ractive: typeof Ractive;
