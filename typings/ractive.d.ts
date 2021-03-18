@@ -413,7 +413,7 @@ export type Decorator<T extends Ractive<T> = Ractive> = (this: T, node: HTMLElem
 
 export type Easing = (time: number) => number;
 
-export type EventPlugin<T extends Ractive<T> = Ractive> = (this: T, node: HTMLElement, fire: (event: Event) => void) => { teardown: () => void };
+export type EventPlugin<T extends Ractive<T> = Ractive> = (this: T, node: HTMLElement, fire: (event?: ValueMap) => void) => { teardown: () => void };
 
 export interface FindOpts {
 	/**
