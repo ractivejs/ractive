@@ -96,7 +96,7 @@ export class ContextHelper {
 	/** The event associated with this Context, if any. */
 	event?: Event;
 	/** The source component for a bubbled event Context, if any. */
-	component?: Ractive;
+	component?: ComponentItem;
 
 	/** Add to the number at the given keypath
 	 * @param keypath a Context-relative keypath to a number
@@ -372,6 +372,11 @@ export class ContextHelper {
 }
 
 export type Component = Static<any> | Promise<Static<any>>;
+
+export type ComponentItem = {
+	instance: Ractive<any>;
+	name: string;
+}
 
 export interface ComputationDescriptor<T extends Ractive<T> = Ractive> {
 	/**
