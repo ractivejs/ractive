@@ -1650,12 +1650,6 @@ export module Ractive {
 	/** Setting this to false will prevent Ractive from printing a welcome console message when the first instance is created. */
 	let WELCOME_MESSAGE: false|undefined;
 
-	/** 
-	 * Returns the current Ractive runloop Promise, if there is one. This is useful in callbacks that Ractive processes
-	 * during update/render cycles, like observers and decorators.
-	 */
-	let tick: Promise<void>;
-
 	/**
 	 * The current operation promise is available to things like observers and decorators using Ractive.tick,
 	 * which will return undefined if there is not currently an operation in progress.
