@@ -113,6 +113,46 @@ export class ContextHelper {
 	animate(keypath: string, value: any, opts?: AnimateOpts): AnimatePromise;
 
 	/**
+	 * Find an element in the DOM controlled by this instance.
+	 * @param selector query used to find the first matching element
+	 * @param opts
+	 */
+	find(selector: string, opts?: FindOpts): HTMLElement;
+
+	/**
+	 * Find all of the elements in the DOM controlled by this instance that match the given selector.
+	 * @param selector query used to match elements
+	 * @param opts
+	 */
+	findAll(selector: string, opts?: FindOpts): HTMLElement[];
+
+	/**
+	 * Find all of the components belonging to this instance.
+	 * @param opts
+	 */
+	findAllComponents(opts?: FindOpts): Ractive[];
+
+	/**
+	 * Find all of the components with the given name belonging to this instance.
+	 * @param name
+	 * @param opts
+	 */
+	findAllComponents(name: string, opts?: FindOpts): Ractive[];
+
+	/**
+	 * Find the first component belonging to this instance.
+	 * @param opts
+	 */
+	findComponent(opts?: FindOpts): Ractive;
+
+	/**
+	 * Find the first component with the given name belonging to this instance.
+	 * @param name
+	 * @param opts
+	 */
+	findComponent(name: string, opts?: FindOpts): Ractive;
+
+	/**
 	 * Retrieve the value associated with the current Context.
 	 * @param opts
 	 */
