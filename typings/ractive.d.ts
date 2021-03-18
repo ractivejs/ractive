@@ -1102,7 +1102,7 @@ export interface Static<T extends Ractive<T> = Ractive> {
 	extend<A extends ExtendOpts<T> & ValueMap, U extends Readonly<Array<ExtendOpts<T> & ValueMap>>>(opts: A, ...more: U): Static<T & Merge<A, U, ExtendOpts>>;
 
 	/** Create a new component with this constructor as a starting point using the given constructor. */
-	extendWith<U extends T, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive & U>;
+	extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive<U> & U>;
 
 	/** Get a Context for the given node or selector. */
 	getContext(nodeOrQuery: HTMLElement | string): ContextHelper;
@@ -1593,7 +1593,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	static extend<T extends ExtendOpts<any> & ValueMap, U extends Readonly<Array<ExtendOpts<any> & ValueMap>>>(opts: T, ...more: U): Static<Ractive & Merge<T, U, ExtendOpts>>;
 
 	/** Create a new component with this constructor as a starting point using the given constructor. */
-	static extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive & U>;
+	static extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive<U> & U>;
 
 	/** Get a Context for the given node or selector. */
 	static getContext(nodeOrQuery: HTMLElement | string): ContextHelper;
