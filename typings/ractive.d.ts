@@ -371,7 +371,7 @@ export class ContextHelper {
 	unshift(keypath: string, value: any): ArrayPushPromise;
 }
 
-export type Component = Static | Promise<Static>;
+export type Component = Static<any> | Promise<Static<any>>;
 
 export interface ComputationDescriptor<T extends Ractive<T> = Ractive> {
 	/**
@@ -1025,6 +1025,7 @@ export interface Registries<T extends Ractive<T>> {
 	interpolators: Registry<Interpolator>;
 	helpers: Registry<Helper>;
 	partials: Registry<Partial>;
+	transitions: Registry<Transition>;
 }
 
 export interface Constructor<T extends Ractive<T>, U extends InitOpts<T> = InitOpts<T>> {
@@ -1035,7 +1036,7 @@ export interface Static<T extends Ractive<T> = Ractive> {
 	new<V extends InitOpts<T> = InitOpts<T>>(opts?: V): T;
 
 	/** The registries that are inherited by all instance. */
-	defaults: Registries<T>;
+	defaults: Registries<T> & ValueMap;
 
 	adaptors: Registry<Adaptor>;
 	components: Registry<Component>;
@@ -1046,12 +1047,14 @@ export interface Static<T extends Ractive<T> = Ractive> {
 	interpolators: Registry<Interpolator>;
 	helpers: Registry<Helper>;
 	partials: Registry<Partial>;
+	transitions: Registry<Transition>;
 
 	/** Create a new component with this constructor as a starting point. */
-	extend<U, V extends ExtendOpts<T> = ExtendOpts<T>>(opts?: V): Static<Ractive<T & U>>;
+	extend(): Static<T>;
+	extend<A extends ExtendOpts<T> & ValueMap, U extends Readonly<Array<ExtendOpts<T> & ValueMap>>>(opts: A, ...more: U): Static<T & Merge<A, U, ExtendOpts>>;
 
 	/** Create a new component with this constructor as a starting point using the given constructor. */
-	extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive<T & U>>;
+	extendWith<U extends T, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive & U>;
 
 	/** Get a Context for the given node or selector. */
 	getContext(nodeOrQuery: HTMLElement | string): ContextHelper;
@@ -1111,6 +1114,9 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	interpolators: Registry<Interpolator>;
 	helpers: Registry<Helper>;
 	partials: Registry<Partial>;
+	transitions: Registry<Transition>;
+
+	readonly event?: ContextHelper|Event|any;
 
 	/** When overriding methods, the original method is available using this._super. */
 	_super(...args: any[]): any;
@@ -1532,12 +1538,14 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	static interpolators: Registry<Interpolator>;
 	static helpers: Registry<Helper>;
 	static partials: Registry<Partial>;
+	static transitions: Registry<Transition>;
 
 	/** Create a new component with this constructor as a starting point. */
-	static extend<U>(opts?: ExtendOpts<Ractive & U>): Static<Ractive<Ractive & U>>;
+	static extend(): Static<Ractive>;
+	static extend<T extends ExtendOpts<any> & ValueMap, U extends Readonly<Array<ExtendOpts<any> & ValueMap>>>(opts: T, ...more: U): Static<Ractive & Merge<T, U, ExtendOpts>>;
 
 	/** Create a new component with this constructor as a starting point using the given constructor. */
-	static extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive<Ractive & U>>;
+	static extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive & U>;
 
 	/** Get a Context for the given node or selector. */
 	static getContext(nodeOrQuery: HTMLElement | string): ContextHelper;
@@ -1567,6 +1575,13 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	static Parent: Static;
 }
 
+type Merge<T, U extends readonly any[], X> = {
+	0: T;
+	1: ((...t: U) => any) extends ((head: infer Head, ...tail: infer Tail) => any)
+		? Merge<Omit<T, keyof Head & keyof X> & Head, Tail, X>
+		: never;
+}[U['length'] extends 0 ? 0 : 1]
+
 export module Ractive {
 	/** The prototype for Context objects. You can use this to add methods and properties to Contexts. */
 	const Context: typeof ContextHelper;
@@ -1581,7 +1596,17 @@ export module Ractive {
 	/** true if Ractive detects that this environment supports svg. */
 	const svg: boolean;
 
+	/** The build version of Ractive. */
 	const VERSION: string;
+
+	/** Setting this to false will prevent Ractive from printing a welcome console message when the first instance is created. */
+	let WELCOME_MESSAGE: false|undefined;
+
+	/** 
+	 * Returns the current Ractive runloop Promise, if there is one. This is useful in callbacks that Ractive processes
+	 * during update/render cycles, like observers and decorators.
+	 */
+	let tick: Promise<void>;
 
 	/**
 	 * The current operation promise is available to things like observers and decorators using Ractive.tick,
