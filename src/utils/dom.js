@@ -4,23 +4,28 @@ import { isString, isNumber } from 'utils/is';
 
 let createElement, matches, div, methodNames, unprefixed, prefixed, i, j, makeFunction;
 
+const customStr = 'registerElement' in doc;
+function wrap(is) {
+  return customStr ? is : { is };
+}
+
 // Test for SVG support
 if (!svg) {
   /* istanbul ignore next */
-  createElement = (type, ns, extend) => {
+  createElement = (type, ns, is) => {
     if (ns && ns !== html) {
       throw "This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you're trying to render SVG in an older browser. See http://ractive.js.org/support/#svgs for more information";
     }
 
-    return extend ? doc.createElement(type, extend) : doc.createElement(type);
+    return is ? doc.createElement(type, wrap(is)) : doc.createElement(type);
   };
 } else {
-  createElement = (type, ns, extend) => {
+  createElement = (type, ns, is) => {
     if (!ns || ns === html) {
-      return extend ? doc.createElement(type, extend) : doc.createElement(type);
+      return is ? doc.createElement(type, wrap(is)) : doc.createElement(type);
     }
 
-    return extend ? doc.createElementNS(ns, type, extend) : doc.createElementNS(ns, type);
+    return is ? doc.createElementNS(ns, type, wrap(is)) : doc.createElementNS(ns, type);
   };
 }
 
