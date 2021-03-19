@@ -4,7 +4,7 @@ import { isString, isNumber } from 'utils/is';
 
 let createElement, matches, div, methodNames, unprefixed, prefixed, i, j, makeFunction;
 
-const customStr = 'registerElement' in doc;
+const customStr = isClient && 'registerElement' in doc;
 function wrap(is) {
   return customStr ? is : { is };
 }
