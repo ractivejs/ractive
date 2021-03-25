@@ -339,8 +339,9 @@ export class ContextHelper {
 	/**
 	 * Sort the array at the given Context-relative keypath.
 	 * @param keypath
+	 * @param compareFunction  A function that defines the sort order.
 	 */
-	sort(keypath: string): ArraySplicePromise;
+	sort<Item>(keypath: string, compareFunction?: (a: Item, b: Item) => number): ArraySplicePromise;
 
 	/**
 	 * Splice the array at the given Context-relative keypath.
@@ -1473,8 +1474,9 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	/**
 	 * Sort the array at the given keypath.
 	 * @param keypath
+	 * @param compareFunction  A function that defines the sort order.
 	 */
-	sort(keypath: string): ArraySplicePromise;
+	sort<Item>(keypath: string, compareFunction?: (a: Item, b: Item) => number): ArraySplicePromise;
 
 	/**
 	 * Splice the array at the given keypath.
