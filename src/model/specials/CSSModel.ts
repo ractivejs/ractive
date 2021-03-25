@@ -28,7 +28,7 @@ export default class CSSModel extends SharedModel {
     });
 
     if (!depth) {
-      applyChanges(component, true);
+      applyChanges(<typeof Static>component, true);
     }
   }
 }

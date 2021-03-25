@@ -71,7 +71,7 @@ export default class Component
       this.addChild = addChild;
       this.removeChild = removeChild;
     } else {
-      const instance = create(ComponentConstructor.prototype);
+      const instance = new ComponentConstructor({ component: true });
 
       this.instance = instance;
       this.name = template.e;
@@ -103,7 +103,7 @@ export default class Component
       instance.root = instance.parent.root;
       instance.component = this;
 
-      construct(this.instance, { partials });
+      construct(this.instance, { partials } /* ComponentConstructor */);
 
       // these can be modified during construction
       template = this.template;
@@ -120,7 +120,7 @@ export default class Component
       // for hackability, this could be an open option
       // for any ractive instance, but for now, just
       // for components and just for ractive...
-      instance._inlinePartials = partials;
+      (<any>instance)._inlinePartials = partials;
     }
 
     this.attributeByName = {};

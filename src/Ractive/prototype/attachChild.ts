@@ -3,6 +3,7 @@ import hooks from 'src/events/Hook';
 import runloop from 'src/global/runloop';
 import type { Meta } from 'types/Generic';
 import type { AttachOpts } from 'types/MethodOptions';
+import type Component from 'view/items/Component';
 
 import type { Ractive } from '../RactiveDefinition';
 
@@ -46,7 +47,7 @@ export default function Ractive$attachChild(
 
   child.parent = this;
   child.root = this.root;
-  child.component = meta;
+  child.component = <Component>(<unknown>meta);
   children.push(meta);
 
   const promise: Promise<void> & { ractive?: Ractive } = runloop.start();

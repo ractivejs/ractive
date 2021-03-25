@@ -2,13 +2,13 @@ import { addCSS, applyCSS } from 'src/global/css';
 import type { ValueMap } from 'types/Generic';
 import { isFunction } from 'utils/is';
 
-import type { Ractive } from '../RactiveDefinition';
+import type { Static } from '../RactiveDefinition';
 
 import { recomputeCSS } from './styleSet';
 
 const styles = [];
 
-export function addStyle(this: Ractive, id: string, css: string): void {
+export function addStyle(this: typeof Static, id: string, css: string): void {
   if (styles.find(s => s.id === id))
     throw new Error(`Extra styles with the id '${id}' have already been added.`);
   styles.push({ id, css });

@@ -150,5 +150,41 @@ export interface InitOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T
   /** If true, this instance will try to reuse DOM nodes found in its target rather than discarding and replacing them. Cannot be used with append. */
   enhance?: true;
 
-  onconstruct?: () => void;
+  component?: unknown;
+
+  /**
+   * A lifecycle event that is called when an instance is constructed but before any initialization option has been processed.
+   * Accepts the instance's initialization options as argument.
+   */
+  onconstruct?(this: T, opts: InitOpts): void;
+
+  /** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
+  oninit?(this: T): void;
+
+  /** A lifecycle event that is called when an instance is constructed and all initialization options have been processed. */
+  onconfig?(this: T): void;
+
+  /** A lifecycle event that is called when the instance is rendered but before transitions start. */
+  onrender?(this: T): void;
+
+  /** A lifecycle event that is called when the instance is rendered and all the transitions have completed. */
+  oncomplete?(this: T): void;
+
+  /** A lifecycle event that is called when ractive.insert() is called. */
+  oninsert?(this: T): void;
+
+  /**
+   * A lifecycle event that is called whenever `ractive.detach()` is called.
+   * Note that `ractive.insert()` implicitly calls `ractive.detach()` if needed.
+   */
+  ondetach?(this: T): void;
+
+  /** A lifecycle event that is called when ractive.update() is called. */
+  onupdate?(this: T): void;
+
+  /** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
+  onunrender?(this: T): void;
+
+  /** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
+  onteardown?(this: T): void;
 }

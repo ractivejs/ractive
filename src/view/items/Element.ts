@@ -652,6 +652,6 @@ function handler(ev: Event): void {
   let listeners;
   if (el.listeners && (listeners = el.listeners[ev.type])) {
     const len = listeners.length;
-    for (let i = 0; i < len; i++) listeners[i].call(this, ev);
+    for (let i = 0; i < len; i++) listeners[i] && listeners[i].call(this, ev);
   }
 }

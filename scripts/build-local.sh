@@ -5,7 +5,7 @@ set -e
 rm -rf .build
 mkdir .build
 
-npm run lint:all
+# npm run lint:all
 
 npm run bundle:test
 npm run test:chrome

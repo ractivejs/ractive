@@ -9,7 +9,7 @@ import type { Adaptor } from 'types/Adaptor';
 import type { Decorator } from 'types/Decorator';
 import type { EasingFunction } from 'types/Easings';
 import type { EventPlugin } from 'types/Events';
-import type { Children, CssFn, Data, Helper, Meta, Partial, ValueMap } from 'types/Generic';
+import type { Children, CssFn, Data, Helper, Partial, ValueMap } from 'types/Generic';
 import type { InitOpts } from 'types/InitOptions';
 import type { EventListenerEntry, ListenerCallback, ListenerDescriptor } from 'types/Listener';
 import type { Macro } from 'types/Macro';
@@ -174,7 +174,7 @@ class RactiveInternal {
   _attributePartial: PartialTemplateItem;
 
   /** @internal */
-  component: Meta;
+  component; //InternalComponent(view/items/Component) | Meta;
 
   /** @internal */
   proxy: Element;

@@ -386,7 +386,31 @@ export default function () {
     }, /call super/);
   });
 
-  test(`multiple construction objects with functions passed to extend are layered correctly`, t => {
+  test(`custom constructor should be called with extendWith`, t => {
+    t.expect(2);
+
+    class Foo extends Ractive {
+      constructor(opts) {
+        super(opts);
+        t.ok(true, 'constructor called');
+        this.foo = 1;
+      }
+    }
+
+    Ractive.extendWith(Foo, {
+      template: '{{@.foo}}'
+    });
+
+    new Ractive({
+      target: fixture,
+      template: '<Foo />',
+      components: { Foo }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '1');
+  });
+
+  test(`multiple construction objects with functions passed to extend are layered correctly (#3362)`, t => {
     t.expect(5);
 
     let count = 0;

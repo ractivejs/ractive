@@ -21,6 +21,10 @@
   * Methods that set a single value will now return the new value as the resolution of the returned promise e.g. `r.toggle('foo')` if `foo` is falsey will return a promise that resolves to `true`. `add`/`subtract`/`set` behave similarly.
   * Decorators and custom events can now access their local context, in the case of a yielded attribute partial, with `this.getLocalContext()`.
 
+* Typings (probably should be added to 1.3.x and 1.2.x)
+  * Add `Ractive.tick` definition
+  * Add `ListenerContextHelper` as new type which is the Context passed to ListenerCallback (includes additional `name` property)
+  * Revert change to `.extend()` done with [#3349](https://github.com/ractivejs/ractive/pull/3349)
 
 ## 1.3.14
 

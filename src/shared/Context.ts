@@ -10,7 +10,7 @@ import type { ContextHelper } from 'types/Context';
 import type { DecoratorHandle } from 'types/Decorator';
 import type { ArrayPushPromise, Keypath, ValueMap } from 'types/Generic';
 import type { ListenerHandle } from 'types/Listener';
-import type { GetOpts, ReadLinkOpts, SetOpts, UpdateOpts } from 'types/MethodOptions';
+import type { FindOpts, GetOpts, ReadLinkOpts, SetOpts, UpdateOpts } from 'types/MethodOptions';
 import { isNumeric, isObject, isNumber, isObjectType, isString } from 'utils/is';
 import { hasOwn } from 'utils/object';
 import type Fragment from 'view/Fragment';
@@ -127,24 +127,31 @@ export default class Context implements ContextHelper {
     return protoAnimate(this.ractive, model, value, options);
   }
 
-  find(selector: string): ReturnType<Fragment['find']> {
-    return this.fragment.find(selector);
+  find(selector: string, opts: FindOpts): globalThis.Element {
+    return this.fragment.find(selector, opts);
   }
 
-  findAll(selector: string): Element[] {
+  findAll(
+    selector: string,
+    opts: FindOpts & { result?: globalThis.Element[] }
+  ): globalThis.Element[] {
     const result = [];
-    this.fragment.findAll(selector, { result });
+    opts = opts || {};
+    opts.result = result;
+    this.fragment.findAll(selector, opts);
     return result;
   }
 
-  findAllComponents(selector: string): Ractive[] {
-    const result: Ractive[] = [];
-    this.fragment.findAllComponents(selector, { result });
+  findAllComponents(selector: string, opts: FindOpts & { result?: Ractive[] }): Ractive[] {
+    const result = [];
+    opts = opts || {};
+    opts.result = result;
+    this.fragment.findAllComponents(selector, opts);
     return result;
   }
 
-  findComponent(selector: string): Ractive {
-    return this.fragment.findComponent(selector);
+  findComponent(selector: string, opts: FindOpts): Ractive {
+    return this.fragment.findComponent(selector, opts);
   }
 
   // get relative keypaths and values

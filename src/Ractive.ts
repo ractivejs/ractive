@@ -36,6 +36,7 @@ import parseJSON from './utils/parseJSON';
 
 function Ractive(options: InitOpts): void {
   if (!(this instanceof Ractive)) return new Ractive(options);
+  if (options && options.component) return;
 
   construct(this, options || {});
   initialise(this, options || {}, {});

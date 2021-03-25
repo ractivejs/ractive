@@ -1,4 +1,5 @@
 import runloop from 'src/global/runloop';
+import type { Meta } from 'types/Generic';
 import type { Template } from 'types/Parse';
 import { createDocumentFragment } from 'utils/dom';
 import Fragment from 'view/Fragment';
@@ -43,7 +44,7 @@ export default function Ractive$resetTemplate(this: Ractive, template: Template)
 
   // if this is a component, its el may not be valid, so find a
   // target based on the component container
-  if (component && !component.external) {
+  if (component && !(<Meta>component).external) {
     this.fragment.findParentNode().insertBefore(docFrag, component.findNextNode());
   } else {
     this.el.insertBefore(docFrag, this.anchor);
