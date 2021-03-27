@@ -1112,16 +1112,16 @@ export interface Static<T extends Ractive<T> = Ractive> {
 	isInstance(obj: any): boolean;
 
 	/** Get the value at the given keypath from the Ractive shared store. */
-	sharedGet(keypath: string, opts?: GetOpts): any;
+	sharedGet<U = any>(keypath: string, opts?: GetOpts): U;
 	/** Set the given keypath in the Ractive shared store to the given value. */
-	sharedSet(keypath: string, value: any, opts?: SetOpts): Promise<void>;
+	sharedSet<U = any>(keypath: string, value: U, opts?: SetOpts): Promise<U>;
 	/** Set the given map of values in the Ractive shared store. */
 	sharedSet(map: ValueMap, opts?: SetOpts): Promise<void>;
 
 	/** Get the css data for this constructor at the given keypath. */
-	styleGet(keypath: string, opts?: GetOpts): any;
+	styleGet<U = any>(keypath: string, opts?: GetOpts): U;
 	/** Set the css data for this constructor at the given keypath to the given value. */
-	styleSet(keypath: string, value: any, opts?: StyleSetOpts): Promise<void>;
+	styleSet<U = any>(keypath: string, value: U, opts?: StyleSetOpts): Promise<U>;
 	/** Set the given map of values in the css data for this constructor. */
 	styleSet(map: ValueMap, opts?: StyleSetOpts): Promise<void>;
 
@@ -1214,14 +1214,14 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * @param selector query used to find the first matching element
 	 * @param opts
 	 */
-	find(selector: string, opts?: FindOpts): HTMLElement;
+	find<U extends HTMLElement = HTMLElement>(selector: string, opts?: FindOpts): U;
 
 	/**
 	 * Find all of the elements in the DOM controlled by this instance that match the given selector.
 	 * @param selector query used to match elements
 	 * @param opts
 	 */
-	findAll(selector: string, opts?: FindOpts): HTMLElement[];
+	findAll<U extends HTMLElement = HTMLElement>(selector: string, opts?: FindOpts): U[];
 
 	/**
 	 * Find all of the components belonging to this instance.
@@ -1234,7 +1234,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * @param name
 	 * @param opts
 	 */
-	findAllComponents(name: string, opts?: FindOpts): Ractive[];
+	findAllComponents<U extends Ractive = Ractive>(name: string, opts?: FindOpts): U[];
 
 	/**
 	 * Find the first component belonging to this instance.
@@ -1247,7 +1247,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * @param name
 	 * @param opts
 	 */
-	findComponent(name: string, opts?: FindOpts): Ractive;
+	findComponent<U extends Ractive = Ractive>(name: string, opts?: FindOpts): U;
 
 	/**
 	 * Find the immediate ancestor instance with the given name.
@@ -1273,14 +1273,14 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * Retrieve the root object of this instance's data.
 	 * @param opts
 	 */
-	get(opts?: GetOpts): any
+	get<U = any>(opts?: GetOpts): U;
 
 	/**
 	 * Retrieve the value at the given keypath in this instance's data.
 	 * @param keypath a keypath to the value
 	 * @param opts
 	 */
-	get(keypath: string, opts?: GetOpts): any;
+	get<U = any>(keypath: string, opts?: GetOpts): U;
 
 	/**
 	 * Get a Context object for the current plugin's location in the template. This is only available in decorator and custom event plugins.
@@ -1457,7 +1457,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * @param value the value to set
 	 * @param opts
 	 */
-	set(keypath: string, value: any, opts?: SetOpts): Promise<void>;
+	set<U = any>(keypath: string, value: U, opts?: SetOpts): Promise<U>;
 
 	/**
 	 * Set a set of values from the given map. All of the values will be set before any DOM changes are propagated, but the values will still be set in object order in the data, which can cause multiple invalidations on observers, bindings, and template nodes.j
@@ -1604,16 +1604,16 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	static isInstance(obj: any): boolean;
 
 	/** Get the value at the given keypath from the Ractive shared store. */
-	static sharedGet(keypath: string): any;
+	static sharedGet<U = any>(keypath: string): U;
 	/** Set the given keypath in the Ractive shared store to the given value. */
-	static sharedSet(keypath: string, value: any): Promise<void>;
+	static sharedSet<U = any>(keypath: string, value: U): Promise<U>;
 	/** Set the given map of values in the Ractive shared store. */
 	static sharedSet(map: ValueMap): Promise<void>;
 
 	/** Get the css data for this constructor at the given keypath. */
-	static styleGet(keypath: string): any;
+	static styleGet<U = any>(keypath: string): U;
 	/** Set the css data for this constructor at the given keypath to the given value. */
-	static styleSet(keypath: string, value: any): Promise<void>;
+	static styleSet<U = any>(keypath: string, value: U): Promise<U>;
 	/** Set the given map of values in the css data for this constructor. */
 	static styleSet(map: ValueMap): Promise<void>;
 
