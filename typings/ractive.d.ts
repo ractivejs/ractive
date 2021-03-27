@@ -1174,7 +1174,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * @param keypath a keypath to a number
 	 * @param amount the amount to add to the target number - defaults to 1
 	 */
-	add(keypath: string, amount?: number): Promise<void>;
+	add(keypath: string, amount?: number): Promise<number>;
 
 	/**
 	 * Animate the value at the given keypath from its current value to the given value.
@@ -1492,7 +1492,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * @param keypath
 	 * @param amount the amount to subtrat from the value - defaults to 1
 	 */
-	subtract(keypath: string, amount?: number): Promise<void>;
+	subtract(keypath: string, amount?: number): Promise<number>;
 
 	/**
 	 * Dispose of this instance, including unrendering the template and dismantling the data. Once this is done, the instance cannot be used again.
@@ -1513,7 +1513,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * Toggle the value at the given keypath. If it is truthy, set it to false, otherwise, set it to true.
 	 * @param keypath
 	 */
-	toggle(keypath: string): Promise<void>;
+	toggle(keypath: string): Promise<boolean>;
 
 	/**
 	 * Trigger a transition on the element associated with the current event. This only works from event handlers.
