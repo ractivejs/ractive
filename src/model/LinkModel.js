@@ -132,10 +132,18 @@ export default class LinkModel extends ModelBase {
   notifiedUpstream(startPath, root) {
     this.links.forEach(l => l.notifiedUpstream(startPath, this.root));
     this.deps.forEach(handleChange);
-    if (startPath && this.rootLink && this.root !== root) {
-      const path = startPath.slice(1);
-      path.unshift(this.key);
-      this.notifyUpstream(path);
+    if (startPath && this.rootLink) {
+      const parent = this.parent;
+      if (this.root !== root) {
+        const path = startPath.slice(1);
+        path.unshift(this.key);
+        this.notifyUpstream(path);
+      } else if (parent && parent !== this.target) {
+        const path = [parent.key, this.key];
+        parent.links.forEach(l => l.notifiedUpstream(path, parent.root));
+        parent.deps.forEach(d => d.handleChange(path));
+        parent.notifyUpstream(path);
+      }
     }
   }
 

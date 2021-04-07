@@ -303,4 +303,24 @@ export default function() {
 
     t.htmlEqual(fixture.innerHTML, 'b');
   });
+
+  test(`updating a linked model's source updates the link's upstream`, t => {
+    t.expect(2);
+    const r = new Ractive();
+    r.set('foo.bar.baz.bat.bip', { name: 'joe' });
+    r.set('some.target', {});
+    r.link('foo.bar.baz.bat.bip', 'some.target.person');
+
+    r.observeOnce('some.target', () => {
+      t.equal(r.get('some.target.person.name'), 'susan');
+    });
+
+    r.set('foo.bar.baz.bat.bip.name', 'susan');
+
+    r.observeOnce('foo.bar.baz.bat.bip', () => {
+      t.equal(r.get('some.target.person.name'), 'mark');
+    });
+
+    r.set('some.target.person.name', 'mark');
+  });
 }
