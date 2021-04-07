@@ -2,16 +2,20 @@
 
 # 1.4.0 (edge, unreleased)
 
+* Bug fixes
+  * Embedded typings are improved: added missing methods and properties and improved `extend` support.
+  * `yield`s in non-isolated components will avoid creating implicit mappings by properly skipping the component fragment to the container fragment when resolving references (#3351).
+  * Components initialized from a template will now call the component constructor. There's a new `component: boolean` property on init options passed to the constructor that is set to `true` when the view is initilizing the component. This also avoids double init.
+  * An event handler removed while firing will no longer throw.
+  * Context `find` methods now support the options that the instance versions support.
+  * Custom elements are now checked in a hopefully more cross-browser way.
+  * Links will now propagate changes that happen in their source models up to their parent model.
+
 * Experimental new features
   * Computation setter functions now receive a context argument, and both getter and setter functions now receive a keypath argument.
   * Component styles can be split into multiple managed style tags in the document head by setting `Ractive.perComponentStyleElements` to `true`.
   * Methods that set a single value will now return the new value as the resolution of the returned promise e.g. `r.toggle('foo')` if `foo` is falsey will return a promise that resolves to `true`. `add`/`subtract`/`set` behave similarly.
   * Decorators and custom events can now access their local context, in the case of a yielded attribute partial, with `this.getLocalContext()`.
-
-* Typings (probably should be added to 1.3.x and 1.2.x)
-  * Add `Ractive.tick` definition
-  * Add `ListenerContextHelper` as new type which is the Context passed to ListenerCallback (includes additional `name` property)
-  * Revert change to `.extend()` done with [#3349](https://github.com/ractivejs/ractive/pull/3349)
 
 # 1.3.14
 
