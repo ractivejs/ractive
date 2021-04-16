@@ -1214,14 +1214,14 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * @param selector query used to find the first matching element
 	 * @param opts
 	 */
-	find<U extends HTMLElement = HTMLElement>(selector: string, opts?: FindOpts): U;
+	find<U extends Element = HTMLElement>(selector: string, opts?: FindOpts): U;
 
 	/**
 	 * Find all of the elements in the DOM controlled by this instance that match the given selector.
 	 * @param selector query used to match elements
 	 * @param opts
 	 */
-	findAll<U extends HTMLElement = HTMLElement>(selector: string, opts?: FindOpts): U[];
+	findAll<U extends Element = HTMLElement>(selector: string, opts?: FindOpts): U[];
 
 	/**
 	 * Find all of the components belonging to this instance.
