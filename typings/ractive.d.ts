@@ -102,7 +102,7 @@ export class ContextHelper {
 	 * @param keypath a Context-relative keypath to a number
 	 * @param amount the amount to add to the target number - defaults to 1
 	 */
-	add(keypath: string, amount?: number): Promise<void>;
+	add(keypath: string, amount?: number): Promise<number>;
 
 	/**
 	 * Animate the value at the given keypath from its current value to the given value.
@@ -117,53 +117,53 @@ export class ContextHelper {
 	 * @param selector query used to find the first matching element
 	 * @param opts
 	 */
-	find(selector: string, opts?: FindOpts): HTMLElement;
+	find<U extends Element = HTMLElement>(selector: string, opts?: FindOpts): U;
 
 	/**
 	 * Find all of the elements in the DOM controlled by this instance that match the given selector.
 	 * @param selector query used to match elements
 	 * @param opts
 	 */
-	findAll(selector: string, opts?: FindOpts): HTMLElement[];
+	findAll<U extends Element = HTMLElement>(selector: string, opts?: FindOpts): U[];
 
 	/**
 	 * Find all of the components belonging to this instance.
 	 * @param opts
 	 */
-	findAllComponents(opts?: FindOpts): Ractive[];
+	findAllComponents<U extends Ractive = Ractive>(opts?: FindOpts): U[];
 
 	/**
 	 * Find all of the components with the given name belonging to this instance.
 	 * @param name
 	 * @param opts
 	 */
-	findAllComponents(name: string, opts?: FindOpts): Ractive[];
+	findAllComponents<U extends Ractive = Ractive>(name: string, opts?: FindOpts): U[];
 
 	/**
 	 * Find the first component belonging to this instance.
 	 * @param opts
 	 */
-	findComponent(opts?: FindOpts): Ractive;
+	findComponent<U extends Ractive = Ractive>(opts?: FindOpts): U;
 
 	/**
 	 * Find the first component with the given name belonging to this instance.
 	 * @param name
 	 * @param opts
 	 */
-	findComponent(name: string, opts?: FindOpts): Ractive;
+	findComponent<U extends Ractive = Ractive>(name: string, opts?: FindOpts): U;
 
 	/**
 	 * Retrieve the value associated with the current Context.
 	 * @param opts
 	 */
-	get(opts?: GetOpts): any
+	get<U = any>(opts?: GetOpts): U
 
 	/**
 	 * Retrieve the value at the given keypath.
 	 * @param keypath a Context-relative keypath to the value
 	 * @param opts
 	 */
-	get(keypath: string, opts?: GetOpts): any;
+	get<U = any>(keypath: string, opts?: GetOpts): U;
 
 	/**
 	 * Retrieve the value associated with the twoway binding of the element e.g. .value in <input value="{{.value}}" />.
@@ -357,7 +357,7 @@ export class ContextHelper {
 	 * @param keypath
 	 * @param amount the amount to subtract from the value - defaults to 1
 	 */
-	subtract(keypath: string, amount?: number): Promise<void>;
+	subtract(keypath: string, amount?: number): Promise<number>;
 
 	/**
 	 * Toggle the value at the given Context-relative keypath. If it is truthy, set it to false, otherwise, set it to true.
