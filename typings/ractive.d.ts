@@ -900,7 +900,7 @@ export interface ParseOpts extends BaseParseOpts {
 	textOnlyMode?: boolean;
 }
 
-export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseOpts {
+export interface PropertyOpts<T extends Ractive<T>> {
 	/** Adaptors to be applied. */
 	adapt?: (Adaptor | string)[];
 
@@ -951,12 +951,6 @@ export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseO
 
 	/** Whether or not to skip outro transitions when the instance is being unrendered. */
 	noOutro?: boolean;
-
-	/** A map of observers */
-	observe?: Registry<ObserverCallback<T> | ObserverDescriptor<T>>;
-
-	/** A map of event listeners */
-	on?: Registry<ListenerCallback<T> | ListenerDescriptor<T>>;
 
 	/** A map of partials */
 	partials?: Registry<Partial>;
@@ -1017,6 +1011,14 @@ export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseO
 
 	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
 	onteardown?(this: T): void;
+}
+
+export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseOpts, PropertyOpts<T> {
+	/** A map of observers */
+	observe?: Registry<ObserverCallback<T> | ObserverDescriptor<T>>;
+
+	/** A map of event listeners */
+	on?: Registry<ListenerCallback<T> | ListenerDescriptor<T>>;
 }
 
 export interface ExtendOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T> {
@@ -1138,7 +1140,7 @@ export interface Children extends Array<Ractive> {
 	/** Lists of instances targeting anchors by name. */
 	byName: { [key: string]: Ractive[] }
 }
-export class Ractive<T extends Ractive<T> = Ractive<any>> {
+export class Ractive<T extends Ractive<T> = Ractive<any>> implements PropertyOpts<T> {
 	constructor(opts?: InitOpts<T>);
 
 	/** If this instance is in a yielded template, the instance that is immediately above it. */
@@ -1154,16 +1156,6 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * Whether or not this instance is currently rendered into the DOM.
 	 */
 	rendered: boolean;
-
-	adaptors: Registry<Adaptor>;
-	components: Registry<Component>;
-	decorators: Registry<Decorator<T>>;
-	easings: Registry<Easing>;
-	events: Registry<EventPlugin<T>>;
-	interpolators: Registry<Interpolator>;
-	helpers: Registry<Helper>;
-	partials: Registry<Partial>;
-	transitions: Registry<Transition>;
 
 	readonly event?: ContextHelper|Event|any;
 
@@ -1623,6 +1615,118 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	static Ractive: typeof Ractive;
 	/** The parent constructor used to create this constructor. */
 	static Parent: Static;
+
+  /* Properties from init opts */
+	/** Adaptors to be applied. */
+	adapt?: (Adaptor | string)[];
+
+	/** A map of adaptors. */
+	adaptors?: Registry<Adaptor>;
+
+	/** If set to false, disallow expressions in the template. */
+	allowExpressions?: boolean;
+
+	/** If true, this instance can occupy the target element with other existing instances rather than cause them to unrender. */
+	append?: boolean;
+
+	/* A map of components */
+	components?: Registry<Component>;
+
+	/** True if this instance is being constructed as a component, which also means it will be initialized after the constructor. */
+	component?: true;
+
+	/** A map of computations */
+	computed?: { [key: string]: Computation<T> };
+
+	/** A map of decorators */
+	decorators?: Registry<Decorator<T>>;
+
+	/** Whether or not to use event delegation around suitable iterative sections. Defaults to true. */
+	delegate?: boolean;
+
+	/** A map of easings */
+	easing?: Registry<Easing>;
+
+	/** A map of custom events */
+	events?: Registry<EventPlugin<T>>;
+
+	/** A map of helper functions */
+	helpers?: Registry<Helper>;
+
+	/** A map of interpolators for use with animate */
+	interpolators?: Registry<Interpolator>;
+
+	/** Whether or not twoway bindings default to lazy. */
+	lazy?: boolean;
+
+	/** Whether or not an element can transition if one of its parent elements is also transitioning. */
+	nestedTransitions?: boolean;
+
+	/** Whether or not to skip element intro transitions when the instance is being rendered initially. */
+	noIntro?: boolean;
+
+	/** Whether or not to skip outro transitions when the instance is being unrendered. */
+	noOutro?: boolean;
+
+	/** A map of partials */
+	partials?: Registry<Partial>;
+
+	/** Whether or not to consider instance members like set when resolving values in the template. */
+	resolveInstanceMembers?: boolean;
+
+	/** Whether or not to invalidate computation dependencies when a computed value or one of its children is set. */
+	syncComputedChildren?: boolean;
+
+	/** The template to use when rendering. */
+	template?: Template;
+
+	/** A map of transitions */
+	transitions?: Registry<Transition>;
+
+	/** Whether or not to use transitions as elements are added and removed from the DOM. */
+	transitionsEnabled?: boolean;
+
+	/** Whether or not to use twoway bindings by default. */
+	twoway?: boolean;
+
+	/** Whether or not to issue a warning when an ambiguous reference fails to resolve to the immediate context. */
+	warnAboutAmbiguity?: boolean;
+
+	/**
+	 * A lifecycle event that is called when an instance is constructed but before any initialization option has been processed.
+	 * Accepts the instance's initialization options as argument.
+	 */
+	onconstruct?(this: T, opts: InitOpts): void;
+
+	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
+	oninit?(this: T): void;
+
+	/** A lifecycle event that is called when an instance is constructed and all initialization options have been processed. */
+	onconfig?(this: T): void;
+
+	/** A lifecycle event that is called when the instance is rendered but before transitions start. */
+	onrender?(this: T): void;
+
+	/** A lifecycle event that is called when the instance is rendered and all the transitions have completed. */
+	oncomplete?(this: T): void;
+
+	/** A lifecycle event that is called when ractive.insert() is called. */
+	oninsert?(this: T): void;
+
+	/**
+	 * A lifecycle event that is called whenever `ractive.detach()` is called.
+	 * Note that `ractive.insert()` implicitly calls `ractive.detach()` if needed.
+	 */
+	ondetach?(this: T): void;
+
+	/** A lifecycle event that is called when ractive.update() is called. */
+	onupdate?(this: T): void;
+
+	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
+	onunrender?(this: T): void;
+
+	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
+	onteardown?(this: T): void;
 }
 
 type Merge<T, U extends readonly any[], X> = {
