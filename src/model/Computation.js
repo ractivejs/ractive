@@ -39,7 +39,7 @@ export default class Computation extends Model {
   get(shouldCapture, opts) {
     if (shouldCapture) capture(this);
 
-    if (this.dirty) {
+    if (this.dirty || this.dependencies.find(d => d.dirty)) {
       const old = this.value;
       this.value = this.getValue();
       // this may cause a view somewhere to update, so it must be in a runloop

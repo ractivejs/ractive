@@ -1432,4 +1432,19 @@ export default function() {
 
     t.deepEqual(r.get('things', { virtual: true }), [{ foo: 1, bar: 2 }]);
   });
+
+  test(`computed properties depending on computed properties update correctly - #3380`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: '{{state.isValid}}',
+      computed: {
+        'state.isNameValid': `typeof data.name === 'string' && data.name.length > 0`,
+        'state.isValid': `state.isNameValid`
+      }
+    });
+
+    t.equal(r.get('state.isValid'), false);
+    r.set('data.name', 'Joe');
+    t.equal(r.get('state.isValid'), true);
+  });
 }
