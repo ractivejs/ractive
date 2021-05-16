@@ -300,7 +300,7 @@ export default class Transition {
   }
 
   unbind() {
-    if (!this.element.attributes.unbinding) {
+    if (!this.element.attributes || !this.element.attributes.unbinding) {
       const type = this.options && this.options.template && this.options.template.v;
       if (type === 't0' || type === 't1') this.element.intro = null;
       if (type === 't0' || type === 't2') this.element.outro = null;
