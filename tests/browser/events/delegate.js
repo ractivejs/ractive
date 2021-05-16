@@ -471,4 +471,52 @@ export default function() {
     fire(fixture.firstChild.firstChild.firstChild.firstChild, 'click');
     t.equal(count, 6);
   });
+
+  test(`delegated events work with stopPropagation`, t => {
+    t.expect(0);
+    const r = new Ractive({
+      target: fixture,
+      template:
+        '<div>{{#each [1, 2]}}<div on-click="@.nope()"><div class-foo on-click="@event.stopPropagation()" /></div>{{/each}}</div>',
+      nope() {
+        t.ok(false, 'intermediate event handler should not be called');
+      }
+    });
+
+    const el = r.find('.foo');
+    fire(el, 'click');
+  });
+
+  test(`delegated events work with stopImmediaitePropagation`, t => {
+    t.expect(0);
+    const r = new Ractive({
+      target: fixture,
+      template:
+        '<div>{{#each [1, 2]}}<div on-click="@.nope()"><div class-foo on-click="@event.stopImmediatePropagation()" /></div>{{/each}}</div>',
+      nope() {
+        t.ok(false, 'intermediate event handler should not be called');
+      }
+    });
+
+    const el = r.find('.foo');
+    el.addEventListener('click', () => {
+      r.nope();
+    });
+    fire(el, 'click');
+  });
+
+  test(`delegated events work with preventDefault`, t => {
+    t.expect(1);
+    const r = new Ractive({
+      target: fixture,
+      template:
+        '<div>{{#each [1, 2]}}<div on-click="@.check(@event)"><div class-foo on-click="@event.preventDefault()" /></div>{{/each}}</div>',
+      check(ev) {
+        t.ok(ev.defaultPrevented, 'default should be prevented');
+      }
+    });
+
+    const el = r.find('.foo');
+    fire(el, 'click');
+  });
 }

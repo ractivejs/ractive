@@ -550,6 +550,19 @@ function getNamespace(element) {
   return element.ractive.el.namespaceURI;
 }
 
+let stop = false;
+function stopPropagation() {
+  stop = true;
+}
+let immediate = false;
+function stopImmediatePropagation() {
+  immediate = true;
+}
+let prevent = false;
+function preventDefault() {
+  prevent = true;
+}
+
 function delegateHandler(ev) {
   const name = ev.type;
   const end = ev.currentTarget;
@@ -557,6 +570,15 @@ function delegateHandler(ev) {
   let node = ev.target;
   let bubble = true;
   let listeners;
+  let prevented = false;
+
+  stop = immediate = prevent = false;
+  const oldStop = ev.stopPropagation;
+  const oldImmediate = ev.stopImmediatePropagation;
+  const oldPrevent = ev.preventDefault;
+  ev.stopPropagation = stopPropagation;
+  ev.stopImmediatePropagation = stopImmediatePropagation;
+  ev.preventDefault = preventDefault;
 
   // starting with the origin node, walk up the DOM looking for ractive nodes with a matching event listener
   while (bubble && node && node !== end) {
@@ -566,12 +588,32 @@ function delegateHandler(ev) {
 
       if (listeners) {
         const len = listeners.length;
-        for (let i = 0; i < len; i++) bubble = listeners[i].call(node, ev) !== false && bubble;
+        for (let i = 0; i < len; i++) {
+          bubble = listeners[i].call(node, ev) !== false && bubble;
+          if (immediate) {
+            bubble = false;
+            break;
+          }
+          if (stop) bubble = false;
+          if (prevent && !prevented) {
+            prevented = true;
+            oldPrevent.call(ev);
+          }
+        }
       }
     }
 
     node = node.parentNode || node.correspondingUseElement; // SVG with a <use> element in certain environments
   }
+
+  if (bubble) bubble = !stop && !immediate;
+
+  if (stop) oldStop.call(ev);
+  if (immediate) oldImmediate.call(ev);
+
+  ev.stopPropagation = oldStop;
+  ev.stopImmediaitePropagation = oldImmediate;
+  ev.preventDefault = oldPrevent;
 
   return bubble;
 }
