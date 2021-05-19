@@ -61,6 +61,8 @@ npm run bundle:release
 
 [http://localhost:4567](http://localhost:4567) serves the sandbox page which you can use to hack Ractive. The files can be found in the `sandbox` directory. [http://localhost:4567/qunit](http://localhost:4567/qunit) serves the unit tests which can be found in `tests/browser`. Modifications to `src`, `tests/browser`, `sandbox`, and `polyfills` will automatically rebuild the sources served in this mode.
 
+[http://localhost:4567/playground](http://localhost:4567/playground/) hosts an instance of the [ractive.js.org playground](https://ractive.js.org/playground) that will automatically use the locally build version of Ractive. Depending on what you're doing, this can be more convenient than the sandbox.
+
 ### Style guide
 
 Code should be clean, readable, and commented where necessary.

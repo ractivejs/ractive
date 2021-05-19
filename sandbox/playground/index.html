@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Ractive.js Playground</title>
+
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f8f8f8" />
+
+    <link rel="shortcut icon" href="./favicon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Hind:400,600,700" />
+
+    <script src="/ractive.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/lib/codemirror.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/dialog/dialog.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/search/searchcursor.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/search/search.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/selection/active-line.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/search/match-highlighter.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/scroll/annotatescrollbar.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/search/matchesonscrollbar.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/fold/xml-fold.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/edit/closebrackets.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/edit/closetag.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/edit/matchbrackets.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/edit/matchtags.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/edit/trailingspace.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/mode/simple.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/mode/multiplex.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/lint/lint.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/lint/css-lint.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/lint/html-lint.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/addon/lint/javascript-lint.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/mode/xml/xml.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/mode/javascript/javascript.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/mode/handlebars/handlebars.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/mode/css/css.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/keymap/vim.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/keymap/emacs.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/codemirror@5/keymap/sublime.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/jshint@2.9.5/dist/jshint.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/htmlhint@0.9.13/lib/htmlhint.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/csslint@1.0.5/dist/csslint.min.js"></script>
+
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/codemirror@5/lib/codemirror.min.css" />
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/codemirror@5/theme/eclipse.min.css" />
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/codemirror@5/theme/idea.min.css" />
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/codemirror@5/theme/material.min.css" />
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/codemirror@5/theme/monokai.min.css" />
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/codemirror@5/theme/rubyblue.min.css" />
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/codemirror@5/theme/solarized.min.css" />
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/codemirror@5/addon/search/matchesonscrollbar.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/codemirror@5/addon/dialog/dialog.min.css">
+
+    <style>
+      body {
+        overscroll-behavior: none;
+        font-family: Hind, sans-serif;
+        padding: 0;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="./index.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/rollup@0.63/dist/rollup.browser.min.js"></script>
+    <script src="./rollup-plugin-commonjs.umd.min.js"></script>
+    <script>
+      app.set('unit.h', {
+        r: null,
+        s: ['/ractive.js'],
+      });
+    </script>
+  </body>
+</html>
