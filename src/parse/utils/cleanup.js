@@ -8,6 +8,8 @@ const leadingWhitespace = /^[ \t\f\r\n]+/;
 const trailingWhitespace = /[ \t\f\r\n]+$/;
 const leadingNewLine = /^(?:\r\n|\r|\n)/;
 const trailingNewLine = /(?:\r\n|\r|\n)$/;
+const trailingIndent = /(\n)?[ \t]+$/;
+const leadingLine = /[ \t]*\n/;
 
 export default function cleanup(
   items,
@@ -28,7 +30,7 @@ export default function cleanup(
     removeTrailingWhitespaceInsideFragment;
 
   // First pass - remove standalones and comments etc
-  stripStandalones(items);
+  if (!preserveWhitespace) stripStandalones(items);
 
   i = items.length;
   while (i--) {
@@ -54,6 +56,19 @@ export default function cleanup(
   while (i--) {
     item = items[i];
     removeLeadingWhitespaceInsideFragment = removeTrailingWhitespaceInsideFragment = false;
+
+    if (item.w) {
+      const prev = items[i - 1];
+      if (typeof prev === 'string') items[i - 1] = prev.replace(trailingIndent, '$1');
+      if (item.f) {
+        if (typeof item.f[0] === 'string') item.f[0] = item.f[0].replace(leadingLine, '');
+        const last = item.f.length - 1;
+        if (typeof item.f[last] === 'string')
+          item.f[last] = item.f[last].replace(trailingIndent, '$1');
+      }
+      const next = items[i + 1];
+      if (typeof next === 'string') items[i + 1] = next.replace(leadingLine, '');
+    }
 
     // Recurse
     if (item.f) {
@@ -94,6 +109,7 @@ export default function cleanup(
 
     // Split if-else blocks into two (an if, and an unless)
     if (item.l) {
+      if (item.w) item.l.forEach(l => (l.w = 1));
       cleanup(
         item.l,
         stripComments,
@@ -121,6 +137,8 @@ export default function cleanup(
       );
       if (item.m.length < 1) delete item.m;
     }
+
+    delete item.w;
   }
 
   // final pass - fuse text nodes together

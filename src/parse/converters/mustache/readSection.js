@@ -125,6 +125,8 @@ export default function readSection(parser, tag) {
 
   parser.sp();
 
+  if (parser.matchString('-')) section.w = 1;
+
   if (!parser.matchString(tag.close)) {
     parser.error(`Expected closing delimiter '${tag.close}'`);
   }
