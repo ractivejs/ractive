@@ -19,6 +19,7 @@ export default {
   csp: true,
   interpolate: false,
   preserveWhitespace: false,
+  preserveStandaloneSections: false,
   sanitize: false,
   stripComments: true,
   contextLines: 0,

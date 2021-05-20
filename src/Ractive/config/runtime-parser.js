@@ -13,6 +13,7 @@ const parseOptions = [
   'csp',
   'interpolate',
   'preserveWhitespace',
+  'preserveStandaloneSections',
   'sanitize',
   'stripComments',
   'contextLines',

@@ -8,7 +8,7 @@ const leadingWhitespace = /^[ \t\f\r\n]+/;
 const trailingWhitespace = /[ \t\f\r\n]+$/;
 const leadingNewLine = /^(?:\r\n|\r|\n)/;
 const trailingNewLine = /(?:\r\n|\r|\n)$/;
-const trailingIndent = /(\n)?[ \t]+$/;
+const trailingIndent = /(\n)?[ \t]*$/;
 const leadingLine = /[ \t]*\n/;
 
 export default function cleanup(
@@ -17,7 +17,8 @@ export default function cleanup(
   preserveWhitespace,
   removeLeadingWhitespace,
   removeTrailingWhitespace,
-  whiteSpaceElements
+  whiteSpaceElements,
+  preserveStandaloneSections
 ) {
   if (isString(items)) return;
 
@@ -30,7 +31,7 @@ export default function cleanup(
     removeTrailingWhitespaceInsideFragment;
 
   // First pass - remove standalones and comments etc
-  if (!preserveWhitespace) stripStandalones(items);
+  stripStandalones(items, preserveStandaloneSections);
 
   i = items.length;
   while (i--) {
@@ -59,15 +60,20 @@ export default function cleanup(
 
     if (item.w) {
       const prev = items[i - 1];
+      let hitLast = true;
       if (typeof prev === 'string') items[i - 1] = prev.replace(trailingIndent, '$1');
       if (item.f) {
         if (typeof item.f[0] === 'string') item.f[0] = item.f[0].replace(leadingLine, '');
         const last = item.f.length - 1;
-        if (typeof item.f[last] === 'string')
-          item.f[last] = item.f[last].replace(trailingIndent, '$1');
+        if (typeof item.f[last] === 'string') {
+          item.f[last] = item.f[last].replace(trailingIndent, (_m, str) => {
+            hitLast = str;
+            return str || '';
+          });
+        }
       }
       const next = items[i + 1];
-      if (typeof next === 'string') items[i + 1] = next.replace(leadingLine, '');
+      if (hitLast && typeof next === 'string') items[i + 1] = next.replace(leadingLine, '');
     }
 
     // Recurse

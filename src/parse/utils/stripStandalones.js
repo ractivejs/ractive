@@ -5,7 +5,7 @@ import { isString } from 'utils/is';
 const leadingLinebreak = /^[ \t\f\r\n]*\r?\n/;
 const trailingLinebreak = /\r?\n[ \t\f\r\n]*$/;
 
-export default function(items) {
+export default function(items, preserveStandaloneSections) {
   let i, current, backOne, backTwo, lastSectionItem;
 
   for (i = 1; i < items.length; i += 1) {
@@ -25,31 +25,33 @@ export default function(items) {
       }
     }
 
-    // if the current item is a section, and it is preceded by a linebreak, and
-    // its first item is a linebreak...
-    if (isSection(current) && isString(backOne)) {
-      if (
-        trailingLinebreak.test(backOne) &&
-        isString(current.f[0]) &&
-        leadingLinebreak.test(current.f[0])
-      ) {
-        items[i - 1] = backOne.replace(trailingLinebreak, '\n');
-        current.f[0] = current.f[0].replace(leadingLinebreak, '');
+    if (!preserveStandaloneSections) {
+      // if the current item is a section, and it is preceded by a linebreak, and
+      // its first item is a linebreak...
+      if (isSection(current) && isString(backOne)) {
+        if (
+          trailingLinebreak.test(backOne) &&
+          isString(current.f[0]) &&
+          leadingLinebreak.test(current.f[0])
+        ) {
+          items[i - 1] = backOne.replace(trailingLinebreak, '\n');
+          current.f[0] = current.f[0].replace(leadingLinebreak, '');
+        }
       }
-    }
 
-    // if the last item was a section, and it is followed by a linebreak, and
-    // its last item is a linebreak...
-    if (isString(current) && isSection(backOne)) {
-      lastSectionItem = lastItem(backOne.f);
+      // if the last item was a section, and it is followed by a linebreak, and
+      // its last item is a linebreak...
+      if (isString(current) && isSection(backOne)) {
+        lastSectionItem = lastItem(backOne.f);
 
-      if (
-        isString(lastSectionItem) &&
-        trailingLinebreak.test(lastSectionItem) &&
-        leadingLinebreak.test(current)
-      ) {
-        backOne.f[backOne.f.length - 1] = lastSectionItem.replace(trailingLinebreak, '\n');
-        items[i] = current.replace(leadingLinebreak, '');
+        if (
+          isString(lastSectionItem) &&
+          trailingLinebreak.test(lastSectionItem) &&
+          leadingLinebreak.test(current)
+        ) {
+          backOne.f[backOne.f.length - 1] = lastSectionItem.replace(trailingLinebreak, '\n');
+          items[i] = current.replace(leadingLinebreak, '');
+        }
       }
     }
   }

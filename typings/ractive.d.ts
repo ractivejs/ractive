@@ -876,6 +876,9 @@ export interface BaseParseOpts {
 	/** Whether or not to collapse consecutive whitespace into a single space. */
 	preserveWhitespace?: boolean;
 
+  /** Preserve space around standalone sections. This only applies with preserveWhitespace enabled, and allows selective consumption of whitespace around sections using a trailing `-` in the opening section tag. */
+  preserveStandaloneSections?: boolean;
+
 	/** Whether or not to remove certain elements and event attributes from the parsed template. */
 	sanitize?: boolean | SanitizeOpts;
 

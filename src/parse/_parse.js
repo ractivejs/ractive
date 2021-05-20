@@ -115,6 +115,8 @@ const StandardParser = Parser.extend({
     this.csp = options.csp;
     this.allowExpressions = options.allowExpressions;
 
+    this.preserveStandaloneSections = this.preserveWhitespace && options.preserveStandaloneSections;
+
     if (options.expression) this.converters = [readExpression];
 
     if (options.attributes) this.inTag = true;
@@ -146,7 +148,8 @@ const StandardParser = Parser.extend({
         this.preserveWhitespace,
         !this.preserveWhitespace,
         !this.preserveWhitespace,
-        this.whiteSpaceElements
+        this.whiteSpaceElements,
+        this.preserveStandaloneSections
       );
 
       if (this.csp !== false) {

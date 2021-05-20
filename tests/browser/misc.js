@@ -1962,4 +1962,66 @@ export default function() {
     t.equal(up, 2);
     t.htmlEqual(fixture.innerHTML, '');
   });
+
+  test(`selective whitespace trimming (#3338)`, t => {
+    const template = `line 1
+{{#if yep -}}
+line 2
+{{else}}
+skipped
+{{/if}}
+
+    {{#each items -}}
+ line {{. + 3}}
+  {{/each}}
+
+  {{#each [] -}}
+    skipped
+              {{else}}
+  line 8
+     {{/each}}
+
+{{#with { foo: true } -}}line 10{{/with}}
+
+ {{#unless false -}}
+line 12
+{{/unless}}
+
+{{#if !yep-}}
+skipped
+{{elseif !true}}
+also skipped
+{{else}}
+      line 14
+{{/if}}
+  {{#if yep -}}
+line 15{{/if}}`;
+    const str = new Ractive({
+      template,
+      data: {
+        items: [1, 2, 3],
+        yep: true
+      },
+      preserveWhitespace: true,
+      preserveStandaloneSections: true
+    }).toHTML();
+
+    const expected = `line 1
+line 2
+
+ line 4
+ line 5
+ line 6
+
+  line 8
+
+line 10
+
+line 12
+
+      line 14
+line 15`;
+
+    t.equal(str, expected);
+  });
 }
