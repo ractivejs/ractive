@@ -2584,6 +2584,7 @@
 
   var ractives = {};
   function getRactive(version) {
+    if (!version) { return Promise.resolve(window.Ractive); }
     if (!ractives[version]) {
       var main = Ractive.noConflict();
       var script = document.createElement('script');
@@ -2615,7 +2616,7 @@
     name: 'ractive-bin',
     transform: function transform(code, id) {
       if (!filter.test(id)) { return null; }
-      return getRactive(app.get('unit.h.r') || window.Ractive).then(function (Ractive) {
+      return getRactive(app.get('unit.h.r')).then(function (Ractive) {
         return build$1(code, { Ractive: Ractive, autoExport: true }, function () { return Promise.reject('nope, lol'); }).then(function (res) {
           return { code: res, map: { mappings: '' } };
         });
