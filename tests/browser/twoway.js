@@ -232,6 +232,20 @@ export default function() {
     t.ok(!ractive.find('#green').checked);
   });
 
+  test('Checkbox name bindings with an undefined nested name will build an array', t => {
+    const r = new Ractive({
+      el: fixture,
+      template: `{{#each paths as path}}{{#each colors as color}}<input id="{{.}}" type=checkbox name="{{~/foo[path]}}" value="{{.}}" />{{/each}}{{/each}}`,
+      data: {
+        paths: ['colors'],
+        colors: ['red', 'green', 'blue']
+      }
+    });
+
+    fire(r.find('#green'), 'click');
+    t.deepEqual(r.get('foo.colors'), ['green']);
+  });
+
   test('Checkbox Name bindings use property attributes to determined if checked or not', t => {
     let ractive = new Ractive({
       el: fixture,
