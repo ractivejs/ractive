@@ -1447,4 +1447,19 @@ export default function() {
     r.set('data.name', 'Joe');
     t.equal(r.get('state.isValid'), true);
   });
+
+  test(`computed properties depending on computed properties update template correctly - #3380`, t => {
+    const r = new Ractive({
+      target: fixture,
+      template: '{{#if !state.isValid}}no{{else}}yes{{/if}}',
+      computed: {
+        'state.isNameValid': `typeof data.name === 'string' && data.name.length > 0`,
+        'state.isValid': `state.isNameValid`
+      }
+    });
+
+    t.equal(r.toHtml(), 'no');
+    r.set('data.name', 'Joe');
+    t.equal(r.toHtml(), 'yes');
+  });
 }
