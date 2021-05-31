@@ -41,12 +41,13 @@ export default class ComputationChild extends Model {
     if (shouldCapture) capture(this);
 
     if (this.dirty) {
-      this.dirty = false;
       const parentValue = this.parent.get();
       this.value = parentValue ? parentValue[this.key] : undefined;
       if (this.wrapper) this.newWrapperValue = this.value;
       this.adapt();
     }
+
+    this.dirty = false;
 
     return (opts && 'unwrap' in opts ? opts.unwrap !== false : shouldCapture) && this.wrapper
       ? this.wrapperValue
@@ -54,7 +55,11 @@ export default class ComputationChild extends Model {
   }
 
   handleChange() {
-    if (this.dirty) return;
+    if (this.dirty) {
+      this.deps.forEach(handleChange);
+      return;
+    }
+
     this.dirty = true;
 
     if (this.boundValue) this.boundValue = null;
