@@ -841,7 +841,7 @@ const renderTests = [
 	},
 	{
 		name: 'Reference expression with sub-expression',
-		template: '{{ foo[ "ba" + letter ].prop}}',
+		template: '{{foo[ "ba" + letter ].prop}}',
 		data: { foo: { bar: { prop: 'one' }, baz: { prop: 'two' } }, letter: 'r' },
 		result: 'one',
 		new_data: { foo: { bar: { prop: 'one' }, baz: { prop: 'two' } }, letter: 'z' },
