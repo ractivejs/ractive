@@ -91,7 +91,8 @@ class CustomEvent {
   unbind() {}
 
   unrender() {
-    this.handler.teardown();
+    if (this.handler) this.handler.teardown();
+    else runloop.scheduleTask(() => this.handler && this.handler.teardown());
   }
 }
 
