@@ -29,7 +29,11 @@ export function isObject(thing) {
 }
 
 export function isObjectLike(thing) {
-  return !!(thing && (isObjectType(thing) || isFunction(thing)));
+  return !!(thing && (isObjectType(thing) || isFunction(thing))) && !isDate(thing);
+}
+
+export function isDate(thing) {
+  return thing instanceof Date;
 }
 
 export function isObjectType(thing) {

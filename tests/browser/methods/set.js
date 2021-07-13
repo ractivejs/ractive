@@ -225,4 +225,24 @@ export default function() {
       });
     });
   });
+
+  test(`deep setting a date actually sets the date`, t => {
+    const today = new Date().toISOString().substr(0, 10);
+    const r = new Ractive({
+      target: fixture,
+      template: '{{some.thing.date.toISOString().substr(0, 10)}}',
+      data: {
+        some: {
+          thing: { date: new Date() }
+        }
+      }
+    });
+
+    r.set('some.thing', { date: new Date() }, { deep: true });
+    t.equal(today, fixture.innerHTML);
+    t.ok(r.get('some.thing.date') > Date.now() - 5000);
+    const last = r.get('some.thing.date');
+    r.set({ some: { thing: { date: new Date(last + 5000) } } }, { deep: true });
+    t.notEqual(+r.get('some.thing.date'), +last);
+  });
 }

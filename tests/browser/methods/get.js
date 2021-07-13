@@ -102,4 +102,17 @@ export default function() {
     t.ok('bip' in r.get({ virtual: true }));
     t.ok('bip' in r.get());
   });
+
+  test(`getting a date in virtual mode returns a date rather than an empty object (#3388)`, t => {
+    const date = new Date();
+    const r = new Ractive({
+      data: { date }
+    });
+
+    t.equal(r.get().date, date);
+
+    r.set('date', null);
+    r.set('date', date);
+    t.equal(r.get().date, date);
+  });
 }
