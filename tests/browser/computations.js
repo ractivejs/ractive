@@ -1462,4 +1462,34 @@ export default function() {
     r.set('data.name', 'Joe');
     t.equal(r.toHtml(), 'yes');
   });
+
+  test(`a computation with a link dep and computed dependent should not get stuck`, t => {
+    const src = new Ractive({
+      data: { list: [] }
+    });
+    const dest = new Ractive({
+      target: fixture,
+      template: '{{child}}',
+      computed: {
+        main() {
+          const things = this.get('linked') || [];
+          return things.length;
+        },
+        child() {
+          return this.get('main') * 2;
+        }
+      },
+      observe: {
+        child() {
+          // just need this to cause child to rcompute eagerly outside of the fragment
+        }
+      }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '0');
+    dest.link('list', 'linked', { instance: src });
+    t.htmlEqual(fixture.innerHTML, '0');
+    src.set('list', [1, 2, 3]);
+    t.htmlEqual(fixture.innerHTML, '6');
+  });
 }

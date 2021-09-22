@@ -217,10 +217,10 @@ ModelBase.prototype.link = function link(model, keypath, options) {
   lnk.sourcePath = keypath;
   lnk.rootLink = true;
   if (this._link) this._link.relinking(model, false);
+  this._link = lnk;
   this.rebind(lnk, this, false);
   fireShuffleTasks();
 
-  this._link = lnk;
   lnk.markedAll();
 
   this.notifyUpstream();
