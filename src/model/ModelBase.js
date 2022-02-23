@@ -329,6 +329,7 @@ export function fireShuffleTasks(stage) {
 export function shuffle(model, newIndices, link, unsafe) {
   model.shuffling = true;
 
+  let upstream = model.source().length !== model.source().value.length;
   let i = newIndices.length;
   while (i--) {
     const idx = newIndices[i];
@@ -336,6 +337,8 @@ export function shuffle(model, newIndices, link, unsafe) {
     if (i === idx) {
       continue;
     }
+
+    upstream = true;
 
     // rebind the children on i to idx
     if (i in model.childByKey)
@@ -345,8 +348,6 @@ export function shuffle(model, newIndices, link, unsafe) {
         !unsafe
       );
   }
-
-  const upstream = model.source().length !== model.source().value.length;
 
   model.links.forEach(l => l.shuffle(newIndices));
   if (!link) fireShuffleTasks('early');

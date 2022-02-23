@@ -195,4 +195,26 @@ export default function() {
     c.set('list.0.name', 'z');
     t.htmlEqual(fixture.innerHTML, '<p>z [x]</p><p>c [ ]</p><p>d [ ]</p><p>e [ ]</p>');
   });
+
+  test('splicing should fire upstream observers', t => {
+    let count = 0;
+    const r = new Ractive({
+      data: { item: { things: [] } },
+      observe: {
+        item() {
+          count++;
+        }
+      }
+    });
+
+    t.equal(count, 1);
+    r.push('item.things', { yep: 1 });
+    t.equal(count, 2);
+    r.push('item.things', { yep: 2 });
+    t.equal(count, 3);
+    r.push('item.things', { yep: 3 }, { yep: 4 }, { yep: 5 });
+    t.equal(count, 4);
+    r.splice('item.things', 1, 1, { yep: 99 });
+    t.equal(count, 5);
+  });
 }
