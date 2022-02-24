@@ -121,6 +121,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 	# is this the dev branch?
 	if [ "$TRAVIS_BRANCH" = "dev" ]; then
 		echo 'publishing as unstable edge build to npm...'
+		cp README.md .build
 
 		( cd .build
 			if [ "${NPM_TOKEN}" != "" ]; then echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc; fi
