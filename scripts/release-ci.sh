@@ -98,6 +98,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 	# is this a major edge build?
 	if [ "$MAJOR" = "0" -a "$EDGE" = "0" ]; then
 		echo 'publishing as major edge build to npm...'
+		cp README.md .build
 
 		( cd .build
 			if [ "${NPM_TOKEN}" != "" ]; then echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc; fi

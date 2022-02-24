@@ -11,7 +11,7 @@ export GH_REF="git@github.com:ractivejs/ractive"
 
 set -e
 
-echo "This will build your local branch and attempt to publish it. If you want to bail now, you have 5 seconds..."
+echo "This will build your local branch ($TRAVIS_BRANCH) and attempt to publish it. If you want to bail now, you have 5 seconds..."
 sleep 1
 echo "4..."
 sleep 1
