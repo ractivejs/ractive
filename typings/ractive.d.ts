@@ -96,13 +96,13 @@ export class ContextHelper {
 	/** The event associated with this Context, if any. */
 	event?: Event;
 	/** The source component for a bubbled event Context, if any. */
-	component?: Ractive;
+	component?: ComponentItem;
 
 	/** Add to the number at the given keypath
 	 * @param keypath a Context-relative keypath to a number
 	 * @param amount the amount to add to the target number - defaults to 1
 	 */
-	add(keypath: string, amount?: number): Promise<void>;
+	add(keypath: string, amount?: number): Promise<number>;
 
 	/**
 	 * Animate the value at the given keypath from its current value to the given value.
@@ -113,17 +113,57 @@ export class ContextHelper {
 	animate(keypath: string, value: any, opts?: AnimateOpts): AnimatePromise;
 
 	/**
+	 * Find an element in the DOM controlled by this instance.
+	 * @param selector query used to find the first matching element
+	 * @param opts
+	 */
+	find<U extends Element = HTMLElement>(selector: string, opts?: FindOpts): U;
+
+	/**
+	 * Find all of the elements in the DOM controlled by this instance that match the given selector.
+	 * @param selector query used to match elements
+	 * @param opts
+	 */
+	findAll<U extends Element = HTMLElement>(selector: string, opts?: FindOpts): U[];
+
+	/**
+	 * Find all of the components belonging to this instance.
+	 * @param opts
+	 */
+	findAllComponents<U extends Ractive = Ractive>(opts?: FindOpts): U[];
+
+	/**
+	 * Find all of the components with the given name belonging to this instance.
+	 * @param name
+	 * @param opts
+	 */
+	findAllComponents<U extends Ractive = Ractive>(name: string, opts?: FindOpts): U[];
+
+	/**
+	 * Find the first component belonging to this instance.
+	 * @param opts
+	 */
+	findComponent<U extends Ractive = Ractive>(opts?: FindOpts): U;
+
+	/**
+	 * Find the first component with the given name belonging to this instance.
+	 * @param name
+	 * @param opts
+	 */
+	findComponent<U extends Ractive = Ractive>(name: string, opts?: FindOpts): U;
+
+	/**
 	 * Retrieve the value associated with the current Context.
 	 * @param opts
 	 */
-	get(opts?: GetOpts): any
+	get<U = any>(opts?: GetOpts): U
 
 	/**
 	 * Retrieve the value at the given keypath.
 	 * @param keypath a Context-relative keypath to the value
 	 * @param opts
 	 */
-	get(keypath: string, opts?: GetOpts): any;
+	get<U = any>(keypath: string, opts?: GetOpts): U;
 
 	/**
 	 * Retrieve the value associated with the twoway binding of the element e.g. .value in <input value="{{.value}}" />.
@@ -299,8 +339,9 @@ export class ContextHelper {
 	/**
 	 * Sort the array at the given Context-relative keypath.
 	 * @param keypath
+	 * @param compareFunction  A function that defines the sort order.
 	 */
-	sort(keypath: string): ArraySplicePromise;
+	sort<Item>(keypath: string, compareFunction?: (a: Item, b: Item) => number): ArraySplicePromise;
 
 	/**
 	 * Splice the array at the given Context-relative keypath.
@@ -316,7 +357,7 @@ export class ContextHelper {
 	 * @param keypath
 	 * @param amount the amount to subtract from the value - defaults to 1
 	 */
-	subtract(keypath: string, amount?: number): Promise<void>;
+	subtract(keypath: string, amount?: number): Promise<number>;
 
 	/**
 	 * Toggle the value at the given Context-relative keypath. If it is truthy, set it to false, otherwise, set it to true.
@@ -371,7 +412,12 @@ export class ContextHelper {
 	unshift(keypath: string, value: any): ArrayPushPromise;
 }
 
-export type Component = Static | Promise<Static>;
+export type Component = Static<any> | Promise<Static<any>>;
+
+export type ComponentItem = {
+	instance: Ractive<any>;
+	name: string;
+}
 
 export interface ComputationDescriptor<T extends Ractive<T> = Ractive> {
 	/**
@@ -382,9 +428,9 @@ export interface ComputationDescriptor<T extends Ractive<T> = Ractive> {
 	/**
 	 * Called when Ractive is asked to set a computed keypath.
 	 */
-	set?: (value: any) => void;
+	set?: (this: T, value: any, context: any, keypath: string) => void;
 }
-export type ComputationFn<T extends Ractive<T> = Ractive> = (this: T) => any;
+export type ComputationFn<T extends Ractive<T> = Ractive> = (this: T, context: any, keypath: string) => any;
 export type Computation<T extends Ractive<T> = Ractive> = string | ComputationFn<T> | ComputationDescriptor<T>;
 
 export type CssFn = (data: DataGetFn) => string;
@@ -413,7 +459,7 @@ export type Decorator<T extends Ractive<T> = Ractive> = (this: T, node: HTMLElem
 
 export type Easing = (time: number) => number;
 
-export type EventPlugin<T extends Ractive<T> = Ractive> = (this: T, node: HTMLElement, fire: (event: Event) => void) => { teardown: () => void };
+export type EventPlugin<T extends Ractive<T> = Ractive> = (this: T, node: HTMLElement, fire: (event?: ValueMap) => void) => { teardown: () => void };
 
 export interface FindOpts {
 	/**
@@ -455,7 +501,11 @@ export interface LinkOpts {
 	keypath?: string;
 }
 
-export type ListenerCallback<T extends Ractive<T> = Ractive> = (this: T, ctx: ContextHelper, ...args: any[]) => boolean | void | Promise<any>;
+export interface ListenerContextHelper extends ContextHelper {
+	name: string;
+}
+
+export type ListenerCallback<T extends Ractive<T> = Ractive> = (this: T, ctx: ListenerContextHelper, ...args: any[]) => boolean | void | Promise<any>;
 export interface ListenerDescriptor<T extends Ractive<T> = Ractive> {
 	/**
 	 * The callback to call when the event is fired.
@@ -505,7 +555,7 @@ export interface Macro extends MacroFn {
 	styleSet(map: ValueMap): Promise<void>;
 }
 
-export type MacroFn = (MacroHelper) => MacroHandle;
+export type MacroFn = (helper: MacroHelper) => MacroHandle;
 
 export interface MacroHandle {
 	render?: () => void;
@@ -677,22 +727,12 @@ export interface PartialMap {
 	[key: string]: Partial;
 }
 
-export type PluginExtend = (PluginArgsExtend) => void;
-export type PluginInstance = (PluginArgsInstance) => void;
-
-export interface PluginArgsBase {
+export interface PluginArgs {
 	Ractive: typeof Ractive;
+	proto: Ractive|Static;
+	instance: Ractive|Static;
 }
-export interface PluginArgsInstance {
-	proto: Ractive;
-	instance: Ractive;
-}
-export interface PluginArgsExtend {
-	proto: Static;
-	instance: Static;
-}
-
-export type Plugin = (PluginArgsBase) => void;
+export type Plugin = (args: PluginArgs) => void;
 
 export interface ReadLinkOpts {
 	/** Whether or not to follow through any upstream links when resolving the source. */
@@ -836,6 +876,9 @@ export interface BaseParseOpts {
 	/** Whether or not to collapse consecutive whitespace into a single space. */
 	preserveWhitespace?: boolean;
 
+  /** Preserve space around standalone sections. This only applies with preserveWhitespace enabled, and allows selective consumption of whitespace around sections using a trailing `-` in the opening section tag. */
+  preserveStandaloneSections?: boolean;
+
 	/** Whether or not to remove certain elements and event attributes from the parsed template. */
 	sanitize?: boolean | SanitizeOpts;
 
@@ -860,7 +903,7 @@ export interface ParseOpts extends BaseParseOpts {
 	textOnlyMode?: boolean;
 }
 
-export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseOpts {
+export interface PropertyOpts<T extends Ractive<T>> {
 	/** Adaptors to be applied. */
 	adapt?: (Adaptor | string)[];
 
@@ -875,6 +918,9 @@ export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseO
 
 	/* A map of components */
 	components?: Registry<Component>;
+
+	/** True if this instance is being constructed as a component, which also means it will be initialized after the constructor. */
+	component?: true;
 
 	/** A map of computations */
 	computed?: { [key: string]: Computation<T> };
@@ -908,12 +954,6 @@ export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseO
 
 	/** Whether or not to skip outro transitions when the instance is being unrendered. */
 	noOutro?: boolean;
-
-	/** A map of observers */
-	observe?: Registry<ObserverCallback<T> | ObserverDescriptor<T>>;
-
-	/** A map of event listeners */
-	on?: Registry<ListenerCallback<T> | ListenerDescriptor<T>>;
 
 	/** A map of partials */
 	partials?: Registry<Partial>;
@@ -976,6 +1016,14 @@ export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseO
 	onteardown?(this: T): void;
 }
 
+export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseOpts, PropertyOpts<T> {
+	/** A map of observers */
+	observe?: Registry<ObserverCallback<T> | ObserverDescriptor<T>>;
+
+	/** A map of event listeners */
+	on?: Registry<ListenerCallback<T> | ListenerDescriptor<T>>;
+}
+
 export interface ExtendOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T> {
 	/** A list of attributes to be reserved by a component. Any additional attributes are collected into the extra-attributes partial. */
 	attributes?: string[] | { optional?: string[], required?: string[] };
@@ -999,7 +1047,7 @@ export interface ExtendOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts
 	noCssTransform?: boolean;
 
 	/** An array of plugins to apply to the component. */
-	use?: PluginExtend[];
+	use?: Plugin[];
 }
 
 export interface InitOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T> {
@@ -1013,7 +1061,7 @@ export interface InitOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T
 	target?: Target;
 
 	/** An array of plugins to apply to the instance. */
-	use?: PluginInstance[];
+	use?: Plugin[];
 
 	/** If true, this instance can occupy the target element with other existing instances rather than cause them to unrender. Cannot be used with enhance. */
 	append?: true;
@@ -1031,6 +1079,7 @@ export interface Registries<T extends Ractive<T>> {
 	interpolators: Registry<Interpolator>;
 	helpers: Registry<Helper>;
 	partials: Registry<Partial>;
+	transitions: Registry<Transition>;
 }
 
 export interface Constructor<T extends Ractive<T>, U extends InitOpts<T> = InitOpts<T>> {
@@ -1041,23 +1090,25 @@ export interface Static<T extends Ractive<T> = Ractive> {
 	new<V extends InitOpts<T> = InitOpts<T>>(opts?: V): T;
 
 	/** The registries that are inherited by all instance. */
-	defaults: Registries<T>;
+	defaults: Registries<T> & ValueMap;
 
 	adaptors: Registry<Adaptor>;
 	components: Registry<Component>;
-	css: string|CssFn;
+	css?: string|CssFn;
 	decorators: Registry<Decorator<T>>;
 	easings: Registry<Easing>;
 	events: Registry<EventPlugin<T>>;
 	interpolators: Registry<Interpolator>;
 	helpers: Registry<Helper>;
 	partials: Registry<Partial>;
+	transitions: Registry<Transition>;
 
 	/** Create a new component with this constructor as a starting point. */
-    extend<U, V extends ExtendOpts<T & U> & U = ExtendOpts<T & U> & U>(...opts: V[]): Static<T & U>;
+	extend(): Static<T>;
+	extend<A extends ExtendOpts<T> & ValueMap, U extends Readonly<Array<ExtendOpts<T> & ValueMap>>>(opts: A, ...more: U): Static<T & Merge<A, U, ExtendOpts>>;
 
 	/** Create a new component with this constructor as a starting point using the given constructor. */
-	extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive<T & U>>;
+	extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive<U> & U>;
 
 	/** Get a Context for the given node or selector. */
 	getContext(nodeOrQuery: HTMLElement | string): ContextHelper;
@@ -1066,21 +1117,21 @@ export interface Static<T extends Ractive<T> = Ractive> {
 	isInstance(obj: any): boolean;
 
 	/** Get the value at the given keypath from the Ractive shared store. */
-	sharedGet(keypath: string, opts?: GetOpts): any;
+	sharedGet<U = any>(keypath: string, opts?: GetOpts): U;
 	/** Set the given keypath in the Ractive shared store to the given value. */
-	sharedSet(keypath: string, value: any, opts?: SetOpts): Promise<void>;
+	sharedSet<U = any>(keypath: string, value: U, opts?: SetOpts): Promise<U>;
 	/** Set the given map of values in the Ractive shared store. */
 	sharedSet(map: ValueMap, opts?: SetOpts): Promise<void>;
 
 	/** Get the css data for this constructor at the given keypath. */
-	styleGet(keypath: string, opts?: GetOpts): any;
+	styleGet<U = any>(keypath: string, opts?: GetOpts): U;
 	/** Set the css data for this constructor at the given keypath to the given value. */
-	styleSet(keypath: string, value: any, opts?: StyleSetOpts): Promise<void>;
+	styleSet<U = any>(keypath: string, value: U, opts?: StyleSetOpts): Promise<U>;
 	/** Set the given map of values in the css data for this constructor. */
 	styleSet(map: ValueMap, opts?: StyleSetOpts): Promise<void>;
 
 	/** Install one or more plugins on the component.  */
-	use(...plugins: PluginExtend[]): Static;
+	use(...plugins: Plugin[]): Static;
 
 	/** The Ractive constructor used to create this constructor. */
 	Ractive: typeof Ractive;
@@ -1092,7 +1143,7 @@ export interface Children extends Array<Ractive> {
 	/** Lists of instances targeting anchors by name. */
 	byName: { [key: string]: Ractive[] }
 }
-export class Ractive<T extends Ractive<T> = Ractive<any>> {
+export class Ractive<T extends Ractive<T> = Ractive<any>> implements PropertyOpts<T> {
 	constructor(opts?: InitOpts<T>);
 
 	/** If this instance is in a yielded template, the instance that is immediately above it. */
@@ -1109,14 +1160,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 */
 	rendered: boolean;
 
-	adaptors: Registry<Adaptor>;
-	components: Registry<Component>;
-	decorators: Registry<Decorator<T>>;
-	easings: Registry<Easing>;
-	events: Registry<EventPlugin<T>>;
-	interpolators: Registry<Interpolator>;
-	helpers: Registry<Helper>;
-	partials: Registry<Partial>;
+	readonly event?: ContextHelper|Event|any;
 
 	/** When overriding methods, the original method is available using this._super. */
 	_super(...args: any[]): any;
@@ -1125,7 +1169,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * @param keypath a keypath to a number
 	 * @param amount the amount to add to the target number - defaults to 1
 	 */
-	add(keypath: string, amount?: number): Promise<void>;
+	add(keypath: string, amount?: number): Promise<number>;
 
 	/**
 	 * Animate the value at the given keypath from its current value to the given value.
@@ -1165,14 +1209,14 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * @param selector query used to find the first matching element
 	 * @param opts
 	 */
-	find(selector: string, opts?: FindOpts): HTMLElement;
+	find<U extends Element = HTMLElement>(selector: string, opts?: FindOpts): U;
 
 	/**
 	 * Find all of the elements in the DOM controlled by this instance that match the given selector.
 	 * @param selector query used to match elements
 	 * @param opts
 	 */
-	findAll(selector: string, opts?: FindOpts): HTMLElement[];
+	findAll<U extends Element = HTMLElement>(selector: string, opts?: FindOpts): U[];
 
 	/**
 	 * Find all of the components belonging to this instance.
@@ -1185,7 +1229,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * @param name
 	 * @param opts
 	 */
-	findAllComponents(name: string, opts?: FindOpts): Ractive[];
+	findAllComponents<U extends Ractive = Ractive>(name: string, opts?: FindOpts): U[];
 
 	/**
 	 * Find the first component belonging to this instance.
@@ -1198,7 +1242,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * @param name
 	 * @param opts
 	 */
-	findComponent(name: string, opts?: FindOpts): Ractive;
+	findComponent<U extends Ractive = Ractive>(name: string, opts?: FindOpts): U;
 
 	/**
 	 * Find the immediate ancestor instance with the given name.
@@ -1224,14 +1268,20 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * Retrieve the root object of this instance's data.
 	 * @param opts
 	 */
-	get(opts?: GetOpts): any
+	get<U = any>(opts?: GetOpts): U;
 
 	/**
 	 * Retrieve the value at the given keypath in this instance's data.
 	 * @param keypath a keypath to the value
 	 * @param opts
 	 */
-	get(keypath: string, opts?: GetOpts): any;
+	get<U = any>(keypath: string, opts?: GetOpts): U;
+
+	/**
+	 * Get a Context object for the current plugin's location in the template. This is only available in decorator and custom event plugins.
+	 * @param query
+	 */
+	getLocalContext(): ContextHelper;
 
 	/**
 	 * Get a Context object for the given node or node that matches the given query.
@@ -1402,7 +1452,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * @param value the value to set
 	 * @param opts
 	 */
-	set(keypath: string, value: any, opts?: SetOpts): Promise<void>;
+	set<U = any>(keypath: string, value: U, opts?: SetOpts): Promise<U>;
 
 	/**
 	 * Set a set of values from the given map. All of the values will be set before any DOM changes are propagated, but the values will still be set in object order in the data, which can cause multiple invalidations on observers, bindings, and template nodes.j
@@ -1419,8 +1469,9 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	/**
 	 * Sort the array at the given keypath.
 	 * @param keypath
+	 * @param compareFunction  A function that defines the sort order.
 	 */
-	sort(keypath: string): ArraySplicePromise;
+	sort<Item>(keypath: string, compareFunction?: (a: Item, b: Item) => number): ArraySplicePromise;
 
 	/**
 	 * Splice the array at the given keypath.
@@ -1436,7 +1487,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * @param keypath
 	 * @param amount the amount to subtrat from the value - defaults to 1
 	 */
-	subtract(keypath: string, amount?: number): Promise<void>;
+	subtract(keypath: string, amount?: number): Promise<number>;
 
 	/**
 	 * Dispose of this instance, including unrendering the template and dismantling the data. Once this is done, the instance cannot be used again.
@@ -1457,7 +1508,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	 * Toggle the value at the given keypath. If it is truthy, set it to false, otherwise, set it to true.
 	 * @param keypath
 	 */
-	toggle(keypath: string): Promise<void>;
+	toggle(keypath: string): Promise<boolean>;
 
 	/**
 	 * Trigger a transition on the element associated with the current event. This only works from event handlers.
@@ -1519,7 +1570,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	unshift(keypath: string, value: any): ArrayPushPromise;
 
 	/** Install one or more plugins on the instance.  */
-	use(...plugins: PluginInstance[]): Ractive;
+	use(...plugins: Plugin[]): Ractive;
 
 	/** The registries that are inherited by all instance. */
 	static defaults: Registries<Ractive>;
@@ -1532,12 +1583,14 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	static interpolators: Registry<Interpolator>;
 	static helpers: Registry<Helper>;
 	static partials: Registry<Partial>;
+	static transitions: Registry<Transition>;
 
 	/** Create a new component with this constructor as a starting point. */
-	static extend<U>(...opts: (ExtendOpts<Ractive & U> & U)[]): Static<Ractive & U>;
+	static extend(): Static<Ractive>;
+	static extend<T extends ExtendOpts<any> & ValueMap, U extends Readonly<Array<ExtendOpts<any> & ValueMap>>>(opts: T, ...more: U): Static<Ractive & Merge<T, U, ExtendOpts>>;
 
 	/** Create a new component with this constructor as a starting point using the given constructor. */
-	static extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive<Ractive & U>>;
+	static extendWith<U extends Ractive<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive<U> & U>;
 
 	/** Get a Context for the given node or selector. */
 	static getContext(nodeOrQuery: HTMLElement | string): ContextHelper;
@@ -1546,26 +1599,145 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> {
 	static isInstance(obj: any): boolean;
 
 	/** Get the value at the given keypath from the Ractive shared store. */
-	static sharedGet(keypath: string): any;
+	static sharedGet<U = any>(keypath: string): U;
 	/** Set the given keypath in the Ractive shared store to the given value. */
-	static sharedSet(keypath: string, value: any): Promise<void>;
+	static sharedSet<U = any>(keypath: string, value: U): Promise<U>;
 	/** Set the given map of values in the Ractive shared store. */
 	static sharedSet(map: ValueMap): Promise<void>;
 
 	/** Get the css data for this constructor at the given keypath. */
-	static styleGet(keypath: string): any;
+	static styleGet<U = any>(keypath: string): U;
 	/** Set the css data for this constructor at the given keypath to the given value. */
-	static styleSet(keypath: string, value: any): Promise<void>;
+	static styleSet<U = any>(keypath: string, value: U): Promise<U>;
 	/** Set the given map of values in the css data for this constructor. */
 	static styleSet(map: ValueMap): Promise<void>;
 
-	static use(...args: PluginExtend[]): Static;
+	static use(...args: Plugin[]): Static;
 
 	/** The Ractive constructor used to create this constructor. */
 	static Ractive: typeof Ractive;
 	/** The parent constructor used to create this constructor. */
 	static Parent: Static;
+
+  /* Properties from init opts */
+	/** Adaptors to be applied. */
+	adapt?: (Adaptor | string)[];
+
+	/** A map of adaptors. */
+	adaptors?: Registry<Adaptor>;
+
+	/** If set to false, disallow expressions in the template. */
+	allowExpressions?: boolean;
+
+	/** If true, this instance can occupy the target element with other existing instances rather than cause them to unrender. */
+	append?: boolean;
+
+	/* A map of components */
+	components?: Registry<Component>;
+
+	/** True if this instance is being constructed as a component, which also means it will be initialized after the constructor. */
+	component?: true;
+
+	/** A map of computations */
+	computed?: { [key: string]: Computation<T> };
+
+	/** A map of decorators */
+	decorators?: Registry<Decorator<T>>;
+
+	/** Whether or not to use event delegation around suitable iterative sections. Defaults to true. */
+	delegate?: boolean;
+
+	/** A map of easings */
+	easing?: Registry<Easing>;
+
+	/** A map of custom events */
+	events?: Registry<EventPlugin<T>>;
+
+	/** A map of helper functions */
+	helpers?: Registry<Helper>;
+
+	/** A map of interpolators for use with animate */
+	interpolators?: Registry<Interpolator>;
+
+	/** Whether or not twoway bindings default to lazy. */
+	lazy?: boolean;
+
+	/** Whether or not an element can transition if one of its parent elements is also transitioning. */
+	nestedTransitions?: boolean;
+
+	/** Whether or not to skip element intro transitions when the instance is being rendered initially. */
+	noIntro?: boolean;
+
+	/** Whether or not to skip outro transitions when the instance is being unrendered. */
+	noOutro?: boolean;
+
+	/** A map of partials */
+	partials?: Registry<Partial>;
+
+	/** Whether or not to consider instance members like set when resolving values in the template. */
+	resolveInstanceMembers?: boolean;
+
+	/** Whether or not to invalidate computation dependencies when a computed value or one of its children is set. */
+	syncComputedChildren?: boolean;
+
+	/** The template to use when rendering. */
+	template?: Template;
+
+	/** A map of transitions */
+	transitions?: Registry<Transition>;
+
+	/** Whether or not to use transitions as elements are added and removed from the DOM. */
+	transitionsEnabled?: boolean;
+
+	/** Whether or not to use twoway bindings by default. */
+	twoway?: boolean;
+
+	/** Whether or not to issue a warning when an ambiguous reference fails to resolve to the immediate context. */
+	warnAboutAmbiguity?: boolean;
+
+	/**
+	 * A lifecycle event that is called when an instance is constructed but before any initialization option has been processed.
+	 * Accepts the instance's initialization options as argument.
+	 */
+	protected onconstruct?(this: T, opts: InitOpts): void;
+
+	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
+	protected oninit?(this: T): void;
+
+	/** A lifecycle event that is called when an instance is constructed and all initialization options have been processed. */
+	protected onconfig?(this: T): void;
+
+	/** A lifecycle event that is called when the instance is rendered but before transitions start. */
+	protected onrender?(this: T): void;
+
+	/** A lifecycle event that is called when the instance is rendered and all the transitions have completed. */
+	protected oncomplete?(this: T): void;
+
+	/** A lifecycle event that is called when ractive.insert() is called. */
+	protected oninsert?(this: T): void;
+
+	/**
+	 * A lifecycle event that is called whenever `ractive.detach()` is called.
+	 * Note that `ractive.insert()` implicitly calls `ractive.detach()` if needed.
+	 */
+	protected ondetach?(this: T): void;
+
+	/** A lifecycle event that is called when ractive.update() is called. */
+	protected onupdate?(this: T): void;
+
+	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
+	protected onunrender?(this: T): void;
+
+	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
+	protected onteardown?(this: T): void;
 }
+
+type Merge<T, U extends readonly any[], X> = {
+	0: T;
+	1: ((...t: U) => any) extends ((head: infer Head, ...tail: infer Tail) => any)
+		? Merge<Omit<T, keyof Head & keyof X> & Head, Tail, X>
+		: never;
+}[U['length'] extends 0 ? 0 : 1]
 
 export module Ractive {
 	/** The prototype for Context objects. You can use this to add methods and properties to Contexts. */
@@ -1575,10 +1747,23 @@ export module Ractive {
 	let DEBUG: boolean;
 	let DEBUG_PROMISES: boolean;
 
+	/** Render component styles in their own style tags rather than in a single shared tag - defaults to false */
+	let perComponentStyleElements: boolean;
+
 	/** true if Ractive detects that this environment supports svg. */
 	const svg: boolean;
 
+	/** The build version of Ractive. */
 	const VERSION: string;
+
+	/** Setting this to false will prevent Ractive from printing a welcome console message when the first instance is created. */
+	let WELCOME_MESSAGE: false|undefined;
+
+	/**
+	 * The current operation promise is available to things like observers and decorators using Ractive.tick,
+	 * which will return undefined if there is not currently an operation in progress.
+	 */
+	const tick: undefined | Promise<void>;
 
 	/**
 	 * Add Ractive-managed CSS to the managed style tag. This effectively global CSS managed by the Ractive constructor,

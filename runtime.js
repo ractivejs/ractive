@@ -1,7 +1,7 @@
 /*
-	Ractive.js v1.3.14
-	Build: 76470bafd78eddd27baa1425ed3f9475242d1c34
-	Date: Sat Dec 12 2020 08:01:19 GMT+0000 (UTC)
+	Ractive.js v1.4.0
+	Build: cf2bc5f2a151700d010d1ddc802f4a663e067d28
+	Date: Fri Feb 25 2022 00:20:23 GMT-0500 (Eastern Standard Time)
 	Website: https://ractive.js.org
 	License: MIT
 */
@@ -110,7 +110,11 @@ function isObject(thing) {
 }
 
 function isObjectLike(thing) {
-  return !!(thing && (isObjectType(thing) || isFunction(thing)));
+  return !!(thing && (isObjectType(thing) || isFunction(thing))) && !isDate(thing);
+}
+
+function isDate(thing) {
+  return thing instanceof Date;
 }
 
 function isObjectType(thing) {
@@ -448,6 +452,7 @@ var defaults = {
   csp: true,
   interpolate: false,
   preserveWhitespace: false,
+  preserveStandaloneSections: false,
   sanitize: false,
   stripComments: true,
   contextLines: 0,
@@ -532,13 +537,13 @@ var welcome;
 
 if (hasConsole) {
   var welcomeIntro = [
-    "%cRactive.js %c1.3.14 %cin debug mode, %cmore...",
+    "%cRactive.js %c1.4.0 %cin debug mode, %cmore...",
     'color: rgb(114, 157, 52); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
-  var welcomeMessage = "You're running Ractive 1.3.14 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  var welcomeMessage = "You're running Ractive 1.4.0 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   welcome = function () {
     if (Ractive.WELCOME_MESSAGE === false) {
@@ -1337,6 +1342,7 @@ function fireShuffleTasks(stage) {
 function shuffle(model, newIndices, link, unsafe) {
   model.shuffling = true;
 
+  var upstream = model.source().length !== model.source().value.length;
   var i = newIndices.length;
   while (i--) {
     var idx = newIndices[i];
@@ -1344,6 +1350,8 @@ function shuffle(model, newIndices, link, unsafe) {
     if (i === idx) {
       continue;
     }
+
+    upstream = true;
 
     // rebind the children on i to idx
     if (i in model.childByKey)
@@ -1353,8 +1361,6 @@ function shuffle(model, newIndices, link, unsafe) {
         !unsafe
       ); }
   }
-
-  var upstream = model.source().length !== model.source().value.length;
 
   model.links.forEach(function (l) { return l.shuffle(newIndices); });
   if (!link) { fireShuffleTasks('early'); }
@@ -1656,10 +1662,18 @@ var LinkModel = (function (ModelBase) {
 
     this.links.forEach(function (l) { return l.notifiedUpstream(startPath, this$1.root); });
     this.deps.forEach(handleChange);
-    if (startPath && this.rootLink && this.root !== root) {
-      var path = startPath.slice(1);
-      path.unshift(this.key);
-      this.notifyUpstream(path);
+    if (startPath && this.rootLink) {
+      var parent = this.parent;
+      if (this.root !== root) {
+        var path = startPath.slice(1);
+        path.unshift(this.key);
+        this.notifyUpstream(path);
+      } else if (parent && parent !== this.target) {
+        var path$1 = [parent.key, this.key];
+        parent.links.forEach(function (l) { return l.notifiedUpstream(path$1, parent.root); });
+        parent.deps.forEach(function (d) { return d.handleChange(path$1); });
+        parent.notifyUpstream(path$1);
+      }
     }
   };
 
@@ -1681,6 +1695,8 @@ var LinkModel = (function (ModelBase) {
     this.children.forEach(function (c) {
       c.relinking(target.joinKey(c.key), safe);
     });
+
+    if (!safe) { this.keypath = undefined; }
 
     if (this.rootLink)
       { this.addShuffleTask(function () {
@@ -1735,10 +1751,10 @@ ModelBase.prototype.link = function link(model, keypath, options) {
   lnk.sourcePath = keypath;
   lnk.rootLink = true;
   if (this._link) { this._link.relinking(model, false); }
+  this._link = lnk;
   this.rebind(lnk, this, false);
   fireShuffleTasks();
 
-  this._link = lnk;
   lnk.markedAll();
 
   this.notifyUpstream();
@@ -1803,6 +1819,7 @@ var parseOptions = [
   'csp',
   'interpolate',
   'preserveWhitespace',
+  'preserveStandaloneSections',
   'sanitize',
   'stripComments',
   'contextLines',
@@ -2940,8 +2957,9 @@ function resolveReference(fragment, ref) {
     if (fragment.context && !fragment.aliases) { crossed = 1; }
 
     if (
-      (fragment.componentParent || (!fragment.parent && fragment.ractive.component)) &&
-      !fragment.ractive.isolated
+      !fragment.ractive.isolated &&
+      !(fragment.owner && fragment.owner.containerFragment) &&
+      (fragment.componentParent || (!fragment.parent && fragment.ractive.component))
     ) {
       // ascend through component boundary
       fragment = fragment.componentParent || fragment.ractive.component.up;
@@ -2969,7 +2987,13 @@ function resolveReference(fragment, ref) {
 }
 
 function up(fragment) {
-  return fragment && ((!fragment.ractive.isolated && fragment.componentParent) || fragment.parent);
+  return (
+    fragment &&
+    ((!fragment.ractive.isolated &&
+      !(fragment.owner && fragment.owner.containerFragment) &&
+      (fragment.componentParent || (!fragment.parent && fragment.ractive.component))) ||
+      fragment.parent)
+  );
 }
 
 function findIter(start) {
@@ -3081,7 +3105,8 @@ function set(pairs, options) {
 
   keep = k;
 
-  return promise;
+  if (pairs.length === 1) { return promise.then(function () { return pairs[0][1]; }); }
+  else { return promise; }
 }
 
 var star = /\*/;
@@ -3144,7 +3169,7 @@ function deepSet(model, value) {
   var dest = model.get(false, deepOpts);
 
   // if dest doesn't exist, just set it
-  if (dest == null || !isObjectType(value)) { return model.set(value); }
+  if (dest == null || !isObjectType(value) || isDate(value)) { return model.set(value); }
   if (!isObjectType(dest)) { return model.set(value); }
 
   for (var k in value) {
@@ -3468,22 +3493,26 @@ function findAnchors(fragment, name) {
 
   var res = [];
 
-  findAnchorsIn(fragment, name, res);
+  findAnchorsIn(fragment, name, res, fragment.ractive);
 
   return res;
 }
 
-function findAnchorsIn(item, name, result) {
+function findAnchorsIn(item, name, result, instance) {
   if (item.isAnchor) {
     if (!name || item.name === name) {
       result.push(item);
     }
   } else if (item.items) {
-    item.items.forEach(function (i) { return findAnchorsIn(i, name, result); });
+    item.items.forEach(function (i) { return findAnchorsIn(i, name, result, instance); });
   } else if (item.iterations) {
-    item.iterations.forEach(function (i) { return findAnchorsIn(i, name, result); });
-  } else if (item.fragment && !item.component) {
-    findAnchorsIn(item.fragment, name, result);
+    item.iterations.forEach(function (i) { return findAnchorsIn(i, name, result, instance); });
+  } else if (item.fragment && (!item.component || item.fragment.ractive === instance)) {
+    findAnchorsIn(item.fragment, name, result, instance);
+  } else if (item.instance && item.instance.fragment) {
+    var anchors = [];
+    findAnchorsIn(item.instance.fragment, name, anchors, instance);
+    anchors.forEach(function (a) { return a.ractive === instance && result.push(a); });
   }
 }
 
@@ -4099,6 +4128,8 @@ var modelSort = makeArrayMethod('sort').model;
 var modelSplice = makeArrayMethod('splice').model;
 var modelReverse = makeArrayMethod('reverse').model;
 
+var localFragment = {};
+
 var ContextData = (function (Model) {
   function ContextData(options) {
     Model.call(this, null, null);
@@ -4173,24 +4204,28 @@ Context__proto__.animate = function animate$1 (keypath, value, options) {
   return animate(this.ractive, model, value, options);
 };
 
-Context__proto__.find = function find (selector) {
-  return this.fragment.find(selector);
+Context__proto__.find = function find (selector, opts) {
+  return this.fragment.find(selector, opts);
 };
 
-Context__proto__.findAll = function findAll (selector) {
+Context__proto__.findAll = function findAll (selector, opts) {
   var result = [];
-  this.fragment.findAll(selector, { result: result });
+  opts = opts || {};
+  opts.result = result;
+  this.fragment.findAll(selector, opts);
   return result;
 };
 
-Context__proto__.findAllComponents = function findAllComponents (selector) {
+Context__proto__.findAllComponents = function findAllComponents (selector, opts) {
   var result = [];
-  this.fragment.findAllComponents(selector, { result: result });
+  opts = opts || {};
+  opts.result = result;
+  this.fragment.findAllComponents(selector, opts);
   return result;
 };
 
-Context__proto__.findComponent = function findComponent (selector) {
-  return this.fragment.findComponent(selector);
+Context__proto__.findComponent = function findComponent (selector, opts) {
+  return this.fragment.findComponent(selector, opts);
 };
 
 // get relative keypaths and values
@@ -4508,6 +4543,10 @@ function Ractive$get(keypath, opts) {
   return model.get(true, opts);
 }
 
+function getLocalContext() {
+  if (localFragment.f) { return localFragment.f.getContext(); }
+}
+
 var query = doc && doc.querySelector;
 
 function getContext$1(node) {
@@ -4554,23 +4593,28 @@ var i;
 var j;
 var makeFunction;
 
+var customStr = isClient && 'registerElement' in doc;
+function wrap(is) {
+  return customStr ? is : { is: is };
+}
+
 // Test for SVG support
 if (!svg) {
   /* istanbul ignore next */
-  createElement = function (type, ns, extend) {
+  createElement = function (type, ns, is) {
     if (ns && ns !== html) {
       throw "This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you're trying to render SVG in an older browser. See http://ractive.js.org/support/#svgs for more information";
     }
 
-    return extend ? doc.createElement(type, extend) : doc.createElement(type);
+    return is ? doc.createElement(type, wrap(is)) : doc.createElement(type);
   };
 } else {
-  createElement = function (type, ns, extend) {
+  createElement = function (type, ns, is) {
     if (!ns || ns === html) {
-      return extend ? doc.createElement(type, extend) : doc.createElement(type);
+      return is ? doc.createElement(type, wrap(is)) : doc.createElement(type);
     }
 
-    return extend ? doc.createElementNS(ns, type, extend) : doc.createElementNS(ns, type);
+    return is ? doc.createElementNS(ns, type, wrap(is)) : doc.createElementNS(ns, type);
   };
 }
 
@@ -5434,6 +5478,12 @@ var isDirty = false;
 var styleElement = null;
 var useCssText = null;
 
+// flag to use multiple style tags
+var _splitTag = false;
+function splitTag(v) {
+  return v === undefined ? _splitTag : (_splitTag = v);
+}
+
 function addCSS(styleDefinition) {
   styleDefinitions.push(styleDefinition);
   isDirty = true;
@@ -5446,10 +5496,24 @@ function applyCSS(force) {
   // can call toCSS to get the updated CSS.
   if (!styleElement || (!force && !isDirty)) { return; }
 
-  if (useCssText) {
-    styleElement.styleSheet.cssText = getCSS(null);
+  if (_splitTag) {
+    styleDefinitions.forEach(function (s) {
+      var el = getStyle(s.id);
+      if (el) {
+        var css = getCSS(s.id);
+        if (useCssText) {
+          el.styleSheet.cssText !== css && (el.styleSheet.cssText = css);
+        } else {
+          el.innerHTML !== css && (el.innerHTML = css);
+        }
+      }
+    });
   } else {
-    styleElement.innerHTML = getCSS(null);
+    if (useCssText) {
+      styleElement.styleSheet.cssText = getCSS(null);
+    } else {
+      styleElement.innerHTML = getCSS(null);
+    }
   }
 
   isDirty = false;
@@ -5469,17 +5533,26 @@ function getCSS(cssIds) {
   );
 }
 
-function style() {
-  // If we're on the browser, additional setup needed.
-  if (doc && !styleElement) {
-    styleElement = doc.createElement('style');
-    styleElement.type = 'text/css';
-    styleElement.setAttribute('data-ractive-css', '');
+function getStyle(id) {
+  return doc && (doc.querySelector(("[data-ractive-css=\"" + id + "\"]")) || makeStyle(id));
+}
 
-    doc.getElementsByTagName('head')[0].appendChild(styleElement);
+function makeStyle(id) {
+  if (doc) {
+    var el = doc.createElement('style');
+    el.type = 'text/css';
+    el.setAttribute('data-ractive-css', id || '');
 
-    useCssText = !!styleElement.styleSheet;
+    doc.getElementsByTagName('head')[0].appendChild(el);
+
+    if (useCssText === null) { useCssText = !!el.styleSheet; }
+
+    return el;
   }
+}
+
+function style() {
+  if (!styleElement) { styleElement = makeStyle(); }
 
   return styleElement;
 }
@@ -6135,7 +6208,7 @@ var registries = registryNames.map(function (name) {
   return new Registry(name, putInDefaults);
 });
 
-function wrap(parent, name, method) {
+function wrap$1(parent, name, method) {
   if (!/_super/.test(method)) { return method; }
 
   function wrapper() {
@@ -6292,7 +6365,7 @@ function extendOtherMethods(parent, target, options) {
             ("Overriding Ractive prototype function '" + key + "' without calling the '" + _super + "' method can be very dangerous.")
           );
         }
-        member = wrap(parent, key, member);
+        member = wrap$1(parent, key, member);
       }
 
       target[key] = member;
@@ -7156,7 +7229,7 @@ function updateInlineStyle(reset) {
 function updateClassName(reset) {
   var value = reset ? [] : readClass(safeToStringValue(this.getValue()));
 
-  // watch out for werdo svg elements
+  // watch out for weirdo svg elements
   var cls = this.node.className;
   cls = cls.baseVal !== undefined ? cls.baseVal : cls;
 
@@ -7179,7 +7252,7 @@ function updateClassName(reset) {
 function updateInlineClass(reset) {
   var name = this.name.substr(6);
 
-  // watch out for werdo svg elements
+  // watch out for weirdo svg elements
   var cls = this.node.className;
   cls = cls.baseVal !== undefined ? cls.baseVal : cls;
 
@@ -8259,7 +8332,7 @@ var Component = (function (Item) {
       this.addChild = addChild;
       this.removeChild = removeChild;
     } else {
-      var instance = create(ComponentConstructor.prototype);
+      var instance = new ComponentConstructor({ component: true });
 
       this.instance = instance;
       this.name = template.e;
@@ -8289,7 +8362,7 @@ var Component = (function (Item) {
       instance.root = instance.parent.root;
       instance.component = this;
 
-      construct(this.instance, { partials: partials });
+      construct(this.instance, { partials: partials }, ComponentConstructor);
 
       // these can be modified during construction
       template = this.template;
@@ -8653,12 +8726,13 @@ var ComputationChild = (function (Model) {
     if (shouldCapture) { capture(this); }
 
     if (this.dirty) {
-      this.dirty = false;
       var parentValue = this.parent.get();
       this.value = parentValue ? parentValue[this.key] : undefined;
       if (this.wrapper) { this.newWrapperValue = this.value; }
       this.adapt();
     }
+
+    this.dirty = false;
 
     return (opts && 'unwrap' in opts ? opts.unwrap !== false : shouldCapture) && this.wrapper
       ? this.wrapperValue
@@ -8666,7 +8740,11 @@ var ComputationChild = (function (Model) {
   };
 
   ComputationChild__proto__.handleChange = function handleChange$2 () {
-    if (this.dirty) { return; }
+    if (this.dirty) {
+      this.deps.forEach(handleChange);
+      return;
+    }
+
     this.dirty = true;
 
     if (this.boundValue) { this.boundValue = null; }
@@ -8767,7 +8845,7 @@ var Computation = (function (Model) {
     var result;
 
     try {
-      result = this.signature.getter.call(this.root.ractive, this.getContext());
+      result = this.signature.getter.call(this.root.ractive, this.getContext(), this.getKeypath());
     } catch (err) {
       warnIfDebug(("Failed to compute " + (this.getKeypath()) + ": " + (err.message || err)));
 
@@ -8809,7 +8887,7 @@ var Computation = (function (Model) {
       throw new Error(("Cannot set read-only computed value '" + (this.key) + "'"));
     }
 
-    this.signature.setter(value);
+    this.signature.setter(value, this.getContext(), this.getKeypath());
     this.mark();
   };
 
@@ -9054,7 +9132,7 @@ var Decorator = function Decorator(options) {
   this.owner = options.owner || options.up.owner || findElement(options.up);
   this.element = this.owner.attributeByName ? this.owner : findElement(options.up);
   this.up = options.up || this.owner.up;
-  this.ractive = this.owner.ractive;
+  this.ractive = this.up.ractive || this.owner.ractive;
   var template = (this.template = options.template);
 
   this.name = template.n;
@@ -9102,11 +9180,12 @@ Decorator__proto__.render = function render () {
 
   this.shouldDestroy = false;
   if (this.handle) { this.unrender(); }
+  var ractive = this.ractive;
   runloop.scheduleTask(function () {
     // bail if the host element has managed to become unrendered
     if (!this$1.element.rendered) { return; }
 
-    var fn = findInViewHierarchy('decorators', this$1.ractive, this$1.name);
+    var fn = findInViewHierarchy('decorators', ractive, this$1.name);
 
     if (!fn) {
       warnOnce(missingPlugin(this$1.name, 'decorator'));
@@ -9117,7 +9196,9 @@ Decorator__proto__.render = function render () {
     this$1.node = this$1.element.node;
 
     var args = this$1.model ? this$1.model.get() : [];
-    this$1.handle = fn.apply(this$1.ractive, [this$1.node].concat(args));
+    localFragment.f = this$1.up;
+    this$1.handle = fn.apply(ractive, [this$1.node].concat(args));
+    localFragment.f = null;
 
     if (!this$1.handle || !this$1.handle.teardown) {
       throw new Error(
@@ -9128,6 +9209,10 @@ Decorator__proto__.render = function render () {
     // watch out for decorators that cause their host element to be unrendered
     if (this$1.shouldDestroy) { this$1.destroyed(); }
   }, true);
+};
+
+Decorator__proto__.shuffled = function shuffled () {
+  if (this.handle && this.handle.shuffled) { this.handle.shuffled(); }
 };
 
 Decorator__proto__.toString = function toString () {
@@ -9456,7 +9541,8 @@ var CheckboxNameBinding = (function (Binding) {
 
   CheckboxNameBinding__proto__.handleChange = function handleChange () {
     this.isChecked = this.element.node.checked;
-    this.group.value = this.model.get().slice();
+    var mval = this.model.get();
+    this.group.value = mval === undefined ? [] : mval.slice();
     var value = this.element.getAttribute('value');
     if (this.isChecked && !this.arrayContains(this.group.value, value)) {
       this.group.value.push(value);
@@ -10588,6 +10674,11 @@ var Element = (function (ContainerItem) {
     this.rendered = true;
   };
 
+  Element__proto__.shuffled = function shuffled$1 () {
+    ContainerItem.prototype.shuffled.call(this);
+    this.decorators.forEach(shuffled);
+  };
+
   Element__proto__.toString = function toString () {
     var this$1 = this;
 
@@ -10756,6 +10847,19 @@ function getNamespace(element) {
   return element.ractive.el.namespaceURI;
 }
 
+var stop = false;
+function stopPropagation() {
+  stop = true;
+}
+var immediate$1 = false;
+function stopImmediatePropagation() {
+  immediate$1 = true;
+}
+var prevent = false;
+function preventDefault() {
+  prevent = true;
+}
+
 function delegateHandler(ev) {
   var name = ev.type;
   var end = ev.currentTarget;
@@ -10763,6 +10867,15 @@ function delegateHandler(ev) {
   var node = ev.target;
   var bubble = true;
   var listeners;
+  var prevented = false;
+
+  stop = immediate$1 = prevent = false;
+  var oldStop = ev.stopPropagation;
+  var oldImmediate = ev.stopImmediatePropagation;
+  var oldPrevent = ev.preventDefault;
+  ev.stopPropagation = stopPropagation;
+  ev.stopImmediatePropagation = stopImmediatePropagation;
+  ev.preventDefault = preventDefault;
 
   // starting with the origin node, walk up the DOM looking for ractive nodes with a matching event listener
   while (bubble && node && node !== end) {
@@ -10772,12 +10885,32 @@ function delegateHandler(ev) {
 
       if (listeners) {
         var len = listeners.length;
-        for (var i = 0; i < len; i++) { bubble = listeners[i].call(node, ev) !== false && bubble; }
+        for (var i = 0; i < len; i++) {
+          bubble = listeners[i].call(node, ev) !== false && bubble;
+          if (immediate$1) {
+            bubble = false;
+            break;
+          }
+          if (stop) { bubble = false; }
+          if (prevent && !prevented) {
+            prevented = true;
+            oldPrevent.call(ev);
+          }
+        }
       }
     }
 
     node = node.parentNode || node.correspondingUseElement; // SVG with a <use> element in certain environments
   }
+
+  if (bubble) { bubble = !stop && !immediate$1; }
+
+  if (stop) { oldStop.call(ev); }
+  if (immediate$1) { oldImmediate.call(ev); }
+
+  ev.stopPropagation = oldStop;
+  ev.stopImmediaitePropagation = oldImmediate;
+  ev.preventDefault = oldPrevent;
 
   return bubble;
 }
@@ -10802,7 +10935,7 @@ function handler(ev) {
   var listeners;
   if (el.listeners && (listeners = el.listeners[ev.type])) {
     var len = listeners.length;
-    for (var i = 0; i < len; i++) { listeners[i].call(this$1, ev); }
+    for (var i = 0; i < len; i++) { listeners[i] && listeners[i].call(this$1, ev); }
   }
 }
 
@@ -10909,6 +11042,7 @@ CustomEvent__proto__.render = function render (directive) {
   runloop.scheduleTask(function () {
     var node = this$1.owner.node;
 
+    localFragment.f = directive.up;
     this$1.handler = this$1.eventPlugin.apply(
       this$1.owner.ractive,
       [
@@ -10925,13 +11059,17 @@ CustomEvent__proto__.render = function render (directive) {
         }
       ].concat(this$1.args || [])
     );
+    localFragment.f = null;
   });
 };
 
 CustomEvent__proto__.unbind = function unbind () {};
 
 CustomEvent__proto__.unrender = function unrender () {
-  this.handler.teardown();
+    var this$1 = this;
+
+  if (this.handler) { this.handler.teardown(); }
+  else { runloop.scheduleTask(function () { return this$1.handler && this$1.handler.teardown(); }); }
 };
 
 var RactiveEvent = function RactiveEvent(component, name) {
@@ -11293,6 +11431,7 @@ var ReferenceExpressionProxy = (function (LinkModel) {
         this$1.relinking(model);
         fireShuffleTasks();
         refreshPathDeps(this$1);
+        this$1.fragment.shuffled();
       }
     };
 
@@ -12998,9 +13137,11 @@ RepeatedFragment__proto__.rebind = function rebind (next) {
 
   this.context = next;
   if (this.source) { return; }
-  this.iterations.forEach(function (fragment) {
-    swizzleFragment(this$1, fragment, fragment.key, fragment.index);
-  });
+  if (next) {
+    this.iterations.forEach(function (fragment) {
+      swizzleFragment(this$1, fragment, fragment.key, fragment.index);
+    });
+  }
 };
 
 RepeatedFragment__proto__.rebound = function rebound (update$$1) {
@@ -13054,7 +13195,7 @@ RepeatedFragment__proto__.shuffle = function shuffle (newIndices, merge) {
   if (!merge) { this.bubble(); }
 };
 
-RepeatedFragment__proto__.shuffled = function shuffled$1 () {
+RepeatedFragment__proto__.shuffled = function shuffled$2 () {
   this.iterations.forEach(shuffled);
 };
 
@@ -13481,6 +13622,10 @@ var Section = (function (MustacheContainer) {
   Section__proto__.detach = function detach () {
     var frag = this.fragment || this.detached;
     return frag ? frag.detach() : MustacheContainer.prototype.detach.call(this);
+  };
+
+  Section__proto__.findNextNode = function findNextNode () {
+    return (this.containerFragment || this.up).findNextNode(this);
   };
 
   Section__proto__.isTruthy = function isTruthy () {
@@ -14525,7 +14670,7 @@ Transition__proto__.toString = function toString () {
 };
 
 Transition__proto__.unbind = function unbind () {
-  if (!this.element.attributes.unbinding) {
+  if (!this.element.attributes || !this.element.attributes.unbinding) {
     var type = this.options && this.options.template && this.options.template.v;
     if (type === 't0' || type === 't1') { this.element.intro = null; }
     if (type === 't0' || type === 't2') { this.element.outro = null; }
@@ -15083,7 +15228,10 @@ var Fragment = function Fragment(options) {
   this.parent = this.isRoot ? null : this.owner.up;
   this.ractive = options.ractive || (this.isRoot ? options.owner : this.parent.ractive);
 
-  this.componentParent = this.isRoot && this.ractive.component ? this.ractive.component.up : null;
+  this.componentParent =
+    this.isRoot && this.ractive.component
+      ? this.ractive.component.up
+      : this.owner.containerFragment || null;
   if (!this.isRoot || this.ractive.delegate) {
     this.delegate = this.owner.containerFragment
       ? this.owner.containerFragment && this.owner.containerFragment.delegate
@@ -15353,7 +15501,7 @@ Fragment__proto__.resetTemplate = function resetTemplate (template) {
   }
 };
 
-Fragment__proto__.shuffled = function shuffled$2 () {
+Fragment__proto__.shuffled = function shuffled$3 () {
   this.items.forEach(shuffled);
   if (this.rootModel) { this.rootModel.applyValue(this.context.getKeypath(this.ractive.root)); }
   if (this.pathModel) { this.pathModel.applyValue(this.context.getKeypath()); }
@@ -15904,6 +16052,7 @@ var proto$9 = {
   findParent: Ractive$findParent,
   fire: Ractive$fire,
   get: Ractive$get,
+  getLocalContext: getLocalContext,
   getContext: getContext$2,
   insert: Ractive$insert,
   link: link,
@@ -16057,6 +16206,7 @@ function extendOne(Parent, options, Target) {
   } else {
     Child = function(options) {
       if (!(this instanceof Child)) { return new Child(options); }
+      if (options && options.component === true) { return; }
 
       construct(this, options || {});
       initialise(this, options || {}, {});
@@ -16161,6 +16311,7 @@ function findPlugin(name, type, instance) {
 
 function Ractive(options) {
   if (!(this instanceof Ractive)) { return new Ractive(options); }
+  if (options && options.component) { return; }
 
   construct(this, options || {});
   initialise(this, options || {}, {});
@@ -16178,7 +16329,7 @@ if (win && !win.Ractive) {
   /* istanbul ignore next */
   if (~opts$1.indexOf('ForceGlobal')) { win.Ractive = Ractive; }
 } else if (win) {
-  warn("Ractive already appears to be loaded while loading 1.3.14.");
+  warn("Ractive already appears to be loaded while loading 1.4.0.");
 }
 
 assign(Ractive.prototype, proto$9, defaults);
@@ -16221,7 +16372,7 @@ defineProperties(Ractive, {
   },
 
   // version
-  VERSION: { value: '1.3.14' },
+  VERSION: { value: '1.4.0' },
 
   // plugins
   adaptors: { writable: true, value: {} },
@@ -16237,6 +16388,7 @@ defineProperties(Ractive, {
 
   // CSS variables
   cssData: { configurable: true, value: {} },
+  perComponentStyleElements: { get: splitTag, set: splitTag },
 
   // access to @shared without an instance
   sharedData: { value: data },

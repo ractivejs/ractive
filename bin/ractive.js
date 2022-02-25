@@ -24,9 +24,10 @@ function mkReadFile(file) {
   const base = path.isAbsolute(file)
     ? path.dirname(file)
     : path.join(opts.base, path.dirname(file));
-  return function readFile(name) {
+  return function readFile(names) {
+    if (Array.isArray(names)) names = path.join.apply(path, names);
     return Promise.resolve(
-      fs.readFileSync(path.isAbsolute(name) ? name : path.join(base, name), { encoding: 'utf8' })
+      fs.readFileSync(path.isAbsolute(names) ? names : path.join(base, names), { encoding: 'utf8' })
     );
   };
 }
