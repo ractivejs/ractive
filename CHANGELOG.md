@@ -1,6 +1,6 @@
 # changelog
 
-# 1.4.0 (edge, unreleased)
+# 1.4.0
 
 * Bug fixes
   * Embedded typings are improved: added missing methods and properties and improved `extend` support.
@@ -10,12 +10,20 @@
   * Context `find` methods now support the options that the instance versions support.
   * Custom elements are now checked in a hopefully more cross-browser way.
   * Links will now propagate changes that happen in their source models up to their parent model.
+  * Computations that have a dependency that causes the computation to invalidate while computing will no longer get stuck, as the change notification will be passed through even though the computation is currently computing. (#3380)
+  * Elements with no attributes will no longer throw during render if they happen to be transitioned.
+  * Custom events that are torn down before they have a chance to fully render will no longer throw.
+  * Virtual `get` and `set` with `deep` try to do the right thing with `Date`s. (#3388)
+  * Computeds that get computed during a link will no resolve the correct dependency.
+  * Swapping an element with `splice` will now properly notify upstream paths.
 
 * Experimental new features
   * Computation setter functions now receive a context argument, and both getter and setter functions now receive a keypath argument.
   * Component styles can be split into multiple managed style tags in the document head by setting `Ractive.perComponentStyleElements` to `true`.
   * Methods that set a single value will now return the new value as the resolution of the returned promise e.g. `r.toggle('foo')` if `foo` is falsey will return a promise that resolves to `true`. `add`/`subtract`/`set` behave similarly.
   * Decorators and custom events can now access their local context, in the case of a yielded attribute partial, with `this.getLocalContext()`.
+  * Delegated events now proxy `stopPropagation`, `stopImmediatePropagation`, and `preventDefault` to behave a bit more like a non-delegated event would be expected act.
+  * If you need to have precise control over whitespace handling in a template, particularly around additional lines that only have block tags, you can use a new parser flag `preserveStandaloneSections` in addition to a `-` trailing sigil in the mustache to consume all of the whitespace around the tag, effectively removing its line from the output. This is modelled on the on similar Liquid functionality. (#3338)
 
 # 1.3.14
 
