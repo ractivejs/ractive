@@ -10,6 +10,7 @@ import { unescapeKey } from 'shared/keypaths';
 import { warnIfDebug } from 'utils/log';
 import { hasOwn, keys } from 'utils/object';
 import { buildNewIndices } from 'utils/array';
+import runloop from 'src/global/runloop';
 
 export const shared = {};
 
@@ -244,8 +245,14 @@ export default class Model extends ModelBase {
       if (key === 'data') {
         const val = this.retrieve();
         if (val && val.viewmodel && val.viewmodel.isRoot) {
+          // this needs to happen in a runloop, as it can cause bubbling
+          const batch = runloop.active();
+          if (!batch) runloop.start();
+
           child.link(val.viewmodel, 'data');
           this.dataModel = val;
+
+          if (!batch) runloop.end();
         }
       }
     }
