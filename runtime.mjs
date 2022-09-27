@@ -1,7 +1,7 @@
 /*
-	Ractive.js v1.4.0
-	Build: cf2bc5f2a151700d010d1ddc802f4a663e067d28
-	Date: Fri Feb 25 2022 00:20:23 GMT-0500 (Eastern Standard Time)
+	Ractive.js v1.4.1
+	Build: 040252280a624fb2ed7850440aec704e42533122
+	Date: Tue Sep 27 2022 16:26:39 GMT-0400 (Eastern Daylight Time)
 	Website: https://ractive.js.org
 	License: MIT
 */
@@ -526,13 +526,13 @@ var welcome;
 
 if (hasConsole) {
   var welcomeIntro = [
-    "%cRactive.js %c1.4.0 %cin debug mode, %cmore...",
+    "%cRactive.js %c1.4.1 %cin debug mode, %cmore...",
     'color: rgb(114, 157, 52); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(85, 85, 85); font-weight: normal;',
     'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   ];
-  var welcomeMessage = "You're running Ractive 1.4.0 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  var welcomeMessage = "You're running Ractive 1.4.1 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://ractive.js.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   welcome = function () {
     if (Ractive.WELCOME_MESSAGE === false) {
@@ -2617,8 +2617,14 @@ var Model = (function (ModelBase) {
       if (key === 'data') {
         var val = this.retrieve();
         if (val && val.viewmodel && val.viewmodel.isRoot) {
+          // this needs to happen in a runloop, as it can cause bubbling
+          var batch$$1 = runloop.active();
+          if (!batch$$1) { runloop.start(); }
+
           child.link(val.viewmodel, 'data');
           this.dataModel = val;
+
+          if (!batch$$1) { runloop.end(); }
         }
       }
     }
@@ -16318,7 +16324,7 @@ if (win && !win.Ractive) {
   /* istanbul ignore next */
   if (~opts$1.indexOf('ForceGlobal')) { win.Ractive = Ractive; }
 } else if (win) {
-  warn("Ractive already appears to be loaded while loading 1.4.0.");
+  warn("Ractive already appears to be loaded while loading 1.4.1.");
 }
 
 assign(Ractive.prototype, proto$9, defaults);
@@ -16361,7 +16367,7 @@ defineProperties(Ractive, {
   },
 
   // version
-  VERSION: { value: '1.4.0' },
+  VERSION: { value: '1.4.1' },
 
   // plugins
   adaptors: { writable: true, value: {} },
@@ -16402,4 +16408,4 @@ defineProperty(Ractive.prototype, 'rendered', {
 });
 
 export default Ractive;
-//# sourceMappingURL=/media/sync/dev/js/ractive/.gobble-build/13-transpile/.cache/runtime.mjs.map
+//# sourceMappingURL=/home/chris/sync/dev/js/ractive/.gobble-build/13-transpile/.cache/runtime.mjs.map
