@@ -1,6 +1,16 @@
 # changelog
 
-# 1.4.0
+## 1.4.1
+
+2022-09-27
+
+* Bug fixes
+  * Event handlers with auto-linked argument paths that are only referenced from the handler will now ensure that they have a runloop to avoid throwing.
+
+
+## 1.4.0
+
+2022-02-25
 
 * Bug fixes
   * Embedded typings are improved: added missing methods and properties and improved `extend` support.
@@ -25,12 +35,18 @@
   * Delegated events now proxy `stopPropagation`, `stopImmediatePropagation`, and `preventDefault` to behave a bit more like a non-delegated event would be expected act.
   * If you need to have precise control over whitespace handling in a template, particularly around additional lines that only have block tags, you can use a new parser flag `preserveStandaloneSections` in addition to a `-` trailing sigil in the mustache to consume all of the whitespace around the tag, effectively removing its line from the output. This is modelled on the on similar Liquid functionality. (#3338)
 
-# 1.3.14
+
+## 1.3.14
+
+2020-12-12
 
 * Bug fixes
   * 1.3.x should be the latest version [#3357](https://github.com/ractivejs/ractive/issues/3357)
 
-# 1.2.10, 1.3.13
+
+## 1.2.10, 1.3.13
+
+2020-12-09
 
 * Bug fixes
   * Fix on definition file (#3348)
@@ -38,7 +54,9 @@
     * (Ractive|Static).extend now handle multiple params and return the correct type
 
 
-# 1.2.9, 1.3.12
+## 1.2.9, 1.3.12
+
+2020-05-08
 
 * Bug fixes
   * Track decorator args as expressions so that updates, so that they get notified when their deps change (#3329)
@@ -46,13 +64,17 @@
   * Wildcard computations in arrays are now included in a virtual get (#3333)
 
 
-# 1.2.8, 1.3.11
+## 1.2.8, 1.3.11
+
+2020-02-29
 
 * Bug fixes
   * Avoid an issue with linking a reference expression's dependencies when the underlying linked model hasn't actually changed and causing the same dependency to get added to the linked model exponentially on each new link.
 
 
-# 1.2.7, 1.3.10
+## 1.2.7, 1.3.10
+
+2020-02-06
 
 * Bug fixes
   * Fixes in typings.
@@ -64,7 +86,9 @@
   * Observer callbacks that throw are now handled like computations that throw. This is technically a breaking change, but much more likely is that the previous behavior would cause Ractive's internal runloop to stall and cause unpredictable behavior.
 
 
-# 1.2.6, 1.3.9
+## 1.2.6, 1.3.9
+
+2020-02-06
 
 * Bug fixes
   * Escaped keypaths can now be observed correctly (#3319, thanks @ilessiivi)
@@ -72,7 +96,9 @@
   * Multiple references to the same model during capture for a computation will no longer result in ballooning dependencies.
 
 
-# 1.3.8
+## 1.3.8
+
+2019-09-16
 
 See also the changes from 1.2.5 / 1.3.8 below
 
@@ -80,7 +106,9 @@ See also the changes from 1.2.5 / 1.3.8 below
   * Additional aliases in a yield with context will now resolve correctly (#3316)
 
 
-# 1.2.5, 1.3.8
+## 1.2.5, 1.3.8
+
+2019-09-16
 
 * Bug fixes
   * Reference expressions that have their model disappear will no longer throw (#3308)
@@ -88,45 +116,59 @@ See also the changes from 1.2.5 / 1.3.8 below
   * Static attributes will be properly escaped again (#3311)
 
 
-# 1.2.4, 1.3.7
+## 1.2.4, 1.3.7
+
+2019-07-25
 
 * Bug fixes
   * Partials loaded from the registry, as opposed to being embedded in the template, now properly contribute expression functions for CSP (#3306)
   * Partials with a Context context will consistently find the correct parent element.
 
 
-# 1.3.6
+## 1.3.6
+
+2019-07-25
 
 * Bug fixes
   * Improved macro typings.
 
 
-# 1.3.5
+## 1.3.5
+
+2019-04-30
 
 * Bug fixes
   * The ractive binary should no longer barf on input and should more gracefully handle absolute vs relative paths.
 
 
-# 1.3.4
+## 1.3.4
+
+2019-04-23
 
 * Bug fixes
   * The ractive binary now correctly resolves relative imports/links/hrefs for components in nested folders.
 
 
-# 1.3.3
+## 1.3.3
+
+2019-04-04
 
 * New features
   * The ractive binary now supports loading partials from external files using a `src` attribute on the `template` element e.g. `<template id="my-template" src="./my-template.ractive.html">`. Currently, only `style` attributes at the top level of the resulting template are processed for inclusion, so `link` and `script` files are treated as if they appeared directly in an inline partial of the parent template.
 
 
-# 1.3.2 / 1.2.3 / 1.1.4
+## 1.3.2 / 1.2.3 / 1.1.4
+
+2019-03-12
 
 * Bug fixes
   * Checked bindings will no longer interfere with click listeners that happen to be handled by the same delegate for non-IE browsers (#3299)
   * Nested transition events, possibly not related to any ractive transitions, will no longer cause active transitions on an element to terminate early.
 
 
-# 1.3.1
+## 1.3.1
+
+2019-02-18
 
 See also the changes from 1.1.3 / 1.2.2 / 1.3.1 below
 
@@ -134,13 +176,17 @@ See also the changes from 1.1.3 / 1.2.2 / 1.3.1 below
   * The current operation promise is available to things like observers and decorators using `Ractive.tick`, which will return `undefined` if there is not currently an operation in progress (#3295)
 
 
-# 1.1.3 / 1.2.2 / 1.3.1
+## 1.1.3 / 1.2.2 / 1.3.1
+
+2019-02-18
 
 * Bug fixes
   * Dynamic partials with context will now have the correct context applied when they update (#3297)
 
 
-# 1.3.0
+## 1.3.0
+
+2019-02-04
 
 * Bug fixes
   * Checkbox name bindings will now operate on a clone of the array, so that observers will get proper old and new values. This is a regression from the behavior in 0.7 (#3293)
@@ -150,13 +196,17 @@ See also the changes from 1.1.3 / 1.2.2 / 1.3.1 below
   * Partials with context can now also supply aliases, which is useful for transplanting template supplied to a different component using the context object context support from 1.1.0 e.g. `{{>.content .context, true as remote, some.thing as item}}` where the `.content` template will have access to `remote` and `item` from the caller's context.
 
 
-# 0.10.14 / 1.0.4 / 1.1.2 / 1.2.1
+## 0.10.14 / 1.0.4 / 1.1.2 / 1.2.1
+
+2019-02-04
 
 * Bug fixes
   * Checkbox name bindings will now operate on a clone of the array, so that observers will get proper old and new values. This is a regression from the behavior in 0.7 (#3293)
 
 
-# 1.2.0
+## 1.2.0
+
+2019-01-04
 
 * Bug fixes
   * The Promise polyfill implementation is now slightly more accurate and includes `race` and `finally` implementations.
@@ -166,26 +216,34 @@ See also the changes from 1.1.3 / 1.2.2 / 1.3.1 below
   * You can get a handle to the nearest macro using the new `@macro` special reference.
 
 
-# 0.10.13 / 1.0.3 / 1.1.1
+## 0.10.13 / 1.0.3 / 1.1.1
+
+2018-11-30
 
 * Bug fixes
   * Expressions in partials defined inline or in the partials registry are now collected into the expression map for CSP purposes thanks to @marcalexiei and @giovannipiller (#3285)
 
 
-# 1.1.0
+## 1.1.0
+
+2018-11-11
 
 * Experimental new features
   * Supplying a `Context` object to a `{{#with}}` block will treat the context object as the container for its template, much like a `yield`.
   * Contexts now support `find`, `findAll`, `findAllComponents`, and `findComponent` that do the same thing as their synonymous instance methods, but they are scoped to the context.
 
 
-# 0.10.12 / 1.0.2
+## 0.10.12 / 1.0.2
+
+2018-11-11
 
 * Bug fixes
   * String attributes that already have the same value as their new value will no longer be updated. This avoids a Safari issue wherein the cursor jumps to the end of an input where the value is manually bound (#3281)
 
 
-# 1.0.1
+## 1.0.1
+
+2018-10-30
 
 See also the changes from 0.10.11 / 1.0.1 below.
 
@@ -193,7 +251,9 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * The `noCssTransform` option has been renamed `noCSSTransform` to be consistent with the rest of the css methods and options. `noCssTransform` is still an alias for `noCSSTransform`, but this is a breaking change if you ever needed to check the `noCssTransform` property of an instance or Component directly e.g. `ractive.noCssTransform`.
 
 
-# 0.10.11 / 1.0.1
+## 0.10.11 / 1.0.1
+
+2018-10-30
 
 * Bug fixes
   * Rendering a view with sub-components into an anchor will no longer cause the child components to freeze (#3271)
@@ -208,7 +268,9 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * Element events no longer check to see if the event is defined on the element before attaching a listener. This makes it possible to listen to custom element events without having to create a custom event handler.
 
 
-# 0.10.10 / 1.0.0
+## 0.10.10 / 1.0.0
+
+2018-09-27
 
 * Bug fixes
   * Conditional sections in attributes that happen to have another conditional section next to a nodeless directive (event, decorator, or transition) will no longer explode when trying to render
@@ -220,7 +282,9 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * The `onconstruct` init option will be called for consistency with `on: { construct }` (#3267)
 
 
-# 0.10.9
+## 0.10.9
+
+2018-08-29
 
 * Bug fixes
   * `extendWith` typings now have a correct return signature (#3259)
@@ -228,14 +292,18 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * Transitions that happen to cause another runloop no longer cause runloop hangs (#3260)
 
 
-# 0.10.8
+## 0.10.8
+
+2018-08-09
 
 * Bug fixes
   * Fragments rebound as part of a self-shuffling each block will no longer bind and unbind if the model doesn't actually change
   * `sharedSet` and `styleGet` now properly participate in capture
 
 
-# 0.10.7
+## 0.10.7
+
+2018-08-07
 
 * Bug fixes
   * The bin now properly handles `$PARTIAL` references without a property access
@@ -244,14 +312,18 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * `Ractive.getContext` will now check parent elements for context so that non-managed DOM that is owned by managed DOM can still be easily interacted with
 
 
-# 0.10.6
+## 0.10.6
+
+2018-07-28
 
 * Bug fixes
   * Static style attributes will no longer get an extra semicolon tacked onto the end (#3257)
   * The `ractive` bin properly handles single file input again.
 
 
-# 0.10.5
+## 0.10.5
+
+2018-07-18
 
 * Bug fixes
   * `@import` in CSS no longer blows up during transformation (#3254)
@@ -262,7 +334,9 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * The component init code will now automatically handle module namespaces with a default export, so you can use dynamic imports to asynchronously pull in a Ractive component module e.g. `components: { thing: import('./Thing.ractive.html') }` (#3256)
 
 
-# 0.10.4
+## 0.10.4
+
+2018-06-28
 
 * Bug fixes
   * Ambiguity warnings no longer consider alias blocks as contributing to ambiguity (#3238)
@@ -276,21 +350,27 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * There is a new mode in the bin that allows processing of an tree of components all at once. This is particularly helpful for generating TypeScript components, since the TypeScript compiler has no support for plugins. See the new `-id`, `-e`, `-oe`, and `-ae` flags for the `component` command.
 
 
-# 0.10.3
+## 0.10.3
+
+2018-05-03
 
 * Bug fixes
   * Reference expression models will no longer re-register themselves exponentially when they are shuffled or relinked (#3232)
   * `on-load` events are no longer defered because `load` events typically only fire once, possibly as soon as the element is attached to the DOM (#3233)
 
 
-# 0.9.14
+## 0.9.14
+
+2018-05-03
 
 * Bug fixes
   * Expressions in static mappings will no longer leak (#3201)
   * Reference expressions will now cause their source model to shuffle if necessary (#3234)
 
 
-# 0.10.2
+## 0.10.2
+
+2018-04-24
 
 * Bug fixes
   * Calling `raise` on an element context that has no matching event no longer throws (#3226)
@@ -300,7 +380,9 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * There is now an `unrendering` lifecycle event that fires before the instance unrenders, allowing access to methods that require the DOM to still be rendered, like `find`.
 
 
-# 0.10.1
+## 0.10.1
+
+2018-04-13
 
 * Breaking changes
   * `getNodeInfo` has been removed after being deprecated for quite some time and being fully replaced by `getContext`.
@@ -314,7 +396,9 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * Attributes that won't change are now managed statically for elements, which along with some other profiling-related changes results in a ~10% performance improvement over 0.9.
 
 
-# 0.10.0
+## 0.10.0
+
+2018-04-05
 
 * Breaking changes
   * `resolveInstanceMembers` now defaults to `false` to avoid foot maimings associated with common instance member names and ambiguous references.
@@ -352,13 +436,17 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * Ractive now uses prettier to make keeping the code style consistent easier, which will hopefully also make contributions easier.
 
 
-# 0.9.13
+## 0.9.13
+
+2018-02-22
 
 * Bug fixes
   * Aliases, key refs, and index refs are now properly implicitly mapped when referenced from a non-isolated component (#3174)
 
 
-# 0.9.12
+## 0.9.12
+
+2018-02-18
 
 * Bug fixes
   * Computations that manage to update outside of a runloop no longer throw (#3169)
@@ -368,7 +456,9 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * Setting a bound multiple select to `undefined` no longer throws (#3194)
 
 
-# 0.9.11
+## 0.9.11
+
+2017-12-19
 
 * Bug fixes
   * Reference expressions now properly handle wrapping or unwrapping values during `get()` thanks to @m-r-r (#3143)
@@ -385,7 +475,9 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * The array of adaptors for an instance is now shared with its viewmodel once it has resolved - #3147
 
 
-# 0.9.10
+## 0.9.10
+
+2017-11-14
 
 * Bug fixes
   * Computations and their children now unwrap and adapt correctly thanks to @m-r-r (#3130, #3137)
@@ -397,7 +489,9 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * Context objects now include a `hasListener(name[, bubble])` helper that checks for event listeners available in the template from the context's position. By default, it only checks the immediate parent, but can be told to check all ancestors by passing `true` for the optional `bubble` argument.
 
 
-# 0.9.9
+## 0.9.9
+
+2017-11-02
 
 * Bug fixes
   * Reference expressions no longer cause memory leaks (#3123)
@@ -408,7 +502,9 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * The runtime build once again excludes the parser code, which managed to sneak back in amidst some build process udpates.
 
 
-# 0.9.8
+## 0.9.8
+
+2017-10-27
 
 * Bug fixes
   * Binding attributes not owned directly by an element (conditional attributes) now behave correctly.
@@ -416,7 +512,9 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * Delegated events now play more nicely with `<use>` tags in certain environments (IE, older Safari, etc) (#3122)
 
 
-# 0.9.7
+## 0.9.7
+
+2017-10-25
 
 * Bug fixes
   * The flag that tells partial templates to update no longer gets stuck causing unnecessary partial re-renders
@@ -429,7 +527,9 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * The managed style element used for component CSS is now tagged with a `data-ractive-css` attribute (#3091)
 
 
-# 0.9.6
+## 0.9.6
+
+2017-10-23
 
 * Breaking changes
   * Experimental parser transforms have been removed and replaced with a runtime construct associated with partials (see below)
@@ -465,12 +565,16 @@ See also the changes from 0.10.11 / 1.0.1 below.
       * `teardown()` - called when the macro is being removed from the template e.g. on unrender or if the dynamic name of the partial changes
 
 
-# 0.9.5
+## 0.9.5
+
+2017-10-08
 
 * The `mjs` files are once again properly transpiled for those who use a `module` aware bundler with no transpiler.
 
 
-# 0.9.4
+## 0.9.4
+
+2017-11-29
 
 * Bug fixes
   * Various bugs related to attaching child instances to anchors, including inherited partials, certain template constructs, and anchors inside iterative sections (#3060)
@@ -509,7 +613,9 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * `{{yield}}` outside of a component context is now a noop
 
 
-# 0.9.3
+## 0.9.3
+
+2017-07-24
 
 * Bug fixes
   * Plain objects can now be used to extend context when firing events (#3033)
@@ -531,7 +637,9 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * Decorators can now request that their owning element notify them when the element is invalidated i.e. when the element or some template that is part of its body will be updated. This is accopmlished by simply adding an `invalidate` method to the control handle returned by the decorator.
 
 
-# 0.9.2
+## 0.9.2
+
+2017-06-30
 
 * Bug fixes
   * The bin now properly handles partial names with invalid identifier characters (`-`).
@@ -543,7 +651,9 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * `input[type=file]` bindings will no longer try to set the value on blur, causing a DOMException (#3015)
 
 
-# 0.9.1
+## 0.9.1
+
+2017-06-11
 
 * Bug fixes
   * Pattern observers will now fire even if there are other incidental changes caused by a shuffle (#2984)
@@ -559,7 +669,9 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * Context objects now have event delegation helpers `listen` and `unlisten` so that custom events and decorators can use delegation where appropriate.
 
 
-# 0.9.0
+## 0.9.0
+
+2017-05-26
 
 * Bug fixes
   * Observers on uninitialized data may be added during the `config` event (#2725)
@@ -688,7 +800,9 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * You can specify `{ force: true }` to `ractive.update` to force the target keypath to update event if internal checks determine that the value has not changed. This is useful for causing re-evaluation of all references to a function.
 
 
-# 0.8.14
+## 0.8.14
+
+2017-05-23
 
 * Bug fixes
   * Bound functions always use `Function.prototype.bind` in case the function has an overridden `bind` (#2915)
@@ -701,11 +815,16 @@ See also the changes from 0.10.11 / 1.0.1 below.
   * Selects that are not dirty will no longer update erroneously and subsequently reset their value (#2965)
 
 
-# 0.8.13
+## 0.8.13
+
+2017-03-16
 
 Same as 0.8.14, but automated deployment had some issues.
 
-# 0.8.12
+
+## 0.8.12
+
+2017-03-16
 
 * Bug fixes
   * Read-only computed properties in components will no longer try to initialize from mappings (#2888)
@@ -713,14 +832,18 @@ Same as 0.8.14, but automated deployment had some issues.
   * Class directives will now try to maintain original ordering for things that use order-sensitive selectors (#2903)
 
 
-# 0.8.11
+## 0.8.11
+
+2017-02-20
 
 * Bug fixes
   * Component CSS now handles keyframes more gracefully (#2854)
   * Triples won't decode their entity refs unless they're in an attribute (#2882)
 
 
-# 0.8.10
+## 0.8.10
+
+2017-01-25
 
 * Bug fixes
   * Changes to transition arguments will no longer cause an exception (#2818)
@@ -731,7 +854,9 @@ Same as 0.8.14, but automated deployment had some issues.
   * `Ractive.getNodeInfo` will now return `undefined` when called with a non-Ractive node (#2819)
 
 
-# 0.8.9
+## 0.8.9
+
+2017-01-04
 
 * Bug fixes
   * Event handlers that haven't been full rendered will no longer error when being unrendered (#2814)
@@ -739,7 +864,9 @@ Same as 0.8.14, but automated deployment had some issues.
   * Reference expressions that morph into a primitive will no longer cause their children to throw (#2817)
 
 
-# 0.8.8
+## 0.8.8
+
+2016-12-30
 
 * Bug fixes
   * Whitespace in conditional attributes no longer erroneously create an empty-named attribute that errors at runtime (#2783)
@@ -749,27 +876,35 @@ Same as 0.8.14, but automated deployment had some issues.
   * Computations with dotted keypaths can now be accessed (#2807)
 
 
-# 0.8.7
+## 0.8.7
+
+2016-12-06
 
 * Bug fixes
   * Regression: hyphenated inline styles are set correctly again (#2796)
 
 
-# 0.8.6
+## 0.8.6
+
+2016-12-06
 
 * Bug fixes
   * Unquoted attributes no longer consider `/` for content, fixing parse errors with unquoted attributes and self-closing elements (#2765)
   * Inline priority on style attributes e.g. `style="display: block !important"` is no longer lost (#2794)
 
 
-# 0.8.5
+## 0.8.5
+
+2016-11-13
 
 * Bug fixes
   * Form elements nested inside yielders now correctly find their parents. This includes options finding their parent select (#2754)
   * Number bindings now record their initial value properly (#2671)
 
 
-# 0.8.4
+## 0.8.4
+
+2016-11-04
 
 * Bug fixes
   * VDOM destruction now propagates correctly through all types of item (#2735)
@@ -780,21 +915,27 @@ Same as 0.8.14, but automated deployment had some issues.
   * `{{#with foo}}` will now render if `foo` is an empty object or array, as it is valid context. `{{#foo}}` will _not_ render if `foo` is empty.
 
 
-# 0.8.3
+## 0.8.3
+
+2016-10-30
 
 * Bug fixes
   * Non-isolated components now inherit adaptors from their parent - partial regression from 0.7.3
   * Bugs with `toHTML()` without DOM rendering in a few scenarios, including fixes for `class-` and `style-` attributes not being included in the string output.
 
 
-# 0.8.2
+## 0.8.2
+
+2016-10-26
 
 * Bug fixes
   * Ractive will no longer create its own properties on adaptor objects.
   * Child paths on computations will now properly notify links, so component mappings involving a computed property will now update as expected.
 
 
-# 0.8.1
+## 0.8.1
+
+2016-10-20
 
 * Bug fixes
   * Fixed issues with adaptors (#2693, #2698)
@@ -808,7 +949,9 @@ Same as 0.8.14, but automated deployment had some issues.
   * Deprecated event constructs will now issue a warning with context for each instance, so that it becomes easier to find proxy events with arguments or old-style, non-prefixed method events in templates.
 
 
-# 0.8.0
+## 0.8.0
+
+2016-08-30
 
 * Breaking changes
   * **Templates parsed with previous versions of Ractive are no longer compatible.**
@@ -856,7 +999,10 @@ Same as 0.8.14, but automated deployment had some issues.
 
 * Bug fixes and other changes - way too many to list
 
-# 0.7.3
+
+## 0.7.3
+
+2015-04-25
 
 * Fixed reading templates from `<script>` tags in IE8 (#1908)
 * Components with a `css` property can be created in node.js (#1927)
@@ -865,7 +1011,10 @@ Same as 0.8.14, but automated deployment had some issues.
 * Better error for undefined/null templates (#1893)
 * Internal tweaks (dependency updates, removal of .DS_Store files, fix tests in Firefox/Safari)
 
-# 0.7.2
+
+## 0.7.2
+
+2015-04-02
 
 * `ractive.runtime.js` works again (sorry everyone!) (#1860)
 * Methods that clash with non-function config properties trigger a warning (#1857)
@@ -874,11 +1023,17 @@ Same as 0.8.14, but automated deployment had some issues.
 * Observers are cancelled when their instance is torn down (#1865)
 * Prevent internal logging function from failing in certain edge cases (#1890)
 
-# 0.7.1
+
+## 0.7.1
+
+2015-03-17
 
 * Fix version snafu
 
-# 0.7.0
+
+## 0.7.0
+
+2015-03-17
 
 * Breaking changes
   * `ractive.data` is no longer exposed. Use `ractive.get()` and `ractive.set()` rather than accessing `data` directly
@@ -919,7 +1074,9 @@ Same as 0.8.14, but automated deployment had some issues.
 * Bug fixes - too many to list...
 
 
-# 0.6.1
+## 0.6.1
+
+2014-10-25
 
 * Breaking changes
   * If `obj` has no keys, then the `else` half of `{{#each obj}}...{{else}}...{{/each}}` will render
@@ -933,7 +1090,10 @@ Same as 0.8.14, but automated deployment had some issues.
   * `console` is a supported global in expression - e.g. `{{console.log('debugging',foo)}}`
 * Fixes for #1046, #1175, #1190, #1209, #1255, #1273, #1278, #1285, #1293, #1295, #1303, #1305, #1313, #1314, #1320, #1322, #1326, #1337, #1340, #1346, #1357, #1360, #1364, #1365, #1369, #1373, #1383, #1390, #1393, #1395, and #1399
 
-# 0.6.0
+
+## 0.6.0
+
+2014-09-29
 
 * Breaking changes:
   * `new Ractive()` now inherits all options as methods/properties including event hooks.
@@ -954,18 +1114,27 @@ Same as 0.8.14, but automated deployment had some issues.
   * Computed values and expressions are more efficient, and will not recompute unnecessarily
 * Fixes for #868, #871, #1046, #1184, #1206, #1208, #1209, #1220, #1228, #1232, #1239, #1275, #1278, #1294, #1295, #1305, #1313, #1314, #1320 plus a few IE8 bugs
 
-# 0.5.8
+
+## 0.5.8
+
+2014-09-18
 
 * Huge parser speed boost (see #1227)
 * Fixes for #1204, #1214, #1218, #1221, #1223
 * Partial names can be specified dynamically as references or expressions
 
-# 0.5.7
+
+## 0.5.7
+
+2014-09-11
 
 * Release script got pooched; there was a tag mix-up of some sort with npm and 0.5.6 contained source files but not all the build files.
 * Fixes for #1166, #1169, #1174, and #1183
 
-# 0.5.6
+
+## 0.5.6
+
+2014-08-31
 
 * Breaking changes:
   * Use of other elements besides `<script>` for templates is an error
@@ -980,21 +1149,33 @@ Same as 0.8.14, but automated deployment had some issues.
 * Other changes
   * Initial changes from `ractive.animate()` are applied immediately, not on the next frame
 
-# 0.5.5
+
+## 0.5.5
+
+2014-07-13
 
 * Breaking changes:
   * Removed debug option from `ractive.observe()` (#970)
 * Fixes for #713, #941, #942, #943, #945, #950, #951, #952, #953, #960, #965, #967 and #974
 
-# 0.5.2, 0.5.3, 0.5.4
+
+## 0.5.2, 0.5.3, 0.5.4
+
+2014-07-05
 
 * No actual changes, just wrestling with npm and bower!
 
-# 0.5.1
+
+## 0.5.1
+
+2014-07-05
 
 * Fix for #939
 
-# 0.5.0
+
+## 0.5.0
+
+2014-07-05
 
 * Code organisation
   * Codebase is now structured as ES6 modules, which can use new ES6 features such as arrow functions
@@ -1089,7 +1270,10 @@ Same as 0.8.14, but automated deployment had some issues.
   * CSS transitions apply correctly
   * wildcard `*` can be used as first part of observer keypath
 
-# 0.4.0
+
+## 0.4.0
+
+2014-04-08
 
 * BREAKING: Filenames are now lowercase. May affect you if you use Browserify etc.
 * BREAKING: `set()`, `update()`, `teardown()`, `animate()`, `merge()`, `add()`, `subtract()`, and `toggle()` methods return a Promise that fulfils asynchronously when any resulting transitions have completed
@@ -1121,7 +1305,10 @@ Same as 0.8.14, but automated deployment had some issues.
 * Fixed a host of edge case bugs relating to array mutations
 * Many minor fixes and tweaks: #349, #351, #353, #369, #370, #376, #377, #390, #391, #393, #398, #401, #406, #412, #425, #433, #434, #439, #441, #442, #446, #451, #460, #462, #464, #465, #467, #479, #480, #483, #486, #520, #530, #536, #553, #556
 
-# 0.3.9
+
+## 0.3.9
+
+2013-12-26
 
 * `ractive.findComponent()` and `ractive.findAllComponents()` methods, for getting references to components
 * Expression results are wrapped if necessary (e.g. `{{getJSON(url)}}` wrapped by [@lluchs](https://github.com/lluchs)' [Promise adaptor](lluchs.github.io/Ractive-adaptors-Promise/))
@@ -1133,7 +1320,10 @@ Same as 0.8.14, but automated deployment had some issues.
 * SVG support is detected and exposed as `Ractive.svg`
 * If subclass has data, it is used as prototype for instance data
 
-# 0.3.8
+
+## 0.3.8
+
+2013-12-14
 
 * Reorganised project into AMD modules, using [amdclean](https://github.com/gfranko/amdclean) during build
 * [Decorators](http://docs.ractivejs.org/latest/decorators) - decorate elements with functionality, e.g. tooltips, jQuery UI widgets, etc
@@ -1146,7 +1336,10 @@ Same as 0.8.14, but automated deployment had some issues.
 * `ractive.findAll( selector, { live: true })` maintains a live list of elements matching any CSS selector
 * Various bugfixes
 
-# 0.3.7
+
+## 0.3.7
+
+2013-10-06
 
 * [Adaptors](http://docs.ractivejs.org/latest/adaptors) - use external libraries like Backbone seamlessly with Ractive
 * Dependency tracking within functions, by monitoring `ractive.get()`)
@@ -1162,7 +1355,10 @@ Same as 0.8.14, but automated deployment had some issues.
 * Hover event fires on the equivalent of mouseenter/mouseleave rather than mouseover/mouseout
 * Various bugfixes and stability/performance improvements
 
-# 0.3.6
+
+## 0.3.6
+
+2013-08-22
 
 * Better two-way binding - support for multiple checkboxes and file inputs
 * Experimental 'magic mode' - use ES5 getters and setters instead of .set() and .get(). See [#110](https://github.com/RactiveJS/Ractive/issues/110)
@@ -1171,29 +1367,44 @@ Same as 0.8.14, but automated deployment had some issues.
 * Iterate through properties of an object - see [#115](https://github.com/RactiveJS/Ractive/issues/115)
 * Bugfixes and refactoring
 
-# 0.3.5
+
+## 0.3.5
+
+2013-08-11
 
 * Experimental support for components - see [this thread](https://github.com/RactiveJS/Ractive/issues/74) for details
 * Support for [component](https://github.com/component/component) - thanks [CamShaft](https://github.com/CamShaft)
 * Option to use `on-click` style event binding (as opposed to `proxy-click`)
 * Bug fixes
 
-# 0.3.4
+
+## 0.3.4
+
+2013-08-06
 
 * `ractive.find()` and `ractive.findAll()` convenience methods (equivalent to `ractive.el.querySelector()` and `ractive.el.querySelectorAll()`)
 * Subclasses created with `Ractive.extend()` can now have a `beforeInit` method that will be called before rendering
 * Expressions no longer need to be wrapped in parentheses. Section closing mustaches for expression sections can have any content
 * Various minor bugfixes and improvements
 
-# 0.3.3
+
+## 0.3.3
+
+2013-07-21
 
 * Maintenance and bugfixes
 
-# 0.3.2
+
+## 0.3.2
+
+2013-07-16
 
 * IE8 support!
 
-# 0.3.1
+
+## 0.3.1
+
+2013-07-10
 
 * Transitions - fine-grained control over how elements are rendered and torn down
 * Inline partials
@@ -1207,7 +1418,10 @@ Same as 0.8.14, but automated deployment had some issues.
 * removed ractive.render() method
 * added ractive.renderHTML() method, for rendering template+data (in browser or server environment)
 
-# 0.3.0
+
+## 0.3.0
+
+2013-05-27
 
 * Major overhaul, particularly of the parser
 * Expressions - JS-like expressions within templates, with robust tracking of multiple dependencies. These replace formatters
@@ -1215,23 +1429,35 @@ Same as 0.8.14, but automated deployment had some issues.
 * Added adaptors (e.g. Backbone Model adaptors)
 * Various performance enhancements and bug fixes
 
-# 0.2.2
+
+## 0.2.2
+
+2013-05-07
 
 * Added event proxies. In lieu of documentation, for now, see [#27](https://github.com/RactiveJS/Ractive/issues/27)
 * Made array modification more robust and performant
 
-# 0.2.1
+
+## 0.2.1
+
+2013-04-19
 
 * Cleaned up some redundant code following 0.2.0 overhaul, some minor performance benefits
 * Linting and refactoring
 * Fixed bug where Ractive would attempt to use innerHTML with non-HTML elements (i.e. SVG text)
 
-# 0.2.0
+
+## 0.2.0
+
+2013-04-18
 
 * Major architectural overhaul. Data is now stored on the Ractive instance rather than on a separate viewmodel, allowing for cleaner and more efficient code (at the cost of the ability to share one viewmodel among many instances - a theoretical benefit at best). Data is flattened and cached, permitting lightning-fast lookups even with complex data.
 * Templates can be sanitized at compile-time to remove script tags and other hypothetical security risks. In lieu of documentation see issue #12
 
-# 0.1.9
+
+## 0.1.9
+
+2013-04-12
 
 * More complete compliance with mustache test suite
 * More efficient compilation (consecutive text nodes are concatenated, etc)
@@ -1241,7 +1467,10 @@ Same as 0.8.14, but automated deployment had some issues.
 * Element property names are used instead of attributes wherever possible (e.g. we use `node.className='...'` instead of `node.setAttribute('class','...')` internally)
 * Various bug fixes
 
-# 0.1.8
+
+## 0.1.8
+
+2013-04-05
 
 * Now using DOM fragments for better performance
 * Better support for legacy browsers
@@ -1249,20 +1478,29 @@ Same as 0.8.14, but automated deployment had some issues.
 * set() and get() now accept arrays of keys, for edge cases involving keys with periods
 * Bug fixes and refactoring
 
-# 0.1.7
+
+## 0.1.7
+
+2013-03-22
 
 * Renamed project from Anglebars to Ractive
 * Added support for animation
 * A shed-load of bug fixes, and a big dollop of refactoring
 
-# 0.1.6
+
+## 0.1.6
+
+2013-03-19
 
 * Bug fixes!
 * Modify arrays so that `pop`, `push` and other mutator methods trigger a view update
 * Removed half-finished, flaky async code. Async mode may return later
 * `set` events are called when a) `view.set()` is called, b) twoway bindings trigger them, c) array mutator methods cause an update
 
-# 0.1.5
+
+## 0.1.5
+
+2013-03-18
 
 * Split into Anglebars.compile and Anglebars.runtime, to shave a few kilobytes off in production
 * Simplified API - removed `compiled` and `compiledPartials` init options (in favour of allowing either compiled or string templates), and removed `observe` and `unobserve` instance methods
@@ -1271,6 +1509,14 @@ Same as 0.8.14, but automated deployment had some issues.
 * Support passing in jQuery collections (and lookalikes), and CSS selectors (if browser supports `document.querySelector`)
 * Index references - `{{#section:i}}<!-- {{i}} evaluates to array index inside here -->{{/section}}`
 
-# 0.1.4
+
+## 0.1.4
+
+2013-03-11
 
 * started maintaining a changelog...
+
+
+## 0.1.0
+
+2012-11-13
