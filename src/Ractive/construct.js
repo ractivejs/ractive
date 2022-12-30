@@ -155,7 +155,7 @@ function handleAttributes(ractive) {
     // grab all of the passed attribute names
     const props = attrs.filter(a => a.t === ATTRIBUTE).map(a => a.n);
 
-    // warn about missing requireds
+    // warn about missing requires
     attributes.required.forEach(p => {
       if (!~props.indexOf(p)) {
         warnIfDebug(`Component '${component.name}' requires attribute '${p}' to be provided`);

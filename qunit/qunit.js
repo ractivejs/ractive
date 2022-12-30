@@ -1401,7 +1401,7 @@ QUnit.assert = Assert.prototype = {
 	}
 };
 
-// Provide an alternative to assert.throws(), for enviroments that consider throws a reserved word
+// Provide an alternative to assert.throws(), for environments that consider throws a reserved word
 // Known to us are: Closure Compiler, Narwhal
 (function() {
 	/*jshint sub:true */
@@ -2963,7 +2963,7 @@ QUnit.diff = (function() {
                                 textInsert = textInsert.substring(commonlength);
                                 textDelete = textDelete.substring(commonlength);
                             }
-                            // Factor out any common suffixies.
+                            // Factor out any common suffixes.
                             commonlength = this.diffCommonSuffix(textInsert, textDelete);
                             if (commonlength !== 0) {
                                 diffs[pointer][1] = textInsert.substring(textInsert.length -

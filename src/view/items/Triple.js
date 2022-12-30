@@ -104,7 +104,7 @@ export default class Triple extends Mustache {
       if (occupants.length) anchor = occupants[0];
     }
 
-    // attach any remainging nodes to the parent
+    // attach any remaining nodes to the parent
     if (nodes.length) {
       const frag = createDocumentFragment();
       nodes.forEach(n => frag.appendChild(n));
