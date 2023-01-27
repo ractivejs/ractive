@@ -20,7 +20,7 @@
     "gobble-cli": "^0.8.0",
     "gobble-uglifyjs": "^0.2.1",
     "istanbul": "^0.4.5",
-    "karma": "^5",
+    "karma": "^6",
     "karma-chrome-launcher": "^2.2.0",
     "karma-coverage": "^2",
     "karma-electron": "^5.2.2",
