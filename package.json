@@ -11,7 +11,7 @@
     "@evs-chris/buble": "^0.15.2",
     "cheerio": "^1.0.0-rc.12",
     "coveralls": "^3.0.4",
-    "electron": "^3.1.11",
+    "electron": "^18.3.7",
     "eslint": "^4.19.1",
     "eslint-plugin-prettier": "^2.7",
     "fs-plus": "^3.1.1",
