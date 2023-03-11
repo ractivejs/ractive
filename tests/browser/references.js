@@ -510,6 +510,30 @@ export default function() {
     t.htmlEqual(fixture.innerHTML, 'paulpeter');
   });
 
+  test(`reference expression can resolve parent references safely`, t => {
+    t.expect(4);
+
+    new Ractive({
+      target: fixture,
+      template: `{{#each foo}}{{#each ~/[.path]}}<div>{{~/check(@context, '../../')}} {{~/check(@context, '../')}} {{~/check(@context)}}</div>{{/each}}{{/each}}`,
+      data: {
+        bar: [{}],
+        foo: [{ path: 'bar' }],
+        check(ctx, path) {
+          try {
+            const res = ctx.resolve(path);
+            t.ok(true, `context check '${path}' did not throw`);
+            return res;
+          } catch (e) {
+            t.ok(false, `context check '${path}' should not throw ${e.message}`);
+          }
+        }
+      }
+    });
+
+    t.htmlEqual(fixture.innerHTML, '<div> bar bar.0</div>');
+  });
+
   test(`key models don't have downstream keypaths (#3145)`, t => {
     new Ractive({
       target: fixture,

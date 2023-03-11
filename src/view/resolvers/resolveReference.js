@@ -64,7 +64,9 @@ export default function resolveReference(fragment, ref) {
       const part = parts.shift();
 
       if (part === '..') {
-        context = context.parent;
+        // treat reference expressions as their model
+        if (!context.parent && context.proxy && context.target) context = context.target.parent;
+        else context = context.parent;
       }
     }
 
