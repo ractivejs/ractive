@@ -1,5 +1,13 @@
 # changelog
 
+## 1.4.2
+
+2023-03-10
+
+* Bug fixes
+  * Resolve a parent context above a reference expression will now work correctly.
+
+
 ## 1.4.1
 
 2022-09-27
