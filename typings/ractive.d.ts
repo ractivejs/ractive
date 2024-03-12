@@ -1014,6 +1014,9 @@ export interface PropertyOpts<T extends Ractive<T>> {
 
 	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
 	onteardown?(this: T): void;
+
+	/** A lifecycle event that is called when an instance is being deconstructed. */
+	ondestruct?(this: T): void;
 }
 
 export interface BaseInitOpts<T extends Ractive<T> = Ractive> extends BaseParseOpts, PropertyOpts<T> {
@@ -1730,6 +1733,9 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> implements PropertyOpt
 
 	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
 	protected onteardown?(this: T): void;
+
+	/** A lifecycle event that is called when an instance is being deconstructed. */
+	protected ondestruct?(this: T): void;
 }
 
 type Merge<T, U extends readonly any[], X> = {
