@@ -412,7 +412,16 @@ export class ContextHelper {
 	unshift(keypath: string, value: any): ArrayPushPromise;
 }
 
-export type Component = Static<any> | Promise<Static<any>>;
+/**
+ * Interface for something that looks like a Ractive constructor.
+ * This is used in places, where the recursive typing declarations would otherwise cause TypeScript errors.
+ * (see #3425)
+ */
+interface CanComponent {
+    new(opts?: InitOpts): { root: Ractive; };
+}
+export type Component = CanComponent | Promise<CanComponent>;
+
 
 export type ComponentItem = {
 	instance: Ractive<any>;
