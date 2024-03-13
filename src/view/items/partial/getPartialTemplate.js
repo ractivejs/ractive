@@ -7,7 +7,7 @@ import { isArray, isFunction } from 'utils/is';
 import { addFunctions } from 'shared/getFunction';
 
 export default function getPartialTemplate(ractive, name, up) {
-  // If the partial in instance or view heirarchy instances, great
+  // If the partial in instance or view hierarchy instances, great
   let partial = getPartialFromRegistry(ractive, name, up || {});
   if (partial) return partial;
 
