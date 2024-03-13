@@ -982,22 +982,38 @@ export interface PropertyOpts<T extends Ractive<T>> {
 	/**
 	 * A lifecycle event that is called when an instance is constructed but before any initialization option has been processed.
 	 * Accepts the instance's initialization options as argument.
+     * Order: onconstruct() -> onconfig() -> oninit() -> onrender() -> oncomplete()
 	 */
 	onconstruct?(this: T, opts: InitOpts): void;
 
-	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
-	oninit?(this: T): void;
-
-	/** A lifecycle event that is called when an instance is constructed and all initialization options have been processed. */
+    /**
+     * A lifecycle event that is called when an instance is constructed and all initialization options have been processed.
+     * Order: onconstruct() -> onconfig() -> oninit() -> onrender() -> oncomplete()
+     */
 	onconfig?(this: T): void;
 
-	/** A lifecycle event that is called when the instance is rendered but before transitions start. */
+	/**
+     * A lifecycle event that is called when an instance is constructed and is ready to be rendered.
+     * Order: onconstruct() -> onconfig() -> oninit() -> onrender() -> oncomplete()
+     */
+	oninit?(this: T): void;
+
+    /**
+     * A lifecycle event that is called when the instance is rendered but before transitions start.
+     * Order: onconstruct() -> onconfig() -> oninit() -> onrender() -> oncomplete()
+     */
 	onrender?(this: T): void;
 
-	/** A lifecycle event that is called when the instance is rendered and all the transitions have completed. */
+	/**
+     * A lifecycle event that is called when the instance is rendered and all the transitions have completed.
+     * Order: onconstruct() -> onconfig() -> oninit() -> onrender() -> oncomplete()
+     */
 	oncomplete?(this: T): void;
 
-	/** A lifecycle event that is called when ractive.insert() is called. */
+	/**
+     * A lifecycle event that is called when ractive.insert() is called.
+     * Note: This is only called when ractive.insert() by a user, not for managed Ractive instances.
+     */
 	oninsert?(this: T): void;
 
 	/**
@@ -1009,13 +1025,25 @@ export interface PropertyOpts<T extends Ractive<T>> {
 	/** A lifecycle event that is called when ractive.update() is called. */
 	onupdate?(this: T): void;
 
-	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
+	/**
+     * A lifecycle event that is called before an element is unrendered (nodes removed from DOM).
+     * Note:
+     * For managed instances (instantiated components), this called before onunrender.
+     * For manually managed (torndown) components, this is called after onunrender.
+     */
 	onunrender?(this: T): void;
 
-	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
+	/**
+     * A lifecycle event that is called when an instance is about to be torndown (meaning that the databindings are being undone).
+     * For managed instances (instantiated components), this called before onunrender.
+     * For manually managed (torndown) components, this is called after onunrender.
+     */
 	onteardown?(this: T): void;
 
-	/** A lifecycle event that is called when an instance is being deconstructed. */
+	/**
+     * A lifecycle event that is called when an instance is being deconstructed.
+     * Note: This is the last lifecycle event to be called.
+     */
 	ondestruct?(this: T): void;
 }
 
@@ -1701,22 +1729,38 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> implements PropertyOpt
 	/**
 	 * A lifecycle event that is called when an instance is constructed but before any initialization option has been processed.
 	 * Accepts the instance's initialization options as argument.
+     * Order: onconstruct() -> onconfig() -> oninit() -> onrender() -> oncomplete()
 	 */
 	protected onconstruct?(this: T, opts: InitOpts): void;
 
-	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
-	protected oninit?(this: T): void;
-
-	/** A lifecycle event that is called when an instance is constructed and all initialization options have been processed. */
+    /**
+     * A lifecycle event that is called when an instance is constructed and all initialization options have been processed.
+     * Order: onconstruct() -> onconfig() -> oninit() -> onrender() -> oncomplete()
+     */
 	protected onconfig?(this: T): void;
 
-	/** A lifecycle event that is called when the instance is rendered but before transitions start. */
+	/**
+     * A lifecycle event that is called when an instance is constructed and is ready to be rendered.
+     * Order: onconstruct() -> onconfig() -> oninit() -> onrender() -> oncomplete()
+     */
+	protected oninit?(this: T): void;
+
+    /**
+     * A lifecycle event that is called when the instance is rendered but before transitions start.
+     * Order: onconstruct() -> onconfig() -> oninit() -> onrender() -> oncomplete()
+     */
 	protected onrender?(this: T): void;
 
-	/** A lifecycle event that is called when the instance is rendered and all the transitions have completed. */
+	/**
+     * A lifecycle event that is called when the instance is rendered and all the transitions have completed.
+     * Order: onconstruct() -> onconfig() -> oninit() -> onrender() -> oncomplete()
+     */
 	protected oncomplete?(this: T): void;
 
-	/** A lifecycle event that is called when ractive.insert() is called. */
+	/**
+     * A lifecycle event that is called when ractive.insert() is called.
+     * Note: This is only called when ractive.insert() by a user, not for managed Ractive instances.
+     */
 	protected oninsert?(this: T): void;
 
 	/**
@@ -1728,13 +1772,25 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> implements PropertyOpt
 	/** A lifecycle event that is called when ractive.update() is called. */
 	protected onupdate?(this: T): void;
 
-	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
+	/**
+     * A lifecycle event that is called before an element is unrendered (nodes removed from DOM).
+     * Note:
+     * For managed instances (instantiated components), this called before onunrender.
+     * For manually managed (torndown) components, this is called after onunrender.
+     */
 	protected onunrender?(this: T): void;
 
-	/** A lifecycle event that is called when an instance is constructed and is ready to be rendered. */
+	/**
+     * A lifecycle event that is called when an instance is about to be torndown (meaning that the databindings are being undone).
+     * For managed instances (instantiated components), this called before onunrender.
+     * For manually managed (torndown) components, this is called after onunrender.
+     */
 	protected onteardown?(this: T): void;
 
-	/** A lifecycle event that is called when an instance is being deconstructed. */
+	/**
+     * A lifecycle event that is called when an instance is being deconstructed.
+     * Note: This is the last lifecycle event to be called.
+     */
 	protected ondestruct?(this: T): void;
 }
 
