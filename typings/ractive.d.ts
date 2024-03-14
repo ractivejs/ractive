@@ -1112,7 +1112,7 @@ export interface InitOpts<T extends Ractive<T> = Ractive> extends BaseInitOpts<T
 
 export interface Registries<T extends Ractive<T>> {
 	adaptors: Registry<Adaptor>;
-	components: Registry<Component>;
+	components: Registry<CanComponent>;
 	decorators: Registry<Decorator<T>>;
 	easings: Registry<Easing>;
 	events: Registry<Event>;
@@ -1133,7 +1133,7 @@ export interface Static<T extends Ractive<T> = Ractive> {
 	defaults: Registries<T> & ValueMap;
 
 	adaptors: Registry<Adaptor>;
-	components: Registry<Component>;
+	components: Registry<CanComponent>;
 	css?: string|CssFn;
 	decorators: Registry<Decorator<T>>;
 	easings: Registry<Easing>;
@@ -1616,7 +1616,7 @@ export class Ractive<T extends Ractive<T> = Ractive<any>> implements PropertyOpt
 	static defaults: Registries<Ractive>;
 
 	static adaptors: Registry<Adaptor>;
-	static components: Registry<Component>;
+	static components: Registry<CanComponent>;
 	static decorators: Registry<Decorator>;
 	static easings: Registry<Easing>;
 	static events: Registry<EventPlugin>;
