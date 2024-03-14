@@ -1,5 +1,14 @@
 # changelog
 
+## 1.4.3
+
+2024-03-13
+
+* Package changes
+  * The packaged typings have been updated to resolve a recursive type error.
+  * The lifecycle event typings now have better docs and the missing `ondestruct` event has been added.
+
+
 ## 1.4.2
 
 2023-03-10
